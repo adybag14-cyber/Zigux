@@ -421,7 +421,20 @@ test "runtime trace-events loader keeps initialized-stage shared contract plans 
     try std.testing.expectEqual(@as(usize, 0), shared_plan.init_flow.selftest_runs);
 
     var shared_request = try runtime_loader.prepareRequest(shared_plan);
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_plan,
+    ));
+
     const pending_plan = try shared_request.requestRuntimeLoad();
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
     try std.testing.expect(keepsSharedLoadPlanSnapshotExplicit(plan, pending_plan));
     try std.testing.expect(pending_plan.provides_selftest_hook);
     try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
@@ -553,15 +566,32 @@ test "runtime trace-events loader surfaces shared request drift before any live 
 
     var loader = RuntimeTraceEventsLoader{};
     var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
     shared_request.plan.module_name = "runtime_trace_events_drift";
 
     try std.testing.expectError(error.SharedLoadPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        shared_request.plan,
+    ));
 
     try loader.releaseSharedWithoutSubstrate(&shared_request);
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .released_without_substrate,
+        shared_request.plan,
+    ));
 }
 
 test "runtime trace-events loader rejects shared-load-plan snapshot drift" {
