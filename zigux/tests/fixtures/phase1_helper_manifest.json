@@ -18,6 +18,25 @@
     "tools/lib/zalloc.zig"
   ],
   "review_anchors": {
+    "tools/lib/bitmap.zig": {
+      "helper_test_anchors": [
+        "test \"bitmap allocator helpers size zero and free their buffers\"",
+        "test \"bitmap set clear weight and empty full helpers\"",
+        "test \"bitmap and andnot equal intersects subset\"",
+        "test \"bitmap and andnot clamp tail bits in partial words\"",
+        "test \"bitmap xor keeps caller-selected bit window\"",
+        "test \"bitmap scnprintf collapses contiguous ranges\"",
+        "test \"bitmap scnprintf reports full length while truncating the buffer\"",
+        "test \"bitmap scnprintf handles terminator-only and zero-length caller views\"",
+        "test \"bitmap copy aliases preserve tail clearing and extension semantics\""
+      ],
+      "partial_xor_review_fields": [
+        "partial_xor_nbits",
+        "partial_xor_masked_values"
+      ],
+      "scnprintf_truncation_anchor": "test \"bitmap scnprintf reports full length while truncating the buffer\"",
+      "copy_alias_anchor": "test \"bitmap copy aliases preserve tail clearing and extension semantics\""
+    },
     "tools/lib/find_bit.zig": {
       "same_word_start_masks": "test \"single-word next scans honor start masks\"",
       "inclusive_boundary_start": "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
