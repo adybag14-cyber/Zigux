@@ -171,6 +171,19 @@ test "phase 6 hexdump overflow contract matches truncation expectations" {
     }
 }
 
+test "phase 6 hexdump grouped-2 ascii output stays intact when buffer capacity is exact" {
+    const expected = if (@import("builtin").cpu.arch.endian() == .big)
+        "be32 db7b 0a18 93b2 70ba c424 7d83 349b  .2.{....p..$}.4."
+    else
+        "32be 7bdb 180a b293 ba70 24c4 837d 9b34  .2.{....p..$}.4.";
+    var actual: [58]u8 = undefined;
+
+    const required = hexdump.hexDumpToBuffer(test_data_b[0..16], 16, 2, actual[0..], true);
+    try std.testing.expectEqual(@as(usize, 57), required);
+    try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(actual[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), actual[required]);
+}
+
 test "phase 6 hexdump grouped ASCII output stays intact when buffer capacity is exact" {
     const expected = if (@import("builtin").cpu.arch.endian() == .big)
         "be32db7b 0a1893b2 70bac424 7d83349b  .2.{....p..$}.4."
