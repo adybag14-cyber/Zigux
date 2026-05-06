@@ -19,11 +19,20 @@ This document starts the first bounded Phase 3 slice for Zigux.
   - `zigux/uapi/version.zig`
   - `zigux/tests/phase3_abi.zig`
   - `zigux/tests/phase3_low_level_wrappers.zig`
+- current export shim starter:
+  - `PHASE3_EXPORT_SCOPE=shim-only starter nested inside the ABI substrate slice`
+  - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
+  - `PHASE3_EXPORT_SHIM_BLOB_SHA=8c905094d131e7221ae1d3ba7e2f552612bb2bd7`
+  - current helper surface remains `header`, `ok`, `errno`, and `isOk`
 - current UAPI starter:
   - `PHASE3_UAPI_SCOPE=version-only starter nested inside the ABI substrate slice`
   - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
   - `PHASE3_UAPI_VERSION_BLOB_SHA=f6b080efc7d06998da6125f487b75181fe1d8ae8`
   - no additional files currently ship under `zigux/uapi/`
+- current export/UAPI survey shape:
+  - `PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice`
+  - current `master` no longer ships the older dedicated `phase3_export_uapi*` replay or `phase3-export-uapi-boundary-survey.md` note family
+  - current boundary evidence therefore lives in this shared ABI slice plus `include/linux/zigux.h`, `zigux/kernel/export_shim.zig`, and `zigux/uapi/version.zig`
 - current shared ABI replay:
   - `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
   - `PHASE3_ABI_MANIFEST_FILE_COUNT=26`
