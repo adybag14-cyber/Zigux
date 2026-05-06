@@ -33,7 +33,7 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 - a narrow `add_unless` guard-path pilot on top of the existing atomic helpers without pretending broader runtime-substrate support
 - a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, and `add_unless` expectations
 - a bounded `runtime_atomic64_loader` scaffold that names the planned init and exit handoff, the current atomic64 operation-family summary, the shared `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` request path, and the no-substrate release path while the real runtime substrate remains unavailable
-- dedicated Phase 9 tests, the runtime atomic64 survey note and survey gate, and a `make -C zigux phase9` entry
+- dedicated Phase 9 tests, the runtime atomic64 survey note and survey gate, the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade plus allocator/init-flow contract packet, and a `make -C zigux phase9` entry
 
 ## Non-goals
 
@@ -45,10 +45,13 @@ This slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 9 build
+1. run the focused shared runtime-loader shard
+- `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
+
+2. run the dedicated Phase 9 build
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase9`
 
 ## Next bounded step
