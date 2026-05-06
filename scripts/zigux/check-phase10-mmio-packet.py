@@ -22,12 +22,15 @@ FILES = [
 
 EXPECTED_HELPER_MARKERS = [
     "pub const TransportIdentitySummary = struct {",
+    "pub const SelectedQueueReadinessSummary = struct {",
     "pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {",
+    "pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary {",
     "pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {",
 ]
 
 EXPECTED_TEST_MARKERS = [
     'test "phase10 virtio mmio summarizes transport identity before lifecycle work" {',
+    'test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {',
 ]
 
 EXPECTED_SURVEY_TEST_MARKERS = [
@@ -40,14 +43,18 @@ EXPECTED_SURVEY_TEST_MARKERS = [
     'try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity summary") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "consumes that identity snapshot") != null);',
-    'try std.testing.expect(starter_landed_count >= 15);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "selected-queue readiness summary") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, slice_note, "selected-queue readiness summary") != null);',
+    'try std.testing.expect(starter_landed_count >= 16);',
     "var saw_mmio_transport_identity = false;",
+    "var saw_mmio_selected_queue_readiness = false;",
 ]
 
 EXPECTED_SLICE_MARKERS = [
     "one explicit transport-identity summary",
     "one bounded config-write disposition summary",
     "one bounded probe-preflight summary",
+    "one bounded selected-queue readiness summary",
     "zig test zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 
@@ -57,9 +64,12 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "phase10-mmio-transport-identity-helper",
     "phase10-mmio-config-write-disposition-helper",
     "phase10-mmio-probe-preflight-helper",
+    "phase10-mmio-selected-queue-readiness-helper",
     "phase10-mmio-lifecycle-and-irq-paths",
     "transport-identity summary",
     "consumes that identity snapshot",
+    "selected-queue readiness summary",
+    "queue-ready-for-handoff posture",
 ]
 
 EXPECTED_GAPS = {
@@ -74,6 +84,7 @@ EXPECTED_GAPS = {
     "phase10-mmio-transport-identity-helper": "starter_landed",
     "phase10-mmio-config-write-disposition-helper": "starter_landed",
     "phase10-mmio-probe-preflight-helper": "starter_landed",
+    "phase10-mmio-selected-queue-readiness-helper": "starter_landed",
     "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
 }
 
@@ -94,10 +105,13 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 BASELINE_FIXTURE = {
     "scripts/zigux/check-phase10-mmio-packet.py": "# synthetic fixture for self-test\n",
     "drivers/virtio/virtio_mmio.zig": """pub const TransportIdentitySummary = struct {};
+pub const SelectedQueueReadinessSummary = struct {};
 pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary { _ = self; return .{}; }
+pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary { _ = self; return .{}; }
 pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self; return .{}; }
 """,
     "zigux/tests/phase10_virtio_mmio.zig": """test \"phase10 virtio mmio summarizes transport identity before lifecycle work\" {}
+test \"phase10 virtio mmio summarizes selected-queue readiness before queue handoff\" {}
 """,
     "zigux/tests/phase10_virtio_mmio_survey.zig": """test \"phase10 virtio mmio survey manifest records the landed identity-backed packet\" {
     try std.testing.expectEqualStrings(\"P10-L10\", manifest.lane_key);
@@ -108,13 +122,17 @@ pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self
     try std.testing.expectEqualStrings(\"blocked_on_risky_transport\", manifest.risky_transport_posture);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, \"transport-identity summary\") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, \"consumes that identity snapshot\") != null);
-    try std.testing.expect(starter_landed_count >= 15);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, \"selected-queue readiness summary\") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, \"selected-queue readiness summary\") != null);
+    try std.testing.expect(starter_landed_count >= 16);
     var saw_mmio_transport_identity = false;
+    var saw_mmio_selected_queue_readiness = false;
 }
 """,
     "Documentation/zigux/phase10-virtio-mmio-slice.md": """- one explicit transport-identity summary
 - one bounded config-write disposition summary
 - one bounded probe-preflight summary
+- one bounded selected-queue readiness summary
 - `zig test zigux/tests/phase10_virtio_mmio_survey.zig`
 """,
     "Documentation/zigux/phase10-virtio-mmio-survey.md": """- `PHASE10_STATUS=parked`
@@ -122,9 +140,12 @@ pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self
 - `phase10-mmio-transport-identity-helper`
 - `phase10-mmio-config-write-disposition-helper`
 - `phase10-mmio-probe-preflight-helper`
+- `phase10-mmio-selected-queue-readiness-helper`
 - `phase10-mmio-lifecycle-and-irq-paths`
 - transport-identity summary
 - consumes that identity snapshot
+- selected-queue readiness summary
+- queue-ready-for-handoff posture
 """,
     "zigux/tests/phase10_virtio_mmio_manifest.json": json.dumps(
         {
@@ -168,6 +189,7 @@ pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self
                 {"id": "phase10-mmio-transport-identity-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-config-write-disposition-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-probe-preflight-helper", "status": "starter_landed"},
+                {"id": "phase10-mmio-selected-queue-readiness-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-lifecycle-and-irq-paths", "status": "blocked_on_risky_transport"},
             ],
         },
@@ -248,7 +270,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:preexisting_phase10_test_files=11")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 12:
+    if len(gaps) < 13:
         missing_markers.append("manifest:gaps")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     for gap_id, status in EXPECTED_GAPS.items():
@@ -323,12 +345,12 @@ def run_self_test() -> int:
         survey_path = tmp_root / "Documentation/zigux/phase10-virtio-mmio-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
-            original_survey.replace("transport-identity summary", "identity drift surface", 1),
+            original_survey.replace("selected-queue readiness summary", "queue-handoff drift surface", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "survey_note:transport-identity summary" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_transport_identity_marker_missing")
+        if "survey_note:selected-queue readiness summary" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_selected_queue_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
         slice_path = tmp_root / "Documentation/zigux/phase10-virtio-mmio-slice.md"
@@ -344,9 +366,22 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "slice:zig test zigux/tests/phase10_virtio_mmio_survey.zig" not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_slice_survey_gate_marker_missing")
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        test_path.write_text(
+            original_test.replace(
+                'test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {',
+                'test "phase10 virtio mmio summarizes queue-handoff drift before queue handoff" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'tests:test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {' not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_selected_queue_test_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
