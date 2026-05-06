@@ -12,7 +12,7 @@ It is not a closure claim, and it is not itself a shipped replay surface.
 - sequencing authority: `Documentation/zigux/phase12-release-sequencing.md`
 - shipped build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - workflow replay anchor: `.github/workflows/zigux-bootstrap.yml`
-- freeze-map boundary reminder: `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in boundary-study-only status, so this Phase 12 closure companion must not round queueing, rollback, or recovery wording up into deep-core delivery claims
+- freeze-map boundary reminder: `Documentation/zigux/freeze-map.md` keeps `net/core/skbuff.c` frozen in C and keeps `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c` in boundary-study-only status, so this Phase 12 closure companion must not round queueing, throughput, rollback, or recovery wording up into deep-core delivery claims
 
 ## Shared replay order
 1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
@@ -52,6 +52,7 @@ It is not a closure claim, and it is not itself a shipped replay surface.
 - `zigux/tests/README.md` now keeps `Documentation/zigux/phase12-release-closure-checklist.md` visible from the shared Phase 12 tests-root packet, so the earlier tests-root reminder gap is no longer the live blocker on `master`.
 - `scripts/zigux/check-build-only-phase12-surface.py` still does not explicitly pin `Documentation/zigux/phase12-release-closure-checklist.md` inside its fail-closed marker set, so the closure companion is visible across the docs-root, sequencing, and tests-root packet but is not yet enforced by the shipped checker.
 - the smallest same-lane follow-through is therefore the dedicated checker-local closure-companion update plus self-test replay, followed by a reread of the shared Phase 12 release surfaces so the PMO companion stays named consistently without widening into new validator, queueing, or runtime-recovery claims.
-- Queueing and recovery language must keep the freeze-map split explicit: this release packet can describe bounded driver-local, libbpf, and lab-only rollback evidence, but it must not imply active delivery against `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`.
+- Queueing, throughput, and recovery language must keep the freeze-map split explicit: this release packet can describe bounded driver-local, libbpf, and lab-only rollback evidence, but it must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
 - This checklist should be refreshed whenever the shipped packet changes, but it should stay companion-scoped until the shared replay packet itself satisfies the closure conditions.
 - Any future PMO follow-through should therefore start with that checker-local closure-companion update, then rerun `scripts/zigux/check-build-only-phase12-surface.py` and reread `zigux/tests/README.md` before widening into new wording, extra release claims, or any driver-local or helper-local Phase 12 task.
+
