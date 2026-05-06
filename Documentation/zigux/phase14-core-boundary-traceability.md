@@ -21,7 +21,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_workqueue_bridge_manifest.json`
 - survey note: `Documentation/zigux/phase14-workqueue-bridge-survey.md`
-- lane key: `P14-L04`
+- lane key: `P14-L01`
 - surveyed commit: `9e278f632d6d5097cb8cfc2dc61744ae105baa8c`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-workqueue-live-execution-blocker`
