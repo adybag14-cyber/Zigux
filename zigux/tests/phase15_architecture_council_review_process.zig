@@ -122,6 +122,9 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "`Documentation/zigux/phase15-parity-scorecard.md`");
     try expectContains(survey_doc, "`Documentation/zigux/phase15-indefinite-c-policy.md`");
     try expectContains(survey_doc, "`Documentation/zigux/review-checklist.md`");
+    try expectContains(survey_doc, "`scripts/zigux/README.md`");
+    try expectContains(survey_doc, "`zigux/tests/README.md`");
+    try expectContains(survey_doc, "`scripts/zigux/check-phase15-scripts-readme-alignment.py`");
     try expectContains(survey_doc, "`scripts/zigux/check-phase15-review-process-handoff.py`");
     try expectContains(survey_doc, "`zigux/tests/phase15_architecture_council_review_process_manifest.json`");
     try expectContains(survey_doc, "`zigux/tests/phase15_architecture_council_review_process.zig`");
@@ -156,7 +159,15 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     );
     try expectContains(
         script_readme,
+        "check-phase15-scripts-readme-alignment.py",
+    );
+    try expectContains(
+        script_readme,
         "check-phase15-review-process-handoff.py",
+    );
+    try expectContains(
+        script_readme,
+        "zigux/tests/README.md",
     );
     try expectContains(
         script_readme,
@@ -185,6 +196,10 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(tests_readme, "Documentation/zigux/phase15-parity-scorecard.md");
     try expectContains(tests_readme, "Documentation/zigux/phase15-indefinite-c-policy.md");
     try expectContains(tests_readme, "Documentation/zigux/review-checklist.md");
+    try expectContains(
+        tests_readme,
+        "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    );
     try expectContains(tests_readme, "scripts/zigux/check-phase15-review-process-handoff.py");
     try expectContains(tests_readme, "zigux/tests/phase15_build.zig");
     try expectContains(tests_readme, "zigux/tests/phase15_freeze_map_governance.zig");
@@ -237,6 +252,12 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(manifest_doc, "Documentation/zigux/phase15-parity-scorecard.md");
     try expectContains(manifest_doc, "Documentation/zigux/phase15-indefinite-c-policy.md");
     try expectContains(manifest_doc, "Documentation/zigux/review-checklist.md");
+    try expectContains(manifest_doc, "scripts/zigux/README.md");
+    try expectContains(manifest_doc, "zigux/tests/README.md");
+    try expectContains(
+        manifest_doc,
+        "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    );
     try expectContains(manifest_doc, "scripts/zigux/check-phase15-review-process-handoff.py");
     try expectContains(
         manifest_doc,
