@@ -32,11 +32,13 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(docs_root, "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample");
     try expectContains(docs_root, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(docs_root, "zigux/tests/phase7_build.zig");
+    try expectContains(docs_root, "scripts/zigux/check-phase7-build-wiring.py");
 
     const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
     defer allocator.free(scripts_root);
     try expectContains(scripts_root, "scripts/zigux/validate-phase7.py");
     try expectContains(scripts_root, "scripts/zigux/check-phase7-make-wrapper.py");
+    try expectContains(scripts_root, "scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(scripts_root, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(scripts_root, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
     try expectContains(scripts_root, "make -C zigux phase7-validate");
@@ -48,6 +50,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(validate_phase7, "\"zigux/tests/phase7_cmdline_survey.zig\"");
     try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig\"");
     try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-make-wrapper.py\"");
+    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-build-wiring.py\"");
 
     const samples_root = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(samples_root);
@@ -69,6 +72,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     defer allocator.free(tests_root);
     try expectContains(tests_root, "`scripts/zigux/validate-phase7.py`");
     try expectContains(tests_root, "`scripts/zigux/check-phase7-make-wrapper.py`");
+    try expectContains(tests_root, "`scripts/zigux/check-phase7-build-wiring.py`");
     try expectContains(tests_root, "the dedicated `zigux/tests/phase7_cmdline_survey.zig` cmdline survey gate");
     try expectContains(tests_root, "`make -C zigux phase7-validate`");
     try expectContains(tests_root, "`make -C zigux phase7`");
@@ -78,7 +82,9 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(zigux_makefile, "phase7-validate:");
     try expectContains(zigux_makefile, "scripts/zigux/validate-phase7.py --self-test");
     try expectContains(zigux_makefile, "scripts/zigux/check-phase7-make-wrapper.py --self-test");
+    try expectContains(zigux_makefile, "scripts/zigux/check-phase7-build-wiring.py --self-test");
     try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py");
+    try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(zigux_makefile, "phase7: phase7-validate phase7-test");
 
     const cmdline_tests = try readRepoFile(allocator, "zigux/tests/phase7_cmdline.zig");
