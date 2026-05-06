@@ -21,6 +21,80 @@ test "phase11 hvc_console exposes the bounded descriptor and slot validation" {
     try std.testing.expectError(error.ConsoleUnavailable, console.stageWrite("boot\n", 5));
 }
 
+test "phase11 hvc console keeps open handoff boundaries reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(12);
+    _ = console.instantiate(0xc0);
+
+    const first_open = try console.summarizeOpenHandoff(.{});
+    try std.testing.expectEqual(@as(usize, 12), first_open.slot_index);
+    try std.testing.expectEqual(@as(u32, 0xc0), first_open.vtermno);
+    try std.testing.expect(first_open.adapter_present);
+    try std.testing.expectEqual(@as(usize, 0), first_open.open_count_before_open);
+    try std.testing.expectEqual(@as(usize, 1), first_open.open_count_after_open);
+    try std.testing.expect(!first_open.already_open);
+    try std.testing.expect(first_open.tty_port_tty_set_requested);
+    try std.testing.expect(first_open.notifier_add_reviewable);
+    try std.testing.expect(first_open.notifier_add_requested);
+    try std.testing.expect(!first_open.notifier_add_failed);
+    try std.testing.expect(first_open.dtr_rts_raise_requested);
+    try std.testing.expect(first_open.port_initialized);
+    try std.testing.expect(first_open.khvcd_wakeup_reviewable);
+    try std.testing.expect(first_open.khvcd_wakeup_requested);
+    try std.testing.expect(first_open.host_io_deferred);
+
+    const already_open = try console.summarizeOpenHandoff(.{
+        .open_count_before_open = 1,
+    });
+    try std.testing.expectEqual(@as(usize, 1), already_open.open_count_before_open);
+    try std.testing.expectEqual(@as(usize, 2), already_open.open_count_after_open);
+    try std.testing.expect(already_open.already_open);
+    try std.testing.expect(!already_open.tty_port_tty_set_requested);
+    try std.testing.expect(!already_open.notifier_add_requested);
+    try std.testing.expect(!already_open.notifier_add_failed);
+    try std.testing.expect(!already_open.dtr_rts_raise_requested);
+    try std.testing.expect(!already_open.port_initialized);
+    try std.testing.expect(already_open.khvcd_wakeup_requested);
+
+    const failed_notifier = try console.summarizeOpenHandoff(.{
+        .notifier_add_result = -16,
+    });
+    try std.testing.expect(!failed_notifier.already_open);
+    try std.testing.expect(failed_notifier.tty_port_tty_set_requested);
+    try std.testing.expect(failed_notifier.notifier_add_requested);
+    try std.testing.expect(failed_notifier.notifier_add_failed);
+    try std.testing.expect(!failed_notifier.dtr_rts_raise_requested);
+    try std.testing.expect(!failed_notifier.port_initialized);
+    try std.testing.expect(failed_notifier.khvcd_wakeup_requested);
+
+    const notifierless = try console.summarizeOpenHandoff(.{
+        .notifier_add_available = false,
+    });
+    try std.testing.expect(!notifierless.notifier_add_requested);
+    try std.testing.expect(!notifierless.notifier_add_failed);
+    try std.testing.expect(notifierless.dtr_rts_raise_requested);
+    try std.testing.expect(notifierless.port_initialized);
+
+    const no_baud = try console.summarizeOpenHandoff(.{
+        .baud_configured = false,
+    });
+    try std.testing.expect(!no_baud.dtr_rts_raise_requested);
+    try std.testing.expect(no_baud.port_initialized);
+
+    const no_dtr_rts = try console.summarizeOpenHandoff(.{
+        .dtr_rts_available = false,
+    });
+    try std.testing.expect(!no_dtr_rts.dtr_rts_raise_requested);
+    try std.testing.expect(no_dtr_rts.port_initialized);
+
+    try std.testing.expectError(error.NotifierAddResultWithoutNotifier, console.summarizeOpenHandoff(.{
+        .notifier_add_available = false,
+        .notifier_add_result = -1,
+    }));
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeOpenHandoff(.{}));
+}
+
 test "phase11 hvc_console summarizes final-close wait boundaries without claiming tty registration" {
     var console = try hvc_console.HvcConsoleLab.init(2);
     _ = console.instantiate(0x41);
