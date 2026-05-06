@@ -25,6 +25,8 @@ REQUIRED_MAKEFILE_LINES = (
 REQUIRED_WORKFLOW_LINES = (
     'run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
     'run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
+    'run: python3 scripts/zigux/check-kconfig-bridge.py --self-test',
+    'run: python3 scripts/zigux/check-kconfig-bridge.py',
 )
 
 
@@ -135,6 +137,10 @@ def build_self_test_root(root: Path) -> None:
             "        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
             "      - name: Check Phase 2 kconfig selftest alignment",
             "        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+            "      - name: Self-test bounded kconfig bridge parity checker",
+            "        run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+            "      - name: Check bounded kconfig bridge parity",
+            "        run: python3 scripts/zigux/check-kconfig-bridge.py",
             "",
         )),
     )
