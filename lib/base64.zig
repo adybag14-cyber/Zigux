@@ -398,7 +398,7 @@ test "chars matches padded and unpadded output sizes" {
 
 test "bytes matches canonical padded and unpadded decode sizes" {
     try std.testing.expectEqual(@as(usize, 13), try bytes("SGVsbG8sIHdvcmxkIQ==", true, .std));
-    try std.testing.expectEqual(@as(usize, 6), try bytes("Zm9vYmFy", false, .std));
+    try std.testing.expectEqual(@as(usize, 13), try bytes("SGVsbG8sIHdvcmxkIQ", false, .std));
     try std.testing.expectEqual(@as(usize, 5), try bytes("APv_f4A", false, .urlsafe));
     try std.testing.expectEqual(@as(usize, 5), try bytes("APv,f4A=", true, .imap));
 }
@@ -434,8 +434,8 @@ test "decode covers padded, unpadded, and variant inputs" {
     const padded_len = try decode(out[0..], "SGVsbG8sIHdvcmxkIQ==", true, .std);
     try std.testing.expectEqualStrings("Hello, world!", out[0..padded_len]);
 
-    const unpadded_len = try decode(out[0..], "Zm9vYmFy", false, .std);
-    try std.testing.expectEqualStrings("foobar", out[0..unpadded_len]);
+    const unpadded_len = try decode(out[0..], "SGVsbG8sIHdvcmxkIQ", false, .std);
+    try std.testing.expectEqualStrings("Hello, world!", out[0..unpadded_len]);
 
     const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
     const url_len = try decode(variant_out[0..], "APv_f4A", false, .urlsafe);
