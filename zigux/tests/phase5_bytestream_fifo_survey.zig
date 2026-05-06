@@ -127,8 +127,8 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "short-drain-prefix")) {
             saw_short_drain_prefix = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "\"hel\"") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "\"lo\"") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "\\\"hel\\\"") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "\\\"lo\\\"") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "returns 0") != null);
         }
         if (std.mem.eql(u8, check.id, "lifecycle-boundary")) {
@@ -218,6 +218,8 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         "runtime_trace_events.zig",
         "runtime_trace_events_loader.zig",
         "loader-side follow-ons",
+        "`samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
+        "shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too",
     };
 
     for (required_mentions) |needle| {
@@ -360,8 +362,8 @@ test "phase 5 bytestream fifo survey note records the short-drain helper contrac
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "draining a three-byte destination from the queued string `\"hello\"` yields `\"hel\"`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "leaves the remaining prefix `\"lo\"` queued in order") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "draining a three-byte destination from the queued string `\\\"hello\\\"` yields `\\\"hel\\\"`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "leaves the remaining prefix `\\\"lo\\\"` queued in order") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "follow-up drain on the now-empty queue returns `0`") != null);
 }
 
@@ -417,7 +419,7 @@ test "phase 5 bytestream fifo survey note records the latest verification snapsh
         "passed `5/5` sample self-checks",
         "passed `5/5` build steps and `8/8` tests",
         "len_after_initial_fill = 15",
-        "first_out = \"hello\"",
+        "first_out = \\\"hello\\\"",
         "second_out = {0, 1}",
         "skipped_byte = 2",
         "peek_value = 3",
