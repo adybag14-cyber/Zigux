@@ -96,4 +96,6 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_impl, "pub fn kasprintfStrarray");
     try expectContains(helper_impl, "pub fn skipSpaces");
     try expectContains(helper_impl, "pub fn strim");
+    try expectContains(helper_impl, "test \"kasprintfStrarray frees intermediate allocations when setup fails\"");
+    try expectContains(helper_impl, "std.testing.checkAllAllocationFailures");
 }
