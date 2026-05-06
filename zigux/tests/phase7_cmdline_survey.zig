@@ -48,6 +48,11 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(next_arg_fixture, ".name = \"quoted bare token with trailing token\",");
     try expectContains(next_arg_fixture, ".name = \"empty quoted bare token stays empty and unsplit\",");
     try expectContains(next_arg_fixture, ".name = \"quoted bare token with equals stays unsplit\",");
+    try expectContains(next_arg_fixture, ".name = \"empty whitespace-separated value stays on the current token\",");
+    try expectContains(next_arg_fixture, ".name = \"first equals wins inside the value\",");
+    try expectContains(next_arg_fixture, ".name = \"leading equals sign stays in the parameter token\",");
     try expectContains(next_arg_fixture, ".expected_param = \"\",");
     try expectContains(next_arg_fixture, ".expected_param = \"key=value\",");
+    try expectContains(next_arg_fixture, ".expected_param = \"=bad\",");
+    try expectContains(next_arg_fixture, ".expected_value = \"alpha=beta\",");
 }
