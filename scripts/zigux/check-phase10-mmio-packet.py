@@ -21,44 +21,44 @@ FILES = [
 ]
 
 EXPECTED_HELPER_MARKERS = [
-    "pending_config_write: ?ConfigWritePlanSummary = null,",
-    "pub fn bumpConfigGeneration(self: *Self) void {",
-    "self.pending_config_write = null;",
+    "pub const TransportIdentitySummary = struct {",
+    "pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {",
+    "pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {",
 ]
 
 EXPECTED_TEST_MARKERS = [
-    'test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {',
+    'test "phase10 virtio mmio summarizes transport identity before lifecycle work" {',
 ]
 
 EXPECTED_SURVEY_TEST_MARKERS = [
-    'test "phase10 virtio mmio survey manifest records the live helper-backed transport gap" {',
+    'test "phase10 virtio mmio survey manifest records the landed identity-backed packet" {',
     'try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);',
     'try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);',
     'try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);',
     'try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);',
     'try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);',
     'try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity snapshot") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "hard-codes its magic, version, and vendor assumptions") != null);',
-    'try std.testing.expectEqual(@as(usize, 1), ready_next_count);',
-    "var saw_mmio_transport_identity_next = false;",
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity summary") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "consumes that identity snapshot") != null);',
+    'try std.testing.expect(starter_landed_count >= 15);',
+    "var saw_mmio_transport_identity = false;",
 ]
 
 EXPECTED_SLICE_MARKERS = [
+    "one explicit transport-identity summary",
     "one bounded config-write disposition summary",
     "one bounded probe-preflight summary",
-    "transport-identity snapshot helper",
 ]
 
 EXPECTED_SURVEY_NOTE_MARKERS = [
     "PHASE10_STATUS=parked",
     "PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport",
+    "phase10-mmio-transport-identity-helper",
     "phase10-mmio-config-write-disposition-helper",
     "phase10-mmio-probe-preflight-helper",
-    "phase10-mmio-transport-identity-helper",
     "phase10-mmio-lifecycle-and-irq-paths",
-    "transport-identity snapshot",
-    "hard-codes its magic, version, and vendor assumptions",
+    "transport-identity summary",
+    "consumes that identity snapshot",
 ]
 
 EXPECTED_GAPS = {
@@ -70,9 +70,9 @@ EXPECTED_GAPS = {
     "phase10-mmio-feature-word-selector-helper": "starter_landed",
     "phase10-mmio-config-window-helper": "starter_landed",
     "phase10-mmio-config-write-plan-helper": "starter_landed",
+    "phase10-mmio-transport-identity-helper": "starter_landed",
     "phase10-mmio-config-write-disposition-helper": "starter_landed",
     "phase10-mmio-probe-preflight-helper": "starter_landed",
-    "phase10-mmio-transport-identity-helper": "ready_next",
     "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
 }
 
@@ -92,36 +92,37 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 
 BASELINE_FIXTURE = {
     "scripts/zigux/check-phase10-mmio-packet.py": "# synthetic fixture for self-test\n",
-    "drivers/virtio/virtio_mmio.zig": """pending_config_write: ?ConfigWritePlanSummary = null,
-pub fn bumpConfigGeneration(self: *Self) void { self.pending_config_write = null; }
+    "drivers/virtio/virtio_mmio.zig": """pub const TransportIdentitySummary = struct {};
+pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary { _ = self; return .{}; }
+pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self; return .{}; }
 """,
-    "zigux/tests/phase10_virtio_mmio.zig": """test \"phase10 virtio mmio config-generation bumps clear stale planned config writes\" {}
+    "zigux/tests/phase10_virtio_mmio.zig": """test \"phase10 virtio mmio summarizes transport identity before lifecycle work\" {}
 """,
-    "zigux/tests/phase10_virtio_mmio_survey.zig": """test \"phase10 virtio mmio survey manifest records the live helper-backed transport gap\" {
+    "zigux/tests/phase10_virtio_mmio_survey.zig": """test \"phase10 virtio mmio survey manifest records the landed identity-backed packet\" {
     try std.testing.expectEqualStrings(\"P10-L10\", manifest.lane_key);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings(\"drivers/virtio/*.zig\", manifest.roadmap_destinations[0]);
     try std.testing.expectEqualStrings(\"zigux/kernel/\", manifest.roadmap_destinations[1]);
     try std.testing.expectEqualStrings(\"zigux/helpers/\", manifest.roadmap_destinations[2]);
     try std.testing.expectEqualStrings(\"blocked_on_risky_transport\", manifest.risky_transport_posture);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, \"transport-identity snapshot\") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, \"hard-codes its magic, version, and vendor assumptions\") != null);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
-    var saw_mmio_transport_identity_next = false;
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, \"transport-identity summary\") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, \"consumes that identity snapshot\") != null);
+    try std.testing.expect(starter_landed_count >= 15);
+    var saw_mmio_transport_identity = false;
 }
 """,
-    "Documentation/zigux/phase10-virtio-mmio-slice.md": """- one bounded config-write disposition summary
+    "Documentation/zigux/phase10-virtio-mmio-slice.md": """- one explicit transport-identity summary
+- one bounded config-write disposition summary
 - one bounded probe-preflight summary
-- transport-identity snapshot helper
 """,
     "Documentation/zigux/phase10-virtio-mmio-survey.md": """- `PHASE10_STATUS=parked`
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
+- `phase10-mmio-transport-identity-helper`
 - `phase10-mmio-config-write-disposition-helper`
 - `phase10-mmio-probe-preflight-helper`
-- `phase10-mmio-transport-identity-helper`
 - `phase10-mmio-lifecycle-and-irq-paths`
-- transport-identity snapshot
-- hard-codes its magic, version, and vendor assumptions
+- transport-identity summary
+- consumes that identity snapshot
 """,
     "zigux/tests/phase10_virtio_mmio_manifest.json": json.dumps(
         {
@@ -162,9 +163,9 @@ pub fn bumpConfigGeneration(self: *Self) void { self.pending_config_write = null
                 {"id": "phase10-mmio-feature-word-selector-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-config-window-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-config-write-plan-helper", "status": "starter_landed"},
+                {"id": "phase10-mmio-transport-identity-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-config-write-disposition-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-probe-preflight-helper", "status": "starter_landed"},
-                {"id": "phase10-mmio-transport-identity-helper", "status": "ready_next"},
                 {"id": "phase10-mmio-lifecycle-and-irq-paths", "status": "blocked_on_risky_transport"},
             ],
         },
@@ -282,48 +283,48 @@ def run_self_test() -> int:
         helper_path = tmp_root / "drivers/virtio/virtio_mmio.zig"
         original_helper = helper_path.read_text(encoding="utf-8")
         helper_path.write_text(
-            original_helper.replace("self.pending_config_write = null;", "self.pending_config_write = drift;", 1),
+            original_helper.replace("pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {", "pub fn transportIdentityDrift(self: *const Self) TransportIdentitySummary {", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "helper:self.pending_config_write = null;" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_rollover_clear_marker_missing")
+        if "helper:pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_identity_helper_marker_missing")
         helper_path.write_text(original_helper, encoding="utf-8")
 
         test_path = tmp_root / "zigux/tests/phase10_virtio_mmio.zig"
         original_test = test_path.read_text(encoding="utf-8")
         test_path.write_text(
             original_test.replace(
-                'test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {',
-                'test "phase10 virtio mmio config-generation drift skips stale planned config writes" {',
+                'test "phase10 virtio mmio summarizes transport identity before lifecycle work" {',
+                'test "phase10 virtio mmio identity drift before lifecycle work" {',
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'tests:test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {' not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_rollover_test_marker_missing")
+        if 'tests:test "phase10 virtio mmio summarizes transport identity before lifecycle work" {' not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_identity_test_marker_missing")
         test_path.write_text(original_test, encoding="utf-8")
 
         manifest_path = tmp_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
-            original_manifest.replace('"phase10-mmio-transport-identity-helper"', '"phase10-mmio-transport-identity-drift"', 1),
+            original_manifest.replace('"phase10-mmio-transport-identity-helper", "status": "starter_landed"', '"phase10-mmio-transport-identity-helper", "status": "ready_next"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "manifest:gap:phase10-mmio-transport-identity-helper" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_transport_identity_gap_marker_missing")
+        if "manifest:gap_status:phase10-mmio-transport-identity-helper=ready_next" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_transport_identity_status_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         survey_path = tmp_root / "Documentation/zigux/phase10-virtio-mmio-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
-            original_survey.replace("transport-identity snapshot", "identity drift surface", 1),
+            original_survey.replace("transport-identity summary", "identity drift surface", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "survey_note:transport-identity snapshot" not in missing_markers:
+        if "survey_note:transport-identity summary" not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_transport_identity_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
