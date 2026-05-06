@@ -11,6 +11,7 @@ The starter stays intentionally narrow:
 - records the fixed event-buffer fanout used by the driver and derives one bounded restore-time event-buffer ownership summary so the event queue remains reserved across freeze and restore without claiming event work handling, request submission, or live transport reset completion
 - freezes queue planning and event recycling intent across a lab-only transport freeze or restore boundary, then clears the old queue snapshot so the next step must replan instead of pretending virtqueues stayed live; the focused gate now also proves that a second freeze or restore cycle uses the newly replanned topology and increments the bounded recovery generation instead of reusing stale queue state
 - derives one bounded restore-sequencing summary from the frozen queue layout so the starter keeps `virtscsi_restore()` calling `find_vqs`, `virtio_device_ready()`, and event rearm reviewable without pretending to re-run `scsi_scan_host()`
+- records one bounded recovery event-rearm summary from the frozen queue layout so the starter keeps the reused event queue index, the device-ready-before-rearm rule, and event rearm before event recycling or request queue reuse explicit without claiming live completion handling
 
 This slice does not claim DMA mapping, scatter-gather command assembly, `Scsi_Host` registration, blk-mq submission, event-work recycling, TMF handling, hotplug, or live transport reset recovery.
 
