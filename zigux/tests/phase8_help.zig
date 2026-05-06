@@ -10,6 +10,7 @@ test "phase 8 help module imports cleanly" {
 
 test "phase 8 help slice note keeps helper-first output-stable tooling posture explicit" {
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "serious repo-hosted tooling"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "tools/lib/subcmd/*.zig"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "output-stable tooling behavior"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "output-stable pretty-print emission"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "full `cmd_help()`-adjacent CLI surface"));
