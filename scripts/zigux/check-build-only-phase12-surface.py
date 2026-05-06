@@ -35,6 +35,7 @@ REQUIRED_FILE_MARKERS = {
     DOCS_README_PATH: [
         "Phase 12 notes",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`make -C zigux phase12-smoke`",
         "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
     ],
@@ -78,11 +79,13 @@ REQUIRED_FILE_MARKERS = {
     SCRIPTS_README_PATH: [
         "Phase 12 flow",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed",
         "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
     ],
     TESTS_README_PATH: [
         "keep `Documentation/zigux/phase12-release-closure-checklist.md` visible beside `Documentation/zigux/phase12-release-sequencing.md`",
+        "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`scripts/zigux/check-build-only-phase12-surface.py`",
         "`make -C zigux phase12`",
     ],
@@ -90,6 +93,8 @@ REQUIRED_FILE_MARKERS = {
         'const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");',
         'const test_step = b.step("test", "Run Phase 12 driver and survey tests");',
         "phase12_virtio_net_syntax_lab_module",
+        "phase12_virtio_scsi_syntax_lab_module",
+        "run_phase12_virtio_scsi_syntax_lab_tests.step",
         "phase12_libbpf_reviewability_module",
     ],
     MAKEFILE_PATH: [
@@ -153,6 +158,7 @@ def write_fixture_tree(root: Path) -> None:
 Phase 12 notes
 - `Documentation/zigux/phase12-release-sequencing.md`
 - `Documentation/zigux/phase12-release-closure-checklist.md`
+- `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - `make -C zigux phase12-smoke`
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`
 """,
@@ -227,6 +233,7 @@ Phase 12 notes
         """# scripts/zigux
 Phase 12 flow
 - `Documentation/zigux/phase12-release-closure-checklist.md`
+- `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - `check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`
 """,
@@ -236,6 +243,7 @@ Phase 12 flow
         TESTS_README_PATH,
         """# zigux/tests
 - keep `Documentation/zigux/phase12-release-closure-checklist.md` visible beside `Documentation/zigux/phase12-release-sequencing.md`
+- `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - `scripts/zigux/check-build-only-phase12-surface.py`
 - `make -C zigux phase12`
 """,
@@ -246,6 +254,8 @@ Phase 12 flow
         """const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");
 const test_step = b.step("test", "Run Phase 12 driver and survey tests");
 const phase12_virtio_net_syntax_lab_module = b.createModule(.{});
+const phase12_virtio_scsi_syntax_lab_module = b.createModule(.{});
+run_phase12_virtio_scsi_syntax_lab_tests.step
 const phase12_libbpf_reviewability_module = b.createModule(.{});
 """,
     )
