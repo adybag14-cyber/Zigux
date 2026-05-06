@@ -287,6 +287,16 @@ pub fn build(b: *std.Build) void {
     });
     const run_runtime_kretprobe_survey_tests = b.addRunArtifact(runtime_kretprobe_survey_tests);
 
+    const runtime_atomic64_tests_step = b.step(
+        "phase9-runtime-atomic64-tests",
+        "Run the focused Phase 9 runtime atomic64 sample, module, loader, diff, and survey tests",
+    );
+    runtime_atomic64_tests_step.dependOn(&run_runtime_atomic64_sample_tests.step);
+    runtime_atomic64_tests_step.dependOn(&run_runtime_atomic64_module_tests.step);
+    runtime_atomic64_tests_step.dependOn(&run_runtime_atomic64_loader_tests.step);
+    runtime_atomic64_tests_step.dependOn(&run_runtime_atomic64_diff_tests.step);
+    runtime_atomic64_tests_step.dependOn(&run_runtime_atomic64_survey_tests.step);
+
     const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, runtime-loader facade, contract, and allocator/init-flow tests");
     test_step.dependOn(&run_runtime_atomic64_sample_tests.step);
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
