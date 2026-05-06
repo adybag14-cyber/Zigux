@@ -228,6 +228,30 @@ test "phase12 virtio scsi event buffer ownership stays reserved to the event que
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventBufferOwnershipSummary());
 }
 
+test "phase12 virtio scsi event rearm summary keeps restore ordering tied to the event queue" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventRearmSummary());
+
+    _ = try lab.planQueueLayout(7, 2);
+    _ = try lab.freezeForTransportReset();
+
+    const summary = try lab.recoveryEventRearmSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), summary.event_queue_index);
+    try std.testing.expectEqual(@as(u16, 7), summary.request_queues);
+    try std.testing.expectEqual(@as(u16, 5), summary.default_queues);
+    try std.testing.expectEqual(@as(u16, 2), summary.poll_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), summary.event_buffer_count);
+    try std.testing.expect(summary.reuses_frozen_event_queue_index);
+    try std.testing.expect(summary.requires_device_ready_before_rearm);
+    try std.testing.expect(summary.rearms_event_queue_before_event_recycling);
+    try std.testing.expect(summary.rearms_event_queue_before_request_queue_reuse);
+
+    _ = try lab.restoreAfterTransportReset();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventRearmSummary());
+}
+
 test "phase12 virtio scsi rollback summary keeps frozen topology gated until replanning" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
 
