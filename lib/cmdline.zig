@@ -444,6 +444,15 @@ test "nextArg keeps a quoted bare token containing equals together" {
     try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
 }
 
+test "nextArg keeps an empty quoted bare token unsplit" {
+    var buffer = [_]u8{ '"', '"', ' ', 'n', 'e', 'x', 't', 0 };
+    const parsed = nextArg(&buffer);
+
+    try std.testing.expectEqualStrings("", parsed.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), parsed.value);
+    try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
+}
+
 test "nextArg keeps unquoted values and empty quoted values bounded to the current token" {
     var unquoted = [_]u8{ 'c', 'o', 'n', 's', 'o', 'l', 'e', '=', 't', 't', 'y', 'S', '0', ',', '1', '1', '5', '2', '0', '0', 'n', '8', ' ', 'p', 'a', 'n', 'i', 'c', '=', '-', '1', 0 };
     const parsed_unquoted = nextArg(&unquoted);
