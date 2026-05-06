@@ -13,6 +13,8 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 PHASE12_SEQUENCE_PATH = "Documentation/zigux/phase12-release-sequencing.md"
+NVME_FALLBACK_MAP_PATH = "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
+VIRTIO_SCSI_FALLBACK_PATH = "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
 VIRTIO_NET_SURVEY_PATH = "Documentation/zigux/phase12-virtio-net-survey.md"
 LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
@@ -86,6 +88,38 @@ REQUIRED_SEQUENCE_EXACT_COUNTS = {
     "focused smoke preflight entrypoint: `make -C zigux phase12-smoke`": 1,
     "The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:": 1,
     "keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording instead of reopening already-landed naming repairs or inventing removed validator surfaces": 1,
+}
+
+REQUIRED_NVME_FALLBACK_MARKERS = [
+    "# Phase 12 NVMe PCI Raw GitHub Fallback Map",
+    "## Shared replay reminder",
+    "1. `make -C zigux phase12-smoke`",
+    "2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+    "3. `make -C zigux phase12`",
+    "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.",
+]
+
+REQUIRED_NVME_FALLBACK_EXACT_COUNTS = {
+    "1. `make -C zigux phase12-smoke`": 1,
+    "2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`": 1,
+    "3. `make -C zigux phase12`": 1,
+    "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.": 1,
+}
+
+REQUIRED_VIRTIO_SCSI_FALLBACK_MARKERS = [
+    "# Phase 12 Virtio SCSI Raw GitHub Fallback Catalog",
+    "## Shared replay reminder",
+    "1. `make -C zigux phase12-smoke`",
+    "2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+    "3. `make -C zigux phase12`",
+    "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.",
+]
+
+REQUIRED_VIRTIO_SCSI_FALLBACK_EXACT_COUNTS = {
+    "1. `make -C zigux phase12-smoke`": 1,
+    "2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`": 1,
+    "3. `make -C zigux phase12`": 1,
+    "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.": 1,
 }
 
 REQUIRED_VIRTIO_NET_SURVEY_MARKERS = [
@@ -213,6 +247,8 @@ def validate(root: Path) -> list[str]:
         DOCS_README_PATH,
         REVIEW_CHECKLIST_PATH,
         PHASE12_SEQUENCE_PATH,
+        NVME_FALLBACK_MAP_PATH,
+        VIRTIO_SCSI_FALLBACK_PATH,
         VIRTIO_NET_SURVEY_PATH,
         LIBBPF_SURVEY_PATH,
         SCRIPTS_README_PATH,
@@ -242,6 +278,8 @@ def validate(root: Path) -> list[str]:
     docs_readme = read_text(root, DOCS_README_PATH)
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
     phase12_sequence = read_text(root, PHASE12_SEQUENCE_PATH)
+    nvme_fallback_map = read_text(root, NVME_FALLBACK_MAP_PATH)
+    virtio_scsi_fallback = read_text(root, VIRTIO_SCSI_FALLBACK_PATH)
     virtio_net_survey = read_text(root, VIRTIO_NET_SURVEY_PATH)
     libbpf_survey = read_text(root, LIBBPF_SURVEY_PATH)
     scripts_readme = read_text(root, SCRIPTS_README_PATH)
@@ -259,6 +297,12 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_SEQUENCE_MARKERS:
         if marker not in phase12_sequence:
             failures.append(f"phase12_sequence:{marker}")
+    for marker in REQUIRED_NVME_FALLBACK_MARKERS:
+        if marker not in nvme_fallback_map:
+            failures.append(f"nvme_fallback_map:{marker}")
+    for marker in REQUIRED_VIRTIO_SCSI_FALLBACK_MARKERS:
+        if marker not in virtio_scsi_fallback:
+            failures.append(f"virtio_scsi_fallback:{marker}")
     for marker in REQUIRED_VIRTIO_NET_SURVEY_MARKERS:
         if marker not in virtio_net_survey:
             failures.append(f"virtio_net_survey:{marker}")
@@ -296,6 +340,10 @@ def validate(root: Path) -> list[str]:
         expect_exact_count(docs_readme, marker, count, "docs_readme_exact_count", failures)
     for marker, count in REQUIRED_SEQUENCE_EXACT_COUNTS.items():
         expect_exact_count(phase12_sequence, marker, count, "phase12_sequence_exact_count", failures)
+    for marker, count in REQUIRED_NVME_FALLBACK_EXACT_COUNTS.items():
+        expect_exact_count(nvme_fallback_map, marker, count, "nvme_fallback_map_exact_count", failures)
+    for marker, count in REQUIRED_VIRTIO_SCSI_FALLBACK_EXACT_COUNTS.items():
+        expect_exact_count(virtio_scsi_fallback, marker, count, "virtio_scsi_fallback_exact_count", failures)
     for marker, count in REQUIRED_TESTS_README_EXACT_COUNTS.items():
         expect_exact_count(tests_readme, marker, count, "tests_readme_exact_count", failures)
     for marker, count in REQUIRED_PHASE12_BUILD_EXACT_COUNTS.items():
@@ -352,6 +400,26 @@ Phase 12 notes
 - The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:
 - keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording instead of reopening already-landed naming repairs or inventing removed validator surfaces
 - if the lane reopens for another degraded-workflow drift, start by diffing those shipped packet surfaces and rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into any driver-local or helper-local Phase 12 work
+""",
+    )
+    write(
+        root / NVME_FALLBACK_MAP_PATH,
+        """# Phase 12 NVMe PCI Raw GitHub Fallback Map
+## Shared replay reminder
+1. `make -C zigux phase12-smoke`
+2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+3. `make -C zigux phase12`
+The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.
+""",
+    )
+    write(
+        root / VIRTIO_SCSI_FALLBACK_PATH,
+        """# Phase 12 Virtio SCSI Raw GitHub Fallback Catalog
+## Shared replay reminder
+1. `make -C zigux phase12-smoke`
+2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+3. `make -C zigux phase12`
+The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.
 """,
     )
     write(
@@ -489,9 +557,7 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(duplicate_smoke_makefile, encoding="utf-8")
         failures = validate(root)
-        expected_duplicate = (
-            "makefile_exact_count:phase12-smoke::count=2:expected=1"
-        )
+        expected_duplicate = "makefile_exact_count:phase12-smoke::count=2:expected=1"
         expected_duplicate_run = (
             "makefile_exact_count:$(ZIG) build smoke --build-file "
             "zigux/tests/phase12_build.zig --summary all:count=2:expected=1"
@@ -502,35 +568,20 @@ def run_self_test() -> int:
             for failure in failures:
                 print(failure)
             return 1
-
         makefile_path.write_text(original_makefile, encoding="utf-8")
+
         sequence_path = root / PHASE12_SEQUENCE_PATH
         original_sequence = sequence_path.read_text(encoding="utf-8")
-        sequence_smoke_marker = (
-            "focused smoke preflight entrypoint: `make -C zigux phase12-smoke`"
-        )
-        sequence_marker = (
-            "The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:"
-        )
-        sequence_drift_marker = (
-            "keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording instead of reopening already-landed naming repairs or inventing removed validator surfaces"
-        )
+        sequence_smoke_marker = "focused smoke preflight entrypoint: `make -C zigux phase12-smoke`"
+        sequence_marker = "The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:"
+        sequence_drift_marker = "keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording instead of reopening already-landed naming repairs or inventing removed validator surfaces"
 
-        missing_sequence_smoke = original_sequence.replace(
-            f"- {sequence_smoke_marker}\n",
-            "",
-            1,
-        )
+        missing_sequence_smoke = original_sequence.replace(f"- {sequence_smoke_marker}\n", "", 1)
         sequence_path.write_text(missing_sequence_smoke, encoding="utf-8")
         failures = validate(root)
         expected_sequence_smoke_missing = f"phase12_sequence:{sequence_smoke_marker}"
-        expected_sequence_smoke_missing_exact = (
-            f"phase12_sequence_exact_count:{sequence_smoke_marker}:count=0:expected=1"
-        )
-        if (
-            expected_sequence_smoke_missing not in failures
-            or expected_sequence_smoke_missing_exact not in failures
-        ):
+        expected_sequence_smoke_missing_exact = f"phase12_sequence_exact_count:{sequence_smoke_marker}:count=0:expected=1"
+        if expected_sequence_smoke_missing not in failures or expected_sequence_smoke_missing_exact not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("phase12-sequence-smoke-missing-guard")
             for failure in failures:
@@ -544,32 +595,21 @@ def run_self_test() -> int:
         )
         sequence_path.write_text(duplicate_sequence_smoke, encoding="utf-8")
         failures = validate(root)
-        expected_sequence_smoke_duplicate = (
-            f"phase12_sequence_exact_count:{sequence_smoke_marker}:count=2:expected=1"
-        )
+        expected_sequence_smoke_duplicate = f"phase12_sequence_exact_count:{sequence_smoke_marker}:count=2:expected=1"
         if expected_sequence_smoke_duplicate not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("phase12-sequence-smoke-duplicate-guard")
             for failure in failures:
                 print(failure)
             return 1
-
         sequence_path.write_text(original_sequence, encoding="utf-8")
-        missing_sequence = original_sequence.replace(
-            f"- {sequence_marker}\n",
-            "",
-            1,
-        )
+
+        missing_sequence = original_sequence.replace(f"- {sequence_marker}\n", "", 1)
         sequence_path.write_text(missing_sequence, encoding="utf-8")
         failures = validate(root)
         expected_sequence_missing = f"phase12_sequence:{sequence_marker}"
-        expected_sequence_missing_exact = (
-            f"phase12_sequence_exact_count:{sequence_marker}:count=0:expected=1"
-        )
-        if (
-            expected_sequence_missing not in failures
-            or expected_sequence_missing_exact not in failures
-        ):
+        expected_sequence_missing_exact = f"phase12_sequence_exact_count:{sequence_marker}:count=0:expected=1"
+        if expected_sequence_missing not in failures or expected_sequence_missing_exact not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("phase12-sequence-review-checklist-missing-guard")
             for failure in failures:
@@ -583,32 +623,21 @@ def run_self_test() -> int:
         )
         sequence_path.write_text(duplicate_sequence, encoding="utf-8")
         failures = validate(root)
-        expected_sequence_duplicate = (
-            f"phase12_sequence_exact_count:{sequence_marker}:count=2:expected=1"
-        )
+        expected_sequence_duplicate = f"phase12_sequence_exact_count:{sequence_marker}:count=2:expected=1"
         if expected_sequence_duplicate not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("phase12-sequence-review-checklist-duplicate-guard")
             for failure in failures:
                 print(failure)
             return 1
-
         sequence_path.write_text(original_sequence, encoding="utf-8")
-        missing_sequence_drift = original_sequence.replace(
-            f"- {sequence_drift_marker}\n",
-            "",
-            1,
-        )
+
+        missing_sequence_drift = original_sequence.replace(f"- {sequence_drift_marker}\n", "", 1)
         sequence_path.write_text(missing_sequence_drift, encoding="utf-8")
         failures = validate(root)
         expected_sequence_drift_missing = f"phase12_sequence:{sequence_drift_marker}"
-        expected_sequence_drift_missing_exact = (
-            f"phase12_sequence_exact_count:{sequence_drift_marker}:count=0:expected=1"
-        )
-        if (
-            expected_sequence_drift_missing not in failures
-            or expected_sequence_drift_missing_exact not in failures
-        ):
+        expected_sequence_drift_missing_exact = f"phase12_sequence_exact_count:{sequence_drift_marker}:count=0:expected=1"
+        if expected_sequence_drift_missing not in failures or expected_sequence_drift_missing_exact not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("phase12-sequence-drift-control-missing-guard")
             for failure in failures:
@@ -622,38 +651,25 @@ def run_self_test() -> int:
         )
         sequence_path.write_text(duplicate_sequence_drift, encoding="utf-8")
         failures = validate(root)
-        expected_sequence_drift_duplicate = (
-            f"phase12_sequence_exact_count:{sequence_drift_marker}:count=2:expected=1"
-        )
+        expected_sequence_drift_duplicate = f"phase12_sequence_exact_count:{sequence_drift_marker}:count=2:expected=1"
         if expected_sequence_drift_duplicate not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("phase12-sequence-drift-control-duplicate-guard")
             for failure in failures:
                 print(failure)
             return 1
-
         sequence_path.write_text(original_sequence, encoding="utf-8")
+
         docs_readme_path = root / DOCS_README_PATH
         original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
-        docs_readme_smoke_marker = (
-            "`make -C zigux phase12-smoke` now stays explicit as the focused preflight shard ahead of `zig build test --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12`, so the release-facing docs root does not leave that shipped smoke route trapped in the Makefile or sequencing note alone."
-        )
+        docs_readme_smoke_marker = "`make -C zigux phase12-smoke` now stays explicit as the focused preflight shard ahead of `zig build test --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12`, so the release-facing docs root does not leave that shipped smoke route trapped in the Makefile or sequencing note alone."
 
-        missing_docs_readme_smoke = original_docs_readme.replace(
-            f"- {docs_readme_smoke_marker}\n",
-            "",
-            1,
-        )
+        missing_docs_readme_smoke = original_docs_readme.replace(f"- {docs_readme_smoke_marker}\n", "", 1)
         docs_readme_path.write_text(missing_docs_readme_smoke, encoding="utf-8")
         failures = validate(root)
         expected_docs_readme_missing = f"docs_readme:{docs_readme_smoke_marker}"
-        expected_docs_readme_missing_exact = (
-            f"docs_readme_exact_count:{docs_readme_smoke_marker}:count=0:expected=1"
-        )
-        if (
-            expected_docs_readme_missing not in failures
-            or expected_docs_readme_missing_exact not in failures
-        ):
+        expected_docs_readme_missing_exact = f"docs_readme_exact_count:{docs_readme_smoke_marker}:count=0:expected=1"
+        if expected_docs_readme_missing not in failures or expected_docs_readme_missing_exact not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("phase12-docs-readme-smoke-missing-guard")
             for failure in failures:
@@ -667,43 +683,25 @@ def run_self_test() -> int:
         )
         docs_readme_path.write_text(duplicate_docs_readme_smoke, encoding="utf-8")
         failures = validate(root)
-        expected_docs_readme_duplicate = (
-            f"docs_readme_exact_count:{docs_readme_smoke_marker}:count=2:expected=1"
-        )
+        expected_docs_readme_duplicate = f"docs_readme_exact_count:{docs_readme_smoke_marker}:count=2:expected=1"
         if expected_docs_readme_duplicate not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("phase12-docs-readme-smoke-duplicate-guard")
             for failure in failures:
                 print(failure)
             return 1
-
         docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
         review_checklist_path = root / REVIEW_CHECKLIST_PATH
         original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
-        review_checklist_smoke_marker = (
-            "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`"
-        )
+        review_checklist_smoke_marker = "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`"
 
-        missing_review_checklist_smoke = original_review_checklist.replace(
-            f"{review_checklist_smoke_marker}, ",
-            "",
-            1,
-        )
-        review_checklist_path.write_text(
-            missing_review_checklist_smoke,
-            encoding="utf-8",
-        )
+        missing_review_checklist_smoke = original_review_checklist.replace(f"{review_checklist_smoke_marker}, ", "", 1)
+        review_checklist_path.write_text(missing_review_checklist_smoke, encoding="utf-8")
         failures = validate(root)
-        expected_review_checklist_missing = (
-            f"review_checklist:{review_checklist_smoke_marker}"
-        )
-        expected_review_checklist_missing_exact = (
-            f"review_checklist_exact_count:{review_checklist_smoke_marker}:count=0:expected=1"
-        )
-        if (
-            expected_review_checklist_missing not in failures
-            or expected_review_checklist_missing_exact not in failures
-        ):
+        expected_review_checklist_missing = f"review_checklist:{review_checklist_smoke_marker}"
+        expected_review_checklist_missing_exact = f"review_checklist_exact_count:{review_checklist_smoke_marker}:count=0:expected=1"
+        if expected_review_checklist_missing not in failures or expected_review_checklist_missing_exact not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("phase12-review-checklist-smoke-missing-guard")
             for failure in failures:
@@ -715,40 +713,89 @@ def run_self_test() -> int:
             f"{review_checklist_smoke_marker} {review_checklist_smoke_marker}",
             1,
         )
-        review_checklist_path.write_text(
-            duplicate_review_checklist_smoke,
-            encoding="utf-8",
-        )
+        review_checklist_path.write_text(duplicate_review_checklist_smoke, encoding="utf-8")
         failures = validate(root)
-        expected_review_checklist_duplicate = (
-            f"review_checklist_exact_count:{review_checklist_smoke_marker}:count=2:expected=1"
-        )
+        expected_review_checklist_duplicate = f"review_checklist_exact_count:{review_checklist_smoke_marker}:count=2:expected=1"
         if expected_review_checklist_duplicate not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("phase12-review-checklist-smoke-duplicate-guard")
             for failure in failures:
                 print(failure)
             return 1
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
+        nvme_fallback_path = root / NVME_FALLBACK_MAP_PATH
+        original_nvme_fallback = nvme_fallback_path.read_text(encoding="utf-8")
+        nvme_smoke_marker = "1. `make -C zigux phase12-smoke`"
+
+        missing_nvme_smoke = original_nvme_fallback.replace(f"{nvme_smoke_marker}\n", "", 1)
+        nvme_fallback_path.write_text(missing_nvme_smoke, encoding="utf-8")
+        failures = validate(root)
+        expected_nvme_missing = f"nvme_fallback_map:{nvme_smoke_marker}"
+        expected_nvme_missing_exact = f"nvme_fallback_map_exact_count:{nvme_smoke_marker}:count=0:expected=1"
+        if expected_nvme_missing not in failures or expected_nvme_missing_exact not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-nvme-fallback-smoke-missing-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+
+        duplicate_nvme_smoke = original_nvme_fallback.replace(
+            f"{nvme_smoke_marker}\n",
+            f"{nvme_smoke_marker}\n{nvme_smoke_marker}\n",
+            1,
+        )
+        nvme_fallback_path.write_text(duplicate_nvme_smoke, encoding="utf-8")
+        failures = validate(root)
+        expected_nvme_duplicate = f"nvme_fallback_map_exact_count:{nvme_smoke_marker}:count=2:expected=1"
+        if expected_nvme_duplicate not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-nvme-fallback-smoke-duplicate-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        nvme_fallback_path.write_text(original_nvme_fallback, encoding="utf-8")
+
+        virtio_scsi_fallback_path = root / VIRTIO_SCSI_FALLBACK_PATH
+        original_virtio_scsi_fallback = virtio_scsi_fallback_path.read_text(encoding="utf-8")
+        virtio_scsi_smoke_marker = "1. `make -C zigux phase12-smoke`"
+
+        missing_virtio_scsi_smoke = original_virtio_scsi_fallback.replace(f"{virtio_scsi_smoke_marker}\n", "", 1)
+        virtio_scsi_fallback_path.write_text(missing_virtio_scsi_smoke, encoding="utf-8")
+        failures = validate(root)
+        expected_virtio_scsi_missing = f"virtio_scsi_fallback:{virtio_scsi_smoke_marker}"
+        expected_virtio_scsi_missing_exact = f"virtio_scsi_fallback_exact_count:{virtio_scsi_smoke_marker}:count=0:expected=1"
+        if expected_virtio_scsi_missing not in failures or expected_virtio_scsi_missing_exact not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-virtio-scsi-fallback-smoke-missing-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+
+        duplicate_virtio_scsi_smoke = original_virtio_scsi_fallback.replace(
+            f"{virtio_scsi_smoke_marker}\n",
+            f"{virtio_scsi_smoke_marker}\n{virtio_scsi_smoke_marker}\n",
+            1,
+        )
+        virtio_scsi_fallback_path.write_text(duplicate_virtio_scsi_smoke, encoding="utf-8")
+        failures = validate(root)
+        expected_virtio_scsi_duplicate = f"virtio_scsi_fallback_exact_count:{virtio_scsi_smoke_marker}:count=2:expected=1"
+        if expected_virtio_scsi_duplicate not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-virtio-scsi-fallback-smoke-duplicate-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        virtio_scsi_fallback_path.write_text(original_virtio_scsi_fallback, encoding="utf-8")
+
     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Check the shared Phase 12 build-only review surface."
-    )
-    parser.add_argument(
-        "root",
-        nargs="?",
-        default=ROOT,
-        type=Path,
-        help="Repository root to validate. Defaults to the current directory.",
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run the fixture-backed self-test.",
-    )
+    parser = argparse.ArgumentParser(description="Check the shared Phase 12 build-only review surface.")
+    parser.add_argument("root", nargs="?", default=ROOT, type=Path, help="Repository root to validate. Defaults to the current directory.")
+    parser.add_argument("--self-test", action="store_true", help="Run the fixture-backed self-test.")
     args = parser.parse_args()
 
     if args.self_test:
@@ -769,6 +816,10 @@ def main() -> int:
         + len(REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS)
         + len(REQUIRED_SEQUENCE_MARKERS)
         + len(REQUIRED_SEQUENCE_EXACT_COUNTS)
+        + len(REQUIRED_NVME_FALLBACK_MARKERS)
+        + len(REQUIRED_NVME_FALLBACK_EXACT_COUNTS)
+        + len(REQUIRED_VIRTIO_SCSI_FALLBACK_MARKERS)
+        + len(REQUIRED_VIRTIO_SCSI_FALLBACK_EXACT_COUNTS)
         + len(REQUIRED_VIRTIO_NET_SURVEY_MARKERS)
         + len(REQUIRED_LIBBPF_SURVEY_MARKERS)
         + len(REQUIRED_SCRIPT_README_MARKERS)
