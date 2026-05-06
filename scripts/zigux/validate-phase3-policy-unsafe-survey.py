@@ -13,6 +13,7 @@ MAKEFILE_REL = "zigux/Makefile"
 ALLOCATOR_POLICY_REL = "zigux/helpers/allocator_policy.zig"
 PANIC_POLICY_REL = "zigux/helpers/panic_policy.zig"
 UNSAFE_NARROW_REL = "zigux/unsafe/narrow.zig"
+ABI_TEST_REL = "zigux/tests/phase3_abi.zig"
 ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
 
@@ -106,13 +107,23 @@ REQUIRED_NARROW_UNSAFE_SNIPPETS = (
     "try std.testing.expect(permitsRawPointerBridgePolicyBytes(2, 0));",
 )
 
+REQUIRED_ABI_TEST_SNIPPETS = (
+    'const panic_policy = @import("panic_policy");',
+    'const allocator_policy = @import("allocator_policy");',
+    'const narrow = @import("narrow_unsafe");',
+)
+
 REQUIRED_ABI_DUMP_SNIPPETS = (
+    'try writer.writeAll(",\\\"panic_abort\\\":");',
+    'try writer.writeAll(",\\\"allocator_caller_provided\\\":");',
     'try writer.writeAll(",\\\"unsafe_scope_raw_pointer_bridge\\\":");',
     'try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));',
     'try writeLayoutPrefix(writer, "zigux_interop_policy", @sizeOf(abi.InteropPolicy), @alignOf(abi.InteropPolicy));',
 )
 
 REQUIRED_ABI_EXPECTED_SNIPPETS = (
+    '"panic_abort":0',
+    '"allocator_caller_provided":0',
     '"unsafe_scope_raw_pointer_bridge":2',
     '"zigux_mmio_range":{"size":16,"align":8,"offsets":{"base_addr":0,"length":8,"stride":12}}',
     '"zigux_interop_policy":{"size":4,"align":1,"offsets":{"panic_mode":0,"allocator_mode":1,"unsafe_scope":2,"reserved":3}}',
@@ -169,6 +180,7 @@ def validate(root: Path) -> list[str]:
     allocator_policy_path = root / ALLOCATOR_POLICY_REL
     panic_policy_path = root / PANIC_POLICY_REL
     narrow_unsafe_path = root / UNSAFE_NARROW_REL
+    abi_test_path = root / ABI_TEST_REL
     abi_dump_path = root / ABI_DUMP_REL
     abi_expected_path = root / ABI_EXPECTED_REL
 
@@ -225,6 +237,13 @@ def validate(root: Path) -> list[str]:
         issues.append(f"missing_file:{UNSAFE_NARROW_REL}")
     else:
         require_snippets(issues, narrow_unsafe, "narrow_unsafe", REQUIRED_NARROW_UNSAFE_SNIPPETS)
+
+    try:
+        abi_test = abi_test_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        issues.append(f"missing_file:{ABI_TEST_REL}")
+    else:
+        require_snippets(issues, abi_test, "abi_test", REQUIRED_ABI_TEST_SNIPPETS)
 
     try:
         abi_dump = abi_dump_path.read_text(encoding="utf-8")
@@ -294,7 +313,7 @@ def build_valid_workspace(root: Path) -> None:
         ALLOCATOR_POLICY_REL: "\n".join(REQUIRED_ALLOCATOR_POLICY_SNIPPETS) + "\n",
         "zigux/helpers/mmio.zig": "// mmio\n",
         UNSAFE_NARROW_REL: "\n".join(REQUIRED_NARROW_UNSAFE_SNIPPETS) + "\n",
-        "zigux/tests/phase3_abi.zig": "// abi test\n",
+        ABI_TEST_REL: "\n".join(REQUIRED_ABI_TEST_SNIPPETS) + "\n",
         ABI_DUMP_REL: "\n".join(REQUIRED_ABI_DUMP_SNIPPETS) + "\n",
         ABI_EXPECTED_REL: "\n".join(REQUIRED_ABI_EXPECTED_SNIPPETS) + "\n",
         "zigux/tests/fixtures/phase3_abi_manifest.json": "{\n  \"phase\": \"Phase 3\"\n}\n",
@@ -449,6 +468,19 @@ def run_self_test() -> int:
         )
 
         build_valid_workspace(root)
+        broken_abi_test = (root / ABI_TEST_REL).read_text(encoding="utf-8").replace(
+            'const narrow = @import("narrow_unsafe");\n',
+            "",
+            1,
+        )
+        write_file(root / ABI_TEST_REL, broken_abi_test)
+        issues = validate(root)
+        assert (
+            'missing_abi_test_snippet:const narrow = @import("narrow_unsafe");'
+            in issues
+        )
+
+        build_valid_workspace(root)
         broken_makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
             MAKEFILE_REQUIRED_LINES[1] + "\n",
             "",
@@ -499,6 +531,19 @@ def run_self_test() -> int:
         )
 
         build_valid_workspace(root)
+        broken_abi_dump_panic = (root / ABI_DUMP_REL).read_text(encoding="utf-8").replace(
+            'try writer.writeAll(",\\\"panic_abort\\\":");\n',
+            "",
+            1,
+        )
+        write_file(root / ABI_DUMP_REL, broken_abi_dump_panic)
+        issues = validate(root)
+        assert (
+            'missing_abi_dump_snippet:try writer.writeAll(",\\\"panic_abort\\\":");'
+            in issues
+        )
+
+        build_valid_workspace(root)
         broken_abi_expected = (root / ABI_EXPECTED_REL).read_text(encoding="utf-8").replace(
             '"zigux_interop_policy":{"size":4,"align":1,"offsets":{"panic_mode":0,"allocator_mode":1,"unsafe_scope":2,"reserved":3}}\n',
             "",
@@ -511,8 +556,21 @@ def run_self_test() -> int:
             in issues
         )
 
+        build_valid_workspace(root)
+        broken_abi_expected_allocator = (root / ABI_EXPECTED_REL).read_text(encoding="utf-8").replace(
+            '"allocator_caller_provided":0\n',
+            "",
+            1,
+        )
+        write_file(root / ABI_EXPECTED_REL, broken_abi_expected_allocator)
+        issues = validate(root)
+        assert (
+            'missing_abi_expected_snippet:"allocator_caller_provided":0'
+            in issues
+        )
+
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=15")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
