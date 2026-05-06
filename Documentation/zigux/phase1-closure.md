@@ -224,6 +224,14 @@ That means `test "bitmap copy alias preserves raw source words without tail clea
 
 - `PHASE1_BITMAP_RAW_COPY_ALIAS_REVIEW=helper-local raw bitmap_copy alias proof stays explicit through the direct bitmap test anchor so copy and bitmap_copy preserve unmasked source words instead of silently adopting tail-clearing semantics`
 
+The helper-local zero-bit no-op proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+
+That means `test "bitmap zero-bit helpers stay explicit no-ops"` stays present and review-visible whenever `zero()`, `orBits()`, `xorBits()`, `copy()`, or `scnprintf()` changes. This helper-local test is the bounded proof that zero-bit windows keep the mutating helpers, boolean queries, and rendered empty-window path explicit without touching caller-visible storage or writing hidden bytes.
+
+- `PHASE1_BITMAP_ZERO_BIT_NOOP_REVIEW=helper-local bitmap zero-bit no-op proof stays explicit through the direct bitmap test anchor so zero-bit windows keep mutating helpers, boolean queries, and the rendered empty-window path from touching caller-visible storage or writing hidden bytes`
+
 ## Rbtree Review Rule
 
 For `tools/lib/rbtree.zig`, reviewers must keep the current bounded Phase 1 rbtree surface explicit through:
