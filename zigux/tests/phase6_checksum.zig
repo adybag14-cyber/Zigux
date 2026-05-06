@@ -237,6 +237,7 @@ test "fixture-backed negate cases keep the public checksum helper reviewable" {
     for (fixtures.negate_cases) |case| {
         const negated = checksum.negate(case.sum);
         try std.testing.expectEqual(case.expected_negate, negated);
+        try std.testing.expectEqual(case.sum, checksum.negate(negated));
         try std.testing.expectEqual(case.expected_add_with_negate, checksum.add(case.sum, negated));
     }
 }
