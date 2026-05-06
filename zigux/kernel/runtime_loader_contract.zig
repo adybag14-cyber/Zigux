@@ -418,7 +418,7 @@ test "shared runtime loader contract rejects request state or plan drift" {
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_init_flow));
 }
 
-test "shared runtime loader contract keeps command, environment, registration-summary, and depmod-facing control surfaces outside the request contract" {
+test "shared runtime loader contract keeps command, environment, registration-summary, depmod-facing, and study-only core-boundary control surfaces outside the request contract" {
     try std.testing.expect(!@hasField(LoadPlan, "command_name"));
     try std.testing.expect(!@hasField(LoadPlan, "argv_policy"));
     try std.testing.expect(!@hasField(LoadPlan, "activation_env"));
@@ -457,6 +457,12 @@ test "shared runtime loader contract keeps command, environment, registration-su
     try std.testing.expect(!@hasField(LoadPlan, "depmod_script"));
     try std.testing.expect(!@hasField(LoadPlan, "depmod_manifest"));
     try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));
+    try std.testing.expect(!@hasField(LoadPlan, "worker_pool"));
+    try std.testing.expect(!@hasField(LoadPlan, "manage_workers"));
+    try std.testing.expect(!@hasField(LoadPlan, "queue_work_on"));
+    try std.testing.expect(!@hasField(LoadPlan, "ring_buffer_read_start"));
+    try std.testing.expect(!@hasField(LoadPlan, "ring_buffer_consume"));
+    try std.testing.expect(!@hasField(LoadPlan, "ring_buffer_map_get_reader"));
     try std.testing.expect(!@hasField(PreparedRequest, "command_name"));
     try std.testing.expect(!@hasField(PreparedRequest, "activation_env"));
     try std.testing.expect(!@hasField(PreparedRequest, "register_api"));
@@ -484,6 +490,12 @@ test "shared runtime loader contract keeps command, environment, registration-su
     try std.testing.expect(!@hasField(PreparedRequest, "module_aliases"));
     try std.testing.expect(!@hasField(PreparedRequest, "modules_alias_path"));
     try std.testing.expect(!@hasField(PreparedRequest, "depmod_script"));
+    try std.testing.expect(!@hasField(PreparedRequest, "worker_pool"));
+    try std.testing.expect(!@hasField(PreparedRequest, "manage_workers"));
+    try std.testing.expect(!@hasField(PreparedRequest, "queue_work_on"));
+    try std.testing.expect(!@hasField(PreparedRequest, "ring_buffer_read_start"));
+    try std.testing.expect(!@hasField(PreparedRequest, "ring_buffer_consume"));
+    try std.testing.expect(!@hasField(PreparedRequest, "ring_buffer_map_get_reader"));
 
     const stable_plan = LoadPlan{
         .module_name = "runtime_trace_events",
