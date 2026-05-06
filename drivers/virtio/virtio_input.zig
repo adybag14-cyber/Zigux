@@ -461,7 +461,9 @@ pub const VirtioInputLab = struct {
 
     pub fn registrationPreflightSummary(self: *const Self) RegistrationPreflightSummary {
         const queue_callback_preflight = self.queueCallbackPreflightSummary();
-        const queue_plan_ready = queue_callback_preflight.ready_for_queue_callbacks;
+        const queue_plan_ready = queue_callback_preflight.event_queue_configured and
+            queue_callback_preflight.status_queue_configured and
+            queue_callback_preflight.event_buffers_ready;
         const device_ready = queue_callback_preflight.device_ready;
         const capability_setup_ready = self.capabilitySetupReady();
         const multitouch_slots_ready = !self.multitouchSlotsRequired() or self.planned_multitouch_slots != 0;
