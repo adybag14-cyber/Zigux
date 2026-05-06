@@ -131,7 +131,7 @@ This shared smoke slice does not claim:
 - live workqueue execution, draining, or cancellation parity
 - skbuff lifetime, destructor, checksum, or segmentation ownership
 - `kernel/trace/ring_buffer.zig`
-- `kernel/rcu/tree_bridge.zig`
+- any live `kernel/rcu/tree_bridge.zig` ownership claim
 - any Phase 14 status change beyond the current study-only shared packet
 
 ## Gates
