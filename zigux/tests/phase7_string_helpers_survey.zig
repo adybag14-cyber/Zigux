@@ -1,0 +1,49 @@
+const std = @import("std");
+
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
+}
+
+test "phase 7 string helpers survey keeps the roadmap-backed helper packet reviewable" {
+    const allocator = std.testing.allocator;
+
+    const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-string-helpers-slice.md");
+    defer allocator.free(slice_note);
+    try expectContains(slice_note, "lib/string_helpers.c");
+    try expectContains(slice_note, "lib/string_helpers.zig");
+    try expectContains(slice_note, "zigux/tests/phase7_string_helpers.zig");
+    try expectContains(slice_note, "zigux/tests/phase7_string_helpers_survey.zig");
+    try expectContains(slice_note, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(slice_note, "zig build test --build-file zigux/tests/phase7_build.zig");
+    try expectContains(slice_note, "python3 scripts/zigux/validate-phase7.py");
+    try expectContains(slice_note, "make -C zigux phase7");
+    try expectContains(slice_note, "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.");
+
+    const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
+    defer allocator.free(build_file);
+    try expectContains(build_file, "\"phase7_string_helpers.zig\"");
+    try expectContains(build_file, "\"phase7_string_helpers_survey.zig\"");
+    try expectContains(build_file, "\"phase7-string-helpers-tests\"");
+    try expectContains(build_file, "\"phase7-string-helpers-survey-tests\"");
+    try expectContains(build_file, "run_string_helpers_survey_tests.setCwd(b.path(\"../..\"));");
+
+    const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
+    defer allocator.free(helper_tests);
+    try expectContains(helper_tests, "phase 7 stringUnescape covers deterministic Linux escape fixtures");
+    try expectContains(helper_tests, "phase 7 stringEscapeMem covers the bounded escape subset");
+    try expectContains(helper_tests, "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator");
+    try expectContains(helper_tests, "phase 7 skipSpaces and strim honor C-string whitespace bounds");
+
+    const helper_impl = try readRepoFile(allocator, "lib/string_helpers.zig");
+    defer allocator.free(helper_impl);
+    try expectContains(helper_impl, "pub fn stringGetSize");
+    try expectContains(helper_impl, "pub fn stringUnescape");
+    try expectContains(helper_impl, "pub fn stringEscapeMem");
+    try expectContains(helper_impl, "pub fn kasprintfStrarray");
+    try expectContains(helper_impl, "pub fn skipSpaces");
+    try expectContains(helper_impl, "pub fn strim");
+}
