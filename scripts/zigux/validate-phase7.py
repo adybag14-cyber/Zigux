@@ -259,6 +259,10 @@ EXACT_COUNT_MARKERS = {
         ("`.github/workflows/zigux-bootstrap.yml`", 1),
         ("`make -C zigux phase7-validate`", 1),
         ("`make -C zigux phase7`", 1),
+        ("including the dedicated `zigux/tests/phase7_cmdline_survey.zig` cmdline survey gate", 1),
+        ("the dedicated `zigux/tests/phase7_argv_split_survey.zig` argvSplit survey gate", 1),
+        ("the dedicated `zigux/tests/phase7_string_helpers_sample_boundary.zig` boundary replay", 1),
+        ("and the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate", 1),
     ],
 }
 
@@ -470,6 +474,10 @@ def run_self_test() -> None:
         ("tests_readme_phase7_workflow_exact_count", "zigux/tests/README.md", "`.github/workflows/zigux-bootstrap.yml`", "zigux/tests/README.md: `.github/workflows/zigux-bootstrap.yml`:expected=1:actual=2"),
         ("tests_readme_phase7_validate_command_exact_count", "zigux/tests/README.md", "`make -C zigux phase7-validate`", "zigux/tests/README.md: `make -C zigux phase7-validate`:expected=1:actual=2"),
         ("tests_readme_phase7_make_command_exact_count", "zigux/tests/README.md", "`make -C zigux phase7`", "zigux/tests/README.md: `make -C zigux phase7`:expected=1:actual=2"),
+        ("tests_readme_phase7_cmdline_survey_gate_exact_count", "zigux/tests/README.md", "including the dedicated `zigux/tests/phase7_cmdline_survey.zig` cmdline survey gate", "zigux/tests/README.md: including the dedicated `zigux/tests/phase7_cmdline_survey.zig` cmdline survey gate:expected=1:actual=2"),
+        ("tests_readme_phase7_argv_split_survey_gate_exact_count", "zigux/tests/README.md", "the dedicated `zigux/tests/phase7_argv_split_survey.zig` argvSplit survey gate", "zigux/tests/README.md: the dedicated `zigux/tests/phase7_argv_split_survey.zig` argvSplit survey gate:expected=1:actual=2"),
+        ("tests_readme_phase7_string_helpers_boundary_exact_count", "zigux/tests/README.md", "the dedicated `zigux/tests/phase7_string_helpers_sample_boundary.zig` boundary replay", "zigux/tests/README.md: the dedicated `zigux/tests/phase7_string_helpers_sample_boundary.zig` boundary replay:expected=1:actual=2"),
+        ("tests_readme_phase7_rbtree_survey_gate_exact_count", "zigux/tests/README.md", "and the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate", "zigux/tests/README.md: and the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate:expected=1:actual=2"),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_") as tmp_dir_str:
