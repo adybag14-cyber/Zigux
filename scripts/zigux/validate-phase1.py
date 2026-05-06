@@ -137,6 +137,8 @@ REQUIRED_RBTREE_TEST_ANCHORS = [
     'test "rbtree postorder and empty node helpers behave"',
     'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
     'test "rbtree nextMatch walks the duplicate range in order"',
+    'test "rbtree cached root keeps the leftmost pointer in sync"',
+    'test "rbtree eraseCached returns null for a singleton cached tree"',
 ]
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
@@ -671,6 +673,28 @@ def run_self_test() -> None:
         )
 
         make_fixture_root(tmp_root)
+        rbtree_path.write_text(
+            "\n".join(REQUIRED_RBTREE_TEST_ANCHORS[:6] + REQUIRED_RBTREE_TEST_ANCHORS[7:]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'rbtree_test_anchor:test "rbtree cached root keeps the leftmost pointer in sync":expected=1:actual=0'
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
+        rbtree_path.write_text(
+            "\n".join(REQUIRED_RBTREE_TEST_ANCHORS + [REQUIRED_RBTREE_TEST_ANCHORS[7]]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'rbtree_test_anchor:test "rbtree eraseCached returns null for a singleton cached tree":expected=1:actual=2'
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
         docs_readme_path = tmp_root / "Documentation" / "zigux" / "README.md"
         docs_readme_path.write_text("", encoding="utf-8")
         missing_markers = collect_missing_markers(tmp_root)
@@ -698,7 +722,7 @@ def run_self_test() -> None:
         )
 
         print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=33")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=35")
 
 
 def main() -> int:
