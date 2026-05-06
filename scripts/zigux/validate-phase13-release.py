@@ -15,6 +15,14 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "Documentation/zigux/phase13-contributor-workflow-guide.md",
+    "Documentation/zigux/phase13-libfs-slice.md",
+    "Documentation/zigux/phase13-libfs-survey.md",
+    "Documentation/zigux/phase13-devres-slice.md",
+    "Documentation/zigux/phase13-devres-survey.md",
+    "Documentation/zigux/phase13-landlock-ruleset-slice.md",
+    "Documentation/zigux/phase13-landlock-ruleset-survey.md",
+    "Documentation/zigux/phase13-landlock-syscalls-slice.md",
+    "Documentation/zigux/phase13-landlock-syscalls-survey.md",
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -502,6 +510,15 @@ def run_self_test() -> int:
             "missing_contributor_workflow_guide_guard_failed",
         )
         _write(root / "Documentation/zigux/phase13-contributor-workflow-guide.md", "# stub\n")
+        case_count += 1
+
+        (root / "Documentation/zigux/phase13-landlock-syscalls-survey.md").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase13-landlock-syscalls-survey.md"],
+            "missing_landlock_syscalls_survey_guard_failed",
+        )
+        _write(root / "Documentation/zigux/phase13-landlock-syscalls-survey.md", "# stub\n")
         case_count += 1
 
         (root / "include/zigux/notifier_abi.h").unlink()
