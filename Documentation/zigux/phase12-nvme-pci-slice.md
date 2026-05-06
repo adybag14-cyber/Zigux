@@ -5,7 +5,7 @@ This bounded Phase 12 slice adds the first Zigux `nvme pci` starter anchored to 
 The starter stays intentionally narrow:
 
 - validates queue depth, SQ entry size, page size, and doorbell stride for a lab-only queue pair planner
-- negotiates a bounded controller-versus-planner I/O queue count summary before any live queue creation, so the packet can stay honest about controller queue caps versus the starter's own queue-id window
+- negotiates a bounded controller-versus-planner I/O queue count summary and can reserve that queue-id window in one checked batch before any live queue creation, so the packet can stay honest about controller queue caps versus the starter's own queue-id window
 - computes total queue footprint plus host-side DMA demand, including the reduced host-memory pressure when a submission queue is planned in CMB, without claiming real DMA mapping or PRP setup
 - assigns monotonic admin and I/O queue identifiers with predictable SQ and CQ doorbell offsets
 - freezes queue planning during reset and clears planned I/O queue numbering only after reset completion
@@ -14,11 +14,11 @@ The starter stays intentionally narrow:
 - records one bounded recovery replay helper by reporting reset-generation staleness for cached PRP metadata, admin-queue replay need, dropped I/O queue rebuild count, and post-reset queue numbering without claiming live timeout recovery, IRQ routing, or hardware-backed reset transport
 
 Ownership boundary:
-- `P12-L05` owns only the queue-planning, PRP buffer-shape, PRP metadata, and recovery replay starter surface
+- `P12-L05` owns only the queue-planning, queue-count reservation, PRP buffer-shape, PRP metadata, and recovery replay starter surface
 - blocked DMA and recovery transport work stays outside this starter and remains owned by the broader Phase 12 transport substrate until the roadmap explicitly approves a deeper follow-up
 
 This slice does not claim PCI probe or remove wiring, interrupt registration, controller enable or shutdown sequences, live MMIO, PRP list construction, blk-mq integration, tagset setup, or hardware-backed recovery.
 
 The shared Phase 12 packet now keeps the direct smoke preflight explicit here too: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-smoke` rerun this bounded `nvme pci` starter before the broader survey-backed replay, so the slice should stay aligned with that smoke-plus-build order instead of leaving it implicit in `zigux/tests/phase12_build.zig`, `zigux/Makefile`, or `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` alone.
 
-The next honest bounded step inside the same Phase 12 lane is to keep the packet parked until an explicitly approved transport-facing follow-up is ready beyond the now-landed queue-planning, queue-count helper, PRP buffer-shape, PRP metadata, and recovery replay helpers, without widening into live DMA mapping, blk-mq, or PCI lifecycle work.
+The next honest bounded step inside the same Phase 12 lane is to keep the packet parked until an explicitly approved transport-facing follow-up is ready beyond the now-landed queue-planning, queue-count reservation, PRP buffer-shape, PRP metadata, and recovery replay helpers, without widening into live DMA mapping, blk-mq, or PCI lifecycle work.
