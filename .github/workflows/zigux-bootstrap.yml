@@ -75,6 +75,12 @@ jobs:
       - name: Validate Phase 1 helper files
         run: python3 scripts/zigux/validate-phase1.py
 
+      - name: Self-test Phase 1 installer-review surfaces
+        run: python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test
+
+      - name: Check Phase 1 installer-review surfaces
+        run: python3 scripts/zigux/check-phase1-installer-review-surfaces.py
+
       - name: Validate Phase 1 closure
         run: python3 scripts/zigux/validate-phase1-closure.py
 
