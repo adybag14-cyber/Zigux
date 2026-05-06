@@ -75,6 +75,24 @@ REVIEW_REQUIRED_MARKERS = [
     "the same validator-first seven-test shared-helper release packet",
 ]
 
+DOC_EXACT_COUNTS = {
+    "Documentation/zigux/phase13-notifier-list-survey.md": 1,
+    "zigux/tests/phase13_notifier_list_manifest.json": 1,
+    "zigux/bindings/notifier_abi.zig": 1,
+    "include/zigux/notifier_abi.h": 1,
+    "zigux/helpers/notifier_chain_view.zig": 1,
+    "the current seven-test shared-helper release packet": 1,
+}
+
+REVIEW_EXACT_COUNTS = {
+    "Documentation/zigux/phase13-notifier-list-survey.md": 1,
+    "zigux/tests/phase13_notifier_list_manifest.json": 1,
+    "zigux/bindings/notifier_abi.zig": 1,
+    "include/zigux/notifier_abi.h": 1,
+    "zigux/helpers/notifier_chain_view.zig": 1,
+    "the same validator-first seven-test shared-helper release packet": 1,
+}
+
 CONTRIBUTOR_SYNC_REQUIRED_MARKERS = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
@@ -255,6 +273,8 @@ def validate(root: Path) -> list[str]:
 
     issues.extend(_collect_missing_markers(docs_readme, DOC_REQUIRED_MARKERS, "docs-readme"))
     issues.extend(_collect_missing_markers(review_checklist, REVIEW_REQUIRED_MARKERS, "review-checklist"))
+    issues.extend(_collect_exact_count_issues(docs_readme, DOC_EXACT_COUNTS, "docs-readme-exact"))
+    issues.extend(_collect_exact_count_issues(review_checklist, REVIEW_EXACT_COUNTS, "review-checklist-exact"))
     issues.extend(_collect_missing_markers(contributor_surface_sync, CONTRIBUTOR_SYNC_REQUIRED_MARKERS, "contributor-surface-sync"))
     issues.extend(_collect_missing_markers(tests_review_companion, TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, "tests-review-companion"))
     issues.extend(_collect_missing_markers(scripts_readme, SCRIPTS_REQUIRED_MARKERS, "scripts-readme"))
@@ -424,8 +444,26 @@ def run_self_test() -> int:
                 "docs-readme:include/zigux/notifier_abi.h",
                 "docs-readme:zigux/helpers/notifier_chain_view.zig",
                 "docs-readme:the current seven-test shared-helper release packet",
+                "docs-readme-exact:Documentation/zigux/phase13-notifier-list-survey.md:expected=1:actual=0",
+                "docs-readme-exact:zigux/tests/phase13_notifier_list_manifest.json:expected=1:actual=0",
+                "docs-readme-exact:zigux/bindings/notifier_abi.zig:expected=1:actual=0",
+                "docs-readme-exact:include/zigux/notifier_abi.h:expected=1:actual=0",
+                "docs-readme-exact:zigux/helpers/notifier_chain_view.zig:expected=1:actual=0",
+                "docs-readme-exact:the current seven-test shared-helper release packet:expected=1:actual=0",
             ],
             "docs_marker_guard_failed",
+        )
+        _write(root / "Documentation/zigux/README.md", "\n".join(DOC_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
+        docs_readme_path.write_text(
+            "\n".join(DOC_REQUIRED_MARKERS + ["include/zigux/notifier_abi.h"]) + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["docs-readme-exact:include/zigux/notifier_abi.h:expected=1:actual=2"],
+            "docs_exact_count_guard_failed",
         )
         _write(root / "Documentation/zigux/README.md", "\n".join(DOC_REQUIRED_MARKERS) + "\n")
         case_count += 1
@@ -444,8 +482,26 @@ def run_self_test() -> int:
                 "review-checklist:include/zigux/notifier_abi.h",
                 "review-checklist:zigux/helpers/notifier_chain_view.zig",
                 "review-checklist:the same validator-first seven-test shared-helper release packet",
+                "review-checklist-exact:Documentation/zigux/phase13-notifier-list-survey.md:expected=1:actual=0",
+                "review-checklist-exact:zigux/tests/phase13_notifier_list_manifest.json:expected=1:actual=0",
+                "review-checklist-exact:zigux/bindings/notifier_abi.zig:expected=1:actual=0",
+                "review-checklist-exact:include/zigux/notifier_abi.h:expected=1:actual=0",
+                "review-checklist-exact:zigux/helpers/notifier_chain_view.zig:expected=1:actual=0",
+                "review-checklist-exact:the same validator-first seven-test shared-helper release packet:expected=1:actual=0",
             ],
             "review_marker_guard_failed",
+        )
+        _write(root / "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
+        review_checklist_path.write_text(
+            "\n".join(REVIEW_REQUIRED_MARKERS + ["zigux/helpers/notifier_chain_view.zig"]) + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["review-checklist-exact:zigux/helpers/notifier_chain_view.zig:expected=1:actual=2"],
+            "review_exact_count_guard_failed",
         )
         _write(root / "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_REQUIRED_MARKERS) + "\n")
         case_count += 1
@@ -707,7 +763,7 @@ def main() -> int:
     print("PHASE13_RELEASE_VALIDATION=pass")
     print(
         "PHASE13_RELEASE_VALIDATION_MARKER_COUNT="
-        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(CONTRIBUTOR_SYNC_REQUIRED_MARKERS) + len(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(TESTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES) + len(PHASE13_BUILD_EXACT_COUNTS) + len(PHASE13_BUILD_REQUIRED_MARKERS)}"
+        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(DOC_EXACT_COUNTS) + len(REVIEW_EXACT_COUNTS) + len(CONTRIBUTOR_SYNC_REQUIRED_MARKERS) + len(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(TESTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES) + len(PHASE13_BUILD_EXACT_COUNTS) + len(PHASE13_BUILD_REQUIRED_MARKERS)}"
     )
     return 0
 
