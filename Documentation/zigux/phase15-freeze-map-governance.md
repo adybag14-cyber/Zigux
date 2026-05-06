@@ -8,7 +8,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_SLICE=freeze-map-governance-anchor-reporting-field-sync`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, and per-anchor evidence-archive reporting posture
-- survey provenance refreshed against verified `master` head `9342905d34fb98d6fcd88cf2e88efed7355131d2`
+- survey provenance refreshed against current `master` readback on 2026-05-06 after compare-to-master showed the previously pinned provenance hash had gone stale while the lane's blocker posture and anchor inventory stayed the same
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
@@ -64,9 +64,10 @@ The current lane state is:
 - landed `phase15-governance-family-alignment`
 - landed `phase15-blocker-ownership-sync`
 - landed `phase15-anchor-reporting-field-sync`
+- landed `phase15-stale-provenance-cleanup`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight: Zigux now has a reviewable and runnable governance rule for the freeze map that matches the current stay-in-C policy family, the parity-scorecard lane-owner and rollback-owner records, and the per-anchor evidence-archive reporting posture already expected by the broader Phase 15 packet. What remains blocked is any deep-core status change, not the governance scaffolding itself.
+This keeps the lane tight: Zigux now has a reviewable and runnable governance rule for the freeze map that matches the current stay-in-C policy family, the parity-scorecard lane-owner and rollback-owner records, and the per-anchor evidence-archive reporting posture already expected by the broader Phase 15 packet. The lane also no longer presents a stale pinned-head provenance hash as if it were current repo evidence. What remains blocked is any deep-core status change, not the governance scaffolding itself.
 
 ## Non-goals
 
