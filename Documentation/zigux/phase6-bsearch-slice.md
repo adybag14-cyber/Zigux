@@ -6,11 +6,14 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
 
 - `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=bsearch-leaf-helper`
-- scope: first low-risk binary-search helper coverage only
-- lane state: helper slice landed; parked unless a new `bsearch.c` parity issue appears
+- scope: parked helper-local bsearch parity and comparison-budget packet only
+- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, or packet-alignment drift appears
 - product boundary:
   - `lib/bsearch.zig`
   - `zigux/tests/phase6_bsearch.zig`
+  - `zigux/tests/phase6_bsearch_perf.zig`
+  - `zigux/tests/fixtures/phase6_bsearch_vectors.zig`
+  - `scripts/zigux/check-phase6-bsearch-c-parity.py`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
 
@@ -32,7 +35,10 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 2. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase6`
 
-3. keep the shared Phase 6 surface checker aligned with this slice
+3. keep the bundled comparison-budget replay aligned with the current helper packet
+- `make -C zigux phase6-perf`
+
+4. keep the shared Phase 6 surface checker aligned with this slice
 - `make -C zigux phase6-validate`
 
 ## Current parity surface
@@ -62,7 +68,7 @@ The current tests check:
 - runtime-selected raw native comparator pointer parity
 - runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses
 
-The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable.
+The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable, while `zigux/tests/phase6_bsearch_perf.zig` and `zigux/tests/fixtures/phase6_bsearch_vectors.zig` keep the deterministic comparison-budget replay reviewable as a separate helper-local gate.
 
 ## Non-goals
 
@@ -70,8 +76,8 @@ This slice does not yet claim:
 
 - lower-bound or upper-bound helpers
 - duplicate-key stability guarantees beyond matching the kernel-style found-or-null contract
-- standalone performance benchmarking outside the bundled comparison-budget replay
+- standalone nanosecond ceilings beyond the bundled comparison-budget replay
 
 ## Next bounded step
 
-Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig`, `make -C zigux phase6`, and `make -C zigux phase6-validate`. Reopen this slice only if fresh repo inspection finds a concrete new `bsearch.c` parity gap inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, or that existing bundled gate.
+Keep the next Phase 6 follow-up inside the existing bsearch helper-local packet. Reopen this slice only if fresh repo inspection finds a concrete new `bsearch.c` parity, comparison-budget, or packet-alignment drift inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_perf.zig`, `scripts/zigux/check-phase6-bsearch-c-parity.py`, or the shared bundled gates that already cover this parked helper.
