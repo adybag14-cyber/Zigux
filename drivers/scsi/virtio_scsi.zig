@@ -47,6 +47,30 @@ pub const RequestQueueSummary = struct {
     kind: RequestQueueKind,
 };
 
+pub const ProbeConfigSnapshot = struct {
+    anchor: []const u8,
+    num_queues: u16,
+    requested_poll_queues: u16,
+    seg_max: u32,
+    cmd_per_lun: u32,
+    max_target: u32,
+    max_lun: u32,
+    max_sectors: u32,
+    default_queues: u16,
+    poll_queues: u16,
+    total_queues: u16,
+    control_queue_index: u16,
+    event_queue_index: u16,
+    first_request_queue_index: u16,
+    first_poll_queue_index: ?u16,
+    event_buffer_count: u16,
+    uses_control_queue: bool,
+    uses_event_queue: bool,
+    respects_poll_queue_clamp: bool,
+    preserves_probe_only_scope: bool,
+    blocks_dma_submission: bool,
+};
+
 pub const RecoverySummary = struct {
     anchor: []const u8,
     action: RecoveryAction,
@@ -169,6 +193,42 @@ pub const VirtioScsiQueueLab = struct {
         };
         self.last_layout = summary;
         return summary;
+    }
+
+    pub fn probeConfigSnapshot(
+        self: *Self,
+        num_queues: u16,
+        requested_poll_queues: u16,
+        seg_max: u32,
+        cmd_per_lun: u32,
+        max_target: u32,
+        max_lun: u32,
+        max_sectors: u32,
+    ) !ProbeConfigSnapshot {
+        const layout = try self.planQueueLayout(num_queues, requested_poll_queues);
+        return .{
+            .anchor = descriptor().anchor,
+            .num_queues = num_queues,
+            .requested_poll_queues = requested_poll_queues,
+            .seg_max = seg_max,
+            .cmd_per_lun = cmd_per_lun,
+            .max_target = max_target,
+            .max_lun = max_lun,
+            .max_sectors = max_sectors,
+            .default_queues = layout.default_queues,
+            .poll_queues = layout.poll_queues,
+            .total_queues = layout.total_queues,
+            .control_queue_index = layout.control_queue_index,
+            .event_queue_index = layout.event_queue_index,
+            .first_request_queue_index = layout.first_request_queue_index,
+            .first_poll_queue_index = layout.first_poll_queue_index,
+            .event_buffer_count = layout.event_buffer_count,
+            .uses_control_queue = true,
+            .uses_event_queue = true,
+            .respects_poll_queue_clamp = layout.poll_queues <= layout.request_queues - 1,
+            .preserves_probe_only_scope = true,
+            .blocks_dma_submission = true,
+        };
     }
 
     pub fn requestQueue(self: *const Self, local_index: u16) !RequestQueueSummary {
