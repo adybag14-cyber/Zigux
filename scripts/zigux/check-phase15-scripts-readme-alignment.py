@@ -311,7 +311,7 @@ def _baseline_manifest() -> str:
     return json.dumps(
         {
             "handoff_evidence": {
-                "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/review-checklist.md, scripts/zigux/README.md, zigux/tests/README.md, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, zigux/tests/phase15_parity_scorecard.zig, zigux/tests/phase15_architecture_council_review_process.zig, zigux/tests/phase15_indefinite_c_policy.json, zigux/tests/phase15_indefinite_c_policy.zig, zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
+                "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/review-checklist.md, scripts/zigux/README.md, zigux/tests/README.md, zigux/Makefile, .github/workflows/zigux-bootstrap.yml, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, zigux/tests/phase15_parity_scorecard.zig, zigux/tests/phase15_architecture_council_review_process.zig, zigux/tests/phase15_indefinite_c_policy.json, zigux/tests/phase15_indefinite_c_policy.zig, zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
                 "current_bounded_lane": "The parked Architecture Council packet stays aligned with its scripts-root validator path, its Linux-style `make -C zigux phase15-validate` route, its tests-root guidance path, and its dedicated handoff-checker route."
             }
         },
@@ -453,6 +453,21 @@ def run_self_test() -> int:
             "missing_workflow_marker_guard_failed",
         )
         _write(root / WORKFLOW_REL, baseline_workflow)
+        case_count += 1
+
+        checklist_path = root / REVIEW_CHECKLIST_REL
+        baseline_checklist = _read(checklist_path)
+        checklist_marker = "scripts/zigux/check-phase15-review-process-handoff.py"
+        _write(
+            root / REVIEW_CHECKLIST_REL,
+            baseline_checklist.replace(checklist_marker, "scripts/zigux/check-phase15-review-process-handoff.missing", 1),
+        )
+        _assert_only(
+            validate(root),
+            [f"review_checklist:missing:{checklist_marker}"],
+            "missing_review_checklist_marker_guard_failed",
+        )
+        _write(root / REVIEW_CHECKLIST_REL, baseline_checklist)
         case_count += 1
 
         checker_path = root / HANDOFF_CHECKER_REL
