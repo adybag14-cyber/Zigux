@@ -95,6 +95,10 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "segmented rollout boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime-data-path boundary remains blocked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-net-segmented-rollout-boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "DMA-safe abstractions") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queueing correctness") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "throughput and recovery parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "review boundary rather than a live transport or DMA substrate") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -231,6 +235,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "segmented rollout") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "mergeable-buffer-length") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime data path remains blocked") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "review boundary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
@@ -239,6 +244,10 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
             try std.testing.expectEqualStrings("blocked_on_dma_transport", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "page_pool DMA") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "XDP") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "DMA-safe abstractions") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queueing correctness") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "throughput and recovery parity") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "review boundary") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
