@@ -68,7 +68,7 @@ Do not quietly erase these active Phase 13 limits from manifests, notes, or cont
 ## Fast Review Checklist
 
 Before calling a Phase 13 change ready, confirm all of the following:
-  * the docs, validator scripts, build entrypoint, and Make targets still name the same four manifest-backed anchors
+  * the docs, including `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, the validator scripts, the build entrypoint, and the Make targets still name the same four manifest-backed anchors
   * `zigux/tests/phase13_build.zig` still exposes the same seven-test shared replay inventory or the contributor guidance explains the intentional change
   * the validator-first command order is unchanged across this guide, `scripts/zigux/README.md`, and `zigux/Makefile`
   * the change keeps the shipped release-notes, roadmap-traceability, and notifier evidence truthful without miscasting those files as extra replay steps or omitting them from the broader shared release surface
