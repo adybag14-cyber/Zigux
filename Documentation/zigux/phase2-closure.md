@@ -142,7 +142,7 @@ The bounded kconfig confdata bridge packet now records the committed config inpu
 - `PHASE2_KCONFIG_BRIDGE_CONFDATA_EXPECTED_PACKET=sample_expected.json,escaped_strings_expected.json,sample_crlf_expected.json,explicit_n_tristate_expected.json,final_trailing_carriage_return_expected.json,final_unterminated_unset_comment_expected.json`
 - input coverage stays anchored by `sample.config`, `escaped_strings.config`, `sample_crlf.config`, `explicit_n_tristate.config`, `final_trailing_carriage_return.config`, and `final_unterminated_unset_comment.config` in `zigux/tests/fixtures/kconfig_bridge/`
 - expected-output coverage stays anchored by `sample_expected.json`, `escaped_strings_expected.json`, `sample_crlf_expected.json`, `explicit_n_tristate_expected.json`, `final_trailing_carriage_return_expected.json`, and `final_unterminated_unset_comment_expected.json` in the same bounded packet
-- helper-local anchors in `zig test scripts/zigux/kconfig/confdata_bridge.zig` now include `confdata bridge decodes escaped quoted strings`, `confdata bridge accepts CRLF config lines`, `confdata bridge trims trailing carriage return from final value line`, `confdata bridge accepts unterminated unset comment with trailing carriage return`, and `confdata bridge keeps explicit n assignments as tristate values`
+- helper-local anchors in `zig test scripts/zigux/kconfig/confdata_bridge.zig` now include `confdata bridge decodes escaped quoted strings`, `confdata bridge accepts CRLF config lines`, `confdata bridge preserves trailing carriage return on final unterminated value line`, `confdata bridge ignores unterminated unset comment with trailing carriage return`, and `confdata bridge keeps explicit n assignments as tristate values`
 
 ## Toolchain Pin Boundary
 
