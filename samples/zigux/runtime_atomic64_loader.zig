@@ -255,7 +255,7 @@ test "runtime atomic64 loader keeps the prepared snapshot stable across later co
     try std.testing.expectEqual(@as(i64, 17), swapped);
     try std.testing.expect(compare.stored);
     try std.testing.expectEqual(@as(i64, -9), compare.previous);
-    try std.testing.expect(add_unless.changed);
+    try std.testing.expectEqual(@as(i64, 33), add_unless.changed);
     try std.testing.expectEqual(@as(i64, 33), add_unless.previous);
     try std.testing.expectEqual(@as(i64, 37), and_previous);
     try std.testing.expectEqual(@as(i64, 5), xor_previous);
@@ -337,7 +337,20 @@ test "runtime atomic64 loader keeps initialized-stage shared contract plans expl
     try std.testing.expectEqual(@as(usize, 0), shared_plan.init_flow.selftest_runs);
 
     var shared_request = try runtime_loader.prepareRequest(shared_plan);
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_plan,
+    ));
+
     const pending_plan = try shared_request.requestRuntimeLoad();
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
     try std.testing.expect(keepsSharedLoadPlanSnapshotExplicit(plan, pending_plan));
     try std.testing.expect(pending_plan.provides_selftest_hook);
     try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
@@ -472,19 +485,39 @@ test "runtime atomic64 loader keeps shared release failures from desynchronizing
     var shared_request = try loader.prepareSharedRequest(&module);
     try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
 
     _ = try loader.requestRuntimeLoad();
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
 
     try std.testing.expectError(error.InvalidLoaderState, loader.releaseSharedWithoutSubstrate(&shared_request));
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
 
-    _ = try shared_request.requestRuntimeLoad();
+    const pending_plan = try shared_request.requestRuntimeLoad();
     try loader.releaseSharedWithoutSubstrate(&shared_request);
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .released_without_substrate,
+        pending_plan,
+    ));
 }
 
 test "runtime atomic64 loader surfaces shared request drift before any live atomic64 claim" {
@@ -494,15 +527,32 @@ test "runtime atomic64 loader surfaces shared request drift before any live atom
 
     var loader = RuntimeAtomic64Loader{};
     var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
     shared_request.plan.module_name = "runtime_atomic64_drift";
 
     try std.testing.expectError(error.SharedLoadPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        shared_request.plan,
+    ));
 
     try loader.releaseSharedWithoutSubstrate(&shared_request);
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .released_without_substrate,
+        shared_request.plan,
+    ));
 }
 
 test "runtime atomic64 loader rejects shared-load-plan snapshot drift" {
