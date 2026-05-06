@@ -14,6 +14,14 @@ const RepoEvidence = struct {
     deep_core_status_change_ready: bool,
 };
 
+const DeepCoreBlocker = struct {
+    anchor: []const u8,
+    parity_scorecard_owner: []const u8,
+    blocker_disposition: []const u8,
+    roadmap_constraint: []const u8,
+    repo_evidence: []const []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -31,6 +39,7 @@ const Manifest = struct {
     bootstrap_ledger_anchor: []const u8,
     ledger_scope: []const []const u8,
     repo_evidence: RepoEvidence,
+    deep_core_blockers: []const DeepCoreBlocker,
     remaining_gaps: []const Gap,
     next_step: []const u8,
 };
@@ -47,7 +56,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
         io_instance.io(),
         "zigux/tests/phase15_readiness_gate_manifest.json",
         std.testing.allocator,
-        .limited(24 * 1024),
+        .limited(28 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -82,6 +91,27 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expect(manifest.repo_evidence.phase15_replay_green_on_current_master);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
 
+    try std.testing.expectEqual(@as(usize, 4), manifest.deep_core_blockers.len);
+    try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.deep_core_blockers[0].anchor);
+    try std.testing.expectEqualStrings("Architecture Council", manifest.deep_core_blockers[0].parity_scorecard_owner);
+    try std.testing.expectEqualStrings("blocked_no_bounded_scheduler_seam", manifest.deep_core_blockers[0].blocker_disposition);
+    try std.testing.expectEqualStrings("mm/page_alloc.c", manifest.deep_core_blockers[1].anchor);
+    try std.testing.expectEqualStrings("Architecture Council", manifest.deep_core_blockers[1].parity_scorecard_owner);
+    try std.testing.expectEqualStrings("blocked_no_bounded_allocator_seam", manifest.deep_core_blockers[1].blocker_disposition);
+    try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.deep_core_blockers[2].anchor);
+    try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.deep_core_blockers[2].parity_scorecard_owner);
+    try std.testing.expectEqualStrings("blocked_phase14_followup_still_wider_than_allowed_rcu_seam", manifest.deep_core_blockers[2].blocker_disposition);
+    try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.deep_core_blockers[3].anchor);
+    try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.deep_core_blockers[3].parity_scorecard_owner);
+    try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", manifest.deep_core_blockers[3].blocker_disposition);
+
+    for (manifest.deep_core_blockers) |blocker| {
+        try std.testing.expect(blocker.roadmap_constraint.len > 0);
+        try std.testing.expectEqual(@as(usize, 2), blocker.repo_evidence.len);
+        try std.testing.expect(blocker.repo_evidence[0].len > 0);
+        try std.testing.expect(blocker.repo_evidence[1].len > 0);
+    }
+
     try std.testing.expectEqual(@as(usize, 1), manifest.remaining_gaps.len);
 
     var saw_status_change_blocker = false;
@@ -106,12 +136,11 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
 
     try std.testing.expect(saw_status_change_blocker);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "maintenance mode") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "shared Phase 15 replay drifts again") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "deep-core blocker posture changes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "four recorded deep-core blocker dispositions") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "make -C zigux phase15") != null);
 }
 
-test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" {
+test "phase 15 readiness note keeps the roadmap, ledger, and current blocker inventory explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -133,6 +162,7 @@ test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" 
 
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Roadmap Versus Ledger") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Current Repo Readiness") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Current Deep-Core Blockers") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Remaining Readiness Gaps") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Readiness Gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Full-Parity Blockers and Long-Term Governance") != null);
@@ -140,6 +170,12 @@ test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" 
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "shared replay surface is green on current `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "maintenance-mode ready") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "blocked_no_bounded_scheduler_seam") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "blocked_no_bounded_allocator_seam") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "blocked_packet_lifetime_boundary_still_too_wide") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Documentation/zigux/phase14-rcu-tree-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Documentation/zigux/phase14-skbuff-bridge-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
@@ -193,10 +229,23 @@ test "phase 15 readiness survey stays aligned with the landed governance bundle"
     );
     defer std.testing.allocator.free(makefile);
 
+    const readiness_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-readiness-gate-survey.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(readiness_note);
+
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "## Governance For Freeze-Map Changes") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Required Review Packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, parity_scorecard, "## Roadmap Handoff Evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy, "## When the indefinite-C policy applies") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15: phase15-validate phase15-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, parity_scorecard, "blocked_no_bounded_scheduler_seam") != null);
+    try std.testing.expect(std.mem.indexOf(u8, parity_scorecard, "blocked_no_bounded_allocator_seam") != null);
+    try std.testing.expect(std.mem.indexOf(u8, parity_scorecard, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam") != null);
+    try std.testing.expect(std.mem.indexOf(u8, parity_scorecard, "blocked_packet_lifetime_boundary_still_too_wide") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Documentation/zigux/phase15-parity-scorecard.md") != null);
 }
