@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L04",
   "phase": "Phase 15",
-  "surveyed_commit": "9342905d34fb98d6fcd88cf2e88efed7355131d2",
+  "surveyed_commit": "current-master-readback-2026-05-06",
   "anchor": "Documentation/zigux/freeze-map.md",
   "freeze_in_c_targets": [
     "kernel/sched/core.c",
@@ -189,6 +189,13 @@
       "kind": "evidence_reporting",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
       "why_now": "The dedicated freeze-map governance packet now needs the same evidence archive path, benchmark notes, replay command, and latest blocker disposition fields that the root freeze-map policy and Phase 15 parity scorecard already require per anchor."
+    },
+    {
+      "id": "phase15-stale-provenance-cleanup",
+      "status": "starter_landed",
+      "kind": "maintenance",
+      "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
+      "why_now": "Compare-to-master showed the old pinned provenance hash was no longer the current repo state, so the lane now records an honest current-master readback marker instead of presenting stale head metadata as fresh governance evidence."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
