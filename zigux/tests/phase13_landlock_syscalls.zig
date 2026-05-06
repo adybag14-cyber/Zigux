@@ -52,6 +52,13 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     defer parsed.deinit();
 
     const manifest = parsed.value;
+    const governance_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-landlock-syscalls-governance.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(governance_note);
     try std.testing.expectEqualStrings("P13-Y04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
@@ -65,7 +72,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -76,6 +83,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     var saw_test_gate = false;
     var saw_slice_note = false;
     var saw_survey_note = false;
+    var saw_governance_note = false;
     var saw_add_rule = false;
     var saw_fd_followup = false;
     var saw_path_followup = false;
@@ -129,6 +137,16 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase13-landlock-syscalls-survey.md", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-syscalls-governance-note")) {
+            saw_governance_note = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase13-landlock-syscalls-governance.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "SyscallsHelperLab.descriptor()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "live-state flags remain false") != null);
+            try std.testing.expect(std.mem.indexOf(u8, governance_note, "SyscallsHelperLab.descriptor()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, governance_note, "touches_live_fd_table") != null);
+            try std.testing.expect(std.mem.indexOf(u8, governance_note, "live syscall enforcement") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-add-rule-followup")) {
             saw_add_rule = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -170,7 +188,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -179,6 +197,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(saw_test_gate);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_survey_note);
+    try std.testing.expect(saw_governance_note);
     try std.testing.expect(saw_add_rule);
     try std.testing.expect(saw_fd_followup);
     try std.testing.expect(saw_path_followup);
@@ -242,7 +261,7 @@ test "phase13 landlock syscalls create_ruleset planning covers queries and valid
         .allowed_scope_mask = 0,
     });
     try std.testing.expectEqual(syscalls.CreateRulesetAction.abi_version_query, version_query.action);
-    try std.testing.expectEqual(syscalls.abi_version, version_query.returned_value);
+    try std.testing.expectEqual(@as(u32, syscalls.abi_version), version_query.returned_value);
 
     const errata_query = try syscalls.SyscallsHelperLab.planCreateRuleset(.{
         .attr_present = false,
