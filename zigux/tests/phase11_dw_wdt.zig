@@ -133,6 +133,30 @@ test "phase11 dw_wdt registration summary preserves pretimeout and imported-runn
     try std.testing.expect(!registration.nowayout);
 }
 
+test "phase11 dw_wdt registration summary clears imported pretimeout when no irq wiring is present" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    _ = watchdog.loadRegisters(.{
+        .control = dw_wdt.control_reg_wdt_en_mask | dw_wdt.control_reg_resp_mode_mask,
+        .timeout_range = 0x33,
+        .current_count = 2 * 65_536,
+    });
+
+    const registration = try watchdog.registrationSummary(.{
+        .nowayout = false,
+        .stop_on_reboot = true,
+    }, false);
+
+    try std.testing.expect(!registration.info.supports_pretimeout);
+    try std.testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.imported_running_state, registration.timeout_origin);
+    try std.testing.expect(registration.imported_running_state);
+    try std.testing.expect(!registration.needs_timeout_programming);
+    try std.testing.expect(registration.hardware_running);
+    try std.testing.expect(registration.can_stop);
+    try std.testing.expectEqual(@as(u32, 16), registration.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 0), registration.pretimeout_sec);
+    try std.testing.expect(!registration.nowayout);
+}
+
 test "phase11 dw_wdt start and ping select the nearest fixed top in reset mode" {
     var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     const config = try watchdog.setTimeout(9);
