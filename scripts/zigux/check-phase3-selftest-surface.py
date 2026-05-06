@@ -16,6 +16,18 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase3-abi-slice.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate_phase3_selftest.py",
+    "scripts/zigux/check-phase3-selftest-surface.py",
+    "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+    "scripts/zigux/check-phase3-abi-dump-gate.py",
+    "scripts/zigux/check-phase3-catalog-selftest.py",
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/phase3_check_lib.py",
+    "scripts/zigux/generate-phase3-check-wrappers.py",
+    "scripts/zigux/run-phase3-checks.py",
     "zigux/Makefile",
     "zigux/tests/README.md",
 ]
@@ -386,8 +398,18 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/validate_phase3_selftest.py" in issues
 
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase3-abi-dump-gate.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/check-phase3-abi-dump-gate.py" in issues
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/validate-phase3-export-uapi-survey.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
+
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=18")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
