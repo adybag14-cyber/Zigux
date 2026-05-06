@@ -391,6 +391,41 @@ test "phase10 virtio input registration preflight reports blockers before readin
     try std.testing.expect(summary.blocker == null);
 }
 
+test "phase10 virtio input teardown observation keeps identity while surfacing reset-local state" {
+    var device = try virtio_input.VirtioInputLab.init("touch-panel", "serial-15", 15, null);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{0});
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
+    try device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = 0,
+        .maximum = 3,
+    });
+    _ = try device.planMultitouchSlots();
+    _ = try device.sendStatus(virtio_input.ev_msc, virtio_input.msc_timestamp, 1);
+    _ = try device.sendStatus(0x11, 0x00, 7);
+
+    const summary = device.teardownObservationSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
+    try std.testing.expectEqualStrings("touch-panel", summary.name);
+    try std.testing.expectEqualStrings("serial-15", summary.serial);
+    try std.testing.expectEqualStrings("virtio15/input0", summary.phys);
+    try std.testing.expect(summary.event_queue_was_configured);
+    try std.testing.expect(summary.status_queue_was_configured);
+    try std.testing.expectEqual(@as(u16, 8), summary.queued_event_buffer_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.queued_status_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.suppressed_status_count);
+    try std.testing.expect(summary.ready_before_reset);
+    try std.testing.expect(summary.multitouch_was_enabled);
+    try std.testing.expectEqual(@as(u16, 4), summary.planned_multitouch_slots);
+    try std.testing.expect(summary.preserves_identity);
+    try std.testing.expect(summary.clears_runtime_state);
+    try std.testing.expect(summary.clears_capability_state);
+}
+
 test "phase10 virtio input reset clears queue plan and returns to default bus identity" {
     var device = try virtio_input.VirtioInputLab.init("keyboard", "serial-3", 3, null);
     const snapshot = device.configSnapshot();
