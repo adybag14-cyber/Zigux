@@ -195,7 +195,7 @@ test \"phase10 virtio mmio keeps status and config-generation bookkeeping inside
             "architecture_council_reopen_attached": False,
             "survey_summary": {
                 "virtio_mmio_c_lines": 829,
-                "preexisting_phase10_test_files": 10,
+                "preexisting_phase10_test_files": 11,
                 "preexisting_virtio_core_zig_present": True,
                 "preexisting_phase10_build_present": True,
                 "preexisting_phase10_core_doc_present": True,
@@ -315,8 +315,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     summary = manifest.get("survey_summary", {})
     if summary.get("virtio_mmio_c_lines") != 829:
         missing_markers.append("manifest:virtio_mmio_c_lines=829")
-    if summary.get("preexisting_phase10_test_files") != 10:
-        missing_markers.append("manifest:preexisting_phase10_test_files=10")
+    if summary.get("preexisting_phase10_test_files") != 11:
+        missing_markers.append("manifest:preexisting_phase10_test_files=11")
     for key in [
         "preexisting_virtio_core_zig_present",
         "preexisting_phase10_build_present",
@@ -386,6 +386,15 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:freeze_boundary_status=aligned" not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_freeze_boundary_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace('"preexisting_phase10_test_files": 11', '"preexisting_phase10_test_files": 10', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:preexisting_phase10_test_files=11" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_phase10_test_count_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         build_path = tmp_root / "zigux/tests/phase10_build.zig"
@@ -486,7 +495,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_survey_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
