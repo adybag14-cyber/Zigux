@@ -33,6 +33,16 @@
       "expected": "allmodconfig_expected.json"
     },
     {
+      "name": "randconfig",
+      "mode": "randconfig",
+      "kconfig": "Kconfig",
+      "config": "rand/.config",
+      "arch": "x86_64",
+      "seed": "0xC0FFEE",
+      "probability": "15:25",
+      "expected": "randconfig_expected.json"
+    },
+    {
       "name": "yes2modconfig",
       "mode": "yes2modconfig",
       "kconfig": "Kconfig",
