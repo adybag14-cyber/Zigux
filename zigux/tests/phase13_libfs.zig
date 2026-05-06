@@ -196,6 +196,13 @@ test "phase13 libfs directory emit planning advances after dots and tracks empty
     try std.testing.expect(!emitted.stays_in_dots_window);
     try std.testing.expect(!emitted.should_stop);
 
+    const dots_only = try libfs.LibFsHelperLab.dcacheReaddirEmitPlan(0, true, 0);
+    try std.testing.expectEqual(@as(i64, 2), dots_only.new_pos);
+    try std.testing.expect(dots_only.entered_positive_scan);
+    try std.testing.expect(!dots_only.emitted_any_entries);
+    try std.testing.expect(dots_only.stays_in_dots_window);
+    try std.testing.expect(dots_only.should_stop);
+
     const empty_scan = try libfs.LibFsHelperLab.dcacheReaddirEmitPlan(4, true, 0);
     try std.testing.expectEqual(@as(i64, 4), empty_scan.new_pos);
     try std.testing.expect(empty_scan.entered_positive_scan);
