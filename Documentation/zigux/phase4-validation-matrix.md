@@ -107,9 +107,30 @@ The matching Linux-style local wrappers are `make -C zigux phase4-validate`, `ma
 The same validator-first route also keeps `Documentation/zigux/artifact-diff.md` aligned with the shipped host-side helper contract, `Documentation/zigux/phase4-gate-evidence.md` aligned with the dedicated exact-readback checker, and the three shared root README summaries aligned with that same narrower validator-backed packet instead of leaving any of those review surfaces implied.
 
 ## Remaining Roadmap Gaps
-- `samples/zigux/kprobe_example.zig` is still absent behind the current C anchor at `samples/kprobes/kprobe_example.c`
-- `samples/zigux/test_fsmount.zig` is still absent behind the current C anchor at `samples/vfs/test-fsmount.c`
-- hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved on current `master`; there is not yet a committed dedicated perf-baseline manifest or survey packet that promotes those limits into the shipped Phase 4 replay surface
+
+### `samples/zigux/kprobe_example.zig`
+- current C anchor: `samples/kprobes/kprobe_example.c`
+- current replay path: `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`
+- survey owner: `Validation and Perf Team`
+- rollback owner: `Validation and Perf Team`
+- current measurable status: absent on current `master`; no dedicated Phase 4 survey packet is shipped yet, so this remains matrix-only and intentionally outside the shipped gate-evidence target set
+- next bounded evidence step: land one manifest-backed survey packet that keeps the current C anchor, replay command, and rollback notes reviewable without claiming a shipped Zig starter
+
+### `samples/zigux/test_fsmount.zig`
+- current C anchor: `samples/vfs/test-fsmount.c`
+- current replay path: `make M=samples/vfs`
+- survey owner: `Validation and Perf Team`
+- rollback owner: `Validation and Perf Team`
+- current measurable status: absent on current `master`; no dedicated Phase 4 survey packet is shipped yet, so this remains matrix-only and intentionally outside the shipped gate-evidence target set
+- next bounded evidence step: land one manifest-backed survey packet that keeps the current C anchor, replay command, and rollback notes reviewable without claiming a shipped Zig starter
+
+### `Phase 4 perf thresholds`
+- current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`
+- current replay path: `make -C zigux phase4-validate` then `make -C zigux phase4-test`
+- gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
+- rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
+- current measurable status: hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved on current `master`; there is not yet a committed dedicated perf-baseline manifest or survey packet that promotes those limits into the shipped Phase 4 replay surface
+- next bounded evidence step: land one bounded perf-baseline packet naming benchmark command, acceptable limit, owner, and rollback owner before the matrix claims timing coverage
 
 This matrix, `scripts/zigux/validate-phase4.py`, and the shared `zigux/tests/phase4_build.zig` entrypoint should stay aligned around that still-pending threshold posture until a later Phase 4 lane intentionally lands a committed threshold-approval packet.
 
