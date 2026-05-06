@@ -128,6 +128,43 @@ static void run_duplicate_section(void)
 	printf("}");
 }
 
+static void run_erase_init_section(void)
+{
+	struct rb_order_entry entries[] = {
+		{ .key = 10 },
+		{ .key = 20 },
+		{ .key = 5 },
+		{ .key = 15 },
+	};
+	struct rb_root root = RB_ROOT;
+	int remaining_order[3] = {0};
+	bool detached_is_empty;
+	bool detached_next_is_null;
+	bool detached_prev_is_null;
+	size_t count = 0;
+	struct rb_node *node;
+
+	for (size_t i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
+		rb_add(&entries[i].node, &root, rb_order_less);
+
+	rb_erase_init(&entries[0].node, &root);
+
+	for (node = rb_first(&root); node; node = rb_next(node))
+		remaining_order[count++] = rb_entry(node, struct rb_order_entry, node)->key;
+
+	detached_is_empty = RB_EMPTY_NODE(&entries[0].node);
+	detached_next_is_null = rb_next(&entries[0].node) == NULL;
+	detached_prev_is_null = rb_prev(&entries[0].node) == NULL;
+
+	printf("\"erase_init\":{");
+	printf("\"remaining_order\":");
+	emit_int_array(remaining_order, count);
+	printf(",\"detached_is_empty\":%s", detached_is_empty ? "true" : "false");
+	printf(",\"detached_next_is_null\":%s", detached_next_is_null ? "true" : "false");
+	printf(",\"detached_prev_is_null\":%s", detached_prev_is_null ? "true" : "false");
+	printf("}");
+}
+
 static void run_postorder_section(void)
 {
 	struct rb_order_entry entries[] = {
@@ -158,6 +195,8 @@ int main(void)
 	run_ordered_section();
 	printf(",");
 	run_duplicate_section();
+	printf(",");
+	run_erase_init_section();
 	printf(",");
 	run_postorder_section();
 	printf("}\n");
