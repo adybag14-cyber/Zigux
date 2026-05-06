@@ -17,6 +17,7 @@ This note matters most when the shared Phase 13 replay is already present on `ma
 These surfaces keep the current helper tranche reviewable, but they do not make one lane the owner of every nearby Phase 13 file:
   * `scripts/zigux/validate-phase13-release.py`
   * `scripts/zigux/check-phase13-devres-packet.py`
+  * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
   * `zigux/tests/phase13_build.zig`
   * `make -C zigux phase13-validate`
   * `make -C zigux phase13`
