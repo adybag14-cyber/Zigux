@@ -118,6 +118,20 @@ pub const RecoveryRestoreQueueRebindSummary = struct {
     defers_event_buffers_until_after_device_ready: bool,
 };
 
+pub const RecoveryEventBufferOwnershipSummary = struct {
+    anchor: []const u8,
+    event_queue_index: u16,
+    request_queues: u16,
+    default_queues: u16,
+    poll_queues: u16,
+    event_buffer_count: u16,
+    event_queue_reserved_during_freeze: bool,
+    event_buffers_stay_on_event_queue: bool,
+    request_queues_cannot_borrow_event_buffers: bool,
+    defers_event_buffers_until_after_device_ready: bool,
+    requires_restore_rearm_before_reuse: bool,
+};
+
 pub const RecoveryRollbackSummary = struct {
     anchor: []const u8,
     request_queues: u16,
@@ -326,6 +340,27 @@ pub const VirtioScsiQueueLab = struct {
             .recreates_control_and_event_queues = true,
             .recreates_request_queues_before_device_ready = true,
             .defers_event_buffers_until_after_device_ready = true,
+        };
+    }
+
+    pub fn recoveryEventBufferOwnershipSummary(self: *const Self) !RecoveryEventBufferOwnershipSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        return .{
+            .anchor = descriptor().anchor,
+            .event_queue_index = layout.event_queue_index,
+            .request_queues = layout.request_queues,
+            .default_queues = layout.default_queues,
+            .poll_queues = layout.poll_queues,
+            .event_buffer_count = layout.event_buffer_count,
+            .event_queue_reserved_during_freeze = true,
+            .event_buffers_stay_on_event_queue = true,
+            .request_queues_cannot_borrow_event_buffers = true,
+            .defers_event_buffers_until_after_device_ready = true,
+            .requires_restore_rearm_before_reuse = true,
         };
     }
 
