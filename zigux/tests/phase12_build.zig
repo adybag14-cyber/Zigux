@@ -125,11 +125,29 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const libbpf_file_path_handle_bridge_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const libbpf_perf_buffer_poll_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
         .target = target,
         .optimize = optimize,
     });
+
+    const libbpf_segments_verify_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/verify.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    libbpf_segments_verify_module.addImport("logging", libbpf_logging_module);
+    libbpf_segments_verify_module.addImport("pin_path", libbpf_pin_path_module);
+    libbpf_segments_verify_module.addImport("cpu_mask", libbpf_cpu_mask_module);
+    libbpf_segments_verify_module.addImport("type_names", libbpf_type_names_module);
+    libbpf_segments_verify_module.addImport("file_path_handle_bridge", libbpf_file_path_handle_bridge_module);
+    libbpf_segments_verify_module.addImport("perf_buffer_poll", libbpf_perf_buffer_poll_module);
 
     const phase12_libbpf_reviewability_module = b.createModule(.{
         .root_source_file = b.path("phase12_libbpf_reviewability.zig"),
@@ -140,6 +158,7 @@ pub fn build(b: *std.Build) void {
     phase12_libbpf_reviewability_module.addImport("bpf_type_names", libbpf_type_names_module);
     phase12_libbpf_reviewability_module.addImport("logging", libbpf_logging_module);
     phase12_libbpf_reviewability_module.addImport("pin_path", libbpf_pin_path_module);
+    phase12_libbpf_reviewability_module.addImport("file_path_handle_bridge", libbpf_file_path_handle_bridge_module);
     phase12_libbpf_reviewability_module.addImport("perf_buffer_poll", libbpf_perf_buffer_poll_module);
 
     const phase12_nvme_pci_tests = b.addTest(.{
@@ -202,6 +221,12 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase12_libbpf_segments_tests = b.addRunArtifact(phase12_libbpf_segments_tests);
 
+    const phase12_libbpf_segments_verify_tests = b.addTest(.{
+        .name = "phase12-libbpf-segments-verify-tests",
+        .root_module = libbpf_segments_verify_module,
+    });
+    const run_phase12_libbpf_segments_verify_tests = b.addRunArtifact(phase12_libbpf_segments_verify_tests);
+
     const phase12_libbpf_reviewability_tests = b.addTest(.{
         .name = "phase12-libbpf-reviewability-tests",
         .root_module = phase12_libbpf_reviewability_module,
@@ -222,5 +247,6 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase12_virtio_net_survey_tests.step);
     test_step.dependOn(&run_phase12_virtio_scsi_survey_tests.step);
     test_step.dependOn(&run_phase12_libbpf_segments_tests.step);
+    test_step.dependOn(&run_phase12_libbpf_segments_verify_tests.step);
     test_step.dependOn(&run_phase12_libbpf_reviewability_tests.step);
 }
