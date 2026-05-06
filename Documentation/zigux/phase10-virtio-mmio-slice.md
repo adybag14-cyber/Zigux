@@ -14,6 +14,7 @@ This document tracks the first bounded `drivers/virtio/virtio_mmio.c` lab helper
   - `zigux/tests/phase10_virtio_mmio_survey.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
+  - `scripts/zigux/check-phase10-mmio-packet.py`
 - review surface:
   - `Documentation/zigux/phase10-virtio-mmio-slice.md`
   - `Documentation/zigux/phase10-virtio-mmio-survey.md`
