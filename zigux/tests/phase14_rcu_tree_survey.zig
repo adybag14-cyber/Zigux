@@ -358,3 +358,33 @@ test "phase 14 rcu tree survey keeps the memory-ordering boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, update_c, "start_poll_synchronize_rcu()") != null);
     try std.testing.expect(std.mem.indexOf(u8, update_c, "poll_state_synchronize_rcu_full()") != null);
 }
+
+test "phase 14 rcu tree survey keeps the shared build survey-only for the blocked bridge lane" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const phase14_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase14_build.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(phase14_build);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-rcu-tree-survey.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, phase14_build, "phase14_rcu_tree_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase14_build, "phase14_rcu_tree_survey_tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase14_build, "tree_bridge.zig") == null);
+    try std.testing.expect(std.mem.indexOf(u8, phase14_build, "phase14_rcu_tree_bridge") == null);
+    try std.testing.expect(std.mem.indexOf(u8, phase14_build, "rcu_tree_bridge_module") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the repo still does not ship a placeholder or empty `kernel/rcu/tree_bridge.zig` wrapper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "- a `kernel/rcu/tree_bridge.zig` implementation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "- a placeholder or empty `kernel/rcu/tree_bridge.zig` wrapper") != null);
+}
