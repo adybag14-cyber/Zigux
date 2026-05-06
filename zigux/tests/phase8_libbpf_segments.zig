@@ -233,6 +233,11 @@ test "phase 8 libbpf segment manifest records the current helper-first catalog" 
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
     try expectCompanionCatalog(manifest.survey_summary.companion_c_files);
     try expectSegmentCatalog(manifest.segments);
+    try expectContains(manifest_json, "now-materialized shared file-path bridge surface");
+    try expectContains(manifest_json, "already ship as adjacent fdinfo-only helper coverage");
+    try expectContains(manifest_json, "catalog entry stays queued until Zigux promotes that bridge packet");
+    try expectContains(manifest_json, "beside the now-materialized shared bridge surface");
+    try expectContains(manifest_json, "stay queued until the fdinfo-only bridge packet is promoted");
 }
 
 test "phase 8 libbpf survey note keeps segmented helper-first rollout explicit" {
@@ -305,6 +310,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/type_names.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
+    try expectContains(phase8_note, "Documentation/zigux/phase8-file-path-handle-bridge-slice.md");
     try expectContains(phase8_note, "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md");
     try expectContains(phase8_note, "zigux/tests/phase8_file_path_handle_bridge.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_bpf_type_names.zig");
