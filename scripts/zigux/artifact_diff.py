@@ -344,6 +344,13 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('json_invalid_both')
+        assert_repeatable_case(
+            'json',
+            invalid_json,
+            other_invalid_json,
+            False,
+            render_result_lines(matched, details),
+        )
 
         matched, details = compare_artifacts('json', missing, json_a)
         assert not matched
@@ -361,6 +368,13 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('json_missing_expected')
+        assert_repeatable_case(
+            'json',
+            missing,
+            json_a,
+            False,
+            render_result_lines(matched, details),
+        )
 
         matched, details = compare_artifacts('json', json_a, missing)
         assert not matched
@@ -378,6 +392,13 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('json_missing_actual')
+        assert_repeatable_case(
+            'json',
+            json_a,
+            missing,
+            False,
+            render_result_lines(matched, details),
+        )
 
         matched, details = compare_artifacts('json', missing, other_missing)
         assert not matched
@@ -395,6 +416,13 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('json_missing_both')
+        assert_repeatable_case(
+            'json',
+            missing,
+            other_missing,
+            False,
+            render_result_lines(matched, details),
+        )
 
         blob_a.write_bytes(b'zigux-artifact-diff')
         blob_b.write_bytes(b'zigux-artifact-diff')
@@ -460,6 +488,13 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('text_missing_expected')
+        assert_repeatable_case(
+            'text',
+            missing,
+            text_a,
+            False,
+            render_result_lines(matched, details),
+        )
 
         matched, details = compare_artifacts('text', text_a, missing)
         assert not matched
@@ -477,6 +512,13 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('text_missing_actual')
+        assert_repeatable_case(
+            'text',
+            text_a,
+            missing,
+            False,
+            render_result_lines(matched, details),
+        )
 
         matched, details = compare_artifacts('text', missing, other_missing)
         assert not matched
@@ -518,6 +560,13 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('sha256_missing_expected')
+        assert_repeatable_case(
+            'sha256',
+            missing,
+            blob_a,
+            False,
+            render_result_lines(matched, details),
+        )
 
         matched, details = compare_artifacts('sha256', blob_a, missing)
         assert not matched
@@ -535,6 +584,13 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('sha256_missing_actual')
+        assert_repeatable_case(
+            'sha256',
+            blob_a,
+            missing,
+            False,
+            render_result_lines(matched, details),
+        )
 
         matched, details = compare_artifacts('sha256', missing, other_missing)
         assert not matched
