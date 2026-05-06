@@ -15,6 +15,7 @@ Update these surfaces together when they describe the same active contributor pa
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
 For Phase 13 wording, keep the shared validator-first replay route separate from the broader shipped adjacent release-surface evidence so review prompts do not quietly turn those adjacent files into extra replay steps.
@@ -27,9 +28,10 @@ Also refresh the packet-local docs-root or scripts-root note when the wording ch
 2. Refresh `Documentation/zigux/README.md` so the exact checker stack, replay route, and evidence names stay visible from the top-level product index.
 3. Refresh `Documentation/zigux/phase13-contributor-workflow-guide.md` when the change sharpens the shared validator-first replay route or the broader shipped adjacent release-surface evidence for Phase 13 contributors.
 4. Refresh the compact tests-root companion so the same packet stays reviewable in the short form.
-5. Refresh `Documentation/zigux/review-checklist.md` if the change alters a shared reviewer prompt or release-discipline question.
-6. Refresh `zigux/tests/README.md` last so the broad tests-root carryover prompt matches the already-tightened packet notes.
-7. Re-read the five shared surfaces and confirm they use the same nouns for the same packet rather than mixing shorthand and explicit wording.
+5. Refresh `scripts/zigux/README.md` when the wording change affects the scripts-root validator-first replay summary, checker inventory, or Linux-style command wording.
+6. Refresh `Documentation/zigux/review-checklist.md` if the change alters a shared reviewer prompt or release-discipline question.
+7. Refresh `zigux/tests/README.md` last so the broad tests-root carryover prompt matches the already-tightened packet notes.
+8. Re-read the six shared surfaces and confirm they use the same nouns for the same packet rather than mixing shorthand and explicit wording.
 
 ## Phase 10 anchors
 
