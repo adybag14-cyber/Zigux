@@ -129,6 +129,7 @@ pub const Mode = enum {
     yes2modconfig,
     defconfig,
     savedefconfig,
+    listnewconfig,
 
     pub fn parse(input_text: []const u8) ?Mode {
         _ = input_text;
@@ -180,6 +181,14 @@ pub const Mode = enum {
                         "mode_arg": "defconfig.out",
                         "expected": "savedefconfig_expected.json",
                     },
+                    {
+                        "name": "listnewconfig",
+                        "mode": "listnewconfig",
+                        "kconfig": "Kconfig",
+                        "config": "out/list.config",
+                        "arch": "x86_64",
+                        "expected": "listnewconfig_expected.json",
+                    },
                 ],
                 "confdata_cases": [
                     {
@@ -203,6 +212,7 @@ pub const Mode = enum {
         "syncconfig_expected.json",
         "defconfig_expected.json",
         "savedefconfig_expected.json",
+        "listnewconfig_expected.json",
         "sample_expected.json",
         "sample_crlf_expected.json",
         "sample.config",
@@ -233,10 +243,10 @@ def run_self_test() -> int:
         assert ("DUPLICATE_KCONFIG_CASE_NAMES", "syncconfig:conf_cases,confdata_cases") in issues
 
         build_self_test_root(root)
-        missing_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "syncconfig_expected.json"
+        missing_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "listnewconfig_expected.json"
         missing_path.unlink()
         issues = collect_manifest_issues(root)
-        assert ("MISSING_CONF_CASE_EXPECTED_PATHS", "syncconfig:expected:syncconfig_expected.json") in issues
+        assert ("MISSING_CONF_CASE_EXPECTED_PATHS", "listnewconfig:expected:listnewconfig_expected.json") in issues
 
         build_self_test_root(root)
         missing_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "sample_crlf_expected.json"
