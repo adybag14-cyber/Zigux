@@ -30,10 +30,10 @@ This document starts the first bounded Phase 3 slice for Zigux.
   - `PHASE3_UAPI_VERSION_BLOB_SHA=c3c05ea2384bba3882d7a79312f429ef3ec88ca0`
   - no additional files currently ship under `zigux/uapi/`
 - current export/UAPI survey shape:
-  - `PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice`
-  - current `master` no longer ships the older dedicated `phase3_export_uapi*` replay or `phase3-export-uapi-boundary-survey.md` note family
-  - the focused `scripts/zigux/validate-phase3-export-uapi-survey.py` checker and its bootstrap-workflow steps still fail-close the shipped header and export-status packet even though that packet now lives in this shared ABI slice instead of a separate export/UAPI note family
-  - current boundary evidence therefore lives in this shared ABI slice plus `include/linux/zigux.h`, `zigux/kernel/export_shim.zig`, and `zigux/uapi/version.zig`
+  - `PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof`
+  - current `master` still ships the dedicated `phase3_export_uapi*` replay and `phase3-export-uapi-boundary-survey.md` note family as a packet-local starter proof nested under this shared ABI slice
+  - the focused `scripts/zigux/validate-phase3-export-uapi-survey.py` checker and its bootstrap-workflow steps still fail-close that starter packet without turning it into a separate Phase 3 tranche or broader header-governance owner
+  - current boundary evidence therefore lives in this shared ABI slice plus the packet-local export/UAPI survey note, `include/linux/zigux.h`, `zigux/kernel/export_shim.zig`, and `zigux/uapi/version.zig`
 - current shared ABI replay:
   - `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
   - `PHASE3_ABI_MANIFEST_FILE_COUNT=26`
@@ -116,10 +116,10 @@ The current Phase 3 low-level wrapper packet is still intentionally small, but i
 
 ## Linux Header Governance
 
-With the older dedicated export/UAPI note family gone from current `master`, this shared ABI slice now owns the header-growth rule for `include/linux/zigux.h`.
+The dedicated export/UAPI survey still tracks the starter boundary packet, but this shared ABI slice owns the broader header-growth rule for `include/linux/zigux.h` so neighboring export/UAPI and helper lanes do not compete for the same aggregation policy.
 
-- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=include/linux/zigux.h remains the curated Linux-facing aggregation header for already-landed Phase 3 helper views and summaries, while canonical layout ownership stays in include/zigux/abi.h and include/zigux/dev_t.h.`
-- `PHASE3_C_HEADER_GROWTH_RULE=new top-level helpers or view families may land in include/linux/zigux.h only when the same change also updates this shared ABI note plus manifest-backed dump or focused replay evidence for the added surface.`
+- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=include/linux/zigux.h remains the curated Linux-facing aggregation header for already-landed Phase 3 helper views and summaries, while canonical layout ownership stays in include/zigux/abi.h and include/zigux/dev_t.h and the packet-local export/UAPI survey only proves the starter boundary helpers it directly covers.`
+- `PHASE3_C_HEADER_GROWTH_RULE=new top-level helpers or view families may land in include/linux/zigux.h only when the same change also updates this shared ABI note plus manifest-backed dump or focused replay evidence for the added surface, while the packet-local export/UAPI survey refresh stays limited to the starter-boundary subset it actually proves.`
 - `include/linux/zigux.h` should relay and aggregate already-approved boundary helpers; it should not become a second source of truth for struct layout or policy definitions that belong in the curated ABI headers.
 
 ## Policy surfaces
