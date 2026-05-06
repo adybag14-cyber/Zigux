@@ -56,6 +56,7 @@
       "inclusive_boundary_start": "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
       "zero_bit_window": "test \"zero-bit windows return without reading bitmap words\"",
       "past_nbits_short_circuit": "test \"next scans past nbits return without reading bitmap words\"",
+      "underscore_alias_anchor": "test \"low-level underscore aliases mirror the primary find helpers\"",
       "tail_clamp_fixture_keys": [
         "tail_clamped_first",
         "tail_clamped_next",
