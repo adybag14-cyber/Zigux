@@ -44,11 +44,10 @@ const Manifest = struct {
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "blocked_on_risky_transport");
 }
 
-test "phase10 virtio mmio survey manifest records the live helper-backed transport gap" {
+test "phase10 virtio mmio survey manifest records the landed identity-backed packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -128,18 +127,17 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "absolute end offset and changed-byte mask") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "without mutating config space") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe-preflight summary flips from ready to blocked") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity snapshot") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "hard-codes its magic, version, and vendor assumptions") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "consumes that identity snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "justified `zigux/kernel/` or `zigux/helpers/` support surfaces") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-word write planning summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-write disposition summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "one explicit transport-identity summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "probe-preflight summary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "transport-identity snapshot helper") != null);
 
     var starter_landed_count: usize = 0;
-    var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_mmio_survey_gate = false;
     var saw_mmio_survey_note = false;
@@ -149,9 +147,9 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     var saw_mmio_feature_selector = false;
     var saw_mmio_config_window = false;
     var saw_mmio_config_write_plan = false;
+    var saw_mmio_transport_identity = false;
     var saw_mmio_config_write_disposition = false;
     var saw_mmio_probe_preflight = false;
-    var saw_mmio_transport_identity_next = false;
     var saw_mmio_lifecycle_blocker = false;
     var saw_ring_helper = false;
 
@@ -163,8 +161,6 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             starter_landed_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
-            ready_next_count += 1;
         } else if (std.mem.eql(u8, gap.status, "blocked_on_risky_transport")) {
             blocked_count += 1;
         }
@@ -232,6 +228,15 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without mutating config space") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-transport-identity-helper")) {
+            saw_mmio_transport_identity = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transport-identity summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "device ID") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without widening into interrupt acknowledgement") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-disposition-helper")) {
             saw_mmio_config_write_disposition = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -246,17 +251,8 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtio_mmio_probe()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt-ack readiness") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared identity snapshot") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without widening into lifecycle") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-mmio-transport-identity-helper")) {
-            saw_mmio_transport_identity_next = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transport-identity snapshot") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hard-codes magic, version, and vendor assumptions") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without widening into interrupt acknowledgement") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
@@ -272,8 +268,7 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 14);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expect(starter_landed_count >= 15);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_ring_helper);
     try std.testing.expect(saw_mmio_survey_gate);
@@ -284,8 +279,8 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expect(saw_mmio_feature_selector);
     try std.testing.expect(saw_mmio_config_window);
     try std.testing.expect(saw_mmio_config_write_plan);
+    try std.testing.expect(saw_mmio_transport_identity);
     try std.testing.expect(saw_mmio_config_write_disposition);
     try std.testing.expect(saw_mmio_probe_preflight);
-    try std.testing.expect(saw_mmio_transport_identity_next);
     try std.testing.expect(saw_mmio_lifecycle_blocker);
 }
