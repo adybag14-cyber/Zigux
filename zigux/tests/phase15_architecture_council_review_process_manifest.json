@@ -11,10 +11,12 @@
     "owner",
     "rollback owner",
     "validation gate summary",
+    "indefinite-C policy link or non-applicability note",
     "evidence archive path",
     "latest blocker disposition",
     "benchmark notes",
     "replay command",
+    "rollback threshold",
     "retained discussion state",
     "reopen triggers",
     "parity scorecard link or blocker record"
@@ -38,9 +40,11 @@
     "latest blocker disposition",
     "benchmark notes",
     "replay command",
+    "rollback threshold",
     "retained discussion state",
     "reopen triggers",
     "parity scorecard link or blocker record",
+    "indefinite-C policy link or non-applicability note",
     "explicit non-goals",
     "written rationale"
   ],
@@ -128,7 +132,7 @@
       "status": "starter_landed",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The roadmap says every active commit series should declare phase, status bucket, validation gate, owner, and rollback owner, so the parked review-process packet now records those minimum fields explicitly in its current evidence inventory as well as its requested review packet schema."
+      "why_now": "The roadmap says every active commit series should declare phase, status bucket, validation gate, owner, rollback owner, indefinite-C policy linkage, and rollback threshold, so the parked review-process packet now records those minimum fields explicitly in its current evidence inventory as well as its requested review packet schema."
     },
     {
       "id": "phase15-lane-owner-alignment-replay-visible",
