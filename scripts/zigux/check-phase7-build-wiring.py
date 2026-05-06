@@ -45,6 +45,44 @@ HELPER_SPECS = [
     },
 ]
 
+REVIEW_GATE_SPECS = [
+    {
+        "key": "string_helpers_survey",
+        "root_path": '"phase7_string_helpers_survey.zig"',
+        "test_name_marker": '.name = "phase7-string-helpers-survey-tests",',
+        "depend_marker": "test_step.dependOn(&run_string_helpers_survey_tests.step);",
+        "cwd_marker": 'run_string_helpers_survey_tests.setCwd(b.path("../.."));',
+    },
+    {
+        "key": "string_helpers_sample_boundary",
+        "root_path": '"phase7_string_helpers_sample_boundary.zig"',
+        "test_name_marker": '.name = "phase7-string-helpers-sample-boundary-tests",',
+        "depend_marker": "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step);",
+        "cwd_marker": 'run_string_helpers_sample_boundary_tests.setCwd(b.path("../.."));',
+    },
+    {
+        "key": "cmdline_survey",
+        "root_path": '"phase7_cmdline_survey.zig"',
+        "test_name_marker": '.name = "phase7-cmdline-survey-tests",',
+        "depend_marker": "test_step.dependOn(&run_cmdline_survey_tests.step);",
+        "cwd_marker": 'run_cmdline_survey_tests.setCwd(b.path("../.."));',
+    },
+    {
+        "key": "argv_split_survey",
+        "root_path": '"phase7_argv_split_survey.zig"',
+        "test_name_marker": '.name = "phase7-argv-split-survey-tests",',
+        "depend_marker": "test_step.dependOn(&run_argv_split_survey_tests.step);",
+        "cwd_marker": 'run_argv_split_survey_tests.setCwd(b.path("../.."));',
+    },
+    {
+        "key": "rbtree_survey",
+        "root_path": '"phase7_rbtree_survey.zig"',
+        "test_name_marker": '.name = "phase7-rbtree-survey-tests",',
+        "depend_marker": "test_step.dependOn(&run_rbtree_survey_tests.step);",
+        "cwd_marker": 'run_rbtree_survey_tests.setCwd(b.path("../.."));',
+    },
+]
+
 REQUIRED_MARKERS = [
     marker
     for spec in HELPER_SPECS
@@ -54,6 +92,15 @@ REQUIRED_MARKERS = [
         spec["import_marker"],
         spec["test_name_marker"],
         spec["depend_marker"],
+    )
+] + [
+    marker
+    for spec in REVIEW_GATE_SPECS
+    for marker in (
+        spec["root_path"],
+        spec["test_name_marker"],
+        spec["depend_marker"],
+        spec["cwd_marker"],
     )
 ]
 
@@ -142,6 +189,55 @@ def run_self_test() -> None:
             ]
         )
 
+    for spec in REVIEW_GATE_SPECS:
+        marker_cases.extend(
+            [
+                (
+                    f"{spec['key']}_root_path_drift",
+                    spec["root_path"],
+                    spec["root_path"].replace(".zig", "_drift.zig"),
+                    spec["root_path"],
+                ),
+                (
+                    f"{spec['key']}_test_name_drift",
+                    spec["test_name_marker"],
+                    spec["test_name_marker"].replace("-tests", "-tests-drift"),
+                    spec["test_name_marker"],
+                ),
+                (
+                    f"{spec['key']}_depend_drift",
+                    spec["depend_marker"],
+                    spec["depend_marker"].replace(".step);", "_drift.step);"),
+                    spec["depend_marker"],
+                ),
+                (
+                    f"{spec['key']}_cwd_drift",
+                    spec["cwd_marker"],
+                    spec["cwd_marker"].replace('../..', '.'),
+                    spec["cwd_marker"],
+                ),
+            ]
+        )
+        exact_count_cases.extend(
+            [
+                (
+                    f"{spec['key']}_test_name_exact_count",
+                    spec["test_name_marker"],
+                    f"{spec['test_name_marker']}:expected=1:actual=2",
+                ),
+                (
+                    f"{spec['key']}_depend_exact_count",
+                    spec["depend_marker"],
+                    f"{spec['depend_marker']}:expected=1:actual=2",
+                ),
+                (
+                    f"{spec['key']}_cwd_exact_count",
+                    spec["cwd_marker"],
+                    f"{spec['cwd_marker']}:expected=1:actual=2",
+                ),
+            ]
+        )
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_build_wiring_") as tmp_dir_str:
         tmp_path = Path(tmp_dir_str) / "phase7_build.zig"
         tmp_path.write_text(fixture, encoding="utf-8")
@@ -169,7 +265,7 @@ def run_self_test() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check Phase 7 helper-module wiring in zigux/tests/phase7_build.zig."
+        description="Check Phase 7 helper-module and review-gate wiring in zigux/tests/phase7_build.zig."
     )
     parser.add_argument(
         "--self-test",
