@@ -31,6 +31,10 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 - an explicit result object that owns the copied token buffer
 - deterministic Zig-only validation without quote or shell expansion behavior
 
+This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
+
+The Phase 5 roadmap keeps approved reference idioms under four sample anchors in `samples/zigux/`, and no `samples/zigux/*argv*` Phase 5 reference sample is expected here; treat any new `samples/zigux/*argv*.zig` claim as a separate roadmap-boundary decision instead of silently folding it into this helper slice.
+
 ## Gates
 
 1. run the focused Zig module tests
