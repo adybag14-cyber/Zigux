@@ -59,6 +59,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_descriptor_prompt = false;
     var saw_approved_idiom_prompt = false;
     var saw_manifest_prompt = false;
+    var saw_preview_prompt = false;
     var saw_exact_sequence = false;
     var saw_capacity = false;
     var saw_helper_boundary = false;
@@ -77,6 +78,9 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "phase5_build.zig") != null) {
             saw_manifest_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "preview truncation boundary") != null) {
+            saw_preview_prompt = true;
         }
     }
 
@@ -123,6 +127,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_approved_idiom_prompt);
     try std.testing.expect(saw_manifest_prompt);
+    try std.testing.expect(saw_preview_prompt);
     try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_helper_boundary);
@@ -294,6 +299,39 @@ test "phase 5 bytestream fifo survey note records the short-drain helper contrac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "draining a three-byte destination from the queued string `\"hello\"` yields `\"hel\"`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "leaves the remaining prefix `\"lo\"` queued in order") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "follow-up drain on the now-empty queue returns `0`") != null);
+}
+
+test "phase 5 bytestream fifo survey note records the preview boundary contract" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-kfifo-sample-survey.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const required_markers = [_][]const u8{
+        "runPreviewBoundaryReplay()",
+        "preview truncation stay non-destructive",
+        "truncated preview stays non-destructive",
+        "`snapshotInto()` still begins with `[2,3,4,5]`",
+        "`previewInto()` copies `[2,3,4,5,6,7,8,9]`",
+        "reports `10` visible bytes",
+        "leaves the queued data intact",
+        "preview truncation boundary",
+        "preview-boundary replay also held",
+        "`snapshot_prefix = {2, 3, 4, 5}`",
+        "`preview_prefix = {2, 3, 4, 5, 6, 7, 8, 9}`",
+        "`preview_total_visible = 10`",
+        "`queue_len_after_preview = 10`",
+    };
+
+    for (required_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
+    }
 }
 
 test "phase 5 bytestream fifo survey note records the latest verification snapshot" {
