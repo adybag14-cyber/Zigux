@@ -97,13 +97,22 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
             seen_names[name] = group_name
 
     for case in conf_cases:
-        if case["mode"] != "randconfig":
+        mode = str(case["mode"])
+        name = str(case["name"])
+        mode_arg = case.get("mode_arg")
+        if mode in ("defconfig", "savedefconfig"):
+            if not isinstance(mode_arg, str) or not mode_arg:
+                issues.append(("MISSING_CONF_MODE_ARG_FIELDS", f"{name}:{mode}"))
+        elif "mode_arg" in case:
+            issues.append(("UNEXPECTED_CONF_MODE_ARG_FIELDS", f"{name}:{mode}"))
+
+        if mode != "randconfig":
             for field_name in ("seed", "probability"):
                 if field_name in case:
-                    issues.append(("INVALID_CONF_CASE_RANDCONFIG_FIELDS", f"{case['name']}:{field_name}"))
+                    issues.append(("INVALID_CONF_CASE_RANDCONFIG_FIELDS", f"{name}:{field_name}"))
         rel_path = case["expected"]
         if not (fixture_dir / rel_path).exists():
-            issues.append(("MISSING_CONF_CASE_EXPECTED_PATHS", f"{case['name']}:expected:{rel_path}"))
+            issues.append(("MISSING_CONF_CASE_EXPECTED_PATHS", f"{name}:expected:{rel_path}"))
 
     for case in cases["confdata_cases"]:
         for field_name in ("input", "expected"):
@@ -141,10 +150,7 @@ def build_self_test_root(root: Path) -> None:
 pub const Mode = enum {
     olddefconfig,
     syncconfig,
-    alldefconfig,
-    allmodconfig,
     randconfig,
-    yes2modconfig,
     defconfig,
     savedefconfig,
     listnewconfig,
@@ -280,6 +286,20 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][1]["mode_arg"] = "unexpected"
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert ("UNEXPECTED_CONF_MODE_ARG_FIELDS", "syncconfig:syncconfig") in issues
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        del payload["conf_cases"][3]["mode_arg"]
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert ("MISSING_CONF_MODE_ARG_FIELDS", "defconfig:defconfig") in issues
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
         payload["conf_cases"][0]["seed"] = "0xBAD"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
@@ -305,7 +325,7 @@ def run_self_test() -> int:
         assert ("MISSING_CONFDATA_CASE_PATHS", "sample_crlf:expected:sample_crlf_expected.json") in issues
 
     print("KCONFIG_BRIDGE_SELF_TEST=pass")
-    print("KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=7")
+    print("KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
