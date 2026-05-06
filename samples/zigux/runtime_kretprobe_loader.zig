@@ -372,6 +372,56 @@ test "runtime kretprobe loader keeps initialized-stage shared contract plans exp
     ));
 }
 
+test "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+
+    var loader = RuntimeKretprobeLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    const prepared_plan = shared_request.plan;
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, prepared_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), prepared_plan.init_flow.selftest_runs);
+
+    const selftest = try module.runSelftest();
+    const live_plan = try RuntimeKretprobeLoader.planFor(&module);
+    const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
+
+    try std.testing.expectEqual(@as(usize, 4), selftest.probe_focus.len);
+    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.selftest_complete, live_plan.handoff_stage);
+    try std.testing.expectEqualStrings("do_sys_openat2", live_plan.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), live_plan.summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), live_plan.summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), live_plan.summary.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), live_plan.summary.selftest_runs);
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expectEqualStrings(prepared_plan.module_name, pending_plan.module_name);
+    try std.testing.expectEqualStrings(prepared_plan.anchor, pending_plan.anchor);
+    try std.testing.expectEqualStrings(prepared_plan.entry_symbol, pending_plan.entry_symbol);
+    try std.testing.expectEqualStrings(prepared_plan.exit_symbol, pending_plan.exit_symbol);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.init_flow.selftest_runs);
+    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+        pending_plan,
+        .kernel_heap,
+        .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    ));
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(pending_plan));
+
+    try loader.releaseSharedWithoutSubstrate(&shared_request);
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+}
+
 test "runtime kretprobe loader bridges the shared request lifecycle without widening registration claims" {
     var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
     try module.retargetSymbol("do_sys_openat2");
