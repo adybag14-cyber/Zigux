@@ -62,7 +62,10 @@ The current checksum helper surface exercised by this slice covers:
 - `replace4`
 - `from32to16`
 - `fold`
+- `add16`
+- `sub16`
 - `tcpUdpNofold`
+- `tcpUdpV6Nofold`
 - `partial`
 - `compute`
 
@@ -71,10 +74,11 @@ The current tests check:
 - fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs
 - incremental partial-sum chaining across even and odd fragment boundaries
 - non-zero seeded `partial` accumulation parity across odd, carry-heavy, and pre-folded seed inputs
-- a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases
-- pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`
+- fixture-backed carry-discipline and imported KUnit random-prefix replays for all-ones prefixes and no-spurious-carry seeded cases
+- fixture-backed fold reviewability for `from32to16` and `fold`
+- IPv4 and IPv6 pseudo-header accumulation parity between the dedicated helper paths and manual `partial` plus `blockAdd` composition
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement
-- a direct 15-case C-vs-Zig replay for compute, seeded partial, composition, pseudo-header, and incremental replacement behavior
+- a direct 27-case C-vs-Zig replay for compute, seeded partial, composition, IPv4 and IPv6 pseudo-header, carry-discipline, direct `add16` and `sub16`, and incremental replacement behavior
 - helper-local wraparound, double-negation, and one's-complement carry checks for `negate`
 - helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop
 
