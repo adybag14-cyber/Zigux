@@ -2,19 +2,19 @@
 This note records one exact readback snapshot for the current Phase 4 rollback-ownership and lab-matrix gate definitions.
 
 ## Status
-- `PHASE4_EVIDENCE_DATE=2026-05-05`
+- `PHASE4_EVIDENCE_DATE=2026-05-06`
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
 - `PHASE4_VALIDATION_MATRIX_BLOB_SHA=9f01421b7ca24c16808195ceef449d9bd5d06970`
-- `PHASE4_VALIDATOR_BLOB_SHA=5f95efd379b1b19bb7671f74dc0f7d0a233d12e6`
+- `PHASE4_VALIDATOR_BLOB_SHA=94fe9533f43ffdacf30e10dc8d8507a7e1076053`
 - `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=e35da75baf34bd61b849322a252af2d1f57667ae`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=31cf8c2b2c8da86e823fbc8c8a39fe61c530312f`
 - `PHASE4_BUILD_BLOB_SHA=33d3ed8db4e40283212daa115a46e989df28ce6f`
 - `PHASE4_MAKEFILE_BLOB_SHA=6d3d1f2be6d8ea7f078170153d9f81e97614cf2b`
 - `PHASE4_WORKFLOW_BLOB_SHA=3ad317aa90ac4ff5e49124e75b784fe351e846f6`
 - `PHASE4_DOC_README_BLOB_SHA=fadc5faaa0791f88d8b1f4237d5b3dd3cd4959c5`
-- `PHASE4_SCRIPT_README_BLOB_SHA=8dadf953d05b4988d58cc5a90134404277fab4e6`
+- `PHASE4_SCRIPT_README_BLOB_SHA=08108a59b0602c5cdb9c93ca26935dc13caecdfd`
 - `PHASE4_TESTS_README_BLOB_SHA=c62245b68ebde005c5d2a8ddb958450e5f8193fb`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=fd5d6a4916ae38590a605683e9c658d68e28c550`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=6dd5b8e0a84fe2f775011d552b629b20da222166`
@@ -41,11 +41,12 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `scripts/zigux/check-phase4-gate-evidence.py --self-test` currently covers fourteen dedicated drift paths, and the shared `scripts/zigux/validate-phase4.py` route still reruns both the live checker and that self-test before Phase 4 Zig replays continue, expecting the same `PHASE4_GATE_EVIDENCE_TARGET_COUNT=16` packet recorded above.
 - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 handoff pair, and the shared build still exposes `phase4-runtime-atomic64-diff-survey-tests` and `phase4-bitmap-live-helper-replay-tests` beside the synthetic rollback gates.
 - The current helper-backed bitmap rollback lab replay route remains `zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`, matching the live helper-backed row in `Documentation/zigux/phase4-validation-matrix.md`.
+- `zigux/Makefile` still exposes `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, and `make -C zigux phase4`, so the Linux-style local replay surface matches the current shared Phase 4 packet instead of hiding those routes in the build file alone.
 - The exact-readback set is now current for the shipped validator-backed packet, and the manifest-backed runtime atomic64 survey pair now pins the same current `phase4_build.zig`, `validate-phase4.py`, `phase4-validation-matrix.md`, and `phase9_build.zig` blobs that this note names.
 - Current `master` still treats the roadmap-backed sample follow-ups as open gaps rather than shipped gate-evidence targets: `samples/zigux/kprobe_example.zig` remains absent and `samples/zigux/test_fsmount.zig` remains absent.
 
 ## Current Conclusion
 - The live Phase 4 exact-readback packet is limited to the files that `master` actually ships for rollback ownership, matrix wording, validator wiring, the artifact-diff contract, the gate-evidence note, the shared build route, the helper-backed bitmap replay, and the runtime atomic64 wrapper handoff plus its manifest-backed survey evidence.
 - The dedicated gate-evidence note, its explicit rollback-owner row in `Documentation/zigux/phase4-validation-matrix.md`, and the separate runtime atomic64 manifest-backed survey packet are back in sync with the same current validator-backed blob-pin set.
-- The published rollback-readiness note now also surfaces the dedicated checker self-test catalog and the shared validator's exact gate-evidence expectations instead of leaving that narrower coverage implied by the Python sources alone.
+- The published rollback-readiness note now also surfaces the dedicated checker self-test catalog, the shared validator's exact gate-evidence expectations, and the live Linux-style Makefile replay routes instead of leaving that narrower coverage implied by the Python sources alone.
 - hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.
