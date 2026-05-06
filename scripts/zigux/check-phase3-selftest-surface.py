@@ -63,6 +63,7 @@ SCRIPTS_README_MARKERS = [
 
 TESTS_README_MARKERS = [
     "scripts/zigux/validate_phase3_selftest.py",
+    "scripts/zigux/check-phase3-abi-dump-gate.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/phase3_catalog.py --self-test",
@@ -272,6 +273,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root / "zigux/tests/README.md", "scripts/zigux/validate_phase3_selftest.py\n")
         issues = validate_root(root)
+        assert "tests_readme:scripts/zigux/check-phase3-abi-dump-gate.py" in issues
         assert "tests_readme:scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in issues
         assert "tests_readme:scripts/zigux/validate-phase3-policy-unsafe-survey.py" in issues
         assert "tests_readme:scripts/zigux/phase3_catalog.py --self-test" in issues
@@ -287,11 +289,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "zigux/tests/README.md",
-            "\n".join(TESTS_README_MARKERS + [TESTS_README_MARKERS[3]]) + "\n",
+            "\n".join(TESTS_README_MARKERS + [TESTS_README_MARKERS[1]]) + "\n",
         )
         issues = validate_root(root)
         assert (
-            "duplicate_tests_readme_marker:2:scripts/zigux/phase3_catalog.py --self-test"
+            "duplicate_tests_readme_marker:2:scripts/zigux/check-phase3-abi-dump-gate.py"
             in issues
         )
 
