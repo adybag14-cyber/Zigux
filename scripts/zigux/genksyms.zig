@@ -10,6 +10,7 @@ pub const Request = struct {
     preserve: bool = false,
     reference_files: []const []const u8 = &.{},
     dump_types_file: ?[]const u8 = null,
+    version_count: usize = 0,
 };
 
 pub const Command = union(enum) {
@@ -197,7 +198,10 @@ fn parseLongOption(
 
     switch (option.kind) {
         .help => return .{ .command = .help },
-        .version => return .{ .command = .version },
+        .version => {
+            request.version_count += 1;
+            return .none;
+        },
         .debug => {
             request.debug_level += 1;
             return .none;
@@ -248,7 +252,7 @@ fn parseShortOptions(
     while (short_index < arg.len) : (short_index += 1) {
         switch (arg[short_index]) {
             'h' => return .{ .command = .help },
-            'V' => return .{ .command = .version },
+            'V' => request.version_count += 1,
             'd' => request.debug_level += 1,
             'w' => request.warnings = true,
             'q' => request.warnings = false,
@@ -380,6 +384,15 @@ pub fn main(init: std.process.Init) !void {
             try stderr_writer.interface.flush();
         },
         .request => |request| {
+            if (request.version_count != 0) {
+                var stderr_buffer: [128]u8 = undefined;
+                var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+                for (0..request.version_count) |_| {
+                    try stderr_writer.interface.writeAll(version_text);
+                }
+                try stderr_writer.interface.flush();
+            }
+
             var stdout_buffer: [2048]u8 = undefined;
             var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
             try renderGenksymsBridge(&stdout_writer.interface, request);
@@ -423,6 +436,27 @@ test "genksyms bridge parses long options and quiet override" {
                 try std.testing.expectEqualStrings("types.symtypes", request.dump_types_file.?);
                 try std.testing.expectEqual(@as(usize, 1), request.reference_files.len);
                 try std.testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+            },
+            else => return error.UnexpectedCommand,
+        },
+        .failure => return error.UnexpectedFailure,
+    }
+}
+
+test "genksyms bridge keeps version as a side effect while parsing later options" {
+    const args = &.{ "-Vd", "--reference", "foo.symref" };
+    const outcome = try parseArgs(std.testing.allocator, args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                defer std.testing.allocator.free(request.reference_files);
+                defer std.testing.allocator.free(request.rendered_args);
+                try std.testing.expectEqual(@as(usize, 1), request.version_count);
+                try std.testing.expectEqual(@as(usize, 1), request.debug_level);
+                try std.testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try std.testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+                try std.testing.expectEqualSlices([]const u8, args, request.raw_args);
+                try std.testing.expectEqualSlices([]const u8, args, request.rendered_args);
             },
             else => return error.UnexpectedCommand,
         },
