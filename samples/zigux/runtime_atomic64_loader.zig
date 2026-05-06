@@ -255,7 +255,7 @@ test "runtime atomic64 loader keeps the prepared snapshot stable across later co
     try std.testing.expectEqual(@as(i64, 17), swapped);
     try std.testing.expect(compare.stored);
     try std.testing.expectEqual(@as(i64, -9), compare.previous);
-    try std.testing.expectEqual(@as(i64, 33), add_unless.changed);
+    try std.testing.expect(add_unless.changed);
     try std.testing.expectEqual(@as(i64, 33), add_unless.previous);
     try std.testing.expectEqual(@as(i64, 37), and_previous);
     try std.testing.expectEqual(@as(i64, 5), xor_previous);
