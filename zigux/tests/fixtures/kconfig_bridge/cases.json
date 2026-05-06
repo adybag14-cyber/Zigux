@@ -123,6 +123,11 @@
       "name": "final_unterminated_unset_comment",
       "input": "final_unterminated_unset_comment.config",
       "expected": "final_unterminated_unset_comment_expected.json"
+    },
+    {
+      "name": "uppercase_tristate",
+      "input": "uppercase_tristate.config",
+      "expected": "uppercase_tristate_expected.json"
     }
   ]
 }
