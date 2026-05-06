@@ -35,6 +35,11 @@ test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery 
     try std.testing.expectEqual(@as(u16, 2), first_plan.poll_queues);
     try std.testing.expectEqual(@as(?u16, 6), first_plan.first_poll_queue_index);
 
+    const first_rollback = try lab.recoveryRollbackSummary();
+    try std.testing.expectEqual(@as(u16, 0), first_rollback.recovery_generation);
+    try std.testing.expect(first_rollback.keeps_frozen_layout_for_restore);
+    try std.testing.expect(first_rollback.requires_replan_before_queue_reuse);
+
     const first_restore = try lab.restoreAfterTransportReset();
     try std.testing.expectEqual(@as(u16, 1), first_restore.recovery_generation);
     try std.testing.expectEqual(@as(u16, 6), first_restore.remembered_request_queues);
@@ -66,6 +71,14 @@ test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery 
     try std.testing.expectEqual(@as(u16, 4), second_rebind.last_default_queue_index);
     try std.testing.expectEqual(@as(?u16, 5), second_rebind.first_poll_queue_index);
     try std.testing.expectEqual(@as(?u16, 5), second_rebind.last_poll_queue_index);
+
+    const second_rollback = try lab.recoveryRollbackSummary();
+    try std.testing.expectEqual(@as(u16, 1), second_rollback.recovery_generation);
+    try std.testing.expectEqual(@as(u16, 4), second_rollback.request_queues);
+    try std.testing.expectEqual(@as(u16, 3), second_rollback.default_queues);
+    try std.testing.expectEqual(@as(u16, 1), second_rollback.poll_queues);
+    try std.testing.expectEqual(@as(u16, 6), second_rollback.total_queues);
+    try std.testing.expect(second_rollback.clears_live_layout_after_restore);
 
     const second_restore = try lab.restoreAfterTransportReset();
     try std.testing.expectEqual(@as(u16, 2), second_restore.recovery_generation);
