@@ -343,6 +343,14 @@ def check(root: Path) -> list[str]:
     errors.extend(
         run_checker(
             root,
+            "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+            "missing file: scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+            "phase14 docs-root smoke-summary checker failed without output",
+        )
+    )
+    errors.extend(
+        run_checker(
+            root,
             "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
             "missing file: scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
             "phase14 rollback-threshold sequencing checker failed without output",
@@ -505,6 +513,20 @@ def run_self_test() -> int:
         errors = check(root)
         if not any("manifest surface drift for scripts/zigux/check-phase14-docs-root-smoke-summary.py" in error for error in errors):
             print("self-test expected manifest surface failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken_checker = root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
+        broken_checker.write_text(
+            "#!/usr/bin/env python3\n"
+            f"\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\n"
+            "import sys\n"
+            "print('phase14 docs-root smoke summary checker forced failure', file=sys.stderr)\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 docs-root smoke summary checker forced failure" not in errors:
+            print("self-test expected docs-root checker subprocess failure", file=sys.stderr)
             return 1
     return 0
 
