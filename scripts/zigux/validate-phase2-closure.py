@@ -325,15 +325,19 @@ def collect_genksyms_expected_files(cases_payload: dict[str, object]) -> tuple[l
     return expected_files, issues
 
 
-def collect_confdata_case_files(cases_payload: dict[str, object]) -> tuple[list[Path], list[str]]:
+def collect_confdata_case_metadata(
+    cases_payload: dict[str, object],
+) -> tuple[list[Path], list[str], list[str], list[str]]:
     issues: list[str] = []
     cases = cases_payload.get('confdata_cases')
     if not isinstance(cases, list):
-        return [], ['kconfig_bridge_cases:confdata_cases:expected_list']
+        return [], [], [], ['kconfig_bridge_cases:confdata_cases:expected_list']
     if not cases:
-        return [], ['kconfig_bridge_cases:confdata_cases:empty']
+        return [], [], [], ['kconfig_bridge_cases:confdata_cases:empty']
 
     discovered_files: list[Path] = []
+    case_names: list[str] = []
+    expected_packet: list[str] = []
     seen_paths: set[Path] = set()
     for index, case in enumerate(cases):
         if not isinstance(case, dict):
@@ -344,7 +348,9 @@ def collect_confdata_case_files(cases_payload: dict[str, object]) -> tuple[list[
         if not isinstance(name, str) or not name:
             issues.append(f'kconfig_bridge_cases:confdata_cases[{index}]:name:expected_nonempty_string')
             continue
+        case_names.append(name)
 
+        expected_rel_path: str | None = None
         for field_name in ('input', 'expected'):
             rel_path = case.get(field_name)
             if not isinstance(rel_path, str) or not rel_path:
@@ -352,13 +358,17 @@ def collect_confdata_case_files(cases_payload: dict[str, object]) -> tuple[list[
                     f'kconfig_bridge_cases:{name}:{field_name}:expected_nonempty_string'
                 )
                 continue
+            if field_name == 'expected':
+                expected_rel_path = rel_path
             discovered_path = KCONFIG_BRIDGE_CASES.parent / rel_path
             if discovered_path in seen_paths:
                 continue
             seen_paths.add(discovered_path)
             discovered_files.append(discovered_path)
+        if expected_rel_path is not None:
+            expected_packet.append(expected_rel_path)
 
-    return discovered_files, issues
+    return discovered_files, case_names, expected_packet, issues
 
 
 def validate_exact_makefile_runs(text: str) -> list[str]:
@@ -411,9 +421,12 @@ def main() -> int:
         KCONFIG_BRIDGE_CASES,
         label='kconfig_bridge_cases',
     )
-    confdata_case_files, confdata_case_issues = collect_confdata_case_files(
-        kconfig_bridge_cases_payload
-    )
+    (
+        confdata_case_files,
+        confdata_case_names,
+        confdata_expected_packet,
+        confdata_case_issues,
+    ) = collect_confdata_case_metadata(kconfig_bridge_cases_payload)
     if genksyms_case_issues:
         print('PHASE2_CLOSURE_VALIDATION=fail')
         print('MISSING_PHASE2_CLOSURE_MARKERS_START')
@@ -493,6 +506,19 @@ def main() -> int:
         'conf bridge escapes low control bytes in JSON strings',
         'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
     ]
+    required_closure_markers.extend([
+        f'PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT={len(confdata_case_names)}',
+        'PHASE2_KCONFIG_BRIDGE_CONFDATA_CASES=' + ','.join(confdata_case_names),
+        'PHASE2_KCONFIG_BRIDGE_CONFDATA_EXPECTED_PACKET=' + ','.join(confdata_expected_packet),
+        'confdata bridge decodes escaped quoted strings',
+        'confdata bridge decodes escaped control sequences in quoted strings',
+        'confdata bridge accepts CRLF config lines',
+        'confdata bridge preserves trailing carriage return on final unterminated value line',
+        'confdata bridge ignores unterminated unset comment with trailing carriage return',
+        'confdata bridge keeps explicit n assignments as tristate values',
+        'confdata bridge recognizes uppercase tristate assignments',
+        'confdata bridge keeps escaped quoted payloads before trailing suffix bytes',
+    ])
     required_closure_markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
     required_closure_markers.extend(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS)
     required_closure_markers.extend(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
