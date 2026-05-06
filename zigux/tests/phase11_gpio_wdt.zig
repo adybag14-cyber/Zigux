@@ -85,6 +85,7 @@ test "phase11 gpio_wdt toggle mode mirrors start, ping, and stop transitions" {
     try std.testing.expect(!runtime.line_is_output);
     try std.testing.expect(runtime.line_state);
     try std.testing.expectEqual(@as(usize, 1), runtime.disable_count);
+    try std.testing.expectError(error.WatchdogNotRunning, watchdog.ping());
 }
 
 test "phase11 gpio_wdt level mode records pulses and keeps always-running hardware active" {
@@ -130,6 +131,7 @@ test "phase11 gpio_wdt level stop keeps disable-state teardown reviewable" {
     try std.testing.expectEqual(@as(usize, 1), runtime.pulse_count);
     try std.testing.expect(!runtime.last_ping_was_pulse);
     try std.testing.expectEqual(@as(u32, 0), runtime.last_pulse_width_usec);
+    try std.testing.expectError(error.WatchdogNotRunning, watchdog.ping());
 }
 
 test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-running hardware" {
@@ -142,6 +144,9 @@ test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-run
     try std.testing.expect(blocked.running);
     try std.testing.expect(blocked.line_is_output);
     try std.testing.expectEqual(@as(usize, 0), blocked.disable_count);
+    const blocked_runtime = try blocked_watchdog.ping();
+    try std.testing.expect(blocked_runtime.running);
+    try std.testing.expectEqual(@as(usize, 2), blocked_runtime.ping_count);
 
     var stoppable_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
     _ = try stoppable_watchdog.start();
@@ -153,6 +158,7 @@ test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-run
     try std.testing.expect(!stopped.line_is_output);
     try std.testing.expect(stopped.line_state);
     try std.testing.expectEqual(@as(usize, 1), stopped.disable_count);
+    try std.testing.expectError(error.WatchdogNotRunning, stoppable_watchdog.ping());
 
     var always_running_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 50, true);
     _ = try always_running_watchdog.start();
@@ -163,6 +169,9 @@ test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-run
     try std.testing.expect(kept_running.running);
     try std.testing.expect(kept_running.line_is_output);
     try std.testing.expectEqual(@as(usize, 0), kept_running.disable_count);
+    const kept_running_runtime = try always_running_watchdog.ping();
+    try std.testing.expect(kept_running_runtime.running);
+    try std.testing.expectEqual(@as(usize, 2), kept_running_runtime.ping_count);
 }
 
 test "phase11 gpio_wdt descriptor preflight keeps the first devm_gpiod_get boundary explicit" {
