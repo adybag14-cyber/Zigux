@@ -15,9 +15,9 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 ## Why this slice exists
 
-The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/bpf/zigux_segments/`, and the current survey packet still marks `fdinfo-map-info-helpers` as the smallest honest next helper-first slice.
+The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/bpf/zigux_segments/`, and the current survey packet now treats the bounded fdinfo bridge helper as landed adjacent review surface while keeping the broader reuse-planning bridge work queued.
 
-`bpf_get_map_info_from_fdinfo()` is the right starter because it keeps the work inside reviewable path formatting and fdinfo text parsing without widening into direct procfs reads, pinned-map reopen flow, or object-loader state.
+`bpf_get_map_info_from_fdinfo()` stayed the right starter because it keeps the landed work inside reviewable path formatting and fdinfo text parsing without widening into direct procfs reads, pinned-map reopen flow, or object-loader state.
 
 ## Gates
 
