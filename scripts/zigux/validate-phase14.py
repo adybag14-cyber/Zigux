@@ -278,7 +278,7 @@ def check_compile_matrix(root: Path) -> list[str]:
         errors.append("phase14 smoke note focused compile-shard count drifted from the current one-shard packet")
     if smoke_note_text.count("coverage `full_bundle_only`") != 4:
         errors.append("phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet")
-    if build_text.count("b.addTest(.{") != 5:
+    if build_text.count("b.addTest(.") != 5:
         errors.append("phase14 build bundle no longer declares the current five compile artifacts")
     if build_text.count("b.addRunArtifact(") != 5:
         errors.append("phase14 build bundle no longer wires the current five compile-artifact runs")
@@ -524,6 +524,20 @@ def run_self_test() -> int:
             print("self-test expected docs-root checker subprocess failure", file=sys.stderr)
             return 1
         write_text(root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py", f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
+        broken_rollback_checker = root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
+        broken_rollback_checker.write_text(
+            "#!/usr/bin/env python3\n"
+            f"\"\"\"{CHECKER_MARKER}\"\"\"\n"
+            "import sys\n"
+            "print('phase14 rollback-threshold sequencing checker forced failure', file=sys.stderr)\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 rollback-threshold sequencing checker forced failure" not in errors:
+            print("self-test expected rollback-threshold checker subprocess failure", file=sys.stderr)
+            return 1
+        write_text(root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         broken_release_boundary_checker = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
         broken_release_boundary_checker.write_text(
             "#!/usr/bin/env python3\n"
