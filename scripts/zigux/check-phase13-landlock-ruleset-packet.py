@@ -42,9 +42,11 @@ OWNERSHIP_MARKERS = [
 HELPER_MARKERS = [
     "provides_rule_tree_search_planning = true,",
     "provides_rule_tree_link_planning = true,",
+    "provides_rule_tree_replacement_planning = true,",
     "touches_live_object_trees = false,",
     "pub fn planRuleTreeSearch(",
     "pub fn planRuleTreeLink(",
+    "pub fn planRuleTreeReplacement(",
 ]
 
 BUILD_MARKERS = [
@@ -58,6 +60,8 @@ TEST_MARKERS = [
     'try std.testing.expectEqualStrings("P13-L12", manifest.lane_key);',
     'try std.testing.expectEqualStrings("security/landlock/ruleset.c", manifest.anchor);',
     'try std.testing.expect(std.mem.indexOf(u8, ownership_note, "phase13_landlock_ruleset_manifest.json") != null);',
+    'try std.testing.expect(descriptor.provides_rule_tree_replacement_planning);',
+    'ruleset.RulesetHelperLab.planRuleTreeReplacement(',
 ]
 
 MAKE_MARKERS = [
@@ -79,6 +83,7 @@ GAP_STATUSES = {
     "phase13-landlock-rule-layer-merge-followup": "starter_landed",
     "phase13-landlock-tree-search-followup": "starter_landed",
     "phase13-landlock-tree-link-followup": "starter_landed",
+    "phase13-landlock-tree-replacement-followup": "starter_landed",
     "phase13-landlock-live-tree-state-blocker": "blocked_on_live_lsm_state",
 }
 
@@ -226,8 +231,10 @@ def run_self_test() -> int:
             [
                 "landlock-ruleset-helper:provides_rule_tree_search_planning = true,",
                 "landlock-ruleset-helper:provides_rule_tree_link_planning = true,",
+                "landlock-ruleset-helper:provides_rule_tree_replacement_planning = true,",
                 "landlock-ruleset-helper:touches_live_object_trees = false,",
                 "landlock-ruleset-helper:pub fn planRuleTreeLink(",
+                "landlock-ruleset-helper:pub fn planRuleTreeReplacement(",
             ],
             "helper_guard_failed",
         )
@@ -262,6 +269,7 @@ def run_self_test() -> int:
                 "phase13-landlock-ruleset-manifest-gap:phase13-landlock-rule-layer-merge-followup",
                 "phase13-landlock-ruleset-manifest-gap:phase13-landlock-tree-search-followup",
                 "phase13-landlock-ruleset-manifest-gap:phase13-landlock-tree-link-followup",
+                "phase13-landlock-ruleset-manifest-gap:phase13-landlock-tree-replacement-followup",
                 "phase13-landlock-ruleset-manifest-gap:phase13-landlock-live-tree-state-blocker",
             ],
             "manifest_guard_failed",
