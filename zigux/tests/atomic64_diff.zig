@@ -4,6 +4,7 @@ const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase9_build_source = @embedFile("phase9_build.zig");
+const validate_phase4_source = @embedFile("../../scripts/zigux/validate-phase4.py");
 const phase4_validation_matrix_source = @embedFile("../../Documentation/zigux/phase4-validation-matrix.md");
 
 fn expectMarker(haystack: []const u8, marker: []const u8) !void {
@@ -143,6 +144,15 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
 test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing explicit" {
     try expectNoMarker(phase4_build_source, ".root_source_file = b.path(\"runtime_atomic64_diff.zig\")");
     try expectNoMarker(phase9_build_source, ".root_source_file = b.path(\"atomic64_diff.zig\")");
+}
+
+test "atomic64 diff wrapper keeps the shared phase4 validator packet explicit" {
+    try expectMarker(validate_phase4_source, "\"zigux/tests/atomic64_diff.zig\"");
+    try expectMarker(validate_phase4_source, "\"zigux/tests/runtime_atomic64_diff.zig\"");
+    try expectMarker(validate_phase4_source, "\"zigux/tests/phase4_runtime_atomic64_diff_manifest.json\"");
+    try expectMarker(validate_phase4_source, "\"zigux/tests/phase4_runtime_atomic64_diff_survey.zig\"");
+    try expectMarker(validate_phase4_source, "PHASE4_RUNTIME_ATOMIC64_PACKET_CHECK");
+    try expectMarker(validate_phase4_source, "phase4_runtime_atomic64_packet");
 }
 
 test "atomic64 diff wrapper keeps rollback ownership and threshold posture explicit" {
