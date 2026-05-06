@@ -55,6 +55,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_bitmap_sample_module.addImport("bitmap_view", bitmap_view_module);
+    const runtime_bitmap_top_bit_contract_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_bitmap_top_bit_contract.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_bitmap_top_bit_contract_module.addImport("runtime_bitmap_sample", runtime_bitmap_sample_module);
     const runtime_bitmap_loader_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/runtime_bitmap_loader.zig"),
         .target = target,
@@ -203,6 +209,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_bitmap_loader_module,
     });
     const run_runtime_bitmap_loader_tests = b.addRunArtifact(runtime_bitmap_loader_tests);
+    const runtime_bitmap_top_bit_contract_tests = b.addTest(.{
+        .name = "phase9-runtime-bitmap-top-bit-contract-tests",
+        .root_module = runtime_bitmap_top_bit_contract_module,
+    });
+    const run_runtime_bitmap_top_bit_contract_tests = b.addRunArtifact(runtime_bitmap_top_bit_contract_tests);
     const runtime_trace_events_sample_tests = b.addTest(.{
         .name = "phase9-runtime-trace-events-sample-tests",
         .root_module = runtime_trace_events_sample_module,
@@ -298,6 +309,12 @@ pub fn build(b: *std.Build) void {
     runtime_atomic64_tests_step.dependOn(&run_runtime_atomic64_diff_tests.step);
     runtime_atomic64_tests_step.dependOn(&run_runtime_atomic64_survey_tests.step);
 
+    const runtime_bitmap_top_bit_tests_step = b.step(
+        "phase9-runtime-bitmap-top-bit-tests",
+        "Run the focused Phase 9 runtime bitmap top-bit contract tests",
+    );
+    runtime_bitmap_top_bit_tests_step.dependOn(&run_runtime_bitmap_top_bit_contract_tests.step);
+
     const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, runtime-loader facade, contract, and allocator/init-flow tests");
     test_step.dependOn(&run_runtime_atomic64_sample_tests.step);
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
@@ -307,6 +324,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_bitmap_module_tests.step);
     test_step.dependOn(&run_runtime_bitmap_diff_tests.step);
     test_step.dependOn(&run_runtime_bitmap_loader_tests.step);
+    test_step.dependOn(&run_runtime_bitmap_top_bit_contract_tests.step);
     test_step.dependOn(&run_runtime_trace_events_sample_tests.step);
     test_step.dependOn(&run_runtime_trace_events_module_tests.step);
     test_step.dependOn(&run_runtime_trace_events_diff_tests.step);
