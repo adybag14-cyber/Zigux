@@ -10,11 +10,18 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const tree_bridge_module = b.createModule(.{
+        .root_source_file = b.path("../../kernel/rcu/tree_bridge.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const phase14_rcu_tree_survey_module = b.createModule(.{
         .root_source_file = b.path("phase14_rcu_tree_survey.zig"),
         .target = target,
         .optimize = optimize,
     });
+    phase14_rcu_tree_survey_module.addImport("tree_bridge", tree_bridge_module);
 
     const phase14_end_to_end_smoke_survey_module = b.createModule(.{
         .root_source_file = b.path("phase14_end_to_end_smoke_survey.zig"),
