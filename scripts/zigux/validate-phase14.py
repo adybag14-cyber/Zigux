@@ -57,6 +57,7 @@ REQUIRED_FILE_MARKERS = {
     "scripts/zigux/README.md": [
         "python3 scripts/zigux/validate-phase14.py",
         "make -C zigux phase14-validate",
+        "Documentation/zigux/phase14-core-boundary-traceability.md",
     ],
     "scripts/zigux/validate-phase14.py": [MARKER],
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": [CHECKER_MARKER],
@@ -398,6 +399,27 @@ def run_self_test() -> int:
         write_text(
             broken_docs_root_path,
             "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/README.md"]) + "\n",
+        )
+
+        broken_scripts_root_path = root / "scripts/zigux/README.md"
+        broken_scripts_root_path.write_text(
+            broken_scripts_root_path.read_text(encoding="utf-8").replace(
+                "Documentation/zigux/phase14-core-boundary-traceability.md\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in scripts/zigux/README.md: Documentation/zigux/phase14-core-boundary-traceability.md" in error
+            for error in errors
+        ):
+            print("self-test expected failure when scripts-root traceability marker drifted", file=sys.stderr)
+            return 1
+
+        write_text(
+            broken_scripts_root_path,
+            "\n".join(REQUIRED_FILE_MARKERS["scripts/zigux/README.md"]) + "\n",
         )
 
         broken_bridge_path = root / "kernel/workqueue_bridge.zig"
