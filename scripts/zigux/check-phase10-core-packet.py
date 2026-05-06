@@ -236,7 +236,6 @@ def run_self_test() -> int:
 
         build_path = tmp_root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
-        build_path.writeText = None
         build_path.write_text(
             original_build.replace('"phase10-virtio-core-survey-tests"', '"phase10-core-survey-drift"', 1),
             encoding="utf-8",
