@@ -345,6 +345,40 @@ test "phase10 virtio input queue-callback preflight reports blockers before queu
     try std.testing.expect(summary.blocker == null);
 }
 
+test "phase10 virtio input refills completed event buffers without widening into event delivery" {
+    var device = try virtio_input.VirtioInputLab.init("tablet", "serial-13c", 13, null);
+
+    try std.testing.expectError(error.EventQueueNotConfigured, device.refillEventBuffers(1));
+
+    try device.configureEventQueue(8);
+    try std.testing.expectError(error.EventBuffersNotFilled, device.refillEventBuffers(1));
+
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try std.testing.expectError(error.DeviceNotReady, device.refillEventBuffers(1));
+
+    try device.markReady();
+    try std.testing.expectError(error.EmptyEventCompletionCount, device.refillEventBuffers(0));
+    try std.testing.expectError(error.EventCompletionCountExceedsQueued, device.refillEventBuffers(9));
+
+    var summary = try device.refillEventBuffers(3);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 3), summary.completed_event_count);
+    try std.testing.expectEqual(@as(u16, 8), summary.queued_event_buffer_count_before);
+    try std.testing.expectEqual(@as(u16, 8), summary.queued_event_buffer_count_after);
+    try std.testing.expect(summary.ready);
+
+    summary = try device.refillEventBuffers(8);
+    try std.testing.expectEqual(@as(u16, 8), summary.completed_event_count);
+    try std.testing.expectEqual(@as(u16, 8), summary.queued_event_buffer_count_before);
+    try std.testing.expectEqual(@as(u16, 8), summary.queued_event_buffer_count_after);
+    try std.testing.expect(summary.ready);
+
+    const preflight = device.queueCallbackPreflightSummary();
+    try std.testing.expect(preflight.ready_for_queue_callbacks);
+    try std.testing.expectEqual(@as(u16, 8), preflight.queued_event_buffer_count);
+}
+
 test "phase10 virtio input registration preflight reports blockers before readiness" {
     var device = try virtio_input.VirtioInputLab.init("tablet", "serial-14", 14, null);
 
