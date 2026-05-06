@@ -49,7 +49,7 @@ The current tests check:
 - sparse masks with unset gaps preserved
 - explicit error handling for empty and malformed ranges
 - direct and chunked carriage-return regression cases that must stay rejected
-- reader contract failures such as zero-length chunks, oversized counts, and injected read errors
+- reader contract failures such as zero-length chunks, oversized counts, injected read errors, and empty scratch buffers
 
 ## Non-goals
 
