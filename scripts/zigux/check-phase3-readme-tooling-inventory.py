@@ -457,6 +457,16 @@ def run_self_test() -> int:
         _assert_only(validate(root), ["unexpected_makefile_command_count:phase3-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test", "makefile_command_order_drift:phase3-validate"], "duplicate_phase3_export_uapi_selftest_command_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
+        abi_bindings_live = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py\n"
+        _write(root / MAKEFILE_REL, baseline_makefile.replace(abi_bindings_live, "", 1))
+        _assert_only(validate(root), ["missing_makefile_command:phase3-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py", "makefile_command_order_drift:phase3-validate"], "missing_phase3_abi_bindings_live_command_guard_failed")
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+        abi_bindings_selftest = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test\n"
+        _write(root / MAKEFILE_REL, baseline_makefile.replace(abi_bindings_selftest, abi_bindings_selftest + abi_bindings_selftest, 1))
+        _assert_only(validate(root), ["unexpected_makefile_command_count:phase3-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test", "makefile_command_order_drift:phase3-validate"], "duplicate_phase3_abi_bindings_selftest_command_guard_failed")
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
         abi_dump_live = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py\n"
         _write(root / MAKEFILE_REL, baseline_makefile.replace(abi_dump_live, abi_dump_live + abi_dump_live, 1))
         _assert_only(validate(root), ["unexpected_makefile_command_count:phase3-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py", "makefile_command_order_drift:phase3-validate"], "duplicate_phase3_abi_dump_gate_live_command_guard_failed")
