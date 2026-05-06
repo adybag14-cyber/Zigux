@@ -174,7 +174,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py",
         "phase7-test:",
-        "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
+        "build test --build-file zigux/tests/phase7_build.zig --summary all",
         "phase7: phase7-validate phase7-test",
     ],
     "zigux/tests/phase7_build.zig": [
@@ -440,7 +440,7 @@ def run_self_test() -> None:
         ("makefile_make_wrapper_hook", "zigux/Makefile", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py", "", "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py"),
         ("makefile_argv_split_packet_self_test_hook", "zigux/Makefile", "scripts/zigux/check-phase7-argv-split-packet.py --self-test", "", "zigux/Makefile: scripts/zigux/check-phase7-argv-split-packet.py --self-test"),
         ("makefile_parity_self_test_hook", "zigux/Makefile", "scripts/zigux/check-phase7-rbtree-parity.py --self-test", "", "zigux/Makefile: scripts/zigux/check-phase7-rbtree-parity.py --self-test"),
-        ("makefile_phase7_test_summary_marker", "zigux/Makefile", "zig build test --build-file zigux/tests/phase7_build.zig --summary all", "zig build test --build-file zigux/tests/phase7_build.zig", "zigux/Makefile: zig build test --build-file zigux/tests/phase7_build.zig --summary all"),
+        ("makefile_phase7_test_summary_marker", "zigux/Makefile", "build test --build-file zigux/tests/phase7_build.zig --summary all", "build test --build-file zigux/tests/phase7_build.zig", "zigux/Makefile: build test --build-file zigux/tests/phase7_build.zig --summary all"),
         ("string_helpers_slice_boundary_guard_marker", "Documentation/zigux/phase7-string-helpers-slice.md", "zigux/tests/phase7_string_helpers_sample_boundary.zig", "", "Documentation/zigux/phase7-string-helpers-slice.md: zigux/tests/phase7_string_helpers_sample_boundary.zig"),
         ("string_helpers_slice_phase5_boundary_marker", "Documentation/zigux/phase7-string-helpers-slice.md", "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.", "", "Documentation/zigux/phase7-string-helpers-slice.md: This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane."),
         ("argv_split_slice_checker_gate", "Documentation/zigux/phase7-argv-split-slice.md", "python3 scripts/zigux/check-phase7-argv-split-packet.py", "", "Documentation/zigux/phase7-argv-split-slice.md: python3 scripts/zigux/check-phase7-argv-split-packet.py"),
