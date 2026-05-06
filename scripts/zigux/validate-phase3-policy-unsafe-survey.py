@@ -13,6 +13,8 @@ MAKEFILE_REL = "zigux/Makefile"
 ALLOCATOR_POLICY_REL = "zigux/helpers/allocator_policy.zig"
 PANIC_POLICY_REL = "zigux/helpers/panic_policy.zig"
 UNSAFE_NARROW_REL = "zigux/unsafe/narrow.zig"
+ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
+ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
 
 PATH_MARKERS = {
     "PHASE3_LAYOUT_ASSERT_PATH": "zigux/helpers/layout_assert.zig",
@@ -95,6 +97,18 @@ REQUIRED_NARROW_UNSAFE_SNIPPETS = (
     "writeValueAt(u32, base, 19);",
 )
 
+REQUIRED_ABI_DUMP_SNIPPETS = (
+    'try writer.writeAll(",\\\"unsafe_scope_raw_pointer_bridge\\\":");',
+    'try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));',
+    'try writeLayoutPrefix(writer, "zigux_interop_policy", @sizeOf(abi.InteropPolicy), @alignOf(abi.InteropPolicy));',
+)
+
+REQUIRED_ABI_EXPECTED_SNIPPETS = (
+    '"unsafe_scope_raw_pointer_bridge":2',
+    '"zigux_mmio_range":{"size":16,"align":8,"offsets":{"base_addr":0,"length":8,"stride":12}}',
+    '"zigux_interop_policy":{"size":4,"align":1,"offsets":{"panic_mode":0,"allocator_mode":1,"unsafe_scope":2,"reserved":3}}',
+)
+
 
 def git_blob_sha(path: Path) -> str:
     payload = path.read_bytes()
@@ -133,6 +147,12 @@ def require_exact_line_count(
     issues.append(f"duplicate_{prefix}:{line}:{count}")
 
 
+def require_snippets(issues: list[str], text: str, prefix: str, snippets: tuple[str, ...]) -> None:
+    for snippet in snippets:
+        if snippet not in text:
+            issues.append(f"missing_{prefix}_snippet:{snippet}")
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
     survey_path = root / SURVEY_REL
@@ -140,6 +160,8 @@ def validate(root: Path) -> list[str]:
     allocator_policy_path = root / ALLOCATOR_POLICY_REL
     panic_policy_path = root / PANIC_POLICY_REL
     narrow_unsafe_path = root / UNSAFE_NARROW_REL
+    abi_dump_path = root / ABI_DUMP_REL
+    abi_expected_path = root / ABI_EXPECTED_REL
 
     try:
         survey = survey_path.read_text(encoding="utf-8")
@@ -179,27 +201,35 @@ def validate(root: Path) -> list[str]:
     except FileNotFoundError:
         issues.append(f"missing_file:{ALLOCATOR_POLICY_REL}")
     else:
-        for snippet in REQUIRED_ALLOCATOR_POLICY_SNIPPETS:
-            if snippet not in allocator_policy:
-                issues.append(f"missing_allocator_policy_snippet:{snippet}")
+        require_snippets(issues, allocator_policy, "allocator_policy", REQUIRED_ALLOCATOR_POLICY_SNIPPETS)
 
     try:
         panic_policy = panic_policy_path.read_text(encoding="utf-8")
     except FileNotFoundError:
         issues.append(f"missing_file:{PANIC_POLICY_REL}")
     else:
-        for snippet in REQUIRED_PANIC_POLICY_SNIPPETS:
-            if snippet not in panic_policy:
-                issues.append(f"missing_panic_policy_snippet:{snippet}")
+        require_snippets(issues, panic_policy, "panic_policy", REQUIRED_PANIC_POLICY_SNIPPETS)
 
     try:
         narrow_unsafe = narrow_unsafe_path.read_text(encoding="utf-8")
     except FileNotFoundError:
         issues.append(f"missing_file:{UNSAFE_NARROW_REL}")
     else:
-        for snippet in REQUIRED_NARROW_UNSAFE_SNIPPETS:
-            if snippet not in narrow_unsafe:
-                issues.append(f"missing_narrow_unsafe_snippet:{snippet}")
+        require_snippets(issues, narrow_unsafe, "narrow_unsafe", REQUIRED_NARROW_UNSAFE_SNIPPETS)
+
+    try:
+        abi_dump = abi_dump_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        issues.append(f"missing_file:{ABI_DUMP_REL}")
+    else:
+        require_snippets(issues, abi_dump, "abi_dump", REQUIRED_ABI_DUMP_SNIPPETS)
+
+    try:
+        abi_expected = abi_expected_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        issues.append(f"missing_file:{ABI_EXPECTED_REL}")
+    else:
+        require_snippets(issues, abi_expected, "abi_expected", REQUIRED_ABI_EXPECTED_SNIPPETS)
 
     try:
         makefile = makefile_path.read_text(encoding="utf-8")
@@ -256,12 +286,13 @@ def build_valid_workspace(root: Path) -> None:
         "zigux/helpers/mmio.zig": "// mmio\n",
         UNSAFE_NARROW_REL: "\n".join(REQUIRED_NARROW_UNSAFE_SNIPPETS) + "\n",
         "zigux/tests/phase3_abi.zig": "// abi test\n",
-        "zigux/tests/phase3_abi_dump.zig": "// abi dump\n",
+        ABI_DUMP_REL: "\n".join(REQUIRED_ABI_DUMP_SNIPPETS) + "\n",
+        ABI_EXPECTED_REL: "\n".join(REQUIRED_ABI_EXPECTED_SNIPPETS) + "\n",
         "zigux/tests/fixtures/phase3_abi_manifest.json": "{\n  \"phase\": \"Phase 3\"\n}\n",
         "Documentation/zigux/phase3-abi-slice.md": "# abi\n",
     }
-    for rel, content in content_by_rel.items():
-        write_file(root / rel, content)
+    for rel, body in content_by_rel.items():
+        write_file(root / rel, body)
 
     survey_lines = [
         "# Phase 3 Policy and Unsafe Boundary Survey",
@@ -432,8 +463,34 @@ def run_self_test() -> int:
             in issues
         )
 
+        build_valid_workspace(root)
+        broken_abi_dump = (root / ABI_DUMP_REL).read_text(encoding="utf-8").replace(
+            'try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));\n',
+            "",
+            1,
+        )
+        write_file(root / ABI_DUMP_REL, broken_abi_dump)
+        issues = validate(root)
+        assert (
+            'missing_abi_dump_snippet:try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));'
+            in issues
+        )
+
+        build_valid_workspace(root)
+        broken_abi_expected = (root / ABI_EXPECTED_REL).read_text(encoding="utf-8").replace(
+            '"zigux_interop_policy":{"size":4,"align":1,"offsets":{"panic_mode":0,"allocator_mode":1,"unsafe_scope":2,"reserved":3}}\n',
+            "",
+            1,
+        )
+        write_file(root / ABI_EXPECTED_REL, broken_abi_expected)
+        issues = validate(root)
+        assert (
+            'missing_abi_expected_snippet:"zigux_interop_policy":{"size":4,"align":1,"offsets":{"panic_mode":0,"allocator_mode":1,"unsafe_scope":2,"reserved":3}}'
+            in issues
+        )
+
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
