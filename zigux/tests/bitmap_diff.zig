@@ -695,6 +695,26 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 97), repeated.final_first_zero);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 993), repeated.final_weight);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 123), repeated.final_nth_seven);");
+    const replay_start = std.mem.indexOf(
+        u8,
+        bitmap_diff_source,
+        "pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {",
+    ) orelse return error.MissingThresholdReplayBody;
+    const replay_end = std.mem.indexOfPos(
+        u8,
+        bitmap_diff_source,
+        replay_start,
+        "test \"bitmap diff gate replays bounded lib/test_bitmap.c range expectations\"",
+    ) orelse return error.MissingThresholdReplayBoundary;
+    const replay_body = bitmap_diff_source[replay_start..replay_end];
+    try std.testing.expectEqual(@as(usize, 13), countOccurrences(replay_body, "mixThresholdChecksum(&checksum,"));
+    try expectMarker(replay_body, "try bitmap.setRange(0, 9);");
+    try expectMarker(replay_body, "try bitmap.fillPrefix(35);");
+    try expectMarker(replay_body, "try bitmap.zeroPrefix(115);");
+    try expectMarker(replay_body, "try destination.copyFrom(&source, 97);");
+    try expectMarker(replay_body, "try short_destination.copyFrom(&short_source, 23);");
+    try expectMarker(replay_body, "const nth_seven = try nth_probe.findNthSet(nth_limit, 7);");
+    try expectMarker(replay_body, "const nth_end = try nth_probe.findNthSet(nth_limit, 8);");
 }
 
 test "bitmap diff gate rejects an empty threshold replay batch" {
