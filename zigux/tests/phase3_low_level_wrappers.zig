@@ -107,3 +107,25 @@ test "phase3 low-level wrappers keep non-seq-cst orderings reviewable" {
     try std.testing.expectEqual(@as(?u32, 19), weak_release_mismatch);
     try std.testing.expectEqual(@as(u32, 19), weak_release_value);
 }
+
+test "phase3 low-level wrappers keep barrier locality reviewable" {
+    var left: u8 = 7;
+    var right: u8 = 19;
+    const before_left = left;
+    const before_right = right;
+
+    barrier.acquire();
+    barrier.release();
+    barrier.full();
+    barrier.acquireRelease();
+
+    try std.testing.expectEqual(before_left, left);
+    try std.testing.expectEqual(before_right, right);
+
+    left +%= 1;
+    right +%= 2;
+    barrier.acquireRelease();
+
+    try std.testing.expectEqual(@as(u8, 8), left);
+    try std.testing.expectEqual(@as(u8, 21), right);
+}
