@@ -17,6 +17,7 @@ MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifes
 SCRIPT_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 EXPECTED_LANE_KEY = "P15-L08"
 
 SELF_REFERENCE_MARKER = "Documentation/zigux/phase15-architecture-council-review-process.md"
@@ -201,6 +202,13 @@ REQUIRED_TESTS_README_MARKERS = [
     "without implying any Architecture Council approval for a freeze-map status change",
 ]
 
+REQUIRED_WORKFLOW_MARKERS = [
+    "- name: Validate Phase 15 governance packet",
+    "run: make -C zigux phase15-validate",
+    "- name: Run Phase 15 governance tests",
+    "run: make -C zigux phase15-test",
+]
+
 REQUIRED_MAKEFILE_MARKERS = [
     "PHONY += phase15-validate phase15-test phase15",
     "phase15-validate:",
@@ -229,7 +237,16 @@ def expect_exact_once(text: str, marker: str, label: str, failures: list[str]) -
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
-    required_paths = [DOCS_README_PATH, REVIEW_CHECKLIST_PATH, NOTE_PATH, MANIFEST_PATH, SCRIPT_README_PATH, TESTS_README_PATH, MAKEFILE_PATH]
+    required_paths = [
+        DOCS_README_PATH,
+        REVIEW_CHECKLIST_PATH,
+        NOTE_PATH,
+        MANIFEST_PATH,
+        SCRIPT_README_PATH,
+        TESTS_README_PATH,
+        MAKEFILE_PATH,
+        WORKFLOW_PATH,
+    ]
     for rel_path in required_paths:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
@@ -241,6 +258,7 @@ def validate(root: Path) -> list[str]:
     script_readme = read_text(root, SCRIPT_README_PATH)
     tests_readme = read_text(root, TESTS_README_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
+    workflow = read_text(root, WORKFLOW_PATH)
     for marker in REQUIRED_DOCS_README_MARKERS:
         if marker not in docs_readme:
             failures.append(f"docs_readme:{marker}")
@@ -264,6 +282,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_TESTS_README_MARKERS:
         if marker not in tests_readme:
             failures.append(f"tests_readme:{marker}")
+    for marker in REQUIRED_WORKFLOW_MARKERS:
+        if marker not in workflow:
+            failures.append(f"workflow:{marker}")
     for marker in REQUIRED_MAKEFILE_MARKERS:
         if marker not in makefile:
             failures.append(f"makefile:{marker}")
@@ -318,6 +339,7 @@ def write_fixture_tree(root: Path) -> None:
     (root / 'zigux/tests').mkdir(parents=True, exist_ok=True)
     (root / 'scripts/zigux').mkdir(parents=True, exist_ok=True)
     (root / 'zigux').mkdir(parents=True, exist_ok=True)
+    (root / '.github/workflows').mkdir(parents=True, exist_ok=True)
     docs_readme = """# Documentation/zigux
 Phase 15 notes
 - `Documentation/zigux/freeze-map.md`
@@ -454,6 +476,16 @@ keep the parked Phase 15 governance packet explicit in the tests root too
 - without implying any Architecture Council approval for a freeze-map status change
 """
     (root / TESTS_README_PATH).write_text(tests_readme, encoding='utf-8')
+    workflow = """name: zigux-bootstrap
+jobs:
+  bootstrap:
+    steps:
+      - name: Validate Phase 15 governance packet
+        run: make -C zigux phase15-validate
+      - name: Run Phase 15 governance tests
+        run: make -C zigux phase15-test
+"""
+    (root / WORKFLOW_PATH).write_text(workflow, encoding='utf-8')
     makefile = """PHONY += phase15-validate phase15-test phase15
 phase15-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test
@@ -631,12 +663,17 @@ def run_self_test() -> int:
         manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
         expect_failure(tmp_root, 'manifest_handoff:zigux/tests/phase15_parity_scorecard.zig', 'missing_manifest_parity_scorecard_replay_marker')
         write_fixture_tree(tmp_root)
+        workflow_path = tmp_root / WORKFLOW_PATH
+        workflow = workflow_path.read_text(encoding='utf-8')
+        workflow_path.write_text(workflow.replace('- name: Validate Phase 15 governance packet\n', '', 1), encoding='utf-8')
+        expect_failure(tmp_root, 'workflow:- name: Validate Phase 15 governance packet', 'missing_workflow_validate_step_marker')
+        write_fixture_tree(tmp_root)
         makefile_path = tmp_root / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding='utf-8')
         makefile_path.write_text(makefile.replace('cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test\n', '', 1), encoding='utf-8')
         expect_failure(tmp_root, 'makefile:scripts/zigux/check-phase15-review-process-handoff.py --self-test', 'missing_makefile_self_test_marker')
         print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass')
-        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=37')
+        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=38')
         return 0
 
 def main() -> int:
@@ -655,7 +692,7 @@ def main() -> int:
         print('PHASE15_REVIEW_PROCESS_HANDOFF_FAILURES_END')
         return 1
     print('PHASE15_REVIEW_PROCESS_HANDOFF=pass')
-    print('PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT=' f"{3 + len(REQUIRED_NOTE_MARKERS) + len(REQUIRED_MANIFEST_BOUNDARY_MARKERS) + len(REQUIRED_REVIEW_PACKET_FIELD_MARKERS) + len(REQUIRED_OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_CURRENT_APPROVAL_POSTURE_MARKERS) + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}")
+    print('PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT=' f"{3 + len(REQUIRED_NOTE_MARKERS) + len(REQUIRED_MANIFEST_BOUNDARY_MARKERS) + len(REQUIRED_REVIEW_PACKET_FIELD_MARKERS) + len(REQUIRED_OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_CURRENT_APPROVAL_POSTURE_MARKERS) + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}")
     return 0
 
 if __name__ == '__main__':
