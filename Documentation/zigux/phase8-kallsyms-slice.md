@@ -37,6 +37,7 @@ The live repo already had the parse-first `kallsyms.zig` surface plus the inject
 - `zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all`
 
 5. run the focused shared help and symbol gate
+- `make -C zigux phase8-help-kallsyms-test`
 - `zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all`
 
 6. run the dedicated Phase 8 tooling gate
@@ -70,7 +71,7 @@ The current tests check:
 - the direct `kallsymsParseFile()` wrapper keeps an already-open file handle on the same callback-stop contract without reopening path ownership inside the helper
 - the direct `kallsymsParse()` wrapper reuses that same path surface while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
 - the focused `phase8_kallsyms_only_build.zig` shard keeps the parked parser-and-wrapper packet reviewable without rerunning the whole Phase 8 bundle
-- the focused `phase8_help_kallsyms_only_build.zig` shard keeps the parked help-and-kallsyms packet reviewable without widening into unrelated Phase 8 tooling slices
+- the focused `phase8_help_kallsyms_only_build.zig` shard and `make -C zigux phase8-help-kallsyms-test` route keep the parked help-and-kallsyms packet reviewable without widening into unrelated Phase 8 tooling slices
 - oversized symbol names now raise `error.SymbolNameTooLong` on both the direct parse path and the chunk-boundary reconstruction path instead of being silently truncated
 - injected callback failures bubble out unchanged so the parked parser does not hide downstream review or tooling errors
 
