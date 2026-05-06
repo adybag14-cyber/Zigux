@@ -20,14 +20,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The existing Phase 9 build step already carries the direct `phase9-runtime-bitmap-sample-tests` leg and is still the narrowest honest place to keep the runtime starter replay visible beside the module, diff, loader, and survey gates without inventing a broader runtime substrate."
+      "why_now": "The existing Phase 9 build step already carries the direct `phase9-runtime-bitmap-sample-tests` leg and the focused `phase9-runtime-bitmap-top-bit-tests` leg, so the runtime starter and highest-valid-bit boundary replay stay visible beside the module, diff, loader, and survey gates without inventing a broader runtime substrate."
     },
     {
       "id": "runtime-bitmap-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_bitmap_survey.zig",
-      "why_now": "A bitmap-specific survey gate keeps the lib/test_bitmap.c anchor, starter status, and remaining blockers explicit while the pilot surface stays small."
+      "why_now": "A bitmap-specific survey gate keeps the lib/test_bitmap.c anchor, starter status, focused highest-valid-bit replay, and remaining blockers explicit while the pilot surface stays small."
     },
     {
       "id": "runtime-bitmap-sample-module",
@@ -63,6 +63,13 @@
       "kind": "runtime_substrate_scaffold",
       "zigux_destination": "samples/zigux/runtime_bitmap_loader.zig",
       "why_now": "A tiny sample-side loader scaffold makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, handoff-stage checks, and a no-substrate release path without pretending a real module loader already exists."
+    },
+    {
+      "id": "runtime-bitmap-top-bit-boundary",
+      "status": "starter_landed",
+      "kind": "boundary_validation",
+      "zigux_destination": "samples/zigux/runtime_bitmap_top_bit_contract.zig",
+      "why_now": "The focused top-bit companion replay keeps the highest valid bit, one-bit boundary mutation, and immediate out-of-bounds guards reviewable through the shared Phase 9 bitmap packet without widening into full bitmap API parity."
     },
     {
       "id": "runtime-bitmap-live-loader-binding",
