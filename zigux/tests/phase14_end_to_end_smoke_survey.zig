@@ -5,6 +5,12 @@ const Surface = struct {
     required_marker: []const u8,
 };
 
+const CompileArtifact = struct {
+    label: []const u8,
+    root_source: []const u8,
+    coverage: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -14,6 +20,14 @@ const Manifest = struct {
     commands: []const []const u8,
     surfaces: []const Surface,
     blocked_anchors: []const []const u8,
+};
+
+const expected_compile_artifacts = [_]CompileArtifact{
+    .{ .label = "phase14-workqueue-bridge-tests", .root_source = "phase14_workqueue_bridge.zig", .coverage = "full_bundle_only" },
+    .{ .label = "phase14-skbuff-bridge-tests", .root_source = "phase14_skbuff_bridge.zig", .coverage = "full_bundle_only" },
+    .{ .label = "phase14-ring-buffer-survey-tests", .root_source = "phase14_ring_buffer_survey.zig", .coverage = "full_bundle_only" },
+    .{ .label = "phase14-rcu-tree-survey-tests", .root_source = "phase14_rcu_tree_survey.zig", .coverage = "full_bundle_only" },
+    .{ .label = "phase14-end-to-end-smoke-tests", .root_source = "phase14_end_to_end_smoke_survey.zig", .coverage = "focused_and_full_bundle" },
 };
 
 fn containsMarker(haystack: []const u8, needle: []const u8) bool {
@@ -100,6 +114,47 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
         );
         defer std.testing.allocator.free(text);
         try std.testing.expect(containsMarker(text, surface.required_marker));
+    }
+
+    const smoke_note_text = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(smoke_note_text);
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_COMPILE_ARTIFACT_COUNT=5"));
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FOCUSED_SHARD_COUNT=1"));
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, smoke_note_text, "coverage `focused_and_full_bundle`"));
+    try std.testing.expectEqual(@as(usize, 4), std.mem.count(u8, smoke_note_text, "coverage `full_bundle_only`"));
+
+    const build_text = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase14_build.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(build_text);
+    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_text, "b.addTest(.{"));
+    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_text, "b.addRunArtifact("));
+    try std.testing.expect(containsMarker(build_text, "const smoke_step = b.step(\"phase14-smoke\", \"Run the focused Phase 14 end-to-end smoke survey\")"));
+    try std.testing.expect(containsMarker(build_text, "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);"));
+    try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);"));
+    try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_skbuff_bridge_tests.step);"));
+    try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);"));
+    try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);"));
+
+    for (expected_compile_artifacts) |expected| {
+        const matrix_row = try std.fmt.allocPrint(
+            std.testing.allocator,
+            "- `{s}`: root `{s}`, coverage `{s}`",
+            .{ expected.label, expected.root_source, expected.coverage },
+        );
+        defer std.testing.allocator.free(matrix_row);
+        try std.testing.expect(containsMarker(smoke_note_text, matrix_row));
+        try std.testing.expect(containsMarker(build_text, expected.label));
+        try std.testing.expect(containsMarker(build_text, expected.root_source));
     }
 
     const makefile_text = try std.Io.Dir.cwd().readFileAlloc(
