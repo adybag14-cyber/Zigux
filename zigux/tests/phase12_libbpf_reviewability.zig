@@ -418,8 +418,8 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
             try std.testing.expect(!exists);
         }
     }
-    try std.testing.expectEqual(@as(usize, 5), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 2), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expectEqual(@as(usize, 4), deferred_count);
     try std.testing.expect(saw_logging);
