@@ -28,6 +28,48 @@
     "phase15_replay_green_on_current_master": true,
     "deep_core_status_change_ready": false
   },
+  "deep_core_blockers": [
+    {
+      "anchor": "kernel/sched/core.c",
+      "parity_scorecard_owner": "Architecture Council",
+      "blocker_disposition": "blocked_no_bounded_scheduler_seam",
+      "roadmap_constraint": "freeze-in-C governance only until a narrower scheduler seam exists",
+      "repo_evidence": [
+        "Documentation/zigux/freeze-map.md",
+        "Documentation/zigux/phase15-parity-scorecard.md"
+      ]
+    },
+    {
+      "anchor": "mm/page_alloc.c",
+      "parity_scorecard_owner": "Architecture Council",
+      "blocker_disposition": "blocked_no_bounded_allocator_seam",
+      "roadmap_constraint": "freeze-in-C governance only until a bounded allocator seam exists",
+      "repo_evidence": [
+        "Documentation/zigux/freeze-map.md",
+        "Documentation/zigux/phase15-parity-scorecard.md"
+      ]
+    },
+    {
+      "anchor": "kernel/rcu/tree.c",
+      "parity_scorecard_owner": "ABI and Runtime Team",
+      "blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
+      "roadmap_constraint": "long-term governance stays in force until a narrower RCU seam answers the Phase 14 blocker",
+      "repo_evidence": [
+        "Documentation/zigux/phase14-rcu-tree-survey.md",
+        "Documentation/zigux/phase15-parity-scorecard.md"
+      ]
+    },
+    {
+      "anchor": "net/core/skbuff.c",
+      "parity_scorecard_owner": "Shared Subsystems Pod",
+      "blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide",
+      "roadmap_constraint": "freeze-in-C governance stays in force until a narrower skbuff lifetime seam exists",
+      "repo_evidence": [
+        "Documentation/zigux/phase14-skbuff-bridge-survey.md",
+        "Documentation/zigux/phase15-parity-scorecard.md"
+      ]
+    }
+  ],
   "remaining_gaps": [
     {
       "id": "phase15-deep-core-status-change-blocker",
@@ -37,5 +79,5 @@
       "why_now": "The freeze-in-C posture still lacks enough evidence for any deep-core status change."
     }
   ],
-  "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the deep-core blocker posture changes, or the validator-first route (`make -C zigux phase15`) needs another dedicated readiness guard refresh."
+  "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, one of the four recorded deep-core blocker dispositions changes, or the validator-first route (`make -C zigux phase15`) needs another dedicated readiness guard refresh."
 }
