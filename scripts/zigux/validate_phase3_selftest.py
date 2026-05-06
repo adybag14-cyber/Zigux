@@ -26,7 +26,7 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/check-phase3-selftest-surface.py",
         "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
-        ("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=18",),
+        ("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20",),
     ),
     SelfTestTarget(
         "scripts/zigux/check-phase3-readme-tooling-inventory.py",
@@ -297,7 +297,7 @@ def run_self_test() -> int:
         issues = run_targets(surface_count_root)
         assert (
             "missing_aux_marker:scripts/zigux/check-phase3-selftest-surface.py:"
-            "PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=18"
+            "PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20"
             in issues
         )
 
@@ -316,8 +316,8 @@ def run_self_test() -> int:
                             "",
                             'if "--self-test" in sys.argv:',
                             '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")',
-                            '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=18")',
-                            '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=18")',
+                            '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20")',
+                            '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20")',
                             "    raise SystemExit(0)",
                             "",
                             'raise SystemExit("expected --self-test")',
@@ -332,7 +332,7 @@ def run_self_test() -> int:
         issues = run_targets(surface_duplicate_count_root)
         assert (
             "duplicate_aux_marker:scripts/zigux/check-phase3-selftest-surface.py:2:"
-            "PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=18"
+            "PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20"
             in issues
         )
 
