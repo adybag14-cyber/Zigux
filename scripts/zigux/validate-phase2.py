@@ -441,7 +441,7 @@ def validate_root(root: Path) -> list[str]:
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"), "--self-test"],
             [
                 "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass",
-                "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=31",
+                "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32",
             ],
         )
     )
@@ -498,56 +498,52 @@ def write_text(path: Path, content: str) -> None:
 
 
 def write_stub_guard(path: Path, *, self_test_marker: str, live_markers: list[str]) -> None:
-    lines = [
+    body = [
         "#!/usr/bin/env python3",
         "import argparse",
         "",
-        "parser = argparse.ArgumentParser()",
-        "parser.add_argument('--self-test', action='store_true')",
-        "args = parser.parse_args()",
-        "if args.self_test:",
+        "def main() -> int:",
+        "    parser = argparse.ArgumentParser()",
+        "    parser.add_argument('--self-test', action='store_true')",
+        "    args = parser.parse_args()",
+        "    if args.self_test:",
     ]
-    for marker in self_test_marker.split("\n"):
-        lines.append(f"    print({marker!r})")
-    lines.append("else:")
-    for marker in live_markers:
-        lines.append(f"    print({marker!r})")
-    lines.append("")
-    write_text(path, "\n".join(lines))
+    for line in self_test_marker.splitlines():
+        body.append(f'        print("{line}")')
+    body.extend(
+        [
+            "        return 0",
+            "    else:",
+        ]
+    )
+    for line in live_markers:
+        body.append(f'        print("{line}")')
+    body.extend(
+        [
+            "        return 0",
+            "",
+            "if __name__ == '__main__':",
+            "    raise SystemExit(main())",
+            "",
+        ]
+    )
+    write_text(path, "\n".join(body))
 
 
 def build_script_readme_text() -> str:
-    return (
-        "- `check-zig-toolchain.py`\n"
-        "- `install-zig.py`\n"
-        "- `check-phase2-tests-readme-alignment.py`\n"
-        "- `check-phase2-cross-selftest-alignment.py`\n"
-        "- `check-phase2-toolchain-pin-scope.py`\n"
-        "- `validate-phase2.py`\n"
-        "- `validate-phase2-closure.py`\n"
-        "- `check-fixdep-diff.py`\n"
-        "- `check-genksyms-bridge.py`\n"
-        "- `check-genksyms-crc-diff.py`\n"
-        "- `check-kconfig-bridge.py`\n"
-        "- `check-phase2-tests-readme-alignment.py`\n"
-        "- `check-phase2-cross-selftest-alignment.py`\n"
-        "- `check-phase2-toolchain-pin-scope.py`\n"
-        "- `check-phase2-cross.py`\n"
-        "- `check-mk-elfconfig-diff.py`\n"
-        "- `genksyms.zig`\n"
-        "- `genksyms_crc.zig`\n"
-        "- `kconfig/conf_bridge.zig`\n"
-        "- `kconfig/confdata_bridge.zig`\n"
-        "- `mk_elfconfig.zig`\n"
-    )
+    markers = REQUIRED_SCRIPT_MARKERS.copy()
+    helper_block = REQUIRED_SCRIPT_HELPER_INDEX_MARKERS[0]
+    prefix = markers[:10]
+    suffix = markers[10:]
+    lines = [*(f"- `{marker}`" for marker in prefix)]
+    lines.extend(helper_block.splitlines())
+    lines.extend(f"- `{marker}`" for marker in suffix)
+    return "\n".join(lines) + "\n"
 
 
 def build_self_test_root(root: Path) -> None:
     for path in required_files(root):
-        if path.suffix:
-            write_text(path, "placeholder\n")
-        else:
-            path.mkdir(parents=True, exist_ok=True)
+        write_text(path, "\n")
     write_text(root / "zigux/tests/fixtures/phase2_tool_manifest.json", json.dumps({"phase": "Phase 2", "status": "closed", "tool_count": 6, "tools": ["scripts/zigux/fixdep.zig", "scripts/zigux/genksyms.zig", "scripts/zigux/genksyms_crc.zig", "scripts/zigux/mk_elfconfig.zig", "scripts/zigux/kconfig/conf_bridge.zig", "scripts/zigux/kconfig/confdata_bridge.zig"]}, indent=2) + "\n")
     write_text(root / "zigux/tests/fixtures/genksyms_bridge/cases.json", json.dumps({"cases": [{"expected": "minimal_expected.json"}]}, indent=2) + "\n")
     write_text(root / "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json", "{}\n")
@@ -566,7 +562,7 @@ def build_self_test_root(root: Path) -> None:
     write_stub_guard(root / "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py", self_test_marker="PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass\nPHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=4", live_markers=["PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-tests-readme-alignment.py", self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass\nPHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=37", live_markers=["PHASE2_TESTS_README_ALIGNMENT=pass", "PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT=1"])
     write_stub_guard(root / "scripts/zigux/check-phase2-cross-selftest-alignment.py", self_test_marker="PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass", live_markers=["PHASE2_CROSS_SELFTEST_ALIGNMENT=pass"])
-    write_stub_guard(root / "scripts/zigux/check-phase2-toolchain-pin-scope.py", self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=31", live_markers=["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"])
+    write_stub_guard(root / "scripts/zigux/check-phase2-toolchain-pin-scope.py", self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32", live_markers=["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", self_test_marker="PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass\nPHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=8", live_markers=["PHASE2_KCONFIG_ALIGNMENT=pass"])
     write_stub_guard(root / "scripts/zigux/check-kconfig-bridge.py", self_test_marker="KCONFIG_BRIDGE_SELF_TEST=pass\nKCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=5", live_markers=["KCONFIG_BRIDGE_DIFF=pass"])
     write_stub_guard(root / "scripts/zigux/check-mk-elfconfig-diff.py", self_test_marker="MK_ELFCONFIG_SELF_TEST=pass\nMK_ELFCONFIG_SELF_TEST_CASE_COUNT=4", live_markers=["MK_ELFCONFIG_DIFF=pass"])
