@@ -107,6 +107,11 @@ Keep that follow-through bounded to one shared summary at a time:
 
 This keeps later closure-note work small while preserving the explicit split between the shared loader lane, the bitmap-only top-bit replay, and the four pilot-family packets.
 
+## Current live follow-through state
+
+- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `samples/zigux/README.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`
+- the next bounded shared-summary follow-through should therefore start with `Documentation/zigux/review-checklist.md` when the Phase 9 reviewer-facing prompt is next touched, instead of replaying the already-landed docs-root, scripts-root, tests-root, or sample-root reminders
+
 ## Recommended next-step order
 
 1. shared loader lane: only when the change is about request-contract, allocator/init-flow, or build-only reviewability
