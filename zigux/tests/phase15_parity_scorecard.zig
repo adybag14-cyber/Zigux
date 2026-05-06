@@ -174,7 +174,7 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expectEqualStrings("replay command", manifest.review_process.required_record_fields[6]);
     try std.testing.expectEqualStrings("retained discussion state", manifest.review_process.required_record_fields[8]);
     try std.testing.expectEqualStrings("reopen triggers", manifest.review_process.required_record_fields[9]);
-    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
 
     var saw_sched = false;
     var saw_page_alloc = false;
@@ -267,6 +267,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     var saw_reopen_trigger_followup = false;
     var saw_roadmap_handoff_followup = false;
     var saw_review_gate_field_sync = false;
+    var saw_aggregate_metrics = false;
     var saw_blocker = false;
 
     for (gaps, 0..) |gap, i| {
@@ -339,6 +340,13 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "replay command") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "machine-counts") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-aggregate-scorecard-metrics")) {
+            saw_aggregate_metrics = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "aggregate metrics block") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "anchor count") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "frozen-line footprint") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -350,7 +358,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 16), landed_count);
+    try std.testing.expectEqual(@as(usize, 17), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_scorecard_note);
@@ -363,6 +371,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     try std.testing.expect(saw_reopen_trigger_followup);
     try std.testing.expect(saw_roadmap_handoff_followup);
     try std.testing.expect(saw_review_gate_field_sync);
+    try std.testing.expect(saw_aggregate_metrics);
     try std.testing.expect(saw_blocker);
 }
 
@@ -403,6 +412,9 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Evidence Archive Reporting Standard") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reserved Decision Record Templates") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Roadmap Handoff Evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Aggregate Metrics") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "31,437") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-aggregate-scorecard-metrics") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "Full-Parity Blockers and Long-Term Governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
