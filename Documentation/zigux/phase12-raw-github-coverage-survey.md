@@ -33,6 +33,7 @@ Those two notes remain truthful shared-tree-only anchors on `master`. They are r
 The shipped Phase 12 packet on `master` still keeps a direct smoke-preflight build route paired with the shared replay order below:
 
 - direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+- current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 
 1. `make -C zigux phase12-smoke`
 2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
