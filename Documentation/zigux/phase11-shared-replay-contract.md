@@ -36,6 +36,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
+- `drivers/tty/hvc/hvc_console_verify.zig`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 
@@ -56,6 +57,7 @@ Inside that shared `phase11_build.zig` route, the watchdog, shared header-parity
 - `zigux/tests/phase11_dw_wdt_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 - `zigux/tests/phase11_hvc_console.zig`
+- `drivers/tty/hvc/hvc_console_verify.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 
 The active watchdog validation packets also stay explicit beside that shared route:
@@ -79,7 +81,7 @@ The focused shared header-boundary evidence also stays explicit beside that repl
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 
-`Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` keep that same shared-versus-dedicated replay split explicit, while `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff, missing-reference failure mode, and teardown-gating replay reviewable without implying live tty teardown or host-backed cleanup.
+`Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` keep that same shared-versus-dedicated replay split explicit, while `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff, missing-reference failure mode, and teardown-gating replay reviewable without implying live tty teardown or host-backed cleanup, and `drivers/tty/hvc/hvc_console_verify.zig` now keeps one compile-local final-close and hung-up or detached teardown replay beside the shared packet.
 
 ## What This Contract Does Not Claim
 
