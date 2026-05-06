@@ -78,6 +78,16 @@
       "name": "explicit_n_tristate",
       "input": "explicit_n_tristate.config",
       "expected": "explicit_n_tristate_expected.json"
+    },
+    {
+      "name": "final_trailing_carriage_return",
+      "input": "final_trailing_carriage_return.config",
+      "expected": "final_trailing_carriage_return_expected.json"
+    },
+    {
+      "name": "final_unterminated_unset_comment",
+      "input": "final_unterminated_unset_comment.config",
+      "expected": "final_unterminated_unset_comment_expected.json"
     }
   ]
 }
