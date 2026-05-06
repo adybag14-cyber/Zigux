@@ -21,8 +21,10 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
     try expectContains(slice_note, "runtime-safe parsing helpers that:");
     try expectContains(slice_note, "- do not allocate");
+    try expectContains(slice_note, "Linux-style hyphen range expansion, validation-only counting, and leading-plus numeric acceptance for `get_option()` and `get_options()`");
+    try expectContains(slice_note, "memory-size suffix scaling, leading-plus numeric acceptance, and accurate parse-stop reporting in `memparse()`");
     try expectContains(slice_note, "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, quoted bare tokens that contain `=`, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination");
-    try expectContains(slice_note, "the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice");
+    try expectContains(slice_note, "the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice");
 
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
@@ -36,8 +38,12 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     defer allocator.free(cmdline_tests);
     try expectContains(cmdline_tests, "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");");
     try expectContains(cmdline_tests, "phase 7 getOption and getOptions preserve Linux-style range parsing");
+    try expectContains(cmdline_tests, "const plus_rest = cmdline.getOptions(\"+7\", plus_values.len, &plus_values);");
+    try expectContains(cmdline_tests, "const plus_validate_rest = cmdline.getOptions(\"+7\", 0, &plus_validate);");
     try expectContains(cmdline_tests, "const single_rest = cmdline.getOptions(\"1-1\", single.len, &single);");
     try expectContains(cmdline_tests, "const single_validate_rest = cmdline.getOptions(\"1-1\", 0, &single_validate);");
+    try expectContains(cmdline_tests, "phase 7 memparse preserves suffix scaling, leading plus, and stop index semantics");
+    try expectContains(cmdline_tests, "cmdline.memparse(\"+1K\", &index)");
     try expectContains(cmdline_tests, "phase 7 parseOptionStr matches only exact bare options");
     try expectContains(cmdline_tests, "phase 7 nextArg matches serialized edge fixtures");
     try expectContains(cmdline_tests, "for (next_arg_vectors.next_arg_cases) |fixture| {");
