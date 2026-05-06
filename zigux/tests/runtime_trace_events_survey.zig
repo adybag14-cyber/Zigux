@@ -324,6 +324,8 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the current loader scaffold now records explicit tracepoint register and unregister API names") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "release-without-substrate behavior rather than executable runtime registration parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the live repo also carries `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and the focused `phase9-runtime-loader-shared-tests` build step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the trace-events starter still stops before a real module-loading substrate or live tracepoint registration lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the current bounded starter still advertises `requires_runtime_substrate=true` and `provides_selftest_hook=true`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the manifest-backed ownership packet now records a four-entry `delivery_evidence_catalog` and a six-surface `ownership_map`") != null);
@@ -333,6 +335,8 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "samples/zigux/runtime_trace_events_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "zigux/tests/runtime_trace_events_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "zigux/tests/phase9_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "shared runtime-loader facade plus allocator/init-flow contract replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "shared runtime loader substrate can consume the bounded loader-handoff plan") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "keeping the roadmap-required selftest hook explicit through `provides_selftest_hook=true`") != null);
 
@@ -355,4 +359,11 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_loader_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-loader-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_trace_events_loader_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_loader_contract_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_loader_facade_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_loader_allocator_init_flow_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-loader-shared-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_loader_contract_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_loader_facade_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_loader_allocator_init_flow_tests.step") != null);
 }
