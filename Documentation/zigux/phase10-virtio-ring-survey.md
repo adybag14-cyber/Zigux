@@ -64,9 +64,9 @@ This keeps the lane concrete and reviewable without overstating `virtio_ring` pr
 
 - `Documentation/zigux/freeze-map.md` is the governing boundary note for this queue-local survey packet.
 - freeze-boundary owner: `P10-L10`
-- rollback owner: keep the shared `zigux/tests/phase10_build.zig` and `zigux/Makefile` replay route aligned before widening this queue-local note.
+- rollback owner: keep the shared `zigux/tests/phase10_build.zig` and `zigux/Makefile` replay routes aligned, including `make -C zigux phase10-test` and `make -C zigux phase10`, before widening this queue-local note.
 - this ring survey stays inside `drivers/virtio/*.zig`; it does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain Phase 14 study-only anchors under the freeze map.
-- the allowed evidence here is the ring survey note, its manifest, its focused survey gate, the shared Phase 10 build packet, the Linux-style `make -C zigux phase10` replay route, and the roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`; this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.
+- the allowed evidence here is the ring survey note, its manifest, its focused survey gate, the shared Phase 10 build packet, the Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` replay routes, and the roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`; this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.
 
 ## Non-goals
 
