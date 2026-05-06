@@ -47,7 +47,7 @@ The sample intentionally stays small:
 - it now exposes `runPayloadBoundaryReplay()` so the count-4 payload prefix, zero sentinel, `iter=4` message, and `One ring to rule them all` branch stay reviewable through a public helper instead of private field inspection
 - it now makes the replay summary itself carry explicit `vararg_payload_path_checked`, `relative_location_path_checked`, and `function_callback_path_checked` flags so reviewers do not have to infer those paths from private sample state
 - it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit
-- it keeps its sample-owned replay entrypoints bounded through `runAnchorReplay()` and `runPayloadBoundaryReplay()` instead of implying a runtime-ready trace-events module
+- it keeps its sample-owned replay entrypoints bounded through `runAnchorReplay()`, `runPayloadBoundaryReplay()`, and `runCallbackBoundaryReplay()` so the payload-shape, formatted-message, and callback-boundary checks stay public instead of implying a runtime-ready trace-events module
 
 The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
@@ -58,7 +58,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 - the replay records the `0xdeadbeef` bitmask word and marks the relative-location payload path as checked in the replay summary
 - the replay marks the vararg payload path as checked so the `fmt` plus `va_list` `trace_foo_bar` idiom stays explicit in the public replay summary
 - the replay records six main-thread event calls and two function-callback event calls for a total of eight bounded tracepoint-family calls
-- the function-callback replay requires registration first, marks that callback path as checked, and restores the registration balance to zero before the sample completes
+- the public `runCallbackBoundaryReplay()` helper requires registration first, records the callback-path replay explicitly, and restores the registration balance to zero before the sample completes
 - after `exit()` the sample rejects later payload replay or callback-registration calls
 
 ## Latest verification posture
@@ -66,7 +66,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 Fresh live current-`master` inspection on 2026-05-06 confirmed that the shipped trace-events packet still presents one repo-local, non-runtime review surface rather than a runtime handoff claim.
 
 - `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` still describe the same bounded payload, formatting, callback, and teardown contract
-- the public `runPayloadBoundaryReplay()` helper, `formattedMessage()` surface, replay-summary callback-path markers, and registration-balance cue all remain explicit on current `master`
+- the public `runPayloadBoundaryReplay()` and `runCallbackBoundaryReplay()` helpers, `formattedMessage()` surface, replay-summary callback-path markers, and registration-balance cue all remain explicit on current `master`
 - the survey gate still enforces repo-local review guidance by keeping the no-standalone-format-sample boundary tied to the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet
 - the shared review route remains `zig build test --build-file zigux/tests/phase5_build.zig --summary all` plus `make -C zigux phase5`, while the sample stays visibly separate from the Phase 9 `runtime_trace_events` family
 
@@ -77,6 +77,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - does `TraceEventsReferenceSample.descriptor()` still name `samples/trace_events/trace-events-sample.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_trace_events_sample_manifest.json` and `zigux/tests/phase5_trace_events_sample_survey.zig` still describe the exact vararg-payload, message, relative-location, callback-path, and teardown contract run through `zigux/tests/phase5_build.zig`?
 - does the contributor packet still name `runPayloadBoundaryReplay()` as the approved public count-4 payload-boundary helper instead of implying private field inspection for the `1,2,3,4` prefix, zero sentinel, initialized-stage boundary, `iter=%d` replay, and selected-string branch?
+- does the contributor packet still name `runCallbackBoundaryReplay()` as the approved public callback-boundary helper instead of leaving the balanced register-then-unregister replay, callback-path proof, and restored registration balance implicit?
 - does the in-memory replay still keep the array payload, selected string, and `iter=%d` message reviewable instead of hiding them behind runtime thread state?
 - does function-callback replay stay a balanced register-then-unregister idiom rather than implying `kthread_run()`, thread scheduling, or tracepoint enablement parity?
 - do the sample-owned prompts keep the exact `checked_focus` order, the balanced register-then-unregister callback flow, `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection, and post-exit replay rejection explicit instead of leaving those callback-boundary cues implied?
