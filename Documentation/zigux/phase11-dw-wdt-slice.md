@@ -13,4 +13,4 @@ The starter stays intentionally narrow:
 
 This slice does not claim platform-driver registration, clock or reset acquisition, IRQ registration, suspend or resume handling, debugfs support, custom devicetree TOP arrays beyond the bounded in-memory ordering helper, live MMIO access, or hardware validation coverage yet.
 
-The next honest bounded step inside the same Phase 11 lane is to attach the landed registration-facing handoff to platform-backed registration scaffolding and a hardware-validation plan before any broader behavior lands.
+The next honest bounded step inside the same Phase 11 lane is to attach the landed registration-facing handoff to platform-backed registration scaffolding while keeping `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` as the current hardware-validation plan before any broader behavior lands.
