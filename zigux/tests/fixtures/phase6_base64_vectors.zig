@@ -23,6 +23,16 @@ pub const InvalidDecodeCase = struct {
     variant_name: []const u8,
 };
 
+pub const PerfCase = struct {
+    label: []const u8,
+    payload: []const u8,
+    padding: bool,
+    variant_name: []const u8,
+    iterations: usize,
+    max_encode_slowdown_pct: u64,
+    max_decode_slowdown_pct: u64,
+};
+
 pub const standard_cases = [_]EncodeCase{
     .{ .input = "", .expected = "", .padding = true },
     .{ .input = "f", .expected = "Zg==", .padding = true },
@@ -117,3 +127,51 @@ pub const variant_decode_cases = [_]DecodeCase{
     .{ .input = "APv_f4A", .expected = &variant_sample, .padding = false, .variant_name = "urlsafe" },
     .{ .input = "APv,f4A", .expected = &variant_sample, .padding = false, .variant_name = "imap" },
 };
+
+pub const perf_payload =
+    "Phase 6 base64 perf gate payload keeps the helper wired to a real throughput check. " ++
+    "This packet stays helper-local, avoids widening into neighboring leaf helpers, and " ++
+    "exercises repeated encode and decode work over a stable review fixture. " ++
+    "Zigux uses the same payload for padded and unpadded standard and urlsafe runs.";
+
+pub const perf_cases = [_]PerfCase{
+    .{
+        .label = "STD_PAD",
+        .payload = perf_payload,
+        .padding = true,
+        .variant_name = "std",
+        .iterations = 12000,
+        .max_encode_slowdown_pct = 150,
+        .max_decode_slowdown_pct = 150,
+    },
+    .{
+        .label = "STD_NO_PAD",
+        .payload = perf_payload,
+        .padding = false,
+        .variant_name = "std",
+        .iterations = 12000,
+        .max_encode_slowdown_pct = 150,
+        .max_decode_slowdown_pct = 150,
+    },
+    .{
+        .label = "URLSAFE_PAD",
+        .payload = perf_payload,
+        .padding = true,
+        .variant_name = "urlsafe",
+        .iterations = 12000,
+        .max_encode_slowdown_pct = 150,
+        .max_decode_slowdown_pct = 150,
+    },
+    .{
+        .label = "URLSAFE_NO_PAD",
+        .payload = perf_payload,
+        .padding = false,
+        .variant_name = "urlsafe",
+        .iterations = 12000,
+        .max_encode_slowdown_pct = 150,
+        .max_decode_slowdown_pct = 150,
+    },
+};
+
+pub const perf_payload_buf_size = perf_payload.len;
+pub const perf_encoded_buf_size = 512;
