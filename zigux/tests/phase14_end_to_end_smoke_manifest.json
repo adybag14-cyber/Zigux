@@ -110,6 +110,14 @@
       "required_marker": "pub const SkbuffBridgeLab"
     }
   ],
+  "study_only_anchors": [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c"
+  ],
+  "freeze_in_c_anchors": [
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c"
+  ],
   "blocked_anchors": [
     "kernel/workqueue.c",
     "kernel/trace/ring_buffer.c",
