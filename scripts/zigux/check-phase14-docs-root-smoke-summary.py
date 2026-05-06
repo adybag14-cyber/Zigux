@@ -49,6 +49,14 @@ REQUIRED_MARKERS = [
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14",
 ]
+REQUIRED_SMOKE_SURVEY_MARKERS = [
+    CHECKER_PATH,
+    "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.",
+    "make -C zigux phase14-validate ZIG=/absolute/path/to/attached-zig/zig",
+    "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig",
+    "make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig",
+    "make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig",
+]
 
 
 def repo_root() -> Path:
@@ -75,8 +83,9 @@ def check(root: Path) -> list[str]:
         errors.append(f"missing file: {SMOKE_SURVEY_PATH}")
     else:
         smoke_text = read_text(smoke_survey_path)
-        if CHECKER_PATH not in smoke_text:
-            errors.append(f"missing marker in {SMOKE_SURVEY_PATH}: {CHECKER_PATH}")
+        for marker in REQUIRED_SMOKE_SURVEY_MARKERS:
+            if marker not in smoke_text:
+                errors.append(f"missing marker in {SMOKE_SURVEY_PATH}: {marker}")
 
     makefile_path = root / MAKEFILE_PATH
     if not makefile_path.exists():
@@ -115,8 +124,9 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         good_text = "\n".join(REQUIRED_MARKERS) + "\n"
+        good_smoke_text = "\n".join(REQUIRED_SMOKE_SURVEY_MARKERS) + "\n"
         write_text(root / DOCS_ROOT_PATH, good_text)
-        write_text(root / SMOKE_SURVEY_PATH, f"{CHECKER_PATH}\nmake -C zigux phase14-validate\n")
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
         write_text(root / MAKEFILE_PATH, f"phase14-validate:\n\tpython3 {CHECKER_PATH}\n")
         write_text(
             root / MANIFEST_PATH,
@@ -163,18 +173,26 @@ def run_self_test() -> int:
         write_text(root / DOCS_ROOT_PATH, good_text)
 
         broken_smoke_path = root / SMOKE_SURVEY_PATH
-        broken_smoke_path.write_text("make -C zigux phase14-validate\n", encoding="utf-8")
+        broken_smoke_path.write_text(
+            good_smoke_text.replace(
+                "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
         errors = check(root)
         if not errors or not any(
-            f"missing marker in {SMOKE_SURVEY_PATH}: {CHECKER_PATH}" in error
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
+            "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig" in error
             for error in errors
         ):
             print(
-                "self-test expected failure when the shared smoke survey lost the docs-root checker marker",
+                "self-test expected failure when the shared smoke survey lost an attached-toolchain fallback command",
                 file=sys.stderr,
             )
             return 1
-        write_text(root / SMOKE_SURVEY_PATH, f"{CHECKER_PATH}\nmake -C zigux phase14-validate\n")
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
 
         broken_makefile_path = root / MAKEFILE_PATH
         broken_makefile_path.write_text(
