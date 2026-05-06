@@ -77,6 +77,7 @@ It is a small substrate that makes future ports measurable:
 
 5. rerun the validator-support packet and its review-surface guard without duplicating the default route
 - `python3 scripts/zigux/validate_phase3_selftest.py`
+- `python3 scripts/zigux/check-phase3-selftest-surface.py --self-test`
 - `python3 scripts/zigux/check-phase3-selftest-surface.py`
 - `python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test`
 - `python3 scripts/zigux/check-phase3-readme-tooling-inventory.py`
