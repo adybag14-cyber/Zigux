@@ -376,6 +376,31 @@ test "hex2bin and bin2hex round-trip payloads" {
     try std.testing.expectEqualSlices(u8, source, text);
 }
 
+test "hexBytePack helpers chain bytes and preserve destination on bounds errors" {
+    const sample = [_]u8{ 0x00, 0xbe, 0xff };
+    var lower: [6]u8 = undefined;
+    var upper: [6]u8 = undefined;
+    var lower_rest: []u8 = lower[0..];
+    var upper_rest: []u8 = upper[0..];
+
+    for (sample) |byte| {
+        lower_rest = try hexBytePack(lower_rest, byte);
+        upper_rest = try hexBytePackUpper(upper_rest, byte);
+    }
+
+    try std.testing.expectEqual(@as(usize, 0), lower_rest.len);
+    try std.testing.expectEqual(@as(usize, 0), upper_rest.len);
+    try std.testing.expectEqualSlices(u8, "00beff", lower[0..]);
+    try std.testing.expectEqualSlices(u8, "00BEFF", upper[0..]);
+
+    var tiny_lower = [_]u8{0xaa};
+    var tiny_upper = [_]u8{0xbb};
+    try std.testing.expectError(HexError.DestinationTooSmall, hexBytePack(tiny_lower[0..], 0x5c));
+    try std.testing.expectError(HexError.DestinationTooSmall, hexBytePackUpper(tiny_upper[0..], 0x5c));
+    try std.testing.expectEqual(@as(u8, 0xaa), tiny_lower[0]);
+    try std.testing.expectEqual(@as(u8, 0xbb), tiny_upper[0]);
+}
+
 test "hex2bin rejects invalid length and bad digits" {
     var decoded: [2]u8 = undefined;
     try std.testing.expectError(HexError.InvalidSourceLength, hex2bin(decoded[0..], "abc"));
