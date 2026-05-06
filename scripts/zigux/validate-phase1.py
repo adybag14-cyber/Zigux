@@ -180,11 +180,11 @@ def collect_find_bit_fixture_mismatches(root: Path) -> list[str]:
 
     tail_nbits = bits_per_long + 5
     expected_values = {
-        "tail_clamped_first": bits_per_long + 3,
+        "tail_clamped_first": tail_nbits,
         "tail_clamped_next": tail_nbits,
         "tail_zero_clamped_first": tail_nbits,
         "tail_zero_clamped_next": tail_nbits,
-        "tail_and_clamped_first": bits_per_long + 3,
+        "tail_and_clamped_first": tail_nbits,
         "tail_and_clamped_next": tail_nbits,
     }
 
@@ -295,11 +295,11 @@ def make_fixture_root(tmp_root: Path) -> None:
             {
                 "find_bit": {
                     "bits_per_long": 64,
-                    "tail_clamped_first": 67,
+                    "tail_clamped_first": 69,
                     "tail_clamped_next": 69,
                     "tail_zero_clamped_first": 69,
                     "tail_zero_clamped_next": 69,
-                    "tail_and_clamped_first": 67,
+                    "tail_and_clamped_first": 69,
                     "tail_and_clamped_next": 69,
                 }
             },
@@ -417,10 +417,10 @@ def run_self_test() -> None:
         make_fixture_root(tmp_root)
         fixture_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json"
         fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
-        fixture["find_bit"]["tail_clamped_first"] = 69
+        fixture["find_bit"]["tail_clamped_first"] = 67
         fixture_path.write_text(json.dumps(fixture, separators=(",", ":")), encoding="utf-8")
         missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_fixture_find_bit:tail_clamped_first:expected=67:actual=69" in missing_markers
+        assert "phase1_fixture_find_bit:tail_clamped_first:expected=69:actual=67" in missing_markers
 
         make_fixture_root(tmp_root)
         fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
