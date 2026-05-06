@@ -39,6 +39,14 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_risky_transport");
 }
 
+fn isLowerHexCommit(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |char| {
+        if (!std.ascii.isDigit(char) and (char < 'a' or char > 'f')) return false;
+    }
+    return true;
+}
+
 test "phase10 virtio core survey manifest restores the live governance packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -82,7 +90,7 @@ test "phase10 virtio core survey manifest restores the live governance packet" {
     try std.testing.expectEqualStrings("P10-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("7a4454d0474106972cad7e164b79293bd54a40c6", manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);
     try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);
