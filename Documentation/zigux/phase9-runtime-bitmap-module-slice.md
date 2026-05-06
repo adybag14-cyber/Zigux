@@ -33,7 +33,7 @@ The live repo already had an atomic64 starter under the same Phase 9 review path
 - a table-driven differential gate that replays a few `lib/test_bitmap.c` expectations for set, clear, summary, and copy behavior
 - a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, captures the handoff bitmap summary, and keeps no-substrate release behavior explicit without claiming a real module loader
 - a dedicated survey gate and survey note that keep this runtime bitmap packet explicit as Phase 9 follow-on work rather than a fifth approved Phase 5 sample anchor
-- dedicated Phase 9 tests, survey coverage, and manifest closure wired into the shared `zigux/tests/phase9_build.zig` gate
+- dedicated Phase 9 tests, survey coverage, manifest closure, and the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade plus allocator/init-flow contract packet wired into the shared `zigux/tests/phase9_build.zig` gate and `make -C zigux phase9`
 
 ## Non-goals
 
@@ -46,10 +46,13 @@ This slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 9 build
+1. run the focused shared runtime-loader shard
+- `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
+
+2. run the dedicated Phase 9 build
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase9`
 
 ## Next bounded step
