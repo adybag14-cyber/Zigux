@@ -389,6 +389,26 @@ test "shared runtime loader contract rejects request state or plan drift" {
     drifted_module.module_name = "runtime_bitmap_drift";
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_module));
 
+    var drifted_anchor = stable_plan;
+    drifted_anchor.anchor = "lib/test_bitmap_drift.c";
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_anchor));
+
+    var drifted_entry_symbol = stable_plan;
+    drifted_entry_symbol.entry_symbol = "zigux_runtime_bitmap_init_drift";
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_entry_symbol));
+
+    var drifted_exit_symbol = stable_plan;
+    drifted_exit_symbol.exit_symbol = "zigux_runtime_bitmap_exit_drift";
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_exit_symbol));
+
+    var drifted_runtime_requirement = stable_plan;
+    drifted_runtime_requirement.requires_runtime_substrate = false;
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_runtime_requirement));
+
+    var drifted_selftest_hook = stable_plan;
+    drifted_selftest_hook.provides_selftest_hook = false;
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_selftest_hook));
+
     var drifted_allocator = stable_plan;
     drifted_allocator.allocator_handoff = .caller_provided;
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_allocator));
