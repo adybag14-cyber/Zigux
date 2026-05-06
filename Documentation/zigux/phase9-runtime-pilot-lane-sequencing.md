@@ -96,11 +96,12 @@ Keep these boundaries explicit so Phase 9 pilot work does not drift sideways:
 
 ## Shared summary follow-through
 
-When the shared Phase 9 reminders in the docs root, tests root, or sample-root boundary note are refreshed, they should point back to this sequencing note rather than trying to restate the owner split from scratch.
+When the shared Phase 9 reminders in the docs root, scripts root, tests root, or sample-root boundary note are refreshed, they should point back to this sequencing note rather than trying to restate the owner split from scratch.
 
 Keep that follow-through bounded to one shared summary at a time:
 
 - `Documentation/zigux/README.md` for the docs-root packet summary
+- `scripts/zigux/README.md` for the scripts-root validator and replay summary
 - `zigux/tests/README.md` for the shared tests-root replay reminder
 - `samples/zigux/README.md` only when the Phase 9 boundary wording there is being touched already
 
