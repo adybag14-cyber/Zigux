@@ -51,7 +51,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_rcu_tree_manifest.json`
 - survey note: `Documentation/zigux/phase14-rcu-tree-survey.md`
-- lane key: `P14-L13`
+- lane key: `P14-L14`
 - surveyed commit: `4c889233d157960514b241bcd5aff7cac5fda312`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-rcu-tree-bridge-blocker`
