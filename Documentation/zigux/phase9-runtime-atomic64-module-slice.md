@@ -14,6 +14,7 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
   - `zigux/kernel/runtime_loader.zig`
   - `zigux/kernel/runtime_loader_contract.zig`
   - `zigux/tests/runtime_atomic64_module.zig`
+  - `zigux/tests/runtime_atomic64_diff.zig`
   - `zigux/tests/runtime_atomic64_manifest.json`
   - `zigux/tests/runtime_atomic64_survey.zig`
   - `zigux/tests/runtime_loader_allocator_init_flow.zig`
