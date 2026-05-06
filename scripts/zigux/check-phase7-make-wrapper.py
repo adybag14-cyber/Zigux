@@ -20,6 +20,8 @@ EXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
+        "python3 scripts/zigux/check-phase7-build-wiring.py",
     ],
     "phase7-test": [
         "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
@@ -33,6 +35,8 @@ EXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
+        "python3 scripts/zigux/check-phase7-build-wiring.py",
         "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     ],
 }
@@ -53,6 +57,8 @@ UNEXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
+        "python3 scripts/zigux/check-phase7-build-wiring.py",
         "zig build test --build-file zigux/tests/phase7_build.zig",
         "zig build test --build-file zigux/tests/build.zig",
     ],
@@ -229,6 +235,41 @@ def run_self_test() -> int:
             fake_make_path,
             {
                 **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                    if line != "python3 scripts/zigux/check-phase7-build-wiring.py --self-test"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_build_wiring_selftest",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    *EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
+                    EXPECTED_MAKE_EXPANSIONS["phase7-validate"][8],
+                ],
+            },
+        )
+        expect_failure(
+            "duplicate_build_wiring_selftest",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: expected wrapper expansion count drift: python3 scripts/zigux/check-phase7-build-wiring.py --self-test (2 != 1)",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
                 "phase7-test": [
                     *EXPECTED_MAKE_EXPANSIONS["phase7-test"],
                     EXPECTED_MAKE_EXPANSIONS["phase7-test"][0],
@@ -273,6 +314,23 @@ def run_self_test() -> int:
             tmp_root,
             fake_make_env,
             "phase7-test: unexpected wrapper expansion: python3 scripts/zigux/validate-phase7.py",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-test": [
+                    "python3 scripts/zigux/check-phase7-build-wiring.py",
+                    *EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+                ],
+            },
+        )
+        expect_failure(
+            "stale_build_wiring_in_phase7_test",
+            tmp_root,
+            fake_make_env,
+            "phase7-test: unexpected wrapper expansion: python3 scripts/zigux/check-phase7-build-wiring.py",
         )
 
         make_fake_make(
@@ -346,7 +404,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=9")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
