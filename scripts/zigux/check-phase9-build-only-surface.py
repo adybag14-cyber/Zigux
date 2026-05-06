@@ -109,6 +109,16 @@ REQUIRED_PHASE9_BUILD_MARKERS = [
     '.root_module = runtime_loader_allocator_init_flow_module,',
     "const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);",
     "test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);",
+    'const runtime_loader_contract_tests = b.addTest(.{',
+    '.name = "phase9-runtime-loader-contract-tests",',
+    '.root_module = runtime_loader_contract_module,',
+    "const run_runtime_loader_contract_tests = b.addRunArtifact(runtime_loader_contract_tests);",
+    'const runtime_loader_shared_tests_step = b.step(',
+    '"phase9-runtime-loader-shared-tests",',
+    '"Run the focused Phase 9 runtime-loader facade, contract, and allocator/init-flow tests",',
+    "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);",
+    "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);",
+    "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);",
 ]
 
 REQUIRED_PHASE9_BUILD_EXACT_COUNTS = {
@@ -126,6 +136,16 @@ REQUIRED_PHASE9_BUILD_EXACT_COUNTS = {
     '.root_module = runtime_loader_allocator_init_flow_module,': 1,
     "const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);": 1,
     "test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);": 1,
+    'const runtime_loader_contract_tests = b.addTest(.{': 1,
+    '.name = "phase9-runtime-loader-contract-tests",': 1,
+    '.root_module = runtime_loader_contract_module,': 1,
+    "const run_runtime_loader_contract_tests = b.addRunArtifact(runtime_loader_contract_tests);": 1,
+    'const runtime_loader_shared_tests_step = b.step(': 1,
+    '"phase9-runtime-loader-shared-tests",': 1,
+    '"Run the focused Phase 9 runtime-loader facade, contract, and allocator/init-flow tests",': 1,
+    "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);": 1,
+    "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);": 1,
+    "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);": 1,
 }
 
 FORBIDDEN_FILES = [
@@ -334,6 +354,18 @@ const runtime_loader_allocator_init_flow_tests = b.addTest(.{
     .root_module = runtime_loader_allocator_init_flow_module,
 });
 const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);
+const runtime_loader_contract_tests = b.addTest(.{
+    .name = "phase9-runtime-loader-contract-tests",
+    .root_module = runtime_loader_contract_module,
+});
+const run_runtime_loader_contract_tests = b.addRunArtifact(runtime_loader_contract_tests);
+const runtime_loader_shared_tests_step = b.step(
+    "phase9-runtime-loader-shared-tests",
+    "Run the focused Phase 9 runtime-loader facade, contract, and allocator/init-flow tests",
+);
+runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
+runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
+runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
 test_step.dependOn(&run_runtime_loader_facade_tests.step);
 test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
 """,
@@ -766,6 +798,53 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                'const runtime_loader_contract_tests = b.addTest(.{\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            'phase9_build:const runtime_loader_contract_tests = b.addTest(.{',
+            "missing_phase9_build_contract_test_declaration",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                'const runtime_loader_shared_tests_step = b.step(\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            'phase9_build:const runtime_loader_shared_tests_step = b.step(',
+            "missing_phase9_build_shared_loader_step",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build + "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build_exact_count:runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);:expected=1:actual=2",
+            "duplicate_phase9_build_shared_loader_contract_dependency",
+        )
+
+        write_fixture_tree(root)
         write_text(root / "scripts/zigux/check-phase9-build-only-surface.py", SELF_PATH.read_text(encoding="utf-8"))
         probe = subprocess.run(
             [sys.executable, str(root / "scripts/zigux/check-phase9-build-only-surface.py")],
@@ -780,7 +859,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=24")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
