@@ -69,17 +69,26 @@ This slice does not yet claim:
 - `python3 scripts/zigux/check-phase10-input-packet.py --self-test`
 - `python3 scripts/zigux/check-phase10-input-packet.py`
 
-2. run the dedicated input survey gate
+2. run the dedicated helper-facing input replay
+- `zig test zigux/tests/phase10_virtio_input.zig`
+
+3. run the wrapper-facing verify replay
+- `zig test drivers/virtio/virtio_input_verify.zig`
+
+4. run the focused status-drain replay
+- `zig test zigux/tests/phase10_virtio_input_status_drain.zig`
+
+5. run the dedicated input survey gate
 - `zig test zigux/tests/phase10_virtio_input_survey.zig`
 
-3. run the dedicated Phase 10 build
+6. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-4. run the Linux-style Phase 10 test entrypoints
+7. run the Linux-style Phase 10 test entrypoints
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Taken together, these gates keep the bounded input helper plus the wrapper-facing verify replay, the dedicated survey replay, and the focused status-drain replay reviewable through the dedicated packet guard, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints on `master`.
+Taken together, these gates keep the bounded input helper plus the direct helper-facing replay, the wrapper-facing verify replay, the focused status-drain replay, and the dedicated survey replay reviewable through the dedicated packet guard, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints on `master`.
 
 ## Next bounded step
 
