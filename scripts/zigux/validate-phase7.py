@@ -76,6 +76,7 @@ REQUIRED_MARKERS = {
         "shared Phase 7 leaf-helper packet",
         "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
+        "zigux/tests/phase7_string_helpers_survey.zig",
         "zigux/tests/phase7_string_helpers_sample_boundary.zig",
         "zigux/tests/phase7_cmdline_survey.zig",
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
@@ -272,6 +273,7 @@ EXACT_COUNT_MARKERS = {
         ("shared Phase 7 leaf-helper packet", 1),
         ("scripts/zigux/check-phase7-make-wrapper.py", 1),
         ("scripts/zigux/check-phase7-argv-split-packet.py", 1),
+        ("zigux/tests/phase7_string_helpers_survey.zig", 1),
         ("`make -C zigux phase7-validate`", 1),
         ("`make -C zigux phase7`", 1),
         (
