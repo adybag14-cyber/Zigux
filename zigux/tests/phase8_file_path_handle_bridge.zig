@@ -54,6 +54,8 @@ test "phase 8 userspace-kernel bridge boundary survey keeps queued bridge work e
     try expectContains(survey, "Documentation/zigux/phase8-file-path-handle-bridge-slice.md");
     try expectContains(survey, "planTokenPreparation()");
     try expectContains(survey, "resolveReusePinnedMapAttempt()");
+    try expectContains(survey, "token materialization or capability handoff");
+    try expectContains(survey, "map reopen or bpffs compatibility closure");
     try expectContains(survey, "fd close or ownership semantics");
     try expectContains(survey, "deferred `perf-buffer-online-cpu-routing` packet");
     try expectContains(survey, "/sys/devices/system/cpu/online");
