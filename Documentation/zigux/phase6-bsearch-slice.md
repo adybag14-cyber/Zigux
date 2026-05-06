@@ -32,6 +32,9 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 2. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase6`
 
+3. keep the shared Phase 6 surface checker aligned with this slice
+- `make -C zigux phase6-validate`
+
 ## Current parity surface
 
 The current bsearch helper surface exercised by this slice covers:
@@ -71,4 +74,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `bsearch.c` parity gap inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, or that existing bundled gate.
+Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig`, `make -C zigux phase6`, and `make -C zigux phase6-validate`. Reopen this slice only if fresh repo inspection finds a concrete new `bsearch.c` parity gap inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, or that existing bundled gate.
