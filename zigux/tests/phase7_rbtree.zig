@@ -19,6 +19,12 @@ const Fixture = struct {
         key: i32,
         match_serials: []const i32,
     },
+    erase_init: struct {
+        remaining_order: []const i32,
+        detached_is_empty: bool,
+        detached_next_is_null: bool,
+        detached_prev_is_null: bool,
+    },
     postorder: struct {
         traversal: []const i32,
     },
@@ -195,6 +201,10 @@ test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stabl
 }
 
 test "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable" {
+    var parsed = try loadFixture(std.testing.allocator);
+    defer parsed.deinit();
+    const fixture = parsed.value;
+
     const less = struct {
         fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
             const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
@@ -217,22 +227,21 @@ test "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable"
 
     rbtree.eraseInit(&entries[0].node, &root);
 
-    try std.testing.expect(rbtree.emptyNode(&entries[0].node));
-    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.next(&entries[0].node));
-    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.prev(&entries[0].node));
+    try std.testing.expectEqual(fixture.erase_init.detached_is_empty, rbtree.emptyNode(&entries[0].node));
+    try std.testing.expectEqual(fixture.erase_init.detached_next_is_null, rbtree.next(&entries[0].node) == null);
+    try std.testing.expectEqual(fixture.erase_init.detached_prev_is_null, rbtree.prev(&entries[0].node) == null);
 
-    const expected = [_]i32{ 5, 15, 20 };
-    var actual: [expected.len]i32 = undefined;
-    var index: usize = 0;
+    var actual: [3]i32 = undefined;
+    var count: usize = 0;
     var current = rbtree.first(&root);
     while (current) |node| : (current = rbtree.next(node)) {
         const entry: *const Entry = @fieldParentPtr("node", node);
-        actual[index] = entry.key;
-        index += 1;
+        actual[count] = entry.key;
+        count += 1;
     }
 
-    try std.testing.expectEqual(expected.len, index);
-    try std.testing.expectEqualSlices(i32, &expected, actual[0..index]);
+    try std.testing.expectEqual(fixture.erase_init.remaining_order.len, count);
+    try std.testing.expectEqualSlices(i32, fixture.erase_init.remaining_order, actual[0..count]);
 }
 
 test "phase 7 rbtree detached nodes stay non-empty until callers clear them" {
