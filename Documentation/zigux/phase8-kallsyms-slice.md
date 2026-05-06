@@ -26,19 +26,25 @@ The live C anchor for this family still concentrates review around `kallsyms2elf
 
 ## Gates
 
-1. run the focused Zig module tests
+1. run the shared validator-first route
+- `make -C zigux phase8-validate`
+
+2. run the focused make wrapper
+- `make -C zigux phase8-kallsyms-test`
+
+3. run the focused Zig module tests
 - `zig test tools/lib/symbol/kallsyms.zig`
 
-2. run the focused shard replay
+4. run the focused shard replay
 - `zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all`
 
-3. run the focused shared help and symbol gate
+5. run the focused shared help and symbol gate
 - `zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all`
 
-4. run the dedicated Phase 8 tooling gate
-- `zig build test --build-file zigux/tests/phase8_build.zig`
+6. run the dedicated Phase 8 tooling gate
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-5. run the convenience target
+7. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
