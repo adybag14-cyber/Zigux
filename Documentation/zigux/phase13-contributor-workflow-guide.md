@@ -76,4 +76,4 @@ Before calling a Phase 13 change ready, confirm all of the following:
 
 ## Next Safe Follow-up
 
-The next contributor-facing improvement after this guide is to keep `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` aligned with this guide whenever a future Phase 13 wording refresh changes the shared validator-first replay route or the broader shipped adjacent release-surface evidence.
+The next contributor-facing improvement after this guide is to keep `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` aligned with this guide whenever a future Phase 13 wording refresh changes the shared validator-first replay route or the broader shipped adjacent release-surface evidence.
