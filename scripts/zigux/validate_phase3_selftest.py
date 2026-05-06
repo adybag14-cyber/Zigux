@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 19
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 21
 
 
 @dataclass(frozen=True)
@@ -30,6 +30,11 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/check-phase3-readme-tooling-inventory.py",
         "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass",
+    ),
+    SelfTestTarget(
+        "scripts/zigux/check-phase3-abi-dump-gate.py",
+        "PHASE3_ABI_DUMP_GATE_SELF_TEST=pass",
+        ("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=3",),
     ),
     SelfTestTarget(
         "scripts/zigux/check-phase3-catalog-selftest.py",
@@ -283,6 +288,44 @@ def run_self_test() -> int:
         assert (
             "missing_pass_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py:"
             "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass"
+            in issues
+        )
+
+        abi_dump_gate_marker_root = Path(tmp_dir) / "abi-dump-gate-marker"
+        for target in SELF_TEST_TARGETS:
+            marker = (
+                "WRONG_MARKER=pass"
+                if target.relpath.endswith("check-phase3-abi-dump-gate.py")
+                else (target.marker or "PASS")
+            )
+            write_script(
+                abi_dump_gate_marker_root / target.relpath,
+                marker,
+                extra_markers=target.extra_markers,
+            )
+        issues = run_targets(abi_dump_gate_marker_root)
+        assert (
+            "missing_pass_marker:scripts/zigux/check-phase3-abi-dump-gate.py:"
+            "PHASE3_ABI_DUMP_GATE_SELF_TEST=pass"
+            in issues
+        )
+
+        abi_dump_gate_count_root = Path(tmp_dir) / "abi-dump-gate-count"
+        for target in SELF_TEST_TARGETS:
+            extra_markers = (
+                ()
+                if target.relpath.endswith("check-phase3-abi-dump-gate.py")
+                else target.extra_markers
+            )
+            write_script(
+                abi_dump_gate_count_root / target.relpath,
+                target.marker or "PASS",
+                extra_markers=extra_markers,
+            )
+        issues = run_targets(abi_dump_gate_count_root)
+        assert (
+            "missing_aux_marker:scripts/zigux/check-phase3-abi-dump-gate.py:"
+            "PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=3"
             in issues
         )
 
