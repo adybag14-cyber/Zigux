@@ -55,8 +55,14 @@
       "helper_test_anchors": [
         "test \"strtobool accepts common Linux forms\"",
         "test \"strlcpy copies and returns the source length\"",
+        "test \"streq matches C-string equality semantics\"",
         "test \"skip trim remove and replace spaces work in place\"",
-        "test \"memdup and memchrInv preserve byte content\""
+        "test \"strHasPrefix honors C-string boundaries\"",
+        "test \"memdup and memchrInv preserve byte content\"",
+        "test \"memparse handles decimal hexadecimal octal and suffixes\"",
+        "test \"memparse keeps original rest when sign is not followed by digits\"",
+        "test \"memparse saturates signed overflow instead of trapping\"",
+        "test \"memparse consumes suffix after saturation\""
       ],
       "phase1_helper_replay_anchor": "test \"phase 1 string replaceChar stops at embedded NUL\"",
       "parity_fixture_keys": [
