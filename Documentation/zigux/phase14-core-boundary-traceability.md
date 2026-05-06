@@ -74,7 +74,7 @@ That shared packet matters because it proves the workqueue, ring-buffer, skbuff,
 - `kernel/workqueue.zig`
 - `kernel/trace/ring_buffer.zig`
 - `net/core/skbuff.c` parity or lifetime ownership
-- `kernel/rcu/tree_bridge.zig`
+- any live `kernel/rcu/tree_bridge.zig` ownership claim
 - any freeze-map status change
 - any Architecture Council reopen request
 
