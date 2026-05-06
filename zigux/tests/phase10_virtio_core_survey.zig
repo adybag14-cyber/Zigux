@@ -47,7 +47,7 @@ fn isLowerHexCommit(value: []const u8) bool {
     return true;
 }
 
-test "phase10 virtio core survey manifest restores the live governance packet" {
+test "phase10 virtio core survey manifest records the roadmap-facing lab-driver gap honestly" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -112,7 +112,10 @@ test "phase10 virtio core survey manifest restores the live governance packet" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane: `P10-L01`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-driver-id-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-lab-validation-evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-probe-remove-lifecycle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "true lab driver") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/") != null);
@@ -120,6 +123,8 @@ test "phase10 virtio core survey manifest restores the live governance packet" {
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10_virtio_core_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10_virtio_core_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "check-phase10-core-packet.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "lab-only driver validation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "true lab driver") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10_virtio_core_survey_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-core-survey-tests") != null);
@@ -130,6 +135,7 @@ test "phase10 virtio core survey manifest restores the live governance packet" {
     var saw_driver_id_helper = false;
     var saw_survey_gate = false;
     var saw_survey_note = false;
+    var saw_lab_validation_evidence = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -162,10 +168,18 @@ test "phase10 virtio core survey manifest restores the live governance packet" {
             try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-core-survey.md", gap.zigux_destination);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-core-lab-validation-evidence")) {
+            saw_lab_validation_evidence = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-core-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lab-only driver validation evidence") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-core-probe-remove-lifecycle")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe, full remove, reset") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "true lab driver") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe, full remove, and reset") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -173,10 +187,11 @@ test "phase10 virtio core survey manifest restores the live governance packet" {
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 14);
+    try std.testing.expect(starter_landed_count >= 15);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_driver_id_helper);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_survey_note);
+    try std.testing.expect(saw_lab_validation_evidence);
     try std.testing.expect(saw_blocker);
 }
