@@ -29,6 +29,7 @@ The highest-value honest step in this lane is therefore to keep the survey, vali
 - the live repo already ships the Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and the matching `zigux/tests/phase10_build.zig` path.
 - that footing now reaches core-side status sequencing, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, notification accounting, and ring-local queue-shape bookkeeping. It still does not cover queue ownership, DMA-safe request buffers, SCSI-host lifecycle, or recovery behavior at the depth that the roadmap requires before real virtio_scsi runtime work can land honestly.
 - the live repo also now ships a bounded `drivers/scsi/virtio_scsi.zig` starter, dedicated `zigux/tests/phase12_virtio_scsi.zig` coverage, and `Documentation/zigux/phase12-virtio-scsi-slice.md`. That starter is intentionally narrow: it models control, event, request, and request_poll queue-family planning in memory, preserves poll-queue clamping, keeps stable global virtqueue indexes, and records a lab-only freeze or restore summary that blocks planning while transport is frozen and clears the old queue snapshot after restore.
+- the shared Phase 12 packet now also keeps the focused smoke preflight explicit: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-smoke` rerun the direct `virtio_scsi` starter ahead of the broader survey-backed replay, so this survey note should not leave that narrower driver-facing shard implied only by `zigux/tests/phase12_build.zig`, the Makefile, or the fallback catalog.
 - the next honest driver-facing step is still one tiny probe snapshot helper around `virtscsi_probe()` config fields such as `num_queues`, `seg_max`, `cmd_per_lun`, `max_target`, `max_lun`, `max_sectors`, and the derived control or event versus request virtqueue layout.
 
 ## Recorded gaps
@@ -63,12 +64,19 @@ This survey slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 12 build
+1. run the focused smoke preflight
+- `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+- `make -C zigux phase12-smoke`
+- these rerun the direct `virtio_scsi` starter ahead of the broader survey-backed replay route.
+
+2. run the dedicated Phase 12 build
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase12`
 
 ## Next bounded step
 
 Stay in the Phase 12 virtio_scsi lane and add one tiny `drivers/scsi/virtio_scsi.zig` probe snapshot helper next so the lane can describe the `virtscsi_probe()` config-and-topology branch before any blk-mq request flow, event handling, SCSI host registration, or DMA-backed queue work.
+
+Until that driver-local follow-up is approved, keep this survey aligned with the shared smoke-plus-build replay packet instead of letting the focused preflight shard drift back into build-file-only, Makefile-only, or fallback-catalog-only knowledge.
