@@ -180,6 +180,8 @@ REQUIRED_EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1,
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+    "python3 scripts/zigux/validate-phase2.py": 1,
+    "python3 scripts/zigux/validate-phase2-closure.py": 1,
     "python3 scripts/zigux/check-phase2-cross.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
@@ -496,35 +498,64 @@ def write_text(path: Path, content: str) -> None:
 
 
 def write_stub_guard(path: Path, *, self_test_marker: str, live_markers: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    lines = [
-        "#!/usr/bin/env python3",
-        "import sys",
-        "if '--self-test' in sys.argv:",
-    ]
-    for line in self_test_marker.split("\n"):
-        lines.append(f"    print({line!r})")
-    lines.extend(
-        [
-            "else:",
-        ]
+    path.write_text(
+        "#!/usr/bin/env python3\n"
+        "import sys\n\n"
+        "if __name__ == '__main__':\n"
+        "    if '--self-test' in sys.argv:\n"
+        f"        print({self_test_marker!r})\n"
+        "    else:\n"
+        + "\n".join(f"        print({marker!r})" for marker in live_markers)
+        + "\n",
+        encoding="utf-8",
     )
-    for marker in live_markers:
-        lines.append(f"    print({marker!r})")
-    lines.append("")
-    path.write_text("\n".join(lines), encoding="utf-8")
 
 
 def build_script_readme_text() -> str:
-    return "\n".join(REQUIRED_SCRIPT_MARKERS) + "\n\n" + REQUIRED_SCRIPT_HELPER_INDEX_MARKERS[0] + "\n"
+    return (
+        "- `check-zig-toolchain.py`\n"
+        "- `install-zig.py`\n"
+        "- `check-phase2-tests-readme-alignment.py`\n"
+        "- `check-phase2-cross-selftest-alignment.py`\n"
+        "- `check-phase2-toolchain-pin-scope.py`\n"
+        "- `validate-phase2.py`\n"
+        "- `validate-phase2-closure.py`\n"
+        "- `check-fixdep-diff.py`\n"
+        "- `check-genksyms-bridge.py`\n"
+        "- `check-genksyms-crc-diff.py`\n"
+        "- `check-kconfig-bridge.py`\n"
+        "- `check-phase2-tests-readme-alignment.py`\n"
+        "- `check-phase2-cross-selftest-alignment.py`\n"
+        "- `check-phase2-toolchain-pin-scope.py`\n"
+        "- `check-phase2-cross.py`\n"
+        "- `check-mk-elfconfig-diff.py`\n"
+        "- `genksyms.zig`\n"
+        "- `genksyms_crc.zig`\n"
+        "- `kconfig/conf_bridge.zig`\n"
+        "- `kconfig/confdata_bridge.zig`\n"
+        "- `mk_elfconfig.zig`\n"
+    )
 
 
 def build_self_test_root(root: Path) -> None:
     base_files = [
         "scripts/zigux/fixdep.zig",
+        "scripts/zigux/check-fixdep-diff.py",
         "scripts/zigux/genksyms.zig",
+        "scripts/zigux/check-genksyms-bridge.py",
+        "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
         "scripts/zigux/genksyms_crc.zig",
+        "scripts/zigux/check-genksyms-crc-diff.py",
+        "scripts/zigux/check-kconfig-bridge.py",
+        "scripts/zigux/check-phase2-cross.py",
+        "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+        "scripts/zigux/check-phase2-tests-readme-alignment.py",
+        "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+        "scripts/zigux/check-zig-toolchain.py",
+        "scripts/zigux/install-zig.py",
         "scripts/zigux/mk_elfconfig.zig",
+        "scripts/zigux/check-mk-elfconfig-diff.py",
         "scripts/zigux/kconfig/conf_bridge.zig",
         "scripts/zigux/kconfig/confdata_bridge.zig",
         "Documentation/zigux/README.md",
@@ -637,6 +668,26 @@ def run_self_test() -> int:
         write_text(workflow_path, workflow_text)
         issues = validate_root(root)
         assert "workflow_exact_marker:python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1" in issues
+        build_self_test_root(root)
+        workflow_text = workflow_path.read_text(encoding="utf-8").replace("run: python3 scripts/zigux/validate-phase2.py\n", "", 1)
+        write_text(workflow_path, workflow_text)
+        issues = validate_root(root)
+        assert "workflow:python3 scripts/zigux/validate-phase2.py" in issues
+        build_self_test_root(root)
+        workflow_text = workflow_path.read_text(encoding="utf-8").replace("run: python3 scripts/zigux/validate-phase2.py\n", "run: python3 scripts/zigux/validate-phase2.py\nrun: python3 scripts/zigux/validate-phase2.py\n", 1)
+        write_text(workflow_path, workflow_text)
+        issues = validate_root(root)
+        assert "workflow_exact_marker:python3 scripts/zigux/validate-phase2.py:count=2:expected=1" in issues
+        build_self_test_root(root)
+        workflow_text = workflow_path.read_text(encoding="utf-8").replace("run: python3 scripts/zigux/validate-phase2-closure.py\n", "", 1)
+        write_text(workflow_path, workflow_text)
+        issues = validate_root(root)
+        assert "workflow:python3 scripts/zigux/validate-phase2-closure.py" in issues
+        build_self_test_root(root)
+        workflow_text = workflow_path.read_text(encoding="utf-8").replace("run: python3 scripts/zigux/validate-phase2-closure.py\n", "run: python3 scripts/zigux/validate-phase2-closure.py\nrun: python3 scripts/zigux/validate-phase2-closure.py\n", 1)
+        write_text(workflow_path, workflow_text)
+        issues = validate_root(root)
+        assert "workflow_exact_marker:python3 scripts/zigux/validate-phase2-closure.py:count=2:expected=1" in issues
         build_self_test_root(root)
         workflow_text = workflow_path.read_text(encoding="utf-8").replace("run: python3 scripts/zigux/check-phase2-cross.py --self-test\n", "run: python3 scripts/zigux/check-phase2-cross.py --self-test\nrun: python3 scripts/zigux/check-phase2-cross.py --self-test\n", 1)
         write_text(workflow_path, workflow_text)
@@ -781,7 +832,7 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert any(issue.startswith("guard_marker:") and "check-mk-elfconfig-diff.py --self-test:MK_ELFCONFIG_SELF_TEST_CASE_COUNT=4" in issue for issue in issues)
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=38")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=42")
     return 0
 
 
