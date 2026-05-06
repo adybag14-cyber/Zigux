@@ -1,48 +1,13 @@
 const std = @import("std");
 const checksum = @import("checksum");
+const fixtures = @import("fixtures/phase6_checksum_vectors.zig");
 
 const Io = std.Io;
-
-const PerfCase = struct {
-    label: []const u8,
-    bytes: []const u8,
-    iterations: usize,
-    max_slowdown_pct: u64,
-};
-
-const payload_64 = makePatternedPayload(64, 0x31);
-const payload_1501 = makePatternedPayload(1501, 0x6d);
-
-const perf_cases = [_]PerfCase{
-    .{
-        .label = "64B",
-        .bytes = &payload_64,
-        .iterations = 200_000,
-        .max_slowdown_pct = 150,
-    },
-    .{
-        .label = "1501B",
-        .bytes = &payload_1501,
-        .iterations = 12_000,
-        .max_slowdown_pct = 150,
-    },
-};
 
 const BenchResult = struct {
     elapsed_ns: u64,
     checksum_accumulator: u64,
 };
-
-fn makePatternedPayload(comptime len: usize, comptime seed: u8) [len]u8 {
-    @setEvalBranchQuota(len * 4);
-    var bytes: [len]u8 = undefined;
-    for (0..len) |i| {
-        const idx: u32 = @intCast(i);
-        const mixed = (idx * 37) + (idx >> 1) + seed;
-        bytes[i] = @truncate((mixed ^ 0x5a) & 0xff);
-    }
-    return bytes;
-}
 
 fn referenceInternetChecksum(bytes: []const u8) u16 {
     var acc: u64 = 0;
@@ -105,9 +70,9 @@ pub fn main(init: std.process.Init) !void {
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
     var failed = false;
 
-    try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\n", .{perf_cases.len});
+    try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\n", .{fixtures.perf_cases.len});
 
-    for (perf_cases) |case| {
+    for (fixtures.perf_cases) |case| {
         const helper_expected = checksum.compute(case.bytes);
         const reference_expected = referenceInternetChecksum(case.bytes);
         if (helper_expected != reference_expected) {
