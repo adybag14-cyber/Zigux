@@ -26,7 +26,7 @@ ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 22
 
 ABI_MANIFEST_REQUIRED_FILES = (
     "include/zigux/abi.h",
@@ -261,6 +261,8 @@ def validate(root: Path) -> list[str]:
             "mmio.read8",
             "mmio.write16",
             "mmio.read16",
+            "mmio.write32",
+            "mmio.read32",
             "try std.testing.expectEqual(base, byte_desc.base_addr);",
             "try std.testing.expectEqual(@as(u32, 8), byte_desc.length);",
             "try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);",
@@ -300,6 +302,19 @@ def validate(root: Path) -> list[str]:
         (root / ABI_EXPECTED_REL).read_text(encoding="utf-8"),
         "abi_expected_missing_token",
         ('"zigux_mmio_range"', '"zigux_interop_policy"'),
+    )
+    require_tokens(
+        issues,
+        (root / ABI_SLICE_DOC_REL).read_text(encoding="utf-8"),
+        "abi_slice_missing_token",
+        (
+            "`zigux/helpers/atomic.zig`",
+            "`zigux/helpers/barrier.zig`",
+            "`zigux/helpers/mmio.zig`",
+            "`zigux/tests/phase3_low_level_wrappers.zig`",
+            "non-`seq_cst` atomic ordering coverage",
+            "byte and 32-bit MMIO access",
+        ),
     )
 
     files = load_manifest(root, issues)
@@ -435,6 +450,8 @@ def run_self_test() -> int:
                     "    _ = mmio.read8;",
                     "    _ = mmio.write16;",
                     "    _ = mmio.read16;",
+                    "    _ = mmio.write32;",
+                    "    _ = mmio.read32;",
                     "    try std.testing.expectEqual(base, byte_desc.base_addr);",
                     "    try std.testing.expectEqual(@as(u32, 8), byte_desc.length);",
                     "    try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);",
@@ -460,7 +477,6 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        (root / ABI_TEST_REL).writeText if False else None
         (root / ABI_TEST_REL).write_text(
             "\n".join(
                 (
@@ -495,6 +511,20 @@ def run_self_test() -> int:
                 indent=2,
             )
             + "\n",
+            encoding="utf-8",
+        )
+        (root / ABI_SLICE_DOC_REL).write_text(
+            "\n".join(
+                (
+                    "`zigux/helpers/atomic.zig`",
+                    "`zigux/helpers/barrier.zig`",
+                    "`zigux/helpers/mmio.zig`",
+                    "`zigux/tests/phase3_low_level_wrappers.zig`",
+                    "non-`seq_cst` atomic ordering coverage",
+                    "byte and 32-bit MMIO access",
+                    "",
+                )
+            ),
             encoding="utf-8",
         )
 
