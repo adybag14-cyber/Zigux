@@ -241,8 +241,13 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     );
     defer std.testing.allocator.free(survey_note);
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-make-target`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-starter`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-tests`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-transaction-release-helper`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-dcache-cursor-helpers`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-helper-starter`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-test-gate`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-inode-and-pseudofs-lifecycle`") == null);
 
     const traceability_note = try readPacketFile(
