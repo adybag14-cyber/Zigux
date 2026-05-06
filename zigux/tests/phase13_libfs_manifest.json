@@ -104,11 +104,18 @@
       "why_now": "The libfs helper lab now models the pure `simple_transaction_release()` lifetime path, including page-backed private-data cleanup, release bookkeeping, and the zero return path before any live readback, file lifecycle, or cursor-backed state is claimed."
     },
     {
+      "id": "phase13-libfs-dcache-dir-open-helper",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models the pure `dcache_dir_open()` setup path, including cursor allocation from `file->f_path.dentry`, the `private_data` handoff, and the `-ENOMEM` fallback before any sibling traversal, lock ordering, or live cursor mutation is claimed."
+    },
+    {
       "id": "phase13-libfs-dcache-cursor-helpers",
       "status": "blocked_on_vfs_state",
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next libfs follow-up now moves to non-live `dcache_dir_open()` and deeper `dcache_readdir()` cursor-precondition helpers, but that step still depends on cursor dentries, sibling-list traversal, and lock-ordering context that should stay explicit before another helper-first slice is modeled."
+      "why_now": "The next libfs follow-up now narrows to deeper `dcache_readdir()` cursor-resume helpers, but that step still depends on sibling-list traversal, reschedule-aware cursor movement, and lock-ordering context that should stay explicit before another helper-first slice is modeled."
     }
   ]
 }
