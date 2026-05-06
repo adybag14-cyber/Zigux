@@ -335,6 +335,8 @@ EXACT_COUNT_MARKERS = {
         ("run_rbtree_survey_tests.setCwd(b.path(\"../..\"));", 1),
     ],
     "zigux/tests/phase7_string_helpers_survey.zig": [
+        ("Documentation/zigux/phase7-string-helpers-slice.md", 1),
+        ("zigux/tests/phase7_string_helpers.zig", 1),
         ("phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds", 1),
         ("phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned", 1),
         ("phase 7 kstrdupQuotable frees the owned copy when allocation fails", 1),
