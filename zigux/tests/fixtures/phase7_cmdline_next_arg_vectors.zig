@@ -22,6 +22,13 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_rest = "next",
     },
     .{
+        .name = "empty quoted bare token stays empty and unsplit",
+        .input = "\"\" next",
+        .expected_param = "",
+        .expected_value = null,
+        .expected_rest = "next",
+    },
+    .{
         .name = "quoted bare token with equals stays unsplit",
         .input = "\"key=value\" next",
         .expected_param = "key=value",
