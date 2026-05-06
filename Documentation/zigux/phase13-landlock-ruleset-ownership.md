@@ -17,13 +17,14 @@ This note closes one narrow reviewability gap around `security/landlock/ruleset.
 - `insert_rule()` matching-rule access extension versus merged-layer append planning
 - tree-search outcome planning around `get_root()` and `walker_node`
 - no-match tree-link mode planning around `rb_link_node()` and `rb_insert_color()`
+- matched-rule replacement planning around `create_rule()` and `rb_replace_node()` when a merged layer appends to an existing hierarchical rule
 
 ## Not owned here
 
 This helper note does not authorize widening into:
 
 - `security/landlock/syscalls.zig` file-descriptor, path, or `landlock_restrict_self()` behavior
-- `rb_replace_node()`, live rb-tree storage, object ownership, hierarchy lifetime, or deferred free behavior
+- old-rule cleanup after `rb_replace_node()`, live rb-tree storage, object ownership, hierarchy lifetime, or deferred free behavior
 - real Landlock policy enforcement, hook integration, or live LSM state
 
 Those surfaces stay outside this helper packet until a separately justified lane carries matching helper, test, manifest, and survey evidence.
@@ -38,7 +39,7 @@ Any helper-local change to `security/landlock/ruleset.zig` must keep these artif
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 
-No lane should flip the live-tree blocker or broaden the helper-owned surface unless the helper behavior, the dedicated gate, the packet checker, and the survey wording all move together.
+No lane should flip the live-tree blocker or broaden the helper-owned surface unless the helper behavior, the dedicated gate, the packet checker, and the survey wording all move together. This makes the manifest, survey, slice, and test gate move together when the helper-owned surface changes.
 
 ## Next bounded step
 
