@@ -10,7 +10,9 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - product boundary:
   - `include/linux/zigux.h`
   - `include/zigux/abi.h`
+  - `include/zigux/dev_t.h`
   - `zigux/bindings/abi.zig`
+  - `zigux/bindings/dev_t.zig`
   - `zigux/kernel/export_shim.zig`
   - `zigux/helpers/*`
   - `zigux/unsafe/narrow.zig`
@@ -31,7 +33,7 @@ The first correct move is not a broad runtime port.
 It is a small substrate that makes future ports measurable:
 
 - one C header pair
-- one curated Zig binding
+- curated Zig boundary bindings that keep the ABI root and `dev_t` starter surface reviewable
 - one export-shim module
 - explicit panic and allocator policies
 - explicit atomic, barrier, and MMIO wrappers
@@ -52,7 +54,7 @@ It is a small substrate that makes future ports measurable:
 - `zig build phase3-test --build-file zigux/tests/build.zig`
 - `zig build phase3-dump --build-file zigux/tests/build.zig`
 
-4. catch fused top-level ABI binding declarations before they hide inside the wider Phase 3 packet
+4. catch fused top-level ABI binding declarations across the curated `abi.zig` and `dev_t.zig` packet before they hide inside the wider Phase 3 packet
 - `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py`
 - `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test`
 
@@ -90,6 +92,7 @@ The current Phase 3 low-level wrapper packet is still intentionally small, but i
 
 - `include/zigux/abi.h` is the authoritative C-facing layout surface for this slice.
 - `zigux/bindings/abi.zig` must mirror it with `extern struct` layout, not approximate it.
+- `include/zigux/dev_t.h` and `zigux/bindings/dev_t.zig` stay curated beside the ABI root so `dev_t` encode, decode, and range policy remains reviewable at the same boundary.
 - new boundary structs require committed fixture updates under `zigux/tests/fixtures/phase3_abi/`.
 - export shims must return explicit status codes instead of hidden failure behavior.
 - future bindings generators are allowed later, but this slice stays curated and reviewable.
