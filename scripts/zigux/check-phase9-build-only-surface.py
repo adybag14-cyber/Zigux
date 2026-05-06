@@ -113,6 +113,7 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "roadmap-backed selftest-hook and runtime module lifecycle parity cues",
     "no-dedicated-`validate-phase9.py` posture",
     PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER,
+    "if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?",
 ]
 
 REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS = {
@@ -521,6 +522,23 @@ def run_self_test() -> int:
         write_fixture_tree(root)
         review_checklist_path = root / REVIEW_CHECKLIST_PATH
         review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            review_checklist.replace(
+                "if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "review_checklist:if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?",
+            "missing_phase9_freeze_map_anchor_prompt",
+        )
+
+        write_fixture_tree(root)
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(review_checklist + PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER + "\n", encoding="utf-8")
         expect_failure(
             root,
@@ -617,7 +635,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=21")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
