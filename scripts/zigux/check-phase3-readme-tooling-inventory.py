@@ -510,6 +510,8 @@ def run_self_test() -> int:
             ("check-phase10-mmio-packet.py", "missing_phase10_mmio_packet_repo_file_guard_failed"),
             ("check-zig-toolchain.py", "missing_phase2_zig_toolchain_repo_file_guard_failed"),
             ("check-phase1-installer-review-surfaces.py", "missing_phase1_installer_review_surfaces_repo_file_guard_failed"),
+            ("validate-phase2.py", "missing_phase2_validator_repo_file_guard_failed"),
+            ("validate-phase2-closure.py", "missing_phase2_closure_validator_repo_file_guard_failed"),
             ("check-fixdep-diff.py", "missing_phase2_fixdep_diff_repo_file_guard_failed"),
             ("check-genksyms-bridge.py", "missing_phase2_genksyms_bridge_repo_file_guard_failed"),
             ("check-phase2-genksyms-bridge-selftest-alignment.py", "missing_phase2_genksyms_selftest_alignment_repo_file_guard_failed"),
