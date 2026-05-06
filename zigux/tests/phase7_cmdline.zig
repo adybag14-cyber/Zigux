@@ -81,6 +81,7 @@ test "phase 7 memparse preserves suffix scaling, leading plus, and stop index se
 
 test "phase 7 parseOptionStr matches only exact bare options" {
     try std.testing.expect(cmdline.parseOptionStr("quiet,debug,nohlt", "debug"));
+    try std.testing.expect(cmdline.parseOptionStr("quiet,debug\x00,nohlt", "debug"));
     try std.testing.expect(!cmdline.parseOptionStr("quiet,debug=1,nohlt", "debug"));
     try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));
     try std.testing.expect(!cmdline.parseOptionStr("", ""));
