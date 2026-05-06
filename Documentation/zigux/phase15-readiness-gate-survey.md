@@ -24,6 +24,7 @@ This document records the bounded Phase 15 governance lane for checking whether 
 
 - the shared governance packet is present through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, the Phase 15 scripts-root checkers, `.github/workflows/zigux-bootstrap.yml`, the shared `zigux/tests/phase15_build.zig` replay, and `make -C zigux phase15`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md` keeps the bounded handoff record and parked next-step packet visible beside this readiness gate
+- `Documentation/zigux/README.md` is the docs-root entry point for this parked governance packet, so `Documentation/zigux/phase15-readiness-gate-survey.md` must stay named there beside the freeze map, review process, parity scorecard, handoff note, and indefinite-C policy instead of leaving the maintenance-mode blocker inventory implicit
 - maintenance-mode ready: the parked Phase 15 packet is reviewable and rerunnable, but no freeze-map status-change approval is recorded
 
 ## Current Deep-Core Blockers
@@ -45,4 +46,4 @@ This document records the bounded Phase 15 governance lane for checking whether 
 
 ## Next bounded step
 
-Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again or one of the four recorded deep-core blocker dispositions changes.
+Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the docs-root readiness pointer disappears, or one of the four recorded deep-core blocker dispositions changes.
