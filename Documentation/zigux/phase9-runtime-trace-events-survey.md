@@ -41,6 +41,8 @@ The live repo originally had no matching trace-events survey artifact, no dedica
 - the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet, and the trace-events starter consumes that shared request lifecycle through `prepareSharedRequest`, `requestSharedRuntimeLoad`, `releaseSharedWithoutSubstrate`, and a focused shared-plan drift check before any live registration claim, including an initialized-stage request snapshot that remains explicit if the sample runs its selftest after prepare.
 - the live repo also carries `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and the focused `phase9-runtime-loader-shared-tests` build step, so allocator handoff, init-flow counts, release-without-substrate behavior, and shared-request drift all stay reviewable beside the trace-events starter packet instead of hiding in the shared build alone.
 - the trace-events starter still stops before a real module-loading substrate or live tracepoint registration lifecycle, so the shipped handoff remains reviewable as pre-execution request shaping, metadata-only registration labels, and release-without-substrate behavior rather than executable runtime registration parity.
+- runtime task ownership or event-loop substrate parity remains blocked behind that same shared runtime-loader boundary.
+- polling-backed wake or dispatch behavior also remains blocked until the shared runtime substrate exists.
 - the manifest-backed ownership packet now records a four-entry `delivery_evidence_catalog` and a six-surface `ownership_map`, tying the survey note, module-slice note, dedicated survey gate, shared `phase9_build` bundle, starter sample, and loader scaffold to lane `P9-L12` while leaving shared runtime-substrate work outside this packet.
 
 ## Recorded gaps
@@ -77,6 +79,8 @@ This survey slice still does not claim:
 - runtime trace registration or unregister parity with the Linux sample
 - generated tracepoint macro parity for `trace-events-sample.h`
 - full ftrace selftest execution inside Zigux
+- runtime task ownership or event-loop substrate parity
+- polling-backed wake or dispatch behavior
 
 ## Next bounded step
 
