@@ -435,6 +435,26 @@ def run_self_test() -> int:
                 print(f"- {error}", file=sys.stderr)
             return 1
 
+        def expect_traceability_failure(missing_marker: str, expected_error: str, label: str) -> int:
+            traceability_path = root / TRACEABILITY_PATH
+            traceability_path.write_text(
+                traceability_path.read_text(encoding="utf-8").replace(
+                    f"{missing_marker}\n",
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            errors = check(root)
+            if not errors or not any(expected_error in error for error in errors):
+                print(
+                    f"self-test expected failure when {label} traceability marker drifted",
+                    file=sys.stderr,
+                )
+                return 1
+            write_text(root / TRACEABILITY_PATH, "\n".join(expected_markers) + "\n")
+            return 0
+
         broken_path = root / TRACEABILITY_PATH
         broken_path.write_text(f"{TRACEABILITY_TITLE}\n", encoding="utf-8")
         errors = check(root)
@@ -447,26 +467,26 @@ def run_self_test() -> int:
 
         write_text(root / TRACEABILITY_PATH, "\n".join(expected_markers) + "\n")
 
-        broken_path.write_text(
-            broken_path.read_text(encoding="utf-8").replace(
-                "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - ready-next gap: `phase14-ring-buffer-read-page-copy-followup`" in error
-            for error in errors
+        if expect_traceability_failure(
+            "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`",
+            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - ready-next gap: `phase14-ring-buffer-read-page-copy-followup`",
+            "ring-buffer ready-next",
         ):
-            print(
-                "self-test expected failure when ring-buffer ready-next traceability marker drifted",
-                file=sys.stderr,
-            )
             return 1
 
-        write_text(root / TRACEABILITY_PATH, "\n".join(expected_markers) + "\n")
+        if expect_traceability_failure(
+            "- surveyed commit: `f05e02445443e7743c3675a6f8ca4f70f6e736fb`",
+            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - surveyed commit: `f05e02445443e7743c3675a6f8ca4f70f6e736fb`",
+            "skbuff surveyed-commit",
+        ):
+            return 1
+
+        if expect_traceability_failure(
+            "- blocked gap: `phase14-rcu-tree-bridge-blocker`",
+            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - blocked gap: `phase14-rcu-tree-bridge-blocker`",
+            "rcu-tree blocked-gap",
+        ):
+            return 1
 
         broken_docs_root_path = root / "Documentation/zigux/README.md"
         broken_docs_root_path.write_text(
