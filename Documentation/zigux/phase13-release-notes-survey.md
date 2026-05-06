@@ -26,6 +26,8 @@ The current shipped Phase 13 helper packet stays validator-first and replay-back
 
 The shared replay on `master` is now the seven-test bundle wired by `zigux/tests/phase13_build.zig`. That bundle covers the helper-first `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` anchors plus the bounded `devres` reviewability replay, the bounded `devres` DMA-coherent replay, and the bounded `libfs` reviewability replay without turning the adjacent release evidence into extra shared replay steps.
 
+The focused `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard is shipped direct helper evidence for the syscall anchor, but it stays outside that seven-test replay count so the release-facing packet does not quietly grow an eighth shared step.
+
 Inside that packet, the Phase 13 `devres` lane remains bounded to helper-only planning around `lib/devres.c`.
 
 The shipped `lib/devres.zig` lab plus the paired `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_dma_coherent.zig` replays keep MMIO-adjacent behavior explicit for managed ioremap lifetime planning, `__devm_ioremap_resource()` sizing and failure shaping, `devm_of_iomap()` translated-resource planning, coherent DMA reservation bookkeeping, and WC memtype reservation bookkeeping while still blocking live MMIO, live device-tree walking, DMA-backed mapping beyond the bounded coherent replay, scatterlist ownership, and live arch memtype mutation.
