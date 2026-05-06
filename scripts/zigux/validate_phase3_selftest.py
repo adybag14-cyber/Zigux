@@ -12,7 +12,7 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 30
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 32
 
 
 @dataclass(frozen=True)
@@ -32,6 +32,7 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/check-phase3-readme-tooling-inventory.py",
         "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass",
+        ("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=43",),
     ),
     SelfTestTarget(
         "scripts/zigux/check-phase3-abi-dump-gate.py",
@@ -387,6 +388,60 @@ def run_self_test() -> int:
         assert (
             "duplicate_pass_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py:2:"
             "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass"
+            in issues
+        )
+
+        tooling_inventory_count_root = Path(tmp_dir) / "tooling-inventory-count"
+        for target in SELF_TEST_TARGETS:
+            extra_markers = (
+                ()
+                if target.relpath.endswith("check-phase3-readme-tooling-inventory.py")
+                else target.extra_markers
+            )
+            write_script(
+                tooling_inventory_count_root / target.relpath,
+                target.marker or "PASS",
+                extra_markers=extra_markers,
+            )
+        issues = run_targets(tooling_inventory_count_root)
+        assert (
+            "missing_aux_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py:"
+            "PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=43"
+            in issues
+        )
+
+        tooling_inventory_duplicate_count_root = Path(tmp_dir) / "tooling-inventory-duplicate-count"
+        for target in SELF_TEST_TARGETS:
+            path = tooling_inventory_duplicate_count_root / target.relpath
+            if target.relpath.endswith("check-phase3-readme-tooling-inventory.py"):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(
+                    "\n".join(
+                        [
+                            "#!/usr/bin/env python3",
+                            "from __future__ import annotations",
+                            "",
+                            "import sys",
+                            "",
+                            'if "--self-test" in sys.argv:',
+                            '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")',
+                            '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=43")',
+                            '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=43")',
+                            "    raise SystemExit(0)",
+                            "",
+                            'raise SystemExit("expected --self-test")',
+                            "",
+                        ]
+                    ),
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                continue
+            write_script(path, target.marker or "PASS", extra_markers=target.extra_markers)
+        issues = run_targets(tooling_inventory_duplicate_count_root)
+        assert (
+            "duplicate_aux_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py:2:"
+            "PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=43"
             in issues
         )
 
