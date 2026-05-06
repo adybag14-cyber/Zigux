@@ -11,7 +11,8 @@ The current helper stays intentionally narrow:
 - adds one in-memory `get_ruleset_from_fd()` planner for bad-FD rejection, ruleset-FD type checks, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the single-layer guard without touching the live FD table
 - adds one in-memory `get_path_from_fd()` planner for bad-FD rejection, ruleset-FD rejection, internal-mount and non-user-visible inode filtering, and owned path reference handoff without touching live paths
 - adds one in-memory `add_rule_path_beneath()` planner that combines copied path-beneath attrs with the bounded `get_path_from_fd()` handoff and the later `put_path()` release responsibility without touching live rule insertion or inode ownership
+- adds one in-memory `fop_ruleset_release()` planner that requires a retained ruleset in `private_data`, models the matching `landlock_put_ruleset()` release, and preserves the zero return contract without wiring live file operations or FD ownership
 
 This slice does not claim anonymous-fd creation, path imports, credential preparation, thread synchronization, domain merges, or live syscall enforcement.
 
-The next honest bounded step in this same lane is to add one small in-memory planner around `fop_ruleset_release()` so the retained ruleset handoff, matching `landlock_put_ruleset()` release, and zero return contract stay explicit before widening into live file-operations wiring, credential updates, or domain state.
+The next honest bounded step is to keep this packet parked unless a future Phase 13 syscalls run can add another equally small planner without widening into live file-operations wiring, credential updates, or domain state.
