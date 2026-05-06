@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 FILES = [
     "scripts/zigux/check-phase10-mmio-packet.py",
+    "scripts/zigux/README.md",
     "zigux/Makefile",
     "zigux/tests/phase10_build.zig",
     "drivers/virtio/virtio_mmio.zig",
@@ -27,6 +28,14 @@ EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_mmio_survey_module",
     '"phase10-virtio-mmio-tests"',
     '"phase10-virtio-mmio-survey-tests"',
+]
+
+EXPECTED_SCRIPTS_README_MARKERS = [
+    "check-phase10-mmio-packet.py",
+    "phase10_virtio_mmio.zig",
+    "phase10_virtio_mmio_survey.zig",
+    "zig build test --build-file zigux/tests/phase10_build.zig",
+    "make -C zigux phase10",
 ]
 
 EXPECTED_MAKEFILE_MARKERS = [
@@ -112,6 +121,12 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 
 BASELINE_FIXTURE = {
     "scripts/zigux/check-phase10-mmio-packet.py": "# synthetic fixture for self-test\n",
+    "scripts/zigux/README.md": """- `check-phase10-mmio-packet.py`
+- `phase10_virtio_mmio.zig`
+- `phase10_virtio_mmio_survey.zig`
+- `zig build test --build-file zigux/tests/phase10_build.zig`
+- `make -C zigux phase10`
+""",
     "zigux/Makefile": """phase10-test:
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-core-packet.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-core-packet.py
@@ -233,6 +248,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_BUILD_MARKERS:
         if marker not in build_text:
             missing_markers.append(f"build:{marker}")
+
+    scripts_readme_text = read_text(root, "scripts/zigux/README.md")
+    for marker in EXPECTED_SCRIPTS_README_MARKERS:
+        if marker not in scripts_readme_text:
+            missing_markers.append(f"scripts_readme:{marker}")
 
     makefile_text = read_text(root, "zigux/Makefile")
     for marker in EXPECTED_MAKEFILE_MARKERS:
@@ -379,6 +399,17 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_build_marker_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace("phase10_virtio_mmio_survey.zig", "phase10_virtio_mmio_survey_drift.zig", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "scripts_readme:phase10_virtio_mmio_survey.zig" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_scripts_readme_marker_missing")
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         makefile_path = tmp_root / "zigux/Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -455,7 +486,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_survey_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
