@@ -126,7 +126,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
-      "why_now": "A bounded sample-side loader scaffold now makes the existing requires_runtime_substrate contract reviewable through explicit tracepoint register and unregister APIs, a prepared handoff summary that stays stable even if later sample replay mutates local counters, and a no-substrate release path without pretending a real runtime loader already exists."
+      "why_now": "A bounded sample-side loader scaffold now makes the existing requires_runtime_substrate contract reviewable through explicit tracepoint register and unregister APIs, prepared and initialized-stage handoff snapshots that stay stable even if later sample replay mutates local counters, a shared-request bridge through the runtime-loader contract, and a no-substrate release path without pretending a real runtime loader already exists."
     },
     {
       "id": "runtime-trace-events-substrate-handoff",
