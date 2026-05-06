@@ -59,6 +59,8 @@ The roadmap keeps `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_
 
 That means the honest product task here is not a new bridge or validator-first expansion. It is one shared smoke packet that keeps the four anchor-local manifests, the cross-anchor traceability note, the docs-root summary, the release-boundary note, the freeze-map posture, and the shipped replay routes aligned.
 
+Within that packet, `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as the two boundary-study-only anchors, while `kernel/rcu/tree.c` and `net/core/skbuff.c` stay explicit as the two freeze-in-C-governed anchors.
+
 ## Exact Evidence Captured
 
 Shared smoke commands:
