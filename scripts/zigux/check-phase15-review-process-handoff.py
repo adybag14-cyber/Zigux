@@ -102,15 +102,22 @@ REQUIRED_DOCS_README_MARKERS = [
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
     "`scripts/zigux/README.md`",
+    "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
+    "`scripts/zigux/check-phase15-review-process-handoff.py`",
     "`zigux/tests/README.md`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`zigux/tests/phase15_freeze_map_governance.zig`",
     "`zigux/tests/phase15_parity_scorecard.zig`",
     "`zigux/tests/phase15_architecture_council_review_process.zig`",
+    "`zigux/tests/phase15_handoff_next_steps.zig`",
     "`zigux/tests/phase15_indefinite_c_policy.json`",
     "`zigux/tests/phase15_indefinite_c_policy.zig`",
+    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+    "`zigux/tests/phase15_readiness_gate.zig`",
+    "`.github/workflows/zigux-bootstrap.yml`",
     "`zigux/tests/phase15_build.zig`",
     "`zigux/Makefile`",
+    "`make -C zigux phase15-validate`",
     "`make -C zigux phase15`",
     "no Architecture Council approval is recorded yet",
 ]
@@ -304,15 +311,22 @@ Phase 15 notes
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `scripts/zigux/README.md`
+- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `scripts/zigux/check-phase15-review-process-handoff.py`
 - `zigux/tests/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_parity_scorecard.zig`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
+- `zigux/tests/phase15_handoff_next_steps.zig`
 - `zigux/tests/phase15_indefinite_c_policy.json`
 - `zigux/tests/phase15_indefinite_c_policy.zig`
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
+- `zigux/tests/phase15_readiness_gate.zig`
+- `.github/workflows/zigux-bootstrap.yml`
 - `zigux/tests/phase15_build.zig`
 - `zigux/Makefile`
+- `make -C zigux phase15-validate`
 - `make -C zigux phase15`
 - no Architecture Council approval is recorded yet
 """
@@ -534,6 +548,30 @@ def run_self_test() -> int:
         docs_readme_path.write_text(docs_readme.replace('`zigux/tests/phase15_freeze_map_governance.zig`\n', '', 1), encoding='utf-8')
         expect_failure(tmp_root, 'docs_readme:`zigux/tests/phase15_freeze_map_governance.zig`', 'missing_docs_readme_freeze_map_governance_replay_marker')
         write_fixture_tree(tmp_root)
+        docs_readme = docs_readme_path.read_text(encoding='utf-8')
+        docs_readme_path.write_text(docs_readme.replace('`scripts/zigux/check-phase15-scripts-readme-alignment.py`\n', '', 1), encoding='utf-8')
+        expect_failure(tmp_root, 'docs_readme:`scripts/zigux/check-phase15-scripts-readme-alignment.py`', 'missing_docs_readme_scripts_alignment_checker_marker')
+        write_fixture_tree(tmp_root)
+        docs_readme = docs_readme_path.read_text(encoding='utf-8')
+        docs_readme_path.write_text(docs_readme.replace('`scripts/zigux/check-phase15-review-process-handoff.py`\n', '', 1), encoding='utf-8')
+        expect_failure(tmp_root, 'docs_readme:`scripts/zigux/check-phase15-review-process-handoff.py`', 'missing_docs_readme_handoff_checker_marker')
+        write_fixture_tree(tmp_root)
+        docs_readme = docs_readme_path.read_text(encoding='utf-8')
+        docs_readme_path.write_text(docs_readme.replace('`zigux/tests/phase15_handoff_next_steps.zig`\n', '', 1), encoding='utf-8')
+        expect_failure(tmp_root, 'docs_readme:`zigux/tests/phase15_handoff_next_steps.zig`', 'missing_docs_readme_handoff_next_steps_marker')
+        write_fixture_tree(tmp_root)
+        docs_readme = docs_readme_path.read_text(encoding='utf-8')
+        docs_readme_path.write_text(docs_readme.replace('`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`\n', '', 1), encoding='utf-8')
+        expect_failure(tmp_root, 'docs_readme:`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`', 'missing_docs_readme_lane_owner_alignment_marker')
+        write_fixture_tree(tmp_root)
+        docs_readme = docs_readme_path.read_text(encoding='utf-8')
+        docs_readme_path.write_text(docs_readme.replace('`zigux/tests/phase15_readiness_gate.zig`\n', '', 1), encoding='utf-8')
+        expect_failure(tmp_root, 'docs_readme:`zigux/tests/phase15_readiness_gate.zig`', 'missing_docs_readme_readiness_gate_marker')
+        write_fixture_tree(tmp_root)
+        docs_readme = docs_readme_path.read_text(encoding='utf-8')
+        docs_readme_path.write_text(docs_readme.replace('`make -C zigux phase15-validate`\n', '', 1), encoding='utf-8')
+        expect_failure(tmp_root, 'docs_readme:`make -C zigux phase15-validate`', 'missing_docs_readme_validate_route_marker')
+        write_fixture_tree(tmp_root)
         review_checklist_path = tmp_root / REVIEW_CHECKLIST_PATH
         review_checklist = review_checklist_path.read_text(encoding='utf-8')
         review_checklist_path.write_text(review_checklist.replace('scripts/zigux/check-phase15-review-process-handoff.py', '', 1), encoding='utf-8')
@@ -558,7 +596,7 @@ def run_self_test() -> int:
         makefile_path.write_text(makefile.replace('cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test\n', '', 1), encoding='utf-8')
         expect_failure(tmp_root, 'makefile:scripts/zigux/check-phase15-review-process-handoff.py --self-test', 'missing_makefile_self_test_marker')
         print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass')
-        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=25')
+        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=31')
         return 0
 
 def main() -> int:
