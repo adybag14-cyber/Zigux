@@ -114,6 +114,11 @@ MAKEFILE_MARKERS = [
     "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
 ]
 
+EXACT_MAKEFILE_RUN_COUNTS = {
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
+}
+
 
 def reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
     payload: dict[str, object] = {}
@@ -247,6 +252,18 @@ def validate_exact_workflow_runs(text: str, *, payload: dict[str, object]) -> li
 
 
 
+def validate_exact_makefile_runs(text: str) -> list[str]:
+    issues: list[str] = []
+    lines = [line.strip() for line in text.splitlines()]
+    for command, expected_count in EXACT_MAKEFILE_RUN_COUNTS.items():
+        expected_line = f"cd $(ZIGUX_ROOT) && $(PYTHON) {command}"
+        count = sum(1 for line in lines if line == expected_line)
+        if count != expected_count:
+            issues.append(f"makefile_exact_run:{command}:count={count}:expected={expected_count}")
+    return issues
+
+
+
 def run_self_test() -> int:
     valid_policy = {
         "phase": "Phase 2",
@@ -329,13 +346,22 @@ def run_self_test() -> int:
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_phase2_closure_validator")
 
-    valid_makefile = "\n".join(MAKEFILE_MARKERS)
+    valid_makefile = "\n".join(
+        [
+            "phase2-validate:",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+            "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
+        ]
+    )
     if validate_required_markers(
         valid_makefile,
         label="phase2_makefile",
         markers=MAKEFILE_MARKERS,
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_makefile")
+    if validate_exact_makefile_runs(valid_makefile):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_makefile_counts")
 
     bad_phase = dict(valid_policy)
     bad_phase["phase"] = "Phase 3"
@@ -509,6 +535,20 @@ def run_self_test() -> int:
     if not any(issue.startswith("phase2_makefile:missing_marker:") for issue in makefile_issues):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:makefile_marker_failure")
 
+    makefile_count_issues = validate_exact_makefile_runs(
+        valid_makefile
+        + "\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test"
+    )
+    if "makefile_exact_run:scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test:count=2:expected=1" not in makefile_count_issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:makefile_selftest_count_mismatch")
+
+    makefile_count_issues = validate_exact_makefile_runs(
+        valid_makefile
+        + "\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py"
+    )
+    if "makefile_exact_run:scripts/zigux/check-phase2-toolchain-pin-scope.py:count=2:expected=1" not in makefile_count_issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:makefile_gate_count_mismatch")
+
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "toolchain.json"
@@ -544,7 +584,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:duplicate_archive_key_missing")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=28")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
@@ -640,13 +680,15 @@ def main() -> int:
             markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
         )
     )
+    makefile_text = MAKEFILE.read_text(encoding="utf-8")
     issues.extend(
         validate_required_markers(
-            MAKEFILE.read_text(encoding="utf-8"),
+            makefile_text,
             label="phase2_makefile",
             markers=MAKEFILE_MARKERS,
         )
     )
+    issues.extend(validate_exact_makefile_runs(makefile_text))
     issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8"), payload=policy_payload))
 
     if issues:
