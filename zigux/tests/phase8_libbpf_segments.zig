@@ -282,6 +282,14 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     );
     defer std.testing.allocator.free(type_names_note);
 
+    const bridge_boundary_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(bridge_boundary_note);
+
     const product_boundary = try requireSection(
         phase8_note,
         "product boundary:\n",
@@ -297,6 +305,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/type_names.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
+    try expectContains(phase8_note, "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md");
     try expectContains(phase8_note, "zigux/tests/phase8_file_path_handle_bridge.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_bpf_type_names.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_perf_buffer_poll.zig");
@@ -333,4 +342,13 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(type_names_note, "PHASE8_STATUS=parked");
     try expectContains(type_names_note, "tools/lib/bpf/zigux_segments/type_names.zig");
     try expectContains(type_names_note, "zigux/tests/phase8_build.zig");
+
+    try expectContains(bridge_boundary_note, "PHASE8_STATUS=parked");
+    try expectContains(bridge_boundary_note, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
+    try expectContains(bridge_boundary_note, "make -C zigux phase8-validate");
+    try expectContains(bridge_boundary_note, "zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all");
+    try expectContains(bridge_boundary_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
+    try expectContains(bridge_boundary_note, "perf-buffer-online-cpu-routing");
+    try expectContains(bridge_boundary_note, "/sys/devices/system/cpu/online");
+    try expectContains(bridge_boundary_note, "fd close or ownership semantics");
 }
