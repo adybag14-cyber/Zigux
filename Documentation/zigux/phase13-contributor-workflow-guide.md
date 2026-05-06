@@ -2,6 +2,8 @@
 
 This guide keeps the current shipped Phase 13 shared-helper packet reviewable for contributors who are touching helper code, manifests, or the shared replay wiring.
 
+Use `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` when nearby runs could otherwise collapse `libfs`, `devres` helper parity, `devres` packet truthfulness, `landlock`, and adjacent notifier evidence into one ownerless bucket.
+
 ## Scope
 
 Use this guide when a change touches any part of the current shipped Phase 13 packet:
@@ -15,7 +17,7 @@ This is still an active helper-first tranche, not a globally closed roadmap phas
 ## Keep In Sync
 
 When a Phase 13 change is real, keep these surfaces aligned together:
-  * contributor-facing docs: `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and this guide
+  * contributor-facing docs: `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and this guide
   * validator-first wiring: `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/README.md`, and `zigux/Makefile`
   * shared replay entrypoint: `zigux/tests/phase13_build.zig`
   * manifest-backed anchor packets: `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`
@@ -61,6 +63,7 @@ If you update the shared release packet or convenience workflow:
 
 Do not quietly erase these active Phase 13 limits from manifests, notes, or contributor guidance:
   * the current shared validator-first replay route covers only `libfs`, `devres`, `devres` reviewability, `devres_dma_coherent`, `landlock/ruleset`, `landlock/syscalls`, and `libfs` reviewability
+  * `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` keeps `libfs`, `devres` helper-parity work, `devres` packet-truthfulness work, `landlock`, and adjacent notifier evidence split into separate ownership routes even when they share the same validator-first replay path
   * `zigux/tests/phase13_landlock_syscalls_reviewability.zig` is shipped focused direct evidence beside `zigux/tests/phase13_landlock_syscalls.zig`, but it does not add an eighth shared replay step beyond the validator-first route above
   * the dedicated `devres` boundary checker remains part of the validator-first route through `scripts/zigux/check-phase13-devres-packet.py`
   * `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig` are shipped adjacent release-surface evidence on `master`, but they do not add extra shared replay steps beyond the validator-first route above
@@ -77,4 +80,4 @@ Before calling a Phase 13 change ready, confirm all of the following:
 
 ## Next Safe Follow-up
 
-The next contributor-facing improvement after this guide is to keep `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` aligned with this guide whenever a future Phase 13 wording refresh changes the shared validator-first replay route or the broader shipped adjacent release-surface evidence.
+The next contributor-facing improvement after this guide is to keep `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` aligned with this guide whenever a future Phase 13 wording refresh changes the shared validator-first replay route or the broader shipped adjacent release-surface evidence.
