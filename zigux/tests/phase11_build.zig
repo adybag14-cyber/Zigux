@@ -79,6 +79,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const hvc_console_verify_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/tty/hvc/hvc_console_verify.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const phase11_hvc_console_module = b.createModule(.{
         .root_source_file = b.path("phase11_hvc_console.zig"),
         .target = target,
@@ -149,6 +154,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase11_hvc_console_module,
     });
     const run_phase11_hvc_console_tests = b.addRunArtifact(phase11_hvc_console_tests);
+    const hvc_console_verify_tests = b.addTest(.{
+        .name = "phase11-hvc-console-verify-tests",
+        .root_module = hvc_console_verify_module,
+    });
+    const run_hvc_console_verify_tests = b.addRunArtifact(hvc_console_verify_tests);
     const phase11_hvc_cleanup_tests = b.addTest(.{
         .name = "phase11-hvc-cleanup-tests",
         .root_module = phase11_hvc_cleanup_module,
@@ -176,6 +186,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase11_dw_wdt_survey_tests.step);
     test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);
     test_step.dependOn(&run_phase11_hvc_console_tests.step);
+    test_step.dependOn(&run_hvc_console_verify_tests.step);
     test_step.dependOn(&run_phase11_hvc_cleanup_tests.step);
 
     const hvc_console_survey_step = b.step("hvc-console-survey", "Run the dedicated Phase 11 hvc_console archival survey");
