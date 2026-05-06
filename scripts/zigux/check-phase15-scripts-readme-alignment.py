@@ -14,6 +14,7 @@ MAKEFILE_REL = "zigux/Makefile"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
 REVIEW_PROCESS_NOTE_REL = "Documentation/zigux/phase15-architecture-council-review-process.md"
+TESTS_README_REL = "zigux/tests/README.md"
 HANDOFF_CHECKER_REL = "scripts/zigux/check-phase15-review-process-handoff.py"
 MANIFEST_REL = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
 BUILD_REL = "zigux/tests/phase15_build.zig"
@@ -24,6 +25,7 @@ REQUIRED_FILES = (
     WORKFLOW_REL,
     REVIEW_CHECKLIST_REL,
     REVIEW_PROCESS_NOTE_REL,
+    TESTS_README_REL,
     HANDOFF_CHECKER_REL,
     MANIFEST_REL,
     BUILD_REL,
@@ -88,6 +90,15 @@ REVIEW_PROCESS_NOTE_MARKERS = (
     "Keep the Phase 15 governance lane in maintenance mode.",
 )
 
+TESTS_README_MARKERS = (
+    "keep the parked Phase 15 governance packet explicit in the tests root too:",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "make -C zigux phase15-validate",
+    "without implying any Architecture Council approval for a freeze-map status change",
+)
+
 MANIFEST_LANE_MARKERS = (
     "scripts-root validator path",
     "Linux-style `make -C zigux phase15-validate` route",
@@ -98,6 +109,7 @@ MANIFEST_LANE_MARKERS = (
 CURRENT_REPO_HANDOFF_MARKERS = (
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
@@ -157,6 +169,7 @@ def validate(root: Path) -> list[str]:
     handoff_checker = _read(root / HANDOFF_CHECKER_REL)
     review_checklist = _read(root / REVIEW_CHECKLIST_REL)
     review_process_note = _read(root / REVIEW_PROCESS_NOTE_REL)
+    tests_readme = _read(root / TESTS_README_REL)
     manifest = json.loads(_read(root / MANIFEST_REL))
     build = _read(root / BUILD_REL)
 
@@ -166,6 +179,7 @@ def validate(root: Path) -> list[str]:
     _require_markers_present(handoff_checker, HANDOFF_CHECKER_MARKERS, "handoff_checker", issues)
     _require_markers_present(review_checklist, REVIEW_CHECKLIST_MARKERS, "review_checklist", issues)
     _require_markers_present(review_process_note, REVIEW_PROCESS_NOTE_MARKERS, "review_process_note", issues)
+    _require_markers_present(tests_readme, TESTS_README_MARKERS, "tests_readme", issues)
 
     handoff_evidence = manifest.get("handoff_evidence")
     if not isinstance(handoff_evidence, dict):
@@ -281,11 +295,23 @@ def _baseline_review_process_note() -> str:
     )
 
 
+def _baseline_tests_readme() -> str:
+    return "\n".join(
+        (
+            "# zigux/tests",
+            "",
+            "Guidance",
+            "- keep the parked Phase 15 governance packet explicit in the tests root too: `Documentation/zigux/README.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_readiness_gate.zig`, `zigux/Makefile`, `make -C zigux phase15-validate`, `zig build test --build-file zigux/tests/phase15_build.zig`, and `make -C zigux phase15` should continue to keep the current freeze-map, review-process, parity-scorecard, handoff-next-steps, indefinite-C policy, lane-owner alignment, and readiness-gate governance packet reviewable through the shipped scripts-root validator-first route, the workflow-backed replay, and the shared build-and-make path without implying any Architecture Council approval for a freeze-map status change",
+            "",
+        )
+    )
+
+
 def _baseline_manifest() -> str:
     return json.dumps(
         {
             "handoff_evidence": {
-                "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/review-checklist.md, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, zigux/tests/phase15_parity_scorecard.zig, zigux/tests/phase15_architecture_council_review_process.zig, zigux/tests/phase15_indefinite_c_policy.json, zigux/tests/phase15_indefinite_c_policy.zig, zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
+                "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/review-checklist.md, scripts/zigux/README.md, zigux/tests/README.md, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, zigux/tests/phase15_parity_scorecard.zig, zigux/tests/phase15_architecture_council_review_process.zig, zigux/tests/phase15_indefinite_c_policy.json, zigux/tests/phase15_indefinite_c_policy.zig, zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
                 "current_bounded_lane": "The parked Architecture Council packet stays aligned with its scripts-root validator path, its Linux-style `make -C zigux phase15-validate` route, its tests-root guidance path, and its dedicated handoff-checker route."
             }
         },
@@ -316,6 +342,7 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root / HANDOFF_CHECKER_REL, _baseline_handoff_checker())
     _write(root / REVIEW_CHECKLIST_REL, _baseline_review_checklist())
     _write(root / REVIEW_PROCESS_NOTE_REL, _baseline_review_process_note())
+    _write(root / TESTS_README_REL, _baseline_tests_readme())
     _write(root / MANIFEST_REL, _baseline_manifest())
     _write(root / BUILD_REL, _baseline_build())
     for rel in (
@@ -457,6 +484,19 @@ def run_self_test() -> int:
         case_count += 1
 
         manifest_data = json.loads(baseline_manifest)
+        manifest_data["handoff_evidence"]["current_repo_handoff"] = manifest_data["handoff_evidence"][
+            "current_repo_handoff"
+        ].replace("zigux/tests/README.md, ", "", 1)
+        _write(root / MANIFEST_REL, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest_current_repo_handoff:missing:zigux/tests/README.md"],
+            "missing_manifest_tests_readme_marker_guard_failed",
+        )
+        _write(root / MANIFEST_REL, baseline_manifest)
+        case_count += 1
+
+        manifest_data = json.loads(baseline_manifest)
         manifest_data["handoff_evidence"]["current_bounded_lane"] = manifest_data["handoff_evidence"][
             "current_bounded_lane"
         ].replace("Linux-style `make -C zigux phase15-validate` route, ", "", 1)
@@ -467,6 +507,22 @@ def run_self_test() -> int:
             "missing_manifest_validate_route_guard_failed",
         )
         _write(root / MANIFEST_REL, baseline_manifest)
+        case_count += 1
+
+        tests_readme_path = root / TESTS_README_REL
+        baseline_tests_readme = _read(tests_readme_path)
+        _write(
+            root / TESTS_README_REL,
+            baseline_tests_readme.replace(
+                "scripts/zigux/check-phase15-scripts-readme-alignment.py", "scripts/zigux/check-phase15-scripts-readme-alignment.missing", 1
+            ),
+        )
+        _assert_only(
+            validate(root),
+            ["tests_readme:missing:scripts/zigux/check-phase15-scripts-readme-alignment.py"],
+            "missing_tests_readme_marker_guard_failed",
+        )
+        _write(root / TESTS_README_REL, baseline_tests_readme)
         case_count += 1
 
         build_path = root / BUILD_REL
@@ -497,6 +553,15 @@ def run_self_test() -> int:
             validate(root),
             ["missing_file:scripts/zigux/check-phase15-review-process-handoff.py"],
             "missing_handoff_checker_file_guard_failed",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        (root / TESTS_README_REL).unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:zigux/tests/README.md"],
+            "missing_tests_readme_file_guard_failed",
         )
         _seed_fixture_tree(root)
         case_count += 1
@@ -558,7 +623,7 @@ def main() -> int:
     print("PHASE15_SCRIPTS_README_ALIGNMENT=pass")
     print(
         "PHASE15_SCRIPTS_README_ALIGNMENT_MARKER_COUNT="
-        f"{len(README_SNIPPETS) + len(MAKEFILE_REQUIRED) + len(HANDOFF_CHECKER_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_PROCESS_NOTE_MARKERS) + len(MANIFEST_LANE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(README_SNIPPETS) + len(MAKEFILE_REQUIRED) + len(HANDOFF_CHECKER_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_PROCESS_NOTE_MARKERS) + len(TESTS_README_MARKERS) + len(MANIFEST_LANE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(BUILD_MARKERS)}"
     )
     return 0
 
