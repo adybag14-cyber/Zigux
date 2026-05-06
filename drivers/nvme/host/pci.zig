@@ -29,6 +29,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_lab_queue_planner: bool,
     provides_queue_count_helper: bool,
+    provides_queue_count_reservation_helper: bool,
     provides_prp_metadata_helper: bool,
     provides_recovery_replay_helper: bool,
     touches_live_dma: bool,
@@ -71,6 +72,21 @@ pub const IoQueueCountPlanSummary = struct {
     first_queue_id: u16,
     last_queue_id: u16,
     queue_pairs_after_plan: usize,
+    controller_limited: bool,
+    planner_limited: bool,
+    queues_frozen: bool,
+    reset_generation: u32,
+};
+
+pub const IoQueueReservationSummary = struct {
+    anchor: []const u8,
+    requested_io_queues: usize,
+    controller_io_queue_limit: usize,
+    planner_remaining_io_slots: usize,
+    reserved_io_queues: usize,
+    first_queue_id: u16,
+    last_queue_id: u16,
+    planned_io_queues_after_reserve: usize,
     controller_limited: bool,
     planner_limited: bool,
     queues_frozen: bool,
@@ -151,6 +167,7 @@ pub const NvmePciQueueLab = struct {
             .anchor = "drivers/nvme/host/pci.c",
             .provides_lab_queue_planner = true,
             .provides_queue_count_helper = true,
+            .provides_queue_count_reservation_helper = true,
             .provides_prp_metadata_helper = true,
             .provides_recovery_replay_helper = true,
             .touches_live_dma = false,
@@ -240,6 +257,33 @@ pub const NvmePciQueueLab = struct {
             .planner_limited = planner_remaining_io_slots < requested_io_queues,
             .queues_frozen = false,
             .reset_generation = self.reset_generation,
+        };
+    }
+
+    pub fn reserveIoQueues(
+        self: *Self,
+        requested_io_queues: usize,
+        controller_io_queue_limit: usize,
+    ) !IoQueueReservationSummary {
+        const plan = try self.planIoQueueCount(requested_io_queues, controller_io_queue_limit);
+        const reservation_delta = try checkedCastU16(plan.selected_io_queues);
+
+        self.next_io_queue_id = try checkedAddU16(self.next_io_queue_id, reservation_delta);
+        self.planned_io_queues = try checkedAddUsize(self.planned_io_queues, plan.selected_io_queues);
+
+        return .{
+            .anchor = plan.anchor,
+            .requested_io_queues = plan.requested_io_queues,
+            .controller_io_queue_limit = plan.controller_io_queue_limit,
+            .planner_remaining_io_slots = plan.planner_remaining_io_slots,
+            .reserved_io_queues = plan.selected_io_queues,
+            .first_queue_id = plan.first_queue_id,
+            .last_queue_id = plan.last_queue_id,
+            .planned_io_queues_after_reserve = self.planned_io_queues,
+            .controller_limited = plan.controller_limited,
+            .planner_limited = plan.planner_limited,
+            .queues_frozen = plan.queues_frozen,
+            .reset_generation = plan.reset_generation,
         };
     }
 
@@ -462,4 +506,4 @@ pub const NvmePciQueueLab = struct {
         const rounded = try checkedAddU32(value, addend);
         return rounded & ~addend;
     }
-}
+};
