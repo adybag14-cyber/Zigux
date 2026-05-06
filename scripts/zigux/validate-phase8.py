@@ -93,6 +93,11 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-exec-cmd-test",
         "stops before any ownership of `execv_cmd()` or `execvp()`",
     ],
+    "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md": [
+        "parse_cpu_mask_str()",
+        "chunk-reader ingestion",
+        "tools/lib/bpf/zigux_segments/manifest.json",
+    ],
     "Documentation/zigux/phase8-file-path-handle-bridge-slice.md": [
         "\"/proc/%d/fdinfo/%d\" assembly plus bounded fdinfo text parsing",
         "zigux/tests/phase8_file_path_handle_bridge.zig",
