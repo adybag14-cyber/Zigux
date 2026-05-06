@@ -14,6 +14,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `zigux/tests/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
@@ -66,6 +67,10 @@ The active watchdog validation packets also stay explicit beside that shared rou
 - bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, and `zigux/tests/phase11_bcm2835_wdt_survey.zig`
 - DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, and `zigux/tests/phase11_dw_wdt_survey.zig`
 
+The parked driver-lane ownership map also stays explicit beside that replay route:
+
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
+
 The dedicated archival HVC evidence still stays explicit beside that shared route:
 
 - `zigux/tests/phase11_hvc_console_survey.zig`
@@ -93,4 +98,4 @@ The focused shared header-boundary evidence also stays explicit beside that repl
 
 ## Follow-Through Rule
 
-Future Phase 11 follow-through should stay inside the next smallest hardware-validation matrix, focused replay, teardown-parity note, failure-mode note, registration-facing handoff note, or shared review-surface sync across the gpio, bcm2835, dw, header-boundary, and HVC packet rather than widening into new driver behavior or broader validator assets before those files actually land.
+Future Phase 11 follow-through should stay inside the next smallest hardware-validation matrix, focused replay, teardown-parity note, failure-mode note, registration-facing handoff note, driver-lane sequencing sync, or shared review-surface sync across the gpio, bcm2835, dw, header-boundary, and HVC packet rather than widening into new driver behavior or broader validator assets before those files actually land.
