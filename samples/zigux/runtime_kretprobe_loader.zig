@@ -555,6 +555,37 @@ test "runtime kretprobe loader surfaces shared request drift before any live reg
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
 }
 
+test "runtime kretprobe loader rejects shared selftest-hook drift before any live registration claim" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.init();
+
+    const initialized_plan = try RuntimeKretprobeLoader.planFor(&module);
+    var initialized_shared_plan = toSharedLoadPlan(initialized_plan);
+    try std.testing.expect(initialized_shared_plan.provides_selftest_hook);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(initialized_shared_plan));
+
+    initialized_shared_plan.provides_selftest_hook = false;
+    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(initialized_shared_plan));
+    try std.testing.expectError(
+        error.InvalidSelftestHookEvidence,
+        runtime_loader.prepareRequest(initialized_shared_plan),
+    );
+
+    _ = try module.runSelftest();
+
+    const selftest_plan = try RuntimeKretprobeLoader.planFor(&module);
+    var selftest_shared_plan = toSharedLoadPlan(selftest_plan);
+    try std.testing.expect(selftest_shared_plan.provides_selftest_hook);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(selftest_shared_plan));
+
+    selftest_shared_plan.provides_selftest_hook = false;
+    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(selftest_shared_plan));
+    try std.testing.expectError(
+        error.InvalidSelftestHookEvidence,
+        runtime_loader.prepareRequest(selftest_shared_plan),
+    );
+}
+
 test "runtime kretprobe loader rejects shared-load-plan snapshot drift" {
     var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
     try module.retargetSymbol("do_sys_openat2");
