@@ -1,24 +1,23 @@
 const std = @import("std");
 
+inline fn compilerBarrier() void {
+    asm volatile ("" ::: .{ .memory = true });
+}
+
 pub fn acquire() void {
-    var word: u8 = 0;
-    _ = @atomicLoad(u8, &word, .acquire);
+    compilerBarrier();
 }
 
 pub fn release() void {
-    var word: u8 = 0;
-    @atomicStore(u8, &word, 0, .release);
+    compilerBarrier();
 }
 
 pub fn full() void {
-    var word: u8 = 0;
-    _ = @atomicRmw(u8, &word, .Xchg, 0, .seq_cst);
+    compilerBarrier();
 }
 
 pub fn acquireRelease() void {
-    var word: u8 = 0;
-    _ = @atomicLoad(u8, &word, .acquire);
-    @atomicStore(u8, &word, 0, .release);
+    compilerBarrier();
 }
 
 test "phase3 barrier wrappers compile" {
