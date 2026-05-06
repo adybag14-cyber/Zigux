@@ -187,7 +187,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-restore-queue-rebind-summary-starter")) {
             saw_restore_queue_rebind = true;
-            try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("drivers/virtio_scsi.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtscsi_restore()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "default versus poll queue ranges") != null);
@@ -253,6 +253,31 @@ test "phase12 virtio_scsi survey note keeps the active lane identity and fallbac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback summary") != null);
 }
 
+test "phase12 virtio_scsi slice note keeps the rollback drill explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-virtio-scsi-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    const expected_fragments = [_][]const u8{
+        "freezes queue planning and event recycling intent across a lab-only transport freeze or restore boundary",
+        "clears the old queue snapshot so the next step must replan",
+        "derives one bounded restore-sequencing summary from the frozen queue layout",
+        "`virtscsi_restore()` calling `find_vqs`, `virtio_device_ready()`, and event rearm",
+        "without pretending to re-run `scsi_scan_host()`",
+    };
+
+    for (expected_fragments) |fragment| {
+        try expectContains(slice_note, fragment);
+    }
+}
+
 test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped build-only replay surface" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -294,9 +319,10 @@ test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped bu
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/scripts/zigux/README.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/README.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/Makefile",
-        "1. `make -C zigux phase12-smoke`",
-        "2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
-        "3. `make -C zigux phase12`",
+        "1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
+        "2. `make -C zigux phase12-smoke`",
+        "3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+        "4. `make -C zigux phase12`",
         "Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether those same shipped surfaces are close enough to describe the active Phase 12 tranche as release-closed.",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.",
         "This catalog should stay read-only and should not be used to imply an unshipped `validate-phase12.py`, any `check-phase12-*.py` packet, or a `make -C zigux phase12-validate` target.",
@@ -305,4 +331,21 @@ test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped bu
     for (expected_fragments) |fragment| {
         try expectContains(catalog, fragment);
     }
+
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        std.mem.count(u8, catalog, "1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`"),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        std.mem.count(u8, catalog, "2. `make -C zigux phase12-smoke`"),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        std.mem.count(u8, catalog, "3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`"),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        std.mem.count(u8, catalog, "4. `make -C zigux phase12`"),
+    );
 }
