@@ -158,16 +158,16 @@ pub fn nextArg(args: []u8) NextArgResult {
     }
 
     const current = args[start..];
-    // Mirror Linux's sentinel behavior: '=' at offset 0 does not split
-    // the token into param/value parts, and a leading quoted bare token
-    // keeps any embedded '=' inside the parameter text.
+    // Mirror Linux's sentinel behavior: '=' at offset 0 does not split the
+    // token, but a leading quoted token still uses the first later '=' as the
+    // param/value separator.
     var equals_index: usize = 0;
     var index: usize = 0;
     while (index < current.len and current[index] != 0) : (index += 1) {
         if (!in_quote and std.ascii.isWhitespace(current[index])) {
             break;
         }
-        if (!in_quote and equals_index == 0 and current[index] == '=') {
+        if (equals_index == 0 and current[index] == '=') {
             equals_index = index;
         }
         if (current[index] == '"') {
@@ -459,12 +459,12 @@ test "nextArg keeps a whole quoted token together without inventing a value" {
     try std.testing.expectEqualStrings("tail", cStringPrefix(parsed.rest));
 }
 
-test "nextArg keeps a quoted bare token containing equals together" {
+test "nextArg splits a leading quoted token at the first equals like Linux" {
     var buffer = [_]u8{ '"', 'k', 'e', 'y', '=', 'v', 'a', 'l', 'u', 'e', '"', ' ', 'n', 'e', 'x', 't', 0 };
     const parsed = nextArg(&buffer);
 
-    try std.testing.expectEqualStrings("key=value", parsed.param);
-    try std.testing.expectEqual(@as(?[]const u8, null), parsed.value);
+    try std.testing.expectEqualStrings("key", parsed.param);
+    try std.testing.expectEqualStrings("value", parsed.value.?);
     try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
 }
 
