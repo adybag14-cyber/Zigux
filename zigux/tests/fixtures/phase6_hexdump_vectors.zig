@@ -447,3 +447,78 @@ pub const perf_cases = [_]PerfCase{
         .max_slowdown_pct = 600,
     },
 };
+
+test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix" {
+    const expected = [_]PerfCase{
+        .{
+            .label = "16B-plain-g1",
+            .len = 16,
+            .rowsize = 16,
+            .groupsize = 1,
+            .ascii = false,
+            .reps = 40_000,
+            .max_slowdown_pct = 175,
+        },
+        .{
+            .label = "32B-ascii-g2",
+            .len = 32,
+            .rowsize = 32,
+            .groupsize = 2,
+            .ascii = true,
+            .reps = 10_000,
+            .max_slowdown_pct = 550,
+        },
+        .{
+            .label = "16B-ascii-g4",
+            .len = 16,
+            .rowsize = 16,
+            .groupsize = 4,
+            .ascii = true,
+            .reps = 20_000,
+            .max_slowdown_pct = 550,
+        },
+        .{
+            .label = "16B-ascii-g8",
+            .len = 16,
+            .rowsize = 16,
+            .groupsize = 8,
+            .ascii = true,
+            .reps = 20_000,
+            .max_slowdown_pct = 600,
+        },
+    };
+
+    try std.testing.expectEqual(expected.len, perf_cases.len);
+
+    for (expected, 0..) |want, idx| {
+        const actual = perf_cases[idx];
+        try std.testing.expectEqualStrings(want.label, actual.label);
+        try std.testing.expectEqual(want.len, actual.len);
+        try std.testing.expectEqual(want.rowsize, actual.rowsize);
+        try std.testing.expectEqual(want.groupsize, actual.groupsize);
+        try std.testing.expectEqual(want.ascii, actual.ascii);
+        try std.testing.expectEqual(want.reps, actual.reps);
+        try std.testing.expectEqual(want.max_slowdown_pct, actual.max_slowdown_pct);
+    }
+
+    for (perf_cases, 0..) |case, idx| {
+        for (perf_cases[idx + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, case.label, other.label));
+        }
+    }
+}
+
+test "phase 6 hexdump perf fixture packet avoids fallback formatting drift" {
+    for (perf_cases) |case| {
+        var line: [test_hexdump_buf_size]u8 = undefined;
+        const expected = prepareExpectedLine(line[0..], case.len, case.rowsize, case.groupsize, case.ascii);
+
+        try std.testing.expect(case.len > 0);
+        try std.testing.expect(case.reps > 0);
+        try std.testing.expect(case.max_slowdown_pct > 0);
+        try std.testing.expect(case.len <= case.rowsize);
+        try std.testing.expectEqual(case.rowsize, normalizedRowsize(case.rowsize));
+        try std.testing.expectEqual(case.groupsize, normalizedGroupsizeForLen(case.len, case.groupsize));
+        try std.testing.expectEqual(expectedLength(case.len, case.rowsize, case.groupsize, case.ascii), expected.len);
+    }
+}
