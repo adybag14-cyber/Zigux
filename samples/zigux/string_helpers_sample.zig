@@ -134,12 +134,14 @@ test "string helper sample replay keeps the existing helper surface reviewable" 
     var sample = StringHelpersSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
+    const values = [_]?[]const u8{ "disabled", "enabled", null, "ignored" };
 
     try std.testing.expectEqualStrings("lib/string_helpers.c", replay.anchor);
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expect(replay.comparable_match);
     try std.testing.expectEqual(@as(i32, 1), replay.matched_index);
+    try std.testing.expectEqual(string_helpers.EINVAL, string_helpers.matchString(&values, 2, "ignored"));
     try std.testing.expectEqualStrings("1.50 KiB", cStringPrefix(&replay.size_text.bytes));
     try std.testing.expectEqual(@as(usize, 8), replay.size_text.len);
     try std.testing.expectEqualSlices(u8, "line\n", replay.unescaped_text.bytes[0..replay.unescaped_text.len]);
