@@ -89,6 +89,17 @@ pub fn strreplace(buf: []u8, old: u8, new: u8) []u8 {
     return buf;
 }
 
+pub fn kstrdupAndReplace(
+    allocator: std.mem.Allocator,
+    src: []const u8,
+    old: u8,
+    new: u8,
+) ![:0]u8 {
+    const dup = try allocator.dupeZ(u8, cStringPrefix(src));
+    _ = strreplace(dup, old, new);
+    return dup;
+}
+
 pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
     std.debug.assert(src.len >= count);
 
@@ -638,6 +649,14 @@ test "strreplace mutates in place without touching bytes after NUL" {
 
     try std.testing.expectEqualStrings("a_b", cStringPrefix(returned));
     try std.testing.expectEqual(@as(u8, '-'), buffer[4]);
+}
+
+test "kstrdupAndReplace duplicates the first-NUL prefix before replacing bytes" {
+    const duplicated = try kstrdupAndReplace(std.testing.allocator, "tty-0\x00ignored-tail", '-', '_');
+    defer std.testing.allocator.free(duplicated);
+
+    try std.testing.expectEqualStrings("tty_0", duplicated);
+    try std.testing.expectEqual(@as(u8, 0), duplicated[5]);
 }
 
 test "memcpyAndPad matches the bounded copy-and-pad contract" {
