@@ -13,6 +13,9 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
   - `Documentation/zigux/phase5-kfifo-sample-survey.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
+  - `samples/zigux/README.md`
+  - `scripts/zigux/README.md`
+  - `zigux/tests/README.md`
   - `samples/zigux/bytestream_fifo.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_bytestream_fifo.zig`
@@ -48,6 +51,7 @@ The Phase 5 gap is now narrowed to one landed sample-backed reference pattern fo
   - lifecycle setup and teardown around `example_init()` and `example_exit()`
   - procfs and user-copy plumbing through `proc_create`, `kfifo_from_user`, `kfifo_to_user`, and mutex-protected read or write paths
 - the live Zigux repo now ships bounded Phase 5 side-by-side samples under `samples/zigux/` for the `kfifo`, `kobject`, `kretprobe`, and `trace-events` anchors, while still keeping the later Phase 9 runtime starters and loader-side follow-ons separate from these non-runtime reference readings.
+- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already help keep this FIFO note aligned with the same four-sample Phase 5 packet described from the docs root, scripts root, sample root, and tests root.
 - the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice.
 
 ## Approved idiom for the landed kfifo-style sample
@@ -96,6 +100,7 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly c
 
 - does `BytestreamFifoSample.descriptor()` still name the Linux anchor `samples/kfifo/bytestream-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` still describe the exact queue-order replay, preview truncation boundary, the non-destructive snapshot contract, lifecycle boundary, and bounded helper contract run through `zigux/tests/phase5_build.zig`?
+- do the shared Phase 5 contributor surfaces in `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still point at this exact sample packet and keep it separate from the later Phase 9 runtime starters instead of leaving this note to carry the boundary alone?
 - does that same helper-facing packet still keep the short-drain bytestream contract explicit so draining a three-byte destination from `"hello"` yields `"hel"`, preserves the `"lo"` remainder in queue order, and returns `0` once the queue is empty again?
 - if the sample behavior changes, is the manifest updated alongside the replay expectations instead of leaving reviewers to infer the new contract from code alone?
 - do the docs and tests still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
@@ -108,6 +113,7 @@ The current gap is not "Zigux lacks every sample." The more precise gap is:
 
 - the repo now has four reviewable Phase 5 samples plus later runtime-oriented starters and loader-side follow-ons in `samples/zigux/`
 - the completed Phase 5 sample set still has to stay visibly separate from the later Phase 9 runtime starters and loader-side follow-ons for `trace-events`, `kretprobe`, `bitmap`, and `atomic64`
+- the shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too, so this survey note does not understate the already-shipped review surface for the landed sample
 - the kfifo sample now covers both queue-order replay and one explicit ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
 
 This slice closes the `kfifo` survey-only gap by landing the first sample-backed replay and documenting its exact checks so future Phase 5 work can advance from a concrete baseline instead of another round of ambiguous sample naming.
