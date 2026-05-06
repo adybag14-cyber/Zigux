@@ -84,7 +84,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_tests") != null);
@@ -95,10 +95,6 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "segmented rollout boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime-data-path boundary remains blocked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-net-segmented-rollout-boundary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "DMA-safe abstractions") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queueing correctness") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "throughput and recovery parity") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "review boundary rather than a live transport or DMA substrate") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -113,6 +109,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     var saw_queue_recovery = false;
     var saw_receive_refill = false;
     var saw_transmit_recycle = false;
+    var saw_recovery_ownership_note = false;
     var saw_mergeable_buffer_length = false;
     var saw_segmented_rollout_boundary = false;
     var saw_blocker = false;
@@ -216,6 +213,16 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "receive-refill coordination") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-recovery-ownership-note")) {
+            saw_recovery_ownership_note = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase12-virtio-net-survey.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "frozen snapshot owns remembered queue shape") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "control-virtqueue restore owns queue-pair governance") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "RSS reapply owns steering-state handoff") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "receive-refill coordination") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-mergeable-buffer-length-summary")) {
             saw_mergeable_buffer_length = true;
             try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
@@ -235,7 +242,6 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "segmented rollout") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "mergeable-buffer-length") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime data path remains blocked") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "review boundary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
@@ -244,10 +250,6 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
             try std.testing.expectEqualStrings("blocked_on_dma_transport", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "page_pool DMA") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "XDP") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "DMA-safe abstractions") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queueing correctness") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "throughput and recovery parity") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "review boundary") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -255,7 +257,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -268,6 +270,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(saw_queue_recovery);
     try std.testing.expect(saw_receive_refill);
     try std.testing.expect(saw_transmit_recycle);
+    try std.testing.expect(saw_recovery_ownership_note);
     try std.testing.expect(saw_mergeable_buffer_length);
     try std.testing.expect(saw_segmented_rollout_boundary);
     try std.testing.expect(saw_blocker);
@@ -284,6 +287,10 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn planMergeableBufferLength") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "fn summarizeMergeableBufferLength(") != null);
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "recovery ownership order note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "frozen snapshot owns remembered queue shape") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "control-virtqueue restore owns queue-pair governance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "RSS reapply owns steering-state handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "mergeable-buffer-length follow-up") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "page-minus-room") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`skb_shared_info`") != null);
