@@ -53,7 +53,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -64,6 +64,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_capacity = false;
     var saw_helper_boundary = false;
     var saw_preview_boundary = false;
+    var saw_available_capacity = false;
     var saw_snapshot = false;
     var saw_short_drain_prefix = false;
     var saw_lifecycle = false;
@@ -105,6 +106,14 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "reports 10 visible bytes") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "leaves the queued data intact") != null);
         }
+        if (std.mem.eql(u8, check.id, "remaining-capacity")) {
+            saw_available_capacity = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "available() reports 32 at cold, initialized, replay-complete, reset, and exited boundaries") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "27 after enqueueing \"hello\"") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "22 after the preview-boundary setup") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "0 at full capacity") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "1 immediately after skip-at-capacity") != null);
+        }
         if (std.mem.eql(u8, check.id, "non-destructive-snapshot")) {
             saw_snapshot = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "without mutating queue state") != null);
@@ -140,6 +149,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_helper_boundary);
     try std.testing.expect(saw_preview_boundary);
+    try std.testing.expect(saw_available_capacity);
     try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_short_drain_prefix);
     try std.testing.expect(saw_lifecycle);
