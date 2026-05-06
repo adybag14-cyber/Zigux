@@ -1,5 +1,5 @@
 PHONY += phase1-validate phase1-test phase1-bench phase1
-PHONY += phase2-validate phase2-tools phase2-kconfig phase2-cross phase2
+PHONY += phase2-validate phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2
 PHONY += phase3-validate phase3-selftest phase3-abi phase3-interop phase3
 PHONY += phase4-validate phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-bitmap-diff phase4-bitmap-live-helper-replay phase4
 PHONY += phase5-test phase5
@@ -33,7 +33,10 @@ phase1-bench:
 
 phase1: phase1-validate phase1-test phase1-bench
 
-phase2-validate:
+phase2-toolchain:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py
+
+phase2-validate: phase2-toolchain
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py
