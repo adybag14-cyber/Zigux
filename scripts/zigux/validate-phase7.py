@@ -227,6 +227,8 @@ REQUIRED_MARKERS = {
         "phase 7 stringUnescape covers deterministic Linux escape fixtures",
         "phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds",
         "phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned",
+        "phase 7 kstrdupQuotable frees the owned copy when allocation fails",
+        "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
         "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
@@ -335,6 +337,11 @@ EXACT_COUNT_MARKERS = {
     "zigux/tests/phase7_string_helpers_survey.zig": [
         ("phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds", 1),
         ("phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned", 1),
+        ("phase 7 kstrdupQuotable frees the owned copy when allocation fails", 1),
+        (
+            "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
+            1,
+        ),
     ],
 }
 
