@@ -34,6 +34,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `zigux/tests/phase11_dw_wdt_manifest.json`
 - `zigux/tests/phase11_dw_wdt_survey.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
+- `zigux/tests/phase11_hvc_console_manifest.json`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
@@ -73,6 +74,7 @@ The parked driver-lane ownership map also stays explicit beside that replay rout
 
 The dedicated archival HVC evidence still stays explicit beside that shared route:
 
+- `zigux/tests/phase11_hvc_console_manifest.json`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
@@ -86,7 +88,7 @@ The focused shared header-boundary evidence also stays explicit beside that repl
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 
-`Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` keep that same shared-versus-dedicated replay split explicit, while `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff, missing-reference failure mode, and teardown-gating replay reviewable without implying live tty teardown or host-backed cleanup, and `drivers/tty/hvc/hvc_console_verify.zig` now keeps one compile-local final-close and hung-up or detached teardown replay beside the shared packet.
+`Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` keep that same shared-versus-dedicated replay split explicit, while `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff, missing-reference failure mode, and teardown-gating replay reviewable without implying live tty teardown or host-backed cleanup, `drivers/tty/hvc/hvc_console_verify.zig` keeps one compile-local final-close and hung-up or detached teardown replay beside the shared packet, and `zigux/tests/phase11_hvc_console_manifest.json` keeps the archival HVC landing checkpoint named alongside the survey note and validation matrix.
 
 ## What This Contract Does Not Claim
 
