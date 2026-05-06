@@ -468,6 +468,53 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                'const runtime_loader_contract_tests = b.addTest(.{\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            'phase9_build:const runtime_loader_contract_tests = b.addTest(.{',
+            "missing_phase9_build_contract_test_declaration",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                'const runtime_loader_shared_tests_step = b.step(\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            'phase9_build:const runtime_loader_shared_tests_step = b.step(',
+            "missing_phase9_build_shared_loader_step",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build + "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build_exact_count:runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);:expected=1:actual=2",
+            "duplicate_phase9_build_shared_loader_contract_dependency",
+        )
+
+        write_fixture_tree(root)
         script_path = root / "scripts/zigux/check-phase9-build-only-surface.py"
         write_text(script_path, SELF_PATH.read_text(encoding="utf-8"))
         probe = subprocess.run(
@@ -483,7 +530,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=6")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
