@@ -561,6 +561,15 @@ def run_self_test() -> int:
         _write(root / "scripts" / "zigux" / "validate-phase13-release.py", "# stub\n")
         case_count += 1
 
+        (root / "scripts" / "zigux" / "check-phase13-devres-packet.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase13-devres-packet.py"],
+            "missing_phase13_devres_packet_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "check-phase13-devres-packet.py", "# stub\n")
+        case_count += 1
+
         (root / "scripts" / "zigux" / "check-phase15-scripts-readme-alignment.py").unlink()
         _assert_only(
             validate(root),
@@ -568,6 +577,15 @@ def run_self_test() -> int:
             "missing_phase15_alignment_repo_file_guard_failed",
         )
         _write(root / "scripts" / "zigux" / "check-phase15-scripts-readme-alignment.py", "# stub\n")
+        case_count += 1
+
+        (root / "scripts" / "zigux" / "check-phase10-input-packet.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase10-input-packet.py"],
+            "missing_phase10_input_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "check-phase10-input-packet.py", "# stub\n")
         case_count += 1
 
         (root / "scripts" / "zigux" / "check-phase10-mmio-packet.py").unlink()
