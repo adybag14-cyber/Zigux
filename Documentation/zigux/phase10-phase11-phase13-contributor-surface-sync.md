@@ -57,6 +57,8 @@ For the active virtio contributor packet, confirm wording still matches the curr
 - `scripts/zigux/check-phase10-input-packet.py`
 - `scripts/zigux/check-phase10-mmio-packet.py`
 - `zigux/Makefile`
+- `make -C zigux phase10-test`
+- `make -C zigux phase10`
 
 Keep the shared wording honest about what is not shipped on `master`: there is still no dedicated shared `validate-phase10.py`, `check-phase10-harness-coverage.py`, `check-phase10-closure-inventory.py`, `phase10_closure_manifest.json`, or closure-ledger-backed replay route.
 
@@ -121,7 +123,7 @@ Before closing a contributor-guidance change, ask:
 - Did a short-form companion note gain wording that the broad tests-root prompt still skips?
 - Did a checklist prompt keep an old replay count after the docs-root summary changed?
 - Did docs-root or scripts-root add a new replay, checker, manifest, or survey file that the shared contributor prompts still compress into older shorthand?
-- Did one shared Phase 10 prompt collapse the shipped `scripts/zigux/check-phase10-input-packet.py` or `scripts/zigux/check-phase10-mmio-packet.py` guards back into core-only shorthand, or drop `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, or `zigux/tests/phase10_virtio_input_status_drain.zig` after the packet-local evidence named them explicitly?
+- Did one shared Phase 10 prompt collapse the shipped `scripts/zigux/check-phase10-input-packet.py` or `scripts/zigux/check-phase10-mmio-packet.py` guards back into core-only shorthand, leave the scripts-root Phase 10 flow talking as if only the core and input packet guards exist, or drop `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, or `zigux/tests/phase10_virtio_input_status_drain.zig` after the packet-local evidence named them explicitly?
 - Did one shared Phase 13 prompt turn shipped adjacent release-surface evidence such as `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, or `zigux/helpers/notifier_chain_view.zig` into extra replay steps or add the unshipped `scripts/zigux/check-phase13-notifier-packet.py` route?
 - Do any shared Phase 13 prompts still imply `scripts/zigux/check-phase13-release-replay-exact-counts.py` as a shipped surface even though that exact-count checker does not currently round-trip on `master`?
 
