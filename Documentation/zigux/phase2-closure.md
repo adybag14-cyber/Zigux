@@ -39,6 +39,7 @@ The bounded Phase 2 cross-target compile set is:
 Phase 2 is only considered closed when all of the following are green:
 
 1. bounded fixdep artifact parity
+- `python3 scripts/zigux/check-fixdep-diff.py --self-test`
 - `python3 scripts/zigux/check-fixdep-diff.py`
 
 2. bounded genksyms CRC artifact parity
@@ -79,6 +80,7 @@ Phase 2 is only considered closed when all of the following are green:
 11. closure validation
 - `python3 scripts/zigux/validate-phase2-closure.py`
 
+- `PHASE2_FIXDEP_SELF_TEST=python3 scripts/zigux/check-fixdep-diff.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py`
 - `PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py`
 - `PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test`
