@@ -110,6 +110,7 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "`scripts/zigux/check-phase9-build-only-surface.py`",
     "the shipped build-only surface checker",
     "workflow-backed `make -C zigux phase9` route",
+    "roadmap-backed selftest-hook and runtime module lifecycle parity cues",
     "no-dedicated-`validate-phase9.py` posture",
     PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER,
 ]
@@ -433,7 +434,7 @@ def run_self_test() -> int:
         )
         expect_failure(root, "phase9_build:const runtime_atomic64_survey_module = b.createModule(.{", "missing_atomic64_survey_module")
 
-        write_fixture_tree(root)
+        write_fixtureTree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
@@ -499,6 +500,23 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(root, f"review_checklist:{PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER}", "missing_phase9_non_owner_boundary_paths")
+
+        write_fixture_tree(root)
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            review_checklist.replace(
+                "roadmap-backed selftest-hook and runtime module lifecycle parity cues",
+                "roadmap-backed runtime module lifecycle parity cues",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "review_checklist:roadmap-backed selftest-hook and runtime module lifecycle parity cues",
+            "missing_phase9_selftest_lifecycle_marker",
+        )
 
         write_fixture_tree(root)
         review_checklist_path = root / REVIEW_CHECKLIST_PATH
@@ -599,7 +617,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=19")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
