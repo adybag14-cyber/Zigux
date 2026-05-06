@@ -62,6 +62,13 @@
       "why_now": "The survey note compares the 719-line `ruleset.c` anchor against the current helper lab and keeps the remaining gap around live tree state and hierarchy lifetime explicit."
     },
     {
+      "id": "phase13-landlock-ruleset-ownership-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
+      "why_now": "A dedicated ownership note now fences `security/landlock/ruleset.zig` away from `security/landlock/syscalls.zig`, keeps `rb_replace_node()` and object ownership inside the blocked live-tree state, and makes the manifest, survey, slice, and test gate move together when the helper-owned surface changes."
+    },
+    {
       "id": "phase13-landlock-rule-layer-merge-followup",
       "status": "starter_landed",
       "kind": "security_helper_pilot",
