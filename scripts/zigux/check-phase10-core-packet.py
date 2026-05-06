@@ -15,6 +15,7 @@ FILES = [
     "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/phase10_build.zig",
+    "zigux/tests/phase10_virtio_core.zig",
     "zigux/tests/phase10_virtio_core_reset_queue.zig",
     "zigux/tests/phase10_virtio_core_manifest.json",
     "zigux/tests/phase10_virtio_core_survey.zig",
@@ -23,6 +24,9 @@ FILES = [
 ]
 
 EXPECTED_BUILD_MARKERS = [
+    "phase10_virtio_core_module",
+    'phase10-virtio-core-tests',
+    "run_phase10_virtio_core_tests",
     "phase10_virtio_core_survey_module",
     'phase10-virtio-core-survey-tests',
     "run_phase10_virtio_core_survey_tests",
@@ -46,6 +50,13 @@ EXPECTED_TESTS_README_MARKERS = [
     "phase10_virtio_core_reset_queue.zig",
     "phase10_virtio_core_survey.zig",
     "phase10_virtio_driver_id.zig",
+]
+
+EXPECTED_CORE_TEST_MARKERS = [
+    "phase10 virtio core tracks lifecycle guard bookkeeping across driver model milestones",
+    "phase10 virtio core exposes reset replay bookkeeping before reset clears state",
+    "phase10 virtio core reaches queue runtime readiness after validated feature narrowing",
+    "const lifecycle = device.lifecycleGuardSummary();",
 ]
 
 EXPECTED_NOTE_MARKERS = [
@@ -113,6 +124,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_TESTS_README_MARKERS:
         if marker not in tests_readme_text:
             missing_markers.append(f"tests_readme:{marker}")
+
+    core_test_text = read_text(root, "zigux/tests/phase10_virtio_core.zig")
+    for marker in EXPECTED_CORE_TEST_MARKERS:
+        if marker not in core_test_text:
+            missing_markers.append(f"core_test:{marker}")
 
     reset_queue_text = read_text(root, "zigux/tests/phase10_virtio_core_reset_queue.zig")
     for marker in EXPECTED_RESET_QUEUE_MARKERS:
@@ -186,6 +202,7 @@ def run_self_test() -> int:
         "zigux/Makefile": read_text(ROOT, "zigux/Makefile"),
         "zigux/tests/README.md": read_text(ROOT, "zigux/tests/README.md"),
         "zigux/tests/phase10_build.zig": read_text(ROOT, "zigux/tests/phase10_build.zig"),
+        "zigux/tests/phase10_virtio_core.zig": read_text(ROOT, "zigux/tests/phase10_virtio_core.zig"),
         "zigux/tests/phase10_virtio_core_reset_queue.zig": read_text(ROOT, "zigux/tests/phase10_virtio_core_reset_queue.zig"),
         "zigux/tests/phase10_virtio_core_manifest.json": read_text(ROOT, "zigux/tests/phase10_virtio_core_manifest.json"),
         "zigux/tests/phase10_virtio_core_survey.zig": read_text(ROOT, "zigux/tests/phase10_virtio_core_survey.zig"),
@@ -219,6 +236,7 @@ def run_self_test() -> int:
 
         build_path = tmp_root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
+        build_path.writeText = None
         build_path.write_text(
             original_build.replace('"phase10-virtio-core-survey-tests"', '"phase10-core-survey-drift"', 1),
             encoding="utf-8",
@@ -226,6 +244,15 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if 'build:phase10-virtio-core-survey-tests' not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_build_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
+        build_path.write_text(
+            original_build.replace('run_phase10_virtio_core_tests', 'run_phase10_virtio_core_drift', 2),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'build:run_phase10_virtio_core_tests' not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_core_build_marker_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
         build_path.write_text(
@@ -275,6 +302,21 @@ def run_self_test() -> int:
         if "tests_readme:phase10_virtio_core_reset_queue.zig" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_tests_readme_reset_queue_marker_missing")
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        core_test_path = tmp_root / "zigux/tests/phase10_virtio_core.zig"
+        original_core_test = core_test_path.read_text(encoding="utf-8")
+        core_test_path.write_text(
+            original_core_test.replace(
+                "phase10 virtio core exposes reset replay bookkeeping before reset clears state",
+                "phase10 virtio core reset replay drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "core_test:phase10 virtio core exposes reset replay bookkeeping before reset clears state" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_core_test_marker_missing")
+        core_test_path.write_text(original_core_test, encoding="utf-8")
 
         reset_queue_path = tmp_root / "zigux/tests/phase10_virtio_core_reset_queue.zig"
         original_reset_queue = reset_queue_path.read_text(encoding="utf-8")
@@ -340,7 +382,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_helpers_survey_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
