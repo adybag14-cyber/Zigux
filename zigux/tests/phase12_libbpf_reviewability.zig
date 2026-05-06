@@ -20,6 +20,14 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const Snapshot = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    surveyed_commit: []const u8,
+    tracked_file_count: usize,
+    tracked_paths: []const []const u8,
+};
+
 const LegacySegment = struct {
     id: []const u8,
     slug: []const u8,
@@ -174,6 +182,61 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     try std.testing.expect(saw_blocked_skeleton);
     try std.testing.expect(saw_blocked_object_loader);
     try std.testing.expect(saw_blocked_relocation);
+}
+
+test "phase12 libbpf reviewability gate snapshot matches the tracked helper set" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+    const snapshot_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase12_libbpf_snapshot.json",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(snapshot_json);
+    const parsed = try std.json.parseFromSlice(Snapshot, std.testing.allocator, snapshot_json, .{});
+    defer parsed.deinit();
+    const snapshot = parsed.value;
+    try std.testing.expectEqualStrings("P12-L15", snapshot.lane_key);
+    try std.testing.expectEqualStrings("Phase 12", snapshot.phase);
+    try std.testing.expectEqualStrings("c0ae127363e3d4e5feeb36efb665a12ece3392c7", snapshot.surveyed_commit);
+    try std.testing.expectEqual(@as(usize, 5), snapshot.tracked_file_count);
+    try std.testing.expectEqual(snapshot.tracked_file_count, snapshot.tracked_paths.len);
+
+    var saw_type_names = false;
+    var saw_cpu_mask = false;
+    var saw_logging = false;
+    var saw_pin_path = false;
+    var saw_perf_buffer_poll = false;
+
+    for (snapshot.tracked_paths, 0..) |tracked_path, i| {
+        try std.testing.expect(try pathExists(io_instance.io(), tracked_path));
+        try std.testing.expect(std.mem.startsWith(u8, tracked_path, "tools/lib/bpf/zigux_segments/"));
+        for (snapshot.tracked_paths[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, tracked_path, other));
+        }
+        if (std.mem.eql(u8, tracked_path, "tools/lib/bpf/zigux_segments/type_names.zig")) {
+            saw_type_names = true;
+        }
+        if (std.mem.eql(u8, tracked_path, "tools/lib/bpf/zigux_segments/cpu_mask.zig")) {
+            saw_cpu_mask = true;
+        }
+        if (std.mem.eql(u8, tracked_path, "tools/lib/bpf/zigux_segments/logging.zig")) {
+            saw_logging = true;
+        }
+        if (std.mem.eql(u8, tracked_path, "tools/lib/bpf/zigux_segments/pin_path.zig")) {
+            saw_pin_path = true;
+        }
+        if (std.mem.eql(u8, tracked_path, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig")) {
+            saw_perf_buffer_poll = true;
+        }
+    }
+
+    try std.testing.expect(saw_type_names);
+    try std.testing.expect(saw_cpu_mask);
+    try std.testing.expect(saw_logging);
+    try std.testing.expect(saw_pin_path);
+    try std.testing.expect(saw_perf_buffer_poll);
 }
 
 test "phase12 libbpf reviewability gate still compiles the landed helper foundations" {
