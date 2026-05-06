@@ -149,6 +149,18 @@ CONTRIBUTOR_SYNC_REQUIRED_MARKERS = [
     "extra replay steps",
 ]
 
+CONTRIBUTOR_SYNC_EXACT_COUNTS = {
+    "Documentation/zigux/phase13-release-notes-survey.md": 1,
+    "Documentation/zigux/phase13-roadmap-traceability.md": 1,
+    "Documentation/zigux/phase13-notifier-list-survey.md": 1,
+    "zigux/tests/phase13_notifier_list_manifest.json": 1,
+    "zigux/bindings/notifier_abi.zig": 1,
+    "include/zigux/notifier_abi.h": 1,
+    "zigux/helpers/notifier_chain_view.zig": 1,
+    "shared validator-first replay route separate from the broader shipped adjacent release-surface evidence": 1,
+    "extra replay steps": 1,
+}
+
 TESTS_REVIEW_COMPANION_REQUIRED_MARKERS = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase13-contributor-workflow-guide.md",
@@ -315,6 +327,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(_collect_missing_markers(contributor_workflow_guide, CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, "contributor-workflow-guide"))
     issues.extend(_collect_exact_count_issues(contributor_workflow_guide, CONTRIBUTOR_GUIDE_EXACT_COUNTS, "contributor-workflow-guide-exact"))
     issues.extend(_collect_missing_markers(contributor_surface_sync, CONTRIBUTOR_SYNC_REQUIRED_MARKERS, "contributor-surface-sync"))
+    issues.extend(_collect_exact_count_issues(contributor_surface_sync, CONTRIBUTOR_SYNC_EXACT_COUNTS, "contributor-surface-sync-exact"))
     issues.extend(_collect_missing_markers(tests_review_companion, TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, "tests-review-companion"))
     issues.extend(_collect_missing_markers(scripts_readme, SCRIPTS_REQUIRED_MARKERS, "scripts-readme"))
     issues.extend(_collect_missing_markers(tests_readme, TESTS_REQUIRED_MARKERS, "tests-readme"))
@@ -627,8 +640,29 @@ def run_self_test() -> int:
                 "contributor-surface-sync:zigux/Makefile",
                 "contributor-surface-sync:shared validator-first replay route separate from the broader shipped adjacent release-surface evidence",
                 "contributor-surface-sync:extra replay steps",
+                "contributor-surface-sync-exact:Documentation/zigux/phase13-release-notes-survey.md:expected=1:actual=0",
+                "contributor-surface-sync-exact:Documentation/zigux/phase13-roadmap-traceability.md:expected=1:actual=0",
+                "contributor-surface-sync-exact:Documentation/zigux/phase13-notifier-list-survey.md:expected=1:actual=0",
+                "contributor-surface-sync-exact:zigux/tests/phase13_notifier_list_manifest.json:expected=1:actual=0",
+                "contributor-surface-sync-exact:zigux/bindings/notifier_abi.zig:expected=1:actual=0",
+                "contributor-surface-sync-exact:include/zigux/notifier_abi.h:expected=1:actual=0",
+                "contributor-surface-sync-exact:zigux/helpers/notifier_chain_view.zig:expected=1:actual=0",
+                "contributor-surface-sync-exact:shared validator-first replay route separate from the broader shipped adjacent release-surface evidence:expected=1:actual=0",
+                "contributor-surface-sync-exact:extra replay steps:expected=1:actual=0",
             ],
             "contributor_surface_sync_marker_guard_failed",
+        )
+        _write(root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md", "\n".join(CONTRIBUTOR_SYNC_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
+        contributor_surface_sync_path.write_text(
+            "\n".join(CONTRIBUTOR_SYNC_REQUIRED_MARKERS + ["extra replay steps"]) + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["contributor-surface-sync-exact:extra replay steps:expected=1:actual=2"],
+            "contributor_surface_sync_exact_count_guard_failed",
         )
         _write(root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md", "\n".join(CONTRIBUTOR_SYNC_REQUIRED_MARKERS) + "\n")
         case_count += 1
@@ -863,7 +897,7 @@ def main() -> int:
     print("PHASE13_RELEASE_VALIDATION=pass")
     print(
         "PHASE13_RELEASE_VALIDATION_MARKER_COUNT="
-        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(DOC_EXACT_COUNTS) + len(REVIEW_EXACT_COUNTS) + len(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS) + len(CONTRIBUTOR_GUIDE_EXACT_COUNTS) + len(CONTRIBUTOR_SYNC_REQUIRED_MARKERS) + len(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(TESTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES) + len(PHASE13_BUILD_EXACT_COUNTS) + len(PHASE13_BUILD_REQUIRED_MARKERS)}"
+        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(DOC_EXACT_COUNTS) + len(REVIEW_EXACT_COUNTS) + len(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS) + len(CONTRIBUTOR_GUIDE_EXACT_COUNTS) + len(CONTRIBUTOR_SYNC_REQUIRED_MARKERS) + len(CONTRIBUTOR_SYNC_EXACT_COUNTS) + len(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(TESTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES) + len(PHASE13_BUILD_EXACT_COUNTS) + len(PHASE13_BUILD_REQUIRED_MARKERS)}"
     )
     return 0
 
