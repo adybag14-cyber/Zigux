@@ -312,6 +312,8 @@ EXPECTED_REVIEW_ANCHORS = {
         "parity_fixture_keys": [
             "replace_char",
             "replace_char_end",
+            "replace_char_cstr_end",
+            "replace_char_cstr_bytes",
             "memchr_inv_index",
             "memchr_inv_none",
         ],
