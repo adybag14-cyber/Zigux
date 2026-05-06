@@ -35,6 +35,7 @@ REQUIRED_FILE_MARKERS = {
     DOCS_README_PATH: [
         "Phase 12 notes",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`make -C zigux phase12-smoke`",
         "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
@@ -42,6 +43,7 @@ REQUIRED_FILE_MARKERS = {
     REVIEW_CHECKLIST_PATH: [
         "if the change touches the shared Phase 12 complex-driver packet",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`",
     ],
     PHASE12_SEQUENCE_PATH: [
@@ -81,12 +83,14 @@ REQUIRED_FILE_MARKERS = {
     SCRIPTS_README_PATH: [
         "Phase 12 flow",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed",
         "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
     ],
     TESTS_README_PATH: [
         "keep `Documentation/zigux/phase12-release-closure-checklist.md` visible beside `Documentation/zigux/phase12-release-sequencing.md`",
+        "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`scripts/zigux/check-build-only-phase12-surface.py`",
         "`make -C zigux phase12`",
@@ -103,6 +107,8 @@ REQUIRED_FILE_MARKERS = {
         "PHONY += phase12-smoke",
         "phase12-smoke:",
         "$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all",
+        "phase12-test:",
+        "$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all",
         "phase12: phase12-smoke phase12-test",
     ],
     WORKFLOW_PATH: [
@@ -110,6 +116,10 @@ REQUIRED_FILE_MARKERS = {
         "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
         "Check Phase 12 build-only surface",
         "python3 scripts/zigux/check-build-only-phase12-surface.py",
+        "Run focused Phase 12 smoke shard",
+        "make -C zigux phase12-smoke",
+        "Run Phase 12 complex driver tests",
+        "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
     ],
 }
 
@@ -160,6 +170,7 @@ def write_fixture_tree(root: Path) -> None:
 Phase 12 notes
 - `Documentation/zigux/phase12-release-sequencing.md`
 - `Documentation/zigux/phase12-release-closure-checklist.md`
+- `zigux/tests/phase12_virtio_net_syntax_lab.zig`
 - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - `make -C zigux phase12-smoke`
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`
@@ -171,6 +182,7 @@ Phase 12 notes
         """# Zigux Review Checklist
 - if the change touches the shared Phase 12 complex-driver packet
 - `Documentation/zigux/phase12-release-closure-checklist.md`
+- `zigux/tests/phase12_virtio_net_syntax_lab.zig`
 - `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`
 """,
     )
@@ -237,6 +249,7 @@ Phase 12 notes
         """# scripts/zigux
 Phase 12 flow
 - `Documentation/zigux/phase12-release-closure-checklist.md`
+- `zigux/tests/phase12_virtio_net_syntax_lab.zig`
 - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - `check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`
@@ -247,6 +260,7 @@ Phase 12 flow
         TESTS_README_PATH,
         """# zigux/tests
 - keep `Documentation/zigux/phase12-release-closure-checklist.md` visible beside `Documentation/zigux/phase12-release-sequencing.md`
+- `zigux/tests/phase12_virtio_net_syntax_lab.zig`
 - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - `scripts/zigux/check-build-only-phase12-surface.py`
 - `make -C zigux phase12`
@@ -269,6 +283,8 @@ const phase12_libbpf_reviewability_module = b.createModule(.{});
         """PHONY += phase12-smoke
 phase12-smoke:
 	$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all
+phase12-test:
+	$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all
 phase12: phase12-smoke phase12-test
 """,
     )
@@ -280,6 +296,10 @@ phase12: phase12-smoke phase12-test
   run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
 - name: Check Phase 12 build-only surface
   run: python3 scripts/zigux/check-build-only-phase12-surface.py
+- name: Run focused Phase 12 smoke shard
+  run: make -C zigux phase12-smoke
+- name: Run Phase 12 complex driver tests
+  run: zig build test --build-file zigux/tests/phase12_build.zig --summary all
 """,
     )
 
@@ -339,16 +359,34 @@ def run_self_test() -> int:
         scripts_readme_path = root / SCRIPTS_README_PATH
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         broken_scripts_readme = original_scripts_readme.replace(
-            "- `Documentation/zigux/phase12-release-closure-checklist.md`\n",
+            "- `zigux/tests/phase12_virtio_net_syntax_lab.zig`\n",
             "",
             1,
         )
         scripts_readme_path.write_text(broken_scripts_readme, encoding="utf-8")
         failures = validate(root)
-        expected = f"{SCRIPTS_README_PATH}:`Documentation/zigux/phase12-release-closure-checklist.md`"
+        expected = f"{SCRIPTS_README_PATH}:`zigux/tests/phase12_virtio_net_syntax_lab.zig`"
         if expected not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
-            print("scripts-readme-closure-marker-guard")
+            print("scripts-readme-net-syntax-lab-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        workflow_path = root / WORKFLOW_PATH
+        original_workflow = workflow_path.read_text(encoding="utf-8")
+        broken_workflow = original_workflow.replace(
+            "- name: Run focused Phase 12 smoke shard\n  run: make -C zigux phase12-smoke\n",
+            "",
+            1,
+        )
+        workflow_path.write_text(broken_workflow, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{WORKFLOW_PATH}:Run focused Phase 12 smoke shard"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("workflow-smoke-step-marker-guard")
             for failure in failures:
                 print(failure)
             return 1
