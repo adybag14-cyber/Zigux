@@ -90,6 +90,14 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_SURVEYED_COMMIT=") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_input_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper-facing verify replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_status_drain.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused status-drain replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-core-packet.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-ring-packet.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-mmio-packet.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase10_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-input-queue-callback-preflight-helper") != null);
