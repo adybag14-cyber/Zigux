@@ -12,15 +12,22 @@ This document records the first bounded hardware-validation matrix for the Zigux
   - `zigux/tests/phase11_dw_wdt_manifest.json`
   - `zigux/tests/phase11_dw_wdt_survey.zig`
   - `zigux/tests/phase11_build.zig`
+  - `Documentation/zigux/README.md`
+  - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/phase11-shared-replay-contract.md`
   - `Documentation/zigux/phase11-dw-wdt-slice.md`
   - `Documentation/zigux/phase11-dw-wdt-survey.md`
+  - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
+  - `scripts/zigux/README.md`
+  - `scripts/zigux/check-phase11-shared-replay-contract.py`
+  - `scripts/zigux/check-phase11-header-boundary-packet.py`
   - `zigux/tests/README.md`
   - `zigux/Makefile`
+  - `.github/workflows/zigux-bootstrap.yml`
 
 ## Why This Exists
 
-The bounded starter now covers fixed TOP timeout derivation, custom TOP ordering, reset-mode versus IRQ-mode timeout selection, pretimeout bookkeeping, imported running-state snapshots, register-image transitions for start, ping, stop, and restart, the non-stoppable stop boundary when reset control is unavailable, and a registration-facing handoff that keeps `watchdog_register_device` intent reviewable. The live repo still needed one reviewable note that explains:
+The bounded starter now covers fixed TOP timeout derivation, custom TOP ordering, reset-mode versus IRQ-mode timeout selection, pretimeout bookkeeping, imported running-state snapshots, register-image transitions for start, ping, stop, and restart, the non-stoppable stop boundary when reset control is unavailable, and a registration-facing handoff that keeps `watchdog_register_device` intent reviewable. The live shared Phase 11 packet already couples those `dw_wdt`-specific replays to `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, which keep the focused shared header-boundary packet and the wider shared build route explicit beside this watchdog-local matrix. This matrix keeps one reviewable note that explains:
 
 - which parts of the lane are already exercised by the shared Phase 11 gate
 - which watchdog-core-facing behaviors are already reviewable in bounded form versus still deferred
@@ -45,7 +52,7 @@ Without this matrix, the slice, survey, manifest, and shared review surfaces wou
 ## Review Rules
 
 - treat this lane as a bounded driver-starter plus validation-note lane until platform-backed registration scaffolding actually lands
-- keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route
+- keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route or the focused shared header-boundary packet
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps
 - do not claim platform-driver registration, watchdog-core registration side effects, clock or reset ownership, IRQ registration, suspend or resume handling, debugfs support, or live MMIO execution until the Zig surface and tests for those behaviors exist
 - when the next platform-backed registration step lands, update this matrix, the slice note, the survey note, and the survey manifest together so the lane keeps one truthful next step
