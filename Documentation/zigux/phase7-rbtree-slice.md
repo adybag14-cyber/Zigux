@@ -6,7 +6,7 @@ This document records the bounded Phase 7 runtime leaf-helper slice for Zigux ar
 
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=rbtree-runtime-leaf`
-- `PHASE7_LANE_KEY=P7-Y05`
+- `PHASE7_LANE_KEY=P7-Y04`
 - scope: first bounded balancing and traversal helpers
 - lane state: helper, fixture, dedicated survey, parity checker, shared validator, and make-wrapper slice landed; parked unless a new `lib/rbtree.c` parity issue appears
 - product boundary:
