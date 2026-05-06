@@ -39,6 +39,8 @@ EXPECTED_MAKE_EXPANSIONS = {
 
 UNEXPECTED_MAKE_EXPANSIONS = {
     "phase7-validate": [
+        "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        "python3 scripts/zigux/check-phase7-build-inventory.py",
         "zig build test --build-file zigux/tests/phase7_build.zig",
         "zig build test --build-file zigux/tests/build.zig",
     ],
@@ -55,6 +57,8 @@ UNEXPECTED_MAKE_EXPANSIONS = {
         "zig build test --build-file zigux/tests/build.zig",
     ],
     "phase7": [
+        "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        "python3 scripts/zigux/check-phase7-build-inventory.py",
         "zig build test --build-file zigux/tests/phase7_build.zig",
         "zig build test --build-file zigux/tests/build.zig",
     ],
@@ -275,6 +279,41 @@ def run_self_test() -> int:
             fake_make_path,
             {
                 **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+                    *EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
+                ],
+            },
+        )
+        expect_failure(
+            "stale_inventory_checker_in_phase7_validate",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: unexpected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7": [
+                    *EXPECTED_MAKE_EXPANSIONS["phase7"][:-1],
+                    "python3 scripts/zigux/check-phase7-build-inventory.py",
+                    EXPECTED_MAKE_EXPANSIONS["phase7"][-1],
+                ],
+            },
+        )
+        expect_failure(
+            "stale_inventory_checker_in_phase7_bundle",
+            tmp_root,
+            fake_make_env,
+            "phase7: unexpected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
                 "phase7": [
                     "zig build test --build-file zigux/tests/build.zig",
                     *EXPECTED_MAKE_EXPANSIONS["phase7"],
@@ -307,7 +346,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=7")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
