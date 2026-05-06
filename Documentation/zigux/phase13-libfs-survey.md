@@ -6,10 +6,11 @@ This document records the bounded Phase 13 survey and reviewability lane around 
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=libfs-helper-starter`
-- scope: the landed `fs/libfs.zig` helper starter, its dedicated Phase 13 test, the shared Phase 13 build wiring, and the lane notes that compare the current helper-surface footing against the roadmap
+- scope: the landed `fs/libfs.zig` helper starter, its dedicated Phase 13 tests, the shared Phase 13 build wiring, the focused `generic_check_addressable()` helper proof, and the lane notes that compare the current helper-surface footing against the roadmap
 - product boundary:
   - `fs/libfs.zig`
   - `zigux/tests/phase13_libfs.zig`
+  - `zigux/tests/phase13_libfs_addressability.zig`
   - `zigux/tests/phase13_libfs_reviewability.zig`
   - `zigux/tests/phase13_libfs_manifest.json`
   - `zigux/tests/phase13_build.zig`
@@ -28,7 +29,8 @@ The live Zigux tree is no longer survey-only here. It already carries a small `f
 
 - `fs/libfs.c` remains broad enough to cross several VFS boundaries at once: dentries, directory iteration, inode bookkeeping, pseudo-filesystem mounting, and generic buffer-copy helpers.
 - the live repo now has a landed `fs/libfs.zig` starter plus `zigux/tests/phase13_libfs.zig`, and `zigux/tests/phase13_build.zig` compiles that dedicated libfs helper test path.
-- the current starter stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, the pure `dcache_dir_open()` cursor-setup planner, the pure `simple_transaction_get()` acquire planner, the pure `simple_transaction_set()` publish planner, and the pure `simple_transaction_release()` lifetime planner.
+- the current starter stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, the pure `dcache_dir_open()` cursor-setup planner, the pure `simple_transaction_get()` acquire planner, the pure `simple_transaction_set()` publish planner, the pure `simple_transaction_release()` lifetime planner, and the new pure `generic_check_addressable()` planner around shift overflow, zero-block passthrough, minimum block size, and explicit sector/page-index caps.
+- the new focused `zigux/tests/phase13_libfs_addressability.zig` file keeps that `generic_check_addressable()` planner directly exercised without widening the broader Phase 13 build route in this run.
 - the reviewability gate and manifest tie the starter, tests, build wire, slice note, and survey note together so future runs can verify the exact Phase 13 lane state before widening helper coverage.
 - directory cursor helpers such as `dcache_dir_open()` and the deeper cursor-backed `dcache_readdir()` traversal remain riskier because they depend on cursor dentries, sibling lists, lock ordering, and reschedule-aware traversal.
 
@@ -49,9 +51,10 @@ The current lane state is:
 - landed `phase13-libfs-transaction-buffer-helper`
 - landed `phase13-libfs-transaction-publish-helper`
 - landed `phase13-libfs-transaction-release-helper`
+- landed `phase13-libfs-addressability-helper`
 - blocked `phase13-libfs-dcache-cursor-helpers`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real `fs/libfs.zig` helper foothold plus a reviewability checkpoint, but it still does not claim live dcache parity, pseudo-filesystem mounting, inode lifecycle work, rename-state behavior, or cursor-backed directory traversal.
+This keeps the lane explicit without overstating progress: Zigux now has a real `fs/libfs.zig` helper foothold plus a reviewability checkpoint and one more pure capacity-checking helper, but it still does not claim live dcache parity, pseudo-filesystem mounting, inode lifecycle work, rename-state behavior, or cursor-backed directory traversal.
 
 ## Non-goals
 
@@ -72,6 +75,9 @@ This slice does not claim:
 2. run the convenience target
 - `make -C zigux phase13`
 
+3. run the focused addressability proof when the helper changes outside the shared replay packet
+- `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs_addressability.zig -Mlibfs=fs/libfs.zig`
+
 ## Next bounded step
 
-Stay in the Phase 13 libfs lane only if a future pass can keep the next move helper-first around deeper `dcache_readdir()` cursor resume and reschedule preconditions. That packet should stay blocked until it can name sibling-list resume context, cursor repositioning under reschedule pressure, and lock-ordering boundaries without widening into live cursor dentries, inode state, or pseudo-filesystem work.
+Stay in the Phase 13 libfs lane only if a future pass can keep the next move helper-first and smaller than cursor traversal. A pure `simple_open()` private-data handoff planner is the best next candidate. The deeper `dcache_readdir()` cursor resume and reschedule preconditions should remain blocked until they can name sibling-list resume context, cursor repositioning under reschedule pressure, and lock-ordering boundaries without widening into live cursor dentries, inode state, or pseudo-filesystem work.
