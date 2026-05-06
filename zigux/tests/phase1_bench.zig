@@ -98,10 +98,12 @@ fn findBitEdgeBench() struct { checksum: u64 } {
     const boundary = find_bit.bits_per_long - 1;
     const head_nbits = find_bit.bits_per_long * 2;
     const tail_nbits = find_bit.bits_per_long + 5;
+    const past_nbits = 7;
     const boundary_set = [_]find_bit.Word{(@as(find_bit.Word, 1) << @intCast(boundary)), 0};
     const boundary_zero = [_]find_bit.Word{~(@as(find_bit.Word, 1) << @intCast(boundary)), ~@as(find_bit.Word, 0)};
     const tail_set = [_]find_bit.Word{0, @as(find_bit.Word, 1) << 3};
     const tail_full = [_]find_bit.Word{~@as(find_bit.Word, 0), find_bit.lastWordMask(tail_nbits)};
+    const empty = [_]find_bit.Word{};
 
     var checksum: u64 = 0;
     var idx: usize = 0;
@@ -115,6 +117,12 @@ fn findBitEdgeBench() struct { checksum: u64 } {
         checksum +%= @intCast(find_bit.findNextZeroBit(&tail_full, tail_nbits, find_bit.bits_per_long));
         checksum +%= @intCast(find_bit.findFirstAndBit(&tail_set, &tail_set, tail_nbits));
         checksum +%= @intCast(find_bit.findNextAndBit(&tail_set, &tail_set, tail_nbits, find_bit.bits_per_long + 4));
+        checksum +%= @intCast(find_bit.findNextBit(&empty, past_nbits, past_nbits));
+        checksum +%= @intCast(find_bit.findNextBit(&empty, past_nbits, past_nbits + 4));
+        checksum +%= @intCast(find_bit.findNextZeroBit(&empty, past_nbits, past_nbits));
+        checksum +%= @intCast(find_bit.findNextZeroBit(&empty, past_nbits, past_nbits + 4));
+        checksum +%= @intCast(find_bit.findNextAndBit(&empty, &empty, past_nbits, past_nbits));
+        checksum +%= @intCast(find_bit.findNextAndBit(&empty, &empty, past_nbits, past_nbits + 4));
     }
 
     return .{ .checksum = checksum };
