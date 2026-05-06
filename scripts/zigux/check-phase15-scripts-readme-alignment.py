@@ -42,7 +42,7 @@ REQUIRED_FILES = (
 )
 
 README_SNIPPETS = (
-    "- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_readiness_gate.zig`, and `zigux/tests/phase15_build.zig`.",
+    "- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_readiness_gate.zig`, and `zigux/tests/phase15_build.zig`.",
     "- `check-phase15-scripts-readme-alignment.py` keeps `scripts/zigux/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `zigux/tests/phase15_build.zig` aligned around the parked governance packet's scripts-root validator-first route and no-approval-yet posture.",
     "- `check-phase15-review-process-handoff.py` keeps the dedicated review-process note and its manifest-backed handoff evidence aligned around the self-reference, product-boundary, and parked-route markers that keep the Architecture Council packet reviewable without inventing a broader governance surface.",
     "- `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15` rerun the parked freeze-map governance, parity-scorecard, Architecture Council review-process, handoff-next-steps, dedicated indefinite-C policy, lane-owner alignment, and readiness-gate packet without implying any new approval claim for a freeze-map anchor.",
@@ -97,6 +97,9 @@ MANIFEST_LANE_MARKERS = (
 
 CURRENT_REPO_HANDOFF_MARKERS = (
     "Documentation/zigux/phase15-freeze-map-governance.md",
+    "scripts/zigux/README.md",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
@@ -436,6 +439,19 @@ def run_self_test() -> int:
                 "manifest_current_repo_handoff:missing:scripts/zigux/check-phase15-scripts-readme-alignment.py"
             ],
             "missing_manifest_repo_handoff_marker_guard_failed",
+        )
+        _write(root / MANIFEST_REL, baseline_manifest)
+        case_count += 1
+
+        manifest_data = json.loads(baseline_manifest)
+        manifest_data["handoff_evidence"]["current_repo_handoff"] = manifest_data["handoff_evidence"][
+            "current_repo_handoff"
+        ].replace("scripts/zigux/README.md, ", "", 1)
+        _write(root / MANIFEST_REL, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            ["manifest_current_repo_handoff:missing:scripts/zigux/README.md"],
+            "missing_manifest_scripts_readme_marker_guard_failed",
         )
         _write(root / MANIFEST_REL, baseline_manifest)
         case_count += 1
