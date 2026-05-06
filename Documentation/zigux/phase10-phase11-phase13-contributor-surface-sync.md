@@ -109,6 +109,7 @@ For the active shared-helper release packet, keep the shared validator-first rep
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
+- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
