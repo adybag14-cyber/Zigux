@@ -81,6 +81,25 @@ pub fn keepsAllocatorInitFlowConsistent(
         plan.init_flow.exit_runs == init_flow.exit_runs;
 }
 
+pub fn keepsRequestStateAndPlanExplicit(
+    request: PreparedRequest,
+    expected_state: RequestState,
+    expected_plan: LoadPlan,
+) bool {
+    return request.state == expected_state and
+        std.mem.eql(u8, request.plan.module_name, expected_plan.module_name) and
+        std.mem.eql(u8, request.plan.anchor, expected_plan.anchor) and
+        std.mem.eql(u8, request.plan.entry_symbol, expected_plan.entry_symbol) and
+        std.mem.eql(u8, request.plan.exit_symbol, expected_plan.exit_symbol) and
+        request.plan.requires_runtime_substrate == expected_plan.requires_runtime_substrate and
+        request.plan.provides_selftest_hook == expected_plan.provides_selftest_hook and
+        keepsAllocatorInitFlowConsistent(
+            request.plan,
+            expected_plan.allocator_handoff,
+            expected_plan.init_flow,
+        );
+}
+
 pub fn keepsSelftestHookEvidenceConsistent(plan: LoadPlan) bool {
     if (!plan.provides_selftest_hook) return false;
 
@@ -157,6 +176,7 @@ test "shared runtime loader contract keeps allocator, init flow, and selftest-ho
     for (cases) |plan| {
         var request = try prepareRequest(plan);
         try std.testing.expectEqual(RequestState.prepared, request.state);
+        try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, plan));
         try std.testing.expect(keepsAllocatorInitFlowConsistent(
             plan,
             plan.allocator_handoff,
@@ -166,12 +186,22 @@ test "shared runtime loader contract keeps allocator, init flow, and selftest-ho
 
         const pending_plan = try request.requestRuntimeLoad();
         try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+        try std.testing.expect(keepsRequestStateAndPlanExplicit(
+            request,
+            .waiting_on_runtime_substrate,
+            plan,
+        ));
         try std.testing.expectEqualStrings(plan.module_name, pending_plan.module_name);
         try std.testing.expectEqual(plan.allocator_handoff, pending_plan.allocator_handoff);
         try std.testing.expectEqual(plan.init_flow.handoff_stage, pending_plan.init_flow.handoff_stage);
 
         try request.releaseWithoutSubstrate();
         try std.testing.expectEqual(RequestState.released_without_substrate, request.state);
+        try std.testing.expect(keepsRequestStateAndPlanExplicit(
+            request,
+            .released_without_substrate,
+            plan,
+        ));
     }
 }
 
@@ -328,4 +358,42 @@ test "shared runtime loader contract rejects impossible, stale, or selftest-hook
             .exit_runs = 0,
         },
     ));
+}
+
+test "shared runtime loader contract rejects request state or plan drift" {
+    const stable_plan = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+
+    const request = try prepareRequest(stable_plan);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, stable_plan));
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(
+        request,
+        .waiting_on_runtime_substrate,
+        stable_plan,
+    ));
+
+    var drifted_module = stable_plan;
+    drifted_module.module_name = "runtime_bitmap_drift";
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_module));
+
+    var drifted_allocator = stable_plan;
+    drifted_allocator.allocator_handoff = .caller_provided;
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_allocator));
+
+    var drifted_init_flow = stable_plan;
+    drifted_init_flow.init_flow.selftest_runs = 1;
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_init_flow));
 }
