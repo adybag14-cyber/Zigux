@@ -37,6 +37,11 @@ pub const argv_split_cases = [_]ArgvSplitCase{
         .expected = &blank_expected,
     },
     .{
+        .name = "whitespace before first NUL stays blank",
+        .input = " \t\n\x00ignored debug",
+        .expected = &blank_expected,
+    },
+    .{
         .name = "leading NUL truncates to zero argv entries",
         .input = "\x00ignored debug",
         .expected = &leading_nul_expected,
