@@ -101,7 +101,7 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
-      "why_now": "A tiny notifier-facing handoff summary now keeps notifier registration intent, deferred callback ownership, deferred unregister timing, and the still-deferred worker execution boundary reviewable before any live notifier execution or host-backed hypervisor I/O lands."
+      "why_now": "A tiny notifier-facing handoff summary now keeps notifier registration intent, deferred callback ownership, deferred unregister timing, the still-deferred worker execution boundary, and the never-registered path where unregister timing stays false because tty registration never became ready, before any live notifier execution or host-backed hypervisor I/O lands."
     }
   ]
 }
