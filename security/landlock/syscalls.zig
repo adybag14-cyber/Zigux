@@ -29,6 +29,7 @@ pub const ModuleDescriptor = struct {
     provides_path_fd_planning: bool,
     provides_path_beneath_handoff_planning: bool,
     provides_ruleset_release_planning: bool,
+    provides_ruleset_fops_planning: bool,
     touches_live_fd_table: bool,
     touches_live_paths: bool,
     touches_live_credentials: bool,
@@ -207,6 +208,22 @@ pub const RulesetReleasePlan = struct {
     returns_zero: bool,
 };
 
+pub const RulesetFopsOperation = enum {
+    release,
+    read,
+    write,
+};
+
+pub const RulesetFopsPlan = struct {
+    anchor: []const u8,
+    operation: RulesetFopsOperation,
+    requires_private_data_ruleset: bool = false,
+    releases_retained_ruleset_reference: bool = false,
+    enables_mode: u32 = 0,
+    returns_zero: bool = false,
+    returns_einval: bool = false,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -220,6 +237,7 @@ pub const SyscallsHelperLab = struct {
             .provides_path_fd_planning = true,
             .provides_path_beneath_handoff_planning = true,
             .provides_ruleset_release_planning = true,
+            .provides_ruleset_fops_planning = true,
             .touches_live_fd_table = false,
             .touches_live_paths = false,
             .touches_live_credentials = false,
@@ -505,4 +523,61 @@ pub const SyscallsHelperLab = struct {
             .returns_zero = true,
         };
     }
+
+    pub fn planRulesetFops(operation: RulesetFopsOperation) RulesetFopsPlan {
+        return switch (operation) {
+            .release => .{
+                .anchor = descriptor().anchor,
+                .operation = .release,
+                .requires_private_data_ruleset = true,
+                .releases_retained_ruleset_reference = true,
+                .returns_zero = true,
+            },
+            .read => .{
+                .anchor = descriptor().anchor,
+                .operation = .read,
+                .enables_mode = fmode_can_read,
+                .returns_einval = true,
+            },
+            .write => .{
+                .anchor = descriptor().anchor,
+                .operation = .write,
+                .enables_mode = fmode_can_write,
+                .returns_einval = true,
+            },
+        };
+    }
 };
+
+test "landlock syscalls descriptor reports ruleset fops planning" {
+    const descriptor = SyscallsHelperLab.descriptor();
+
+    try std.testing.expect(descriptor.provides_ruleset_fops_planning);
+}
+
+test "landlock syscalls ruleset fops planner keeps release and dummy handlers explicit" {
+    const release = SyscallsHelperLab.planRulesetFops(.release);
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", release.anchor);
+    try std.testing.expectEqual(RulesetFopsOperation.release, release.operation);
+    try std.testing.expect(release.requires_private_data_ruleset);
+    try std.testing.expect(release.releases_retained_ruleset_reference);
+    try std.testing.expect(release.returns_zero);
+    try std.testing.expectEqual(@as(u32, 0), release.enables_mode);
+    try std.testing.expect(!release.returns_einval);
+
+    const read = SyscallsHelperLab.planRulesetFops(.read);
+    try std.testing.expectEqual(RulesetFopsOperation.read, read.operation);
+    try std.testing.expectEqual(fmode_can_read, read.enables_mode);
+    try std.testing.expect(read.returns_einval);
+    try std.testing.expect(!read.requires_private_data_ruleset);
+    try std.testing.expect(!read.releases_retained_ruleset_reference);
+    try std.testing.expect(!read.returns_zero);
+
+    const write = SyscallsHelperLab.planRulesetFops(.write);
+    try std.testing.expectEqual(RulesetFopsOperation.write, write.operation);
+    try std.testing.expectEqual(fmode_can_write, write.enables_mode);
+    try std.testing.expect(write.returns_einval);
+    try std.testing.expect(!write.requires_private_data_ruleset);
+    try std.testing.expect(!write.releases_retained_ruleset_reference);
+    try std.testing.expect(!write.returns_zero);
+}
