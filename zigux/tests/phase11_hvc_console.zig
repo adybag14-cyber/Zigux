@@ -290,6 +290,30 @@ test "phase11 hvc console keeps notifier unregister timing false without a notif
     try std.testing.expect(targetless.remove_handoff_still_required);
 }
 
+test "phase11 hvc console keeps notifier unregister timing false for targetless sysrq handoff" {
+    var console = try hvc_console.HvcConsoleLab.init(11);
+    _ = console.instantiate(0xbb);
+
+    const targetless_sysrq = try console.summarizeNotifierHandoff(.{
+        .tty_registration_ready = true,
+        .sysrq_dispatch_requested = true,
+        .notifier_target_present = false,
+    });
+    try std.testing.expectEqual(@as(usize, 11), targetless_sysrq.slot_index);
+    try std.testing.expectEqual(@as(u32, 0xbb), targetless_sysrq.vtermno);
+    try std.testing.expect(targetless_sysrq.adapter_present);
+    try std.testing.expect(targetless_sysrq.tty_registration_ready);
+    try std.testing.expect(targetless_sysrq.sysrq_dispatch_requested);
+    try std.testing.expect(!targetless_sysrq.notifier_target_present);
+    try std.testing.expect(targetless_sysrq.notifier_registration_reviewable);
+    try std.testing.expect(!targetless_sysrq.notifier_registration_requested);
+    try std.testing.expect(!targetless_sysrq.notifier_callbacks_deferred);
+    try std.testing.expect(!targetless_sysrq.notifier_unregister_deferred);
+    try std.testing.expect(targetless_sysrq.khvcd_worker_execution_deferred);
+    try std.testing.expect(targetless_sysrq.host_io_deferred);
+    try std.testing.expect(targetless_sysrq.remove_handoff_still_required);
+}
+
 test "phase11 hvc_console adds carriage returns and keeps final flush intent on successful writes" {
     var console = try hvc_console.HvcConsoleLab.init(1);
     const slot = console.instantiate(0x41);
