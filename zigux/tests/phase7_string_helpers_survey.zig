@@ -75,6 +75,10 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
+    try expectContains(helper_tests, "phase 7 parseIntArray keeps base and sign parsing explicit");
+    try expectContains(helper_tests, "phase 7 parseIntArray respects first-NUL and no-entry behavior");
+    try expectContains(helper_tests, "phase 7 parseIntArrayUser copies a bounded user buffer before parsing");
+    try expectContains(helper_tests, "phase 7 parseIntArrayUser fails closed on short buffers and empty copied input");
     try expectContains(helper_tests, "phase 7 stringUnescape covers deterministic Linux escape fixtures");
     try expectContains(helper_tests, "phase 7 stringEscapeMem covers the bounded escape subset");
     try expectContains(helper_tests, "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator");
