@@ -72,11 +72,13 @@ EXPECTED_NOTE_MARKERS = [
     "phase10_virtio_core_reset_queue.zig",
     "phase10_virtio_driver_id.zig",
     "driver-validation narrowing",
+    "lab-only driver validation",
 ]
 
 EXPECTED_SURVEY_MARKERS = [
     "lane: `P10-L01`",
     "phase10-driver-id-helper",
+    "phase10-core-lab-validation-evidence",
     "phase10-driver-validation-narrowing-helper",
     "phase10-core-probe-remove-lifecycle",
     "phase10_virtio_core_reset_queue.zig",
@@ -84,6 +86,9 @@ EXPECTED_SURVEY_MARKERS = [
     "drivers/virtio/*.zig",
     "zigux/kernel/",
     "zigux/helpers/",
+    "lab-only driver validation",
+    "true lab driver",
+    "transport-backed probe or remove bridge",
 ]
 
 EXPECTED_RESET_QUEUE_MARKERS = [
@@ -117,6 +122,7 @@ EXPECTED_GAPS = {
     "phase10-driver-id-helper": "starter_landed",
     "phase10-driver-validation-narrowing-helper": "starter_landed",
     "phase10-driver-id-gate": "starter_landed",
+    "phase10-core-lab-validation-evidence": "starter_landed",
     "phase10-core-probe-remove-lifecycle": "blocked_on_risky_transport",
 }
 
@@ -219,7 +225,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"manifest:{key}")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 16:
+    if len(gaps) < 17:
         missing_markers.append("manifest:gaps")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     for gap_id, status in EXPECTED_GAPS.items():
@@ -502,9 +508,36 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "survey_note:surveyed_commit_alignment" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_surveyed_commit_alignment_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace('"phase10-core-lab-validation-evidence"', '"phase10-core-lab-validation-drift"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:gap:phase10-core-lab-validation-evidence" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_lab_validation_gap_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace("lab-only driver validation", "lab-validation drift"),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:lab-only driver validation" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_lab_validation_wording_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace("transport-backed probe or remove bridge", "transport bridge drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:transport-backed probe or remove bridge" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_transport_bridge_wording_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=20")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
