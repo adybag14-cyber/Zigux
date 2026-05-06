@@ -197,6 +197,8 @@ test "phase11 dw_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L10`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L11`") == null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "23d15e44622d2cedd7691c88f78709db6bf1eb7e") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L12`") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "watchdog_register_device") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "platform-backed registration scaffold") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "reuses this matrix as the hardware-validation plan") != null);
