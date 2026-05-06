@@ -210,6 +210,29 @@ test "phase10 virtio mmio summarizes bounded probe preflight readiness before li
     try std.testing.expect(summary.ready_for_probe_handoff);
 }
 
+test "phase10 virtio mmio keeps the legacy probe preflight path ready when transport identity stays aligned" {
+    var device = try virtio_mmio.VirtioMmioLab.init(72, &[_]u16{ 8, 16 });
+
+    device.seedTransportIdentity(
+        virtio_mmio.mmio_magic_value,
+        virtio_mmio.mmio_version_legacy,
+        72,
+        virtio_mmio.default_vendor_id,
+    );
+
+    const summary = device.probePreflightSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expect(summary.magic_matches);
+    try std.testing.expect(summary.version_supported);
+    try std.testing.expect(summary.device_present);
+    try std.testing.expect(summary.vendor_id_present);
+    try std.testing.expect(summary.requires_legacy_guest_page_size);
+    try std.testing.expect(summary.legacy_guest_page_size_register_ready);
+    try std.testing.expect(summary.bounded_queue_register_window_ready);
+    try std.testing.expect(summary.interrupt_ack_ready);
+    try std.testing.expect(summary.ready_for_probe_handoff);
+}
+
 test "phase10 virtio mmio marks probe preflight incomplete when identity presence falls away" {
     var device = try virtio_mmio.VirtioMmioLab.init(0, &[_]u16{8});
     device.vendor_id = 0;
