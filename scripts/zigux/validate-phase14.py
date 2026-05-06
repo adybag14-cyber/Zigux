@@ -58,6 +58,7 @@ REQUIRED_SURFACES = {
     "zigux/tests/phase14_ring_buffer_survey.zig": "phase 14 ring-buffer survey manifest records the study-only gap without inventing a port",
     "zigux/tests/phase14_rcu_tree_manifest.json": "phase14-rcu-tree-bridge-blocker",
     "zigux/tests/phase14_rcu_tree_survey.zig": "phase 14 rcu tree survey manifest records the freeze-boundary gap without inventing a bridge",
+    ".github/workflows/zigux-bootstrap.yml": "Run focused Phase 14 smoke shard",
     "kernel/workqueue_bridge.zig": "pub const WorkqueueBridgeLab",
     "net/core/skbuff_bridge.zig": "pub const SkbuffBridgeLab",
 }
@@ -141,7 +142,9 @@ REQUIRED_FILE_MARKERS = {
     ],
     ".github/workflows/zigux-bootstrap.yml": [
         "Validate Phase 14 shared smoke packet",
+        "Run focused Phase 14 smoke shard",
         "make -C zigux phase14-validate",
+        "make -C zigux phase14-smoke",
     ],
     "kernel/workqueue_bridge.zig": ["pub const WorkqueueBridgeLab"],
     "net/core/skbuff_bridge.zig": ["pub const SkbuffBridgeLab"],
@@ -680,6 +683,21 @@ def run_self_test() -> int:
         errors = check(root)
         if not errors or not any("lane_key drifted" in error for error in errors):
             print("self-test expected failure when manifest lane owner drifted", file=sys.stderr)
+            return 1
+
+        broken_manifest = json.loads(broken_manifest_path.read_text(encoding="utf-8"))
+        broken_manifest["lane_key"] = EXPECTED_LANE_KEY
+        for surface in broken_manifest["surfaces"]:
+            if surface.get("path") == ".github/workflows/zigux-bootstrap.yml":
+                surface["required_marker"] = "Validate Phase 14 shared smoke packet"
+                break
+        broken_manifest_path.write_text(json.dumps(broken_manifest, indent=2) + "\n", encoding="utf-8")
+        errors = check(root)
+        if not errors or not any(
+            "manifest surface drift for .github/workflows/zigux-bootstrap.yml" in error
+            for error in errors
+        ):
+            print("self-test expected failure when workflow smoke marker drifted", file=sys.stderr)
             return 1
 
     return 0
