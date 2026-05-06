@@ -614,6 +614,14 @@ def run_self_test() -> int:
         )
         _write(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py", "# stub\n")
         case_count += 1
+        (root / "scripts" / "zigux" / "check-phase2-cross.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase2-cross.py"],
+            "missing_phase2_cross_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "check-phase2-cross.py", "# stub\n")
+        case_count += 1
         (root / "scripts" / "zigux" / "check-phase13-devres-packet.py").unlink()
         _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase13-devres-packet.py"], "missing_phase13_devres_packet_repo_file_guard_failed")
         _write(root / "scripts" / "zigux" / "check-phase13-devres-packet.py", "# stub\n")
