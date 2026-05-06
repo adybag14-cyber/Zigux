@@ -424,7 +424,7 @@ def validate_root(root: Path) -> list[str]:
             [sys.executable, str(root / "scripts" / "zigux" / "check-kconfig-bridge.py"), "--self-test"],
             [
                 "KCONFIG_BRIDGE_SELF_TEST=pass",
-                "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=4",
+                "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=5",
             ],
         )
     )
