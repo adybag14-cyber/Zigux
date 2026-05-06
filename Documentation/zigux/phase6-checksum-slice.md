@@ -7,12 +7,15 @@ This document starts a bounded Phase 6 leaf-helper port for Zigux.
 - `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=checksum-leaf-helper`
 - scope: first low-risk checksum helper only
-- lane state: helper and fixture slice landed; parked unless a new `checksum.c` parity issue appears
+- lane state: helper, fixture, perf, and direct C parity slice landed; parked unless a new `checksum.c` parity issue appears
 - product boundary:
   - `lib/checksum.zig`
   - `zigux/tests/phase6_checksum.zig`
+  - `zigux/tests/phase6_checksum_c_parity.zig`
   - `zigux/tests/phase6_checksum_perf.zig`
   - `zigux/tests/fixtures/phase6_checksum_vectors.zig`
+  - `zigux/tests/fixtures/phase6_checksum_c_harness.c`
+  - `scripts/zigux/check-phase6-checksum-c-parity.py`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
 
@@ -32,11 +35,15 @@ Phase 6 is where Zigux can start proving low-risk in-kernel helper ports without
 - `zig build test --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6`
 
-2. run the dedicated checksum perf gate when the math-sensitive lane reopens
+2. run the dedicated checksum C parity replay when portability-sensitive behavior moves
+- `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test`
+- `ZIG=zig python3 scripts/zigux/check-phase6-checksum-c-parity.py`
+
+3. run the dedicated checksum perf gate when the math-sensitive lane reopens
 - `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
 - `make -C zigux phase6-checksum-perf`
 
-3. keep the shared Phase 6 surface checker aligned with this slice
+4. keep the shared Phase 6 surface checker aligned with this slice
 - `make -C zigux phase6-validate`
 
 ## Current parity surface
@@ -67,10 +74,11 @@ The current tests check:
 - a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases
 - pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement
+- a direct 15-case C-vs-Zig replay for compute, seeded partial, composition, pseudo-header, and incremental replacement behavior
 - helper-local wraparound, double-negation, and one's-complement carry checks for `negate`
 - helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop
 
-The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place and now borrows a small carry-discipline shape from `lib/tests/checksum_kunit.c` without claiming a full KUnit surface port.
+The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place, borrows a small carry-discipline shape from `lib/tests/checksum_kunit.c` without claiming a full KUnit surface port, and now pairs that fixture corpus with a direct external C replay so reviewable parity does not stop at Zig-only expectations.
 
 ## Non-goals
 
@@ -82,4 +90,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `checksum.c` parity gap inside `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, the shared fixture module, or that existing bundled gate.
+Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `checksum.c` parity gap inside `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, `scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_perf.zig`, the shared fixture module, or that existing bundled gate.
