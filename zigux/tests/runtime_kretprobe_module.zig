@@ -45,6 +45,16 @@ test "runtime kretprobe sample enforces lifecycle transitions and return-probe b
     try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 200));
 }
 
+test "runtime kretprobe sample rejects unsupported maxactive values before runtime arm" {
+    var zero = sample.RuntimeKretprobeSample{ .maxactive = 0 };
+    try std.testing.expectError(error.InvalidMaxactive, zero.init());
+
+    var oversized = sample.RuntimeKretprobeSample{
+        .maxactive = sample.RuntimeKretprobeSample.default_maxactive + 1,
+    };
+    try std.testing.expectError(error.InvalidMaxactive, oversized.init());
+}
+
 test "runtime kretprobe sample keeps selftest and outstanding-instance paths explicit" {
     var module = sample.RuntimeKretprobeSample{};
     try module.init();
