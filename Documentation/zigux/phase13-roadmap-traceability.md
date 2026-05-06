@@ -54,7 +54,7 @@ Current `master` keeps that anchor reviewable through:
   * `zigux/tests/phase13_devres_dma_coherent.zig`
   * `scripts/zigux/check-phase13-devres-packet.py`
 
-Inside that packet, the active shared replay now keeps `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_dma_coherent.zig` inside the seven-test helper route. The shipped `scripts/zigux/check-phase13-devres-packet.py` remains adjacent `devres` release evidence on current `master`, so it stays reviewable without inflating the shared replay count beyond the build-backed route.
+Inside that packet, the active shared replay now keeps `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_dma_coherent.zig` inside the seven-test helper route. The live `make -C zigux phase13-validate` route also reruns the shipped `scripts/zigux/check-phase13-devres-packet.py` beside the shared release validator, so the `devres` boundary note stays adjacent release evidence on current `master` without inflating the shared replay count beyond the build-backed route.
 
 That packet is truthful to the roadmap because it exposes only reviewable helper planning and explicit blocker posture. It does not overclaim live MMIO mappings, live device-tree walking, DMA-backed helpers, scatterlist ownership, or live arch memtype mutation.
 
