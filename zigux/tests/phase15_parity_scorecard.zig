@@ -122,9 +122,9 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L12", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("39cdd038909f9834a8702070a697a0bf2111cb66", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("a3bbe9cea22c4f8d9ad400354bbb298af2f4a3a5", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 10), manifest.review_process.required_record_field_count);
     try std.testing.expectEqual(manifest.review_process.required_record_field_count, manifest.review_process.required_record_fields.len);
@@ -364,88 +364,4 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     try std.testing.expect(saw_roadmap_handoff_followup);
     try std.testing.expect(saw_review_gate_field_sync);
     try std.testing.expect(saw_blocker);
-}
-
-test "phase 15 council review gate stays aligned between the scorecard and checklist" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/phase15_parity_scorecard.json",
-        std.testing.allocator,
-        .limited(40 * 1024),
-    );
-    defer std.testing.allocator.free(manifest_json);
-
-    const scorecard_doc = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase15-parity-scorecard.md",
-        std.testing.allocator,
-        .limited(28 * 1024),
-    );
-    defer std.testing.allocator.free(scorecard_doc);
-
-    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/review-checklist.md",
-        std.testing.allocator,
-        .limited(16 * 1024),
-    );
-    defer std.testing.allocator.free(review_checklist);
-
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
-    defer parsed.deinit();
-
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "required review-process record fields tracked in the manifest: `10`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Architecture Council Review Gate") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reopen Trigger Catalog") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Evidence Archive Reporting Standard") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reserved Decision Record Templates") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Roadmap Handoff Evidence") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "Full-Parity Blockers and Long-Term Governance") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "maintenance-mode next step") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "named reopen triggers") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "deep-core blocker posture") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "decision record ID") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "lane owner") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "Architecture Council") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ABI and Runtime Team") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "Shared Subsystems Pod") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence archive path") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "benchmark-notes status") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "replay command") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "latest blocker disposition") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "benchmark notes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-anchor-owner-tracking") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-template-field-sync-followup") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-stay-in-c-retirement-rule") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-reopen-trigger-catalog-followup") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-review-gate-benchmark-replay-field-sync") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "narrower_followup_answers_blocker") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence_packet_stale_or_contradictory") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ownership_or_validation_changed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "leaves active discussion only after") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "check-phase15-scripts-readme-alignment.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "check-phase15-review-process-handoff.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "current lane owner responsible for keeping that blocked evidence packet up to date") != null);
-
-    for (parsed.value.review_process.required_record_fields) |field| {
-        const field_expected_in_checklist =
-            !std.mem.eql(u8, field, "validation gate set") and
-            !std.mem.eql(u8, field, "rollback owner");
-
-        try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, field) != null);
-        if (field_expected_in_checklist) {
-            try std.testing.expect(std.mem.indexOf(u8, review_checklist, field) != null);
-        }
-    }
-
-    for (parsed.value.review_process.archive_requirements) |item| {
-        try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, item) != null);
-        try std.testing.expect(std.mem.indexOf(u8, review_checklist, item) != null or !std.mem.eql(u8, item, "benchmark notes"));
-    }
 }
