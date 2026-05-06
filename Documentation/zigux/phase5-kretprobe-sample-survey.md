@@ -95,7 +95,7 @@ The current gap is no longer "Zigux has no kretprobe sample guidance." The more 
 
 - the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, skip behavior, private-data shape, return timing, summary recording, ownership snapshots, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `kretprobe` starter so contributors do not over-claim runtime substrate coverage
-- the shared tests-root guide is still less explicit for this kretprobe packet than for the parallel trace-events packet, so contributors should keep this survey note, the manifest, and the paired survey gate as the authoritative review surface until that broader tests-root wording is refreshed
+- the shared tests-root guide now names this kretprobe packet alongside the survey note, focused replay, manifest-backed survey gate, and shared `phase5_build.zig` route so contributors can refresh the same packet without inferring ownership from adjacent sample lanes
 - current `master` now carries all four roadmap-backed Phase 5 reference samples, so this slice should stay explicit about its own boundary rather than implying another anchor is still missing
 
 ## Review gates for this survey
@@ -118,4 +118,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and refresh the shared tests-root wording for `kretprobe` only if a future same-family contributor-guidance pass can do so without reopening sample semantics, provenance pinning, or the separate Phase 9 runtime starter.
+Stay in the Phase 5 samples-and-reference-patterns lane and reread the survey note, tests-root guide, manifest-backed survey gate, and shared sample-root summary together if a future same-family change touches replay counts, retargeting rules, or the Phase 5-versus-Phase 9 boundary.
