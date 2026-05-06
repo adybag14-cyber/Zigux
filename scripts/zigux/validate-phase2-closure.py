@@ -70,6 +70,7 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
 PHASE2_MAKEFILE_EXACT_LINES = {
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig": 1,
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig": 1,
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms_crc.zig": 1,
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig": 1,
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig": 1,
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig": 1,
@@ -104,6 +105,7 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
 PHASE2_WORKFLOW_EXACT_LINES = {
     "run: zig test scripts/zigux/fixdep.zig": 1,
     "run: zig test scripts/zigux/genksyms.zig": 1,
+    "run: zig test scripts/zigux/genksyms_crc.zig": 1,
     "run: zig test scripts/zigux/kconfig/conf_bridge.zig": 1,
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
     "run: zig test scripts/zigux/mk_elfconfig.zig": 1,
@@ -118,6 +120,7 @@ def required_files_for(root: Path) -> list[Path]:
         root / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md",
         root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py",
         root / "scripts" / "zigux" / "check-genksyms-bridge.py",
+        root / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
         root / "scripts" / "zigux" / "check-kconfig-bridge.py",
         root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
         root / "scripts" / "zigux" / "check-phase2-cross.py",
@@ -125,7 +128,10 @@ def required_files_for(root: Path) -> list[Path]:
         root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
         root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
         root / "scripts" / "zigux" / "validate-phase2-closure.py",
+        root / "scripts" / "zigux" / "fixdep.zig",
         root / "scripts" / "zigux" / "genksyms.zig",
+        root / "scripts" / "zigux" / "genksyms_crc.zig",
+        root / "scripts" / "zigux" / "mk_elfconfig.zig",
         root / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
         root / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
         root / "zigux" / "Makefile",
@@ -288,6 +294,7 @@ def make_ok_text() -> str:
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
             "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
             "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+            "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms_crc.zig",
             "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
             "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
             "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig",
@@ -324,6 +331,7 @@ def workflow_ok_text() -> str:
                 "run: python3 scripts/zigux/check-genksyms-crc-diff.py",
                 "run: zig test scripts/zigux/fixdep.zig",
                 "run: zig test scripts/zigux/genksyms.zig",
+                "run: zig test scripts/zigux/genksyms_crc.zig",
                 "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
                 "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
                 "run: zig test scripts/zigux/mk_elfconfig.zig",
@@ -455,6 +463,7 @@ def main_validation(root: Path) -> list[str]:
         "python3 scripts/zigux/validate-phase2-closure.py",
         "zig test scripts/zigux/fixdep.zig",
         "zig test scripts/zigux/genksyms.zig",
+        "zig test scripts/zigux/genksyms_crc.zig",
         "zig test scripts/zigux/kconfig/conf_bridge.zig",
         "zig test scripts/zigux/kconfig/confdata_bridge.zig",
     ]
@@ -499,6 +508,7 @@ def main_validation(root: Path) -> list[str]:
         "check-genksyms-crc-diff.py",
         "$(ZIG) test scripts/zigux/fixdep.zig",
         "$(ZIG) test scripts/zigux/genksyms.zig",
+        "$(ZIG) test scripts/zigux/genksyms_crc.zig",
         "$(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
         "$(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
         "$(ZIG) test scripts/zigux/mk_elfconfig.zig",
@@ -566,6 +576,7 @@ def run_self_test() -> int:
         )
 
     make_duplicate_exact_lines = [
+        "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms_crc.zig",
         "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
         "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
     ]
@@ -595,6 +606,7 @@ def run_self_test() -> int:
         )
 
     workflow_duplicate_exact_lines = [
+        "run: zig test scripts/zigux/genksyms_crc.zig",
         "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
         "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
     ]
@@ -665,7 +677,7 @@ def main() -> int:
     )
     print(
         "PHASE2_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{49 + len(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + 22 + 6 + 3 + 26}"
+        f"{49 + len(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + 23 + 6 + 3 + 27}"
     )
     return 0
 
