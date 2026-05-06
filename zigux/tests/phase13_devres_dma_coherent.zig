@@ -6,6 +6,12 @@ fn requireContains(text: []const u8, needle: []const u8) !void {
     }
 }
 
+fn requireNotContains(text: []const u8, needle: []const u8) !void {
+    if (std.mem.indexOf(u8, text, needle) != null) {
+        return error.UnexpectedMarker;
+    }
+}
+
 test "phase13 devres coherent-dma boundary packet records blocked dma and scatterlist ownership" {
     const manifest = @embedFile("phase13_devres_manifest.json");
 
@@ -26,4 +32,17 @@ test "phase13 devres coherent-dma boundary note keeps dma-backed helpers and sca
     try requireContains(survey, "live scatter-gather ownership");
     try requireContains(survey, "dma_unmap_*");
     try requireContains(survey, "sg_table lifecycle");
+}
+
+test "phase13 devres coherent-dma boundary replay keeps live dma and scatterlist markers out of lib/devres.zig" {
+    const source = @embedFile("../../lib/devres.zig");
+
+    try requireNotContains(source, "dmam_alloc_");
+    try requireNotContains(source, "dma_map_");
+    try requireNotContains(source, "dma_unmap_");
+    try requireNotContains(source, "dma_sync_");
+    try requireNotContains(source, "struct scatterlist");
+    try requireNotContains(source, "scatterlist");
+    try requireNotContains(source, "sg_table");
+    try requireNotContains(source, "sg_");
 }
