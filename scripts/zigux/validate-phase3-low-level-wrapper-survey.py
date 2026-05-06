@@ -46,12 +46,15 @@ ABI_MANIFEST_REQUIRED_FILES = (
     ABI_TEST_REL,
     ABI_DUMP_REL,
     LOW_LEVEL_TEST_REL,
+    "zigux/tests/build.zig",
     ABI_EXPECTED_REL,
     ABI_HARNESS_REL,
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    ABI_SLICE_DOC_REL,
 )
 
 
