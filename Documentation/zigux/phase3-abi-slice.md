@@ -46,7 +46,11 @@ It is a small substrate that makes future ports measurable:
 3. run Zig substrate tests
 - `zig build phase3-test --build-file zigux/tests/build.zig`
 
-4. rerun the validator-support packet and its review-surface guard without duplicating the default route
+4. catch fused top-level ABI binding declarations before they hide inside the wider Phase 3 packet
+- `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py`
+- `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test`
+
+5. rerun the validator-support packet and its review-surface guard without duplicating the default route
 - `python3 scripts/zigux/validate_phase3_selftest.py`
 - `python3 scripts/zigux/check-phase3-selftest-surface.py`
 - `python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test`
