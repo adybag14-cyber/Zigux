@@ -42,6 +42,7 @@ test "phase13 landlock syscalls reviewability shard records the shipped direct e
     const contributor_guide = try readRepoFile(allocator, "Documentation/zigux/phase13-contributor-workflow-guide.md");
     const governance_note = try readRepoFile(allocator, "Documentation/zigux/phase13-landlock-syscalls-governance.md");
     const phase13_build = try readRepoFile(allocator, "zigux/tests/phase13_build.zig");
+    const phase13_release_validator = try readRepoFile(allocator, "scripts/zigux/validate-phase13-release.py");
 
     const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{
         .ignore_unknown_fields = true,
@@ -76,6 +77,7 @@ test "phase13 landlock syscalls reviewability shard records the shipped direct e
     try expectContains(governance_note, "SyscallsHelperLab.descriptor()");
     try expectContains(governance_note, "touches_live_fd_table");
     try expectContains(governance_note, "live syscall enforcement");
+    try expectContains(phase13_release_validator, "\"zigux/tests/phase13_landlock_syscalls_reviewability.zig\"");
 
     try std.testing.expect(std.mem.indexOf(u8, phase13_build, "phase13_landlock_syscalls_reviewability") == null);
 
@@ -88,7 +90,7 @@ test "phase13 landlock syscalls reviewability shard records the shipped direct e
             try std.testing.expectEqualStrings("Documentation/zigux/phase13-landlock-syscalls-governance.md", gap.zigux_destination);
         } else if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-release-followup")) {
             saw_ruleset_release_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fop_ruleset_release()") != null);
         }
