@@ -47,6 +47,7 @@ ABI_SLICE_MARKERS = [
     "python3 scripts/zigux/generate-phase3-check-wrappers.py --check",
     "python3 scripts/zigux/run-phase3-checks.py --self-test",
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "make -C zigux phase3-selftest",
     "focused support-script safety check only; `make -C zigux phase3-validate` already invokes the underlying helper self-tests, README tooling inventory checks, catalog sanity checks, wrapper drift checks, and shared runner self-checks directly.",
@@ -224,6 +225,7 @@ def run_self_test() -> int:
         assert "abi_slice:python3 scripts/zigux/generate-phase3-check-wrappers.py --check" in issues
         assert "abi_slice:python3 scripts/zigux/run-phase3-checks.py --self-test" in issues
         assert "abi_slice:python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py" in issues
+        assert "abi_slice:python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test" in issues
         assert "abi_slice:python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in issues
         assert "abi_slice:make -C zigux phase3-selftest" in issues
 
