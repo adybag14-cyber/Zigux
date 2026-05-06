@@ -131,6 +131,17 @@ The bounded kconfig conf bridge packet now records the current request-plan fixt
 - request-plan coverage stays anchored by the olddefconfig baseline, syncconfig auto-output env injection, alldefconfig/allmodconfig/yes2modconfig mode selection, and defconfig mode-argument ordering fixtures in `zigux/tests/fixtures/kconfig_bridge/`
 - helper-local anchors in `zig test scripts/zigux/kconfig/conf_bridge.zig` now include `conf bridge emits syncconfig auto files`, `conf bridge emits alldefconfig argv and env`, `conf bridge emits allmodconfig argv and env`, `conf bridge emits yes2modconfig argv and env`, and `conf bridge emits defconfig mode argument before kconfig`
 
+## Kconfig Confdata Bridge Closure Packet
+
+The bounded kconfig confdata bridge packet now records the committed config inputs and expected JSON artifacts explicitly so confdata review does not rely on the shared gate name alone:
+
+- `PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=4`
+- `PHASE2_KCONFIG_BRIDGE_CONFDATA_CASES=sample,escaped_strings,sample_crlf,explicit_n_tristate`
+- `PHASE2_KCONFIG_BRIDGE_CONFDATA_EXPECTED_PACKET=sample_expected.json,escaped_strings_expected.json,sample_crlf_expected.json,explicit_n_tristate_expected.json`
+- input coverage stays anchored by `sample.config`, `escaped_strings.config`, `sample_crlf.config`, and `explicit_n_tristate.config` in `zigux/tests/fixtures/kconfig_bridge/`
+- expected-output coverage stays anchored by `sample_expected.json`, `escaped_strings_expected.json`, `sample_crlf_expected.json`, and `explicit_n_tristate_expected.json` in the same bounded packet
+- helper-local anchors in `zig test scripts/zigux/kconfig/confdata_bridge.zig` now include `confdata bridge decodes escaped quoted strings`, `confdata bridge accepts CRLF config lines`, and `confdata bridge keeps explicit n assignments as tristate values`
+
 ## Toolchain Pin Boundary
 
 The bounded Phase 2 bootstrap archive pin stays separate from the cross-target compile matrix:
