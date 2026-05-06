@@ -261,6 +261,14 @@ fn decodeValue(ch: u8, variant: Variant) DecodeError!u8 {
     };
 }
 
+fn expectDecodeRejectsWithoutWrites(decoded: []u8, tail: []const u8, padding: bool, variant: Variant) !void {
+    @memset(decoded, 0xee);
+    try std.testing.expectError(DecodeError.InvalidInput, decode(decoded, tail, padding, variant));
+    for (decoded) |byte| {
+        try std.testing.expectEqual(@as(u8, 0xee), byte);
+    }
+}
+
 fn expectExhaustiveTailCanonicality(padding: bool, variant: Variant) !void {
     const table = alphabet(variant);
     var encoded: [4]u8 = undefined;
@@ -284,7 +292,7 @@ fn expectExhaustiveTailCanonicality(padding: bool, variant: Variant) !void {
                 try std.testing.expectEqual(@as(u8, @intCast((a << 2) | (b >> 4))), decoded[0]);
             } else {
                 try std.testing.expectError(DecodeError.InvalidInput, bytes(tail, padding, variant));
-                try std.testing.expectError(DecodeError.InvalidInput, decode(decoded[0..], tail, padding, variant));
+                try expectDecodeRejectsWithoutWrites(decoded[0..], tail, padding, variant);
             }
         }
     }
@@ -309,7 +317,7 @@ fn expectExhaustiveTailCanonicality(padding: bool, variant: Variant) !void {
                     try std.testing.expectEqual(@as(u8, @intCast(((b & 0x0f) << 4) | (c >> 2))), decoded[1]);
                 } else {
                     try std.testing.expectError(DecodeError.InvalidInput, bytes(tail, padding, variant));
-                    try std.testing.expectError(DecodeError.InvalidInput, decode(decoded[0..], tail, padding, variant));
+                    try expectDecodeRejectsWithoutWrites(decoded[0..], tail, padding, variant);
                 }
             }
         }
