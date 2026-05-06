@@ -30,6 +30,15 @@ pub const ProbeResult = struct {
     duration_ns: i64,
 };
 
+pub const ExitReport = struct {
+    symbol_name: []const u8,
+    skipped_kernel_threads: usize,
+    missed_instances: usize,
+    last_retval: usize,
+    last_duration_ns: i64,
+    selftest_runs: usize,
+};
+
 pub const SelftestSummary = struct {
     anchor: []const u8,
     symbol_name: []const u8,
@@ -98,6 +107,17 @@ pub const RuntimeKretprobeSample = struct {
             .last_duration_ns = self.last_duration_ns,
             .selftest_runs = self.selftest_runs,
             .entry_timestamp_armed = self.active_instances != 0,
+        };
+    }
+
+    pub fn exitReport(self: *const Self) ExitReport {
+        return .{
+            .symbol_name = self.symbol_name,
+            .skipped_kernel_threads = self.skipped_kernel_threads,
+            .missed_instances = self.nmissed,
+            .last_retval = self.last_retval,
+            .last_duration_ns = self.last_duration_ns,
+            .selftest_runs = self.selftest_runs,
         };
     }
 
@@ -211,15 +231,17 @@ pub const RuntimeKretprobeSample = struct {
         };
     }
 
-    pub fn exit(self: *Self) !void {
+    pub fn exit(self: *Self) !ExitReport {
         switch (self.stage()) {
             .initialized, .selftest_complete => {},
             else => return error.InvalidLifecycleTransition,
         }
         if (self.active_instances != 0) return error.OutstandingProbeInstance;
 
+        const report = self.exitReport();
         self.exit_runs += 1;
         self.stage_state = .exited;
+        return report;
     }
 };
 
@@ -249,7 +271,13 @@ test "kretprobe sample keeps selftest-ready replay explicit in helper-local life
     try std.testing.expectEqual(@as(usize, 1), after_replay.selftest_runs);
     try std.testing.expect(!after_replay.entry_timestamp_armed);
 
-    try module.exit();
+    const exit_report = try module.exit();
+    try std.testing.expectEqualStrings(RuntimeKretprobeSample.default_symbol_name, exit_report.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.missed_instances);
+    try std.testing.expectEqual(@as(usize, 9), exit_report.last_retval);
+    try std.testing.expectEqual(@as(i64, 60), exit_report.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.selftest_runs);
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
 }
@@ -296,7 +324,13 @@ test "kretprobe sample preserves initialized-stage failed-exit state until the a
     try std.testing.expect(!after_recovery.entry_timestamp_armed);
     try std.testing.expectEqual(@as(usize, 0), after_recovery.selftest_runs);
 
-    try module.exit();
+    const exit_report = try module.exit();
+    try std.testing.expectEqualStrings(RuntimeKretprobeSample.default_symbol_name, exit_report.symbol_name);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.missed_instances);
+    try std.testing.expectEqual(@as(usize, 9), exit_report.last_retval);
+    try std.testing.expectEqual(@as(i64, 60), exit_report.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.selftest_runs);
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
 }
 
@@ -327,7 +361,13 @@ test "kretprobe sample preserves failed-exit state until the active probe drains
     try std.testing.expectEqual(@as(usize, 7), recovered.retval);
     try std.testing.expectEqual(@as(i64, 55), recovered.duration_ns);
 
-    try module.exit();
+    const exit_report = try module.exit();
+    try std.testing.expectEqualStrings(RuntimeKretprobeSample.default_symbol_name, exit_report.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.missed_instances);
+    try std.testing.expectEqual(@as(usize, 7), exit_report.last_retval);
+    try std.testing.expectEqual(@as(i64, 55), exit_report.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.selftest_runs);
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
 
     const exited_summary = module.summary();
@@ -364,4 +404,12 @@ test "kretprobe sample keeps per-instance entry stamps distinct across overlappi
     try std.testing.expectEqual(@as(usize, 22), final_summary.last_retval);
     try std.testing.expectEqual(@as(i64, 140), final_summary.last_duration_ns);
     try std.testing.expect(!final_summary.entry_timestamp_armed);
+
+    const exit_report = try module.exit();
+    try std.testing.expectEqualStrings(RuntimeKretprobeSample.default_symbol_name, exit_report.symbol_name);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.missed_instances);
+    try std.testing.expectEqual(@as(usize, 22), exit_report.last_retval);
+    try std.testing.expectEqual(@as(i64, 140), exit_report.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.selftest_runs);
 }
