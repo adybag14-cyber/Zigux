@@ -48,7 +48,7 @@ test "phase 9 runtime bitmap survey manifest records the roadmap selftest hook, 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-Y05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("lib/test_bitmap.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -184,7 +184,7 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
 
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, lane_key_marker));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, surveyed_commit_marker));
-    try std.testing.expect(std.mem.indexOf(u8, note, "PHASE9_LANE_KEY=P9-L05") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "PHASE9_LANE_KEY=P9-Y05") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "not as a fifth approved Phase 5 reference idiom under `samples/zigux/`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchors limited to `bytestream_fifo.zig`, `kobject_example.zig`, `kretprobe_example.zig`, and `trace_events_sample.zig`, while listing the runtime bitmap pair plus the focused top-bit companion replay only under the separate Phase 9 runtime pilot family.") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "the live repo still keeps that runtime bitmap family outside the four approved Phase 5 reference samples") != null);
@@ -238,7 +238,7 @@ test "phase 9 runtime bitmap module slice keeps the loader-backed survey packet 
     );
     defer std.testing.allocator.free(note);
 
-    try std.testing.expect(std.mem.indexOf(u8, note, "PHASE9_LANE_KEY=P9-L05") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "PHASE9_LANE_KEY=P9-Y05") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "sample-side loader scaffold") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "dedicated Phase 9 survey and test wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "Documentation/zigux/phase9-runtime-bitmap-survey.md") != null);
