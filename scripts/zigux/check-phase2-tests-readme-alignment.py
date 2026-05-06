@@ -111,6 +111,13 @@ MAKEFILE_MARKERS = [
 ]
 
 EXACT_COUNT_CHECKS = {
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": {
+        "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+        "python3 scripts/zigux/validate-phase2.py": 1,
+        "python3 scripts/zigux/validate-phase2-closure.py": 1,
+        "make -C zigux phase2-validate": 1,
+        "make -C zigux phase2": 1,
+    },
     "zigux/tests/README.md": {
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2": 1,
@@ -155,6 +162,13 @@ def validate_root(root: Path) -> list[str]:
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     issues.extend(collect_missing_markers(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root"))
     issues.extend(collect_missing_markers(toolchain_notes, TOOLCHAIN_NOTES_MARKERS, prefix="toolchain_notes"))
+    issues.extend(
+        collect_exact_count_issues(
+            toolchain_notes,
+            EXACT_COUNT_CHECKS["Documentation/zigux/phase2-toolchain-bootstrap-notes.md"],
+            prefix="toolchain_notes",
+        )
+    )
     issues.extend(collect_missing_markers(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist"))
     issues.extend(collect_missing_markers(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme"))
     issues.extend(collect_missing_markers(tests_readme, TESTS_README_MARKERS, prefix="tests_readme"))
@@ -250,6 +264,42 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert "toolchain_notes:python3 scripts/zigux/check-phase2-tests-readme-alignment.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(TOOLCHAIN_NOTES_MARKERS)
+            + "\npython3 scripts/zigux/check-phase2-tests-readme-alignment.py\n",
+        )
+        issues = validate_root(root)
+        assert "toolchain_notes:exact_count:python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(TOOLCHAIN_NOTES_MARKERS)
+            + "\npython3 scripts/zigux/validate-phase2.py\n",
+        )
+        issues = validate_root(root)
+        assert "toolchain_notes:exact_count:python3 scripts/zigux/validate-phase2.py:count=2:expected=1" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(TOOLCHAIN_NOTES_MARKERS)
+            + "\npython3 scripts/zigux/validate-phase2-closure.py\n",
+        )
+        issues = validate_root(root)
+        assert "toolchain_notes:exact_count:python3 scripts/zigux/validate-phase2-closure.py:count=2:expected=1" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(TOOLCHAIN_NOTES_MARKERS)
+            + "\nmake -C zigux phase2\n",
+        )
+        issues = validate_root(root)
+        assert "toolchain_notes:exact_count:make -C zigux phase2:count=2:expected=1" in issues
 
         build_self_test_root(root)
         write_text(
@@ -368,7 +418,8 @@ def run_self_test() -> int:
             "\n".join(TOOLCHAIN_NOTES_MARKERS)
             + "\npython3 scripts/zigux/check-phase2-tests-readme-alignment.py\n",
         )
-        assert validate_root(root) == []
+        issues = validate_root(root)
+        assert "toolchain_notes:exact_count:python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1" in issues
 
         build_self_test_root(root)
         write_text(
@@ -389,7 +440,7 @@ def run_self_test() -> int:
         assert "makefile:exact_count:check-phase2-tests-readme-alignment.py:count=2:expected=1" in issues
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=16")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
