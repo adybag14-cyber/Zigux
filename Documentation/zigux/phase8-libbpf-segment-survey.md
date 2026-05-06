@@ -5,7 +5,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-segment-survey`
 - surveyed commit: `897cdd2f62c4428d2a050275a187950e161b66eb`
-- scope: segment manifest plus five landed bounded slices across four helper-first starters and one perf-buffer poll adjunct, with the bounded fdinfo bridge helper packet kept adjacent to the next queued libbpf catalog step
+- scope: segment manifest plus six landed bounded slices across four helper-first starters, one shared file-path bridge helper packet, and one perf-buffer poll adjunct, with the heavier file-path-and-handle resource boundary still parked behind the current bridge packet
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
@@ -56,7 +56,7 @@ The manifest currently records twelve bounded segments:
 
 `cpu-mask-parsing`, `logging-version-and-errno`, `pin-path-helpers`, `type-name-helpers`, and `perf-buffer-poll-bookkeeping` have now moved from planned work to landed bounded slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`.
 
-`fdinfo-map-info-helpers` and `map-reuse-compatibility` still stay queued helper-first catalog entries, but no longer because the bridge packet paths are missing: the repo now carries the bounded fdinfo helper packet at `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, plus the adjacent bridge-boundary notes at `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` and `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, while the broader helper-first catalog entries remain queued until that shared bridge packet is explicitly promoted beyond the current fdinfo-only surface.
+`fdinfo-map-info-helpers` still stays queued as the next helper-first catalog entry, but `map-reuse-compatibility` has now joined the landed bridge packet: the repo carries the bounded fdinfo helper packet at `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, plus the adjacent bridge-boundary notes at `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` and `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, while the shared bridge helper now also exposes helper-only reused-map name resolution, devmap-aware compatibility checks, and planning-only reopen-attempt gating without widening into direct procfs reads or pinned-object reopen side effects.
 
 The broader `file-path-and-handle-bridge` resource-boundary packet still stays deferred around direct procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flow, and fd ownership semantics.
 
@@ -75,8 +75,8 @@ The current starter implementation stays deliberately bounded:
 - pin-path overflows stay explicit as bounded helper errors instead of silently truncating output or widening into direct `PATH_MAX`, `mkdir()`, `statfs()`, or `unlink()` parity
 - `type_names.zig` ports the exported attach, link, map, and program type name tables as dense lookup helpers with stable string output
 - the type-name helper keeps out-of-range values explicit with `null` instead of widening into section parsing, object loading, or feature probing
-- `file_path_handle_bridge.zig` now ports the bounded `"/proc/%d/fdinfo/%d"` assembly plus compact fdinfo map-info parsing and summary helpers without claiming direct procfs reads, `bpf_obj_get()` reopen flow, token creation, or fd ownership semantics
-- the bounded file-path bridge keeps reuse-planning cues explicit for callers while leaving bpffs opens, descriptor duplication, close-on-replacement behavior, and pinned-object reopen flow outside the current Zig slice
+- `file_path_handle_bridge.zig` now ports the bounded `"/proc/%d/fdinfo/%d"` assembly plus compact fdinfo map-info parsing, reused-map name resolution, devmap-aware compatibility checks, and planning-only reopen-attempt summaries without claiming direct procfs reads, `bpf_obj_get()` reopen flow, token creation, or fd ownership semantics
+- the bounded file-path bridge keeps helper-only reuse planning explicit for callers while leaving bpffs opens, descriptor duplication, close-on-replacement behavior, and pinned-object reopen flow outside the current Zig slice
 - `perf_buffer_poll.zig` keeps `perf_buffer__poll(timeout_ms)` wait-result classification, ready-buffer bookkeeping, and ordered process-record summaries reviewable without claiming live epoll wiring or per-CPU setup
 - the broader `perf-buffer-online-cpu-routing` setup remains deferred around per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, and `PERF_EVENT_IOC_ENABLE` enablement
 - the current packet does not claim online-CPU filtering, epoll registration, timer semantics, or broader interrupt-routing behavior beyond those explicit setup-side anchors
@@ -97,7 +97,7 @@ The current tests check:
 - buffer exhaustion during pin-path assembly stays explicit
 - every exported attach, link, map, and program type table entry remains reachable through the corresponding helper
 - representative late enum ordinals such as `trace_fsession` still resolve to the expected stable names
-- bounded `/proc//fdinfo/` path assembly, compact fdinfo map-info parsing, and summary rendering stay explicit without widening into direct procfs reads or pinned-object reopen flow
+- bounded `/proc//fdinfo/` path assembly, compact fdinfo map-info parsing, helper-only reused-map compatibility checks, and planning-only reopen outcomes stay explicit without widening into direct procfs reads or pinned-object reopen flow
 - bounded perf-buffer wait summaries keep ready-count, first-error, processed-record totals, and first-processing-failure selection compact and explicit
 - ready-buffer processing attempts cannot exceed observed ready events
 
@@ -133,4 +133,4 @@ This survey slice does not yet claim:
 - object-model parity for `bpf_object`, `bpf_map`, or `bpf_program`
 
 ## Next bounded step
-Treat the current starter packet as substantively landed for now: keep the shared `make -C zigux phase8-validate` gate honest, leave the bounded fdinfo-only bridge helper and its adjacent boundary survey parked as adjacent review surface, keep `fdinfo-map-info-helpers` and `map-reuse-compatibility` queued as the next helper-first catalog entries, and reopen only when the deferred `file-path-and-handle-bridge` resource boundary around direct procfs-read, bpffs-open, token-creation, reopen-flow, and fd-ownership semantics can be reviewed as one tighter packet ahead of the still-blocked object-model and loader-facing work.
+Treat the current starter packet as substantively landed for now: keep the shared `make -C zigux phase8-validate` gate honest, leave the bounded fdinfo-plus-reuse-planning bridge helper and its adjacent boundary survey parked as reviewable landed surface, keep `fdinfo-map-info-helpers` as the next still-queued helper-first catalog entry, and reopen only when the deferred `file-path-and-handle-bridge` resource boundary around direct procfs-read, bpffs-open, token-creation, reopen-flow, and fd-ownership semantics can be reviewed as one tighter packet ahead of the still-blocked object-model and loader-facing work.
