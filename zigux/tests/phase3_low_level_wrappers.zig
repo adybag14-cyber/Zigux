@@ -55,12 +55,17 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     var regs = [_]u32{ 0, 0 };
     const base = narrow.addressOf(&regs[0]);
     const bytes: *align(1) [8]u8 = @ptrCast(&regs);
+    const halfwords: *align(1) [4]u16 = @ptrCast(&regs);
     const byte_desc = mmio.range(base, 8, 1);
+    const halfword_desc = mmio.range(base, 8, 2);
     const desc = mmio.range(base, 8, 4);
 
     try std.testing.expectEqual(base, byte_desc.base_addr);
     try std.testing.expectEqual(@as(u32, 8), byte_desc.length);
     try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);
+    try std.testing.expectEqual(base, halfword_desc.base_addr);
+    try std.testing.expectEqual(@as(u32, 8), halfword_desc.length);
+    try std.testing.expectEqual(@as(u32, 2), halfword_desc.stride);
     try std.testing.expectEqual(base, desc.base_addr);
     try std.testing.expectEqual(@as(u32, 8), desc.length);
     try std.testing.expectEqual(@as(u32, 4), desc.stride);
@@ -68,6 +73,10 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     mmio.write8(base, 1, 0x5a);
     try std.testing.expectEqual(@as(u8, 0x5a), bytes[1]);
     try std.testing.expectEqual(@as(u8, 0x5a), mmio.read8(base, 1));
+
+    mmio.write16(base, 2, 0xbeef);
+    try std.testing.expectEqual(@as(u16, 0xbeef), halfwords[1]);
+    try std.testing.expectEqual(@as(u16, 0xbeef), mmio.read16(base, 2));
 
     mmio.write32(base, @sizeOf(u32), 0xfeedbeef);
     try std.testing.expectEqual(@as(u32, 0xfeedbeef), regs[1]);
