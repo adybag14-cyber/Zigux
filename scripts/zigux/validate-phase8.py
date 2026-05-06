@@ -764,6 +764,13 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-libbpf-segments-test",
         ),
         (
+            "survey_libbpf_build_shard_route",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
+            "zig build test --build-file zigux/tests/phase8_libbpf_segments_build.zig --summary all",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
+        ),
+        (
             "survey_perf_buffer_poll_wrapper_route",
             "Documentation/zigux/phase8-libbpf-segment-survey.md",
             "make -C zigux phase8-perf-buffer-poll-test",
@@ -771,11 +778,25 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-perf-buffer-poll-test",
         ),
         (
+            "survey_perf_buffer_poll_build_shard_route",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+            "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_build.zig --summary all",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+        ),
+        (
             "survey_shared_phase8_wrapper_route",
             "Documentation/zigux/phase8-libbpf-segment-survey.md",
             "make -C zigux phase8-test",
             "make -C zigux phase8-shared-test",
             "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-test",
+        ),
+        (
+            "survey_shared_phase8_build_shard_route",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
+            "zig build test --build-file zigux/tests/phase8_shared_build.zig --summary all",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: zig build test --build-file zigux/tests/phase8_build.zig --summary all",
         ),
         (
             "survey_exact_once_duplicate",
