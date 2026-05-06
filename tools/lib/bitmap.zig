@@ -546,9 +546,10 @@ test "bitmap scnprintf handles terminator-only and zero-length caller views" {
     try std.testing.expectEqual(@as(usize, 0), terminator_only_len);
     try std.testing.expectEqual(@as(u8, 0), terminator_only[0]);
 
-    var zero_length = [_]u8{};
-    const zero_length_len = scnprintf(&map, 32, &zero_length);
+    var zero_length_backing = [_]u8{0xaa};
+    const zero_length_len = scnprintf(&map, 32, zero_length_backing[0..0]);
     try std.testing.expectEqual(@as(usize, 0), zero_length_len);
+    try std.testing.expectEqual(@as(u8, 0xaa), zero_length_backing[0]);
 }
 
 test "bitmap copy alias preserves raw source words without tail clearing" {
