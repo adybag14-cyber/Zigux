@@ -118,6 +118,16 @@ pub const ProbePreflightSummary = struct {
     ready_for_probe_handoff: bool,
 };
 
+pub const SelectedQueueReadinessSummary = struct {
+    anchor: []const u8,
+    selected_queue: u16,
+    queue_num_max: u16,
+    queue_num: u16,
+    queue_ready: bool,
+    queue_size_programmed: bool,
+    queue_ready_for_handoff: bool,
+};
+
 pub const VirtioMmioLab = struct {
     const Self = @This();
 
@@ -328,6 +338,23 @@ pub const VirtioMmioLab = struct {
                 (!identity.requires_legacy_guest_page_size or legacy_guest_page_size_register_ready) and
                 bounded_queue_register_window_ready and
                 interrupt_ack_ready,
+        };
+    }
+
+    pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary {
+        const queue_index = try self.checkedQueueIndex(self.selected_queue);
+        const queue_num_max = self.queue_num_max[queue_index];
+        const queue_num = self.queue_num[queue_index];
+        const queue_ready = self.queue_ready[queue_index];
+
+        return .{
+            .anchor = descriptor().anchor,
+            .selected_queue = self.selected_queue,
+            .queue_num_max = queue_num_max,
+            .queue_num = queue_num,
+            .queue_ready = queue_ready,
+            .queue_size_programmed = queue_num != 0,
+            .queue_ready_for_handoff = queue_num != 0 and queue_ready,
         };
     }
 
@@ -547,4 +574,35 @@ test "phase10 virtio mmio exposes a transport identity summary before lifecycle 
     summary = device.transportIdentitySummary();
     try std.testing.expect(!summary.device_present);
     try std.testing.expect(!summary.vendor_id_present);
+}
+
+test "phase10 virtio mmio summarizes selected-queue readiness before transport handoff" {
+    var device = try VirtioMmioLab.init(59, &[_]u16{ 8, 16 });
+
+    var summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 0), summary.selected_queue);
+    try std.testing.expectEqual(@as(u16, 8), summary.queue_num_max);
+    try std.testing.expectEqual(@as(u16, 0), summary.queue_num);
+    try std.testing.expect(!summary.queue_ready);
+    try std.testing.expect(!summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_num, 8);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_ready, 1);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expect(summary.queue_ready);
+    try std.testing.expect(summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_sel, 1);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqual(@as(u16, 1), summary.selected_queue);
+    try std.testing.expectEqual(@as(u16, 16), summary.queue_num_max);
+    try std.testing.expectEqual(@as(u16, 0), summary.queue_num);
+    try std.testing.expect(!summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
 }
