@@ -555,6 +555,37 @@ test "runtime atomic64 loader surfaces shared request drift before any live atom
     ));
 }
 
+test "runtime atomic64 loader rejects shared selftest-hook drift before any live atomic64 claim" {
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(9);
+
+    const initialized_plan = try RuntimeAtomic64Loader.planFor(&module);
+    var initialized_shared_plan = toSharedLoadPlan(initialized_plan);
+    try std.testing.expect(initialized_shared_plan.provides_selftest_hook);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(initialized_shared_plan));
+
+    initialized_shared_plan.provides_selftest_hook = false;
+    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(initialized_shared_plan));
+    try std.testing.expectError(
+        error.InvalidSelftestHookEvidence,
+        runtime_loader.prepareRequest(initialized_shared_plan),
+    );
+
+    _ = try module.runSelftest();
+
+    const selftest_plan = try RuntimeAtomic64Loader.planFor(&module);
+    var selftest_shared_plan = toSharedLoadPlan(selftest_plan);
+    try std.testing.expect(selftest_shared_plan.provides_selftest_hook);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(selftest_shared_plan));
+
+    selftest_shared_plan.provides_selftest_hook = false;
+    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(selftest_shared_plan));
+    try std.testing.expectError(
+        error.InvalidSelftestHookEvidence,
+        runtime_loader.prepareRequest(selftest_shared_plan),
+    );
+}
+
 test "runtime atomic64 loader rejects shared-load-plan snapshot drift" {
     var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
     try module.init(0x1111_1111_2222_2222);
