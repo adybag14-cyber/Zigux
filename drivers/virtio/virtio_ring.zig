@@ -217,6 +217,10 @@ pub const VirtioRingLab = struct {
         if (used_chain_count == 0) return error.EmptyUsedBatch;
         if (used_chain_count > slot.outstanding_chain_count) return error.UsedBatchExceedsOutstanding;
 
+        const unpublished_chain_count = slot.num_added;
+        const published_chain_count = slot.outstanding_chain_count - unpublished_chain_count;
+        if (used_chain_count > published_chain_count) return error.UsedBatchExceedsKickedChains;
+
         slot.outstanding_chain_count -= used_chain_count;
         slot.last_used_idx +%= used_chain_count;
     }
