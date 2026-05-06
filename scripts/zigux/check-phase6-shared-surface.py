@@ -43,11 +43,17 @@ REQUIRED_SNIPPETS = {
         'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
     ],
     "zigux/tests/phase6_base64.zig": [
-        'test "bytes matches canonical padded and unpadded decode sizes"',
-        'test "bytes rejects malformed input and non-canonical tails"',
-        'test "decode exhaustively accepts only canonical padded tails"',
-        'test "decode exhaustively accepts only canonical unpadded tails"',
-        'test "encode and decode roundtrip every short payload across variants"',
+        'test "phase 6 base64 chars reports exact padded and unpadded lengths"',
+        'test "phase 6 base64 bytes reports exact decoded lengths for kernel-aligned vectors"',
+        'test "phase 6 base64 standard encode parity matches kernel vectors"',
+        'test "phase 6 base64 standard decode parity keeps bytes and decode aligned with kernel vectors"',
+        'test "phase 6 base64 variant alphabets match the kernel mappings with and without padding"',
+        'test "phase 6 base64 variant decode parity keeps bytes and decode aligned with kernel mappings"',
+        'test "phase 6 base64 invalid vectors fail bytes and decode together"',
+        'test "phase 6 base64 invalid decode vectors leave destination bytes untouched"',
+        'test "phase 6 base64 bytes rejects malformed kernel-style vectors"',
+        'test "phase 6 base64 reports destination bounds before encoding"',
+        'test "phase 6 base64 reports destination bounds before decoding"',
     ],
     "zigux/tests/phase6_bsearch.zig": [
         'test "phase 6 bsearch honors comparator-driven descending order"',
@@ -398,8 +404,8 @@ def run_self_test() -> None:
         original_base64_tests = base64_tests.read_text(encoding="utf-8")
         base64_tests.write_text(
             original_base64_tests.replace(
-                'test "decode exhaustively accepts only canonical unpadded tails"',
-                'test "decode accepts unpadded tails"',
+                'test "phase 6 base64 variant decode parity keeps bytes and decode aligned with kernel mappings"',
+                'test "phase 6 base64 variant decode parity stays aligned"',
                 1,
             ),
             encoding="utf-8",
