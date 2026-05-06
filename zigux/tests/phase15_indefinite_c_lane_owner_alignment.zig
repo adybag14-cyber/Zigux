@@ -67,16 +67,31 @@ test "phase 15 indefinite-C policy keeps lane-owner vocabulary aligned" {
         "current lane owner responsible for keeping that blocked evidence packet up to date",
     });
 
-    const archive_paths = [_][]const u8{
-        "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
-        "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
-        "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
-        "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md",
+    const archive_owner_expectations = [_]struct {
+        path: []const u8,
+        lane_owner: []const u8,
+    }{
+        .{
+            .path = "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
+            .lane_owner = "lane owner: `Architecture Council`",
+        },
+        .{
+            .path = "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
+            .lane_owner = "lane owner: `Architecture Council`",
+        },
+        .{
+            .path = "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
+            .lane_owner = "lane owner: `ABI and Runtime Team`",
+        },
+        .{
+            .path = "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md",
+            .lane_owner = "lane owner: `Shared Subsystems Pod`",
+        },
     };
 
-    for (archive_paths) |path| {
-        try expectContains(io_instance.io(), path, &.{
-            "lane owner: `pending`",
+    for (archive_owner_expectations) |entry| {
+        try expectContains(io_instance.io(), entry.path, &.{
+            entry.lane_owner,
             "ownership_or_validation_changed",
         });
     }
