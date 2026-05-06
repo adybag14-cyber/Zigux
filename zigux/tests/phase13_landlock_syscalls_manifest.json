@@ -102,6 +102,13 @@
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/syscalls.zig",
       "why_now": "The syscall helper now includes one tiny in-memory planner around `fop_ruleset_release()` that keeps the retained ruleset in `private_data`, the matching `landlock_put_ruleset()` release, and the zero return contract explicit before any live file-operations wiring or FD ownership changes are attempted."
+    },
+    {
+      "id": "phase13-landlock-ruleset-fops-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The syscall helper now includes one tiny in-memory `ruleset_fops` planner that keeps `fop_ruleset_release()` plus the dummy read or write `FMODE_CAN_READ` or `FMODE_CAN_WRITE` enablement and shared `-EINVAL` return contract explicit without implying anonymous inode wiring, live FD ownership, or enforcement."
     }
   ]
 }
