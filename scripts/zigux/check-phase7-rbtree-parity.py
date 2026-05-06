@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase7_rbtree.json"
 HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase7_rbtree_c_harness.c"
 ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
-SOURCE = ROOT / "tools" / "lib" / "rbtree.c"
+SOURCE = ROOT / "lib" / "rbtree.c"
 
 
 def find_compiler(explicit: str | None) -> str:
@@ -88,6 +88,9 @@ def compile_and_run(exe: Path, actual: Path, compiler: str, flags: list[str]) ->
 
 def run_self_test() -> None:
     case_count = 0
+
+    assert SOURCE == ROOT / "lib" / "rbtree.c"
+    case_count += 1
 
     assert find_compiler("/tmp/phase7-custom-cc") == "/tmp/phase7-custom-cc"
     case_count += 1
