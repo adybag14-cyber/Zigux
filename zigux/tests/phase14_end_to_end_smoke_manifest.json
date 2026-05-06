@@ -102,6 +102,10 @@
       "required_marker": "phase 14 rcu tree survey manifest records the freeze-boundary gap without inventing a bridge"
     },
     {
+      "path": ".github/workflows/zigux-bootstrap.yml",
+      "required_marker": "Run focused Phase 14 smoke shard"
+    },
+    {
       "path": "kernel/workqueue_bridge.zig",
       "required_marker": "pub const WorkqueueBridgeLab"
     },
