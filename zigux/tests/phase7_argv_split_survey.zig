@@ -1,5 +1,13 @@
 const std = @import("std");
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
+}
+
 const SurveySummary = struct {
     argv_split_c_lines: usize,
     preexisting_phase7_test_files: usize,
@@ -33,26 +41,27 @@ fn isAllowedStatus(status: []const u8) bool {
 }
 
 test "phase 7 argv_split survey manifest records the parked runtime leaf surface without an active follow-up" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
+    const allocator = std.testing.allocator;
 
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/phase7_argv_split_manifest.json",
-        std.testing.allocator,
-        .limited(16 * 1024),
-    );
-    defer std.testing.allocator.free(manifest_json);
+    const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_argv_split_manifest.json");
+    defer allocator.free(manifest_json);
 
-    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase7-argv-split-slice.md",
-        std.testing.allocator,
-        .limited(16 * 1024),
-    );
-    defer std.testing.allocator.free(slice_note);
+    const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-argv-split-slice.md");
+    defer allocator.free(slice_note);
 
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
+    defer allocator.free(build_file);
+
+    const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_argv_split.zig");
+    defer allocator.free(helper_tests);
+
+    const fixture_module = try readRepoFile(allocator, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
+    defer allocator.free(fixture_module);
+
+    const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-argv-split-packet.py");
+    defer allocator.free(checker);
+
+    const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
     defer parsed.deinit();
 
     const manifest = parsed.value;
@@ -70,6 +79,37 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_helper_present);
     try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+
+    try expectContains(slice_note, "first-NUL C-string bounds on both counting and splitting");
+    try expectContains(slice_note, "strict non-goal behavior where quote characters stay inside the returned tokens");
+    try expectContains(slice_note, "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`");
+    try expectContains(slice_note, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
+    try expectContains(slice_note, "python3 scripts/zigux/check-phase7-argv-split-packet.py");
+
+    try expectContains(build_file, "\"phase7_argv_split.zig\"");
+    try expectContains(build_file, "\"phase7_argv_split_survey.zig\"");
+    try expectContains(build_file, "\"phase7-argv-split-tests\"");
+    try expectContains(build_file, "\"phase7-argv-split-survey-tests\"");
+    try expectContains(build_file, "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));");
+
+    try expectContains(helper_tests, "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");");
+    try expectContains(helper_tests, "phase 7 argvSplit matches focused parity fixtures");
+    try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty exported argv view");
+    try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space");
+    try expectContains(helper_tests, "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable");
+    try expectContains(helper_tests, "phase 7 argvSplit deinit clears exported storage and argv views");
+    try expectContains(helper_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable");
+    try expectContains(helper_tests, "split.cArgv()");
+
+    try expectContains(fixture_module, ".name = \"whitespace before first NUL stays blank\",");
+    try expectContains(fixture_module, ".name = \"leading NUL truncates to zero argv entries\",");
+    try expectContains(fixture_module, ".name = \"first NUL stops counting and splitting\",");
+    try expectContains(fixture_module, ".name = \"quote characters stay inside returned tokens\",");
+
+    try expectContains(checker, "\"zigux/tests/phase7_argv_split.zig\"");
+    try expectContains(checker, "\"zigux/tests/phase7_argv_split_survey.zig\"");
+    try expectContains(checker, "\"zigux/tests/phase7_argv_split_manifest.json\"");
+    try expectContains(checker, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"");
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
