@@ -165,14 +165,14 @@ def validate(root: Path) -> list[str]:
         "PHASE3_ATOMIC_STATUS=bounded-helper-surface-landed",
         "PHASE3_BARRIER_SCOPE=acquire-release-full-acquire-release-pair",
         "PHASE3_BARRIER_STATUS=local-sentinel-probe-only",
-        "PHASE3_MMIO_SCOPE=range-read8-write8-read16-write16-read32-write32",
-        "PHASE3_MMIO_STATUS=byte-16-bit-and-32-bit-mmio-through-narrow-pointer-bridge",
-        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-and-non-seq-cst-ordering",
+        "PHASE3_MMIO_SCOPE=range-read8-write8-read16-write16-read32-write32-read64-write64",
+        "PHASE3_MMIO_STATUS=byte-16-bit-32-bit-and-64-bit-mmio-through-narrow-pointer-bridge",
+        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay",
         "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
         "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
         "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
-        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-byte-16-bit-and-32-bit-mmio-barrier-locality-and-non-seq-cst-orderings-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof",
+        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-byte-16-bit-32-bit-and-64-bit-mmio-range-and-barrier-locality-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof",
         "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves",
     )
     for marker in required_doc_markers:
@@ -240,6 +240,8 @@ def validate(root: Path) -> list[str]:
             "pub fn write16",
             "pub fn read32",
             "pub fn write32",
+            "pub fn read64",
+            "pub fn write64",
             "narrow.pointerAt",
         ),
     )
@@ -272,15 +274,20 @@ def validate(root: Path) -> list[str]:
             "mmio.read16",
             "mmio.write32",
             "mmio.read32",
+            "mmio.write64",
+            "mmio.read64",
             "try std.testing.expectEqual(base, byte_desc.base_addr);",
-            "try std.testing.expectEqual(@as(u32, 8), byte_desc.length);",
+            "try std.testing.expectEqual(@as(u32, 24), byte_desc.length);",
             "try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);",
             "try std.testing.expectEqual(base, halfword_desc.base_addr);",
-            "try std.testing.expectEqual(@as(u32, 8), halfword_desc.length);",
+            "try std.testing.expectEqual(@as(u32, 24), halfword_desc.length);",
             "try std.testing.expectEqual(@as(u32, 2), halfword_desc.stride);",
-            "try std.testing.expectEqual(base, desc.base_addr);",
-            "try std.testing.expectEqual(@as(u32, 8), desc.length);",
-            "try std.testing.expectEqual(@as(u32, 4), desc.stride);",
+            "try std.testing.expectEqual(base, word_desc.base_addr);",
+            "try std.testing.expectEqual(@as(u32, 24), word_desc.length);",
+            "try std.testing.expectEqual(@as(u32, 4), word_desc.stride);",
+            "try std.testing.expectEqual(base, dword_desc.base_addr);",
+            "try std.testing.expectEqual(@as(u32, 24), dword_desc.length);",
+            "try std.testing.expectEqual(@as(u32, 8), dword_desc.stride);",
             ".acq_rel",
             ".acquire",
             ".release",
@@ -325,7 +332,7 @@ def validate(root: Path) -> list[str]:
             "signed `fetchMin` and `fetchMax`",
             "`acq_rel` strong `compareExchange()` mismatch handling",
             "non-`seq_cst` atomic ordering coverage",
-            "byte, 16-bit, and 32-bit MMIO access",
+            "byte, 16-bit, 32-bit, and 64-bit MMIO access",
         ),
     )
 
@@ -363,11 +370,11 @@ def self_test_doc(root: Path) -> str:
         "PHASE3_BARRIER_STATUS=local-sentinel-probe-only",
         f"PHASE3_BARRIER_BLOB_SHA={blob_sha(root / BARRIER_REL)}",
         f"PHASE3_MMIO_PATH={MMIO_REL}",
-        "PHASE3_MMIO_SCOPE=range-read8-write8-read16-write16-read32-write32",
-        "PHASE3_MMIO_STATUS=byte-16-bit-and-32-bit-mmio-through-narrow-pointer-bridge",
+        "PHASE3_MMIO_SCOPE=range-read8-write8-read16-write16-read32-write32-read64-write64",
+        "PHASE3_MMIO_STATUS=byte-16-bit-32-bit-and-64-bit-mmio-through-narrow-pointer-bridge",
         f"PHASE3_MMIO_BLOB_SHA={blob_sha(root / MMIO_REL)}",
         f"PHASE3_LOW_LEVEL_TEST_PATH={LOW_LEVEL_TEST_REL}",
-        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-and-non-seq-cst-ordering",
+        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay",
         "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
         f"PHASE3_LOW_LEVEL_TEST_BLOB_SHA={blob_sha(root / LOW_LEVEL_TEST_REL)}",
         f"PHASE3_ABI_TEST_PATH={ABI_TEST_REL}",
@@ -380,7 +387,7 @@ def self_test_doc(root: Path) -> str:
         "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
         "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
-        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-byte-16-bit-and-32-bit-mmio-barrier-locality-and-non-seq-cst-orderings-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof",
+        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-byte-16-bit-32-bit-and-64-bit-mmio-range-and-barrier-locality-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof",
         "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves",
         "",
     )
@@ -416,6 +423,7 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
+        (root / BARRIER_REL).writeText = None
         (root / BARRIER_REL).write_text(
             "\n".join(
                 (
@@ -438,7 +446,9 @@ def run_self_test() -> int:
                     "pub fn write16() void {}",
                     "pub fn read32() void {}",
                     "pub fn write32() void {}",
-                    "const ptr = narrow.pointerAt(u32, 0, 0);",
+                    "pub fn read64() void {}",
+                    "pub fn write64() void {}",
+                    "const ptr = narrow.pointerAt(u64, 0, 0);",
                     "_ = ptr;",
                     "",
                 )
@@ -464,15 +474,20 @@ def run_self_test() -> int:
                     "    _ = mmio.read16;",
                     "    _ = mmio.write32;",
                     "    _ = mmio.read32;",
+                    "    _ = mmio.write64;",
+                    "    _ = mmio.read64;",
                     "    try std.testing.expectEqual(base, byte_desc.base_addr);",
-                    "    try std.testing.expectEqual(@as(u32, 8), byte_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 24), byte_desc.length);",
                     "    try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);",
                     "    try std.testing.expectEqual(base, halfword_desc.base_addr);",
-                    "    try std.testing.expectEqual(@as(u32, 8), halfword_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 24), halfword_desc.length);",
                     "    try std.testing.expectEqual(@as(u32, 2), halfword_desc.stride);",
-                    "    try std.testing.expectEqual(base, desc.base_addr);",
-                    "    try std.testing.expectEqual(@as(u32, 8), desc.length);",
-                    "    try std.testing.expectEqual(@as(u32, 4), desc.stride);",
+                    "    try std.testing.expectEqual(base, word_desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 24), word_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 4), word_desc.stride);",
+                    "    try std.testing.expectEqual(base, dword_desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 24), dword_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 8), dword_desc.stride);",
                     "}",
                     'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {',
                     "    _ = atomic.fetchMin(i32, &signed_value, -3, .seq_cst);",
@@ -549,7 +564,7 @@ def run_self_test() -> int:
                     "signed `fetchMin` and `fetchMax`",
                     "`acq_rel` strong `compareExchange()` mismatch handling",
                     "non-`seq_cst` atomic ordering coverage",
-                    "byte, 16-bit, and 32-bit MMIO access",
+                    "byte, 16-bit, 32-bit, and 64-bit MMIO access",
                     "",
                 )
             ),
@@ -573,7 +588,7 @@ def run_self_test() -> int:
                     "signed `fetchAdd` and `fetchSub`",
                     "signed `fetchMin` and `fetchMax`",
                     "non-`seq_cst` atomic ordering coverage",
-                    "byte and 32-bit MMIO access",
+                    "byte and 64-bit MMIO access",
                     "",
                 )
             ),
@@ -585,7 +600,7 @@ def run_self_test() -> int:
             for issue in stale_abi_slice_issues
         ), stale_abi_slice_issues
         assert "abi_slice_missing_token:`acq_rel` strong `compareExchange()` mismatch handling" in stale_abi_slice_issues, stale_abi_slice_issues
-        assert "abi_slice_missing_token:byte, 16-bit, and 32-bit MMIO access" in stale_abi_slice_issues, stale_abi_slice_issues
+        assert "abi_slice_missing_token:byte, 16-bit, 32-bit, and 64-bit MMIO access" in stale_abi_slice_issues, stale_abi_slice_issues
 
         (root / ABI_SLICE_DOC_REL).write_text(
             "\n".join(
@@ -598,7 +613,7 @@ def run_self_test() -> int:
                     "signed `fetchMin` and `fetchMax`",
                     "`acq_rel` strong `compareExchange()` mismatch handling",
                     "non-`seq_cst` atomic ordering coverage",
-                    "byte, 16-bit, and 32-bit MMIO access",
+                    "byte, 16-bit, 32-bit, and 64-bit MMIO access",
                     "",
                 )
             ),
@@ -624,14 +639,17 @@ def run_self_test() -> int:
                     "    _ = mmio.write32;",
                     "    _ = mmio.read32;",
                     "    try std.testing.expectEqual(base, byte_desc.base_addr);",
-                    "    try std.testing.expectEqual(@as(u32, 8), byte_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 24), byte_desc.length);",
                     "    try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);",
                     "    try std.testing.expectEqual(base, halfword_desc.base_addr);",
-                    "    try std.testing.expectEqual(@as(u32, 8), halfword_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 24), halfword_desc.length);",
                     "    try std.testing.expectEqual(@as(u32, 2), halfword_desc.stride);",
-                    "    try std.testing.expectEqual(base, desc.base_addr);",
-                    "    try std.testing.expectEqual(@as(u32, 8), desc.length);",
-                    "    try std.testing.expectEqual(@as(u32, 4), desc.stride);",
+                    "    try std.testing.expectEqual(base, word_desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 24), word_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 4), word_desc.stride);",
+                    "    try std.testing.expectEqual(base, dword_desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 24), dword_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 8), dword_desc.stride);",
                     "}",
                     'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {',
                     "    _ = atomic.fetchMin(i32, &signed_value, -3, .seq_cst);",
@@ -657,8 +675,8 @@ def run_self_test() -> int:
             issue.startswith("stale_blob_marker:PHASE3_LOW_LEVEL_TEST_BLOB_SHA:")
             for issue in stale_low_level_test_issues
         ), stale_low_level_test_issues
-        assert "low_level_test_missing_token:const acq_rel_mismatch = atomic.compareExchange(" in stale_low_level_test_issues, stale_low_level_test_issues
-        assert "low_level_test_missing_token:try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);" in stale_low_level_test_issues, stale_low_level_test_issues
+        assert "low_level_test_missing_token:mmio.write64" in stale_low_level_test_issues, stale_low_level_test_issues
+        assert "low_level_test_missing_token:mmio.read64" in stale_low_level_test_issues, stale_low_level_test_issues
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
