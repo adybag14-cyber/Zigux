@@ -182,6 +182,7 @@ test "phase 15 readiness note keeps the roadmap, ledger, and current blocker inv
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Readiness Gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Full-Parity Blockers and Long-Term Governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "PHASE15_LANE_KEY=P15-L01") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "shared replay surface is green on current `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-validate` checker stack") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "maintenance-mode ready") != null);
