@@ -591,6 +591,7 @@ test "bitmap zero-bit helpers stay explicit no-ops" {
     var dst = [_]Word{0x55aa55aa55aa55aa};
     const src1 = [_]Word{0xffff0000ffff0000};
     const src2 = [_]Word{0x0000ffff0000ffff};
+    const copy_src = [_]Word{0x0123456789abcdef};
     const before = dst[0];
 
     zero(dst[0..0], 0);
@@ -600,6 +601,9 @@ test "bitmap zero-bit helpers stay explicit no-ops" {
     try std.testing.expectEqual(before, dst[0]);
 
     xorBits(dst[0..0], src1[0..0], src2[0..0], 0);
+    try std.testing.expectEqual(before, dst[0]);
+
+    copy(dst[0..0], copy_src[0..0], 0);
     try std.testing.expectEqual(before, dst[0]);
 
     try std.testing.expect(empty(&[_]Word{}, 0));
