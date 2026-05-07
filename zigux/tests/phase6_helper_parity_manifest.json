@@ -82,6 +82,88 @@
     ],
     "timing_sanity_only_helpers": []
   },
+  "perf_thresholds": {
+    "base64": {
+      "replay": "zigux/tests/phase6_base64_perf.zig",
+      "fixture": "zigux/tests/fixtures/phase6_base64_vectors.zig",
+      "cases": [
+        {
+          "label": "STD_PAD",
+          "iterations": 12000,
+          "max_encode_slowdown_pct": 150,
+          "max_decode_slowdown_pct": 325
+        },
+        {
+          "label": "STD_NO_PAD",
+          "iterations": 12000,
+          "max_encode_slowdown_pct": 150,
+          "max_decode_slowdown_pct": 325
+        },
+        {
+          "label": "URLSAFE_PAD",
+          "iterations": 12000,
+          "max_encode_slowdown_pct": 150,
+          "max_decode_slowdown_pct": 325
+        },
+        {
+          "label": "URLSAFE_NO_PAD",
+          "iterations": 12000,
+          "max_encode_slowdown_pct": 150,
+          "max_decode_slowdown_pct": 325
+        }
+      ]
+    },
+    "bsearch": {
+      "replay": "zigux/tests/phase6_bsearch.zig",
+      "measurement_mode": "comparison_budget",
+      "typed_lookup_budget": 4,
+      "raw_lookup_budget": 4,
+      "representative_typed_cases": 5,
+      "representative_raw_cases": 5
+    },
+    "checksum": {
+      "replay": "zigux/tests/phase6_checksum_perf.zig",
+      "fixture": "zigux/tests/fixtures/phase6_checksum_vectors.zig",
+      "cases": [
+        {
+          "label": "64B",
+          "iterations": 200000,
+          "max_slowdown_pct": 150
+        },
+        {
+          "label": "1501B",
+          "iterations": 12000,
+          "max_slowdown_pct": 150
+        }
+      ]
+    },
+    "hexdump": {
+      "replay": "zigux/tests/phase6_hexdump_perf.zig",
+      "fixture": "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
+      "cases": [
+        {
+          "label": "16B-plain-g1",
+          "reps": 40000,
+          "max_slowdown_pct": 175
+        },
+        {
+          "label": "32B-ascii-g2",
+          "reps": 10000,
+          "max_slowdown_pct": 550
+        },
+        {
+          "label": "16B-ascii-g4",
+          "reps": 20000,
+          "max_slowdown_pct": 550
+        },
+        {
+          "label": "16B-ascii-g8",
+          "reps": 20000,
+          "max_slowdown_pct": 600
+        }
+      ]
+    }
+  },
   "fixture_posture": {
     "fixture_backed_helpers": [
       "base64",
