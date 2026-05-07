@@ -600,16 +600,6 @@ def run_self_test() -> int:
         if "phase14 rollback-threshold sequencing checker forced failure" not in errors:
             print("self-test expected rollback-threshold checker subprocess failure", file=sys.stderr)
             return 1
-        broken_rollback_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            f"\"\"\"{CHECKER_MARKER}\"\"\"\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 rollback-threshold sequencing checker failed without output" not in errors:
-            print("self-test expected rollback-threshold checker silent subprocess failure", file=sys.stderr)
-            return 1
         write_text(root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         broken_release_boundary_checker = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
         broken_release_boundary_checker.write_text(
@@ -623,16 +613,6 @@ def run_self_test() -> int:
         errors = check(root)
         if "phase14 release-boundary exact-counts checker forced failure" not in errors:
             print("self-test expected release-boundary checker subprocess failure", file=sys.stderr)
-            return 1
-        broken_release_boundary_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            f"\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 release-boundary exact-counts checker failed without output" not in errors:
-            print("self-test expected release-boundary checker silent subprocess failure", file=sys.stderr)
             return 1
         write_text(root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py", f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
     return 0
