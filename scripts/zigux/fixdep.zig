@@ -220,6 +220,14 @@ const Processor = struct {
                         cursor += 1;
                         continue;
                     }
+                    try token.append(self.arena.allocator(), dep_text[cursor]);
+                    cursor += 1;
+                    if (cursor == dep_text.len) {
+                        break;
+                    }
+                    try token.append(self.arena.allocator(), dep_text[cursor]);
+                    cursor += 1;
+                    continue;
                 }
 
                 try token.append(self.arena.allocator(), dep_text[cursor]);
@@ -401,6 +409,47 @@ test "dep parsing returns NoTargets for comment-only depfiles" {
         processor.parseDepFile(&capture, "# comment only\n# still no targets\n", "sample.o"),
     );
     try std.testing.expectEqual(@as(usize, 0), capture.list.items.len);
+}
+
+test "dep parsing keeps escaped spaces inside tokens" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 160),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseDepFile(
+        &capture,
+        "sample.o: sample.rmeta dep\\ name.rmeta\n",
+        "sample.o",
+    );
+
+    try std.testing.expectEqualStrings(
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n  dep\\ name.rmeta \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        capture.list.items,
+    );
 }
 
 test "dep parsing skips bytes after the first embedded NUL" {
