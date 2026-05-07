@@ -197,6 +197,16 @@ test "phase 7 stringUnescape supports in-place and bounded destination behavior"
     try std.testing.expectEqual(@as(u8, '!'), bounded[3]);
 }
 
+test "phase 7 stringUnescapeInplace reuses the core escape path without extra buffers" {
+    var inplace = [_]u8{ '\\', 'n', '\\', 'x', '4', '1', 0, '?', '?' };
+    const len = string_helpers.stringUnescapeInplace(inplace[0..], string_helpers.UNESCAPE_ANY);
+    try std.testing.expectEqual(@as(usize, 2), len);
+    try std.testing.expectEqualSlices(u8, "\nA", inplace[0..len]);
+    try std.testing.expectEqual(@as(u8, 0), inplace[len]);
+    try std.testing.expectEqual(@as(u8, '?'), inplace[7]);
+    try std.testing.expectEqual(@as(u8, '?'), inplace[8]);
+}
+
 test "phase 7 stringEscapeMem covers the bounded escape subset" {
     var out = [_]u8{0} ** 64;
 
