@@ -63,7 +63,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("7b5519444e8f73f84c68dc3e63580fcaef06ffb6", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2359c03fa82626b7359467c9b8bc9d0b092de5aa", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.supporting_artifacts.len);
@@ -151,7 +151,7 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
 
     try expectContains(io_instance.io(), "Documentation/zigux/phase15-indefinite-c-policy.md", &.{
         "PHASE15_LANE_KEY=P15-L16",
-        "survey provenance refreshed against verified `master` head `7b5519444e8f73f84c68dc3e63580fcaef06ffb6`",
+        "survey provenance refreshed against verified `master` head `2359c03fa82626b7359467c9b8bc9d0b092de5aa`",
         "the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build",
         "scripts/zigux/README.md",
         "scripts/zigux/check-phase15-scripts-readme-alignment.py",
