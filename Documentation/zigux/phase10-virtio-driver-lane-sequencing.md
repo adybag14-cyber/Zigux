@@ -21,7 +21,7 @@ The live repo already has four distinct Phase 10 driver packets:
 - the input survey packet around `drivers/virtio/virtio_input.c`
 - the MMIO survey packet around `drivers/virtio/virtio_mmio.c`
 
-Those packets now share build wiring, shared `make -C zigux phase10-test` and `make -C zigux phase10` routes, and adjacent checker references. That shared replay surface is useful, but it also makes it easier for nearby scheduled runs to borrow each other's helper scope or reopen the wrong survey packet.
+Those packets now share build wiring, one closure manifest, shared `make -C zigux phase10-test` and `make -C zigux phase10` routes, and adjacent checker references. That shared replay surface is useful, but it also makes it easier for nearby scheduled runs to borrow each other's helper scope or reopen the wrong survey packet.
 
 This note keeps the Phase 10 driver tranche honest by separating shared replay routes from per-lane ownership.
 
@@ -30,11 +30,12 @@ This note keeps the Phase 10 driver tranche honest by separating shared replay r
 Shared Phase 10 replay surface:
 
 - `zigux/tests/phase10_build.zig`
+- `zigux/tests/phase10_closure_manifest.json`
 - `zigux/Makefile`
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-These shared routes prove that the current bounded virtio packet still replays together. They do not change which lane owns a helper, verify replay, manifest, survey gate, or next bounded follow-up.
+These shared routes, plus the shared closure manifest, prove that the current bounded virtio packet still replays together. They do not change which lane owns a helper, verify replay, manifest, survey gate, or next bounded follow-up.
 
 ## Lane map
 
