@@ -137,6 +137,37 @@ test "phase10 virtio ring broken summary keeps queue-local debt reviewable while
     try std.testing.expect(poll_summary.has_newly_used_chains);
 }
 
+test "phase10 virtio ring broken queue blocks used-chain recording until cleared" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(0, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(0);
+    _ = try ring.prepareKick(0);
+
+    var broken_summary = try ring.markBroken(0);
+    try std.testing.expect(broken_summary.broken);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), broken_summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), broken_summary.pending_used_chain_count);
+
+    try std.testing.expectError(error.QueueBroken, ring.recordUsedChains(0, 1));
+    broken_summary = try ring.brokenQueueSummary(0);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), broken_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), broken_summary.pending_used_chain_count);
+
+    broken_summary = try ring.clearBroken(0);
+    try std.testing.expect(!broken_summary.broken);
+    try ring.recordUsedChains(0, 1);
+
+    const poll_summary = try ring.pollUsedBuffers(0);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.outstanding_chain_count);
+    try std.testing.expect(poll_summary.has_newly_used_chains);
+}
+
 test "phase10 virtio ring only records used chains that were already kicked" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(7, 8, .split, true, false);
