@@ -193,7 +193,7 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_validation_matrix_blob_sha\": \"6cc107b5a8934172e70a6d539183684913eda7b6\"",
+        "\"phase4_validation_matrix_blob_sha\": \"f14c9826dfb5b9271b0dd085edec23a36209a4ff\"",
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
@@ -412,7 +412,7 @@ test "atomic64 diff wrapper records the exact bounded runtime case names" {
     try expectOrderedMarkersInSection(
         runtime_atomic64_diff_source,
         "const compare_swap_cases = [_]CompareSwapCase{",
-        "for (compare_swap_cases) |case| {",
+        "const add_unless_cases = [_]AddUnlessCase{",
         &.{
             ".name = \"cmpxchg success path stores the desired value when the expected value matches\"",
             ".name = \"cmpxchg mismatch keeps the original value visible\"",
@@ -421,7 +421,7 @@ test "atomic64 diff wrapper records the exact bounded runtime case names" {
     try expectOrderedMarkersInSection(
         runtime_atomic64_diff_source,
         "const add_unless_cases = [_]AddUnlessCase{",
-        "for (add_unless_cases) |case| {",
+        "const bitwise_cases = [_]BitwiseCase{",
         &.{
             ".name = \"add_unless leaves the counter untouched when it already matches the blocked value\"",
             ".name = \"add_unless applies the addend when the current value differs from the blocked value\"",
