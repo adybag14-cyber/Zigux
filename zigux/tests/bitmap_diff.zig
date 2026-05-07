@@ -615,6 +615,19 @@ test "bitmap diff gate records exact bounded copy checks" {
             .must_be_clear = &.{ 19, 22, 23, 63 },
         },
         .{
+            .name = "test_copy exact word-aligned replay clears the first-word tail and leaves later filled words untouched",
+            .source_set_len = 19,
+            .copy_nbits = BitmapHarness.bits_per_long,
+            .destination_init = .fill,
+            .expected_summary = .{
+                .first_set = 0,
+                .first_zero = 19,
+                .weight = 19 + (BitmapHarness.bitmap_nbits - BitmapHarness.bits_per_long),
+            },
+            .must_be_set = &.{ 0, 18, BitmapHarness.bits_per_long, 127, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 19, 22, 23, BitmapHarness.bits_per_long - 1 },
+        },
+        .{
             .name = "test_copy full-width replay from a cleared destination",
             .source_set_len = 109,
             .copy_nbits = BitmapHarness.bitmap_nbits,
@@ -737,7 +750,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectSourceCaseGroupCardinality(
         "const cases = [_]CopyCase{",
         "test \"bitmap diff gate rejects an empty threshold replay batch\"",
-        8,
+        9,
     );
     try expectMarker(bitmap_diff_source, "const exp1_find_nth_bits = [_]u32{");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill rounds the 35-bit prefix up to one word");
@@ -749,6 +762,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length range and prefix edits leave seeded bits unchanged");
     try expectMarker(bitmap_diff_source, "test_copy exact 23-bit replay clears the stale tail in the destination word");
     try expectMarker(bitmap_diff_source, "test_copy exact 23-bit replay clears the first-word tail without dropping later filled words");
+    try expectMarker(bitmap_diff_source, "test_copy exact word-aligned replay clears the first-word tail and leaves later filled words untouched");
     try expectMarker(bitmap_diff_source, "test_copy full-width replay from a cleared destination");
     try expectMarker(bitmap_diff_source, "test_copy full-width replay clears a pre-filled destination");
     try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
