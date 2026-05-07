@@ -14,6 +14,8 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 SURVEY_NOTE_PATH = "Documentation/zigux/phase11-hvc-console-survey.md"
 TEARDOWN_NOTE_PATH = "Documentation/zigux/phase11-hvc-console-teardown-note.md"
 VALIDATION_MATRIX_PATH = "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
+VERIFY_REPLAY_PATH = "drivers/tty/hvc/hvc_console_verify.zig"
+CLEANUP_REPLAY_PATH = "zigux/tests/phase11_hvc_cleanup.zig"
 BUILD_PATH = "zigux/tests/phase11_build.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
@@ -41,6 +43,8 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "`zigux/tests/phase11_hvc_console_survey.zig`",
     "`zigux/tests/phase11_build.zig`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "`drivers/tty/hvc/hvc_console_verify.zig`",
+    "`zigux/tests/phase11_hvc_cleanup.zig`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`zigux/Makefile`",
     "`.github/workflows/zigux-bootstrap.yml`",
@@ -65,7 +69,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 11
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -84,6 +88,8 @@ def validate(root: Path) -> list[str]:
         SURVEY_NOTE_PATH,
         TEARDOWN_NOTE_PATH,
         VALIDATION_MATRIX_PATH,
+        VERIFY_REPLAY_PATH,
+        CLEANUP_REPLAY_PATH,
         BUILD_PATH,
         MAKEFILE_PATH,
         WORKFLOW_PATH,
@@ -159,10 +165,28 @@ The live archival packet now belongs to lane `P11-L16`.
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_build.zig`
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
+- `drivers/tty/hvc/hvc_console_verify.zig`
+- `zigux/tests/phase11_hvc_cleanup.zig`
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter while the dedicated archival `make -C zigux phase11-hvc-survey` bootstrap replay remains the only extra CI step for the separate survey route
+""",
+    )
+    write_text(
+        root / VERIFY_REPLAY_PATH,
+        """const std = @import("std");
+test "synthetic hvc verify replay" {
+    try std.testing.expect(true);
+}
+""",
+    )
+    write_text(
+        root / CLEANUP_REPLAY_PATH,
+        """const std = @import("std");
+test "synthetic hvc cleanup replay" {
+    try std.testing.expect(true);
+}
 """,
     )
     write_text(
@@ -213,6 +237,15 @@ def expect_failure(root: Path, rel_path: str, marker: str, expected_failure: str
         raise AssertionError(f"missing expected failure {expected_failure!r}; got {failures!r}")
 
 
+def expect_missing_file(root: Path, rel_path: str) -> None:
+    path = root / rel_path
+    path.unlink()
+    failures = validate(root)
+    expected_failure = f"missing_file:{rel_path}"
+    if expected_failure not in failures:
+        raise AssertionError(f"missing expected failure {expected_failure!r}; got {failures!r}")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase11_hvc_survey_", dir=None) as tmpdir:
         root = Path(tmpdir)
@@ -259,6 +292,18 @@ def run_self_test() -> int:
             expect_failure(
                 root,
                 VALIDATION_MATRIX_PATH,
+                "`drivers/tty/hvc/hvc_console_verify.zig`",
+                "validation_matrix:`drivers/tty/hvc/hvc_console_verify.zig`",
+            )
+            expect_failure(
+                root,
+                VALIDATION_MATRIX_PATH,
+                "`zigux/tests/phase11_hvc_cleanup.zig`",
+                "validation_matrix:`zigux/tests/phase11_hvc_cleanup.zig`",
+            )
+            expect_failure(
+                root,
+                VALIDATION_MATRIX_PATH,
                 "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
                 "validation_matrix:`scripts/zigux/check-phase11-hvc-survey-packet.py`",
             )
@@ -268,6 +313,8 @@ def run_self_test() -> int:
                 "$(PYTHON) scripts/zigux/check-phase11-hvc-survey-packet.py",
                 "makefile:$(PYTHON) scripts/zigux/check-phase11-hvc-survey-packet.py",
             )
+            expect_missing_file(root, VERIFY_REPLAY_PATH)
+            expect_missing_file(root, CLEANUP_REPLAY_PATH)
         except AssertionError as exc:
             print(str(exc), file=sys.stderr)
             return 1
