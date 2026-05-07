@@ -131,25 +131,11 @@ pub fn hexDumpToBuffer(
     const ascii_column = rowsize * 2 + rowsize / groupsize + 1;
 
     switch (groupsize) {
-        8 => {
+        8, 4, 2 => {
             var index: usize = 0;
             while (index < ngroups) : (index += 1) {
                 if (index != 0) writer.appendByte(' ');
-                writer.appendFixedWidthHex(readNativeInt(u64, buf[index * 8 ..][0..8]), 16);
-            }
-        },
-        4 => {
-            var index: usize = 0;
-            while (index < ngroups) : (index += 1) {
-                if (index != 0) writer.appendByte(' ');
-                writer.appendFixedWidthHex(readNativeInt(u32, buf[index * 4 ..][0..4]), 8);
-            }
-        },
-        2 => {
-            var index: usize = 0;
-            while (index < ngroups) : (index += 1) {
-                if (index != 0) writer.appendByte(' ');
-                writer.appendFixedWidthHex(readNativeInt(u16, buf[index * 2 ..][0..2]), 4);
+                writer.appendGroupHex(buf[index * groupsize ..][0..groupsize]);
             }
         },
         else => {
@@ -256,26 +242,6 @@ fn decodeRange(ch: u8, first: u8, last: u8, bias: i8) i8 {
     return @intCast((ch_i - first_i + bias_i) & @as(i32, @bitCast(mask)));
 }
 
-fn readNativeInt(comptime T: type, bytes: []const u8) T {
-    std.debug.assert(bytes.len == @sizeOf(T));
-
-    const Shift = std.math.Log2Int(T);
-    var value: T = 0;
-
-    if (builtin.cpu.arch.endian() == .little) {
-        for (bytes, 0..) |byte, index| {
-            const shift: Shift = @intCast(index * 8);
-            value |= @as(T, byte) << shift;
-        }
-    } else {
-        for (bytes) |byte| {
-            value = (value << @as(Shift, 8)) | @as(T, byte);
-        }
-    }
-
-    return value;
-}
-
 const TruncatingWriter = struct {
     buffer: []u8,
     required: usize = 0,
@@ -291,15 +257,20 @@ const TruncatingWriter = struct {
         self.required += 1;
     }
 
-    fn appendFixedWidthHex(self: *TruncatingWriter, value: anytype, digits: usize) void {
-        const Int = @TypeOf(value);
-        const Shift = std.math.Log2Int(Int);
-        var remaining = digits;
-        while (remaining > 0) {
-            remaining -= 1;
-            const shift: Shift = @intCast(remaining * 4);
-            const nibble: u8 = @intCast((value >> shift) & 0x0f);
-            self.appendByte(hex_asc[nibble]);
+    fn appendGroupHex(self: *TruncatingWriter, bytes: []const u8) void {
+        if (builtin.cpu.arch.endian() == .little and bytes.len > 1) {
+            var index = bytes.len;
+            while (index > 0) {
+                index -= 1;
+                self.appendByte(hexAscHi(bytes[index]));
+                self.appendByte(hexAscLo(bytes[index]));
+            }
+            return;
+        }
+
+        for (bytes) |byte| {
+            self.appendByte(hexAscHi(byte));
+            self.appendByte(hexAscLo(byte));
         }
     }
 
@@ -377,6 +348,58 @@ test "hex conversion helpers reject malformed sources and undersized destination
     try std.testing.expectError(HexError.DestinationTooSmall, bin2hex(short_encoded[0..], &[_]u8{ 0x00, 0xab, 0x7f, 0xf0 }));
     try std.testing.expectError(HexError.DestinationTooSmall, hexBytePack(tiny[0..], 0xbe));
     try std.testing.expectError(HexError.DestinationTooSmall, hexBytePackUpper(tiny[0..], 0xbe));
+}
+
+test "hexdump grouped plain output stays exact at full and truncated buffer capacity" {
+    const input = [_]u8{
+        0xbe, 0x32, 0xdb, 0x7b,
+        0x0a, 0x18, 0x93, 0xb2,
+        0x70, 0xba, 0xc4, 0x24,
+        0x7d, 0x83, 0x34, 0x9b,
+    };
+    const cases = [_]struct {
+        groupsize: usize,
+        expected: []const u8,
+    }{
+        .{
+            .groupsize = 2,
+            .expected = if (builtin.cpu.arch.endian() == .big)
+                "be32 db7b 0a18 93b2 70ba c424 7d83 349b"
+            else
+                "32be 7bdb 180a b293 ba70 24c4 837d 9b34",
+        },
+        .{
+            .groupsize = 4,
+            .expected = if (builtin.cpu.arch.endian() == .big)
+                "be32db7b 0a1893b2 70bac424 7d83349b"
+            else
+                "7bdb32be b293180a 24c4ba70 9b34837d",
+        },
+        .{
+            .groupsize = 8,
+            .expected = if (builtin.cpu.arch.endian() == .big)
+                "be32db7b0a1893b2 70bac4247d83349b"
+            else
+                "b293180a7bdb32be 9b34837d24c4ba70",
+        },
+    };
+
+    for (cases) |case| {
+        const required = hexDumpLineLength(input.len, 16, case.groupsize, false);
+        try std.testing.expectEqual(@as(usize, case.expected.len), required);
+
+        var exact: [48]u8 = undefined;
+        const exact_written = hexDumpToBuffer(&input, 16, case.groupsize, exact[0 .. required + 1], false);
+        try std.testing.expectEqual(required, exact_written);
+        try std.testing.expectEqualSlices(u8, case.expected, std.mem.sliceTo(exact[0 .. required + 1], 0));
+        try std.testing.expectEqual(@as(u8, 0), exact[required]);
+
+        var truncated: [48]u8 = [_]u8{0xaa} ** 48;
+        const truncated_written = hexDumpToBuffer(&input, 16, case.groupsize, truncated[0..required], false);
+        try std.testing.expectEqual(required, truncated_written);
+        try std.testing.expectEqualSlices(u8, case.expected[0 .. required - 1], std.mem.sliceTo(truncated[0..required], 0));
+        try std.testing.expectEqual(@as(u8, 0), truncated[required - 1]);
+    }
 }
 
 test "hexdump grouped-2 ascii output stays exact at full buffer capacity" {
