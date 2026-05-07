@@ -4,12 +4,13 @@ This note records the current shipped Phase 13 release-facing helper packet on `
 
 ## Status
 - `PHASE13_RELEASE_PACKET_STATUS=active`
-- `PHASE13_SHARED_REPLAY_STEP_COUNT=7`
+- `PHASE13_SHARED_REPLAY_STEP_COUNT=8`
 - shared replay files:
   - `zigux/tests/phase13_libfs.zig`
   - `zigux/tests/phase13_devres.zig`
   - `zigux/tests/phase13_devres_reviewability.zig`
   - `zigux/tests/phase13_devres_dma_coherent.zig`
+  - `zigux/tests/phase13_devres_boundary_evidence.zig`
   - `zigux/tests/phase13_landlock_ruleset.zig`
   - `zigux/tests/phase13_landlock_syscalls.zig`
   - `zigux/tests/phase13_libfs_reviewability.zig`
@@ -25,21 +26,21 @@ This note records the current shipped Phase 13 release-facing helper packet on `
 
 The current shipped Phase 13 helper packet stays validator-first and replay-backed.
 
-The shared replay on `master` is now the seven-test bundle wired by `zigux/tests/phase13_build.zig`. That bundle covers the helper-first `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` anchors plus the bounded `devres` reviewability replay, the bounded `devres` DMA-coherent replay, and the bounded `libfs` reviewability replay without turning the adjacent release evidence into extra shared replay steps.
+The shared replay on `master` is now the eight-test bundle wired by `zigux/tests/phase13_build.zig`. That bundle covers the helper-first `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` anchors plus the bounded `devres` reviewability replay, the bounded `devres` DMA-coherent replay, the exact `devres` boundary-evidence replay, and the bounded `libfs` reviewability replay without turning the adjacent release evidence into extra shared replay steps.
 
-The focused `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard is shipped direct helper evidence for the syscall anchor, but it stays outside that seven-test replay count so the release-facing packet does not quietly grow an eighth shared step.
+The focused `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard is shipped direct helper evidence for the syscall anchor, but it stays outside that eight-test replay count so the release-facing packet does not quietly grow a ninth shared step.
 
 Inside that packet, the Phase 13 `devres` lane remains bounded to helper-only planning around `lib/devres.c`.
 
-The shipped `lib/devres.zig` lab plus the paired `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_dma_coherent.zig` replays keep MMIO-adjacent behavior explicit for managed ioremap lifetime planning, `__devm_ioremap_resource()` sizing and failure shaping, `devm_of_iomap()` translated-resource planning, coherent DMA reservation bookkeeping, and WC memtype reservation bookkeeping while still blocking live MMIO, live device-tree walking, DMA-backed mapping beyond the bounded coherent replay, scatterlist ownership, and live arch memtype mutation.
+The shipped `lib/devres.zig` lab plus the paired `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_boundary_evidence.zig` replays keep MMIO-adjacent behavior explicit for managed ioremap lifetime planning, `__devm_ioremap_resource()` sizing and failure shaping, `devm_of_iomap()` translated-resource planning, coherent DMA reservation bookkeeping, WC memtype reservation bookkeeping, and the exact DMA-backed and scatterlist blocker evidence while still blocking live MMIO, live device-tree walking, DMA-backed mapping beyond the bounded coherent replay, scatterlist ownership, and live arch memtype mutation.
 
-The same validator-first release route on current `master` also reruns `scripts/zigux/check-phase13-landlock-ruleset-packet.py` beside the shared release validator and the `devres` packet checker, so the helper-only ruleset blockers stay explicit without turning that dedicated packet guard into an eighth shared replay step.
+The same validator-first release route on current `master` also reruns `scripts/zigux/check-phase13-landlock-ruleset-packet.py` beside the shared release validator and the `devres` packet checker, so the helper-only ruleset blockers stay explicit without turning that dedicated packet guard into a ninth shared replay step.
 
-`Documentation/zigux/phase13-shared-helper-lane-sequencing.md` stays paired with that shipped release packet as the owner map for the active `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` helper families. It keeps the shared validator-first route, the seven-test build-backed replay, and the adjacent notifier evidence from collapsing into one ownerless Phase 13 surface just because those helpers now travel through the same release-facing packet on `master`.
+`Documentation/zigux/phase13-shared-helper-lane-sequencing.md` stays paired with that shipped release packet as the owner map for the active `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` helper families. It keeps the shared validator-first route, the eight-test build-backed replay, and the adjacent notifier evidence from collapsing into one ownerless Phase 13 surface just because those helpers now travel through the same release-facing packet on `master`.
 
 ## Adjacent release evidence
 
-These files are shipped adjacent release-surface evidence on `master`, but they do not add extra shared replay steps beyond the seven-test route above:
+These files are shipped adjacent release-surface evidence on `master`, but they do not add extra shared replay steps beyond the eight-test route above:
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
