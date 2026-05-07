@@ -732,6 +732,13 @@ def run_self_test() -> None:
         make_fixture_root(tmp_root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        del manifest["review_anchors"]["tools/lib/bitmap.zig"]["predicate_tail_mask_anchor"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "manifest:missing_review_anchor_field=tools/lib/bitmap.zig:predicate_tail_mask_anchor" in missing
+        make_fixture_root(tmp_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         del manifest["review_anchors"]["tools/lib/find_bit.zig"]["zero_bit_window"]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = collect_missing_markers(tmp_root)
@@ -786,7 +793,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [".github/workflows/zigux-bootstrap.yml"]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=14")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=15")
 
 
 def main() -> int:
