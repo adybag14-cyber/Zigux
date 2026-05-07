@@ -167,6 +167,32 @@ test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with t
     try std.testing.expectEqual(@as(?i32, -11), summary.first_process_error);
 }
 
+test "phase 8 perf-buffer poll helper keeps buffer-fd lookup and return shaping explicit" {
+    const buffers = [_]perf_buffer_poll.BufferFdObservation{
+        .{ .fd = 17 },
+        .{},
+        .{ .fd = 42 },
+    };
+
+    const success = perf_buffer_poll.resolveBufferFdResultFromSlots(&buffers, 2);
+    try std.testing.expectEqual(perf_buffer_poll.BufferFdDisposition.buffer_fd, success.disposition);
+    try std.testing.expectEqual(@as(i32, 42), success.return_value);
+
+    const missing = perf_buffer_poll.resolveBufferFdResultFromSlots(&buffers, 1);
+    try std.testing.expectEqual(perf_buffer_poll.BufferFdDisposition.missing_buffer_fd, missing.disposition);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        missing.return_value,
+    );
+
+    const invalid = perf_buffer_poll.resolveBufferFdResultFromSlots(&buffers, 4);
+    try std.testing.expectEqual(perf_buffer_poll.BufferFdDisposition.invalid_index, invalid.disposition);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        invalid.return_value,
+    );
+}
+
 test "phase 8 perf-buffer poll helper keeps buffer-window lookup and return shaping explicit" {
     const buffers = [_]perf_buffer_poll.BufferWindowObservation{
         .{ .base_token = 0x1000 },
