@@ -288,7 +288,7 @@ def check_compile_matrix(root: Path) -> list[str]:
         errors.append("phase14 smoke note focused compile-shard count drifted from the current one-shard packet")
     if smoke_note_text.count("coverage `full_bundle_only`") != 4:
         errors.append("phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet")
-    if build_text.count("b.addTest(.{") != 5:
+    if build_text.count("b.addTest({") != 5:
         errors.append("phase14 build bundle no longer declares the current five compile artifacts")
     if build_text.count("b.addRunArtifact(") != 5:
         errors.append("phase14 build bundle no longer wires the current five compile-artifact runs")
@@ -421,7 +421,6 @@ def run_self_test() -> int:
                 "lane_key": "P14-L08",
                 "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
                 "gaps": [
-                    {"id": "phase14-ring-buffer-read-page-copy-followup", "status": "ready_next"},
                     {"id": "phase14-ring-buffer-zig-port-blocker", "status": "blocked_on_stay_in_c_evidence"},
                 ],
             },
@@ -475,7 +474,7 @@ def run_self_test() -> int:
             "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
         ]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
-            build_lines.append("b.addTest(.{")
+            build_lines.append("b.addTest({")
             build_lines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
@@ -497,7 +496,7 @@ def run_self_test() -> int:
         if not any("missing compile-matrix row" in error for error in errors):
             print("self-test expected compile-matrix row failure", file=sys.stderr)
             return 1
-        write_text(broken_smoke_note, "\n".join(matrix_lines) + "\n")
+        write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
         broken_build = root / "zigux/tests/phase14_build.zig"
         broken_build.write_text(
             broken_build.read_text(encoding="utf-8").replace(
