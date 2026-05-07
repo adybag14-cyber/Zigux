@@ -141,6 +141,9 @@ test "phase 5 kobject sample keeps the already-registered boundary reviewable th
     try std.testing.expectEqual(@as(usize, 3), replay.active_attr_count);
     try std.testing.expect(replay.rejected_duplicate_registration);
     try std.testing.expect(replay.rejected_registered_anchor_replay);
+    try std.testing.expectEqual(@as(usize, 3), replay.post_rejection_store_len);
+    try std.testing.expectEqualStrings("foo", replay.post_rejection_show.attr_name);
+    try std.testing.expectEqualStrings("11\n", replay.post_rejection_show.text[0..replay.post_rejection_show.len]);
     try std.testing.expectEqual(sample.SampleStage.registered, module.stage());
 }
 
