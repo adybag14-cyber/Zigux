@@ -40,8 +40,18 @@ pub fn write32(base_addr: usize, offset: usize, value: u32) void {
     ptr.* = value;
 }
 
+pub fn read64(base_addr: usize, offset: usize) u64 {
+    const ptr = narrow.pointerAt(u64, base_addr, offset);
+    return ptr.*;
+}
+
+pub fn write64(base_addr: usize, offset: usize, value: u64) void {
+    const ptr = narrow.pointerAt(u64, base_addr, offset);
+    ptr.* = value;
+}
+
 test "phase3 mmio wrapper uses bounded volatile access" {
-    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     const base = narrow.addressOf(&bytes[0]);
 
     write8(base, 0, 0x5a);
@@ -58,8 +68,13 @@ test "phase3 mmio wrapper uses bounded volatile access" {
     try std.testing.expectEqual(@as(u32, 0xfeedbeef), unaligned_word.*);
     try std.testing.expectEqual(@as(u32, 0xfeedbeef), read32(base, 3));
 
-    const desc = range(base, 12, 1);
+    const unaligned_doubleword: *align(1) const u64 = @ptrCast(&bytes[5]);
+    write64(base, 5, 0x0123_4567_89ab_cdef);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), unaligned_doubleword.*);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), read64(base, 5));
+
+    const desc = range(base, 16, 1);
     try std.testing.expectEqual(base, desc.base_addr);
-    try std.testing.expectEqual(@as(u32, 12), desc.length);
+    try std.testing.expectEqual(@as(u32, 16), desc.length);
     try std.testing.expectEqual(@as(u32, 1), desc.stride);
 }
