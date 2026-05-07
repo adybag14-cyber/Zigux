@@ -61,6 +61,41 @@ test "virtio ring delayed callback summary reports poll pressure when used work 
     try testing.expect(delayed.should_poll);
 }
 
+test "virtio ring packed-ring event-index queue shape stays reviewable across kick and reset flow" {
+    var lab = virtio_ring.VirtioRingLab{};
+    try lab.defineQueue(3, 16, .packed_ring, true, false);
+
+    var shape = try lab.queueShapeSummary(3);
+    try testing.expectEqual(virtio_ring.QueueLayout.packed_ring, shape.layout);
+    try testing.expect(shape.uses_event_idx);
+    try testing.expect(!shape.uses_indirect_descriptors);
+
+    try lab.publishDescriptorChain(3);
+    try lab.publishDescriptorChain(3);
+    const notification = try lab.prepareKick(3);
+    try testing.expect(notification.needs_kick);
+    try testing.expectEqual(@as(u16, 2), notification.outstanding_chain_count);
+    try testing.expectEqual(@as(usize, 1), notification.notification_count);
+
+    var readiness = try lab.queueResetReadinessSummary(3);
+    try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.outstanding_chains, readiness.blocker.?);
+
+    try lab.recordUsedChains(3, 2);
+    _ = try lab.pollUsedBuffers(3);
+    const reset = try lab.resetQueue(3);
+    try testing.expectEqual(virtio_ring.QueueLayout.packed_ring, reset.layout);
+    try testing.expect(reset.uses_event_idx);
+    try testing.expectEqual(@as(u16, 0), reset.avail_idx_shadow);
+
+    shape = try lab.queueShapeSummary(3);
+    try testing.expectEqual(virtio_ring.QueueLayout.packed_ring, shape.layout);
+    try testing.expect(shape.uses_event_idx);
+
+    readiness = try lab.queueResetReadinessSummary(3);
+    try testing.expect(readiness.reset_ready);
+    try testing.expectEqual(@as(?virtio_ring.QueueResetReadinessBlocker, null), readiness.blocker);
+}
+
 test "virtio ring clearBroken exposes the next reset blocker instead of hiding queue debt" {
     var lab = virtio_ring.VirtioRingLab{};
 
