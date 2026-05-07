@@ -68,7 +68,7 @@ The current tests check:
 - kernel-style one-line hex and ASCII formatting
 - native-endian grouped output for 2, 4, and 8 byte cases
 - normalization behavior for rowsize and groupsize fallback cases lifted from `lib/test_hexdump.c`
-- empty-buffer required-length behavior for normalized fallback paths
+- empty-buffer required-length behavior for both plain and ASCII modes, including normalized fallback paths
 - truncation behavior while still reporting the full required line length
 - the non-truncating helper path now uses a direct full-buffer formatter so the grouped ASCII perf replays do not pay the truncating writer's per-byte bounds checks
 - a dedicated perf replay that benchmarks the existing four-case perf fixture packet against the committed `fixtures.prepareExpectedLine(...)` reference path
