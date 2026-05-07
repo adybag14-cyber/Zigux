@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 - `PHASE15_STATUS=indefinite_c_policy_survey_landed`
 - `PHASE15_LANE_KEY=P15-L16`
 - `PHASE15_SLICE=indefinite-c-policy-field-sync-followup`
-- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and the linked field-sync between the policy note, review-process packet fields, parity scorecard wording, and reserved evidence-archive templates
+- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and the linked field-sync between the policy note, the shared scripts-root validator-first route, the review-process packet fields, the parity scorecard wording, and the reserved evidence-archive templates
 - survey provenance refreshed against verified `master` head `7b5519444e8f73f84c68dc3e63580fcaef06ffb6`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
@@ -17,6 +17,12 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `Documentation/zigux/phase15-evidence-archives/`
   - `Documentation/zigux/phase15-indefinite-c-policy.md`
+  - `scripts/zigux/README.md`
+  - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
+  - `scripts/zigux/check-phase15-review-process-handoff.py`
+  - `zigux/tests/README.md`
+  - `.github/workflows/zigux-bootstrap.yml`
+  - `zigux/Makefile`
   - `zigux/tests/phase15_indefinite_c_policy.json`
   - `zigux/tests/phase15_indefinite_c_policy.zig`
   - `zigux/tests/phase15_build.zig`
@@ -108,7 +114,7 @@ The current lane state is:
 - landed `phase15-indefinite-c-field-sync-followup`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane narrow. Zigux gains a dedicated, reviewable Phase 15 policy for code that remains in C indefinitely, but it still does not claim Architecture Council approval for any status change or any new deep-core Zig ownership.
+This keeps the lane narrow. Zigux gains a dedicated, reviewable Phase 15 policy for code that remains in C indefinitely, keeps the shared validator-first route explicit beside the dedicated policy note and its paired test, and still does not claim Architecture Council approval for any status change or any new deep-core Zig ownership.
 
 ## Non-goals
 
@@ -121,10 +127,13 @@ This slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 15 build
+1. run the shared validator-first gate
+- `make -C zigux phase15-validate`
+
+2. run the dedicated Phase 15 build
 - `zig build test --build-file zigux/tests/phase15_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase15`
 
 ## Next bounded step
