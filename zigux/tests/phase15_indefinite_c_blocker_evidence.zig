@@ -73,6 +73,7 @@ test "phase 15 indefinite-C policy packet keeps exception and blocker evidence a
                 "lane owner: `Architecture Council`",
                 "latest blocker disposition: `blocked_no_bounded_scheduler_seam`",
                 "retained discussion state after closeout: `retired_from_active_discussion`",
+                "indefinite-C policy link or non-applicability note: `Documentation/zigux/phase15-indefinite-c-policy.md`",
                 "written rationale: `A narrower scheduler seam has not been isolated yet, so this path remains a reserved template only.`",
             },
             .parity_snippets = &.{
@@ -89,6 +90,7 @@ test "phase 15 indefinite-C policy packet keeps exception and blocker evidence a
                 "lane owner: `Architecture Council`",
                 "latest blocker disposition: `blocked_no_bounded_allocator_seam`",
                 "retained discussion state after closeout: `retired_from_active_discussion`",
+                "indefinite-C policy link or non-applicability note: `Documentation/zigux/phase15-indefinite-c-policy.md`",
                 "written rationale: `A narrower allocator-facing seam has not been isolated yet, so this path remains a reserved template only.`",
             },
             .parity_snippets = &.{
@@ -104,6 +106,7 @@ test "phase 15 indefinite-C policy packet keeps exception and blocker evidence a
             .archive_snippets = &.{
                 "lane owner: `ABI and Runtime Team`",
                 "latest blocker disposition: `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`",
+                "indefinite-C policy link or non-applicability note: `Documentation/zigux/phase15-indefinite-c-policy.md`",
                 "`Documentation/zigux/phase14-rcu-tree-survey.md`",
                 "written rationale: `The current RCU follow-up remains wider than the allowed seam, so this path remains a reserved template only.`",
             },
@@ -121,6 +124,7 @@ test "phase 15 indefinite-C policy packet keeps exception and blocker evidence a
             .archive_snippets = &.{
                 "lane owner: `Shared Subsystems Pod`",
                 "latest blocker disposition: `blocked_packet_lifetime_boundary_still_too_wide`",
+                "indefinite-C policy link or non-applicability note: `Documentation/zigux/phase15-indefinite-c-policy.md`",
                 "`Documentation/zigux/phase14-skbuff-bridge-survey.md`",
                 "written rationale: `The current skbuff follow-up remains wider than the allowed lifetime boundary, so this path remains a reserved template only.`",
             },
