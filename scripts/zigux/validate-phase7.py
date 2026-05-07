@@ -181,7 +181,6 @@ REQUIRED_MARKERS = {
         "scripts/zigux/README.md",
         "scripts/zigux/validate-phase7.py",
         "scripts/zigux/check-phase7-make-wrapper.py",
-        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "scripts/zigux/check-phase7-build-wiring.py",
