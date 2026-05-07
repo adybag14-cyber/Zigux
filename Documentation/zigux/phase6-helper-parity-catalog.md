@@ -70,10 +70,11 @@ Use `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` before reopening
 - dedicated perf replay: `zigux/tests/phase6_hexdump_perf.zig`
 - committed fixture surface: `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
-- current review posture: helper parity plus the shipped formatter-sensitive slowdown gate exposed through `make -C zigux phase6-hexdump-perf`
+- current review posture: helper parity is now individually rerunnable through `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`, alongside the shipped formatter-sensitive slowdown gate exposed through `make -C zigux phase6-hexdump-perf`
 
 ## Shared Replay Reminders
 
+- `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-validate`
 - `make -C zigux phase6`
 - `make -C zigux phase6-base64-perf`
