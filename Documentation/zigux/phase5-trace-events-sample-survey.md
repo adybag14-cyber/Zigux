@@ -8,7 +8,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L16`
 - `PHASE5_SURVEYED_COMMIT=beb1065024e41b266c1492d7be5a446c04e42368`
-- scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, and exact bounded checks for the first `samples/zigux/` trace-events replay
+- scope: roadmap-vs-repo sample delivery, approved payload, callback, and ownership-lifetime idiom guidance, and exact bounded checks for the first `samples/zigux/` trace-events replay
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
   - `Documentation/zigux/phase5-sample-review-guide.md`
@@ -27,7 +27,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/trace_events/trace-events-sample.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection already showed landed Phase 5 FIFO, kobject, and kretprobe reference samples plus a later Phase 9 runtime `trace-events` starter. The missing Phase 5 job was still the earlier non-runtime reading of the same Linux anchor so reviewers can see the payload and callback idioms without confusing them with runtime substrate work.
+Fresh repo inspection already showed landed Phase 5 FIFO, kobject, and kretprobe reference samples plus a later Phase 9 runtime `trace-events` starter. The missing Phase 5 job was still the earlier non-runtime reading of the same Linux anchor so reviewers can see the payload, callback, and ownership-lifetime idioms without confusing them with runtime substrate work.
 
 ## Survey findings
 
@@ -37,7 +37,7 @@ Fresh repo inspection already showed landed Phase 5 FIFO, kobject, and kretprobe
   - string and array selection derived from `cnt % 5`
   - function-callback registration and unregister balance for the second thread path
   - real runtime substrate through `CREATE_TRACE_POINTS`, tracepoint macros, `kthread_run()`, `schedule_timeout()`, and module init or exit hooks
-- the honest Phase 5 move is to make the payload shape, chosen string, formatted message, family counts, and callback-registration balance reviewable in memory while leaving runtime thread creation and tracepoint macro wiring out of scope.
+- the honest Phase 5 move is to make the payload shape, chosen string, formatted message, family counts, callback-registration balance, lifecycle ownership, and post-exit rejection reviewable in memory while leaving runtime thread creation and tracepoint macro wiring out of scope.
 - the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep this note aligned with the same four-sample Phase 5 packet described from the docs root, sample root, scripts root, and tests root.
 - current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample, so the approved formatting idiom cue in this lane remains the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig`; standalone formatting-helper evidence stays under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet.
 
@@ -48,11 +48,11 @@ The repo now carries that bounded sample in `samples/zigux/trace_events_sample.z
 The sample intentionally stays small:
 
 - it keeps the Linux anchor path explicit in `TraceEventsReferenceSample.descriptor()`
-- it models only the bounded array payload, selected string, `iter=%d` message, `0xdeadbeef` bitmask word, conditional-family coverage, and one balanced register-then-unregister callback idiom in memory
+- it models only the bounded array payload, selected string, `iter=%d` message, `0xdeadbeef` bitmask word, conditional-family coverage, one balanced register-then-unregister callback idiom, and the post-exit ownership boundary in memory
 - it now exposes `runPayloadBoundaryReplay()` so the count-4 payload prefix, zero sentinel, `iter=4` message, and `One ring to rule them all` branch stay reviewable through a public helper instead of private field inspection
 - it now makes the replay summary itself carry explicit `vararg_payload_path_checked`, `relative_location_path_checked`, and `function_callback_path_checked` flags so reviewers do not have to infer those paths from private sample state
-- it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit
-- it keeps its sample-owned replay entrypoints bounded through `runAnchorReplay()`, `runPayloadBoundaryReplay()`, and `runCallbackBoundaryReplay()` so the payload-shape, formatted-message, and callback-boundary checks stay public instead of implying a runtime-ready trace-events module
+- it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit as part of the same bounded trace-events idiom
+- it keeps its sample-owned replay entrypoints bounded through `runAnchorReplay()`, `runPayloadBoundaryReplay()`, and `runCallbackBoundaryReplay()` so the payload-shape, formatted-message, callback-boundary, and ownership-lifetime checks stay public instead of implying a runtime-ready trace-events module
 
 The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
@@ -70,7 +70,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 
 Fresh live current-`master` inspection on 2026-05-07 confirmed that the shipped trace-events packet still presents one repo-local, non-runtime review surface rather than a runtime handoff claim.
 
-- `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` still describe the same bounded payload, formatting, callback, and teardown contract
+- `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` still describe the same bounded payload, formatting, callback, ownership, and teardown contract
 - the manifest-backed review prompts and survey gate still keep the exact `checked_focus` order plus the `unregisterFunctionCallback()` underflow, `OutstandingRegistration`, and post-exit replay-rejection cues explicit after the latest same-family prompt tightening
 - the public `runPayloadBoundaryReplay()` and `runCallbackBoundaryReplay()` helpers, `formattedMessage()` surface, replay-summary callback-path markers, and registration-balance cue all remain explicit on current `master`
 - the survey gate still enforces repo-local review guidance by keeping the no-standalone-format-sample boundary tied to the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet
@@ -85,6 +85,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - does the contributor packet still name `runPayloadBoundaryReplay()` as the approved public count-4 payload-boundary helper instead of implying private field inspection for the `1,2,3,4` prefix, zero sentinel, initialized-stage boundary, `iter=%d` replay, and selected-string branch?
 - does the contributor packet still name `runCallbackBoundaryReplay()` as the approved public callback-boundary helper instead of leaving the balanced register-then-unregister replay, callback-path proof, and restored registration balance implicit?
 - does the in-memory replay still keep the array payload, selected string, and `iter=%d` message reviewable instead of hiding them behind runtime thread state?
+- does the sample still keep the `init()` -> replay helpers -> `exit()` lifecycle explicit so the same landed trace-events packet remains a bounded ownership-and-lifetime example instead of only a tracing example?
 - does function-callback replay stay a balanced register-then-unregister idiom rather than implying `kthread_run()`, thread scheduling, or tracepoint enablement parity?
 - do the sample-owned prompts keep the exact `checked_focus` order, the balanced register-then-unregister callback flow, `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection, and post-exit replay rejection explicit instead of leaving those callback-boundary cues implied?
 - if the sample behavior changes, is the manifest updated alongside the replay contract instead of leaving reviewers to infer the new boundary from code alone?
@@ -97,7 +98,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 
 The current gap is no longer "Zigux has no trace-events sample guidance." The more precise state is:
 
-- the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, formatted messages, bounded family counts, vararg-payload coverage, relative-location coverage, callback-path coverage, the public count-4 payload-boundary helper, and teardown
+- the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, formatted messages, bounded family counts, vararg-payload coverage, relative-location coverage, callback-path coverage, the public payload and callback boundary helpers, and teardown-owned ownership-lifetime boundaries
 - the repo still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample, so reviewers should keep treating the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` as the approved formatting idiom cue while standalone formatting-helper evidence stays under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet
 - the shared docs-root, sample-root, scripts-root, tests-root, and Phase 5 guide packet should stay explicit here too, so this survey note does not understate the already-shipped review surface for the landed sample
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
