@@ -16,6 +16,12 @@ from phase3_catalog import build_step_for_slug, description_for_slug
 ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
 SCRIPT_PREFIX = "check-phase3-"
+PHASE3_PREFLIGHT_SCRIPTS = {
+    "abi": (
+        "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+        "scripts/zigux/survey-phase3-abi-constant-parity.py",
+    ),
+}
 
 WRAPPER_STUB = """#!/usr/bin/env python3
 from __future__ import annotations
@@ -86,6 +92,15 @@ def find_zig(explicit: str | None) -> str:
     if fallback.exists():
         return str(fallback)
     raise SystemExit("zig not found; pass --zig or add zig to PATH")
+
+
+def preflight_scripts_for_slug(slug: str) -> tuple[Path, ...]:
+    return tuple(ROOT / rel for rel in PHASE3_PREFLIGHT_SCRIPTS.get(slug, ()))
+
+
+def run_slug_preflights(slug: str) -> None:
+    for script in preflight_scripts_for_slug(slug):
+        run([sys.executable, str(script)], cwd=str(ROOT))
 
 
 def windows_to_wsl(path: Path) -> str:
@@ -159,6 +174,7 @@ def run_phase3_check(
     else:
         compiler = find_compiler(None)
     zig = find_zig(args.zig)
+    run_slug_preflights(slug)
 
     fixture_key = fixture_key_for_slug(slug)
     fixture_dir = ROOT / "zigux" / "tests" / "fixtures" / fixture_key
@@ -222,6 +238,11 @@ def run_self_test() -> int:
     parsed = parse_phase3_args(["--cc", "/tmp/cc", "--zig", "/tmp/zig"])
     assert parsed.cc == "/tmp/cc"
     assert parsed.zig == "/tmp/zig"
+    assert [path.as_posix() for path in preflight_scripts_for_slug("abi")] == [
+        (ROOT / "scripts/zigux/validate-phase3-abi-bindings-syntax.py").as_posix(),
+        (ROOT / "scripts/zigux/survey-phase3-abi-constant-parity.py").as_posix(),
+    ]
+    assert preflight_scripts_for_slug("bitmap-cpumask") == ()
 
     print("PHASE3_CHECK_LIB_SELF_TEST=pass")
     return 0
