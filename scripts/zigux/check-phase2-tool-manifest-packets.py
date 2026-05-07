@@ -58,7 +58,7 @@ REQUIRED_BOOTSTRAP_MARKERS = [
 ]
 REQUIRED_DOCS_ROOT_MARKERS = [
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
-    "the bounded `fixdep`, `genksyms`, `genksyms_crc`, `kconfig`, and `mk_elfconfig` helper packet",
+    "the shared tool-manifest packet, the fixdep workflow and parity route, the bounded `genksyms` bridge plus `genksyms_crc` artifact route, the bounded `kconfig` self-test plus bridge-parity route, the bounded `mk_elfconfig` artifact route",
 ]
 REQUIRED_SCRIPTS_README_LINES = [
     "- `check-phase2-tool-manifest-packets.py`",
