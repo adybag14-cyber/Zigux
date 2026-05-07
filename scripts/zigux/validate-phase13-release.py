@@ -206,6 +206,8 @@ TESTS_REVIEW_COMPANION_EXACT_COUNTS = {
     "include/zigux/notifier_abi.h": 3,
     "zigux/bindings/notifier_abi.zig": 3,
     "zigux/helpers/notifier_chain_view.zig": 3,
+    "scripts/zigux/check-phase13-landlock-ruleset-packet.py": 3,
+    "zigux/tests/phase13_landlock_syscalls_reviewability.zig": 3,
     "same shipped validator-first release path": 1,
     "extra Phase 13 checker or replay surfaces that are not on `master`": 2,
 }
@@ -582,6 +584,31 @@ def run_self_test() -> int:
 
         tests_review_companion_path = root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
         tests_review_companion_path.write_text(
+            "\n".join(
+                marker
+                for marker in _repeat_markers(
+                    TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS
+                ).splitlines()
+                if marker != "scripts/zigux/check-phase13-landlock-ruleset-packet.py"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            [
+                "tests-review-companion:scripts/zigux/check-phase13-landlock-ruleset-packet.py",
+                "tests-review-companion-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=3:actual=0",
+            ],
+            "missing_landlock_checker_marker_failed",
+        )
+        _write(
+            tests_review_companion_path,
+            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
+        )
+        case_count += 1
+
+        tests_review_companion_path.write_text(
             _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS).replace(
                 "scripts/zigux/check-phase13-landlock-ruleset-packet.py\n", "", 1
             ),
@@ -589,8 +616,33 @@ def run_self_test() -> int:
         )
         _assert_only(
             validate(root),
-            ["tests-review-companion:scripts/zigux/check-phase13-landlock-ruleset-packet.py"],
-            "missing_landlock_checker_marker_failed",
+            ["tests-review-companion-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=3:actual=2"],
+            "tests_review_companion_landlock_checker_exact_count_guard_failed",
+        )
+        _write(
+            tests_review_companion_path,
+            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
+        )
+        case_count += 1
+
+        tests_review_companion_path.write_text(
+            "\n".join(
+                marker
+                for marker in _repeat_markers(
+                    TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS
+                ).splitlines()
+                if marker != "zigux/tests/phase13_landlock_syscalls_reviewability.zig"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            [
+                "tests-review-companion:zigux/tests/phase13_landlock_syscalls_reviewability.zig",
+                "tests-review-companion-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=3:actual=0",
+            ],
+            "missing_landlock_reviewability_marker_failed",
         )
         _write(
             tests_review_companion_path,
@@ -606,8 +658,8 @@ def run_self_test() -> int:
         )
         _assert_only(
             validate(root),
-            ["tests-review-companion:zigux/tests/phase13_landlock_syscalls_reviewability.zig"],
-            "missing_landlock_reviewability_marker_failed",
+            ["tests-review-companion-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=3:actual=2"],
+            "tests_review_companion_landlock_reviewability_exact_count_guard_failed",
         )
         _write(
             tests_review_companion_path,
