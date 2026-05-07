@@ -114,6 +114,7 @@ CONTRIBUTOR_GUIDE_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
+    "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
@@ -129,6 +130,8 @@ CONTRIBUTOR_GUIDE_EXACT_COUNTS = {
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": 4,
     "zigux/tests/phase13_notifier_list_manifest.json": 2,
     "zigux/tests/phase13_notifier_list_reviewability.zig": 2,
+    "zigux/tests/phase13_landlock_syscalls_reviewability.zig": 2,
+    "scripts/zigux/check-phase13-landlock-ruleset-packet.py": 3,
     "zigux/bindings/notifier_abi.zig": 2,
     "include/zigux/notifier_abi.h": 2,
     "zigux/helpers/notifier_chain_view.zig": 2,
@@ -149,6 +152,7 @@ CONTRIBUTOR_SYNC_REQUIRED_MARKERS = [
     "zigux/tests/README.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
+    "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
@@ -166,6 +170,8 @@ CONTRIBUTOR_SYNC_EXACT_COUNTS = {
     "Documentation/zigux/phase13-notifier-list-survey.md": 1,
     "zigux/tests/phase13_notifier_list_manifest.json": 1,
     "zigux/tests/phase13_notifier_list_reviewability.zig": 2,
+    "zigux/tests/phase13_landlock_syscalls_reviewability.zig": 2,
+    "scripts/zigux/check-phase13-landlock-ruleset-packet.py": 1,
     "zigux/bindings/notifier_abi.zig": 1,
     "include/zigux/notifier_abi.h": 1,
     "zigux/helpers/notifier_chain_view.zig": 1,
@@ -512,8 +518,8 @@ def run_self_test() -> int:
         )
         _assert_only(
             validate(root),
-            ["contributor-workflow-guide:scripts/zigux/check-phase13-landlock-ruleset-packet.py"],
-            "missing_contributor_guide_landlock_checker_marker_failed",
+            ["contributor-workflow-guide-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=3:actual=2"],
+            "contributor_guide_landlock_checker_exact_count_guard_failed",
         )
         _write(
             contributor_guide_path,
@@ -527,7 +533,7 @@ def run_self_test() -> int:
                 for marker in _repeat_markers(
                     CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS
                 ).splitlines()
-                if marker != "Documentation/zigux/phase13-shared-helper-lane-sequencing.md"
+                if marker != "zigux/tests/phase13_landlock_syscalls_reviewability.zig"
             )
             + "\n",
             encoding="utf-8",
@@ -535,10 +541,10 @@ def run_self_test() -> int:
         _assert_only(
             validate(root),
             [
-                "contributor-workflow-guide:Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
-                "contributor-workflow-guide-exact:Documentation/zigux/phase13-shared-helper-lane-sequencing.md:expected=4:actual=0",
+                "contributor-workflow-guide:zigux/tests/phase13_landlock_syscalls_reviewability.zig",
+                "contributor-workflow-guide-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=0",
             ],
-            "missing_contributor_guide_sequencing_marker_failed",
+            "missing_contributor_guide_landlock_reviewability_marker_failed",
         )
         _write(
             contributor_guide_path,
@@ -556,6 +562,23 @@ def run_self_test() -> int:
             validate(root),
             ["contributor-workflow-guide-exact:Documentation/zigux/phase13-shared-helper-lane-sequencing.md:expected=4:actual=3"],
             "contributor_guide_sequencing_exact_count_guard_failed",
+        )
+        _write(
+            contributor_guide_path,
+            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
+        )
+        case_count += 1
+
+        contributor_guide_path.write_text(
+            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS).replace(
+                "zigux/tests/phase13_landlock_syscalls_reviewability.zig\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["contributor-workflow-guide-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=1"],
+            "contributor_guide_landlock_reviewability_exact_count_guard_failed",
         )
         _write(
             contributor_guide_path,
@@ -652,6 +675,73 @@ def run_self_test() -> int:
         case_count += 1
 
         contributor_surface_sync_path = root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"
+        contributor_surface_sync_path.write_text(
+            "\n".join(
+                marker
+                for marker in _repeat_markers(
+                    CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS
+                ).splitlines()
+                if marker != "zigux/tests/phase13_landlock_syscalls_reviewability.zig"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            [
+                "contributor-surface-sync:zigux/tests/phase13_landlock_syscalls_reviewability.zig",
+                "contributor-surface-sync-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=0",
+            ],
+            "missing_contributor_surface_sync_landlock_reviewability_marker_failed",
+        )
+        _write(
+            contributor_surface_sync_path,
+            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
+        )
+        case_count += 1
+
+        contributor_surface_sync_path.write_text(
+            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS).replace(
+                "zigux/tests/phase13_landlock_syscalls_reviewability.zig\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["contributor-surface-sync-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=1"],
+            "contributor_surface_sync_landlock_reviewability_exact_count_guard_failed",
+        )
+        _write(
+            contributor_surface_sync_path,
+            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
+        )
+        case_count += 1
+
+        contributor_surface_sync_path.write_text(
+            "\n".join(
+                marker
+                for marker in _repeat_markers(
+                    CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS
+                ).splitlines()
+                if marker != "scripts/zigux/check-phase13-landlock-ruleset-packet.py"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            [
+                "contributor-surface-sync:scripts/zigux/check-phase13-landlock-ruleset-packet.py",
+                "contributor-surface-sync-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=1:actual=0",
+            ],
+            "missing_contributor_surface_sync_landlock_checker_marker_failed",
+        )
+        _write(
+            contributor_surface_sync_path,
+            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
+        )
+        case_count += 1
+
         contributor_surface_sync_path.write_text(
             _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS).replace(
                 "zigux/tests/phase13_notifier_list_reviewability.zig\n", "",
