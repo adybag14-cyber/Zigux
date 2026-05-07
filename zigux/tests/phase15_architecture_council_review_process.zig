@@ -130,6 +130,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires or the deep-core blocker posture changes");
     try expectContains(survey_doc, "current review-process evidence is limited to named `phase`");
     try expectContains(survey_doc, "`validation gate summary`");
+    try expectContains(survey_doc, "`parity scorecard link or blocker record`");
     try expectContains(survey_doc, "`indefinite-C policy link or non-applicability note`");
     try expectContains(survey_doc, "rollback-threshold");
     try expectContains(survey_doc, "retained-discussion-state");
@@ -170,6 +171,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(manifest_json, "zig build test --build-file zigux/tests/phase15_build.zig");
     try expectContains(manifest_json, "make -C zigux phase15");
     try expectContains(manifest_json, "deep_core_blocker_posture_change");
+    try expectContains(manifest_json, "parity scorecard link or blocker record");
     try expectContains(manifest_json, "phase15-roadmap-minimum-field-sync");
     try expectContains(manifest_json, "phase15-lane-owner-alignment-replay-visible");
     try expectContains(manifest_json, "Documentation/zigux/phase15-governance-lane-sequencing.md");
