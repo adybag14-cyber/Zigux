@@ -210,7 +210,7 @@ pub const bitmap_diff_governance = BitmapDiffGovernance{
 };
 
 const exp1_find_nth_bits = [_]u32{
-    0, 65, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141,
+    0,   65,  128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141,
     142, 143, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221,
     222, 223, 256, 258, 260, 262, 264, 266, 268, 270, 272, 274, 276, 278, 280, 282,
     284, 286, 321, 323, 325, 327, 329, 331, 333, 335, 337, 339, 341, 343, 345, 347,
@@ -400,6 +400,21 @@ pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {
 
 test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     const cases = [_]DiffCase{
+        .{
+            .name = "test_fill_set empty starter stays empty across short and full extents",
+            .init_bits = &.{},
+            .set_ranges = &.{},
+            .clear_ranges = &.{},
+            .fill_prefixes = &.{},
+            .zero_prefixes = &.{},
+            .expected_summary = .{
+                .first_set = BitmapHarness.bitmap_nbits,
+                .first_zero = 0,
+                .weight = 0,
+            },
+            .must_be_set = &.{},
+            .must_be_clear = &.{ 0, 22, BitmapHarness.bitmap_nbits - 1 },
+        },
         .{
             .name = "test_fill_set single-word starter",
             .init_bits = &.{},
@@ -745,7 +760,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectSourceCaseGroupCardinality(
         "const cases = [_]DiffCase{",
         "test \"bitmap diff gate records exact bounded find_nth_bit checks\"",
-        12,
+        13,
     );
     try expectSourceCaseGroupCardinality(
         "const cases = [_]CopyCase{",
@@ -753,6 +768,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
         9,
     );
     try expectMarker(bitmap_diff_source, "const exp1_find_nth_bits = [_]u32{");
+    try expectMarker(bitmap_diff_source, "test_fill_set empty starter stays empty across short and full extents");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill rounds the 35-bit prefix up to one word");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill rounds the 115-bit prefix up to two words");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill reaches the full 1024-bit extent");
