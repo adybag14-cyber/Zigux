@@ -8,6 +8,8 @@ The starter stays intentionally narrow:
 - records bounded property-bit, event-bit, and ABS metadata summaries from the `virtio_input_config` surface
 - stages bounded capability-setup intent so ABS metadata only advances when matching `EV_ABS` capability bits are present
 - adds one bounded in-memory multitouch slot-planning helper keyed off `ABS_MT_SLOT` so staged ABS metadata now produces a capped slot count before any registration or transport work
+- adds one bounded registration-preflight summary so queue, ready-state, capability-setup, and multitouch-slot blockers stay explicit before any `input_register_device()` handoff claim
+- adds one bounded queue-callback preflight summary so event and status queue configuration, event-buffer fill state, and ready-state blockers stay explicit before any transport-backed callback claim
 - models the fixed two-queue plan used by the Linux driver: events and status
 - caps prequeued event buffers to the static 64-entry event pool used by the C driver
 - keeps status sending in-memory only and suppresses `EV_MSC` plus `MSC_TIMESTAMP` loops when multitouch forwarding is enabled
