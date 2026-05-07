@@ -59,6 +59,7 @@ pub const PerfCase = struct {
     ascii: bool,
     reps: usize,
     max_slowdown_pct: u16,
+    expected_text: ExpectedText,
 };
 
 fn same(text: []const u8) ExpectedText {
@@ -418,6 +419,7 @@ pub const perf_cases = [_]PerfCase{
         .ascii = false,
         .reps = 40_000,
         .max_slowdown_pct = 175,
+        .expected_text = same("be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b"),
     },
     .{
         .label = "32B-ascii-g2",
@@ -427,6 +429,10 @@ pub const perf_cases = [_]PerfCase{
         .ascii = true,
         .reps = 10_000,
         .max_slowdown_pct = 550,
+        .expected_text = .{
+            .little = "32be 7bdb 180a b293 ba70 24c4 837d 9b34 9ca6 ad31 0f9c e9ac d14c 9919 b143 0caf  .2.{....p..$}.4...1.....L...C...",
+            .big = "be32 db7b 0a18 93b2 70ba c424 7d83 349b a69c 31ad 9c0f ace9 4cd1 1999 43b1 af0c  .2.{....p..$}.4...1.....L...C...",
+        },
     },
     .{
         .label = "16B-ascii-g4",
@@ -436,6 +442,10 @@ pub const perf_cases = [_]PerfCase{
         .ascii = true,
         .reps = 20_000,
         .max_slowdown_pct = 550,
+        .expected_text = .{
+            .little = "7bdb32be b293180a 24c4ba70 9b34837d  .2.{....p..$}.4.",
+            .big = "be32db7b 0a1893b2 70bac424 7d83349b  .2.{....p..$}.4.",
+        },
     },
     .{
         .label = "16B-ascii-g8",
@@ -445,6 +455,10 @@ pub const perf_cases = [_]PerfCase{
         .ascii = true,
         .reps = 20_000,
         .max_slowdown_pct = 600,
+        .expected_text = .{
+            .little = "b293180a7bdb32be 9b34837d24c4ba70  .2.{....p..$}.4.",
+            .big = "be32db7b0a1893b2 70bac4247d83349b  .2.{....p..$}.4.",
+        },
     },
 };
 
@@ -569,6 +583,7 @@ test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix
             .ascii = false,
             .reps = 40_000,
             .max_slowdown_pct = 175,
+            .expected_text = same("be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b"),
         },
         .{
             .label = "32B-ascii-g2",
@@ -578,6 +593,10 @@ test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix
             .ascii = true,
             .reps = 10_000,
             .max_slowdown_pct = 550,
+            .expected_text = .{
+                .little = "32be 7bdb 180a b293 ba70 24c4 837d 9b34 9ca6 ad31 0f9c e9ac d14c 9919 b143 0caf  .2.{....p..$}.4...1.....L...C...",
+                .big = "be32 db7b 0a18 93b2 70ba c424 7d83 349b a69c 31ad 9c0f ace9 4cd1 1999 43b1 af0c  .2.{....p..$}.4...1.....L...C...",
+            },
         },
         .{
             .label = "16B-ascii-g4",
@@ -587,6 +606,10 @@ test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix
             .ascii = true,
             .reps = 20_000,
             .max_slowdown_pct = 550,
+            .expected_text = .{
+                .little = "7bdb32be b293180a 24c4ba70 9b34837d  .2.{....p..$}.4.",
+                .big = "be32db7b 0a1893b2 70bac424 7d83349b  .2.{....p..$}.4.",
+            },
         },
         .{
             .label = "16B-ascii-g8",
@@ -596,6 +619,10 @@ test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix
             .ascii = true,
             .reps = 20_000,
             .max_slowdown_pct = 600,
+            .expected_text = .{
+                .little = "b293180a7bdb32be 9b34837d24c4ba70  .2.{....p..$}.4.",
+                .big = "be32db7b0a1893b2 70bac4247d83349b  .2.{....p..$}.4.",
+            },
         },
     };
 
@@ -610,9 +637,11 @@ test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix
         try std.testing.expectEqual(want.ascii, actual.ascii);
         try std.testing.expectEqual(want.reps, actual.reps);
         try std.testing.expectEqual(want.max_slowdown_pct, actual.max_slowdown_pct);
+        try std.testing.expectEqualStrings(want.expected_text.current(), actual.expected_text.current());
     }
 
     for (perf_cases, 0..) |case, idx| {
+        try std.testing.expect(case.expected_text.current().len > 0);
         for (perf_cases[idx + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, case.label, other.label));
         }
@@ -631,5 +660,6 @@ test "phase 6 hexdump perf fixture packet avoids fallback formatting drift" {
         try std.testing.expectEqual(case.rowsize, normalizedRowsize(case.rowsize));
         try std.testing.expectEqual(case.groupsize, normalizedGroupsizeForLen(case.len, case.groupsize));
         try std.testing.expectEqual(expectedLength(case.len, case.rowsize, case.groupsize, case.ascii), expected.len);
+        try std.testing.expectEqualStrings(case.expected_text.current(), expected);
     }
 }
