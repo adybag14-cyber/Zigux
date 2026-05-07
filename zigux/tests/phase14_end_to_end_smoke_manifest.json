@@ -66,6 +66,10 @@
       "required_marker": "phase14-smoke"
     },
     {
+      "path": "zigux/Makefile",
+      "required_marker": "phase14: phase14-validate phase14-smoke phase14-test"
+    },
+    {
       "path": "zigux/tests/phase14_workqueue_bridge.zig",
       "required_marker": "phase14 workqueue bridge manifest records the boundary-map foothold and remaining gap"
     },
