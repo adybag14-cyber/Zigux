@@ -157,8 +157,8 @@ pub const Bcm2835WatchdogLab = struct {
             .name = "bcm2835_wdt_lab",
             .anchor = "drivers/watchdog/bcm2835_wdt.c",
             .provides_simple_driver_starter = true,
-            .touches_platform_registration = false,
-            .touches_poweroff_plumbing = false,
+            .touches_platform_registration = true,
+            .touches_poweroff_plumbing = true,
         };
     }
 
@@ -437,6 +437,14 @@ pub fn ticksToMilliseconds(ticks: u32) u32 {
 fn validateTimeout(timeout_sec: u32) !void {
     if (timeout_sec < min_timeout_sec) return error.TimeoutTooSmall;
     if (timeout_sec > max_timeout_sec) return error.TimeoutTooLarge;
+}
+
+test "descriptor advertises registration and poweroff plumbing coverage" {
+    const descriptor = Bcm2835WatchdogLab.descriptor();
+
+    try std.testing.expect(descriptor.provides_simple_driver_starter);
+    try std.testing.expect(descriptor.touches_platform_registration);
+    try std.testing.expect(descriptor.touches_poweroff_plumbing);
 }
 
 test "registration outcome exposes claimed poweroff ownership" {
