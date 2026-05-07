@@ -271,7 +271,7 @@ def check_compile_matrix(root: Path) -> list[str]:
     if not smoke_note_path.exists():
         return [f"missing file: {smoke_note_path.relative_to(root).as_posix()}"]
     if not build_path.exists():
-        return [f"missing file: {build_path.relative_to(root).as_posix()}]
+        return [f"missing file: {build_path.relative_to(root).as_posix()}"]
     smoke_note_text = read_text(smoke_note_path)
     build_text = read_text(build_path)
     if smoke_note_text.count("PHASE14_FOCUSED_SHARD_COUNT=1") != 1:
@@ -288,7 +288,7 @@ def check_compile_matrix(root: Path) -> list[str]:
         "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
         "smoke_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
         "smoke_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
-        "smoke_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
+        "smokeStep.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
     ]
     for marker in forbidden_smoke_dependencies:
         if marker in build_text:
@@ -328,7 +328,7 @@ def run_checker(root: Path, rel_path: str, missing_message: str, failure_message
 def check(root: Path) -> list[str]:
     manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
     if not manifest_path.exists():
-        return [f"missing file: {manifest_path.as_posix()}]
+        return [f"missing file: {manifest_path.as_posix()}"]
     errors: list[str] = []
     errors.extend(
         run_checker(
@@ -357,7 +357,7 @@ def check(root: Path) -> list[str]:
     try:
         manifest = load_json_file(manifest_path)
     except json.JSONDecodeError as exc:
-        return [f"invalid json in {manifest_path.as_posix()}: {exc}]
+        return [f"invalid json in {manifest_path.as_posix()}: {exc}"]
     if manifest.get("lane_key") != EXPECTED_LANE_KEY:
         errors.append("phase14 shared smoke manifest lane_key drifted from the current shared-lane owner")
     if manifest.get("commands") != REQUIRED_COMMANDS:
@@ -466,7 +466,7 @@ def run_self_test() -> int:
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
             build_lines.append("b.addTest(.")
             build_lines.append("b.addRunArtifact(")
-            build_lines.append(label)
+            buildLines.append(label)
             build_lines.append(root_source)
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         errors = check(root)
