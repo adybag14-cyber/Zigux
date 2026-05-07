@@ -11,7 +11,7 @@ It is a fallback-read map, not a closure claim and not a validator-first route.
 - `PHASE12_STATUS=active`
 - `PHASE12_LANE_KEY=P12-L05`
 - `PHASE12_SLICE=nvme-pci-raw-github-fallback-map`
-- scope: public tree and raw URL coverage for the shipped `nvme_pci` starter, direct verify shard, survey, build wiring, manifest, shared replay surfaces, and the PMO closure companion that now travels with the active release-order packet
+- scope: public tree and raw URL coverage for the shipped `nvme_pci` starter, direct verify shard, survey, build wiring, manifest, shared replay surfaces, the PMO closure companion, and the compact release coordination matrix that now travel with the active release-order packet
 - active owner lane: `P12-L05`
 
 ## Tree views
@@ -21,6 +21,7 @@ It is a fallback-read map, not a closure claim and not a validator-first route.
 - slice note: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-nvme-pci-slice.md`
 - survey note: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-nvme-pci-survey.md`
 - PMO closure companion: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-closure-checklist.md`
+- compact release coordination matrix: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-coordination-matrix.md`
 - shared tests index: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/README.md`
 - shared build wiring: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_build.zig`
 - direct test gate: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_nvme_pci.zig`
@@ -37,6 +38,7 @@ It is a fallback-read map, not a closure claim and not a validator-first route.
 - slice note: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-nvme-pci-slice.md`
 - survey note: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-nvme-pci-survey.md`
 - PMO closure companion: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-closure-checklist.md`
+- compact release coordination matrix: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-coordination-matrix.md`
 - shared tests index: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/README.md`
 - shared build wiring: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_build.zig`
 - direct test gate: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_nvme_pci.zig`
@@ -58,6 +60,8 @@ The shipped Phase 12 packet on `master` still keeps the shared smoke-first repla
 4. `make -C zigux phase12`
 
 Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether those same shipped surfaces are close enough to describe the active Phase 12 tranche as release-closed.
+
+`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback map, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback map into a second sequencing document.
 
 The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.
 
