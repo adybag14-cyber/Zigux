@@ -18,6 +18,7 @@
     "pre_execution_handoff_only": true,
     "requires_idle_registration_snapshot": true,
     "failed_exit_state_retained_until_drain": true,
+    "prepared_snapshot_owned_by_loader_request": true,
     "metadata_only_registration_labels": [
       "register_kretprobe",
       "unregister_kretprobe"
@@ -73,7 +74,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
-      "why_now": "A bounded loader handoff keeps the planned register_kretprobe and unregister_kretprobe lifecycle, entry or exit symbol naming, private-data size, idle registration snapshot, and failed-exit state retention explicit while the real runtime substrate is still unavailable."
+      "why_now": "A bounded loader handoff keeps the planned register_kretprobe and unregister_kretprobe lifecycle, entry or exit symbol naming, private-data size, idle registration snapshot, prepared-snapshot ownership, and failed-exit state retention explicit while the real runtime substrate is still unavailable."
     },
     {
       "id": "runtime-kretprobe-loader-contract",
