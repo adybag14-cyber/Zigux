@@ -284,6 +284,12 @@ REQUIRED_MARKERS = {
 }
 
 EXACT_COUNT_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": [
+        ("Validate Phase 7 runtime helper gates", 1),
+        ("make -C zigux phase7-validate", 1),
+        ("Run Phase 7 runtime helper tests", 1),
+        ("zig build test --build-file zigux/tests/phase7_build.zig --summary all", 1),
+    ],
     "Documentation/zigux/README.md": [
         ("Phase 7 notes -", 1),
         ("Documentation/zigux/phase7-argv-split-slice.md", 1),
