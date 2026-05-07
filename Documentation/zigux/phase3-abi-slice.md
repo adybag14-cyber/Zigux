@@ -34,7 +34,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - current export/UAPI survey shape:
   - `PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof`
   - current `master` keeps the packet-local `phase3-export-uapi-boundary-survey.md` note, the focused `phase3_export_uapi_layout` replay, and the dedicated `validate-phase3-export-uapi-survey.py` checker nested under this shared ABI slice rather than a broader standalone `phase3_export_uapi*` replay family
-  - current boundary evidence therefore lives in this shared ABI slice plus the packet-local export/UAPI survey note, `include/linux/zigux.h`, `zigux/kernel/export_shim.zig`, and `zigux/uapi/version.zig`
+  - current boundary evidence therefore lives in this shared ABI slice plus the packet-local export/UAPI survey note, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `zigux/tests/phase3_export_uapi_layout.zig`, `include/linux/zigux.h`, `zigux/kernel/export_shim.zig`, and `zigux/uapi/version.zig`
   - docs-root tranche summaries should keep the export/UAPI boundary packet explicit through this shared ABI slice, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, the focused `phase3_export_uapi_layout` replay, and clear boundary wording so the active Phase 3 packet does not collapse back into an ABI-plus-policy-only note when the boundary starter moves
 - current shared ABI replay:
   - `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
