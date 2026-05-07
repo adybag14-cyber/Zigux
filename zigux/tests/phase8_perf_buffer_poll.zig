@@ -37,6 +37,7 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "buffer-window lookup plus return shaping");
     try expectContains(note, "valid buffer windows, invalid indices, and missing buffers");
     try expectContains(note, "ready-buffer processing attempts cannot exceed observed ready events");
+    try expectContains(note, "ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch");
     try expectContains(note, "non-ready wait observations cannot claim record processing");
     try expectContains(note, "reject impossible post-wait buffer state combinations");
     try expectContains(note, "no standalone timer helper");
