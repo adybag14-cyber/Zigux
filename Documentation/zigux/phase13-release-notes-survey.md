@@ -43,6 +43,7 @@ These files are shipped adjacent release-surface evidence on `master`, but they 
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/check-phase13-notifier-packet.py`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
@@ -58,7 +59,7 @@ It remains an active helper-first release packet while these boundaries stay exp
 - `lib/devres.zig` does not claim live device-tree walking or overlapping resource arbitration
 - `lib/devres.zig` does not claim live DMA-backed mapping beyond the bounded coherent replay or scatterlist ownership
 - `lib/devres.zig` does not claim live arch memtype state mutation
-- the notifier survey, manifest, reviewability replay, and ABI-helper surfaces remain adjacent release evidence rather than extra shared replay steps
+- the notifier survey, dedicated notifier packet checker, manifest, reviewability replay, and ABI-helper surfaces remain adjacent release evidence rather than extra shared replay steps
 
 ## Replay commands
 
