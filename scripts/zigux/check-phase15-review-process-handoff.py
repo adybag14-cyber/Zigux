@@ -18,7 +18,7 @@ SCRIPT_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
-EXPECTED_LANE_KEY = "P15-L08"
+EXPECTED_LANE_KEY = "P15-L05"
 
 PRODUCT_BOUNDARY_MARKER = "product boundary:\n  - `Documentation/zigux/freeze-map.md`"
 REQUIRED_NOTE_MARKERS = (
