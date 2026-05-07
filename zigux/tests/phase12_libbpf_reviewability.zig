@@ -384,7 +384,7 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
         }
         if (std.mem.eql(u8, segment.slug, "fdinfo-map-info-helpers")) {
             saw_fdinfo_map_info = true;
-            try std.testing.expectEqualStrings("ready_next", segment.status);
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
             try std.testing.expect(exists);
         }
         if (std.mem.eql(u8, segment.slug, "map-reuse-compatibility")) {
@@ -418,8 +418,8 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
             try std.testing.expect(!exists);
         }
     }
-    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expectEqual(@as(usize, 4), deferred_count);
     try std.testing.expect(saw_logging);
