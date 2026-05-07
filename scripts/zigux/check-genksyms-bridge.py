@@ -18,7 +18,20 @@ ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 C_HARNESS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'genksyms_bridge_c_harness.c'
 ZIG_TOOL = ROOT / 'scripts' / 'zigux' / 'genksyms.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
-SELF_TEST_CASE_COUNT = 6
+SELF_TEST_CASE_COUNT = 7
+EXPECTED_HELPER_LOCAL_ANCHORS = [
+    'genksyms bridge parses repeated short flags and arguments',
+    'genksyms bridge parses long options and quiet override',
+    'genksyms bridge keeps version as a side effect while parsing later options',
+    'genksyms bridge accepts unambiguous abbreviated long options',
+    'genksyms bridge canonicalizes unexpected long option argument failures',
+    'genksyms bridge treats lone dash as positional passthrough',
+    'genksyms bridge accepts explicit option terminator',
+    'genksyms bridge reports invalid short option in getopt style',
+    'genksyms bridge reports missing short option argument in getopt style',
+    'genksyms bridge renders normalized invocation plan',
+    'genksyms bridge ignores positional args while still parsing later options',
+]
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -170,6 +183,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
         'process_packet': process_packet,
         'normalized_stderr_packet': normalized_stderr_packet,
         'action_abbrev_cases': action_abbrev_cases,
+        'helper_local_anchors': EXPECTED_HELPER_LOCAL_ANCHORS,
     }
     for field, expected in expected_lists.items():
         actual = manifest.get(field)
@@ -357,6 +371,7 @@ def build_self_test_root(root: Path) -> None:
                 'process_packet': ['invalid_short_opt_expected.json', 'help_expected.json'],
                 'normalized_stderr_packet': ['invalid_short_opt_expected.json'],
                 'action_abbrev_cases': ['abbreviated_help'],
+                'helper_local_anchors': EXPECTED_HELPER_LOCAL_ANCHORS,
             },
             indent=2,
         )
@@ -392,6 +407,14 @@ def run_self_test() -> int:
         issues = collect_manifest_issues(root)
         assert ('MISSING_GENKSYMS_BRIDGE_EXPECTED_PATHS', 'invalid_short_opt:invalid_short_opt_expected.json') in issues
         assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'process_packet:' in value for block, value in issues)
+
+        build_self_test_root(root)
+        manifest_path = root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'manifest.json'
+        payload = json.loads(manifest_path.read_text(encoding='utf-8'))
+        payload['helper_local_anchors'] = []
+        write_text(manifest_path, json.dumps(payload, indent=2) + '\n')
+        issues = collect_manifest_issues(root)
+        assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'helper_local_anchors:' in value for block, value in issues)
 
         # Keep the count aligned to grouped stderr-normalization contract coverage.
         assert normalize_cli_stderr("genksyms: option '--reference' requires an argument\n") == "option '--reference' requires an argument\n"
