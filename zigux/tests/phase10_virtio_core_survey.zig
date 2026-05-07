@@ -29,6 +29,14 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    freeze_map: []const u8,
+    freeze_boundary_status: []const u8,
+    freeze_status_change_claimed: bool,
+    risky_transport_posture: []const u8,
+    allowed_evidence_kinds: []const []const u8,
+    forbidden_transport_claims: []const []const u8,
+    architecture_council_reopen_required: bool,
+    architecture_council_reopen_attached: bool,
     survey_summary: SurveySummary,
     gaps: []const Gap,
 };
@@ -95,6 +103,22 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
     try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);
     try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);
     try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.freeze_map);
+    try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
+    try std.testing.expect(!manifest.freeze_status_change_claimed);
+    try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
+    try std.testing.expectEqual(@as(usize, 3), manifest.allowed_evidence_kinds.len);
+    try std.testing.expectEqualStrings("driver_local_lab_slices", manifest.allowed_evidence_kinds[0]);
+    try std.testing.expectEqualStrings("survey_manifests", manifest.allowed_evidence_kinds[1]);
+    try std.testing.expectEqualStrings("shared_validation_gates", manifest.allowed_evidence_kinds[2]);
+    try std.testing.expectEqual(@as(usize, 5), manifest.forbidden_transport_claims.len);
+    try std.testing.expectEqualStrings("queue_setup_reset_paths", manifest.forbidden_transport_claims[0]);
+    try std.testing.expectEqualStrings("irq_parity", manifest.forbidden_transport_claims[1]);
+    try std.testing.expectEqualStrings("dma_paths", manifest.forbidden_transport_claims[2]);
+    try std.testing.expectEqualStrings("input_registration_lifecycle", manifest.forbidden_transport_claims[3]);
+    try std.testing.expectEqualStrings("probe_remove_lifecycle", manifest.forbidden_transport_claims[4]);
+    try std.testing.expect(manifest.architecture_council_reopen_required);
+    try std.testing.expect(!manifest.architecture_council_reopen_attached);
 
     try std.testing.expect(manifest.survey_summary.virtio_c_lines >= 700);
     try std.testing.expectEqual(@as(usize, 9), manifest.survey_summary.preexisting_phase10_test_files);
@@ -119,6 +143,11 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/freeze-map.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked-on-risky-transport") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Architecture Council reopen request") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue setup or reset paths") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe or remove lifecycle behavior") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10_virtio_core_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10_virtio_core_survey.zig") != null);
