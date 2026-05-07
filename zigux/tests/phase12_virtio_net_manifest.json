@@ -23,25 +23,25 @@
     "dma_safe_abstractions": {
       "required_by_roadmap": true,
       "status": "blocked",
-      "current_surface": "drivers/net/virtio_net.zig still stops at probe snapshot, queue resume, receive refill, transmit recycle, and mergeable-buffer-length planning only.",
+      "current_surface": "drivers/net/virtio_net.zig still stops at probe snapshot, queue resume, receive refill, control-queue restore, transmit recycle, and mergeable-buffer-length planning only.",
       "blocked_by": "The active packet stays below live DMA-safe buffer ownership, page_pool wiring, refill loops, and transport-backed data-path setup."
     },
     "queueing_correctness": {
       "required_by_roadmap": true,
       "status": "bounded_starter_only",
-      "current_surface": "The landed packet records queue-pair counts, fallback reasons, control-virtqueue presence, and recovery ordering across the frozen snapshot.",
+      "current_surface": "The landed packet records queue-pair counts, fallback reasons, control-virtqueue presence, control-queue restore ordering, and recovery ordering across the frozen snapshot.",
       "blocked_by": "No live virtqueue submission, completion, interrupt, or NAPI-backed queue correctness claim is shipped in the current virtio_net lane."
     },
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
       "status": "bounded_starter_only",
-      "current_surface": "The current packet keeps mergeable-buffer sizing, reset-versus-renegotiation intent, and control-vq or RSS restore ordering reviewable.",
+      "current_surface": "The current packet keeps mergeable-buffer sizing, reset-versus-renegotiation intent, control-vq restore disposition, and RSS restore ordering reviewable.",
       "blocked_by": "There is still no throughput evidence, runtime recovery replay, or parity measurement for the live data path."
     },
     "segmented_rollout": {
       "required_by_roadmap": true,
       "status": "review_boundary_landed",
-      "current_surface": "The survey, manifest, and focused tests keep the landed probe, queue-recovery, receive-refill, transmit-recycle, and mergeable-buffer-length packet explicit.",
+      "current_surface": "The survey, manifest, and focused tests keep the landed probe, queue-recovery, receive-refill, control-queue-restore, transmit-recycle, and mergeable-buffer-length packet explicit.",
       "blocked_by": "The rollout boundary intentionally keeps the lane below live page_pool DMA, XDP or XSK execution, control-virtqueue commands, RSS table programming, ethtool hooks, and net_device lifecycle work."
     }
   },
@@ -117,6 +117,13 @@
       "why_now": "The receive-refill follow-up is now landed as one bounded packet-path step that keeps mergeable-buffer headroom, fresh probe replay after restore, RSS-aware refill requirements, and clamp-versus-single-queue recovery intent explicit before any live DMA, NAPI, or netdev lifecycle work."
     },
     {
+      "id": "phase12-virtio-net-control-queue-restore-followup",
+      "status": "starter_landed",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The control-queue-restore follow-up is now landed as one bounded recovery-governance step that keeps control-virtqueue restore disposition, queue-pair counts, RSS reapply ordering, and post-restore probe replay explicit before any live control command traffic, DMA, NAPI, or netdev lifecycle work."
+    },
+    {
       "id": "phase12-virtio-net-transmit-recycle-followup",
       "status": "starter_landed",
       "kind": "complex_driver_followup",
@@ -142,7 +149,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-net-survey.md",
-      "why_now": "The Phase 12 roadmap requires segmented rollout for complex drivers, so the active virtio_net packet now records a first-class review boundary that keeps the landed probe, syntax-lab, queue-recovery, receive-refill, transmit-recycle, and mergeable-buffer-length steps reviewable while the runtime data path remains blocked behind DMA-safe abstractions and queueing substrate work."
+      "why_now": "The Phase 12 roadmap requires segmented rollout for complex drivers, so the active virtio_net packet now records a first-class review boundary that keeps the landed probe, syntax-lab, queue-recovery, receive-refill, control-queue-restore, transmit-recycle, and mergeable-buffer-length steps reviewable while the runtime data path remains blocked behind DMA-safe abstractions and queueing substrate work."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
