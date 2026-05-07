@@ -259,6 +259,21 @@ pub fn str_has_prefix(str: []const u8, prefix: []const u8) bool {
     return strHasPrefix(str, prefix);
 }
 
+pub fn strEndsWith(str: []const u8, suffix: []const u8) bool {
+    const suffix_len = cStringLen(suffix);
+    const str_len = cStringLen(str);
+    if (suffix_len > str_len) {
+        return false;
+    }
+
+    const start = str_len - suffix_len;
+    return std.mem.eql(u8, str[start..str_len], suffix[0..suffix_len]);
+}
+
+pub fn str_ends_with(str: []const u8, suffix: []const u8) bool {
+    return strEndsWith(str, suffix);
+}
+
 test "strtobool accepts common Linux forms" {
     try std.testing.expect(try strtobool("y"));
     try std.testing.expect(try strtobool("On"));
@@ -319,6 +334,20 @@ test "strHasPrefix honors C-string boundaries" {
     const cstr = [_]u8{ 'a', 'b', 0, 'x' };
     const embedded_prefix = [_]u8{ 'a', 'b', 0, 'y' };
     try std.testing.expect(strHasPrefix(&cstr, &embedded_prefix));
+}
+
+test "strEndsWith honors C-string boundaries" {
+    try std.testing.expect(strEndsWith("prefix", "fix"));
+    try std.testing.expect(str_ends_with("prefix", "prefix"));
+    try std.testing.expect(strEndsWith("prefix", ""));
+    try std.testing.expect(!strEndsWith("prefix", "suffix"));
+    try std.testing.expect(!strEndsWith("pre", "prefix"));
+
+    const cstr = [_]u8{ 'a', 'b', 0, 'x' };
+    const embedded_suffix = [_]u8{ 'a', 'b', 0, 'y' };
+    const trailing_miss = [_]u8{ 'x', 0, 'y' };
+    try std.testing.expect(strEndsWith(&cstr, &embedded_suffix));
+    try std.testing.expect(!strEndsWith(&cstr, &trailing_miss));
 }
 
 test "memdup and memchrInv preserve byte content" {
