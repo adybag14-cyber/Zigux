@@ -229,7 +229,7 @@ def run_self_test() -> int:
                 print(failure, file=sys.stderr)
             return 1
         for rel_path, label, marker, expected_marker in SELF_TEST_CASES:
-            write_fixtureTree(root)
+            write_fixture_tree(root)
             try:
                 expect_failure(root, rel_path, label, marker, expected_marker)
             except AssertionError as exc:
