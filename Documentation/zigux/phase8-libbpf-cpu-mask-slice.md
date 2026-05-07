@@ -36,7 +36,7 @@ The current starter slice covers:
 
 - `parse_cpu_mask_str()`-adjacent parsing for `N` and `N-M` fragments
 - repeated comma and newline delimiter skipping for sysfs-style CPU mask strings
-- explicit rejection of carriage-return-delimited fragments that the live helper does not skip
+- anchor-faithful acceptance of carriage returns, tabs, and other ASCII whitespace that `parse_cpu_mask_str()` reaches through `sscanf()`-driven range parsing
 - an injected chunk-reader interface that can assemble buffered sysfs-style input without touching real file descriptors
 - dense `[]bool` mask materialization for future tooling callers
 - counted possible-CPU reporting over the parsed mask
@@ -45,10 +45,10 @@ The current tests check:
 
 - mixed single-value and ranged fragments
 - newline-terminated and repeated-delimiter inputs
+- direct and chunked carriage-return or tab-delimited fragments that must keep matching the live libbpf helper
 - chunked reader input that splits ranges and delimiters across buffer boundaries
 - sparse masks with unset gaps preserved
 - explicit error handling for empty and malformed ranges
-- direct and chunked carriage-return regression cases that must stay rejected
 - reader contract failures such as zero-length chunks, oversized counts, injected read errors, and empty scratch buffers
 
 ## Non-goals
