@@ -71,6 +71,27 @@ pub fn main(init: std.process.Init) !void {
         try writer.print("fold\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.fold(case.sum) });
     }
 
+    const unfold_cases = [_]struct {
+        name: []const u8,
+        sum: u16,
+    }{
+        .{ .name = "zero", .sum = 0x0000 },
+        .{ .name = "one", .sum = 0x0001 },
+        .{ .name = "ipv4 header checksum word", .sum = 0x9c5d },
+        .{ .name = "all ones", .sum = 0xffff },
+    };
+    for (unfold_cases) |case| {
+        try writer.print("unfold\t{s}\t0x{x:0>8}\n", .{ case.name, checksum.unfold(case.sum) });
+    }
+
+    for (fixtures.add16_cases) |case| {
+        try writer.print("add16\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.add16(case.sum, case.addend) });
+    }
+
+    for (fixtures.sub16_cases) |case| {
+        try writer.print("sub16\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.sub16(case.sum, case.addend) });
+    }
+
     var payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
     const old_partial = checksum.partial(&payload, 0);
     const old_word = (@as(u32, payload[0]) << 8) | payload[1];
