@@ -99,6 +99,10 @@ REQUIRED_SCRIPT_README_MARKERS = [
     "`check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`",
 ]
 
+REQUIRED_SCRIPT_README_EXACT_COUNTS = {
+    PHASE9_SCRIPTS_README_OWNER_MAP_MARKER: 1,
+}
+
 REQUIRED_TESTS_README_MARKERS = [
     "keep the bounded Phase 9 runtime-loader packet wired through `Documentation/zigux/README.md`, "
     "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `scripts/zigux/README.md`, "
@@ -355,6 +359,7 @@ def validate(root: Path) -> list[str]:
     )
 
     ensure_exact_counts(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_EXACT_COUNTS)
+    ensure_exact_counts(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPT_README_EXACT_COUNTS)
     ensure_exact_counts(failures, "review_checklist", review_checklist, REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS)
     ensure_exact_counts(failures, "phase9_build", phase9_build, REQUIRED_PHASE9_BUILD_EXACT_COUNTS)
 
@@ -459,6 +464,19 @@ def run_self_test() -> int:
             root,
             f"scripts_readme:{PHASE9_SCRIPTS_README_OWNER_MAP_MARKER}",
             "missing_scripts_root_owner_map_marker",
+        )
+
+        write_fixture_tree(root)
+        scripts_readme_path = root / SCRIPTS_README_PATH
+        scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            scripts_readme + PHASE9_SCRIPTS_README_OWNER_MAP_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"scripts_readme_exact_count:{PHASE9_SCRIPTS_README_OWNER_MAP_MARKER}:expected=1:actual=2",
+            "duplicate_scripts_root_owner_map_marker",
         )
 
         write_fixture_tree(root)
@@ -721,7 +739,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=26")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
