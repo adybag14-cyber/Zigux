@@ -6,7 +6,7 @@ This note turns the currently landed Phase 10 virtio evidence into one bounded a
 
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-driver-lane-sequencing`
-- lane: `P10-Y06`
+- lane: `P10-L10`
 - scope: use the current core, ring, input, and MMIO survey packets to say which Phase 10 driver lane owns which already-landed evidence and which next bounded step still belongs to that lane
 - product boundary:
   - `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
@@ -90,7 +90,7 @@ This lane may talk about adjacent MMIO footing when the survey compares roadmap 
 
 This lane consumes shared core, ring, and MMIO prerequisites, but it does not own wrapper-layer growth in those packets. Its next bounded work stays inside input registration truthfulness, ownership notes, wrapper-facing verify replays, or similarly narrow survey-backed repairs.
 
-`P10-L10` MMIO lane owns MMIO helper footing and risky-transport boundaries:
+`P10-L14` MMIO lane owns MMIO helper footing and risky-transport boundaries:
 
 - `Documentation/zigux/phase10-virtio-mmio-slice.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
