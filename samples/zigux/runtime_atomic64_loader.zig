@@ -155,6 +155,11 @@ pub const RuntimeAtomic64Loader = struct {
         self: *Self,
         shared_request: *runtime_loader.PreparedRequest,
     ) !runtime_loader.LoadPlan {
+        if (shared_request.state != .prepared) return error.InvalidLoaderState;
+        if (!runtime_loader.keepsSelftestHookEvidenceConsistent(shared_request.plan)) {
+            return error.InvalidSelftestHookEvidence;
+        }
+
         const plan = try self.requestRuntimeLoad();
         const shared_plan = try shared_request.requestRuntimeLoad();
         if (!keepsSharedLoadPlanSnapshotExplicit(plan, shared_plan)) {
@@ -573,21 +578,12 @@ test "runtime atomic64 loader surfaces prepared shared selftest-hook drift befor
     shared_request.plan.provides_selftest_hook = false;
     try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(shared_request.plan));
 
-    try std.testing.expectError(error.SharedLoadPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
-    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
-    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
         shared_request,
-        .waiting_on_runtime_substrate,
-        shared_request.plan,
-    ));
-
-    try loader.releaseSharedWithoutSubstrate(&shared_request);
-    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
-    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
-        shared_request,
-        .released_without_substrate,
+        .prepared,
         shared_request.plan,
     ));
 }
