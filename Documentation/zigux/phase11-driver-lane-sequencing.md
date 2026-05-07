@@ -97,6 +97,7 @@ The HVC console lane owns console-local starter, survey, verify-backed, and tear
 - `Documentation/zigux/phase11-hvc-console-slice.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `zigux/tests/phase11_hvc_console_manifest.json`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `drivers/tty/hvc/hvc_console.zig`
@@ -104,7 +105,7 @@ The HVC console lane owns console-local starter, survey, verify-backed, and tear
 - `zigux/tests/phase11_hvc_console.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 
-This lane may rely on the shared replay contract and may keep the bounded `hvc_cleanup()` teardown handoff reviewable, but it does not own watchdog-local registration, timeout, reset, or poweroff follow-through. Its next bounded work stays inside HVC registration, verify-backed notifier or sysrq truthfulness, or teardown-parity truthfulness.
+This lane may rely on the shared replay contract and may keep the bounded `hvc_cleanup()` teardown handoff plus the driver-local teardown note reviewable, but it does not own watchdog-local registration, timeout, reset, or poweroff follow-through. Its next bounded work stays inside HVC registration, verify-backed notifier or sysrq truthfulness, or teardown-parity truthfulness.
 
 ## Anti-overlap rules
 
