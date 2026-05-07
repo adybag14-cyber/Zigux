@@ -233,6 +233,276 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[3], "module registration or unregister wiring parity"));
 }
 
+test "phase 5 trace-events survey packet stays repo-local and keeps shared review surfaces explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_trace_events_sample_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
+    var surveyed_commit_marker_buf: [96]u8 = undefined;
+    const surveyed_commit_marker = try std.fmt.bufPrint(
+        surveyed_commit_marker_buf[0..],
+        "PHASE5_SURVEYED_COMMIT={s}",
+        .{manifest.surveyed_commit},
+    );
+
+    var lane_key_marker_buf: [64]u8 = undefined;
+    const lane_key_marker = try std.fmt.bufPrint(
+        lane_key_marker_buf[0..],
+        "PHASE5_LANE_KEY={s}",
+        .{manifest.lane_key},
+    );
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-trace-events-sample-survey.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const required_survey_markers = [_][]const u8{
+        "PHASE5_STATUS=parked",
+        "PHASE5_SLICE=trace-events-reference-sample-starter",
+        "Documentation/zigux/phase5-sample-review-guide.md",
+        "samples/zigux/README.md",
+        "scripts/zigux/README.md",
+        "zigux/tests/README.md",
+        "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "make -C zigux phase5-test",
+        "make -C zigux phase5",
+        "runtime_trace_events",
+        "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample",
+        "selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig`",
+        "closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet",
+        "shared docs-root, sample-root, scripts-root, tests-root, and Phase 5 guide packet should stay explicit here too",
+    };
+
+    for (required_survey_markers) |needle| {
+        try expectContains(survey_note, needle);
+    }
+
+    try expectContains(survey_note, lane_key_marker);
+    try expectContains(survey_note, surveyed_commit_marker);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
+
+    const docs_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(docs_root);
+
+    const docs_root_markers = [_][]const u8{
+        "Documentation/zigux/phase5-trace-events-sample-survey.md",
+        "samples/zigux/trace_events_sample.zig",
+        "payload, string-selection, formatted-message, event-family-count, vararg-payload, relative-location, callback-path, and callback-registration replay checks",
+        "sample-backed contributor guide",
+        "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample",
+        "selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig`",
+        "closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet",
+        "Phase 9 runtime pilot tranche",
+    };
+
+    for (docs_root_markers) |needle| {
+        try expectContains(docs_root, needle);
+    }
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    const checklist_markers = [_][]const u8{
+        "landed Phase 5 `trace-events` sample packet",
+        "formattedMessage()",
+        "exact `checked_focus` order",
+        "registration-first callback replay plus registration-balance cues",
+        "`unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection",
+        "post-exit replay rejection",
+        "if the change updates a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
+    };
+
+    for (checklist_markers) |needle| {
+        try expectContains(review_checklist, needle);
+    }
+
+    const samples_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(samples_root);
+
+    const samples_root_markers = [_][]const u8{
+        "samples/zigux/trace_events_sample.zig",
+        "approved tracing-plus-ownership idiom",
+        "runPayloadBoundaryReplay()",
+        "runCallbackBoundaryReplay()",
+        "phase5_trace_events_sample_survey.zig",
+        "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` reference sample",
+        "selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig`",
+        "closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet",
+        "runtime_trace_events",
+    };
+
+    for (samples_root_markers) |needle| {
+        try expectContains(samples_root, needle);
+    }
+
+    const review_guide = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-sample-review-guide.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(review_guide);
+
+    const review_guide_markers = [_][]const u8{
+        "### `trace_events_sample`",
+        "`Documentation/zigux/phase5-trace-events-sample-survey.md`",
+        "`zigux/tests/phase5_trace_events_sample.zig`",
+        "`zigux/tests/phase5_trace_events_sample_manifest.json`",
+        "`zigux/tests/phase5_trace_events_sample_survey.zig`",
+        "`formattedMessage()`, the selected-string plus `iter=%d` replay",
+        "`runConditionalBoundaryReplay()` helper",
+        "`runCallbackBoundaryReplay()` helper",
+        "post-exit replay and callback-registration rejection",
+        "docs-root and sample-root contributor surfaces",
+        "Phase 5-versus-Phase 9 cues",
+        "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample",
+    };
+
+    for (review_guide_markers) |needle| {
+        try expectContains(review_guide, needle);
+    }
+
+    const tests_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(tests_root);
+
+    const tests_root_markers = [_][]const u8{
+        "keep the landed Phase 5 `trace_events_sample` packet explicit in the tests root too",
+        "Documentation/zigux/phase5-trace-events-sample-survey.md",
+        "samples/zigux/trace_events_sample.zig",
+        "zigux/tests/phase5_trace_events_sample_manifest.json",
+        "zigux/tests/phase5_trace_events_sample.zig",
+        "zigux/tests/phase5_trace_events_sample_survey.zig",
+        "non-runtime selected-string",
+        "relative-location",
+        "vararg-payload",
+        "balanced register-then-unregister callback cues",
+        "public `runPayloadBoundaryReplay()` helper",
+        "separate Phase 9 `runtime_trace_events` family",
+    };
+
+    for (tests_root_markers) |needle| {
+        try expectContains(tests_root, needle);
+    }
+
+    const scripts_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(scripts_root);
+
+    const scripts_root_markers = [_][]const u8{
+        "Phase 5 flow",
+        "Documentation/zigux/phase5-sample-review-guide.md",
+        "Documentation/zigux/phase5-trace-events-sample-survey.md",
+        "samples/zigux/trace_events_sample.zig",
+        "zigux/tests/phase5_trace_events_sample_manifest.json",
+        "zigux/tests/phase5_trace_events_sample_survey.zig",
+        "zigux/tests/phase5_build.zig",
+    };
+
+    for (scripts_root_markers) |needle| {
+        try expectContains(scripts_root, needle);
+    }
+
+    const build_zig = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(build_zig);
+
+    const build_markers = [_][]const u8{
+        "../../samples/zigux/trace_events_sample.zig",
+        "phase5_trace_events_sample_survey.zig",
+        "phase5-trace-events-sample-tests",
+        "phase5-trace-events-sample-survey-tests",
+        "run_phase5_trace_events_sample_tests.step",
+        "run_phase5_trace_events_sample_survey_tests.step",
+    };
+
+    for (build_markers) |needle| {
+        try expectContains(build_zig, needle);
+    }
+
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
+    const makefile_markers = [_][]const u8{
+        "PHONY += phase5-test phase5",
+        "phase5-test:",
+        "$(ZIG) build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "phase5: phase5-test",
+    };
+
+    for (makefile_markers) |needle| {
+        try expectContains(makefile, needle);
+    }
+
+    const workflow = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        ".github/workflows/zigux-bootstrap.yml",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(workflow);
+
+    const workflow_markers = [_][]const u8{
+        "Run Phase 5 reference sample tests",
+        "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "Documentation/zigux/**",
+        "samples/zigux/README.md",
+        "zigux/**",
+    };
+
+    for (workflow_markers) |needle| {
+        try expectContains(workflow, needle);
+    }
+}
+
 test "phase 5 trace-events survey packet keeps the formatting boundary aligned" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
