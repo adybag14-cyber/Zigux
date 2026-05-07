@@ -120,6 +120,10 @@ test "phase 9 runtime bitmap survey manifest records the roadmap selftest hook, 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "requires_runtime_substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "toSharedLoadPlan()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime_loader.prepareRequest()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "initialized-stage shared-request snapshots") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "prepared selftest-hook and shared-plan drift guards") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-bitmap-top-bit-boundary")) {
             saw_top_bit_boundary = true;
