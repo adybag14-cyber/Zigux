@@ -85,6 +85,20 @@ pub const RegisteredBoundarySummary = struct {
     post_rejection_show: RenderedAttribute,
 };
 
+pub const InputValidationReplaySummary = struct {
+    anchor: []const u8,
+    stage_before_validation_checks: SampleStage,
+    stage_after_validation_checks: SampleStage,
+    baz_store_len: usize,
+    bar_store_len: usize,
+    baz_value: RenderedAttribute,
+    bar_value: RenderedAttribute,
+    foo_value_after_invalid_integer: RenderedAttribute,
+    rejected_invalid_integer: bool,
+    rejected_unknown_store: bool,
+    rejected_unknown_show: bool,
+};
+
 pub const AttributeValues = struct {
     foo: i32,
     baz: i32,
@@ -317,6 +331,42 @@ pub const KobjectExampleSample = struct {
         };
     }
 
+    pub fn runInputValidationReplay(self: *Self) !InputValidationReplaySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        try self.init();
+        try self.registerAttributes();
+        const stage_before_validation_checks = self.stage();
+        const baz_store_len = try self.storeValue("baz", "9\n");
+        const bar_store_len = try self.storeValue("bar", "10\n");
+        const rejected_invalid_integer = blk: {
+            _ = self.storeValue("foo", "abc\n") catch |err| break :blk err == error.InvalidInteger;
+            break :blk false;
+        };
+        const rejected_unknown_store = blk: {
+            _ = self.storeValue("qux", "1\n") catch |err| break :blk err == error.UnknownAttribute;
+            break :blk false;
+        };
+        const rejected_unknown_show = blk: {
+            _ = self.showValue("qux") catch |err| break :blk err == error.UnknownAttribute;
+            break :blk false;
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .stage_before_validation_checks = stage_before_validation_checks,
+            .stage_after_validation_checks = self.stage(),
+            .baz_store_len = baz_store_len,
+            .bar_store_len = bar_store_len,
+            .baz_value = try self.showValue("baz"),
+            .bar_value = try self.showValue("bar"),
+            .foo_value_after_invalid_integer = try self.showValue("foo"),
+            .rejected_invalid_integer = rejected_invalid_integer,
+            .rejected_unknown_store = rejected_unknown_store,
+            .rejected_unknown_show = rejected_unknown_show,
+        };
+    }
+
     pub fn runTeardownReplay(self: *Self) !TeardownReplaySummary {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
@@ -438,7 +488,25 @@ test "kobject sample keeps the pre-registration boundary reviewable through a sa
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
 }
 
-test "kobject sample keeps shared attribute dispatch and parse failures explicit" {
+test "kobject sample keeps shared attribute dispatch and parse failures explicit through a sample-owned replay" {
+    var sample = KobjectExampleSample{};
+    const replay = try sample.runInputValidationReplay();
+
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqual(SampleStage.registered, replay.stage_before_validation_checks);
+    try std.testing.expectEqual(SampleStage.registered, replay.stage_after_validation_checks);
+    try std.testing.expectEqual(@as(usize, 2), replay.baz_store_len);
+    try std.testing.expectEqual(@as(usize, 3), replay.bar_store_len);
+    try std.testing.expectEqualStrings("9\n", replay.baz_value.text[0..replay.baz_value.len]);
+    try std.testing.expectEqualStrings("10\n", replay.bar_value.text[0..replay.bar_value.len]);
+    try std.testing.expectEqualStrings("0\n", replay.foo_value_after_invalid_integer.text[0..replay.foo_value_after_invalid_integer.len]);
+    try std.testing.expect(replay.rejected_invalid_integer);
+    try std.testing.expect(replay.rejected_unknown_store);
+    try std.testing.expect(replay.rejected_unknown_show);
+    try std.testing.expectEqual(SampleStage.registered, sample.stage());
+}
+
+test "kobject sample still exposes direct parse failures on the public sample surface" {
     var sample = KobjectExampleSample{};
     try sample.init();
     try sample.registerAttributes();
