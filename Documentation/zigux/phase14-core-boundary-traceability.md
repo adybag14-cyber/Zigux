@@ -41,7 +41,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_skbuff_bridge_manifest.json`
 - survey note: `Documentation/zigux/phase14-skbuff-bridge-survey.md`
-- lane key: `P14-L11`
+- lane key: `P14-L12`
 - surveyed commit: `f05e02445443e7743c3675a6f8ca4f70f6e736fb`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-skbuff-live-ownership-blocker`
@@ -51,7 +51,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_rcu_tree_manifest.json`
 - survey note: `Documentation/zigux/phase14-rcu-tree-survey.md`
-- lane key: `P14-L16`
+- lane key: `P14-L13`
 - surveyed commit: `4c889233d157960514b241bcd5aff7cac5fda312`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-rcu-tree-bridge-blocker`
