@@ -622,3 +622,13 @@ test "phase 1 string replaceChar stops at embedded NUL" {
         &replace_buffer,
     );
 }
+
+test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace" {
+    var trim_cstr_buf = [_]u8{ ' ', 'h', 'i', ' ', '\n', 0, 'x', 'y' };
+    try std.testing.expectEqualStrings("hi", string.trimSpaces(&trim_cstr_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'h', 'i', 0, '\n', 0, 'x', 'y' }, &trim_cstr_buf);
+
+    var strim_cstr_buf = [_]u8{ ' ', 'h', 'i', ' ', '\n', 0, 'x', 'y' };
+    try std.testing.expectEqualStrings("hi", string.strim(&strim_cstr_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'h', 'i', 0, '\n', 0, 'x', 'y' }, &strim_cstr_buf);
+}
