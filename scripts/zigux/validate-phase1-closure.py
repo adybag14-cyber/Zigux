@@ -71,6 +71,7 @@ REQUIRED_FILES = [
     "zigux/tests/build.zig",
     "zigux/tests/fixtures/phase1_bench_expectations.json",
     "zigux/tests/fixtures/phase1_helper_manifest.json",
+    "zigux/tests/phase1_helpers.zig",
     "zigux/tests/phase1_bench.zig",
     "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
 ]
@@ -800,11 +801,15 @@ def run_self_test() -> None:
         assert "makefile_phase1_target:expected=1:actual=0" in missing
         make_fixture_root(tmp_root)
 
+        (tmp_root / "zigux/tests/phase1_helpers.zig").unlink()
+        assert collect_missing_files(tmp_root) == ["zigux/tests/phase1_helpers.zig"]
+        make_fixture_root(tmp_root)
+
         (tmp_root / ".github/workflows/zigux-bootstrap.yml").unlink()
         assert collect_missing_files(tmp_root) == [".github/workflows/zigux-bootstrap.yml"]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=16")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=17")
 
 
 def main() -> int:
