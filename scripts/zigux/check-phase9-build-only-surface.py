@@ -65,6 +65,11 @@ PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER = (
     "`rust/exports.c` and `zigux/kernel/export_shim.zig`"
 )
 
+PHASE9_SCRIPTS_README_OWNER_MAP_MARKER = (
+    "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map for how "
+    "that scripts-root summary stays split between the loader lane and the four pilot-family packets."
+)
+
 REQUIRED_DOCS_README_MARKERS = [
     "Phase 9 notes",
     "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, "
@@ -89,6 +94,7 @@ REQUIRED_SCRIPT_README_MARKERS = [
     "`zig build test --build-file zigux/tests/phase9_build.zig` and `make -C zigux phase9` rerun that same "
     "bounded runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle together with the shared "
     "runtime-loader facade, loader contract, allocator/init-flow replay, and Linux-style replay route.",
+    PHASE9_SCRIPTS_README_OWNER_MAP_MARKER,
     "there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, "
     "`check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`",
 ]
@@ -439,6 +445,23 @@ def run_self_test() -> int:
         expect_failure(root, f"docs_readme:{PHASE9_NON_OWNER_BOUNDARY_MARKER}", "missing_docs_non_owner_boundary_marker")
 
         write_fixture_tree(root)
+        scripts_readme_path = root / SCRIPTS_README_PATH
+        scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            scripts_readme.replace(
+                PHASE9_SCRIPTS_README_OWNER_MAP_MARKER,
+                "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` stays nearby as context for the shared Phase 9 packet.",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"scripts_readme:{PHASE9_SCRIPTS_README_OWNER_MAP_MARKER}",
+            "missing_scripts_root_owner_map_marker",
+        )
+
+        write_fixture_tree(root)
         tests_readme_path = root / TESTS_README_PATH
         tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -698,7 +721,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=25")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
