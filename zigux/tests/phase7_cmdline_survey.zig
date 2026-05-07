@@ -38,6 +38,13 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(docs_root, "`make -C zigux phase7`");
     try expectContains(docs_root, "scripts/zigux/check-phase7-build-wiring.py");
 
+    const workflow = try readRepoFile(allocator, ".github/workflows/zigux-bootstrap.yml");
+    defer allocator.free(workflow);
+    try expectContains(workflow, "Validate Phase 7 runtime helper gates");
+    try expectContains(workflow, "make -C zigux phase7-validate");
+    try expectContains(workflow, "Run Phase 7 runtime helper tests");
+    try expectContains(workflow, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
+
     const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
     defer allocator.free(scripts_root);
     try expectContains(scripts_root, "scripts/zigux/validate-phase7.py");
@@ -50,6 +57,8 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
 
     const validate_phase7 = try readRepoFile(allocator, "scripts/zigux/validate-phase7.py");
     defer allocator.free(validate_phase7);
+    try expectContains(validate_phase7, "\"Documentation/zigux/phase7-cmdline-slice.md\"");
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_build.zig\"");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_cmdline.zig\"");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_cmdline_survey.zig\"");
     try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig\"");
@@ -103,6 +112,8 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(zigux_makefile, "scripts/zigux/check-phase7-build-wiring.py --self-test");
     try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py");
     try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py");
+    try expectContains(zigux_makefile, "phase7-test:");
+    try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all");
     try expectContains(zigux_makefile, "phase7: phase7-validate phase7-test");
 
     const cmdline_tests = try readRepoFile(allocator, "zigux/tests/phase7_cmdline.zig");
