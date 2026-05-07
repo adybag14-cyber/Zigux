@@ -111,8 +111,10 @@ TESTS_README_MARKERS = [
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/check-phase3-policy-byte-guards.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/phase3_catalog.py --self-test",
     "scripts/zigux/phase3_check_lib.py --self-test",
     "scripts/zigux/generate-phase3-check-wrappers.py --check",
@@ -435,8 +437,10 @@ def run_self_test() -> int:
         assert "tests_readme:scripts/zigux/check-phase3-catalog-selftest.py" in issues
         assert "tests_readme:scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in issues
         assert "tests_readme:scripts/zigux/validate-phase3-policy-unsafe-survey.py" in issues
+        assert "tests_readme:scripts/zigux/check-phase3-policy-byte-guards.py" in issues
         assert "tests_readme:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
         assert "tests_readme:scripts/zigux/validate-phase3-abi-bindings-syntax.py" in issues
+        assert "tests_readme:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
         assert "tests_readme:scripts/zigux/phase3_catalog.py --self-test" in issues
         assert "tests_readme:scripts/zigux/phase3_check_lib.py --self-test" in issues
         assert "tests_readme:scripts/zigux/generate-phase3-check-wrappers.py --check" in issues
@@ -455,6 +459,17 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             "duplicate_tests_readme_marker:2:scripts/zigux/check-phase3-selftest-surface.py"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(TESTS_README_MARKERS + [TESTS_README_MARKERS[10]]) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "duplicate_tests_readme_marker:2:scripts/zigux/survey-phase3-abi-constant-parity.py"
             in issues
         )
 
@@ -526,7 +541,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=30")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
