@@ -187,6 +187,15 @@ def collect_marker_counts(text: str, label: str, markers: list[str]) -> list[str
     return mismatches
 
 
+def collect_presence_markers(text: str, label: str, markers: list[str]) -> list[str]:
+    missing: list[str] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count < 1:
+            missing.append(f"{label}:{marker}:expected>=1:actual={count}")
+    return missing
+
+
 def extract_test_body(text: str, title: str) -> str | None:
     anchor = f'test "{title}"'
     start = text.find(anchor)
@@ -329,7 +338,7 @@ def collect_missing_markers(root: Path) -> list[str]:
             'phase1_parity_test:test "phase 1 helper ports match committed parity fixture":expected=1:actual=0'
         )
     else:
-        missing.extend(collect_marker_counts(replay_body, "phase1_parity_replay_marker", PHASE1_REPLAY_MARKERS))
+        missing.extend(collect_presence_markers(replay_body, "phase1_parity_replay_marker", PHASE1_REPLAY_MARKERS))
 
     for label, (path, markers) in SOURCE_MARKERS.items():
         text = (root / path).read_text(encoding="utf-8")
@@ -354,6 +363,7 @@ def run_self_test() -> None:
     test_text = (
         'test "phase 1 helper ports match committed parity fixture" {\n'
         'fixture.bitmap.partial_xor_nbits\n'
+        'bitmap.lastWordMask(fixture.bitmap.partial_xor_nbits)\n'
         'fixture.bitmap.partial_xor_masked_values\n'
         'fixture.string.memchr_inv_index\n'
         '}\n\n'
@@ -361,7 +371,7 @@ def run_self_test() -> None:
     )
     replay = extract_test_body(test_text, "phase 1 helper ports match committed parity fixture")
     assert replay is not None
-    assert not collect_marker_counts(
+    assert not collect_presence_markers(
         replay,
         "phase1_parity_replay_marker",
         [
@@ -399,6 +409,7 @@ def run_self_test() -> None:
             '\n'.join(SOURCE_MARKERS["string_test_anchor"][1]) + '\n',
             encoding="utf-8",
         )
+        (tmp_root / "tools" / "lib" / "rbtree.zig").writeText = None
         (tmp_root / "tools" / "lib" / "rbtree.zig").write_text(
             '\n'.join(SOURCE_MARKERS["rbtree_test_anchor"][1]) + '\n',
             encoding="utf-8",
