@@ -50,6 +50,8 @@ Shared smoke boundary:
 - `zigux/tests/phase14_ring_buffer_manifest.json`
 - `zigux/tests/phase14_rcu_tree_survey.zig`
 - `zigux/tests/phase14_rcu_tree_manifest.json`
+- `kernel/workqueue_bridge.zig`
+- `net/core/skbuff_bridge.zig`
 - `kernel/rcu/tree_bridge.zig`
 - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
@@ -104,7 +106,7 @@ Anchor packets in the current smoke bundle:
 - `scripts/zigux/validate-phase14.py --self-test` now gives the shared smoke packet a direct validator-local replay route for the built-in checker-failure coverage, so the silent-failure proof inside the validator no longer stays implicit behind the broader `make -C zigux phase14-validate` path.
 - `scripts/zigux/check-phase14-docs-root-smoke-summary.py` now also keeps this shared smoke note and the manifest-backed packet inventory tied to the shipped `phase14-validate` route instead of leaving the docs-root smoke-summary checker implicit in `zigux/Makefile` alone.
 - `Documentation/zigux/phase14-core-boundary-traceability.md` keeps the current ring-buffer, skbuff, and RCU lane keys, surveyed commits, ready-next posture, blocked gaps, and stay-in-C decisions visible in one cross-anchor note instead of leaving that boundary evidence to separate lane notes or run memory alone.
-- `kernel/rcu/tree_bridge.zig` now keeps the review-only RCU boundary map, concurrency audit checkpoints, and bridge-governance guardrails queryable beside `zigux/tests/phase14_rcu_tree_manifest.json`, so the shared smoke lane no longer relies on the RCU survey prose alone to record that wrapper-first governance foothold.
+- The shared smoke packet now names the full review-only bridge root set beside the ring-buffer survey root: `kernel/workqueue_bridge.zig`, `net/core/skbuff_bridge.zig`, `kernel/rcu/tree_bridge.zig`, and `phase14_ring_buffer_survey.zig`.
 - `zigux/tests/phase14_build.zig` keeps one dedicated smoke shard for `phase14-end-to-end-smoke-tests`, while the four anchor-local artifacts remain `full_bundle_only` under the broader Phase 14 test replay.
 - `Documentation/zigux/freeze-map.md` still names the same four anchors, so the packet stays grounded in stay-in-C and blocked-evidence posture instead of drifting toward an implementation claim.
 - `Documentation/zigux/phase14-ring-buffer-survey.md` and `zigux/tests/phase14_ring_buffer_manifest.json` agree on lane `P14-L08` at surveyed commit `946d5c73fdb763ba860a20879b05da54e1896e8c`, keeping the ring-buffer anchor study-only while carrying the landed exported-page copy-path audit instead of any `kernel/trace/ring_buffer.zig` claim.
