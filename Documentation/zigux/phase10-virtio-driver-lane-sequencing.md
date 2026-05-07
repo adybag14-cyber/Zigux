@@ -115,4 +115,4 @@ Ring, core, and input lanes may cite this packet as adjacent evidence, but they 
 
 ## Next bounded step
 
-Keep this sequencing note parked unless future repo drift blurs the ownership boundary between the Phase 10 core, ring, input, and MMIO driver packets again. Any deeper helper or survey work should return to the owning driver lane instead of expanding this note.
+Keep this sequencing note parked unless future repo drift blurs the ownership boundary between the Phase 10 core, ring, input, and MMIO driver packets again. The current smallest shared-surface follow-through sits outside this note: `Documentation/zigux/README.md` should keep `scripts/zigux/check-phase10-mmio-freeze-boundary.py` and `zigux/tests/phase10_closure_manifest.json` explicit beside the existing shared Phase 10 packet instead of leaving that MMIO freeze-boundary and closure-manifest evidence implicit.
