@@ -15,7 +15,8 @@
     "preexisting_gpio_wdt_test_present": true,
     "preexisting_phase11_survey_note_present": true,
     "preexisting_phase11_module_note_present": true,
-    "preexisting_phase11_validation_matrix_present": true
+    "preexisting_phase11_validation_matrix_present": true,
+    "preexisting_phase11_shared_replay_evidence_present": true
   },
   "gaps": [
     {
@@ -65,7 +66,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
-      "why_now": "The bounded validation matrix now records the shared Phase 11 replay path, the current property, startup, descriptor-preflight, timeout-property, runtime, handoff, and register-device request evidence, and the remaining registration, teardown, failure-mode, and hardware-backed validation gap so the review packet keeps one truthful validation posture."
+      "why_now": "The bounded validation matrix now records the shared Phase 11 replay path, the exact focused survey replay, the current property, startup, descriptor-preflight, timeout-property, runtime, handoff, and register-device request evidence, and the remaining registration, teardown, failure-mode, and hardware-backed validation gap so the review packet keeps one truthful validation posture."
     },
     {
       "id": "phase11-gpio-wdt-probe-summary-followup",
