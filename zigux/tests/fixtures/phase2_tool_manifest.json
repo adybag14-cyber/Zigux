@@ -10,5 +10,6 @@
     "scripts/zigux/kconfig/conf_bridge.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig"
   ],
-  "fixdep_packet": "zigux/tests/fixtures/fixdep/manifest.json"
+  "fixdep_packet": "zigux/tests/fixtures/fixdep/manifest.json",
+  "genksyms_bridge_packet": "zigux/tests/fixtures/genksyms_bridge/manifest.json"
 }
