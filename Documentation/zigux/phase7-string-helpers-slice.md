@@ -70,8 +70,8 @@ The current tests check:
 - dictionary-limited `only` filtering plus `ESCAPE_APPEND` behavior for one newline-focused printable escape proof through the shared fixture table
 - printable, non-printable, non-ascii, and non-printable-or-non-ascii passthrough filters over a hex-escaped bounded subset through the shared fixture table
 - truncation accounting that returns the full would-be escaped length without promising an appended terminator through one dedicated gate assertion
-- the bounded `samples/zigux/string_helpers_sample.zig` replay for descriptor ownership, lifecycle transitions, newline-tolerant matching, binary size rendering, compact no-space-no-bytes formatting, and deterministic plus append-selected newline hex escaping through the shared Phase 7 build
-- the manifest-backed `zigux/tests/phase7_string_helpers_sample_survey.zig` gate so the helper, shared fixtures, sample replay, and slice note stay aligned in one reviewable packet after the added compact-format and append-selected escape proofs
+- the bounded `samples/zigux/string_helpers_sample.zig` replay for descriptor ownership, lifecycle transitions, newline-tolerant matching, binary size rendering, compact no-space-no-bytes formatting, deterministic only-selected newline escaping, and append-selected newline hex escaping through the shared Phase 7 build
+- the manifest-backed `zigux/tests/phase7_string_helpers_sample_survey.zig` gate so the helper, shared fixtures, sample replay, and slice note stay aligned in one reviewable packet after the added compact-format, only-selected newline escaping, and append-selected escape proofs
 
 ## Non-goals
 
