@@ -112,6 +112,7 @@ CONTRIBUTOR_GUIDE_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/tests/phase13_notifier_list_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
@@ -125,6 +126,7 @@ CONTRIBUTOR_GUIDE_EXACT_COUNTS = {
     "Documentation/zigux/phase13-roadmap-traceability.md": 2,
     "Documentation/zigux/phase13-notifier-list-survey.md": 2,
     "zigux/tests/phase13_notifier_list_manifest.json": 2,
+    "zigux/tests/phase13_notifier_list_reviewability.zig": 2,
     "zigux/bindings/notifier_abi.zig": 2,
     "include/zigux/notifier_abi.h": 2,
     "zigux/helpers/notifier_chain_view.zig": 2,
@@ -144,6 +146,7 @@ CONTRIBUTOR_SYNC_REQUIRED_MARKERS = [
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "zigux/tests/README.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/tests/phase13_notifier_list_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
@@ -160,6 +163,7 @@ CONTRIBUTOR_SYNC_EXACT_COUNTS = {
     "Documentation/zigux/phase13-roadmap-traceability.md": 1,
     "Documentation/zigux/phase13-notifier-list-survey.md": 1,
     "zigux/tests/phase13_notifier_list_manifest.json": 1,
+    "zigux/tests/phase13_notifier_list_reviewability.zig": 2,
     "zigux/bindings/notifier_abi.zig": 1,
     "include/zigux/notifier_abi.h": 1,
     "zigux/helpers/notifier_chain_view.zig": 1,
@@ -182,6 +186,7 @@ TESTS_REVIEW_COMPANION_REQUIRED_MARKERS = [
     "zigux/tests/phase13_landlock_ruleset_manifest.json",
     "zigux/tests/phase13_landlock_syscalls_manifest.json",
     "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/tests/phase13_notifier_list_reviewability.zig",
     "zigux/tests/phase13_libfs_reviewability.zig",
     "zigux/tests/phase13_devres_reviewability.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig",
@@ -203,6 +208,7 @@ TESTS_REVIEW_COMPANION_REQUIRED_MARKERS = [
 TESTS_REVIEW_COMPANION_EXACT_COUNTS = {
     "Documentation/zigux/phase13-notifier-list-survey.md": 2,
     "zigux/tests/phase13_notifier_list_manifest.json": 3,
+    "zigux/tests/phase13_notifier_list_reviewability.zig": 2,
     "include/zigux/notifier_abi.h": 3,
     "zigux/bindings/notifier_abi.zig": 3,
     "zigux/helpers/notifier_chain_view.zig": 3,
@@ -217,6 +223,7 @@ SCRIPTS_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/tests/phase13_notifier_list_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
@@ -565,6 +572,60 @@ def run_self_test() -> int:
         _write(root / "zigux/tests/README.md", "\n".join(TESTS_REQUIRED_MARKERS) + "\n")
         case_count += 1
 
+        scripts_readme_path.write_text(
+            "\n".join(
+                marker
+                for marker in SCRIPTS_REQUIRED_MARKERS
+                if marker != "zigux/tests/phase13_notifier_list_reviewability.zig"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["scripts-readme:zigux/tests/phase13_notifier_list_reviewability.zig"],
+            "missing_scripts_readme_notifier_reviewability_marker_failed",
+        )
+        _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
+        contributor_guide_path.write_text(
+            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS).replace(
+                "zigux/tests/phase13_notifier_list_reviewability.zig\n", "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["contributor-workflow-guide-exact:zigux/tests/phase13_notifier_list_reviewability.zig:expected=2:actual=1"],
+            "contributor_guide_notifier_reviewability_exact_count_guard_failed",
+        )
+        _write(
+            contributor_guide_path,
+            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
+        )
+        case_count += 1
+
+        contributor_surface_sync_path = root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"
+        contributor_surface_sync_path.write_text(
+            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS).replace(
+                "zigux/tests/phase13_notifier_list_reviewability.zig\n", "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["contributor-surface-sync-exact:zigux/tests/phase13_notifier_list_reviewability.zig:expected=2:actual=1"],
+            "contributor_surface_sync_notifier_reviewability_exact_count_guard_failed",
+        )
+        _write(
+            contributor_surface_sync_path,
+            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
+        )
+        case_count += 1
+
         makefile_path = root / "zigux/Makefile"
         makefile_path.write_text(
             _baseline_makefile().replace(
@@ -667,7 +728,6 @@ def run_self_test() -> int:
         )
         case_count += 1
 
-        contributor_surface_sync_path = root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"
         contributor_surface_sync_path.write_text(
             _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS).replace(
                 "Documentation/zigux/phase13-shared-helper-lane-sequencing.md\n", "", 1
