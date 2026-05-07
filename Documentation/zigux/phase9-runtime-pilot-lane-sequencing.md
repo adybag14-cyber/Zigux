@@ -106,11 +106,14 @@ Keep that follow-through bounded to one shared summary at a time:
 - `samples/zigux/README.md` only when the Phase 9 boundary wording there is being touched already
 - `Documentation/zigux/review-checklist.md` for the reviewer-facing Phase 9 prompt
 
-This keeps later closure-note work small while preserving the explicit split between the shared loader lane, the bitmap-only top-bit replay, and the four pilot-family packets.
+Only `samples/zigux/README.md` should restate the bitmap-only top-bit companion or the older command and environment control boundaries; the docs root, scripts root, tests root, and checklist should keep pointing back here instead of duplicating those pilot-local reminders.
+
+This keeps later closure-note work small while preserving the explicit split between the shared loader lane, the bitmap-only top-bit replay, the samples-root-only command and environment boundaries, and the four pilot-family packets.
 
 ## Current live follow-through state
 
-- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `samples/zigux/README.md`, and `Documentation/zigux/review-checklist.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`
+- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`
+- `samples/zigux/README.md` already carries the bitmap-only top-bit companion reminder plus the older command and environment control boundaries, so later shared-loader follow-through should leave those pilot-local cues there instead of flattening them back into the loader packet
 - the next same-lane follow-through should reopen only if one of those shared reminder surfaces drifts, or if the shared loader lane picks up a new bounded validation surface that needs to be named across the packet
 
 ## Recommended next-step order
