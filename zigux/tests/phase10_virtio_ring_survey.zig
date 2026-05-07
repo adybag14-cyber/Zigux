@@ -152,6 +152,10 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "notify-prepare bookkeeping") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reset-readiness preflight") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`resetQueue()` helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`drivers/virtio/virtio_ring_verify.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "broken-queue recovery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "packed-ring event-index behavior") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Do not reopen MMIO, DMA, interrupt acknowledgement, queue discovery, reset execution, or probe/remove lifecycle work from this note.") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
