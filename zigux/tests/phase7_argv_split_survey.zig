@@ -116,7 +116,9 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(slice_note, "first-NUL C-string bounds on both counting and splitting");
     try expectContains(slice_note, "strict non-goal behavior where quote characters stay inside the returned tokens");
     try expectContains(slice_note, "stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path");
+    try expectContains(slice_note, "copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated");
     try expectContains(slice_note, "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`");
+    try expectContains(slice_note, "exported storage and argv views resetting back to the canonical empty sentinels after teardown");
     try expectContains(slice_note, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
     try expectContains(slice_note, "python3 scripts/zigux/check-phase7-argv-split-packet.py");
     try expectContains(slice_note, "- `argvSplitWithArgc()`");
@@ -142,6 +144,9 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
 
     try expectContains(helper_tests, "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");");
     try expectContains(helper_tests, "phase 7 argvSplit matches focused parity fixtures");
+    try expectContains(helper_tests, "phase 7 argvSplit token buffer does not alias the source text");
+    try expectContains(helper_tests, "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy");
+    try expectContains(helper_tests, "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty exported argv view");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space");
     try expectContains(helper_tests, "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable");
