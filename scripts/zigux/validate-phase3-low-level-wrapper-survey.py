@@ -265,8 +265,12 @@ def validate(root: Path) -> list[str]:
             "atomic.fetchMin(i32, &signed_value, -3, .seq_cst)",
             "atomic.fetchMax(i32, &signed_value, 6, .seq_cst)",
             "atomic.compareExchangeWeak",
+            "const monotonic_mismatch = atomic.compareExchange(",
+            "try std.testing.expectEqual(@as(?u32, 7), monotonic_mismatch);",
             "const acq_rel_mismatch = atomic.compareExchange(",
             "try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);",
+            "const weak_release_mismatch = atomic.compareExchangeWeak(",
+            "try std.testing.expectEqual(@as(?u32, 19), weak_release_mismatch);",
             "barrier.acquireRelease",
             "mmio.write8",
             "mmio.read8",
@@ -288,6 +292,9 @@ def validate(root: Path) -> list[str]:
             "try std.testing.expectEqual(base, dword_desc.base_addr);",
             "try std.testing.expectEqual(@as(u32, 24), dword_desc.length);",
             "try std.testing.expectEqual(@as(u32, 8), dword_desc.stride);",
+            "const odd_halfword: *align(1) const u16 = @ptrCast(&bytes[1]);",
+            "const odd_word: *align(1) const u32 = @ptrCast(&bytes[3]);",
+            "const odd_doubleword: *align(1) const u64 = @ptrCast(&bytes[5]);",
             ".acq_rel",
             ".acquire",
             ".release",
@@ -330,6 +337,7 @@ def validate(root: Path) -> list[str]:
             "`zigux/tests/phase3_low_level_wrappers.zig`",
             "signed `fetchAdd` and `fetchSub`",
             "signed `fetchMin` and `fetchMax`",
+            "monotonic strong `compareExchange()`",
             "`acq_rel` strong `compareExchange()` mismatch handling",
             "non-`seq_cst` atomic ordering coverage",
             "byte, 16-bit, 32-bit, and 64-bit MMIO access",
@@ -487,12 +495,24 @@ def run_self_test() -> int:
                     "    try std.testing.expectEqual(base, dword_desc.base_addr);",
                     "    try std.testing.expectEqual(@as(u32, 24), dword_desc.length);",
                     "    try std.testing.expectEqual(@as(u32, 8), dword_desc.stride);",
+                    "    const odd_halfword: *align(1) const u16 = @ptrCast(&bytes[1]);",
+                    "    const odd_word: *align(1) const u32 = @ptrCast(&bytes[3]);",
+                    "    const odd_doubleword: *align(1) const u64 = @ptrCast(&bytes[5]);",
                     "}",
                     'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {',
                     "    _ = atomic.fetchMin(i32, &signed_value, -3, .seq_cst);",
                     "    _ = atomic.fetchMax(i32, &signed_value, 6, .seq_cst);",
                     "    _ = atomic.fetchAdd(i32, &signed_arithmetic_value, 5, .seq_cst);",
                     "    _ = atomic.fetchSub(i32, &signed_arithmetic_value, 7, .seq_cst);",
+                    "    const monotonic_mismatch = atomic.compareExchange(",
+                    "        u32,",
+                    "        &monotonic_value,",
+                    "        5,",
+                    "        9,",
+                    "        .monotonic,",
+                    "        .monotonic,",
+                    "    );",
+                    "    try std.testing.expectEqual(@as(?u32, 7), monotonic_mismatch);",
                     "    const acq_rel_mismatch = atomic.compareExchange(",
                     "        u32,",
                     "        &acq_rel_value,",
@@ -502,6 +522,15 @@ def run_self_test() -> int:
                     "        .acquire,",
                     "    );",
                     "    try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);",
+                    "    const weak_release_mismatch = atomic.compareExchangeWeak(",
+                    "        u32,",
+                    "        &weak_release_value,",
+                    "        13,",
+                    "        23,",
+                    "        .release,",
+                    "        .monotonic,",
+                    "    );",
+                    "    try std.testing.expectEqual(@as(?u32, 19), weak_release_mismatch);",
                     "    const a = .acq_rel;",
                     "    const b = .acquire;",
                     "    const c = .release;",
@@ -561,6 +590,7 @@ def run_self_test() -> int:
                     "`zigux/tests/phase3_low_level_wrappers.zig`",
                     "signed `fetchAdd` and `fetchSub`",
                     "signed `fetchMin` and `fetchMax`",
+                    "monotonic strong `compareExchange()`",
                     "`acq_rel` strong `compareExchange()` mismatch handling",
                     "non-`seq_cst` atomic ordering coverage",
                     "byte, 16-bit, 32-bit, and 64-bit MMIO access",
@@ -598,6 +628,7 @@ def run_self_test() -> int:
             issue.startswith("stale_blob_marker:PHASE3_ABI_SLICE_DOC_BLOB_SHA:")
             for issue in stale_abi_slice_issues
         ), stale_abi_slice_issues
+        assert "abi_slice_missing_token:monotonic strong `compareExchange()`" in stale_abi_slice_issues, stale_abi_slice_issues
         assert "abi_slice_missing_token:`acq_rel` strong `compareExchange()` mismatch handling" in stale_abi_slice_issues, stale_abi_slice_issues
         assert "abi_slice_missing_token:byte, 16-bit, 32-bit, and 64-bit MMIO access" in stale_abi_slice_issues, stale_abi_slice_issues
 
@@ -610,6 +641,7 @@ def run_self_test() -> int:
                     "`zigux/tests/phase3_low_level_wrappers.zig`",
                     "signed `fetchAdd` and `fetchSub`",
                     "signed `fetchMin` and `fetchMax`",
+                    "monotonic strong `compareExchange()`",
                     "`acq_rel` strong `compareExchange()` mismatch handling",
                     "non-`seq_cst` atomic ordering coverage",
                     "byte, 16-bit, 32-bit, and 64-bit MMIO access",
@@ -637,6 +669,8 @@ def run_self_test() -> int:
                     "    _ = mmio.read16;",
                     "    _ = mmio.write32;",
                     "    _ = mmio.read32;",
+                    "    _ = mmio.write64;",
+                    "    _ = mmio.read64;",
                     "    try std.testing.expectEqual(base, byte_desc.base_addr);",
                     "    try std.testing.expectEqual(@as(u32, 24), byte_desc.length);",
                     "    try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);",
@@ -649,12 +683,23 @@ def run_self_test() -> int:
                     "    try std.testing.expectEqual(base, dword_desc.base_addr);",
                     "    try std.testing.expectEqual(@as(u32, 24), dword_desc.length);",
                     "    try std.testing.expectEqual(@as(u32, 8), dword_desc.stride);",
+                    "    const odd_halfword: *align(1) const u16 = @ptrCast(&bytes[1]);",
+                    "    const odd_word: *align(1) const u32 = @ptrCast(&bytes[3]);",
                     "}",
                     'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {',
                     "    _ = atomic.fetchMin(i32, &signed_value, -3, .seq_cst);",
                     "    _ = atomic.fetchMax(i32, &signed_value, 6, .seq_cst);",
                     "    _ = atomic.fetchAdd(i32, &signed_arithmetic_value, 5, .seq_cst);",
                     "    _ = atomic.fetchSub(i32, &signed_arithmetic_value, 7, .seq_cst);",
+                    "    const acq_rel_mismatch = atomic.compareExchange(",
+                    "        u32,",
+                    "        &acq_rel_value,",
+                    "        7,",
+                    "        15,",
+                    "        .acq_rel,",
+                    "        .acquire,",
+                    "    );",
+                    "    try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);",
                     "    const a = .acq_rel;",
                     "    const b = .acquire;",
                     "    const c = .release;",
@@ -674,8 +719,10 @@ def run_self_test() -> int:
             issue.startswith("stale_blob_marker:PHASE3_LOW_LEVEL_TEST_BLOB_SHA:")
             for issue in stale_low_level_test_issues
         ), stale_low_level_test_issues
-        assert "low_level_test_missing_token:mmio.write64" in stale_low_level_test_issues, stale_low_level_test_issues
-        assert "low_level_test_missing_token:mmio.read64" in stale_low_level_test_issues, stale_low_level_test_issues
+        assert "low_level_test_missing_token:const monotonic_mismatch = atomic.compareExchange(" in stale_low_level_test_issues, stale_low_level_test_issues
+        assert "low_level_test_missing_token:try std.testing.expectEqual(@as(?u32, 7), monotonic_mismatch);" in stale_low_level_test_issues, stale_low_level_test_issues
+        assert "low_level_test_missing_token:const weak_release_mismatch = atomic.compareExchangeWeak(" in stale_low_level_test_issues, stale_low_level_test_issues
+        assert "low_level_test_missing_token:const odd_doubleword: *align(1) const u64 = @ptrCast(&bytes[5]);" in stale_low_level_test_issues, stale_low_level_test_issues
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
