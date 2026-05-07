@@ -322,6 +322,33 @@ def run_self_test() -> int:
         cases += 1
 
         build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[2], "        run: python3 other.py --self-test"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_WORKFLOW_HOOKS", REQUIRED_WORKFLOW_LINES[2]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[3]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[3]}:count=2") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[4], "        run: zig test scripts/zigux/other.zig"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_WORKFLOW_HOOKS", REQUIRED_WORKFLOW_LINES[4]) in issues
+        cases += 1
+
+        build_self_test_root(root)
         path = root / PHASE2_TOOL_MANIFEST
         path.write_text(json.dumps({"genksyms_bridge_packet": "zigux/tests/fixtures/other.json"}, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
