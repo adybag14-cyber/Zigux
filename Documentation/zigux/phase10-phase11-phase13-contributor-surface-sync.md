@@ -62,7 +62,7 @@ For the active virtio contributor packet, confirm wording still matches the curr
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Keep the shared wording honest about what is not shipped on `master`: there is still no dedicated shared `validate-phase10.py`, `check-phase10-harness-coverage.py`, `check-phase10-closure-inventory.py`, `phase10_closure_manifest.json`, or closure-ledger-backed replay route.
+Keep the shared wording honest about what is not shipped on `master`: there is still no dedicated shared `validate-phase10.py`, `check-phase10-harness-coverage.py`, `phase10_closure_manifest.json`, or closure-ledger-backed replay route.
 
 ## Phase 11 anchors
 
