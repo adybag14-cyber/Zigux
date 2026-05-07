@@ -55,9 +55,9 @@ Against the Phase 9 roadmap requirements, the current runtime bitmap lane now re
 - a landed dedicated module gate in `zigux/tests/runtime_bitmap_module.zig`
 - a landed dedicated differential gate in `zigux/tests/runtime_bitmap_diff.zig`
 - a landed shared runtime-loader facade plus allocator/init-flow contract replay under `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/tests/runtime_loader_allocator_init_flow.zig`
-- a remaining blocked live runtime substrate binding, because true runtime-module loading and lifecycle parity still depend on shared runtime substrate pieces that the repo has not started yet
+- a remaining blocked live runtime-loader binding under `zigux/kernel/runtime_loader.zig`, because the shared runtime-loader facade plus allocator/init-flow contract replay now stop at prepared-request and release-without-substrate handoff validation and no live loader binding consumes the prepared bitmap plan yet
 
-This keeps the survey honest about the difference between the shipped in-memory pilot, the landed shared loader-handoff packet, the landed highest-bit boundary replay, and the still-missing live runtime substrate.
+This keeps the survey honest about the difference between the shipped in-memory pilot, the landed shared loader-handoff packet, the landed highest-bit boundary replay, and the still-missing live loader binding that would consume the prepared bitmap plan and drive true module entry/exit parity.
 
 ## Direct Sample Checks
 
@@ -87,9 +87,9 @@ The manifest now records:
 - the landed `runtime-bitmap-diff-gate`
 - the landed `runtime-bitmap-loader-scaffold`
 - the landed `runtime-bitmap-top-bit-boundary`
-- the still-blocked `runtime-bitmap-live-loader-binding`
+- the still-blocked `runtime-bitmap-live-loader-binding` beyond the landed shared request-contract scaffold
 
-This keeps the survey useful after the first starter, selftest-hook surface, module gate, diff gate, loader scaffold, shared loader-contract replay, and top-bit companion gate landed without pretending that Zigux already has a loadable runtime bitmap module or a live runtime loader binding waiting behind the blocker.
+This keeps the survey useful after the first starter, selftest-hook surface, module gate, diff gate, loader scaffold, shared loader-contract replay, and top-bit companion gate landed without pretending that Zigux already has a loadable runtime bitmap module, a live loader binding that consumes the prepared bitmap plan, or full module lifecycle parity.
 
 ## Gates
 
@@ -118,4 +118,4 @@ This survey slice still does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime bitmap lane and keep future work narrowly aimed at the remaining shared runtime substrate or lifecycle-parity blocker, rather than reopening already-landed survey, sample, top-bit, loader-scaffold, shared loader-contract, module-gate, or diff-gate scaffolding.
+Stay in the Phase 9 runtime bitmap lane and keep future work narrowly aimed at the remaining live loader binding or lifecycle-parity blocker in `zigux/kernel/runtime_loader.zig`, rather than reopening already-landed survey, sample, top-bit, loader-scaffold, shared loader-contract, module-gate, or diff-gate scaffolding.
