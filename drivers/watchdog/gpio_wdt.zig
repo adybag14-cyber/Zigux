@@ -626,3 +626,72 @@ fn validateHeartbeatMargin(hw_margin_ms: u32) !void {
     if (hw_margin_ms < min_hw_margin_ms) return error.HeartbeatMarginTooSmall;
     if (hw_margin_ms > max_hw_margin_ms) return error.HeartbeatMarginTooLarge;
 }
+
+test "register device call summary keeps toggle handoff and descriptor checkpoints aligned" {
+    const lab = try GpioWatchdogLab.init(.toggle, 250, false);
+    const summary = lab.registerDeviceCallSummary(false);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", summary.anchor);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device", summary.register_call);
+    try std.testing.expectEqual(HardwareAlgorithm.toggle, summary.hw_algo);
+    try std.testing.expectEqual(ProbeLineRequest.input, summary.requested_line);
+    try std.testing.expectEqual(DescriptorRequestFlags.in, summary.descriptor_flags);
+    try std.testing.expectEqual(ProbeStartMode.register_only, summary.start_mode);
+    try std.testing.expect(!summary.reaches_registration_running);
+    try std.testing.expect(!summary.reaches_registration_line_state);
+    try std.testing.expect(!summary.reaches_registration_line_is_output);
+    try std.testing.expect(summary.watchdog_info_ready);
+    try std.testing.expect(summary.watchdog_ops_ready);
+    try std.testing.expect(summary.watchdog_device_ready);
+    try std.testing.expect(summary.watchdog_drvdata_set);
+    try std.testing.expect(summary.module_owner_attached);
+    try std.testing.expect(summary.descriptor_request_ready);
+    try std.testing.expect(summary.timeout_init_requested);
+    try std.testing.expect(!summary.nowayout_applied);
+    try std.testing.expect(summary.parent_attached);
+    try std.testing.expect(summary.stop_on_reboot);
+    try std.testing.expectEqual(soft_timeout_min, summary.min_timeout_sec);
+    try std.testing.expectEqual(soft_timeout_default, summary.default_timeout_sec);
+    try std.testing.expectEqual(@as(u32, 250), summary.max_hw_heartbeat_ms);
+    try std.testing.expect(summary.register_device_requested);
+    try std.testing.expect(summary.blocked_on_live_gpio_lookup);
+    try std.testing.expect(summary.blocked_on_platform_registration);
+    try std.testing.expect(summary.blocked_on_reboot_glue);
+}
+
+test "always-running level teardown keeps heartbeat active after stop-backed teardown" {
+    var lab = try GpioWatchdogLab.init(.level, 500, true);
+    const summary = try lab.teardownSummary(false);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", summary.anchor);
+    try std.testing.expectEqual(HardwareAlgorithm.level, summary.hw_algo);
+    try std.testing.expect(summary.always_running);
+    try std.testing.expect(!summary.nowayout);
+    try std.testing.expect(summary.running_before_teardown);
+    try std.testing.expect(summary.line_is_output_before_teardown);
+    try std.testing.expectEqual(StopDisposition.kept_running, summary.disposition);
+    try std.testing.expect(summary.stop_allowed_by_watchdog_core);
+    try std.testing.expect(summary.driver_stop_invoked);
+    try std.testing.expect(summary.running_after_teardown);
+    try std.testing.expect(!summary.line_state_after_teardown);
+    try std.testing.expect(summary.line_is_output_after_teardown);
+    try std.testing.expectEqual(@as(usize, 0), summary.disable_count);
+}
+
+test "toggle stop disables line ownership and clears running state when stop is allowed" {
+    var lab = try GpioWatchdogLab.init(.toggle, 250, false);
+    _ = try lab.start();
+
+    const stop = lab.requestStop(false);
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", stop.anchor);
+    try std.testing.expectEqual(HardwareAlgorithm.toggle, stop.hw_algo);
+    try std.testing.expect(!stop.always_running);
+    try std.testing.expect(!stop.nowayout);
+    try std.testing.expectEqual(StopDisposition.stopped, stop.disposition);
+    try std.testing.expect(stop.stop_allowed_by_watchdog_core);
+    try std.testing.expect(stop.driver_stop_invoked);
+    try std.testing.expect(!stop.running);
+    try std.testing.expect(stop.line_state);
+    try std.testing.expect(!stop.line_is_output);
+    try std.testing.expectEqual(@as(usize, 1), stop.disable_count);
+}
