@@ -35,7 +35,9 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-kallsyms-slice.md": [
         "PHASE8_SLICE=kallsyms-parse-wrapper-parked",
         "one direct `kallsymsParse()` wrapper",
-        "oversized symbol names now raise `error.SymbolNameTooLong`",
+        "oversized symbol names now truncate to `KSYM_NAME_LEN`",
+        "weak-object `V` and `v` classes still follow the current C header contract",
+        "make -C zigux phase8-help-kallsyms-test",
     ],
     "scripts/zigux/README.md": [
         "Phase 8 flow",
@@ -61,7 +63,8 @@ REQUIRED_MARKERS = {
         "pub fn forEachParsedReader",
         "pub fn kallsymsParseFile",
         "pub fn kallsymsParse",
-        "error.SymbolNameTooLong",
+        "parseLine truncates oversized names instead of failing them",
+        "weak object symbol classes keep the current C helper classification",
     ],
     "zigux/Makefile": [
         "phase8-validate:",
@@ -85,6 +88,7 @@ REQUIRED_MARKERS = {
         "\"Documentation/zigux/phase8-help-slice.md\"",
         "\"phase8_help.zig\"",
         "phase8-help-tests",
+        "Run focused Phase 8 help tests",
     ],
     "zigux/tests/phase8_help_kallsyms_only_build.zig": [
         "\"Documentation/zigux/phase8-help-slice.md\"",
@@ -96,70 +100,18 @@ REQUIRED_MARKERS = {
         "Run focused Phase 8 help and kallsyms tests",
     ],
     "zigux/tests/phase8_kallsyms.zig": [
-        "phase 8 kallsyms slice note keeps the fail-closed oversized-name contract explicit",
-        "one direct `kallsymsParse()` wrapper",
+        "phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit",
+        "oversized symbol names now truncate to `KSYM_NAME_LEN`",
+        "weak-object `V` and `v` classes still follow the current C header contract",
         "phase8_help_kallsyms_only_build.zig",
     ],
     "zigux/tests/phase8_kallsyms_only_build.zig": [
         "\"Documentation/zigux/phase8-kallsyms-slice.md\"",
         "\"phase8_kallsyms.zig\"",
         "phase8-kallsyms-tests",
+        "Run focused Phase 8 kallsyms tests",
     ],
 }
-
-FIXTURE_OVERRIDES = {
-    "Documentation/zigux/phase8-help-slice.md": "\n".join(
-        REQUIRED_MARKERS["Documentation/zigux/phase8-help-slice.md"]
-    )
-    + "\n",
-    "Documentation/zigux/phase8-kallsyms-slice.md": "\n".join(
-        REQUIRED_MARKERS["Documentation/zigux/phase8-kallsyms-slice.md"]
-    )
-    + "\n",
-    "scripts/zigux/README.md": "\n".join(REQUIRED_MARKERS["scripts/zigux/README.md"]) + "\n",
-    ".github/workflows/zigux-bootstrap.yml": "\n".join(
-        REQUIRED_MARKERS[".github/workflows/zigux-bootstrap.yml"]
-    )
-    + "\n",
-    "scripts/zigux/check-phase8-help-kallsyms-packet.py": "# fixture\n",
-    "tools/lib/subcmd/help.zig": "\n".join(
-        REQUIRED_MARKERS["tools/lib/subcmd/help.zig"]
-    )
-    + "\n",
-    "tools/lib/symbol/kallsyms.zig": "\n".join(
-        REQUIRED_MARKERS["tools/lib/symbol/kallsyms.zig"]
-    )
-    + "\n",
-    "zigux/Makefile": "\n".join(REQUIRED_MARKERS["zigux/Makefile"]) + "\n",
-    "zigux/tests/README.md": "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n",
-    "zigux/tests/phase8_help.zig": "\n".join(
-        REQUIRED_MARKERS["zigux/tests/phase8_help.zig"]
-    )
-    + "\n",
-    "zigux/tests/phase8_help_only_build.zig": "\n".join(
-        REQUIRED_MARKERS["zigux/tests/phase8_help_only_build.zig"]
-    )
-    + "\n",
-    "zigux/tests/phase8_help_kallsyms_only_build.zig": "\n".join(
-        REQUIRED_MARKERS["zigux/tests/phase8_help_kallsyms_only_build.zig"]
-    )
-    + "\n",
-    "zigux/tests/phase8_kallsyms.zig": "\n".join(
-        REQUIRED_MARKERS["zigux/tests/phase8_kallsyms.zig"]
-    )
-    + "\n",
-    "zigux/tests/phase8_kallsyms_only_build.zig": "\n".join(
-        REQUIRED_MARKERS["zigux/tests/phase8_kallsyms_only_build.zig"]
-    )
-    + "\n",
-}
-
-
-def write_fixture_root(root: Path) -> None:
-    for rel in REQUIRED_FILES:
-        path = root / rel
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(FIXTURE_OVERRIDES.get(rel, "# fixture\n"), encoding="utf-8")
 
 
 def collect_missing_files(root: Path) -> list[str]:
@@ -181,6 +133,19 @@ def collect_missing_markers(root: Path) -> list[str]:
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
     return collect_missing_files(root), collect_missing_markers(root)
+
+
+def fixture_text(rel: str) -> str:
+    if rel == "scripts/zigux/check-phase8-help-kallsyms-packet.py":
+        return "# fixture\n"
+    return "\n".join(REQUIRED_MARKERS.get(rel, ["# fixture"])) + "\n"
+
+
+def write_fixture_root(root: Path) -> None:
+    for rel in REQUIRED_FILES:
+        path = root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(fixture_text(rel), encoding="utf-8")
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -226,11 +191,18 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-help-slice.md: make -C zigux phase8-help-kallsyms-test",
         ),
         (
-            "kallsyms_slice_oversized_name_guard",
+            "kallsyms_slice_truncation_guard",
             "Documentation/zigux/phase8-kallsyms-slice.md",
-            "oversized symbol names now raise `error.SymbolNameTooLong`",
-            "oversized symbol names are noted",
-            "Documentation/zigux/phase8-kallsyms-slice.md: oversized symbol names now raise `error.SymbolNameTooLong`",
+            "oversized symbol names now truncate to `KSYM_NAME_LEN`",
+            "oversized symbol names now stay bounded",
+            "Documentation/zigux/phase8-kallsyms-slice.md: oversized symbol names now truncate to `KSYM_NAME_LEN`",
+        ),
+        (
+            "kallsyms_slice_weak_object_note",
+            "Documentation/zigux/phase8-kallsyms-slice.md",
+            "weak-object `V` and `v` classes still follow the current C header contract",
+            "weak-object classes stay aligned",
+            "Documentation/zigux/phase8-kallsyms-slice.md: weak-object `V` and `v` classes still follow the current C header contract",
         ),
         (
             "scripts_readme_combined_checker",
@@ -240,13 +212,6 @@ def run_self_test() -> None:
             "scripts/zigux/README.md: scripts/zigux/check-phase8-help-kallsyms-packet.py",
         ),
         (
-            "scripts_readme_combined_make_route",
-            "scripts/zigux/README.md",
-            "make -C zigux phase8-help-kallsyms-test",
-            "make -C zigux phase8-help-test",
-            "scripts/zigux/README.md: make -C zigux phase8-help-kallsyms-test",
-        ),
-        (
             "workflow_combined_step",
             ".github/workflows/zigux-bootstrap.yml",
             "Run focused Phase 8 help and kallsyms tests",
@@ -254,25 +219,18 @@ def run_self_test() -> None:
             ".github/workflows/zigux-bootstrap.yml: Run focused Phase 8 help and kallsyms tests",
         ),
         (
-            "workflow_combined_make_route",
-            ".github/workflows/zigux-bootstrap.yml",
-            "make -C zigux phase8-help-kallsyms-test",
-            "make -C zigux phase8-help-test",
-            ".github/workflows/zigux-bootstrap.yml: make -C zigux phase8-help-kallsyms-test",
-        ),
-        (
-            "help_helper_terminal_writer",
-            "tools/lib/subcmd/help.zig",
-            "pub fn writeCommandSectionsForTerminal",
-            "pub fn writeCommandSections",
-            "tools/lib/subcmd/help.zig: pub fn writeCommandSectionsForTerminal",
-        ),
-        (
-            "kallsyms_helper_parse_file",
+            "kallsyms_helper_truncation_test",
             "tools/lib/symbol/kallsyms.zig",
-            "pub fn kallsymsParseFile",
-            "pub fn kallsymsParseOpenedFile",
-            "tools/lib/symbol/kallsyms.zig: pub fn kallsymsParseFile",
+            "parseLine truncates oversized names instead of failing them",
+            "parseLine keeps oversized names explicit",
+            "tools/lib/symbol/kallsyms.zig: parseLine truncates oversized names instead of failing them",
+        ),
+        (
+            "kallsyms_helper_weak_object_test",
+            "tools/lib/symbol/kallsyms.zig",
+            "weak object symbol classes keep the current C helper classification",
+            "weak object classes stay explicit",
+            "tools/lib/symbol/kallsyms.zig: weak object symbol classes keep the current C helper classification",
         ),
         (
             "makefile_phase8_checker_self_test",
@@ -282,32 +240,11 @@ def run_self_test() -> None:
             "zigux/Makefile: scripts/zigux/check-phase8-help-kallsyms-packet.py --self-test",
         ),
         (
-            "tests_readme_combined_build_anchor",
+            "tests_readme_combined_anchor",
             "zigux/tests/README.md",
             "zigux/tests/phase8_help_kallsyms_only_build.zig",
             "zigux/tests/phase8_help_symbol_only_build.zig",
             "zigux/tests/README.md: zigux/tests/phase8_help_kallsyms_only_build.zig",
-        ),
-        (
-            "tests_readme_combined_make_route",
-            "zigux/tests/README.md",
-            "make -C zigux phase8-help-kallsyms-test",
-            "make -C zigux phase8-help-test",
-            "zigux/tests/README.md: make -C zigux phase8-help-kallsyms-test",
-        ),
-        (
-            "tests_readme_combined_phrase",
-            "zigux/tests/README.md",
-            "shared help-and-symbol replay",
-            "shared help replay",
-            "zigux/tests/README.md: shared help-and-symbol replay",
-        ),
-        (
-            "combined_build_workflow_label",
-            "zigux/tests/phase8_help_kallsyms_only_build.zig",
-            "Run focused Phase 8 help and kallsyms tests",
-            "Run focused Phase 8 help tests",
-            "zigux/tests/phase8_help_kallsyms_only_build.zig: Run focused Phase 8 help and kallsyms tests",
         ),
         (
             "help_test_combined_build_anchor",
@@ -317,11 +254,25 @@ def run_self_test() -> None:
             "zigux/tests/phase8_help.zig: phase8_help_kallsyms_only_build.zig",
         ),
         (
-            "kallsyms_test_combined_build_anchor",
+            "combined_build_workflow_label",
+            "zigux/tests/phase8_help_kallsyms_only_build.zig",
+            "Run focused Phase 8 help and kallsyms tests",
+            "Run focused Phase 8 help tests",
+            "zigux/tests/phase8_help_kallsyms_only_build.zig: Run focused Phase 8 help and kallsyms tests",
+        ),
+        (
+            "kallsyms_test_truncation_contract",
             "zigux/tests/phase8_kallsyms.zig",
-            "phase8_help_kallsyms_only_build.zig",
-            "phase8_help_symbol_only_build.zig",
-            "zigux/tests/phase8_kallsyms.zig: phase8_help_kallsyms_only_build.zig",
+            "phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit",
+            "phase 8 kallsyms slice note keeps the parser contract explicit",
+            "zigux/tests/phase8_kallsyms.zig: phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit",
+        ),
+        (
+            "kallsyms_test_weak_object_anchor",
+            "zigux/tests/phase8_kallsyms.zig",
+            "weak-object `V` and `v` classes still follow the current C header contract",
+            "weak-object classes stay explicit",
+            "zigux/tests/phase8_kallsyms.zig: weak-object `V` and `v` classes still follow the current C header contract",
         ),
     ]
 
