@@ -85,6 +85,42 @@ fn compareDescendingOpaqueU32Counted(key: *const anyopaque, item: *const anyopaq
     return compareDescendingOpaqueU32(key, item);
 }
 
+fn binarySearchBudget(len: usize) usize {
+    if (len == 0) return 0;
+
+    var budget: usize = 0;
+    var span: usize = 1;
+    while (span < len + 1) : (span <<= 1) {
+        budget += 1;
+    }
+    return budget;
+}
+
+fn linearSearchIndexU32(
+    key: *const u32,
+    items: []const u32,
+    compare: anytype,
+) ?usize {
+    for (items, 0..) |_, index| {
+        if (compare(key, &items[index]) == 0) return index;
+    }
+    return null;
+}
+
+fn linearRawSearchIndexU32(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num_members: usize,
+    member_size: usize,
+    compare: anytype,
+) ?usize {
+    for (0..num_members) |index| {
+        const item: *const anyopaque = @ptrCast(base + (index * member_size));
+        if (compare(key, item) == 0) return index;
+    }
+    return null;
+}
+
 test "phase 6 bsearch module imports cleanly" {
     _ = bsearch;
 }
@@ -354,6 +390,73 @@ test "phase 6 bsearch raw lookup keeps representative work inside a binary-searc
         bsearch.bsearchIndex(&@as(u32, 50), raw_values, values.len, @sizeOf(u32), compareOpaqueU32Counted),
     );
     try std.testing.expect(counted_raw_compare_calls <= 4);
+}
+
+test "phase 6 bsearch bounded typed and raw equality probes stay inside a binary-search budget" {
+    var ascending_storage: [32]u32 = undefined;
+    var descending_storage: [32]u32 = undefined;
+
+    for (0..ascending_storage.len + 1) |len| {
+        for (0..len) |index| {
+            const value = @as(u32, @intCast((index + 1) * 2));
+            ascending_storage[index] = value;
+            descending_storage[len - 1 - index] = value;
+        }
+
+        const ascending = ascending_storage[0..len];
+        const descending = descending_storage[0..len];
+        const budget = binarySearchBudget(len);
+        const max_probe: u32 = if (len == 0) 1 else @as(u32, @intCast((len * 2) + 1));
+        const ascending_raw: [*]const u8 = @ptrCast(ascending.ptr);
+        const descending_raw: [*]const u8 = @ptrCast(descending.ptr);
+
+        var probe: u32 = 1;
+        while (probe <= max_probe) : (probe += 1) {
+            counted_compare_calls = 0;
+            const expected_ascending = linearSearchIndexU32(&probe, ascending, compareU32);
+            try std.testing.expectEqual(
+                expected_ascending,
+                bsearch.searchIndex(u32, u32, &probe, ascending, compareU32Counted),
+            );
+            try std.testing.expect(counted_compare_calls <= budget);
+
+            counted_compare_calls = 0;
+            const expected_descending = linearSearchIndexU32(&probe, descending, compareDescendingU32);
+            try std.testing.expectEqual(
+                expected_descending,
+                bsearch.searchIndex(u32, u32, &probe, descending, compareDescendingU32Counted),
+            );
+            try std.testing.expect(counted_compare_calls <= budget);
+
+            counted_raw_compare_calls = 0;
+            const expected_raw_ascending = linearRawSearchIndexU32(
+                &probe,
+                ascending_raw,
+                ascending.len,
+                @sizeOf(u32),
+                compareOpaqueU32,
+            );
+            try std.testing.expectEqual(
+                expected_raw_ascending,
+                bsearch.bsearchIndex(&probe, ascending_raw, ascending.len, @sizeOf(u32), compareOpaqueU32Counted),
+            );
+            try std.testing.expect(counted_raw_compare_calls <= budget);
+
+            counted_raw_compare_calls = 0;
+            const expected_raw_descending = linearRawSearchIndexU32(
+                &probe,
+                descending_raw,
+                descending.len,
+                @sizeOf(u32),
+                compareDescendingOpaqueU32,
+            );
+            try std.testing.expectEqual(
+                expected_raw_descending,
+                bsearch.bsearchIndex(&probe, descending_raw, descending.len, @sizeOf(u32), compareDescendingOpaqueU32Counted),
+            );
+            try std.testing.expect(counted_raw_compare_calls <= budget);
+        }
+    }
 }
 
 test "phase 6 bsearch accepts runtime-selected native comparator pointers" {
