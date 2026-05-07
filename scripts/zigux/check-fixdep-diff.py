@@ -18,6 +18,32 @@ ZIG_FIXDEP = ROOT / 'scripts' / 'zigux' / 'fixdep.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep'
 CASES_PATH = FIXTURE_DIR / 'cases.json'
 MANIFEST_PATH = FIXTURE_DIR / 'manifest.json'
+ALLOWED_CASE_FIELDS = frozenset({
+    'name',
+    'depfile',
+    'target',
+    'cmdline',
+    'expected',
+    'expected_stdout',
+    'expected_stderr',
+    'expected_exit_code',
+})
+EXPECTED_MANIFEST_FIELDS = frozenset({
+    'tool',
+    'status',
+    'fixture_root',
+    'case_count',
+    'cases',
+    'stdout_packet',
+    'stderr_packet',
+    'helper_local_anchors',
+})
+EXPECTED_HELPER_LOCAL_ANCHORS = [
+    'dep parsing returns NoTargets for comment-only depfiles',
+    'dep parsing skips bytes after the first embedded NUL',
+    'dependency file reads beyond the legacy one mebibyte ceiling',
+    'output write failure uses C-style wording',
+]
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -66,6 +92,9 @@ def load_cases(cases_path: Path, fixture_dir: Path) -> list[dict[str, object]]:
             raise RuntimeError(f'{label} must be a JSON object')
 
         case = dict(raw_case)
+        unexpected_fields = sorted(set(case) - ALLOWED_CASE_FIELDS)
+        if unexpected_fields:
+            raise RuntimeError(f"{label} unexpected fields: {', '.join(unexpected_fields)}")
         for field in ('name', 'depfile', 'target', 'cmdline', 'expected'):
             value = case.get(field)
             if not isinstance(value, str) or not value:
@@ -126,6 +155,12 @@ def validate_manifest_against_cases(
         if isinstance(expected_stderr, str) and expected_stderr not in expected_stderr_packet:
             expected_stderr_packet.append(expected_stderr)
 
+    unexpected_manifest_fields = sorted(set(manifest) - EXPECTED_MANIFEST_FIELDS)
+    if unexpected_manifest_fields:
+        raise RuntimeError(
+            'fixdep manifest drift: unexpected fields: ' + ', '.join(unexpected_manifest_fields)
+        )
+
     expected = {
         'tool': 'scripts/zigux/fixdep.zig',
         'status': 'closed',
@@ -144,13 +179,11 @@ def validate_manifest_against_cases(
             )
 
     helper_local_anchors = manifest.get('helper_local_anchors')
-    if not isinstance(helper_local_anchors, list) or not helper_local_anchors:
-        raise RuntimeError('fixdep manifest drift: helper_local_anchors must be a non-empty list')
-    for index, anchor in enumerate(helper_local_anchors):
-        if not isinstance(anchor, str) or not anchor:
-            raise RuntimeError(
-                f'fixdep manifest drift: helper_local_anchors[{index}] must be a non-empty string'
-            )
+    if helper_local_anchors != EXPECTED_HELPER_LOCAL_ANCHORS:
+        raise RuntimeError(
+            'fixdep manifest drift: helper_local_anchors expected '
+            f'{EXPECTED_HELPER_LOCAL_ANCHORS!r}, got {helper_local_anchors!r}'
+        )
 
     for file_name in expected_stdout_packet + expected_stderr_packet:
         if not (fixture_dir / file_name).is_file():
@@ -287,7 +320,7 @@ def run_self_test() -> int:
             'cases': ['sample', 'sample_error'],
             'stdout_packet': ['sample_expected.txt', 'sample_comment_only_expected.txt'],
             'stderr_packet': ['sample.stderr.txt'],
-            'helper_local_anchors': ['output write failure uses C-style wording'],
+            'helper_local_anchors': EXPECTED_HELPER_LOCAL_ANCHORS,
         }
         manifest_path = tmp_dir / 'manifest.json'
         manifest_path.write_text(json.dumps(good_manifest), encoding='utf-8')
@@ -303,6 +336,20 @@ def run_self_test() -> int:
                 raise
         else:
             raise RuntimeError('self-test expected duplicate case name failure')
+
+        cases_path.write_text(json.dumps(good_cases), encoding='utf-8')
+        loaded_cases = load_cases(cases_path, fixture_dir)
+
+        unexpected_field_cases = [dict(good_cases[0])]
+        unexpected_field_cases[0]['notes'] = 'unexpected'
+        cases_path.write_text(json.dumps(unexpected_field_cases), encoding='utf-8')
+        try:
+            load_cases(cases_path, fixture_dir)
+        except RuntimeError as exc:
+            if 'unexpected fields: notes' not in str(exc):
+                raise
+        else:
+            raise RuntimeError('self-test expected unexpected case field failure')
 
         cases_path.write_text(json.dumps(good_cases), encoding='utf-8')
         loaded_cases = load_cases(cases_path, fixture_dir)
@@ -345,12 +392,23 @@ def run_self_test() -> int:
             raise RuntimeError('self-test expected manifest stderr drift failure')
 
         drifted_manifest = dict(good_manifest)
-        drifted_manifest['helper_local_anchors'] = []
+        drifted_manifest['unexpected_field'] = 'unexpected'
         manifest_path.write_text(json.dumps(drifted_manifest), encoding='utf-8')
         try:
             validate_manifest_against_cases(load_manifest(manifest_path), loaded_cases, fixture_dir)
         except RuntimeError as exc:
-            if 'helper_local_anchors must be a non-empty list' not in str(exc):
+            if 'fixdep manifest drift: unexpected fields: unexpected_field' not in str(exc):
+                raise
+        else:
+            raise RuntimeError('self-test expected manifest unexpected field failure')
+
+        drifted_manifest = dict(good_manifest)
+        drifted_manifest['helper_local_anchors'] = list(reversed(EXPECTED_HELPER_LOCAL_ANCHORS))
+        manifest_path.write_text(json.dumps(drifted_manifest), encoding='utf-8')
+        try:
+            validate_manifest_against_cases(load_manifest(manifest_path), loaded_cases, fixture_dir)
+        except RuntimeError as exc:
+            if 'fixdep manifest drift: helper_local_anchors expected' not in str(exc):
                 raise
         else:
             raise RuntimeError('self-test expected helper anchor drift failure')
