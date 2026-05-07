@@ -2,7 +2,7 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "abi-substrate-skeleton",
-  "file_count": 26,
+  "file_count": 27,
   "files": [
     "include/zigux/abi.h",
     "include/zigux/dev_t.h",
@@ -27,6 +27,7 @@
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "Documentation/zigux/phase3-abi-slice.md"
