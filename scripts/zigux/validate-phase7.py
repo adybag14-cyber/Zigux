@@ -380,6 +380,10 @@ EXACT_COUNT_MARKERS = {
         ("phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable", 1),
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
+        (
+            "phase 7 rbtree survey manifest records the landed runtime leaf surface and committed parity fixture",
+            1,
+        ),
         ("zigux/tests/phase7_rbtree_manifest.json", 1),
         ("python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test", 1),
         ("PHASE7_LANE_KEY=P7-Y04", 1),
