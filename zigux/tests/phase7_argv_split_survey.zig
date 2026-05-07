@@ -52,6 +52,9 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
 
+    const helper_impl = try readRepoFile(allocator, "lib/argv_split.zig");
+    defer allocator.free(helper_impl);
+
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_argv_split.zig");
     defer allocator.free(helper_tests);
 
@@ -110,6 +113,14 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(build_file, "\"phase7-argv-split-survey-tests\"");
     try expectContains(build_file, "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));");
 
+    try expectContains(helper_impl, "pub fn countArgc");
+    try expectContains(helper_impl, "pub fn argvSplit");
+    try expectContains(helper_impl, "pub fn argvSplitWithArgc");
+    try expectContains(helper_impl, "pub fn argvFree");
+    try expectContains(helper_impl, "pub fn cArgv");
+    try expectContains(helper_impl, "test \"argvSplit frees intermediate allocations when allocator failure interrupts setup\"");
+    try expectContains(helper_impl, "test \"argvSplit reports overflow before sizing the null-terminated argv vector\"");
+
     try expectContains(helper_tests, "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");");
     try expectContains(helper_tests, "phase 7 argvSplit matches focused parity fixtures");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty exported argv view");
@@ -117,6 +128,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable");
     try expectContains(helper_tests, "phase 7 argvSplit deinit clears exported storage and argv views");
     try expectContains(helper_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable");
+    try expectContains(helper_tests, "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup");
     try expectContains(helper_tests, "split.cArgv()");
 
     try expectContains(fixture_module, ".name = \"whitespace before first NUL stays blank\",");
