@@ -315,6 +315,14 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".lifecycle,") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(@as(u32, 4), summary.weight);") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "test \"runtime bitmap sample failed init leaves the sample cold and empty\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(ModuleStage.cold, failed_init.stage);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(@as(usize, 0), failed_init.init_runs);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(@as(u32, RuntimeBitmapSample.bitmap_nbits), summary.first_set);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "test \"runtime bitmap sample keeps exit-path summaries stable\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(ModuleStage.exited, initialized_snapshot.stage);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(ModuleStage.exited, selftested_snapshot.stage);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectError(error.InvalidLifecycleTransition, selftested.setRange(1, 1));") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try module.clearRange(second_word_base, 2);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try module.setRange(9, 4);") != null);
