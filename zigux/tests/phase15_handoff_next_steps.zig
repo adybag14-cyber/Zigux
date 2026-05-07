@@ -119,6 +119,14 @@ test "phase 15 handoff note keeps the repaired validator-first surface and remai
     );
     defer std.testing.allocator.free(readiness_note);
 
+    const governance_lane_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-governance-lane-sequencing.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(governance_lane_note);
+
     const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
@@ -185,6 +193,13 @@ test "phase 15 handoff note keeps the repaired validator-first surface and remai
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_lane_note, "### 5. Handoff lane: parked next-step record only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_lane_note, "Use the handoff lane when the work is about the dedicated next-step packet, its manifest, or the statement that the current governance bundle should remain parked until a named reopen trigger fires or the blocker posture changes.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_lane_note, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_lane_note, "zigux/tests/phase15_handoff_next_steps.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_lane_note, "zigux/tests/phase15_handoff_next_steps_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_lane_note, "keep packet-local truthfulness or evidence changes inside the owning lane above") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_lane_note, "keep every Phase 15 governance run parked unless a named reopen trigger fires or the deep-core blocker posture changes") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "if the change touches the shared Phase 15 governance packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "Phase 15 flow") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_readme, "keep the parked Phase 15 governance packet explicit in the tests root too") != null);
