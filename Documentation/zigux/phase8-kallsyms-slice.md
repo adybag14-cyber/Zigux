@@ -59,7 +59,7 @@ The current parked parser-and-wrapper slice covers:
 - thin path-backed parsing that opens a file and feeds the same reader-backed path
 - one direct `kallsymsParseFile()` wrapper that accepts an already-open file plus a C-shaped callback contract and stops on the same integer callback result the C helper returns
 - one direct `kallsymsParse()` wrapper that accepts a path plus a C-shaped callback contract and stops on the same integer callback result the C helper returns
-- oversized symbol names now truncate to `KSYM_NAME_LEN` on both direct and chunk-reconstructed parse paths so the helper preserves the C parser's callback-visible output shape without widening the downstream callback contract
+- direct parser now truncates oversized symbol names to `KSYM_NAME_LEN` on both direct and chunk-reconstructed parse paths without keeping a parser-local long-name error contract that the C helper never exposes
 - weak-object `V` and `v` classes still follow the current C header contract: only uppercase `W` maps to weak binding, while `V` and `v` stay object-typed and keep the normal uppercase-global and lowercase-local binding split
 
 The current tests check:
@@ -73,7 +73,7 @@ The current tests check:
 - the direct `kallsymsParse()` wrapper reuses that same path surface while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
 - the focused `phase8_kallsyms_only_build.zig` shard keeps the parked parser-and-wrapper packet reviewable without rerunning the whole Phase 8 bundle
 - the focused `phase8_help_kallsyms_only_build.zig` shard and `make -C zigux phase8-help-kallsyms-test` route keep the parked help-and-kallsyms packet reviewable without widening into unrelated Phase 8 tooling slices
-- oversized symbol names now truncate to `KSYM_NAME_LEN` on both the direct parse path and the chunk-boundary reconstruction path instead of raising a parser-local error that the C helper never exposes
+- direct parser truncates oversized symbol names to `KSYM_NAME_LEN` on both the direct parse path and the chunk-boundary reconstruction path instead of retaining a parser-local long-name error contract that the C helper never exposes
 - injected callback failures bubble out unchanged so the parked parser does not hide downstream review or tooling errors
 - weak-object `V` and `v` classes keep the same header-backed object typing and binding split that the current C helper family exposes, so the parked packet stays explicit about that narrow parity choice
 
