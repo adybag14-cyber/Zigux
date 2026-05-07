@@ -176,9 +176,9 @@ REQUIRED_MARKERS = {
         "PHASE8_SEQUENCE=tooling-lane-anti-overlap",
         "### 1. Command lane: parked unless a fresh parity gap appears",
         "### 2. Symbol lane: parked unless symbol parsing or classification moves again",
-        "### 3. Libbpf helper lane: the current active Phase 8 implementation surface",
+        "### 3. Libbpf helper lane: parked unless a tighter same-lane gap appears",
         "### 4. Shared packet wording lane: docs or validator sequencing only",
-        "refresh the shared tests-root reminder",
+        "That older immediate next step is now complete",
     ],
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md": [
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
