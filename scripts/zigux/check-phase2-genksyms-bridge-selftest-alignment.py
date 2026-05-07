@@ -18,7 +18,7 @@ BRIDGE_MANIFEST_PATH = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
 
 REQUIRED_BRIDGE_MARKERS = (
     "print('GENKSYMS_BRIDGE_SELF_TEST=pass')",
-    "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=7')",
+    "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6')",
 )
 REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
@@ -230,7 +230,7 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(
             (
                 "print('GENKSYMS_BRIDGE_SELF_TEST=pass')",
-                "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=7')",
+                "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6')",
                 "",
             )
         ),
