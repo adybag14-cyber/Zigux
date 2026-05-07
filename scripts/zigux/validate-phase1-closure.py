@@ -284,6 +284,7 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "rbtree postorder and empty node helpers behave"',
             'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
             'test "rbtree nextMatch walks the duplicate range in order"',
+            'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
             'test "rbtree cached root keeps the leftmost pointer in sync"',
             'test "rbtree eraseCached returns null for a singleton cached tree"',
             'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
