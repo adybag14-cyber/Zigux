@@ -38,8 +38,13 @@
       "why_now": "The freeze-in-C anchors still lack enough evidence for any status change."
     }
   ],
+  "reopen_triggers": [
+    "evidence_packet_stale_or_contradictory: reopen this handoff packet when truthfulness or nearby Phase 15 packet alignment drifts.",
+    "narrower_followup_answers_blocker: reopen when a narrower Phase 15 follow-up changes the shared deep-core blocker posture.",
+    "ownership_or_validation_changed: reopen when rollback ownership or validation gates move enough to change the parked governance queue."
+  ],
   "pending_next_steps": [
-    "Keep this handoff lane parked unless the packet drifts again.",
-    "Reopen only if the deep-core blocker posture changes."
+    "Keep this handoff lane parked unless `evidence_packet_stale_or_contradictory` fires for this packet or a nearby Phase 15 governance packet.",
+    "Reopen only if `narrower_followup_answers_blocker` or `ownership_or_validation_changed` changes the shared deep-core blocker posture or the parked governance validation ownership."
   ]
 }
