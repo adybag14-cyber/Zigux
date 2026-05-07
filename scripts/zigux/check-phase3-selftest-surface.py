@@ -89,6 +89,7 @@ SCRIPTS_README_MARKERS = [
     "validate_phase3_selftest.py",
     "The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`",
     "phase3_catalog.py --self-test",
+    "phase3_catalog.py --audit-doc-sync",
     "make -C zigux phase3-selftest",
     "manual or targeted safety check instead of duplicating the default validation route",
 ]
@@ -385,6 +386,7 @@ def run_self_test() -> int:
             in issues
         )
         assert "scripts_readme:phase3_catalog.py --self-test" in issues
+        assert "scripts_readme:phase3_catalog.py --audit-doc-sync" in issues
         assert "scripts_readme:make -C zigux phase3-selftest" in issues
 
         build_self_test_root(root)
