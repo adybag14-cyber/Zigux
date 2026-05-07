@@ -45,6 +45,7 @@ DOCS_ROOT_MARKERS = [
     "Documentation/zigux/phase2-closure.md",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "python3 scripts/zigux/check-phase2-cross.py",
@@ -61,10 +62,12 @@ DOCS_ROOT_MARKERS = [
 REVIEW_CHECKLIST_MARKERS = [
     "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_cross_targets.json",
+    "zigux/tests/fixtures/phase2_tool_manifest.json",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
@@ -128,9 +131,11 @@ TESTS_README_MARKERS = [
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-genksyms-crc-diff.py",
     "zigux/tests/fixtures/phase2_cross_targets.json",
+    "zigux/tests/fixtures/phase2_tool_manifest.json",
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "zig test scripts/zigux/fixdep.zig",
@@ -153,6 +158,7 @@ EXACT_COUNT_CHECKS = {
     "Documentation/zigux/README.md": {
         "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`": 1,
         "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`": 1,
+        "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
     },
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": {
         "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
@@ -173,7 +179,9 @@ EXACT_COUNT_CHECKS = {
         "make -C zigux phase2": 1,
     },
     "Documentation/zigux/review-checklist.md": {
+        "zigux/tests/fixtures/phase2_tool_manifest.json": 1,
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
+        "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
         "make -C zigux phase2-kconfig": 1,
     },
     "scripts/zigux/README.md": {
@@ -189,7 +197,9 @@ EXACT_COUNT_CHECKS = {
         "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
         "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1,
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
+        "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
         "scripts/zigux/check-genksyms-crc-diff.py": 1,
+        "zigux/tests/fixtures/phase2_tool_manifest.json": 1,
         "zig test scripts/zigux/fixdep.zig": 1,
         "zig test scripts/zigux/genksyms_crc.zig": 1,
     },
@@ -394,6 +404,32 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(
+            root / "Documentation/zigux/README.md",
+            render_docs_root_text(
+                [
+                    marker
+                    for marker in DOCS_ROOT_MARKERS
+                    if marker != "scripts/zigux/check-phase2-tool-manifest-packets.py"
+                ]
+            ),
+        )
+        issues = validate_root(root)
+        assert "docs_root:scripts/zigux/check-phase2-tool-manifest-packets.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/README.md",
+            render_docs_root_text(DOCS_ROOT_MARKERS)
+            + "scripts/zigux/check-phase2-tool-manifest-packets.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "docs_root:exact_count:scripts/zigux/check-phase2-tool-manifest-packets.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
             root / "Documentation/zigux/review-checklist.md",
             "\n".join(
                 marker
@@ -439,6 +475,56 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             "review_checklist:exact_count:make -C zigux phase2-kconfig:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(
+                marker
+                for marker in REVIEW_CHECKLIST_MARKERS
+                if marker != "zigux/tests/fixtures/phase2_tool_manifest.json"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "review_checklist:zigux/tests/fixtures/phase2_tool_manifest.json" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(REVIEW_CHECKLIST_MARKERS)
+            + "\nzigux/tests/fixtures/phase2_tool_manifest.json\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "review_checklist:exact_count:zigux/tests/fixtures/phase2_tool_manifest.json:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(
+                marker
+                for marker in REVIEW_CHECKLIST_MARKERS
+                if marker != "scripts/zigux/check-phase2-tool-manifest-packets.py"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "review_checklist:scripts/zigux/check-phase2-tool-manifest-packets.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(REVIEW_CHECKLIST_MARKERS)
+            + "\nscripts/zigux/check-phase2-tool-manifest-packets.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "review_checklist:exact_count:scripts/zigux/check-phase2-tool-manifest-packets.py:count=2:expected=1"
             in issues
         )
 
@@ -903,6 +989,31 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in TESTS_README_MARKERS
+                if marker != "scripts/zigux/check-phase2-tool-manifest-packets.py"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "tests_readme:scripts/zigux/check-phase2-tool-manifest-packets.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(TESTS_README_MARKERS)
+            + "\nscripts/zigux/check-phase2-tool-manifest-packets.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "tests_readme:exact_count:scripts/zigux/check-phase2-tool-manifest-packets.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(
+                marker
+                for marker in TESTS_README_MARKERS
                 if marker != "scripts/zigux/check-genksyms-crc-diff.py"
             )
             + "\n",
@@ -919,6 +1030,31 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             "tests_readme:exact_count:scripts/zigux/check-genksyms-crc-diff.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(
+                marker
+                for marker in TESTS_README_MARKERS
+                if marker != "zigux/tests/fixtures/phase2_tool_manifest.json"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "tests_readme:zigux/tests/fixtures/phase2_tool_manifest.json" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(TESTS_README_MARKERS)
+            + "\nzigux/tests/fixtures/phase2_tool_manifest.json\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "tests_readme:exact_count:zigux/tests/fixtures/phase2_tool_manifest.json:count=2:expected=1"
             in issues
         )
 
@@ -998,7 +1134,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=79")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=89")
     return 0
 
 
