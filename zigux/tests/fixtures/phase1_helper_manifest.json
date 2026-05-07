@@ -110,6 +110,7 @@
       ],
       "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed overflow saturates, and suffixes are still consumed after saturation",
       "phase1_helper_replay_anchor": "test \"phase 1 string replaceChar stops at embedded NUL\"",
+      "shared_replace_char_cstr_review_summary": "the shared Phase 1 string replay stays intentionally narrow to embedded-NUL replaceChar and memchrInv parity, and the committed replace_char_cstr_end plus replace_char_cstr_bytes fields remain the authoritative proof that replaceChar stops at the first terminator without mutating trailing bytes beyond that C-string boundary",
       "parity_fixture_keys": [
         "replace_char",
         "replace_char_end",
