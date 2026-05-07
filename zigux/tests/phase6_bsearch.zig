@@ -6,6 +6,13 @@ const Symbol = struct {
     address: usize,
 };
 
+const RawRecord = extern struct {
+    key: u32,
+    tag: u16,
+    flags: u16,
+    value: u32,
+};
+
 var counted_compare_calls: usize = 0;
 var counted_raw_compare_calls: usize = 0;
 
@@ -127,6 +134,12 @@ fn linearRawSearchIndexU32(
         if (compare(key, item) == 0) return index;
     }
     return null;
+}
+
+fn compareRawRecordKey(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const RawRecord = @ptrCast(@alignCast(item));
+    return compareU32(typed_key, &typed_item.key);
 }
 
 test "phase 6 bsearch module imports cleanly" {
@@ -717,4 +730,54 @@ test "phase 6 bsearch mutable raw c abi lookup supports write-through" {
     try std.testing.expect(found_index >= 1 and found_index <= 3);
     typed_found.* = 70;
     try std.testing.expectEqual(@as(u32, 70), values[found_index]);
+}
+
+test "phase 6 bsearch raw record member_size replay stays reviewable in the focused packet" {
+    var records = [_]RawRecord{
+        .{ .key = 3, .tag = 10, .flags = 0, .value = 30 },
+        .{ .key = 8, .tag = 11, .flags = 1, .value = 80 },
+        .{ .key = 13, .tag = 12, .flags = 0, .value = 130 },
+        .{ .key = 21, .tag = 13, .flags = 2, .value = 210 },
+        .{ .key = 34, .tag = 14, .flags = 0, .value = 340 },
+        .{ .key = 55, .tag = 15, .flags = 4, .value = 550 },
+        .{ .key = 89, .tag = 16, .flags = 0, .value = 890 },
+    };
+    const raw_records: [*]u8 = @ptrCast(records[0..].ptr);
+
+    try std.testing.expectEqual(
+        @as(?usize, 3),
+        bsearch.bsearchIndex(&@as(u32, 21), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareRawRecordKey),
+    );
+
+    const found = bsearch.bsearch(
+        &@as(u32, 55),
+        @ptrCast(records[0..].ptr),
+        records.len,
+        @sizeOf(RawRecord),
+        compareRawRecordKey,
+    ) orelse return error.TestUnexpectedResult;
+    const typed_found: *const RawRecord = @ptrCast(@alignCast(found));
+    try std.testing.expectEqual(@as(u32, 55), typed_found.key);
+    try std.testing.expectEqual(@as(u32, 550), typed_found.value);
+    try std.testing.expectEqual(@intFromPtr(&records[5]), @intFromPtr(typed_found));
+
+    try std.testing.expectEqual(
+        @as(?usize, null),
+        bsearch.bsearchIndex(&@as(u32, 35), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareRawRecordKey),
+    );
+    try std.testing.expect(
+        bsearch.bsearch(&@as(u32, 35), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareRawRecordKey) == null,
+    );
+
+    const mutable = bsearch.bsearchMutable(
+        &@as(u32, 34),
+        raw_records,
+        records.len,
+        @sizeOf(RawRecord),
+        compareRawRecordKey,
+    ) orelse return error.TestUnexpectedResult;
+    const typed_mutable: *RawRecord = @ptrCast(@alignCast(mutable));
+    try std.testing.expectEqual(@intFromPtr(&records[4]), @intFromPtr(typed_mutable));
+    typed_mutable.value = 341;
+    try std.testing.expectEqual(@as(u32, 341), records[4].value);
 }
