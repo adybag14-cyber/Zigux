@@ -35,7 +35,7 @@ REQUIRED_MAKEFILE_LINES = (
 )
 REQUIRED_WORKFLOW_LINES = (
     "run: make -C zigux phase7-validate",
-    "run: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
+    "run: make -C zigux phase7-test",
 )
 FORBIDDEN_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
@@ -171,7 +171,7 @@ def build_self_test_root(root: Path) -> None:
                 "      - name: Validate Phase 7 runtime helper gates",
                 "        run: make -C zigux phase7-validate",
                 "      - name: Run Phase 7 runtime helper tests",
-                "        run: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
+                "        run: make -C zigux phase7-test",
                 "",
             )
         ),
