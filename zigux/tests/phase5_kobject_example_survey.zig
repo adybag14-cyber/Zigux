@@ -243,9 +243,10 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
     const docs_root_markers = [_][]const u8{
         "Documentation/zigux/phase5-kobject-sample-survey.md",
         "samples/zigux/kobject_example.zig",
-        "registered exactly three attributes",
+        "exact registration, initialized-but-not-registered access-boundary, `ownershipSummary()`/sample-owned `runOwnershipReplay()` lifecycle, teardown-disposition, and attribute-roundtrip checks",
         "remaining non-goals around sysfs creation, `kernel_kobj`, uevents, and module registration",
         "sample-backed contributor guide",
+        "ownership-and-lifetime prompts",
         "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
         "Documentation/zigux/phase7-cmdline-slice.md",
         "zigux/tests/phase7_cmdline.zig",
