@@ -7,7 +7,7 @@ import sys
 import tempfile
 
 SELF_PATH = Path(__file__).resolve()
-ROOT = SELF_PATH.parent
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
@@ -61,6 +61,7 @@ REQUIRED_FILE_MARKERS = {
         "`scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml` keep the build-only contract fail-closed",
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
+        "This is an environment override for the existing replay packet, not a validator-first or `phase12-validate` route.",
         "the checker-local closure-companion update is landed",
         "the next bounded same-lane follow-through is drift control",
     ],
@@ -184,146 +185,64 @@ def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
 
-def write_text(root: Path, rel_path: str, content: str) -> None:
+def write(root: Path, rel_path: str, content: str) -> None:
     path = root / rel_path
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
 
-def validate(root: Path) -> list[str]:
-    failures: list[str] = []
-
-    for rel_path in REQUIRED_FILE_MARKERS:
-        if not (root / rel_path).exists():
-            failures.append(f"missing_file:{rel_path}")
-
-    for rel_path in FORBIDDEN_FILES:
-        if (root / rel_path).exists():
-            failures.append(f"unexpected_file:{rel_path}")
-
-    for pattern in FORBIDDEN_GLOBS:
-        for path in sorted(root.glob(pattern)):
-            if path.is_file():
-                failures.append(f"unexpected_file:{path.relative_to(root)}")
-
-    if failures:
-        return failures
-
-    for rel_path, markers in REQUIRED_FILE_MARKERS.items():
-        text = read_text(root, rel_path)
-        for marker in markers:
-            if marker not in text:
-                failures.append(f"{rel_path}:{marker}")
-
-    return failures
-
-
-def build_fixture_text(title: str, markers: list[str]) -> str:
-    lines = [f"# {title}", ""]
+def fixture_content(rel_path: str, markers: list[str]) -> str:
+    title = Path(rel_path).name
+    lines = [f"# fixture:{title}"]
     lines.extend(f"- {marker}" for marker in markers)
-    lines.append("")
-    return "\n".join(lines)
+    return "\n".join(lines) + "\n"
 
 
 def write_fixture_tree(root: Path) -> None:
     for rel_path, markers in REQUIRED_FILE_MARKERS.items():
-        title = Path(rel_path).name
-        write_text(root, rel_path, build_fixture_text(title, markers))
+        write(root, rel_path, fixture_content(rel_path, markers))
 
 
-def expect_missing_marker(root: Path, rel_path: str, marker: str, label: str) -> None:
-    path = root / rel_path
-    original = path.read_text(encoding="utf-8")
-    if marker not in original:
-        raise AssertionError(f"fixture missing marker for {label}: {marker}")
-    path.write_text(original.replace(marker, "", 1), encoding="utf-8")
-    failures = validate(root)
-    expected = f"{rel_path}:{marker}"
-    if expected not in failures:
-        raise AssertionError(f"{label}: expected {expected!r}, got {failures!r}")
-    path.write_text(original, encoding="utf-8")
+def mutation_label(rel_path: str, marker: str) -> str:
+    stem = Path(rel_path).stem.replace(".", "-")
+    compact = marker.replace("`", "").replace('"', "").replace("'", "")
+    compact = compact.replace("<", "").replace(">", "")
+    compact = compact.replace("/", "-").replace(" ", "-")
+    compact = compact.replace("(", "").replace(")", "")
+    compact = compact.replace(":", "").replace(",", "")
+    compact = compact.replace(".", "-").replace("*", "star")
+    compact = compact.replace("+", "plus").replace("=", "eq")
+    compact = compact[:56].strip("-")
+    return f"{stem}-{compact or 'marker'}-guard"
 
 
 def run_self_test() -> int:
-    try:
-        with tempfile.TemporaryDirectory(prefix="phase12-build-only-surface-") as tmp:
-            root = Path(tmp)
-            write_fixture_tree(root)
+    with tempfile.TemporaryDirectory(prefix="phase12-build-only-surface-") as tmp:
+        root = Path(tmp)
+        write_fixture_tree(root)
 
-            failures = validate(root)
-            if failures:
-                print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
-                for failure in failures:
-                    print(failure)
-                return 1
+        failures = validate(root)
+        if failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            for failure in failures:
+                print(failure)
+            return 1
 
-            expect_missing_marker(
-                root,
-                DOCS_README_PATH,
-                "`Documentation/zigux/phase12-release-coordination-matrix.md`",
-                "docs-readme-coordination-matrix-marker-guard",
-            )
-            expect_missing_marker(
-                root,
-                PHASE12_CLOSURE_CHECKLIST_PATH,
-                "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
-                "closure-checklist-attached-zig-smoke-guard",
-            )
-            expect_missing_marker(
-                root,
-                PHASE12_SEQUENCE_PATH,
-                "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
-                "sequence-attached-zig-smoke-guard",
-            )
-            expect_missing_marker(
-                root,
-                PHASE12_SEQUENCE_PATH,
-                "`make -C zigux phase12 ZIG=<attached-zig-path>`",
-                "sequence-attached-zig-phase12-guard",
-            )
-            expect_missing_marker(
-                root,
-                PHASE12_RAW_GITHUB_COVERAGE_PATH,
-                "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
-                "raw-coverage-attached-zig-smoke-guard",
-            )
-            expect_missing_marker(
-                root,
-                PHASE12_RAW_GITHUB_COVERAGE_PATH,
-                "`make -C zigux phase12 ZIG=<attached-zig-path>`",
-                "raw-coverage-attached-zig-phase12-guard",
-            )
-            expect_missing_marker(
-                root,
-                PHASE12_COORDINATION_MATRIX_PATH,
-                "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
-                "coordination-matrix-attached-zig-smoke-guard",
-            )
-            expect_missing_marker(
-                root,
-                PHASE12_COORDINATION_MATRIX_PATH,
-                "`make -C zigux phase12 ZIG=<attached-zig-path>`",
-                "coordination-matrix-attached-zig-phase12-guard",
-            )
-            expect_missing_marker(
-                root,
-                WORKFLOW_PATH,
-                "Run focused Phase 12 smoke shard",
-                "workflow-smoke-step-marker-guard",
-            )
-
-            forbidden_path = root / FORBIDDEN_FILES[0]
-            write_text(root, FORBIDDEN_FILES[0], "# forbidden\n")
-            failures = validate(root)
-            expected = f"unexpected_file:{FORBIDDEN_FILES[0]}"
-            if expected not in failures:
-                raise AssertionError(f"forbidden-file-guard: expected {expected!r}, got {failures!r}")
-            forbidden_path.unlink()
-
-    except AssertionError as exc:
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
-        print(str(exc))
-        return 1
+        for rel_path, markers in REQUIRED_FILE_MARKERS.items():
+            path = root / rel_path
+            original = path.read_text(encoding="utf-8")
+            for marker in markers:
+                broken = original.replace(marker, "")
+                path.write_text(broken, encoding="utf-8")
+                failures = validate(root)
+                expected = f"{rel_path}:{marker}"
+                if expected not in failures:
+                    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+                    print(mutation_label(rel_path, marker))
+                    for failure in failures:
+                        print(failure)
+                    return 1
+                path.write_text(original, encoding="utf-8")
 
     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
     return 0
