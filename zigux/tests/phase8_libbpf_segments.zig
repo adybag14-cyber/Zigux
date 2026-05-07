@@ -342,6 +342,14 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     );
     defer std.testing.allocator.free(bridge_boundary_note);
 
+    const perf_buffer_poll_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(perf_buffer_poll_note);
+
     const product_boundary = try requireSection(
         phase8_note,
         "product boundary:\n",
@@ -421,4 +429,10 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(bridge_boundary_note, "poll-loop ownership beyond the bounded `perf_buffer__poll(timeout_ms)` helper packet");
     try expectContains(bridge_boundary_note, "standalone timer or clockevent helper behavior");
     try expectContains(bridge_boundary_note, "fd close or ownership semantics");
+
+    try expectContains(perf_buffer_poll_note, "PHASE8_STATUS=parked");
+    try expectContains(perf_buffer_poll_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
+    try expectContains(perf_buffer_poll_note, "make -C zigux phase8-perf-buffer-poll-test");
+    try expectContains(perf_buffer_poll_note, "no standalone timer helper");
+    try expectContains(perf_buffer_poll_note, "no standalone clockevent helper");
 }
