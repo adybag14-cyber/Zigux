@@ -57,6 +57,7 @@ The current tests check:
 - heterogeneous-key lookup where the key type differs from the element type
 - pointer-return parity for successful typed lookups
 - mutable typed and raw lookup write-through parity
+- raw byte-stride parity across record-style entries where the comparator reads the member key field
 - duplicate-key found-or-null parity without claiming stable duplicate selection
 - representative lookup work stays inside a bounded binary-search comparison budget for both typed and raw lookup paths
 - raw empty-input parity, including that the comparator is not invoked when `num_members == 0`
