@@ -116,11 +116,12 @@ This keeps later closure-note work small while preserving the explicit split bet
 - `samples/zigux/README.md` already carries the bitmap-only top-bit companion reminder plus the older command and environment control boundaries, so later shared-loader follow-through should leave those pilot-local cues there instead of flattening them back into the loader packet
 - `Documentation/zigux/freeze-map.md` already keeps the shared Phase 9 runtime-loader packet explicit as a review-only boundary beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`, so the shared loader lane should treat freeze-map wording there as a review-surface cue rather than runtime-substrate closure or a status-change request
 - `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet
-- the older checker-local freeze-map-prompt exact-count follow-up is already landed on current `master`, so reopen this shared lane only if one of the shared reminder surfaces drifts again or if the shared loader lane picks up a new bounded validation surface that needs to be named across the packet
+- `scripts/zigux/check-phase9-build-only-surface.py` now exact-counts the older freeze-map prompt follow-through on current `master`, but the next honest shared-loader checker step is still to require this sequencing note itself together with the shipped self-test-hook ownership marker instead of only trusting the reminder surfaces around it
+- until that checker-local owner-map hardening lands, reopen this shared lane only if one of the shared reminder surfaces drifts again or if the shared loader lane picks up a new bounded validation surface that needs to be named across the packet
 
 ## Recommended next-step order
 
-1. shared loader lane: only when the change is about request-contract, allocator/init-flow, build-only reviewability, or the shipped checker self-test hook
+1. shared loader lane: only when the change is about request-contract, allocator/init-flow, build-only reviewability, the shipped checker self-test hook, or making the build-only checker require this owner-map note directly
 2. shared reminder refresh: only if one of the docs-root, scripts-root, tests-root, samples-root, or checklist surfaces drifts again
 3. bitmap lane: after that, only if the goal is to refine the already-landed top-bit or bitmap-specific replay packet
 4. atomic64, trace-events, or kretprobe lanes: only when the change stays inside that family’s sample, loader, module, diff, or survey evidence
