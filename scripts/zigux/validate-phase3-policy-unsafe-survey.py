@@ -308,12 +308,22 @@ def run_self_test() -> int:
         assert "missing_marker:PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet" in issues
 
         build_valid_workspace(root)
-        missing_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+        missing_panic_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            REQUIRED_SURVEY_SNIPPETS[1] + "\n",
+            "",
+            1,
+        )
+        write_file(root / SURVEY_REL, missing_panic_survey_snippet)
+        issues = validate(root)
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[1]}" in issues
+
+        build_valid_workspace(root)
+        missing_allocator_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
             REQUIRED_SURVEY_SNIPPETS[2] + "\n",
             "",
             1,
         )
-        write_file(root / SURVEY_REL, missing_survey_snippet)
+        write_file(root / SURVEY_REL, missing_allocator_survey_snippet)
         issues = validate(root)
         assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[2]}" in issues
 
@@ -378,7 +388,7 @@ def run_self_test() -> int:
         assert f"missing_makefile_line:{MAKEFILE_REQUIRED_LINES[1]}" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
