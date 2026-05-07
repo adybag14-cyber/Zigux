@@ -22,6 +22,8 @@ HEADER_FUSED_MARKERS = (
 )
 REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
+    "include/zigux/dev_t.h",
+    "include/linux/zigux.h",
     "zigux/bindings/abi.zig",
     "zigux/bindings/dev_t.zig",
     "zigux/helpers/layout_assert.zig",
@@ -34,6 +36,8 @@ REQUIRED_DOC_MARKERS = (
     "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
 )
 REQUIRED_BINDINGS_DOC_MARKERS = (
+    "include/zigux/dev_t.h",
+    "include/linux/zigux.h",
     "zigux/bindings/abi.zig",
     "zigux/bindings/dev_t.zig",
 )
@@ -200,6 +204,8 @@ def run_self_test() -> int:
                 [
                     "- `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
                     "- `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test`",
+                    "- `include/zigux/dev_t.h`",
+                    "- `include/linux/zigux.h`",
                     "- `zigux/bindings/abi.zig`",
                     "- `zigux/bindings/dev_t.zig`",
                     "- `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`",
