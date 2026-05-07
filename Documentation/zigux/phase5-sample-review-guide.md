@@ -117,12 +117,13 @@ Primary Phase 5 packet
 
 Keep explicit
 - `formattedMessage()`, the selected-string plus `iter=%d` replay, and the public `runPayloadBoundaryReplay()` formatting cue
+- the public `runConditionalBoundaryReplay()` helper plus the count-0 `Mother Goose` branch, `iter=%d` replay, `0xdeadbeef` bitmask cue, and six main-thread family counts without private sample-state reads
 - vararg-payload and relative-location markers in the public replay summary
 - the exact `checked_focus` order
 - the public `runCallbackBoundaryReplay()` helper plus the explicit callback-path replay, balanced register-then-unregister callback flow, restored registration balance, and the bounded `init()` -> replay helpers -> `exit()` ownership path
 - `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection
 - post-exit replay and callback-registration rejection so the sample stays a bounded ownership-and-lifetime example instead of only a tracing example
-- the docs-root, sample-root, scripts-root, and tests-root contributor surfaces in `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` should keep those same formatting, callback-boundary, ownership-lifetime, and Phase 5-versus-Phase 9 cues aligned instead of leaving the trace-events packet isolated to this note
+- the docs-root, sample-root, scripts-root, and tests-root contributor surfaces in `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` should keep those same formatting, conditional-family, callback-boundary, ownership-lifetime, and Phase 5-versus-Phase 9 cues aligned instead of leaving the trace-events packet isolated to this note
 
 Keep out of scope
 - `CREATE_TRACE_POINTS` parity
