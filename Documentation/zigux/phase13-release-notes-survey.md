@@ -18,6 +18,7 @@ This note records the current shipped Phase 13 release-facing helper packet on `
   - `scripts/zigux/validate-phase13-release.py`
   - `scripts/zigux/check-phase13-devres-packet.py`
   - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
+  - `scripts/zigux/check-phase13-notifier-packet.py`
   - `make -C zigux phase13-validate`
   - `zig build test --build-file zigux/tests/phase13_build.zig --summary all`
   - `make -C zigux phase13`
@@ -32,9 +33,9 @@ The focused `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard is s
 
 Inside that packet, the Phase 13 `devres` lane remains bounded to helper-only planning around `lib/devres.c`.
 
-The shipped `lib/devres.zig` lab plus the paired `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_boundary_evidence.zig` replays keep MMIO-adjacent behavior explicit for managed ioremap lifetime planning, `__devm_ioremap_resource()` sizing and failure shaping, `devm_of_iomap()` translated-resource planning, coherent DMA reservation bookkeeping, WC memtype reservation bookkeeping, and the exact DMA-backed and scatterlist blocker evidence while still blocking live MMIO, live device-tree walking, DMA-backed mapping beyond the bounded coherent replay, scatterlist ownership, and live arch memtype mutation.
+The same validator-first release route on current `master` also reruns `scripts/zigux/check-phase13-landlock-ruleset-packet.py` and `scripts/zigux/check-phase13-notifier-packet.py` beside the shared release validator and the `devres` packet checker, so the helper-only ruleset blockers and adjacent notifier packet stay explicit without turning those dedicated guards into extra shared replay steps.
 
-The same validator-first release route on current `master` also reruns `scripts/zigux/check-phase13-landlock-ruleset-packet.py` beside the shared release validator and the `devres` packet checker, so the helper-only ruleset blockers stay explicit without turning that dedicated packet guard into a ninth shared replay step.
+The shipped `lib/devres.zig` lab plus the paired `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_boundary_evidence.zig` replays keep MMIO-adjacent behavior explicit for managed ioremap lifetime planning, `__devm_ioremap_resource()` sizing and failure shaping, `devm_of_iomap()` translated-resource planning, coherent DMA reservation bookkeeping, WC memtype reservation bookkeeping, and the exact DMA-backed and scatterlist blocker evidence while still blocking live MMIO, live device-tree walking, DMA-backed mapping beyond the bounded coherent replay, scatterlist ownership, and live arch memtype mutation.
 
 `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` stays paired with that shipped release packet as the owner map for the active `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` helper families. It keeps the shared validator-first route, the eight-test build-backed replay, and the adjacent notifier evidence from collapsing into one ownerless Phase 13 surface just because those helpers now travel through the same release-facing packet on `master`.
 
