@@ -11,7 +11,7 @@ It is a coordination artifact, not a closure claim.
 - focused smoke preflight entrypoint: `make -C zigux phase12-smoke`
 - shared build replay entrypoint: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 - Linux-style replay entrypoint: `make -C zigux phase12`
-- shipped shared coordination surfaces on `master`: `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
+- shipped shared coordination surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
 
 ## Why this note exists
 
@@ -98,12 +98,17 @@ Use this lane only when the shared wording surfaces drift away from the live Pha
 
 Allowed surfaces:
 - `Documentation/zigux/phase12-release-sequencing.md`
+- `Documentation/zigux/phase12-release-closure-checklist.md`
+- `Documentation/zigux/phase12-release-coordination-matrix.md`
+- `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
 Do not use this lane to land helper code, manifest churn, or new test logic.
+
+Keep this lane scoped to PMO release wording and shared reviewability only: it may realign the PMO closure companion, compact release-coordination matrix, shared fallback overview, and the broad docs-root, scripts-root, or tests-root reminders with the libbpf ownership split, but it must not absorb the separate driver-only anti-overlap note or reopen driver-local Phase 12 follow-through.
 
 ## Sequencing rule
 1. Re-read the shared Phase 12 libbpf survey and reviewability packet first.
@@ -120,6 +125,7 @@ Today the strongest Phase 12 libbpf sequencing correction is simple:
 - the two helper-sized `ready_next` promotions stay smaller than the deferred bridge and queue-routing bucket
 - the deferred bridge and queue-routing bucket stays smaller than the blocked object-model, loader, and relocation wall
 - wording-only shared-summary repairs stay separate from helper logic and from the other Phase 12 driver lanes
+- PMO release coordination surfaces should keep the closure companion, compact release-coordination matrix, shared fallback overview, and libbpf reviewability packet aligned without turning this heavy-consumer lane into a driver-owner map or a closure claim
 
 That split matches the live survey packet and keeps future scheduled runs from turning one honest heavy-consumer tranche into overlapping docs, helper, and object-model churn.
 
