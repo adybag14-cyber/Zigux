@@ -12,6 +12,8 @@ Use this guide when a change touches any part of the current shipped Phase 13 pa
   * `security/landlock/ruleset.c` through `zigux/tests/phase13_landlock_ruleset_manifest.json`
   * `security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json`
 
+Adjacent notifier release-surface evidence under `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig` stays in scope for contributor guidance too, but it remains adjacent evidence rather than a fifth shared-helper anchor or an extra shared replay step.
+
 This is still an active helper-first tranche, not a globally closed roadmap phase.
 
 ## Keep In Sync
