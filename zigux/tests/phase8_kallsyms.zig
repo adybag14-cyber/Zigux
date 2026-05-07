@@ -7,18 +7,19 @@ test "phase 8 kallsyms module imports cleanly" {
     _ = kallsyms;
 }
 
-test "phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit" {
+test "phase 8 kallsyms slice note keeps the current nullable parser contract explicit" {
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "PHASE8_SLICE=kallsyms-parse-wrapper-parked"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "helper-first expansion"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "output-stable tooling behavior"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "one direct `kallsymsParse()` wrapper"));
-    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "oversized symbol names now truncate to `KSYM_NAME_LEN`"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "direct parser now truncates oversized symbol names"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "without keeping a parser-local long-name error contract"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "weak-object `V` and `v` classes still follow the current C header contract"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "make -C zigux phase8-help-kallsyms-test"));
 }
 
-test "phase 8 kallsyms direct parser truncates oversized names" {
-    const parsed = (try kallsyms.parseLine("ffffffff81000100 t secondary_startup_64")) orelse unreachable;
+test "phase 8 kallsyms direct parser stays nullable while truncating oversized names" {
+    const parsed = kallsyms.parseLine("ffffffff81000100 t secondary_startup_64") orelse unreachable;
     try std.testing.expectEqual(@as(u64, 0xffffffff81000100), parsed.start);
     try std.testing.expectEqualStrings("secondary_startup_64", parsed.name);
 
@@ -26,7 +27,7 @@ test "phase 8 kallsyms direct parser truncates oversized names" {
     const oversized_line = try std.fmt.allocPrint(std.testing.allocator, "1 T {s}", .{too_long_name});
     defer std.testing.allocator.free(oversized_line);
 
-    const truncated = (try kallsyms.parseLine(oversized_line)) orelse unreachable;
+    const truncated = kallsyms.parseLine(oversized_line) orelse unreachable;
     try std.testing.expectEqual(@as(usize, kallsyms.KSYM_NAME_LEN), truncated.name.len);
     try std.testing.expectEqualStrings(too_long_name[0..kallsyms.KSYM_NAME_LEN], truncated.name);
 }
