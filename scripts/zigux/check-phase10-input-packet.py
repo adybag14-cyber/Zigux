@@ -89,8 +89,10 @@ EXPECTED_MAKEFILE_MARKERS = [
 EXPECTED_HELPER_MARKERS = [
     "pub const RegistrationPreflightSummary = struct {",
     "pub const StatusDrainSummary = struct {",
+    "pub const TeardownObservationSummary = struct {",
     "pub fn registrationPreflightSummary(self: *const Self) RegistrationPreflightSummary {",
     "pub fn drainStatusQueue(self: *Self, completed_status_count: usize) !StatusDrainSummary {",
+    "pub fn teardownObservationSummary(self: *const Self) TeardownObservationSummary {",
 ]
 
 EXPECTED_VERIFY_MARKERS = [
@@ -102,9 +104,13 @@ EXPECTED_VERIFY_MARKERS = [
 
 EXPECTED_TEST_MARKERS = [
     'test "phase10 virtio input registration preflight reports blockers before readiness" {',
+    'test "phase10 virtio input teardown observation keeps identity while surfacing reset-local state" {',
     'test "phase10 virtio input reset clears queue plan and returns to default bus identity" {',
     "RegistrationBlocker.multitouch_slots_unplanned",
     "RegistrationBlocker.event_queue_unconfigured",
+    "summary.preserves_identity",
+    "summary.clears_runtime_state",
+    "summary.clears_capability_state",
 ]
 
 EXPECTED_STATUS_DRAIN_MARKERS = [
@@ -438,6 +444,21 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_queue_callback_gap_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        helper_path = tmp_root / "drivers/virtio/virtio_input.zig"
+        original_helper = helper_path.read_text(encoding="utf-8")
+        helper_path.write_text(
+            original_helper.replace(
+                "pub const TeardownObservationSummary = struct {",
+                "pub const TeardownObservationDrift = struct {",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "helper:pub const TeardownObservationSummary = struct {" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_teardown_helper_marker_missing")
+        helper_path.write_text(original_helper, encoding="utf-8")
+
         verify_path = tmp_root / "drivers/virtio/virtio_input_verify.zig"
         original_verify = verify_path.read_text(encoding="utf-8")
         verify_path.write_text(
@@ -448,6 +469,17 @@ def run_self_test() -> int:
         if 'verify:try std.testing.expectEqualStrings("event_buffers_unfilled", @tagName(summary.blocker.?));' not in missing_markers:
             raise SystemExit("phase10-input-self-test:expected_verify_marker_missing")
         verify_path.write_text(original_verify, encoding="utf-8")
+
+        test_path = tmp_root / "zigux/tests/phase10_virtio_input.zig"
+        original_test = test_path.read_text(encoding="utf-8")
+        test_path.write_text(
+            original_test.replace("summary.clears_runtime_state", "summary.runtime_state_drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "tests:summary.clears_runtime_state" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_teardown_test_marker_missing")
+        test_path.write_text(original_test, encoding="utf-8")
 
         status_drain_path = tmp_root / "zigux/tests/phase10_virtio_input_status_drain.zig"
         original_status_drain = status_drain_path.read_text(encoding="utf-8")
@@ -556,7 +588,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=18")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
