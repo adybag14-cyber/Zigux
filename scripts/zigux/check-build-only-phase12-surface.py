@@ -124,6 +124,7 @@ REQUIRED_FILE_MARKERS = {
     SCRIPTS_README_PATH: [
         "Phase 12 flow",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`Documentation/zigux/phase12-release-coordination-matrix.md`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed",
@@ -341,6 +342,7 @@ Phase 12 notes
         """# scripts/zigux
 Phase 12 flow
 - `Documentation/zigux/phase12-release-closure-checklist.md`
+- `Documentation/zigux/phase12-release-coordination-matrix.md`
 - `zigux/tests/phase12_virtio_net_syntax_lab.zig`
 - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - `check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed
@@ -765,6 +767,22 @@ def run_self_test() -> int:
 
         scripts_readme_path = root / SCRIPTS_README_PATH
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        broken_scripts_readme = original_scripts_readme.replace(
+            "- `Documentation/zigux/phase12-release-coordination-matrix.md`\n",
+            "",
+            1,
+        )
+        scripts_readme_path.write_text(broken_scripts_readme, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{SCRIPTS_README_PATH}:`Documentation/zigux/phase12-release-coordination-matrix.md`"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("scripts-readme-coordination-matrix-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         broken_scripts_readme = original_scripts_readme.replace(
             "- `zigux/tests/phase12_virtio_net_syntax_lab.zig`\n",
             "",
