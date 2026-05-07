@@ -267,6 +267,7 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "bitmap allocator helpers size zero and free their buffers"',
             'test "bitmap size aliases round bit counts to full words in bytes"',
             'test "bitmap set clear weight and empty full helpers"',
+            'test "bitmap range helpers honor exact first-word boundaries"',
             'test "bitmap fill clamps tail bits in partial words"',
             'test "bitmap and andnot equal intersects subset"',
             'test "bitmap and andnot clamp tail bits in partial words"',
