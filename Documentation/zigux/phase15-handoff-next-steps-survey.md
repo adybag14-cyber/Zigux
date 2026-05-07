@@ -31,6 +31,7 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 - the current handoff summary now keeps the parked governance owner-map, indefinite-C policy, and blocker-evidence replays explicit beside the validator-first route instead of leaving them implicit in adjacent notes and tests-root guidance
 - this packet's lane identity is refreshed to `P15-L08` so the dedicated handoff note matches the active Phase 15 handoff maintenance lane again
 - the parity scorecard, readiness packet, indefinite-C policy, docs root, review checklist, scripts-root validator-first route, shared build replay, workflow, and this handoff packet still agree that the remaining blocked work is only the deep-core status-change evidence, even though the handoff packet now treats blocker-posture agreement instead of exact-head parity as the bounded cross-packet truthfulness signal
+- the parked next-bound queue now mirrors the named scorecard reopen-trigger catalog: `evidence_packet_stale_or_contradictory` reopens this packet for truthfulness drift, while `narrower_followup_answers_blocker` and `ownership_or_validation_changed` reopen it only when the shared deep-core blocker posture or validation ownership actually moves
 
 ## Open Handoff Gaps
 
@@ -40,8 +41,8 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 
 ## Pending Next Steps
 
-1. keep this handoff lane parked unless the packet drifts again
-2. reopen only if the deep-core blocker posture changes
+1. keep this handoff lane parked unless `evidence_packet_stale_or_contradictory` fires for this packet or a nearby Phase 15 governance packet
+2. reopen only if `narrower_followup_answers_blocker` or `ownership_or_validation_changed` changes the shared deep-core blocker posture or the parked governance validation ownership
 
 ## Gates
 
