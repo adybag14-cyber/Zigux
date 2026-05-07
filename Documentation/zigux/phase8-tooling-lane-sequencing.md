@@ -138,9 +138,7 @@ That split matches the live docs-root Phase 8 summary and prevents scheduled too
 
 ## Next bounded step
 
-Before reopening another tooling helper lane, refresh the shared tests-root reminder so it keeps the parked libbpf shard routes explicit beside the parked `exec-cmd`, `help`, and `kallsyms` packet.
-
-That older immediate next step is now complete, and the shared tests-root reminder should now be read as a parked-packet reminder plus focused reopen map rather than as a reason to treat the libbpf packet as already active again by default.
+The older shared tests-root reminder refresh is already complete, and `zigux/tests/README.md` should now be read as a parked-packet reminder plus focused reopen map rather than as a reason to treat the libbpf packet as already active again by default.
 
 If another wording-only drift appears first, start with `Documentation/zigux/README.md` so the docs-root summary stays aligned with that parked-packet posture before reopening any helper-local Phase 8 follow-up.
 
