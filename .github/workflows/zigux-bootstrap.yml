@@ -343,6 +343,7 @@ jobs:
         run: make -C zigux phase15-test
 
   phase2-cross:
+    needs: bootstrap
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
