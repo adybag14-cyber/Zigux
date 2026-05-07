@@ -60,3 +60,42 @@ test "virtio ring delayed callback summary reports poll pressure when used work 
     try testing.expectEqual(@as(u16, 7), delayed.delayed_event_target_idx);
     try testing.expect(delayed.should_poll);
 }
+
+test "virtio ring clearBroken exposes the next reset blocker instead of hiding queue debt" {
+    var lab = virtio_ring.VirtioRingLab{};
+
+    try lab.defineQueue(4, 8, .split, true, false);
+    try lab.publishDescriptorChain(4);
+    _ = try lab.markBroken(4);
+    var readiness = try lab.queueResetReadinessSummary(4);
+    try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.queue_broken, readiness.blocker.?);
+    _ = try lab.clearBroken(4);
+    readiness = try lab.queueResetReadinessSummary(4);
+    try testing.expect(!readiness.broken);
+    try testing.expectEqual(@as(u16, 1), readiness.unpublished_chain_count);
+    try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpublished_chains, readiness.blocker.?);
+
+    try lab.defineQueue(5, 8, .split, true, false);
+    try lab.publishDescriptorChain(5);
+    _ = try lab.prepareKick(5);
+    _ = try lab.markBroken(5);
+    readiness = try lab.queueResetReadinessSummary(5);
+    try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.queue_broken, readiness.blocker.?);
+    _ = try lab.clearBroken(5);
+    readiness = try lab.queueResetReadinessSummary(5);
+    try testing.expectEqual(@as(u16, 0), readiness.unpublished_chain_count);
+    try testing.expectEqual(@as(u16, 1), readiness.outstanding_chain_count);
+    try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.outstanding_chains, readiness.blocker.?);
+
+    try lab.defineQueue(6, 8, .split, true, false);
+    try lab.publishDescriptorChain(6);
+    _ = try lab.prepareKick(6);
+    try lab.recordUsedChains(6, 1);
+    _ = try lab.markBroken(6);
+    readiness = try lab.queueResetReadinessSummary(6);
+    try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.queue_broken, readiness.blocker.?);
+    _ = try lab.clearBroken(6);
+    readiness = try lab.queueResetReadinessSummary(6);
+    try testing.expectEqual(@as(u16, 1), readiness.pending_used_chain_count);
+    try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, readiness.blocker.?);
+}
