@@ -86,7 +86,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_slice_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
-    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
@@ -103,10 +103,14 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_arch_io_reserve_memtype_wc()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "This slice does not claim live `devres_alloc_node()` ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "live DMA-backed helpers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "live scatter-gather ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "sg_table lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reviewed against live `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_phys_wc_add()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_io_reserve_memtype_wc()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_ioremap_wc()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase13_devres_boundary_evidence.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dmam_alloc_*") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dma_map_sgtable()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct scatterlist") != null);
@@ -120,6 +124,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     var blocked_count: usize = 0;
     var saw_reviewability_gate = false;
     var saw_coherent_dma_replay = false;
+    var saw_boundary_evidence_gate = false;
     var saw_survey_note = false;
     var saw_arch_phys_wc = false;
     var saw_arch_io_memtype = false;
@@ -150,6 +155,12 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase13_devres_dma_coherent.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "manifest still records the shipped devres test, reviewability gate, and survey evidence") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-devres-boundary-evidence-gate")) {
+            saw_boundary_evidence_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase13_devres_boundary_evidence.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "manifest, slice note, and survey note") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-helper-starter")) {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -195,10 +206,11 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 5), blocked_count);
     try std.testing.expect(saw_reviewability_gate);
     try std.testing.expect(saw_coherent_dma_replay);
+    try std.testing.expect(saw_boundary_evidence_gate);
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_arch_phys_wc);
     try std.testing.expect(saw_arch_io_memtype);
