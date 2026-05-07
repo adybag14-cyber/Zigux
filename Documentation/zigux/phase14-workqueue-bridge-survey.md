@@ -7,8 +7,8 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 - `PHASE14_STATUS=active`
 - `PHASE14_LANE_KEY=P14-L01`
 - `PHASE14_SURVEYED_COMMIT=9e278f632d6d5097cb8cfc2dc61744ae105baa8c`
-- `PHASE14_SLICE=workqueue-delayed-requeue-governance`
-- scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline, the delayed timer-expiry handoff audit, the delayed-work requeue stay-in-C decision, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
+- `PHASE14_SLICE=workqueue-flush-drain-governance`
+- scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline, the delayed timer-expiry handoff audit, the delayed-work requeue stay-in-C decision, the explicit flush-drain governance note, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
 - product boundary:
   - `kernel/workqueue_bridge.zig`
   - `zigux/tests/phase14_workqueue_bridge.zig`
@@ -31,9 +31,9 @@ The highest-value honest step in this lane is therefore not to sketch a fake asy
 - `kernel/workqueue_internal.h` makes the coupling visible: `struct worker`, `struct worker_pool`, and the scheduler-facing `wq_worker_running()` or `wq_worker_sleeping()` hooks expose exactly why this lane needs stay-in-C decisions before implementation claims.
 - `lib/test_workqueue.c` shows there is already a kernel-side test surface around real execution behavior, which reinforces that the first Zigux artifact should be descriptive and reviewable rather than another runtime.
 - the live repo already had `zigux/kernel/export_shim.zig`, which made a kernel-adjacent Phase 14 boundary-map file a natural next step without inventing a new namespace.
-- the new `kernel/workqueue_bridge.zig` starter stays intentionally narrow around boundary recording for submission routing, allocation and attrs, flush or cancel coordination, worker-pool concurrency ownership, and rescuer or scheduler hooks.
-- the bridge now carries an expanded concurrency audit outline around `manage_workers()`, `worker_pool` forward-progress fields, the `__queue_work()` `max_active` gate, the `try_to_grab_pending()` plus `queue_work_on()` pending-bit claim handoff, the unbound `__queue_work()` `pwq->refcnt` retry path, the delayed-submission alias fan-in through `queue_delayed_work_on()`, `mod_delayed_work_on()`, and `__queue_delayed_work()`, the delayed timer-expiry handoff through `delayed_work_timer_fn()` and back into `__queue_work()`, the explicit `mod_delayed_work_on()` delayed-work requeue governance point, the `__queue_work()` `last_pool->lock` handoff, the `process_one_work()` unlock or relock execution window, the `worker_thread()` idle sleep transition, `rescuer_thread()`, and `wq_worker_running()` or `wq_worker_sleeping()`, still without claiming live execution ownership.
-- the current honest posture is blocked maintenance rather than another wrapper claim: Zigux now records the delayed-work requeue governance note, but hotplug-driven worker migration, flush-drain ownership, worker execution, and scheduler-visible behavior still stay in C.
+- the new `kernel/workqueue_bridge.zig` starter stays intentionally narrow around boundary recording for submission routing, allocation and attrs, worker-pool concurrency ownership, explicit flush-drain governance, and rescuer or scheduler hooks.
+- the bridge now carries an expanded concurrency audit outline around `manage_workers()`, `worker_pool` forward-progress fields, the `__queue_work()` `max_active` gate, the `try_to_grab_pending()` plus `queue_work_on()` pending-bit claim handoff, the unbound `__queue_work()` `pwq->refcnt` retry path, the delayed-submission alias fan-in through `queue_delayed_work_on()`, `mod_delayed_work_on()`, and `__queue_delayed_work()`, the delayed timer-expiry handoff through `delayed_work_timer_fn()` and back into `__queue_work()`, the explicit `mod_delayed_work_on()` delayed-work requeue governance point, the `__flush_workqueue()` plus `drain_workqueue()` active-color ownership seam, the `__queue_work()` `last_pool->lock` handoff, the `process_one_work()` unlock or relock execution window, the `worker_thread()` idle sleep transition, `rescuer_thread()`, and `wq_worker_running()` or `wq_worker_sleeping()`, still without claiming live execution ownership.
+- the current honest posture is blocked maintenance rather than another wrapper claim: Zigux now records the delayed-work requeue governance note and the flush-drain governance note, but hotplug-driven worker migration, worker execution, flush completion, and scheduler-visible behavior still stay in C.
 
 ## Recorded gaps
 
@@ -52,10 +52,11 @@ The current lane state is:
 - landed `phase14-workqueue-delayed-submission-alias-followup`
 - landed `phase14-workqueue-delayed-timer-expiry-followup`
 - landed `phase14-workqueue-delayed-requeue-governance`
+- landed `phase14-workqueue-flush-drain-governance`
 - landed `phase14-workqueue-lock-handoff-audit`
 - blocked `phase14-workqueue-live-execution-blocker`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 boundary map for workqueue ownership and non-goals, plus an explicit delayed-work requeue stay-in-C decision, but it still does not claim live worker-pool execution, scheduler-hook parity, delayed-work requeue ownership in Zig, or a direct `kernel/workqueue.c` rewrite.
+This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 boundary map for workqueue ownership and non-goals, plus explicit delayed-work requeue and flush-drain stay-in-C decisions, but it still does not claim live worker-pool execution, scheduler-hook parity, delayed-work requeue ownership in Zig, flush completion ownership in Zig, or a direct `kernel/workqueue.c` rewrite.
 
 ## Non-goals
 
@@ -79,4 +80,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Leave this lane in blocked maintenance unless a future run can tighten one equally small stay-in-C note around hotplug-driven worker migration or flush-drain ownership without claiming live delayed-work execution.
+Leave this lane in blocked maintenance unless a future run can tighten one equally small stay-in-C note around hotplug-driven worker migration or scheduler-visible worker-state behavior without claiming live delayed-work execution or flush completion.
