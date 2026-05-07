@@ -46,6 +46,10 @@ pub fn recognizesInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return scopeFromInteropPolicyBytes(unsafe_scope, reserved) != null;
 }
 
+pub fn permitsNoUnsafePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
+    return scopeFromInteropPolicyBytes(unsafe_scope, reserved) == .none;
+}
+
 pub fn permitsVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return scopeFromInteropPolicyBytes(unsafe_scope, reserved) == .volatile_mmio;
 }
@@ -84,6 +88,12 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expect(recognizesInteropPolicyBytes(2, 0));
     try std.testing.expect(!recognizesInteropPolicyBytes(9, 0));
     try std.testing.expect(!recognizesInteropPolicyBytes(1, 1));
+
+    try std.testing.expect(permitsNoUnsafePolicyBytes(0, 0));
+    try std.testing.expect(!permitsNoUnsafePolicyBytes(1, 0));
+    try std.testing.expect(!permitsNoUnsafePolicyBytes(2, 0));
+    try std.testing.expect(!permitsNoUnsafePolicyBytes(9, 0));
+    try std.testing.expect(!permitsNoUnsafePolicyBytes(0, 1));
 
     try std.testing.expect(!permitsVolatileMmioPolicyBytes(0, 0));
     try std.testing.expect(permitsVolatileMmioPolicyBytes(1, 0));
