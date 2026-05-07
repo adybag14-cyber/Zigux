@@ -220,6 +220,7 @@ pub const RuntimeTraceEventsSample = struct {
 
     pub fn runSelftest(self: *Self) !EmissionSummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+        if (self.registration_depth != 0) return error.OutstandingRegistration;
 
         _ = try self.emitMainIteration(0);
         try self.registerFunctionThread();
@@ -442,4 +443,53 @@ test "trace-events sample keeps callback-registration edge refcounts explicit" {
 
     try module.exit();
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
+}
+
+test "trace-events sample rejects selftest when callback registration is already outstanding" {
+    var module = RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.emitMainIteration(8);
+    try module.registerFunctionThread();
+    _ = try module.emitFunctionIteration(9);
+
+    const before_failed_selftest = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, before_failed_selftest.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_selftest.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_selftest.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_selftest.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_selftest.registration_start_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_selftest.registration_stop_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_selftest.main_iterations);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_selftest.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 8), before_failed_selftest.total_events);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(i32, 8), before_failed_selftest.last_main_count);
+    try std.testing.expectEqual(@as(i32, 9), before_failed_selftest.last_fn_count);
+
+    try std.testing.expectError(error.OutstandingRegistration, module.runSelftest());
+
+    const after_failed_selftest = module.summary();
+    try std.testing.expectEqual(before_failed_selftest.stage, after_failed_selftest.stage);
+    try std.testing.expectEqual(before_failed_selftest.registration_depth, after_failed_selftest.registration_depth);
+    try std.testing.expectEqual(before_failed_selftest.register_runs, after_failed_selftest.register_runs);
+    try std.testing.expectEqual(before_failed_selftest.unregister_runs, after_failed_selftest.unregister_runs);
+    try std.testing.expectEqual(before_failed_selftest.registration_start_runs, after_failed_selftest.registration_start_runs);
+    try std.testing.expectEqual(before_failed_selftest.registration_stop_runs, after_failed_selftest.registration_stop_runs);
+    try std.testing.expectEqual(before_failed_selftest.main_iterations, after_failed_selftest.main_iterations);
+    try std.testing.expectEqual(before_failed_selftest.fn_iterations, after_failed_selftest.fn_iterations);
+    try std.testing.expectEqual(before_failed_selftest.total_events, after_failed_selftest.total_events);
+    try std.testing.expectEqual(before_failed_selftest.selftest_runs, after_failed_selftest.selftest_runs);
+    try std.testing.expectEqual(before_failed_selftest.last_main_count, after_failed_selftest.last_main_count);
+    try std.testing.expectEqual(before_failed_selftest.last_fn_count, after_failed_selftest.last_fn_count);
+
+    try module.unregisterFunctionThread();
+    const selftest_summary = try module.runSelftest();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 2), module.main_iterations);
+    try std.testing.expectEqual(@as(usize, 2), module.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 16), module.total_events);
+    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 12), selftest_summary.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 4), selftest_summary.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 16), selftest_summary.total_events);
 }
