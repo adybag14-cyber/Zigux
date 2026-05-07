@@ -32,7 +32,7 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 - empty-node and empty-root state helpers
 - explicit node linking
 - balancing and ordered insertion helpers
-- cached leftmost-root helpers for O(1) first-node tracking
+- cached leftmost-root helpers for O(1) first-node tracking and returned-leftmost handoff state
 - comparison-based plain-tree lookup helpers
 - ordered erase, erase-and-detach, and direct node replacement
 - in-order and postorder traversal helpers
@@ -77,12 +77,12 @@ The current starter slice covers:
 - `rb_insert_color()` via `insertColor()`
 - `rb_insert_color_cached()` via `insertColorCached()`
 - `rb_add()` via `add()`
-- `rb_add_cached()` via `addCached()`
+- `rb_add_cached()` via `addCached()` returning the new leftmost node when one is established
 - `rb_find()` via `find()`
 - `rb_find_first()` via `findFirst()`
 - `rb_next_match()` via `nextMatch()`
 - `rb_erase()` via `erase()`
-- `rb_erase_cached()` via `eraseCached()`
+- `rb_erase_cached()` via `eraseCached()` returning the next leftmost node when the erased node held that role
 - `rb_erase_init()` via `eraseInit()`
 - `rb_first_cached()` via `firstCached()`
 - `rb_first()`
@@ -100,7 +100,7 @@ The current tests check:
 - ordered inserts and sorted forward traversal
 - reverse traversal via `last()` and `prev()`
 - duplicate-key lookup ranges via `findFirst()` and `nextMatch()`
-- cached-leftmost tracking across `addCached()`, `replaceNodeCached()`, and `eraseCached()`
+- cached-leftmost tracking and returned leftmost handoff state across `addCached()`, `replaceNodeCached()`, and `eraseCached()`
 - erase-and-replace consistency after structural updates
 - replacement of dirty detached nodes by copying the full victim link-and-color shape before reconnecting the new node
 - erase-and-detach ownership reset via `eraseInit()`
