@@ -13,6 +13,7 @@ It is a fallback-read overview, not a closure claim, not a validator-first route
 - scope: shared fallback-read coverage for the shipped `nvme_pci`, `virtio_net`, `virtio_scsi`, and libbpf Phase 12 packet plus the compact release-coordination matrix, PMO closure companion, and shared replay surfaces that travel with the active release-order packet
 - commit-pinned fallback artifacts: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - shared-tree-only anchors: `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md`
+- driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
 
 ## Coverage split
 
