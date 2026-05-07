@@ -82,7 +82,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-06", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("9342905d34fb98d6fcd88cf2e88efed7355131d2", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
@@ -204,8 +204,8 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
             saw_stale_provenance_cleanup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "old pinned provenance hash") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "current-master readback marker") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "older current-master readback marker") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "verified master head") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
@@ -281,8 +281,8 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
 
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_LANE_KEY=P15-L04") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_SLICE=freeze-map-governance-anchor-reporting-field-sync") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "current `master` readback on 2026-05-06") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "previously pinned provenance hash had gone stale") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "verified `master` head `9342905d34fb98d6fcd88cf2e88efed7355131d2` observed on May 7, 2026") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "older current-master readback marker was no longer precise enough") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Freeze-In-C Anchor Governance Inventory") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "Architecture Council + PMO / Release Management") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "Architecture Council + Validation and Perf Team") != null);
