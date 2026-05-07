@@ -97,6 +97,11 @@ REQUIRED_CLOSURE_MARKERS = [
         1,
     ),
     (
+        "closure_find_bit_inclusive_boundary_owner_count",
+        "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_OWNER=the direct helper-local inclusive-boundary test remains the owning proof until zigux/tests/phase1_helpers.zig consumes the committed inclusive_boundary_* fixture fields directly",
+        1,
+    ),
+    (
         "closure_find_bit_zero_window_review_count",
         "PHASE1_FIND_BIT_ZERO_WINDOW_REVIEW=helper-local zero-bit-window proof stays explicit through the direct find_bit test anchor so first-scan entrypoints return the empty-window boundary without reading bitmap words",
         1,
@@ -107,13 +112,13 @@ REQUIRED_CLOSURE_MARKERS = [
         1,
     ),
     (
-        "closure_find_bit_underscore_alias_review_count",
-        "PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore alias proof stays explicit through the direct find_bit test anchor so the Linux-style underscore entry points remain behaviorally locked to the primary Zig helpers",
+        "closure_find_bit_tail_clamp_review_count",
+        "PHASE1_FIND_BIT_TAIL_CLAMP_REVIEW=tail_clamped_first, tail_clamped_next, tail_zero_clamped_first, tail_zero_clamped_next, tail_and_clamped_first, and tail_and_clamped_next stay explicit through the shared Phase 1 parity fixture and replay so last-word scans cannot silently leak masked tail bits beyond nbits",
         1,
     ),
     (
-        "closure_find_bit_tail_clamp_review_count",
-        "PHASE1_FIND_BIT_TAIL_CLAMP_REVIEW=tail_clamped_first, tail_clamped_next, tail_zero_clamped_first, tail_zero_clamped_next, tail_and_clamped_first, and tail_and_clamped_next stay explicit through the shared Phase 1 parity fixture and replay so last-word scans cannot silently leak masked tail bits beyond nbits",
+        "closure_find_bit_underscore_alias_review_count",
+        "PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore alias proof stays explicit through the direct find_bit test anchor so the Linux-style underscore entry points remain behaviorally locked to the primary Zig helpers",
         1,
     ),
     (
@@ -634,8 +639,9 @@ def run_self_test() -> None:
         for label, marker, _ in [
             REQUIRED_CLOSURE_MARKERS[12],
             REQUIRED_CLOSURE_MARKERS[13],
-            REQUIRED_CLOSURE_MARKERS[16],
-            REQUIRED_CLOSURE_MARKERS[18],
+            REQUIRED_CLOSURE_MARKERS[14],
+            REQUIRED_CLOSURE_MARKERS[17],
+            REQUIRED_CLOSURE_MARKERS[19],
         ]:
             closure_path.write_text(closure_text.replace(marker + "\n", "", 1), encoding="utf-8")
             missing = collect_missing_markers(tmp_root)
@@ -662,6 +668,13 @@ def run_self_test() -> None:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = collect_missing_markers(tmp_root)
         assert "manifest:missing_review_anchor_field=tools/lib/find_bit.zig:zero_bit_window" in missing
+        make_fixture_root(tmp_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        del manifest["review_anchors"]["tools/lib/find_bit.zig"]["underscore_alias_anchor"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "manifest:missing_review_anchor_field=tools/lib/find_bit.zig:underscore_alias_anchor" in missing
         make_fixture_root(tmp_root)
 
         bench_path = tmp_root / "zigux/tests/fixtures/phase1_bench_expectations.json"
@@ -698,7 +711,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [".github/workflows/zigux-bootstrap.yml"]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=11")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12")
 
 
 def main() -> int:
