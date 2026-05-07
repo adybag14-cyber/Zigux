@@ -304,6 +304,10 @@ test "atomic64 diff wrapper keeps rollback ownership and threshold posture expli
     try expectAtomic64MatrixMarkerCount("- owner: `ABI and Runtime Team`", 1);
     try expectAtomic64MatrixMarkerCount("- rollback owner: `ABI and Runtime Team`", 1);
     try expectAtomic64MatrixMarkerCount(
+        "- fallback path: keep the current C anchor plus the existing Phase 9 runtime atomic64 starter surface as the source of truth if the Zig replay gate regresses",
+        1,
+    );
+    try expectAtomic64MatrixMarkerCount(
         "- perf threshold status: correctness-only gate today; no hard timing threshold is approved until the lane widens beyond the current bounded exchange, cmpxchg, add_unless, bitwise, and selftest-family replay set",
         1,
     );
