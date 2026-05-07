@@ -29,6 +29,12 @@ pub const ProbeTimeoutOrigin = enum {
     imported_running_state,
 };
 
+pub const RegistrationScaffoldState = enum {
+    blocked_missing_drvdata,
+    program_timeout_then_register,
+    import_running_state_then_register,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -135,6 +141,9 @@ pub const PlatformHandoffSummary = struct {
     reset_control_available: bool,
     irq_registration_ready: bool,
     drvdata_ready: bool,
+    registration_state: RegistrationScaffoldState,
+    registration_ready: bool,
+    preserves_pretimeout_irq: bool,
     nowayout: bool,
     restart_priority: i32,
     stop_on_reboot: bool,
@@ -350,6 +359,12 @@ pub const DwWdtLab = struct {
             options,
             has_pretimeout_irq and irq_registration_ready,
         );
+        const registration_state: RegistrationScaffoldState = if (!drvdata_ready)
+            .blocked_missing_drvdata
+        else if (registration.imported_running_state)
+            .import_running_state_then_register
+        else
+            .program_timeout_then_register;
         return .{
             .anchor = descriptor().anchor,
             .registration_call = registration.registration_call,
@@ -361,6 +376,9 @@ pub const DwWdtLab = struct {
             .reset_control_available = self.has_reset_control,
             .irq_registration_ready = irq_registration_ready,
             .drvdata_ready = drvdata_ready,
+            .registration_state = registration_state,
+            .registration_ready = drvdata_ready,
+            .preserves_pretimeout_irq = registration.pretimeout_sec != 0,
             .nowayout = registration.nowayout,
             .restart_priority = registration.restart_priority,
             .stop_on_reboot = registration.stop_on_reboot,
