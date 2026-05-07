@@ -34,6 +34,27 @@ pub const DriverIdMatchSummary = struct {
     matched_vendor_any: bool,
 };
 
+pub const DriverIdMatchSpecificity = enum {
+    unmatched,
+    exact,
+    device_wildcard,
+    vendor_wildcard,
+    full_wildcard,
+};
+
+pub const DriverIdTableReviewSummary = struct {
+    anchor: []const u8,
+    device_id: u32,
+    vendor_id: u32,
+    candidate_count: usize,
+    matched: bool,
+    matched_rule_index: ?usize,
+    matched_specificity: DriverIdMatchSpecificity,
+    matched_device_any: bool,
+    matched_vendor_any: bool,
+    shadowed_more_specific_rule_index: ?usize,
+};
+
 pub const VirtioDriverIdMatcher = struct {
     const Self = @This();
 
@@ -94,11 +115,7 @@ pub const VirtioDriverIdMatcher = struct {
         rules: []const DriverIdMatchRule,
     ) DriverIdMatchSummary {
         for (rules, 0..) |rule, index| {
-            const device_matches = rule.device_id == self.device_id or rule.device_id == any_id;
-            if (!device_matches) continue;
-
-            const vendor_matches = rule.vendor_id == self.vendor_id or rule.vendor_id == any_id;
-            if (!vendor_matches) continue;
+            if (!self.ruleMatches(rule)) continue;
 
             return .{
                 .anchor = descriptor().anchor,
@@ -124,8 +141,79 @@ pub const VirtioDriverIdMatcher = struct {
         };
     }
 
+    pub fn driverIdTableReviewSummary(
+        self: *const Self,
+        rules: []const DriverIdMatchRule,
+    ) DriverIdTableReviewSummary {
+        const match = self.driverIdMatchSummary(rules);
+        var shadowed_more_specific_rule_index: ?usize = null;
+
+        if (match.matched) {
+            if (match.matched_rule_index) |matched_rule_index| {
+                const selected_rank = specificityRank(
+                    match.matched_device_any,
+                    match.matched_vendor_any,
+                );
+                for (rules[matched_rule_index + 1 ..], matched_rule_index + 1..) |rule, index| {
+                    if (!self.ruleMatches(rule)) continue;
+
+                    const candidate_rank = specificityRank(
+                        rule.device_id == any_id,
+                        rule.vendor_id == any_id,
+                    );
+                    if (candidate_rank < selected_rank) {
+                        shadowed_more_specific_rule_index = index;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .device_id = self.device_id,
+            .vendor_id = self.vendor_id,
+            .candidate_count = rules.len,
+            .matched = match.matched,
+            .matched_rule_index = match.matched_rule_index,
+            .matched_specificity = matchSpecificity(
+                match.matched,
+                match.matched_device_any,
+                match.matched_vendor_any,
+            ),
+            .matched_device_any = match.matched_device_any,
+            .matched_vendor_any = match.matched_vendor_any,
+            .shadowed_more_specific_rule_index = shadowed_more_specific_rule_index,
+        };
+    }
+
     fn formatInto(buffer: []u8, comptime fmt: []const u8, args: anytype) !usize {
         const rendered = try std.fmt.bufPrint(buffer, fmt, args);
         return rendered.len;
+    }
+
+    fn ruleMatches(self: *const Self, rule: DriverIdMatchRule) bool {
+        const device_matches = rule.device_id == self.device_id or rule.device_id == any_id;
+        if (!device_matches) return false;
+
+        return rule.vendor_id == self.vendor_id or rule.vendor_id == any_id;
+    }
+
+    fn matchSpecificity(
+        matched: bool,
+        matched_device_any: bool,
+        matched_vendor_any: bool,
+    ) DriverIdMatchSpecificity {
+        if (!matched) return .unmatched;
+        if (matched_device_any and matched_vendor_any) return .full_wildcard;
+        if (matched_device_any) return .device_wildcard;
+        if (matched_vendor_any) return .vendor_wildcard;
+        return .exact;
+    }
+
+    fn specificityRank(matched_device_any: bool, matched_vendor_any: bool) u2 {
+        if (matched_device_any and matched_vendor_any) return 2;
+        if (matched_device_any or matched_vendor_any) return 1;
+        return 0;
     }
 };
