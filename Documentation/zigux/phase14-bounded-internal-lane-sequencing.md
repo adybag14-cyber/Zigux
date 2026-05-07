@@ -46,9 +46,7 @@ Shared Phase 14 coordination surface:
 
 These shared routes prove that the current bounded Phase 14 packet still replays together. They do not transfer ownership of an anchor-local manifest, survey note, review-only bridge, blocked gap, or ready-next decision.
 
-## Lane map
-
-`P14-L01` workqueue lane owns the workqueue boundary-map packet:
+`P14-L04` workqueue lane owns the workqueue boundary-map packet:
 
 - `kernel/workqueue_bridge.zig`
 - `zigux/tests/phase14_workqueue_bridge.zig`
@@ -108,7 +106,7 @@ Do not use the shared wording lane to smuggle anchor-local bridge, survey, manif
 
 ## Anti-overlap rules
 
-- If a Phase 14 run changes `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, or the paired workqueue slice or survey note, that work belongs to `P14-L01`.
+- If a Phase 14 run changes `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, or the paired workqueue slice or survey note, that work belongs to `P14-L04`.
 - If a Phase 14 run changes `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_ring_buffer_manifest.json`, or `Documentation/zigux/phase14-ring-buffer-survey.md`, that work belongs to `P14-L08`.
 - If a Phase 14 run changes `net/core/skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, or the paired skbuff slice or survey note, that work belongs to `P14-L11`.
 - If a Phase 14 run changes `zigux/tests/phase14_rcu_tree_survey.zig`, `zigux/tests/phase14_rcu_tree_manifest.json`, or `Documentation/zigux/phase14-rcu-tree-survey.md`, that work belongs to `P14-L16`.
