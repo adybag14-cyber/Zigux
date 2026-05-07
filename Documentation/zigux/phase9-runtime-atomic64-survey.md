@@ -28,7 +28,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 The Phase 9 roadmap explicitly names `lib/atomic64_test.c` as a runtime pilot-module anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
-The survey artifacts now advance to `P9-L01` because the bounded sample-side loader scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, and the shared request-surface proof are landed and reviewable on `master`. That keeps the survey history honest while also making the active packet metadata match the current runtime atomic64 review surface.
+The survey artifacts now advance to `P9-L01` because the bounded sample-side loader scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, and the shared request-surface proof are landed and reviewable on `master`.
 
 The live repo now has a bounded `runtime_atomic64` starter, dedicated module tests, a dedicated diff gate, a bounded sample-side loader scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, and shared Phase 9 build coverage, so this survey note should reflect the landed pilot review surface instead of still reading like the lane stops before any loader-shaped lifecycle handoff.
 
@@ -43,6 +43,14 @@ The live repo now has a bounded `runtime_atomic64` starter, dedicated module tes
 - the live repo now also carries `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and `zigux/Makefile`, and the atomic64 loader packet now makes its shared request-surface proof explicit through `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` while keeping the caller-provided allocator handoff, init-flow counts, initialized-stage shared-request snapshot stability, prepared selftest-hook and shared-plan drift checks, release-without-substrate path, and release-order synchronization reviewable without claiming a real module-loading substrate.
 - the shared `zigux/kernel/runtime_loader.zig` facade remains a review-only Phase 9 packet under the freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary, so this lane keeps the handoff proof explicit without claiming scheduler-facing substrate closure or a freeze-map status change.
 - runtime substrate work is still missing, so the lane intentionally stops at bounded lifecycle, selftest-hook, and loader-handoff behavior rather than claiming real module registration parity.
+
+## Roadmap gap vs current pilot
+
+- the Phase 9 roadmap asks for first loadable Zigux runtime modules, selftest hooks, and runtime module lifecycle parity under `zigux/tests/runtime_*` and `samples/zigux/runtime_*`.
+- the landed atomic64 packet satisfies the bounded selftest-hook and lifecycle-evidence part of that roadmap, but it does not yet satisfy the loadable-module part.
+- the honest current state is `starter_landed_without_loadable_runtime_substrate`.
+- the missing capability is a shared runtime substrate that can turn the bounded init, selftest, and exit handoff plan into a real loadable module path.
+- the blocked deliverable is loadable Phase 9 runtime atomic64 pilot module parity.
 
 ## Direct Sample Checks
 
@@ -92,4 +100,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime atomic64 lane and keep broader work blocked until a shared runtime-loader substrate actually lands on `master` and can consume the bounded init, selftest, and exit handoff plan.
+Stay in the Phase 9 runtime atomic64 lane and keep broader work blocked until a shared runtime loader substrate can consume the bounded init, selftest, and exit handoff plan beyond the current shared load-plan, initialized-stage snapshot, selftest-hook drift, shared-plan drift, and release-order proofs and turn this guarded evidence into real runtime module lifecycle parity.
