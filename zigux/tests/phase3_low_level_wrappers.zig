@@ -54,8 +54,8 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
 
     var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     const base = narrow.addressOf(&bytes[0]);
-    const unaligned_halfword: *align(1) const u16 = @ptrCast(&bytes[1]);
-    const unaligned_word: *align(1) const u32 = @ptrCast(&bytes[3]);
+    const aligned_halfword: *align(1) const u16 = @ptrCast(&bytes[2]);
+    const aligned_word: *align(1) const u32 = @ptrCast(&bytes[@sizeOf(u32)]);
     const byte_desc = mmio.range(base, 8, 1);
     const halfword_desc = mmio.range(base, 8, 2);
     const desc = mmio.range(base, 8, 4);
@@ -70,17 +70,27 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     try std.testing.expectEqual(@as(u32, 8), desc.length);
     try std.testing.expectEqual(@as(u32, 4), desc.stride);
 
-    mmio.write8(base, 0, 0x5a);
-    try std.testing.expectEqual(@as(u8, 0x5a), bytes[0]);
-    try std.testing.expectEqual(@as(u8, 0x5a), mmio.read8(base, 0));
+    mmio.write8(base, 1, 0x5a);
+    try std.testing.expectEqual(@as(u8, 0x5a), bytes[1]);
+    try std.testing.expectEqual(@as(u8, 0x5a), mmio.read8(base, 1));
 
-    mmio.write16(base, 1, 0xbeef);
-    try std.testing.expectEqual(@as(u16, 0xbeef), unaligned_halfword.*);
-    try std.testing.expectEqual(@as(u16, 0xbeef), mmio.read16(base, 1));
+    mmio.write16(base, 2, 0xbeef);
+    try std.testing.expectEqual(@as(u16, 0xbeef), aligned_halfword.*);
+    try std.testing.expectEqual(@as(u16, 0xbeef), mmio.read16(base, 2));
 
-    mmio.write32(base, 3, 0xfeedbeef);
-    try std.testing.expectEqual(@as(u32, 0xfeedbeef), unaligned_word.*);
-    try std.testing.expectEqual(@as(u32, 0xfeedbeef), mmio.read32(base, 3));
+    mmio.write32(base, @sizeOf(u32), 0xfeedbeef);
+    try std.testing.expectEqual(@as(u32, 0xfeedbeef), aligned_word.*);
+    try std.testing.expectEqual(@as(u32, 0xfeedbeef), mmio.read32(base, @sizeOf(u32)));
+
+    const odd_halfword: *align(1) const u16 = @ptrCast(&bytes[1]);
+    mmio.write16(base, 1, 0x1234);
+    try std.testing.expectEqual(@as(u16, 0x1234), odd_halfword.*);
+    try std.testing.expectEqual(@as(u16, 0x1234), mmio.read16(base, 1));
+
+    const odd_word: *align(1) const u32 = @ptrCast(&bytes[3]);
+    mmio.write32(base, 3, 0x89abcdef);
+    try std.testing.expectEqual(@as(u32, 0x89abcdef), odd_word.*);
+    try std.testing.expectEqual(@as(u32, 0x89abcdef), mmio.read32(base, 3));
 }
 
 test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {
