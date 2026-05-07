@@ -482,7 +482,7 @@ pub const VirtioScsiQueueLab = struct {
             .blocks_request_queue_access_until_restore = true,
             .keeps_frozen_layout_for_restore = true,
             .clears_live_layout_after_restore = true,
-            .requires_replanBeforeQueueReuse = true,
+            .requires_replan_before_queue_reuse = true,
         };
     }
 
