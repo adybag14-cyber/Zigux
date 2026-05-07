@@ -41,25 +41,25 @@ pub fn write32(base_addr: usize, offset: usize, value: u32) void {
 }
 
 test "phase3 mmio wrapper uses bounded volatile access" {
-    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0 };
+    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     const base = narrow.addressOf(&bytes[0]);
 
-    write8(base, 1, 0x5a);
-    try std.testing.expectEqual(@as(u8, 0x5a), bytes[1]);
-    try std.testing.expectEqual(@as(u8, 0x5a), read8(base, 1));
+    write8(base, 0, 0x5a);
+    try std.testing.expectEqual(@as(u8, 0x5a), bytes[0]);
+    try std.testing.expectEqual(@as(u8, 0x5a), read8(base, 0));
 
-    const halfwords: *align(1) [4]u16 = @ptrCast(&bytes);
-    write16(base, 2, 0xbeef);
-    try std.testing.expectEqual(@as(u16, 0xbeef), halfwords[1]);
-    try std.testing.expectEqual(@as(u16, 0xbeef), read16(base, 2));
+    const unaligned_halfword: *align(1) const u16 = @ptrCast(&bytes[1]);
+    write16(base, 1, 0xbeef);
+    try std.testing.expectEqual(@as(u16, 0xbeef), unaligned_halfword.*);
+    try std.testing.expectEqual(@as(u16, 0xbeef), read16(base, 1));
 
-    const regs: *align(1) [2]u32 = @ptrCast(&bytes);
-    write32(base, @sizeOf(u32), 0xfeedbeef);
-    try std.testing.expectEqual(@as(u32, 0xfeedbeef), regs[1]);
-    try std.testing.expectEqual(@as(u32, 0xfeedbeef), read32(base, @sizeOf(u32)));
+    const unaligned_word: *align(1) const u32 = @ptrCast(&bytes[3]);
+    write32(base, 3, 0xfeedbeef);
+    try std.testing.expectEqual(@as(u32, 0xfeedbeef), unaligned_word.*);
+    try std.testing.expectEqual(@as(u32, 0xfeedbeef), read32(base, 3));
 
-    const desc = range(base, 8, 1);
+    const desc = range(base, 12, 1);
     try std.testing.expectEqual(base, desc.base_addr);
-    try std.testing.expectEqual(@as(u32, 8), desc.length);
+    try std.testing.expectEqual(@as(u32, 12), desc.length);
     try std.testing.expectEqual(@as(u32, 1), desc.stride);
 }
