@@ -99,6 +99,15 @@ fn makePatternedPayload(comptime len: usize, comptime seed: u8) [len]u8 {
     return bytes;
 }
 
+fn perfPayloadFingerprint(bytes: []const u8) u64 {
+    var acc: u64 = 0xcbf2_9ce4_8422_2325;
+    for (bytes, 0..) |byte, idx| {
+        acc ^= @as(u64, byte) +% (@as(u64, @intCast(idx)) << 8);
+        acc *%= 0x0000_0100_0000_01b3;
+    }
+    return acc;
+}
+
 const payload_64 = makePatternedPayload(64, 0x31);
 const payload_1501 = makePatternedPayload(1501, 0x6d);
 
@@ -282,9 +291,10 @@ test "phase 6 checksum perf fixture packet stays bounded to the documented matri
         len: usize,
         iterations: usize,
         max_slowdown_pct: u64,
+        fingerprint: u64,
     }{
-        .{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150 },
-        .{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150 },
+        .{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0x3193_4305_ba03_9b45 },
+        .{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0x457f_efb1_ea64_3164 },
     };
 
     try std.testing.expectEqual(expected.len, perf_cases.len);
@@ -295,6 +305,7 @@ test "phase 6 checksum perf fixture packet stays bounded to the documented matri
         try std.testing.expectEqual(want.len, actual.bytes.len);
         try std.testing.expectEqual(want.iterations, actual.iterations);
         try std.testing.expectEqual(want.max_slowdown_pct, actual.max_slowdown_pct);
+        try std.testing.expectEqual(want.fingerprint, perfPayloadFingerprint(actual.bytes));
     }
 
     for (perf_cases, 0..) |case, idx| {
