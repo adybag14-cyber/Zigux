@@ -38,7 +38,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
   - docs-root tranche summaries should keep the export/UAPI boundary packet explicit through this shared ABI slice, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, the focused `phase3_export_uapi_layout` replay, and clear boundary wording so the active Phase 3 packet does not collapse back into an ABI-plus-policy-only note when the boundary starter moves
 - current shared ABI replay:
   - `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
-  - `PHASE3_ABI_MANIFEST_FILE_COUNT=35`
+  - `PHASE3_ABI_MANIFEST_FILE_COUNT=37`
   - `PHASE3_ABI_REPLAY_SCOPE=shared dump plus focused low-level wrapper and export-uapi layout replays`
   - the live `phase3_abi` packet now exercises the curated boundary header and export status root, bitmap and cpumask views, list and hlist views, err_ptr and xarray summaries, the current ida and minor-allocation/dev-region planning ladder, the notifier starter binding packet, and the currently shipped chrdev notify/ack delivery-budget guard families through the shared dump and layout harness
   - the focused syntax gate now fail-closes on fused top-level C header declarations in `include/zigux/abi.h` plus fused top-level `;pub const` declarations in `zigux/bindings/abi.zig` or `zigux/bindings/dev_t.zig` until the authoritative header and curated bindings body are split back into parse-clean lines
@@ -120,7 +120,7 @@ The current Phase 3 low-level wrapper packet is still intentionally small, but i
 - `zigux/helpers/atomic.zig` now exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange()`, and `compareExchangeWeak()`.
 - `zigux/helpers/barrier.zig` now exposes `acquire`, `release`, `full`, and `acquireRelease()` through local compile-review scaffolding rather than a module-global fence word.
 - `zigux/helpers/mmio.zig` now exposes `range`, direct `read8` and `write8`, direct `read16` and `write16`, direct `read32` and `write32`, and direct `read64` and `write64`.
-- `zigux/tests/phase3_low_level_wrappers.zig` now directly replays the shipped helper surface, including signed `fetchAdd` and `fetchSub`, signed `fetchMin` and `fetchMax`, monotonic strong `compareExchange()`, `acq_rel` strong `compareExchange()` mismatch handling, direct barrier-locality proof, non-`seq_cst` atomic ordering coverage, plus byte-addressed 16-bit, 32-bit, and 64-bit MMIO range descriptors and odd-offset access routed through the narrow pointer bridge.
+- `zigux/tests/phase3_low_level_wrappers.zig` now directly replays the shipped helper surface, including signed `fetchAdd` and `fetchSub`, signed `fetchMin` and `fetchMax`, monotonic strong `compareExchange()`, `acq_rel` strong `compareExchange()` mismatch handling, direct barrier-locality proof, non-`seq_cst` ordering, plus byte-addressed 16-bit, 32-bit, and 64-bit MMIO range descriptors and odd-offset access routed through the narrow pointer bridge.
 - the shared ABI packet still carries the wider compile, layout, dump proof.
 
 ## Interop rules
