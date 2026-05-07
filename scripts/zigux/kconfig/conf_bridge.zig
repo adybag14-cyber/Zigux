@@ -107,6 +107,13 @@ fn missingModeArgumentMessage(mode: Mode) []const u8 {
     };
 }
 
+fn modeUsesAllConfigSentinel(mode: Mode) bool {
+    return switch (mode) {
+        .allnoconfig, .allyesconfig, .allmodconfig, .alldefconfig => true,
+        else => false,
+    };
+}
+
 fn writeHexLower(writer: anytype, value: u8) !void {
     const digits = "0123456789abcdef";
     try writer.writeByte(digits[value >> 4]);
@@ -174,6 +181,9 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("\",\"KCONFIG_CONFIG\":\"");
     try writeJsonEscaped(writer, request.config);
     try writer.writeAll("\"");
+    if (modeUsesAllConfigSentinel(request.mode)) {
+        try writer.writeAll(",\"KCONFIG_ALLCONFIG\":\"1\"");
+    }
     if (request.mode == .syncconfig) {
         try writer.writeAll(",\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\",\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\"");
     }
@@ -375,7 +385,7 @@ test "conf bridge emits alldefconfig argv and env" {
         allocator: std.mem.Allocator,
 
         fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 128), .allocator = allocator };
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 160), .allocator = allocator };
         }
 
         fn deinit(self: *@This()) void {
@@ -405,6 +415,7 @@ test "conf bridge emits alldefconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--alldefconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"build/.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"arm64\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
 }
 
 test "conf bridge emits allmodconfig argv and env" {
@@ -413,7 +424,7 @@ test "conf bridge emits allmodconfig argv and env" {
         allocator: std.mem.Allocator,
 
         fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 128), .allocator = allocator };
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 160), .allocator = allocator };
         }
 
         fn deinit(self: *@This()) void {
@@ -443,6 +454,7 @@ test "conf bridge emits allmodconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--allmodconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"mod/.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"arm\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
 }
 
 test "conf bridge emits randconfig tunables when present" {
