@@ -6,7 +6,7 @@ This document tracks the first bounded `drivers/virtio/virtio_input.c` lab helpe
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-input-lab-helper`
-- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, bounded capability-setup staging, bounded multitouch slot planning, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, bounded status-completion drain summaries, the wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay, dedicated Phase 10 input tests, the committed input survey manifest and survey gate, the dedicated input-packet review guard, the focused status-drain replay, and the shared Phase 10 build-and-make routes
+- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, bounded capability-setup staging, bounded multitouch slot planning, bounded registration-preflight summaries, bounded queue-callback preflight summaries, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, bounded status-completion drain summaries, the wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay, dedicated Phase 10 input tests, the committed input survey manifest and survey gate, the dedicated input-packet review guard, the focused status-drain replay, and the shared Phase 10 build-and-make routes
 - product boundary:
   - `drivers/virtio/virtio_input.zig`
   - `drivers/virtio/virtio_input_verify.zig`
@@ -46,6 +46,8 @@ The live repo now has a bounded `drivers/virtio/virtio_input.zig` helper plus de
 - in-memory ABS metadata summaries for min, max, fuzz, flat, and resolution keyed by ABS code, mirroring the bounded `virtinput_cfg_abs()` readout without claiming real `input_dev` mutation
 - in-memory capability-setup staging that only advances when event-bit configuration exists and keeps ABS parameter intent gated on matching `EV_ABS` capability bits
 - one bounded in-memory multitouch slot-planning helper keyed off `ABS_MT_SLOT`, turning the staged ABS metadata into a capped slot count before any registration or transport work
+- one bounded registration-preflight summary that reports queue, ready-state, capability-setup, and multitouch-slot blockers before any future `input_register_device()` handoff
+- one bounded queue-callback preflight summary that reports event and status queue configuration, event-buffer fill state, and ready-state blockers before any future transport-backed callback handoff
 - event and status queue descriptor-count validation with power-of-two bounds
 - static event-buffer fill accounting capped to the helper's in-memory event-buffer capacity
 - ready-state gating so status sends stay blocked until both queues are configured
