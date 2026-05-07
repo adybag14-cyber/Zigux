@@ -17,6 +17,7 @@
 
 struct rb_entry_fixture {
 	int key;
+	int serial;
 	struct rb_node node;
 };
 
@@ -25,6 +26,18 @@ static bool rb_less(struct rb_node *lhs, const struct rb_node *rhs)
 	const struct rb_entry_fixture *left = rb_entry(lhs, struct rb_entry_fixture, node);
 	const struct rb_entry_fixture *right = rb_entry(rhs, struct rb_entry_fixture, node);
 	return left->key < right->key;
+}
+
+static int rb_cmp_key(const void *key, const struct rb_node *node)
+{
+	const int *wanted = key;
+	const struct rb_entry_fixture *entry = rb_entry(node, struct rb_entry_fixture, node);
+
+	if (*wanted < entry->key)
+		return -1;
+	if (*wanted > entry->key)
+		return 1;
+	return 0;
 }
 
 static void emit_int_array(const int *values, size_t count)
@@ -245,15 +258,31 @@ static void run_rbtree_section(void)
 		{ .key = 1 },
 		{ .key = 3 },
 	};
+	struct rb_entry_fixture search_entries[] = {
+		{ .key = 10, .serial = 0 },
+		{ .key = 5, .serial = 1 },
+		{ .key = 10, .serial = 2 },
+		{ .key = 20, .serial = 3 },
+		{ .key = 10, .serial = 4 },
+		{ .key = 15, .serial = 5 },
+	};
 	struct rb_root root = RB_ROOT;
 	struct rb_root postorder_root = RB_ROOT;
+	struct rb_root search_root = RB_ROOT;
 	int order[5] = {0};
 	int reverse[5] = {0};
 	int replaced[4] = {0};
 	int erase_init_order[3] = {0};
+	int next_match_serials[3] = {0};
 	size_t count = 0;
 	struct rb_node *node;
+	struct rb_node *last_match = NULL;
 	bool empty_root = RB_EMPTY_ROOT(&root);
+	int find_wanted = 15;
+	int missing_wanted = 17;
+	int duplicate_wanted = 10;
+	struct rb_node *found;
+	struct rb_node *first_match;
 
 	for (size_t i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
 		rb_add(&entries[i].node, &root, rb_less);
@@ -280,10 +309,21 @@ static void run_rbtree_section(void)
 
 	for (size_t i = 0; i < sizeof(postorder_entries) / sizeof(postorder_entries[0]); i++)
 		rb_add(&postorder_entries[i].node, &postorder_root, rb_less);
+	for (size_t i = 0; i < sizeof(search_entries) / sizeof(search_entries[0]); i++)
+		rb_add(&search_entries[i].node, &search_root, rb_less);
 
 	int postorder_count = 0;
 	for (node = rb_first_postorder(&postorder_root); node; node = rb_next_postorder(node))
 		postorder_count++;
+
+	found = rb_find(&find_wanted, &search_root, rb_cmp_key);
+	first_match = rb_find_first(&duplicate_wanted, &search_root, rb_cmp_key);
+
+	count = 0;
+	for (node = first_match; node; node = rb_next_match(&duplicate_wanted, node, rb_cmp_key)) {
+		last_match = node;
+		next_match_serials[count++] = rb_entry(node, struct rb_entry_fixture, node)->serial;
+	}
 
 	RB_CLEAR_NODE(&replacement.node);
 
@@ -295,7 +335,12 @@ static void run_rbtree_section(void)
 	printf("\"erase_init_order\":"); emit_int_array(erase_init_order, 3); printf(",");
 	printf("\"postorder_count\":%d,", postorder_count);
 	printf("\"erase_init_node_empty\":%s,", RB_EMPTY_NODE(&replacement.node) ? "true" : "false");
-	printf("\"cleared_node_empty\":%s", RB_EMPTY_NODE(&replacement.node) ? "true" : "false");
+	printf("\"cleared_node_empty\":%s,", RB_EMPTY_NODE(&replacement.node) ? "true" : "false");
+	printf("\"find_found_key\":%d,", rb_entry(found, struct rb_entry_fixture, node)->key);
+	printf("\"find_missing\":%s,", rb_find(&missing_wanted, &search_root, rb_cmp_key) ? "false" : "true");
+	printf("\"find_first_serial\":%d,", rb_entry(first_match, struct rb_entry_fixture, node)->serial);
+	printf("\"next_match_serials\":"); emit_int_array(next_match_serials, count); printf(",");
+	printf("\"next_match_terminal_null\":%s", rb_next_match(&duplicate_wanted, last_match, rb_cmp_key) ? "false" : "true");
 	printf("}");
 }
 
