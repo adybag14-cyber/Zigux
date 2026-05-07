@@ -249,6 +249,14 @@ test "phase 15 readiness survey stays aligned with the landed governance bundle"
     );
     defer std.testing.allocator.free(makefile);
 
+    const phase15_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase15_build.zig",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(phase15_build);
+
     const readiness_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase15-readiness-gate-survey.md",
@@ -266,6 +274,8 @@ test "phase 15 readiness survey stays aligned with the landed governance bundle"
     try std.testing.expect(std.mem.indexOf(u8, makefile, "check-phase15-review-process-handoff.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15: phase15-validate phase15-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase15_build, "b.path(\"phase15_indefinite_c_blocker_evidence.zig\")") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase15_build, "b.path(\"phase15_governance_lane_sequencing.zig\")") != null);
     try std.testing.expect(std.mem.indexOf(u8, parity_scorecard, "blocked_no_bounded_scheduler_seam") != null);
     try std.testing.expect(std.mem.indexOf(u8, parity_scorecard, "blocked_no_bounded_allocator_seam") != null);
     try std.testing.expect(std.mem.indexOf(u8, parity_scorecard, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam") != null);
