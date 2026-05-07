@@ -101,6 +101,7 @@ REQUIRED_SNIPPETS = {
         "- base64 shared posture: `zigux/tests/phase6_base64_perf.zig` still emits dedicated encode and decode slowdown markers for four fixture-backed replay cases, `zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, and `zigux/Makefile` still exposes `make -C zigux phase6-base64-perf`, but neither the shared `phase6` target nor `.github/workflows/zigux-bootstrap.yml` replays that base64 perf gate on the bundled route",
         "- base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` still pins four perf cases (`STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, and `URLSAFE_NO_PAD`) at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`",
         "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replay inside `zigux/tests/phase6_bsearch.zig`, not a separate wall-clock perf harness",
+        "- bsearch exact evidence: the current 15-element typed and raw replay packet still requires `counted_compare_calls <= 4` across five representative typed lookups and `counted_raw_compare_calls <= 4` across five representative raw lookups, which keeps the packet aligned with the expected `std.math.log2_int_ceil(len) + 1` search budget without widening into standalone nanosecond thresholds",
         "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replay rather than a separate fixture module or standalone `phase6_bsearch_perf` route",
         "- checksum shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
         "- hexdump shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
@@ -141,6 +142,10 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection"',
         'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers"',
         'test "phase 6 bsearch mutable raw c abi lookup supports write-through"',
+        'test "phase 6 bsearch keeps representative lookup work inside a binary-search budget"',
+        'test "phase 6 bsearch keeps descending lookup work inside a binary-search budget"',
+        'test "phase 6 bsearch raw lookup keeps representative work inside a binary-search budget"',
+        'test "phase 6 bsearch bounded typed and raw equality probes stay inside a binary-search budget"',
     ],
     "zigux/tests/phase6_checksum.zig": [
         'const fixtures = @import("fixtures/phase6_checksum_vectors.zig");',
@@ -151,11 +156,11 @@ REQUIRED_SNIPPETS = {
     ],
     "zigux/tests/phase6_checksum_perf.zig": [
         'const fixtures = @import("fixtures/phase6_checksum_vectors.zig");',
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n", .{fixtures.perf_cases.len});',
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_SLOWDOWN_PCT={d}\\n", .{ case.label, slowdown_pct });',
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_CHECKSUM={d}\\n", .{ case.label, helper_result.checksum_accumulator });',
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\n", .{fixtures.perf_cases.len});',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_SLOWDOWN_PCT={d}\n", .{ case.label, slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\n", .{ case.label, case.max_slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_CHECKSUM={d}\n", .{ case.label, helper_result.checksum_accumulator });',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF={s}\n", .{if (failed) "fail" else "pass"});',
     ],
     "zigux/tests/fixtures/phase6_checksum_vectors.zig": [
         "pub const compute_cases = [_]ComputeCase{",
@@ -176,10 +181,10 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 hexdump covers normalization and empty-buffer edge cases"',
     ],
     "zigux/tests/phase6_hexdump_perf.zig": [
-        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_CASE_COUNT={d}\\n", .{fixtures.perf_cases.len});',
-        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_SLOWDOWN_PCT={d}\\n", .{ case.label, slowdown_pct });',
-        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
-        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_CASE_COUNT={d}\n", .{fixtures.perf_cases.len});',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_SLOWDOWN_PCT={d}\n", .{ case.label, slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_THRESHOLD_PCT={d}\n", .{ case.label, case.max_slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF={s}\n", .{if (failed) "fail" else "pass"});',
     ],
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig": [
         "pub const perf_cases = [_]PerfCase{",
@@ -237,6 +242,10 @@ EXACT_OCCURRENCE_MARKERS = {
     ],
     "zigux/tests/fixtures/phase6_checksum_vectors.zig": [
         (".max_slowdown_pct = 150,", 2),
+    ],
+    "zigux/tests/phase6_bsearch.zig": [
+        ("try std.testing.expect(counted_compare_calls <= 4);", 10),
+        ("try std.testing.expect(counted_raw_compare_calls <= 4);", 10),
     ],
 }
 
@@ -373,6 +382,12 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "Documentation/zigux/phase6-perf-gate-survey.md",
+            "counted_compare_calls <= 4",
+            "counted_compare_calls <= 5",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-perf-gate-survey.md",
             "max_decode_slowdown_pct = 325",
             "max_decode_slowdown_pct = 150",
         )
@@ -387,6 +402,12 @@ def run_self_test() -> None:
             "zigux/tests/phase6_build.zig",
             '.name = "phase6-base64-perf"',
             '.name = "phase6-base64-bench"',
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_bsearch.zig",
+            "try std.testing.expect(counted_raw_compare_calls <= 4);",
+            "try std.testing.expect(counted_raw_compare_calls <= 5);",
         )
         assert_failure(
             root,
