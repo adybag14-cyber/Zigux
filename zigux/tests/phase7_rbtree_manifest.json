@@ -26,14 +26,14 @@
       "status": "starter_landed",
       "kind": "runtime_leaf_helper",
       "zigux_destination": "lib/rbtree.zig",
-      "why_now": "The roadmap names lib/rbtree.zig directly, and the current starter helper already covers initialization, balancing, replacement, erase, traversal, and duplicate-key lookup semantics."
+      "why_now": "The roadmap names lib/rbtree.zig directly, and the current starter helper already covers initialization, linked-node bookkeeping, balancing, replacement, erase, traversal, cached-leftmost tracking, and duplicate-key lookup semantics."
     },
     {
       "id": "phase7-rbtree-dedicated-tests",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_rbtree.zig",
-      "why_now": "A dedicated Phase 7 test file keeps the intrusive-tree starter surface reviewable around traversal order, balancing invariants, duplicate-key lookup ranges, erase, replacement, and detached-node handling."
+      "why_now": "A dedicated Phase 7 test file keeps the intrusive-tree starter surface reviewable around linked-neighbour updates, traversal order, balancing invariants, duplicate-key lookup ranges, eraseInit reset, and detached-node ownership discipline."
     },
     {
       "id": "phase7-rbtree-slice-note",
@@ -61,7 +61,7 @@
       "status": "starter_landed",
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/fixtures/phase7_rbtree.json",
-      "why_now": "The committed C-vs-Zig fixture already locks ordered insert, reverse traversal, replace, duplicate-key lookup order, and postorder expectations against lib/rbtree.c, so the parked Phase 7 review packet should record it as landed rather than still ready next."
+      "why_now": "The committed C-vs-Zig fixture already locks ordered insert, reverse traversal, replace, duplicate-key lookup order, erase-and-detach ownership reset, and postorder expectations against lib/rbtree.c, so the parked Phase 7 review packet should record it as landed rather than still ready next."
     }
   ]
 }
