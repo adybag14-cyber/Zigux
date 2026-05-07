@@ -32,7 +32,7 @@ Also refresh the packet-local docs-root or scripts-root note when the wording ch
 5. Refresh `scripts/zigux/README.md` when the wording change affects the scripts-root validator-first replay summary, checker inventory, or Linux-style command wording.
 6. Refresh `Documentation/zigux/review-checklist.md` if the change alters a shared reviewer prompt or release-discipline question.
 7. Refresh `zigux/tests/README.md` last so the broad tests-root carryover prompt matches the already-tightened packet notes.
-8. Re-read the six shared surfaces and confirm they use the same nouns for the same packet rather than mixing shorthand and explicit wording.
+8. Re-read the seven shared surfaces and confirm they use the same nouns for the same packet rather than mixing shorthand and explicit wording.
 
 ## Phase 10 anchors
 
