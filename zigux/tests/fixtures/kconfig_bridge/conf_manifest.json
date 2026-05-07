@@ -1,0 +1,51 @@
+{
+  "tool": "scripts/zigux/kconfig/conf_bridge.zig",
+  "status": "closed",
+  "mode": "bounded request-plan bridge",
+  "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
+  "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
+  "case_count": 11,
+  "cases": [
+    "olddefconfig",
+    "syncconfig",
+    "alldefconfig",
+    "allmodconfig",
+    "randconfig",
+    "yes2modconfig",
+    "mod2yesconfig",
+    "mod2noconfig",
+    "defconfig",
+    "savedefconfig",
+    "listnewconfig"
+  ],
+  "stdout_packet": [
+    "olddefconfig_expected.json",
+    "syncconfig_expected.json",
+    "alldefconfig_expected.json",
+    "allmodconfig_expected.json",
+    "randconfig_expected.json",
+    "yes2modconfig_expected.json",
+    "mod2yesconfig_expected.json",
+    "mod2noconfig_expected.json",
+    "defconfig_expected.json",
+    "savedefconfig_expected.json",
+    "listnewconfig_expected.json"
+  ],
+  "mode_arg_cases": [
+    "defconfig",
+    "savedefconfig"
+  ],
+  "allconfig_sentinel_packet": [
+    "allmodconfig_expected.json"
+  ],
+  "helper_local_anchors": [
+    "conf bridge emits syncconfig auto files",
+    "conf bridge emits alldefconfig argv and env",
+    "conf bridge emits allmodconfig argv and env",
+    "conf bridge emits randconfig tunables when present",
+    "conf bridge emits yes2modconfig argv and env",
+    "conf bridge emits defconfig mode argument before kconfig",
+    "conf bridge emits savedefconfig mode argument before kconfig",
+    "conf bridge escapes low control bytes in JSON strings"
+  ]
+}
