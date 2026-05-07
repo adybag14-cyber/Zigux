@@ -242,6 +242,7 @@ TESTS_REQUIRED_MARKERS = [
     "zigux/helpers/notifier_chain_view.zig",
     "scripts/zigux/check-phase13-devres-packet.py",
     "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
+    "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
     "scripts/zigux/validate-phase13-release.py",
     "make -C zigux phase13-validate",
     "make -C zigux phase13",
@@ -538,6 +539,23 @@ def run_self_test() -> int:
             validate(root),
             ["tests-readme:scripts/zigux/check-phase13-landlock-ruleset-packet.py"],
             "missing_tests_readme_landlock_checker_marker_failed",
+        )
+        _write(root / "zigux/tests/README.md", "\n".join(TESTS_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
+        tests_readme_path.write_text(
+            "\n".join(
+                marker
+                for marker in TESTS_REQUIRED_MARKERS
+                if marker != "zigux/tests/phase13_landlock_syscalls_reviewability.zig"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["tests-readme:zigux/tests/phase13_landlock_syscalls_reviewability.zig"],
+            "missing_tests_readme_landlock_reviewability_marker_failed",
         )
         _write(root / "zigux/tests/README.md", "\n".join(TESTS_REQUIRED_MARKERS) + "\n")
         case_count += 1
