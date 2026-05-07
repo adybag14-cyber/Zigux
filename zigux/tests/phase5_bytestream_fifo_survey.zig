@@ -361,6 +361,35 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         try std.testing.expect(std.mem.indexOf(u8, samples_root, needle) != null);
     }
 
+    const review_guide = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-sample-review-guide.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(review_guide);
+
+    const review_guide_markers = [_][]const u8{
+        "### `bytestream_fifo`",
+        "`Documentation/zigux/phase5-kfifo-sample-survey.md`",
+        "`zigux/tests/phase5_bytestream_fifo.zig`",
+        "`zigux/tests/phase5_bytestream_fifo_manifest.json`",
+        "`zigux/tests/phase5_bytestream_fifo_survey.zig`",
+        "the exact queue-order drain contract",
+        "the non-destructive `snapshotInto()` cue",
+        "the short-drain `\"hel\"` plus queued `\"lo\"` helper boundary",
+        "the `init()` -> `runAnchorReplay()` -> `exit()` ownership path",
+        "the bounded preview and rollover cues around `previewInto()`, `available()`, and `usesWrappedStorageWindow()`",
+        "procfs parity",
+        "`kfifo_from_user()` or `kfifo_to_user()` parity",
+        "locking or blocking semantics",
+        "loadable module registration",
+    };
+
+    for (review_guide_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, review_guide, needle) != null);
+    }
+
     const scripts_root = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "scripts/zigux/README.md",
