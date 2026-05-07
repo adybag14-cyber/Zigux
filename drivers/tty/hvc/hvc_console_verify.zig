@@ -130,3 +130,14 @@ test "hvc_console verify keeps cleanup prerequisite failures explicit" {
         .tty_port_reference_live = false,
     }));
 }
+
+test "hvc_console verify keeps notifier prerequisite failures explicit" {
+    var console = try hvc_console.HvcConsoleLab.init(10);
+    _ = console.instantiate(0xa1);
+
+    try std.testing.expectError(error.NotifierDispatchRequiresTtyRegistration, console.summarizeNotifierHandoff(.{
+        .tty_registration_ready = false,
+        .sysrq_dispatch_requested = true,
+        .notifier_target_present = true,
+    }));
+}
