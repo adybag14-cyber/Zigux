@@ -138,6 +138,13 @@
       "why_now": "The live repo now includes one bounded in-memory status-drain helper that mirrors the `virtinput_recv_status()` reclaim step closely enough to retire completed status sends from the lab queue model without claiming transport-backed callbacks."
     },
     {
+      "id": "phase10-virtio-input-teardown-observation-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_input.zig",
+      "why_now": "The live repo now includes one bounded teardown-observation summary that keeps identity preservation plus runtime- and capability-state cleanup explicit before any future transport-backed remove, freeze, or restore work."
+    },
+    {
       "id": "phase10-virtio-input-wrapper-ownership-note",
       "status": "starter_landed",
       "kind": "documentation",
