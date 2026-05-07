@@ -47,11 +47,17 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE2_TOOL_MANIFEST_PACKET_SELF_TEST=python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
     "PHASE2_TOOL_MANIFEST_PACKET_GATE=python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
 ]
+REQUIRED_CLOSURE_EXACT_COUNTS = {
+    marker: 1 for marker in REQUIRED_CLOSURE_MARKERS
+}
 REQUIRED_BOOTSTRAP_MARKERS = [
     "- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`",
     "- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator",
 ]
+REQUIRED_BOOTSTRAP_EXACT_COUNTS = {
+    marker: 1 for marker in REQUIRED_BOOTSTRAP_MARKERS
+}
 REQUIRED_SCRIPTS_README_MARKERS = [
     "- `check-phase2-tool-manifest-packets.py`",
     "- `check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed `fixdep`, `genksyms`, and `kconfig` packet manifests so the shared Phase 2 tool inventory stays explicit before the direct Zig replays run.",
@@ -96,6 +102,17 @@ def validate_exact_lines(text: str, expected_lines: list[str], *, prefix: str) -
         count = sum(1 for line in stripped_lines if line == expected_line)
         if count != 1:
             issues.append(f"{prefix}:{expected_line}:count={count}:expected=1")
+    return issues
+
+
+def validate_exact_substrings(
+    text: str, expected_counts: dict[str, int], *, prefix: str
+) -> list[str]:
+    issues: list[str] = []
+    for marker, expected_count in expected_counts.items():
+        count = text.count(marker)
+        if count != expected_count:
+            issues.append(f"{prefix}:{marker}:count={count}:expected={expected_count}")
     return issues
 
 
@@ -158,13 +175,30 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_CLOSURE_MARKERS:
         if marker not in closure_text:
             issues.append(f"closure_marker:{marker}")
+    issues.extend(
+        validate_exact_substrings(
+            closure_text,
+            REQUIRED_CLOSURE_EXACT_COUNTS,
+            prefix="closure_exact_marker",
+        )
+    )
 
     bootstrap_text = (root / PHASE2_BOOTSTRAP_NOTES.relative_to(ROOT)).read_text(encoding="utf-8")
     for marker in REQUIRED_BOOTSTRAP_MARKERS:
         if marker not in bootstrap_text:
             issues.append(f"bootstrap_marker:{marker}")
+    issues.extend(
+        validate_exact_substrings(
+            bootstrap_text,
+            REQUIRED_BOOTSTRAP_EXACT_COUNTS,
+            prefix="bootstrap_exact_marker",
+        )
+    )
 
     scripts_readme_text = (root / SCRIPTS_README.relative_to(ROOT)).read_text(encoding="utf-8")
+    for marker in REQUIRED_SCRIPTS_README_MARKERS:
+        if marker not in scripts_readme_text:
+            issues.append(f"scripts_readme_marker:{marker}")
     issues.extend(
         validate_exact_lines(
             scripts_readme_text,
@@ -355,6 +389,13 @@ def run_self_test() -> int:
         assert f"closure_marker:{REQUIRED_CLOSURE_MARKERS[1]}" in issues
 
         build_self_test_root(root)
+        closure_path = root / "Documentation/zigux/phase2-closure.md"
+        closure_text = closure_path.read_text(encoding="utf-8") + REQUIRED_CLOSURE_MARKERS[0] + "\n"
+        write_text(closure_path, closure_text)
+        issues = validate_root(root)
+        assert f"closure_exact_marker:{REQUIRED_CLOSURE_MARKERS[0]}:count=2:expected=1" in issues
+
+        build_self_test_root(root)
         bootstrap_path = root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
         bootstrap_text = bootstrap_path.read_text(encoding="utf-8").replace(REQUIRED_BOOTSTRAP_MARKERS[0] + "\n", "", 1)
         write_text(bootstrap_path, bootstrap_text)
@@ -362,11 +403,18 @@ def run_self_test() -> int:
         assert f"bootstrap_marker:{REQUIRED_BOOTSTRAP_MARKERS[0]}" in issues
 
         build_self_test_root(root)
+        bootstrap_path = root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
+        bootstrap_text = bootstrap_path.read_text(encoding="utf-8") + REQUIRED_BOOTSTRAP_MARKERS[0] + "\n"
+        write_text(bootstrap_path, bootstrap_text)
+        issues = validate_root(root)
+        assert f"bootstrap_exact_marker:{REQUIRED_BOOTSTRAP_MARKERS[0]}:count=2:expected=1" in issues
+
+        build_self_test_root(root)
         scripts_readme_path = root / "scripts/zigux/README.md"
         scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8").replace(REQUIRED_SCRIPTS_README_MARKERS[1] + "\n", "", 1)
         write_text(scripts_readme_path, scripts_readme_text)
         issues = validate_root(root)
-        assert f"scripts_readme_line:{REQUIRED_SCRIPTS_README_MARKERS[1]}:count=0:expected=1" in issues
+        assert f"scripts_readme_marker:{REQUIRED_SCRIPTS_README_MARKERS[1]}" in issues
 
         build_self_test_root(root)
         scripts_readme_path = root / "scripts/zigux/README.md"
@@ -404,7 +452,7 @@ def run_self_test() -> int:
         assert f"workflow_line:{REQUIRED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
 
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=21")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
