@@ -50,6 +50,22 @@ Without this matrix, the slice and survey named the right next step but did not 
 | register-device request surface | `registerDeviceCallSummary()` records the first bounded `devm_watchdog_register_device()` request surface, including descriptor readiness, timeout propagation, `watchdog_set_drvdata()` completion, parent linkage, `nowayout`, and the still-blocked live GPIO, platform-registration, and reboot-glue boundaries without claiming execution | `zig test --dep gpio_wdt -Mroot=zigux/tests/phase11_gpio_wdt.zig -Mgpio_wdt=drivers/watchdog/gpio_wdt.zig` replays the register-device request assertions in `zigux/tests/phase11_gpio_wdt.zig` through the shared watchdog packet | keep this request surface traceable while later same-family lanes decide whether teardown-facing parity or hardware-backed validation can move forward without claiming live registration | live `devm_watchdog_register_device()` execution, live GPIO descriptor ownership, reboot callbacks, and hardware-backed probe or remove behavior |
 | platform registration and live GPIO behavior | no live Zigux implementation yet; the current repo only records these as the next kernel-facing checkpoint after the landed descriptor, timeout-property, handoff, and register-device request summaries | none beyond the shared survey and manifest guards that keep the missing work explicit | land one later same-family scaffold note or replay that names descriptor acquisition, drvdata handoff, watchdog registration, teardown and failure-mode parity, and hardware-backed validation checkpoints without claiming execution | platform-driver registration, GPIO descriptor acquisition, watchdog-core registration, reboot hooks, and hardware validation coverage |
 
+## Shared Replay Surface
+
+- current shared replay wiring on `master` includes `phase11-gpio-wdt-tests` and `phase11-gpio-wdt-survey-tests`
+- exact shared commands:
+  - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+  - `make -C zigux phase11`
+- shared replay posture for this watchdog lane:
+  - `phase11-gpio-wdt-tests` and `phase11-gpio-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this gpio packet
+  - the focused shared header-boundary packet from `Documentation/zigux/phase11-uapi-header-parity-survey.md` plus `scripts/zigux/check-phase11-header-boundary-packet.py` stays explicit beside those gpio-local replays inside the same shipped Phase 11 route
+  - full-bundle green status for the wider current Phase 11 replay is intentionally tracked outside this gpio-local matrix because unrelated non-watchdog drift can reopen elsewhere on `master`
+- included gpio artifacts:
+  - `phase11-gpio-wdt-tests`
+  - `phase11-gpio-wdt-survey-tests`
+- focused survey replay command:
+  - `zig test zigux/tests/phase11_gpio_wdt_survey.zig`
+
 ## Review Rules
 
 - treat this lane as a bounded driver-starter plus review-packet lane even after the register-device request summary lands
