@@ -50,6 +50,13 @@
       "why_now": "A machine-checked survey gate keeps the roadmap anchor, landed review surfaces, and the committed parity fixture explicit without reopening tree logic."
     },
     {
+      "id": "phase7-rbtree-parity-checker",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "scripts/zigux/check-phase7-rbtree-parity.py",
+      "why_now": "The dedicated parity checker is already part of the parked Phase 7 review surface, so the manifest should record that fail-closed ownership hook instead of leaving it implicit in the surrounding docs, shared validator, and survey gate."
+    },
+    {
       "id": "phase7-rbtree-parity-fixture-layer",
       "status": "starter_landed",
       "kind": "differential_validation",
