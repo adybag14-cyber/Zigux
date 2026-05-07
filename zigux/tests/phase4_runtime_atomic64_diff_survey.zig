@@ -48,12 +48,12 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
     try std.testing.expect(manifest.roadmap_atomic64_wrapper_targets_runtime_diff);
 
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.live_gate_path);
-    try std.testing.expectEqualStrings("35689a918b8e72c9c63716f4896f6b75eb8866d2", manifest.live_gate_blob_sha);
-    try std.testing.expectEqual(@as(usize, 155), manifest.live_gate_line_count);
+    try std.testing.expectEqualStrings("d3c082339d3357d7f4ed458313966705a7a9c409", manifest.live_gate_blob_sha);
+    try std.testing.expectEqual(@as(usize, 204), manifest.live_gate_line_count);
 
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.runtime_replay_path);
-    try std.testing.expectEqualStrings("35689a918b8e72c9c63716f4896f6b75eb8866d2", manifest.runtime_replay_blob_sha);
-    try std.testing.expectEqual(@as(usize, 155), manifest.runtime_replay_line_count);
+    try std.testing.expectEqualStrings("d3c082339d3357d7f4ed458313966705a7a9c409", manifest.runtime_replay_blob_sha);
+    try std.testing.expectEqual(@as(usize, 204), manifest.runtime_replay_line_count);
 
     try std.testing.expect(manifest.phase4_build_present);
     try std.testing.expect(manifest.phase4_build_uses_atomic64_wrapper);
