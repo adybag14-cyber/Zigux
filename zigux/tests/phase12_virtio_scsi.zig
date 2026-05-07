@@ -175,6 +175,27 @@ test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery 
     try std.testing.expectEqual(@as(?u16, 5), second_rebind.first_poll_queue_index);
     try std.testing.expectEqual(@as(?u16, 5), second_rebind.last_poll_queue_index);
 
+    const second_ownership = try lab.recoveryEventBufferOwnershipSummary();
+    try std.testing.expectEqual(@as(u16, 4), second_ownership.request_queues);
+    try std.testing.expectEqual(@as(u16, 3), second_ownership.default_queues);
+    try std.testing.expectEqual(@as(u16, 1), second_ownership.poll_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), second_ownership.event_buffer_count);
+    try std.testing.expect(second_ownership.event_queue_reserved_during_freeze);
+    try std.testing.expect(second_ownership.event_buffers_stayOnEventQueue);
+    try std.testing.expect(second_ownership.request_queues_cannot_borrow_event_buffers);
+    try std.testing.expect(second_ownership.requires_restore_rearm_before_reuse);
+
+    const second_rearm = try lab.recoveryEventRearmSummary();
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), second_rearm.event_queue_index);
+    try std.testing.expectEqual(@as(u16, 4), second_rearm.request_queues);
+    try std.testing.expectEqual(@as(u16, 3), second_rearm.default_queues);
+    try std.testing.expectEqual(@as(u16, 1), second_rearm.poll_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), second_rearm.event_buffer_count);
+    try std.testing.expect(second_rearm.reuses_frozen_event_queue_index);
+    try std.testing.expect(second_rearm.requires_device_ready_before_rearm);
+    try std.testing.expect(second_rearm.rearms_event_queue_before_event_recycling);
+    try std.testing.expect(second_rearm.rearms_event_queue_before_request_queue_reuse);
+
     const second_rollback = try lab.recoveryRollbackSummary();
     try std.testing.expectEqual(@as(u16, 1), second_rollback.recovery_generation);
     try std.testing.expectEqual(@as(u16, 4), second_rollback.request_queues);
