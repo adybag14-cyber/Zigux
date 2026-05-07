@@ -122,3 +122,48 @@ test "phase12 virtio scsi syntax lab keeps recovery summaries reachable through 
     try std.testing.expect(rollback_summary.clears_live_layout_after_restore);
     try std.testing.expectEqual(@as(u16, 1), restored.recovery_generation);
 }
+
+test "phase12 virtio scsi syntax lab keeps repeated rollback and replan gates visible in smoke" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    _ = try lab.planQueueLayout(6, 2);
+    _ = try lab.freezeForTransportReset();
+
+    const first_rollback = try lab.recoveryRollbackSummary();
+    try std.testing.expectEqual(@as(u16, 0), first_rollback.recovery_generation);
+    try std.testing.expectEqual(@as(u16, 6), first_rollback.request_queues);
+    try std.testing.expectEqual(@as(u16, 4), first_rollback.default_queues);
+    try std.testing.expectEqual(@as(u16, 2), first_rollback.poll_queues);
+    try std.testing.expect(first_rollback.blocks_queue_planning_until_restore);
+    try std.testing.expect(first_rollback.blocks_request_queue_access_until_restore);
+    try std.testing.expectError(error.TransportFrozen, lab.planQueueLayout(4, 1));
+    try std.testing.expectError(error.TransportFrozen, lab.requestQueue(0));
+
+    const first_restore = try lab.restoreAfterTransportReset();
+    try std.testing.expectEqual(@as(u16, 1), first_restore.recovery_generation);
+    try std.testing.expectError(error.QueueLayoutUnavailable, lab.requestQueue(0));
+
+    const replanned = try lab.planQueueLayout(4, 1);
+    try std.testing.expectEqual(@as(u16, 3), replanned.default_queues);
+    try std.testing.expectEqual(@as(u16, 1), replanned.poll_queues);
+    try std.testing.expectEqual(@as(?u16, 5), replanned.first_poll_queue_index);
+
+    const second_freeze = try lab.freezeForTransportReset();
+    try std.testing.expectEqual(@as(u16, 1), second_freeze.recovery_generation);
+    try std.testing.expectEqual(@as(u16, 4), second_freeze.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 1), second_freeze.remembered_poll_queues);
+
+    const second_rollback = try lab.recoveryRollbackSummary();
+    try std.testing.expectEqual(@as(u16, 1), second_rollback.recovery_generation);
+    try std.testing.expectEqual(@as(u16, 4), second_rollback.request_queues);
+    try std.testing.expectEqual(@as(u16, 3), second_rollback.default_queues);
+    try std.testing.expectEqual(@as(u16, 1), second_rollback.poll_queues);
+    try std.testing.expectEqual(@as(u16, 6), second_rollback.total_queues);
+    try std.testing.expect(second_rollback.keeps_frozen_layout_for_restore);
+    try std.testing.expect(second_rollback.clears_live_layout_after_restore);
+    try std.testing.expect(second_rollback.requires_replan_before_queue_reuse);
+    try std.testing.expectError(error.TransportFrozen, lab.requestQueue(0));
+
+    const second_restore = try lab.restoreAfterTransportReset();
+    try std.testing.expectEqual(@as(u16, 2), second_restore.recovery_generation);
+    try std.testing.expectError(error.QueueLayoutUnavailable, lab.requestQueue(0));
+}
