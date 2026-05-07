@@ -86,6 +86,11 @@ const Fixture = struct {
         postorder_count: usize,
         erase_init_node_empty: bool,
         cleared_node_empty: bool,
+        find_found_key: i32,
+        find_missing: bool,
+        find_first_serial: usize,
+        next_match_serials: []const usize,
+        next_match_terminal_null: bool,
     },
     argv_split: struct {
         argc: usize,
@@ -596,9 +601,48 @@ test "phase 1 helper ports match committed parity fixture" {
         .{ .key = 1 },
         .{ .key = 3 },
     };
+    const SearchEntry = struct {
+        key: i32,
+        serial: usize,
+        node: rbtree.Node = rbtree.Node.init(),
+    };
+
+    const searchLess = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const SearchEntry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const SearchEntry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const searchCmp = struct {
+        fn compare(key: *const anyopaque, node: *const rbtree.Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const SearchEntry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var search_entries = [_]SearchEntry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 5, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 20, .serial = 3 },
+        .{ .key = 10, .serial = 4 },
+        .{ .key = 15, .serial = 5 },
+    };
     var postorder_root = rbtree.Root.init();
+    var search_root = rbtree.Root.init();
     for (&postorder_entries) |*entry| {
         rbtree.add(&entry.node, &postorder_root, less);
+    }
+    for (&search_entries) |*entry| {
+        rbtree.add(&entry.node, &search_root, searchLess);
     }
     var postorder_count: usize = 0;
     current = rbtree.firstPostorder(&postorder_root);
@@ -608,6 +652,34 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.rbtree.postorder_count, postorder_count);
     rbtree.clearNode(&replacement.node);
     try std.testing.expectEqual(fixture.rbtree.cleared_node_empty, rbtree.emptyNode(&replacement.node));
+
+    const find_wanted = @as(i32, 15);
+    const found = rbtree.find(&find_wanted, &search_root, searchCmp) orelse return error.TestUnexpectedResult;
+    const found_entry: *const SearchEntry = @fieldParentPtr("node", found);
+    try std.testing.expectEqual(fixture.rbtree.find_found_key, found_entry.key);
+
+    const missing = @as(i32, 17);
+    try std.testing.expectEqual(fixture.rbtree.find_missing, rbtree.find(&missing, &search_root, searchCmp) == null);
+
+    const duplicate_wanted = @as(i32, 10);
+    const first_match = rbtree.findFirst(&duplicate_wanted, &search_root, searchCmp) orelse return error.TestUnexpectedResult;
+    const first_match_entry: *const SearchEntry = @fieldParentPtr("node", first_match);
+    try std.testing.expectEqual(fixture.rbtree.find_first_serial, first_match_entry.serial);
+
+    var next_match_serials: [3]usize = undefined;
+    var next_match_count: usize = 0;
+    var match_cursor = first_match;
+    while (true) {
+        const entry: *const SearchEntry = @fieldParentPtr("node", match_cursor);
+        next_match_serials[next_match_count] = entry.serial;
+        next_match_count += 1;
+        match_cursor = rbtree.nextMatch(&duplicate_wanted, match_cursor, searchCmp) orelse break;
+    }
+    try std.testing.expectEqualSlices(usize, fixture.rbtree.next_match_serials, next_match_serials[0..next_match_count]);
+    try std.testing.expectEqual(
+        fixture.rbtree.next_match_terminal_null,
+        rbtree.nextMatch(&duplicate_wanted, match_cursor, searchCmp) == null,
+    );
 }
 
 test "phase 1 string replaceChar stops at embedded NUL" {
