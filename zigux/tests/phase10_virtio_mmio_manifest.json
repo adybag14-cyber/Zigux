@@ -39,7 +39,8 @@
     "preexisting_virtio_input_test_present": true,
     "preexisting_virtio_input_survey_present": true,
     "preexisting_virtio_mmio_zig_present": true,
-    "preexisting_virtio_mmio_test_present": true
+    "preexisting_virtio_mmio_test_present": true,
+    "preexisting_virtio_mmio_verify_present": true
   },
   "gaps": [
     {
@@ -47,7 +48,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_build.zig",
-      "why_now": "The shared Phase 10 build step remains the narrowest honest place to keep the virtio_mmio helper, its dedicated tests, and the survey packet reviewable together."
+      "why_now": "The shared Phase 10 build step remains the narrowest honest place to keep the virtio_mmio helper, its dedicated tests, its dedicated verifier replay, and the survey packet reviewable together."
     },
     {
       "id": "phase10-virtio-core-lab-starter",
@@ -89,7 +90,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-mmio-survey.md",
-      "why_now": "The lane needs a Phase 10 note that records the current MMIO transport scope, the live helper-backed surface, the roadmap-allowed destination family, and the reasons broader transport work is still blocked."
+      "why_now": "The lane needs a Phase 10 note that records the current MMIO transport scope, the live helper-backed surface, the dedicated MMIO verifier replay, the roadmap-allowed destination family, and the reasons broader transport work is still blocked."
     },
     {
       "id": "phase10-mmio-register-window-helper",
@@ -110,7 +111,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-mmio-slice.md",
-      "why_now": "The dedicated MMIO slice note records the landed helper surface and its remaining non-goals so the lane stays reviewable now that the helper is live."
+      "why_now": "The dedicated MMIO slice note records the landed helper surface, the dedicated MMIO verifier replay, and its remaining non-goals so the lane stays reviewable now that the helper is live."
     },
     {
       "id": "phase10-mmio-feature-word-selector-helper",
