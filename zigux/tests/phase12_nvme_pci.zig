@@ -173,6 +173,16 @@ test "phase12 nvme pci replays stale queue reservations after reset" {
     _ = lab.beginReset();
     _ = lab.completeReset();
 
+    try std.testing.expectError(error.AdminQueueReplayRequired, lab.replayReservedIoQueues(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 6));
+    _ = try lab.planAdminQueue(32, 64, false);
+
     const replay = try lab.replayReservedIoQueues(.{
         .cached_prp_metadata_generation = 0,
         .had_prp_metadata_plan = false,
