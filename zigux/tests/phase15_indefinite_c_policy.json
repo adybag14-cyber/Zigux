@@ -15,7 +15,9 @@
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-evidence-archives/",
-    "Documentation/zigux/README.md"
+    "Documentation/zigux/README.md",
+    "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
   ],
   "indefinite_c_requirements": [
     {
@@ -115,7 +117,7 @@
       "status": "starter_landed",
       "kind": "followup",
       "zigux_destination": "Documentation/zigux/phase15-evidence-archives/",
-      "why_now": "The policy note now reuses the review-process packet fields, retained discussion state, reopen-trigger catalog, and per-anchor archive vocabulary so stay-in-C records cannot drift silently."
+      "why_now": "The policy note now reuses the review-process packet fields, retained discussion state, reopen-trigger catalog, per-anchor archive vocabulary, blocker-evidence replay, and lane-owner-alignment replay so stay-in-C records cannot drift silently."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
