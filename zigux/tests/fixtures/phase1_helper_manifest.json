@@ -49,6 +49,7 @@
         "partial_xor_nbits",
         "partial_xor_masked_values"
       ],
+      "summary": "Committed C-backed parity coverage includes contiguous-range rendering, the empty-bitmap buffer-preservation contract, truncation behavior that preserves the trailing terminator slot, and the dedicated terminator-only plus zero-length caller-view checks.",
       "scnprintf_truncation_anchor": "test \"bitmap scnprintf reports full length while truncating the buffer\"",
       "copy_alias_anchor": "test \"bitmap copy aliases preserve tail clearing and extension semantics\"",
       "copy_raw_alias_anchor": "test \"bitmap copy alias preserves raw source words without tail clearing\"",
