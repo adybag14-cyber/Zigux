@@ -688,6 +688,36 @@ test "bitmap copy aliases preserve tail clearing and extension semantics" {
     try std.testing.expectEqual(@as(Word, 0), extended[2]);
 }
 
+test "bitmap copy and extend handles zero and aligned counts" {
+    const aligned_count = bits_per_long;
+    const size = bits_per_long * 3;
+    const src = [_]Word{ 0x0123_4567_89ab_cdef, ~@as(Word, 0), ~@as(Word, 0) };
+
+    var zero_extended = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
+    copyAndExtend(&zero_extended, &[_]Word{}, 0, size);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0, 0 }, &zero_extended);
+
+    var alias_zero_extended = [_]Word{ 1, 2, 3 };
+    bitmap_copy_and_extend(&alias_zero_extended, &[_]Word{}, 0, size);
+    try std.testing.expectEqualSlices(Word, &zero_extended, &alias_zero_extended);
+
+    var aligned_cleared = [_]Word{0};
+    copyClearTail(&aligned_cleared, src[0..1], aligned_count);
+    try std.testing.expectEqual(src[0], aligned_cleared[0]);
+
+    var alias_aligned_cleared = [_]Word{0};
+    bitmap_copy_clear_tail(&alias_aligned_cleared, src[0..1], aligned_count);
+    try std.testing.expectEqualSlices(Word, &aligned_cleared, &alias_aligned_cleared);
+
+    var aligned_extended = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
+    copyAndExtend(&aligned_extended, src[0..1], aligned_count, size);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ src[0], 0, 0 }, &aligned_extended);
+
+    var alias_aligned_extended = [_]Word{ 0, 1, 2 };
+    bitmap_copy_and_extend(&alias_aligned_extended, src[0..1], aligned_count, size);
+    try std.testing.expectEqualSlices(Word, &aligned_extended, &alias_aligned_extended);
+}
+
 test "bitmap zero-bit helpers stay explicit no-ops" {
     var dst = [_]Word{0x55aa55aa55aa55aa};
     const src1 = [_]Word{0xffff0000ffff0000};
