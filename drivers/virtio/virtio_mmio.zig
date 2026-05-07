@@ -118,6 +118,17 @@ pub const ProbePreflightSummary = struct {
     ready_for_probe_handoff: bool,
 };
 
+pub const FeatureNegotiationSummary = struct {
+    anchor: []const u8,
+    selected_device_feature_word: u32,
+    device_feature_word: u32,
+    driver_features: u32,
+    feature_word_selector_in_range: bool,
+    device_feature_window_ready: bool,
+    driver_feature_register_ready: bool,
+    ready_for_feature_handoff: bool,
+};
+
 pub const SelectedQueueReadinessSummary = struct {
     anchor: []const u8,
     selected_queue: u16,
@@ -338,6 +349,30 @@ pub const VirtioMmioLab = struct {
                 (!identity.requires_legacy_guest_page_size or legacy_guest_page_size_register_ready) and
                 bounded_queue_register_window_ready and
                 interrupt_ack_ready,
+        };
+    }
+
+    pub fn featureNegotiationSummary(self: *const Self) FeatureNegotiationSummary {
+        const feature_word_selector_in_range = self.selected_device_feature_word < feature_word_capacity;
+        const device_feature_window_ready = @intFromEnum(Register.device_features) == 0x010 and
+            @intFromEnum(Register.device_features_sel) == 0x014;
+        const driver_feature_register_ready = @intFromEnum(Register.driver_features) == 0x020;
+        const device_feature_word = if (feature_word_selector_in_range)
+            self.device_feature_words[@intCast(self.selected_device_feature_word)]
+        else
+            0;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .selected_device_feature_word = self.selected_device_feature_word,
+            .device_feature_word = device_feature_word,
+            .driver_features = self.driver_features,
+            .feature_word_selector_in_range = feature_word_selector_in_range,
+            .device_feature_window_ready = device_feature_window_ready,
+            .driver_feature_register_ready = driver_feature_register_ready,
+            .ready_for_feature_handoff = feature_word_selector_in_range and
+                device_feature_window_ready and
+                driver_feature_register_ready,
         };
     }
 
@@ -605,4 +640,35 @@ test "phase10 virtio mmio summarizes selected-queue readiness before queue hando
     try std.testing.expectEqual(@as(u16, 0), summary.queue_num);
     try std.testing.expect(!summary.queue_size_programmed);
     try std.testing.expect(!summary.queue_ready_for_handoff);
+}
+
+test "phase10 virtio mmio summarizes bounded feature negotiation before lifecycle work" {
+    var device = try VirtioMmioLab.init(60, &[_]u16{ 8, 16 });
+
+    try device.stageDeviceFeatureWord(0, 0xa5a5_0001);
+    try device.stageDeviceFeatureWord(1, 0x5a5a_0002);
+
+    var summary = device.featureNegotiationSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, 0), summary.selected_device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0xa5a5_0001), summary.device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0), summary.driver_features);
+    try std.testing.expect(summary.feature_word_selector_in_range);
+    try std.testing.expect(summary.device_feature_window_ready);
+    try std.testing.expect(summary.driver_feature_register_ready);
+    try std.testing.expect(summary.ready_for_feature_handoff);
+
+    _ = try device.writeRegister(.device_features_sel, 1);
+    _ = try device.writeRegister(.driver_features, 0x55aa_33cc);
+    summary = device.featureNegotiationSummary();
+    try std.testing.expectEqual(@as(u32, 1), summary.selected_device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0x5a5a_0002), summary.device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0x55aa_33cc), summary.driver_features);
+    try std.testing.expect(summary.ready_for_feature_handoff);
+
+    device.selected_device_feature_word = feature_word_capacity;
+    summary = device.featureNegotiationSummary();
+    try std.testing.expect(!summary.feature_word_selector_in_range);
+    try std.testing.expectEqual(@as(u32, 0), summary.device_feature_word);
+    try std.testing.expect(!summary.ready_for_feature_handoff);
 }
