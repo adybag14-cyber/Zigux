@@ -23,8 +23,8 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - current export shim starter:
   - `PHASE3_EXPORT_SCOPE=shim-only starter nested inside the ABI substrate slice`
   - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
-  - `PHASE3_EXPORT_SHIM_BLOB_SHA=61513b232951d2f0fa5167fc7c90fa982f5949d1`
-  - current export-shim relay surface now keeps the named boundary-header relay and status packet explicit through `versionedHeader`, `canonicalHeader`, `boundaryHeader`, `compatibleHeader`, `header`, `headerCompatibility`, `canonicalizeHeader`, `isCurrentAbiVersion`, `isCompatibleSize`, `isCanonicalSize`, `isCompatibleHeader`, `isCanonicalHeader`, `ok`, `errno`, `normalize`, and `isOk`
+  - `PHASE3_EXPORT_SHIM_BLOB_SHA=70d52fe7c850d44457bd83bff8c871845bb0f485`
+  - current export-shim relay surface now keeps the named boundary-header relay and status packet explicit through `Header`, `abi_version`, `header_size`, `HeaderCompatibility`, `versionedHeader`, `canonicalHeader`, `boundaryHeader`, `compatibleHeader`, `header`, `headerCompatibility`, `canonicalizeHeader`, `isCurrentAbiVersion`, `isCompatibleSize`, `isCanonicalSize`, `isCompatibleHeader`, `isCanonicalHeader`, `ok`, `errno`, `normalize`, and `isOk`
 - current UAPI starter:
   - `PHASE3_UAPI_SCOPE=version-and-boundary-header starter nested inside the ABI substrate slice`
   - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
