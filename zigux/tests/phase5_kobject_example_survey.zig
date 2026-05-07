@@ -375,6 +375,35 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         try std.testing.expect(std.mem.indexOf(u8, tests_root, needle) != null);
     }
 
+    const review_guide = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-sample-review-guide.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(review_guide);
+
+    const review_guide_markers = [_][]const u8{
+        "### `kobject_example`",
+        "`Documentation/zigux/phase5-kobject-sample-survey.md`",
+        "`zigux/tests/phase5_kobject_example.zig`",
+        "`zigux/tests/phase5_kobject_example_manifest.json`",
+        "`zigux/tests/phase5_kobject_example_survey.zig`",
+        "the initialized-but-not-registered zero-active-attributes boundary",
+        "`ownershipSummary()` plus sample-owned `runOwnershipReplay()`",
+        "the unnamed attribute-group shape",
+        "shared `baz` or `bar` dispatch",
+        "the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split",
+        "sysfs file creation parity",
+        "`kernel_kobj` integration",
+        "uevents",
+        "loadable module registration",
+    };
+
+    for (review_guide_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, review_guide, needle) != null);
+    }
+
     const build_zig = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase5_build.zig",
