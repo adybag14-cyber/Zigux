@@ -70,8 +70,7 @@ PHASE9_SCRIPTS_README_OWNER_MAP_MARKER = (
     "that scripts-root summary stays split between the loader lane and the four pilot-family packets."
 )
 
-REQUIRED_DOCS_README_MARKERS = [
-    "Phase 9 notes",
+PHASE9_DOCS_README_SHARED_SUMMARY_MARKER = (
     "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, "
     "`zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, "
     "`zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, "
@@ -80,11 +79,17 @@ REQUIRED_DOCS_README_MARKERS = [
     "and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped "
     "build-only surface checker, loader facade, contract, shared build, and workflow-backed Linux-style "
     "`make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed "
-    "loader-gap or dedicated-validator surfaces on `master`.",
+    "loader-gap or dedicated-validator surfaces on `master`."
+)
+
+REQUIRED_DOCS_README_MARKERS = [
+    "Phase 9 notes",
+    PHASE9_DOCS_README_SHARED_SUMMARY_MARKER,
     PHASE9_NON_OWNER_BOUNDARY_MARKER,
 ]
 
 REQUIRED_DOCS_README_EXACT_COUNTS = {
+    PHASE9_DOCS_README_SHARED_SUMMARY_MARKER: 1,
     PHASE9_NON_OWNER_BOUNDARY_MARKER: 1,
 }
 
@@ -461,6 +466,19 @@ def run_self_test() -> int:
         expect_failure(root, f"docs_readme:{PHASE9_NON_OWNER_BOUNDARY_MARKER}", "missing_docs_non_owner_boundary_marker")
 
         write_fixture_tree(root)
+        docs_readme_path = root / DOCS_README_PATH
+        docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            docs_readme + PHASE9_DOCS_README_SHARED_SUMMARY_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"docs_readme_exact_count:{PHASE9_DOCS_README_SHARED_SUMMARY_MARKER}:expected=1:actual=2",
+            "duplicate_docs_root_shared_phase9_summary",
+        )
+
+        write_fixture_tree(root)
         scripts_readme_path = root / SCRIPTS_README_PATH
         scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
@@ -789,7 +807,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=30")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
