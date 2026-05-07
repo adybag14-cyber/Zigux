@@ -39,6 +39,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `zigux/tests/phase11_dw_wdt_manifest.json`
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
 - `zigux/tests/phase11_dw_wdt_survey.zig`
+- `zigux/tests/phase11_hvc_console.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_manifest.json`
 - `zigux/tests/phase11_hvc_console_survey.zig`
