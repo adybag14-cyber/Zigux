@@ -112,6 +112,17 @@ fn expectPhase4GateEvidenceBlobPin(
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(phase4_gate_evidence_source, marker));
 }
 
+fn expectManifestBlobShaMarker(
+    manifest_source: []const u8,
+    label: []const u8,
+    source: []const u8,
+) !void {
+    const blob_sha = gitBlobShaHex(source);
+    var marker_buf: [96]u8 = undefined;
+    const marker = try std.fmt.bufPrint(&marker_buf, "\"{s}\": \"{s}\"", .{ label, &blob_sha });
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(manifest_source, marker));
+}
+
 test "atomic64 diff canonical wrapper keeps the shipped runtime gate wired in" {
     _ = runtime_atomic64_diff;
 }
@@ -197,6 +208,29 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     try expectMarker(phase4_runtime_atomic64_manifest_source, "Phase 4 reviewer packet");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "current wrapper-first rollback surface");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "shared runtime replay body");
+}
+
+test "atomic64 diff wrapper keeps manifest blob pins current for the runtime and build handoff" {
+    try expectManifestBlobShaMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "live_gate_blob_sha",
+        runtime_atomic64_diff_source,
+    );
+    try expectManifestBlobShaMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "runtime_replay_blob_sha",
+        runtime_atomic64_diff_source,
+    );
+    try expectManifestBlobShaMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "phase4_build_blob_sha",
+        phase4_build_source,
+    );
+    try expectManifestBlobShaMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "phase9_build_blob_sha",
+        phase9_build_source,
+    );
 }
 
 test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing explicit" {
