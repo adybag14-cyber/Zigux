@@ -11,6 +11,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 PHASE11_CONTRACT_PATH = "Documentation/zigux/phase11-shared-replay-contract.md"
+DRIVER_LANE_SEQUENCING_PATH = "Documentation/zigux/phase11-driver-lane-sequencing.md"
 BCM2835_WDT_MATRIX_PATH = "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md"
 GPIO_WDT_MATRIX_PATH = "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md"
 DW_WDT_MATRIX_PATH = "Documentation/zigux/phase11-dw-wdt-validation-matrix.md"
@@ -48,6 +49,11 @@ REQUIRED_CONTRACT_MARKERS = [
     "there is no dedicated shared `validate-phase11.py` on `master`",
     "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`",
     "there is no broader multi-checker Phase 11 validator stack on `master`",
+]
+REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS = [
+    "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+    "`make -C zigux phase11-hvc-survey`",
+    "the dedicated HVC survey checker or its `make -C zigux phase11-hvc-survey` replay path",
 ]
 REQUIRED_BCM2835_WDT_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
@@ -131,10 +137,11 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 32
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 34
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
+    (DRIVER_LANE_SEQUENCING_PATH, REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS, "driver_lane_sequencing"),
     (BCM2835_WDT_MATRIX_PATH, REQUIRED_BCM2835_WDT_MATRIX_MARKERS, "bcm2835_wdt_matrix"),
     (GPIO_WDT_MATRIX_PATH, REQUIRED_GPIO_WDT_MATRIX_MARKERS, "gpio_wdt_matrix"),
     (DW_WDT_MATRIX_PATH, REQUIRED_DW_WDT_MATRIX_MARKERS, "dw_wdt_matrix"),
@@ -155,6 +162,8 @@ SELF_TEST_CASES = [
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[14], REQUIRED_CONTRACT_MARKERS[14]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[15], REQUIRED_CONTRACT_MARKERS[15]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[20], REQUIRED_CONTRACT_MARKERS[20]),
+    (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[0], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[0]),
+    (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2]),
     (DOCS_README_PATH, "docs_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_DOCS_README_MARKERS[2]),
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
     (TESTS_README_PATH, "tests_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_TESTS_README_MARKERS[1]),
@@ -182,6 +191,7 @@ SELF_TEST_CASES = [
 
 FIXTURE_CONTENT = {
     PHASE11_CONTRACT_PATH: "\n".join(REQUIRED_CONTRACT_MARKERS) + "\n",
+    DRIVER_LANE_SEQUENCING_PATH: "\n".join(REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS) + "\n",
     BCM2835_WDT_MATRIX_PATH: "\n".join(REQUIRED_BCM2835_WDT_MATRIX_MARKERS) + "\n",
     GPIO_WDT_MATRIX_PATH: "\n".join(REQUIRED_GPIO_WDT_MATRIX_MARKERS) + "\n",
     DW_WDT_MATRIX_PATH: "\n".join(REQUIRED_DW_WDT_MATRIX_MARKERS) + "\n",
