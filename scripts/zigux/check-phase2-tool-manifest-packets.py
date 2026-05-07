@@ -12,20 +12,20 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 
+EXPECTED_MANIFEST_PHASE = "Phase 2"
+EXPECTED_MANIFEST_STATUS = "closed"
 EXPECTED_PACKET_FIELDS = {
     "fixdep_packet": "zigux/tests/fixtures/fixdep/manifest.json",
     "genksyms_bridge_packet": "zigux/tests/fixtures/genksyms_bridge/manifest.json",
     "kconfig_conf_bridge_packet": "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
     "kconfig_confdata_bridge_packet": "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
 }
-
 EXPECTED_PACKET_TOOL_FIELDS = {
     "fixdep_packet": "scripts/zigux/fixdep.zig",
     "genksyms_bridge_packet": "scripts/zigux/genksyms.zig",
     "kconfig_conf_bridge_packet": "scripts/zigux/kconfig/conf_bridge.zig",
     "kconfig_confdata_bridge_packet": "scripts/zigux/kconfig/confdata_bridge.zig",
 }
-
 EXPECTED_TOOLS = [
     "scripts/zigux/fixdep.zig",
     "scripts/zigux/genksyms.zig",
@@ -47,6 +47,8 @@ def load_json_object(path: Path, *, label: str) -> dict[str, object]:
 
 def required_files_for(root: Path) -> list[Path]:
     files = [root / PHASE2_TOOL_MANIFEST.relative_to(ROOT)]
+    for rel_path in EXPECTED_TOOLS:
+        files.append(root / rel_path)
     for rel_path in EXPECTED_PACKET_FIELDS.values():
         files.append(root / rel_path)
     return files
@@ -61,6 +63,14 @@ def validate_root(root: Path) -> list[str]:
     issues: list[str] = []
     seen_paths: set[str] = set()
 
+    if manifest.get("phase") != EXPECTED_MANIFEST_PHASE:
+        issues.append(
+            f"manifest_phase:value={manifest.get('phase')!r}:expected={EXPECTED_MANIFEST_PHASE!r}"
+        )
+    if manifest.get("status") != EXPECTED_MANIFEST_STATUS:
+        issues.append(
+            f"manifest_status:value={manifest.get('status')!r}:expected={EXPECTED_MANIFEST_STATUS!r}"
+        )
     if manifest.get("tool_count") != EXPECTED_TOOL_COUNT:
         issues.append(
             f"manifest_tool_count:value={manifest.get('tool_count')!r}:expected={EXPECTED_TOOL_COUNT}"
@@ -115,13 +125,15 @@ def build_self_test_root(root: Path) -> None:
     write_json(
         root / "zigux/tests/fixtures/phase2_tool_manifest.json",
         {
-            "phase": "Phase 2",
-            "status": "closed",
+            "phase": EXPECTED_MANIFEST_PHASE,
+            "status": EXPECTED_MANIFEST_STATUS,
             "tool_count": EXPECTED_TOOL_COUNT,
             "tools": EXPECTED_TOOLS,
             **EXPECTED_PACKET_FIELDS,
         },
     )
+    for rel_path in EXPECTED_TOOLS:
+        write_text(root / rel_path, "// self-test stub\n")
     write_json(
         root / EXPECTED_PACKET_FIELDS["fixdep_packet"],
         {
@@ -166,6 +178,20 @@ def run_self_test() -> int:
         write_json(manifest_path, manifest)
         issues = validate_root(root)
         assert "manifest_field:fixdep_packet:value=None:expected='zigux/tests/fixtures/fixdep/manifest.json'" in issues
+
+        build_self_test_root(root)
+        manifest = load_json_object(manifest_path, label="phase2_tool_manifest")
+        manifest["phase"] = "Phase 3"
+        write_json(manifest_path, manifest)
+        issues = validate_root(root)
+        assert "manifest_phase:value='Phase 3':expected='Phase 2'" in issues
+
+        build_self_test_root(root)
+        manifest = load_json_object(manifest_path, label="phase2_tool_manifest")
+        manifest["status"] = "open"
+        write_json(manifest_path, manifest)
+        issues = validate_root(root)
+        assert "manifest_status:value='open':expected='closed'" in issues
 
         build_self_test_root(root)
         manifest = load_json_object(manifest_path, label="phase2_tool_manifest")
@@ -230,8 +256,14 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "missing_file:zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json" in issues
 
+        build_self_test_root(root)
+        missing_path = root / "scripts/zigux/genksyms_crc.zig"
+        missing_path.unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/genksyms_crc.zig" in issues
+
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=9")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
@@ -256,6 +288,7 @@ def main() -> int:
 
     print("PHASE2_TOOL_MANIFEST_PACKETS=pass")
     print(f"PHASE2_TOOL_MANIFEST_PACKET_FIELD_COUNT={len(EXPECTED_PACKET_FIELDS)}")
+    print(f"PHASE2_TOOL_MANIFEST_TOOL_COUNT={EXPECTED_TOOL_COUNT}")
     return 0
 
 
