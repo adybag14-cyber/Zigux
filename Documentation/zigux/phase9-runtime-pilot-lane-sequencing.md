@@ -84,6 +84,14 @@ Own:
 - `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
 - the `phase9-runtime-kretprobe-tests` step in `zigux/tests/phase9_build.zig`
 
+## Current pilot-local proof edges
+
+Keep these newer proof surfaces inside their owning pilot family even when they call shared loader helpers:
+
+- `zigux/tests/runtime_bitmap_survey.zig` now owns the fail-closed check that the bitmap survey packet still names the shared `phase9-runtime-bitmap-module-tests`, `phase9-runtime-bitmap-diff-tests`, `phase9-runtime-bitmap-loader-tests`, and `phase9-runtime-bitmap-survey-tests` markers in `zigux/tests/phase9_build.zig`; that guard belongs to the bitmap survey packet together with `samples/zigux/runtime_bitmap_top_bit_contract.zig`, not to the shared loader lane
+- `samples/zigux/runtime_trace_events_loader.zig` now owns the selftest-ready nested-registration drain replay plus the initialized-stage failed-exit recovery replay; those checks prove when the trace-events pilot may prepare a shared request, but they do not change shared `runtime_loader` ownership
+- `Documentation/zigux/phase9-runtime-kretprobe-survey.md`, `Documentation/zigux/phase9-runtime-kretprobe-module-slice.md`, `zigux/tests/runtime_kretprobe_manifest.json`, and `zigux/tests/runtime_kretprobe_survey.zig` keep the blocked `starter_landed_without_loadable_runtime_substrate` state in the kretprobe family; do not treat that blocked-state wording as a request to widen the shared loader lane unless the shared substrate packet itself changes
+
 ## Older boundaries that stay out of Phase 9 ownership
 
 Keep these boundaries explicit so Phase 9 pilot work does not drift sideways:
@@ -124,8 +132,9 @@ This keeps later closure-note work small while preserving the explicit split bet
 
 1. shared loader lane: first harden `scripts/zigux/check-phase9-build-only-surface.py` so checklist-side Phase 9 reminder work fails closed unless `Documentation/zigux/review-checklist.md` still points back to this sequencing note and the shipped checker self-test hook, then reopen broader request-contract, allocator/init-flow, or build-only reviewability work only if more shared drift remains
 2. shared reminder refresh: only if one of the docs-root, scripts-root, tests-root, samples-root, or checklist surfaces drifts again
-3. bitmap lane: after that, only if the goal is to refine the already-landed top-bit or bitmap-specific replay packet
-4. atomic64, trace-events, or kretprobe lanes: only when the change stays inside that family’s sample, loader, module, diff, or survey evidence
+3. bitmap lane: only if the goal is to refine the already-landed top-bit companion or the survey-local `phase9_build.zig` marker alignment inside `zigux/tests/runtime_bitmap_survey.zig`
+4. trace-events lane: only if the goal is to refine the trace-events-local registration-drain or failed-exit recovery proof inside `samples/zigux/runtime_trace_events_loader.zig`
+5. atomic64 or kretprobe lanes: only when the change stays inside that family’s sample, loader, module, diff, survey, or blocked-state evidence packet
 
 ## Anti-overlap rule
 
