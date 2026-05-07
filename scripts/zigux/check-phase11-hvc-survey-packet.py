@@ -30,6 +30,10 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`zigux/Makefile`",
     "`.github/workflows/zigux-bootstrap.yml`",
+    "`drivers/tty/hvc/hvc_console.zig`",
+    "direct-port driver starter",
+    "hardware validation matrix",
+    "teardown and failure-mode parity",
 ]
 
 REQUIRED_TEARDOWN_NOTE_MARKERS = [
@@ -54,6 +58,16 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "`make -C zigux phase11-hvc-survey`",
 ]
 
+REQUIRED_MANIFEST_MARKERS = [
+    '"lane_key": "P11-L16"',
+    '"id": "phase11-hvc-console-driver-starter"',
+    "direct-port-or-dual-impl driver-template requirement",
+    '"id": "phase11-hvc-console-validation-matrix"',
+    "hardware validation matrix requirement",
+    '"id": "phase11-hvc-console-tty-and-teardown-parity"',
+    "teardown and failure-mode parity requirement",
+]
+
 REQUIRED_BUILD_MARKERS = [
     '.name = "phase11-hvc-console-survey-tests"',
     'const hvc_console_survey_step = b.step("hvc-console-survey", "Run the dedicated Phase 11 hvc_console archival survey");',
@@ -72,7 +86,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 15
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -108,6 +122,7 @@ def validate(root: Path) -> list[str]:
     survey_note = read_text(root, SURVEY_NOTE_PATH)
     teardown_note = read_text(root, TEARDOWN_NOTE_PATH)
     validation_matrix = read_text(root, VALIDATION_MATRIX_PATH)
+    manifest = read_text(root, MANIFEST_PATH)
     build_file = read_text(root, BUILD_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
@@ -121,6 +136,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_VALIDATION_MATRIX_MARKERS:
         if marker not in validation_matrix:
             failures.append(f"validation_matrix:{marker}")
+    for marker in REQUIRED_MANIFEST_MARKERS:
+        if marker not in manifest:
+            failures.append(f"manifest:{marker}")
     for marker in REQUIRED_BUILD_MARKERS:
         if marker not in build_file:
             failures.append(f"build:{marker}")
@@ -149,6 +167,7 @@ The live archival packet now belongs to lane `P11-L16`.
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, and remove ownership split explicit
 - `scripts/zigux/check-phase11-hvc-survey-packet.py` keeps the dedicated archival survey note, validation matrix, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around the same delivery route
 - `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` keep those HVC review surfaces coupled to the wider Phase 11 replay route
+- the bounded archival checkpoint keeps `drivers/tty/hvc/hvc_console.zig` framed as a direct-port driver starter with a hardware validation matrix and teardown and failure-mode parity kept host-free
 """,
     )
     write_text(
@@ -181,16 +200,16 @@ The live archival packet now belongs to lane `P11-L16`.
     )
     write_text(
         root / VERIFY_REPLAY_PATH,
-        """const std = @import(\"std\");
-test \"synthetic hvc verify replay\" {
+        """const std = @import("std");
+test "synthetic hvc verify replay" {
     try std.testing.expect(true);
 }
 """,
     )
     write_text(
         root / CLEANUP_REPLAY_PATH,
-        """const std = @import(\"std\");
-test \"synthetic hvc cleanup replay\" {
+        """const std = @import("std");
+test "synthetic hvc cleanup replay" {
     try std.testing.expect(true);
 }
 """,
@@ -198,19 +217,31 @@ test \"synthetic hvc cleanup replay\" {
     write_text(
         root / MANIFEST_PATH,
         """{
-  \"phase\": \"phase11\",
-  \"lane\": \"hvc_console\",
-  \"kind\": \"archival-checkpoint\"
+  "lane_key": "P11-L16",
+  "gaps": [
+    {
+      "id": "phase11-hvc-console-driver-starter",
+      "why_now": "The bounded starter now satisfies the roadmap's direct-port-or-dual-impl driver-template requirement in reviewable form."
+    },
+    {
+      "id": "phase11-hvc-console-validation-matrix",
+      "why_now": "The first kernel-integration validation matrix now satisfies the roadmap's hardware validation matrix requirement without widening into host-backed I/O."
+    },
+    {
+      "id": "phase11-hvc-console-tty-and-teardown-parity",
+      "why_now": "The tiny handoff summaries keep the roadmap's teardown and failure-mode parity requirement host-free and reviewable."
+    }
+  ]
 }
 """,
     )
     write_text(
         root / BUILD_PATH,
         """const phase11_hvc_console_survey_tests = b.addTest(.{
-    .name = \"phase11-hvc-console-survey-tests\",
+    .name = "phase11-hvc-console-survey-tests",
 });
 
-const hvc_console_survey_step = b.step(\"hvc-console-survey\", \"Run the dedicated Phase 11 hvc_console archival survey\");
+const hvc_console_survey_step = b.step("hvc-console-survey", "Run the dedicated Phase 11 hvc_console archival survey");
 hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);
 """,
     )
@@ -238,7 +269,7 @@ jobs:
     write_text(
         root / SCRIPT_PATH,
         """#!/usr/bin/env python3
-print(\"synthetic survey packet checker\")
+print("synthetic survey packet checker")
 """,
     )
 
@@ -330,9 +361,9 @@ def run_self_test() -> int:
             )
             expect_failure(
                 root,
-                VALIDATION_MATRIX_PATH,
-                "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
-                "validation_matrix:`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+                MANIFEST_PATH,
+                "direct-port-or-dual-impl driver-template requirement",
+                "manifest:direct-port-or-dual-impl driver-template requirement",
             )
             expect_failure(
                 root,
