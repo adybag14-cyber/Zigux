@@ -92,6 +92,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(helper_impl, "test \"getOptions expands ranges, supports validation-only counting, and accepts leading plus\"");
     try expectContains(helper_impl, "test \"memparse handles size suffixes, accepts leading plus, and reports where parsing stopped\"");
     try expectContains(helper_impl, "test \"parseOptionStr only matches full comma-delimited options\"");
+    try expectContains(helper_impl, "try std.testing.expect(!parseOptionStr(\"debug,\", \"\"));");
     try expectContains(helper_impl, "test \"nextArg keeps embedded equals inside quoted values\"");
     try expectContains(helper_impl, "test \"nextArg does not treat a leading equals sign as a value separator\"");
 
@@ -127,6 +128,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(cmdline_tests, "phase 7 memparse preserves suffix scaling, leading plus, and stop index semantics");
     try expectContains(cmdline_tests, "cmdline.memparse(\"+1K\", &index)");
     try expectContains(cmdline_tests, "phase 7 parseOptionStr matches only exact bare options");
+    try expectContains(cmdline_tests, "try std.testing.expect(!cmdline.parseOptionStr(\"debug,\", \"\"));");
     try expectContains(cmdline_tests, "phase 7 nextArg matches serialized edge fixtures");
     try expectContains(cmdline_tests, "for (next_arg_vectors.next_arg_cases) |fixture| {");
     try expectContains(cmdline_tests, "cmdline.nextArg");
