@@ -204,6 +204,10 @@ A frozen anchor leaves active discussion only after the Architecture Council sig
 
 If any one of those fields is missing, stale, or contradicted by the linked evidence, the anchor remains in the freeze-in-C set and the review closes with an explicit stay-in-C outcome.
 
+The mirrored review packet keeps these exact fields explicit in the scorecard packet: `linux anchor path`, `phase`, `current status bucket`, `requested decision bucket`, `decision record ID`, `owner`, `rollback owner`, `validation gate summary`, `evidence archive path`, `latest blocker disposition`, `benchmark notes`, `replay command`, `rollback threshold`, `retained discussion state`, `reopen triggers`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, `explicit non-goals`, and `written rationale`.
+
+The mirrored ownership-evidence subset stays limited to `phase`, `current status bucket`, `owner`, `rollback owner`, `validation gate summary`, `indefinite-C policy link or non-applicability note`, `evidence archive path`, `latest blocker disposition`, `benchmark notes`, `replay command`, `rollback threshold`, `retained discussion state`, `reopen triggers`, and `parity scorecard link or blocker record`.
+
 ## Stay-in-C Retirement Rule
 
 When a freeze-in-C anchor closes review without a status change, the scorecard records one retained discussion state: `retired_from_active_discussion`.
