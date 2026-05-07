@@ -56,6 +56,7 @@ test "phase 8 userspace-kernel bridge boundary survey keeps queued bridge work e
     try expectContains(survey, "zigux/tests/phase8_file_path_handle_bridge.zig");
     try expectContains(survey, "zigux/tests/phase8_file_path_handle_bridge_only_build.zig");
     try expectContains(survey, "Documentation/zigux/phase8-file-path-handle-bridge-slice.md");
+    try expectContains(survey, "mapReuseObservationFromFdinfo()");
     try expectContains(survey, "planTokenPreparation()");
     try expectContains(survey, "resolveReusePinnedMapAttempt()");
     try expectContains(survey, "planning-only gate");
