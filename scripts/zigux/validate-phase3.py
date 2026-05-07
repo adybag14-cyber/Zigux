@@ -35,7 +35,10 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/helpers/mmio.zig",
     "zigux/unsafe/narrow.zig",
     "zigux/tests/phase3_abi.zig",
+    "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
 )
 LOW_LEVEL_WRAPPER_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
 LOW_LEVEL_WRAPPER_REQUIRED_MARKERS = (
