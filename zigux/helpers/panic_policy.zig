@@ -17,6 +17,10 @@ pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.PanicMode {
     };
 }
 
+pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.PanicMode {
+    return modeFromInteropPolicyBytes(policy.panic_mode, policy.reserved);
+}
+
 pub fn modeFromByte(mode: u8) ?abi.PanicMode {
     return modeFromInteropPolicyBytes(mode, 0);
 }
@@ -37,6 +41,10 @@ pub fn actionForInteropPolicyBytes(mode: u8, reserved: u8) ?Action {
     return actionFor(modeFromInteropPolicyBytes(mode, reserved) orelse return null);
 }
 
+pub fn actionForInteropPolicy(policy: abi.InteropPolicy) ?Action {
+    return actionForInteropPolicyBytes(policy.panic_mode, policy.reserved);
+}
+
 pub fn actionForByte(mode: u8) ?Action {
     return actionForInteropPolicyBytes(mode, 0);
 }
@@ -47,6 +55,10 @@ pub fn canReturn(mode: abi.PanicMode) bool {
 
 pub fn canReturnInteropPolicyBytes(mode: u8, reserved: u8) bool {
     return actionForInteropPolicyBytes(mode, reserved) == .warn_and_return;
+}
+
+pub fn canReturnInteropPolicy(policy: abi.InteropPolicy) bool {
+    return canReturnInteropPolicyBytes(policy.panic_mode, policy.reserved);
 }
 
 pub fn canReturnByte(mode: u8) bool {
@@ -82,6 +94,32 @@ test "phase3 panic policy stays explicit" {
     try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicyBytes(9, 0));
     try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicyBytes(2, 1));
 
+    const abort_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = 0,
+        .reserved = 0,
+    };
+    const warn_policy = abi.InteropPolicy{
+        .panic_mode = 2,
+        .allocator_mode = 1,
+        .unsafe_scope = 1,
+        .reserved = 0,
+    };
+    const reserved_policy = abi.InteropPolicy{
+        .panic_mode = 2,
+        .allocator_mode = 1,
+        .unsafe_scope = 1,
+        .reserved = 1,
+    };
+
+    try std.testing.expectEqual(@as(?abi.PanicMode, .abort), modeFromInteropPolicy(abort_policy));
+    try std.testing.expectEqual(@as(?abi.PanicMode, .warn), modeFromInteropPolicy(warn_policy));
+    try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicy(reserved_policy));
+    try std.testing.expectEqual(@as(?Action, .abort_now), actionForInteropPolicy(abort_policy));
+    try std.testing.expectEqual(@as(?Action, .warn_and_return), actionForInteropPolicy(warn_policy));
+    try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));
+
     try std.testing.expect(!canReturn(.abort));
     try std.testing.expect(!canReturn(.bug));
     try std.testing.expect(canReturn(.warn));
@@ -94,4 +132,7 @@ test "phase3 panic policy stays explicit" {
     try std.testing.expect(canReturnInteropPolicyBytes(2, 0));
     try std.testing.expect(!canReturnInteropPolicyBytes(9, 0));
     try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));
+    try std.testing.expect(!canReturnInteropPolicy(abort_policy));
+    try std.testing.expect(canReturnInteropPolicy(warn_policy));
+    try std.testing.expect(!canReturnInteropPolicy(reserved_policy));
 }
