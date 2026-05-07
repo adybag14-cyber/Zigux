@@ -32,6 +32,10 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(docs_root, "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample");
     try expectContains(docs_root, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(docs_root, "zigux/tests/phase7_build.zig");
+    try expectContains(docs_root, "`scripts/zigux/validate-phase7.py`");
+    try expectContains(docs_root, "`scripts/zigux/check-phase7-make-wrapper.py`");
+    try expectContains(docs_root, "`make -C zigux phase7-validate`");
+    try expectContains(docs_root, "`make -C zigux phase7`");
     try expectContains(docs_root, "scripts/zigux/check-phase7-build-wiring.py");
 
     const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
