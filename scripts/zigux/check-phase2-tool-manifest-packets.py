@@ -13,6 +13,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 
@@ -51,6 +52,10 @@ REQUIRED_BOOTSTRAP_MARKERS = [
     "- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator",
 ]
+REQUIRED_SCRIPTS_README_MARKERS = [
+    "- `check-phase2-tool-manifest-packets.py`",
+    "- `check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed `fixdep`, `genksyms`, and `kconfig` packet manifests so the shared Phase 2 tool inventory stays explicit before the direct Zig replays run.",
+]
 REQUIRED_MAKEFILE_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tool-manifest-packets.py",
@@ -73,6 +78,7 @@ def required_files_for(root: Path) -> list[Path]:
         root / PHASE2_TOOL_MANIFEST.relative_to(ROOT),
         root / PHASE2_CLOSURE.relative_to(ROOT),
         root / PHASE2_BOOTSTRAP_NOTES.relative_to(ROOT),
+        root / SCRIPTS_README.relative_to(ROOT),
         root / MAKEFILE.relative_to(ROOT),
         root / WORKFLOW.relative_to(ROOT),
     ]
@@ -158,6 +164,11 @@ def validate_root(root: Path) -> list[str]:
         if marker not in bootstrap_text:
             issues.append(f"bootstrap_marker:{marker}")
 
+    scripts_readme_text = (root / SCRIPTS_README.relative_to(ROOT)).read_text(encoding="utf-8")
+    for marker in REQUIRED_SCRIPTS_README_MARKERS:
+        if marker not in scripts_readme_text:
+            issues.append(f"scripts_readme_marker:{marker}")
+
     makefile_text = (root / MAKEFILE.relative_to(ROOT)).read_text(encoding="utf-8")
     issues.extend(validate_exact_lines(makefile_text, REQUIRED_MAKEFILE_LINES, prefix="makefile_line"))
 
@@ -225,6 +236,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
         "\n".join(REQUIRED_BOOTSTRAP_MARKERS) + "\n",
+    )
+    write_text(
+        root / "scripts/zigux/README.md",
+        "\n".join(REQUIRED_SCRIPTS_README_MARKERS) + "\n",
     )
     write_text(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_LINES) + "\n")
     write_text(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(REQUIRED_WORKFLOW_LINES) + "\n")
@@ -343,6 +358,13 @@ def run_self_test() -> int:
         assert f"bootstrap_marker:{REQUIRED_BOOTSTRAP_MARKERS[0]}" in issues
 
         build_self_test_root(root)
+        scripts_readme_path = root / "scripts/zigux/README.md"
+        scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8").replace(REQUIRED_SCRIPTS_README_MARKERS[1] + "\n", "", 1)
+        write_text(scripts_readme_path, scripts_readme_text)
+        issues = validate_root(root)
+        assert f"scripts_readme_marker:{REQUIRED_SCRIPTS_README_MARKERS[1]}" in issues
+
+        build_self_test_root(root)
         makefile_path = root / "zigux/Makefile"
         makefile_text = makefile_path.read_text(encoding="utf-8").replace(REQUIRED_MAKEFILE_LINES[0] + "\n", "", 1)
         write_text(makefile_path, makefile_text)
@@ -371,7 +393,7 @@ def run_self_test() -> int:
         assert f"workflow_line:{REQUIRED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
 
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=19")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
