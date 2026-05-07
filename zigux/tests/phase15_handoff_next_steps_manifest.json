@@ -2,6 +2,9 @@
   "lane_key": "P15-L08",
   "phase": "Phase 15",
   "surveyed_commit": "current-master-readback-2026-05-07",
+  "cross_packet_truthfulness_mode": "blocker_posture_agreement_over_exact_head_parity",
+  "paired_parity_scorecard_exact_head_matches": false,
+  "paired_parity_scorecard_exact_head_fallback_reason": "paired parity scorecard packet still carries an older provenance marker",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
