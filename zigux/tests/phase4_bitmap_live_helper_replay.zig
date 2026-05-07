@@ -95,6 +95,42 @@ test "phase4 bitmap live helper replay keeps fill exact and zero rounded" {
     try std.testing.expect(bitmap.isSet(128));
 }
 
+test "phase4 bitmap live helper replay keeps zero-length and full-extent prefix edits explicit" {
+    var bitmap = LiveBitmapHarness{};
+
+    bitmap.initEmpty();
+    bitmap.setRange(5, 1);
+    bitmap.setRange(63, 1);
+    bitmap.setRange(80, 1);
+    bitmap.setRange(123, 1);
+    const seeded = bitmap.words;
+
+    bitmap.fillPrefix(0);
+    try std.testing.expectEqualDeep(seeded, bitmap.words);
+    bitmap.zeroPrefix(0);
+    try std.testing.expectEqualDeep(seeded, bitmap.words);
+    try std.testing.expectEqual(@as(usize, 5), bitmap.firstSet());
+    try std.testing.expectEqual(@as(usize, 0), bitmap.firstZero());
+    try std.testing.expectEqual(@as(usize, 4), bitmap.weight());
+
+    bitmap.initEmpty();
+    bitmap.fillPrefix(LiveBitmapHarness.bitmap_nbits);
+    try std.testing.expectEqual(@as(usize, 0), bitmap.firstSet());
+    try std.testing.expectEqual(@as(usize, LiveBitmapHarness.bitmap_nbits), bitmap.firstZero());
+    try std.testing.expectEqual(@as(usize, LiveBitmapHarness.bitmap_nbits), bitmap.weight());
+    try std.testing.expect(bitmap.isSet(0));
+    try std.testing.expect(bitmap.isSet(127));
+    try std.testing.expect(bitmap.isSet(LiveBitmapHarness.bitmap_nbits - 1));
+
+    bitmap.zeroPrefix(LiveBitmapHarness.bitmap_nbits);
+    try std.testing.expectEqual(@as(usize, LiveBitmapHarness.bitmap_nbits), bitmap.firstSet());
+    try std.testing.expectEqual(@as(usize, 0), bitmap.firstZero());
+    try std.testing.expectEqual(@as(usize, 0), bitmap.weight());
+    try std.testing.expect(!bitmap.isSet(0));
+    try std.testing.expect(!bitmap.isSet(127));
+    try std.testing.expect(!bitmap.isSet(LiveBitmapHarness.bitmap_nbits - 1));
+}
+
 test "phase4 bitmap live helper replay keeps copy-tail clearing and extension explicit" {
     const count = live_bitmap.bits_per_long + 5;
     const size = live_bitmap.bits_per_long * 3;
