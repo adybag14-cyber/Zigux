@@ -104,6 +104,13 @@ pub const PreviewBoundarySummary = struct {
     checked_focus: []const SampleFocus,
 };
 
+pub const VisibleSpanSummary = struct {
+    first_span_len: usize,
+    second_span_len: usize,
+    total_visible: usize,
+    wrapped: bool,
+};
+
 pub const HelperBoundarySummary = struct {
     peek_before_fill: ?u8,
     skip_before_fill: ?u8,
@@ -187,6 +194,16 @@ pub const BytestreamFifoSample = struct {
 
     pub fn usesWrappedStorageWindow(self: *const Self) bool {
         return self.len > 0 and self.head + self.len > capacity;
+    }
+
+    pub fn visibleSpanSummary(self: *const Self) VisibleSpanSummary {
+        const first_span_len = if (self.len == 0) 0 else @min(self.len, capacity - self.head);
+        return .{
+            .first_span_len = first_span_len,
+            .second_span_len = self.len - first_span_len,
+            .total_visible = self.len,
+            .wrapped = first_span_len < self.len,
+        };
     }
 
     pub fn lifecycleSummary(self: *const Self) LifecycleSummary {
@@ -497,12 +514,22 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     }
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const cold_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 0), cold_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), cold_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), cold_spans.total_visible);
+    try std.testing.expect(!cold_spans.wrapped);
 
     try sample.init();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const initialized_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 0), initialized_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), initialized_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), initialized_spans.total_visible);
+    try std.testing.expect(!initialized_spans.wrapped);
     const replay = try sample.runAnchorReplay();
 
     try std.testing.expectEqualStrings(descriptor.anchor, replay.anchor);
@@ -532,6 +559,11 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const replay_complete_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 0), replay_complete_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), replay_complete_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), replay_complete_spans.total_visible);
+    try std.testing.expect(!replay_complete_spans.wrapped);
 
     try sample.exit();
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
@@ -542,6 +574,11 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expect(!sample.isFull());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const exited_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 0), exited_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), exited_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), exited_spans.total_visible);
+    try std.testing.expect(!exited_spans.wrapped);
 }
 
 test "bytestream fifo sample keeps bounded helper behavior without runtime claims" {
@@ -554,6 +591,11 @@ test "bytestream fifo sample keeps bounded helper behavior without runtime claim
     try std.testing.expectEqualSlices(u8, &.{ 0xaa, 0xaa, 0xaa, 0xaa }, preview_buf[0..]);
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const empty_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 0), empty_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), empty_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), empty_spans.total_visible);
+    try std.testing.expect(!empty_spans.wrapped);
 
     const helper_replay = sample.runHelperBoundaryReplay();
 
@@ -606,6 +648,11 @@ test "bytestream fifo sample keeps preview truncation explicit" {
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
     try std.testing.expectEqual(@as(usize, fifo_capacity - 10), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const preview_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 10), preview_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), preview_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 10), preview_spans.total_visible);
+    try std.testing.expect(!preview_spans.wrapped);
 }
 
 test "bytestream fifo sample exposes empty full and wrapped state boundaries explicitly" {
@@ -615,18 +662,33 @@ test "bytestream fifo sample exposes empty full and wrapped state boundaries exp
     try std.testing.expect(!sample.isFull());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const cold_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 0), cold_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), cold_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), cold_spans.total_visible);
+    try std.testing.expect(!cold_spans.wrapped);
 
     try sample.init();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const initialized_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 0), initialized_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), initialized_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), initialized_spans.total_visible);
+    try std.testing.expect(!initialized_spans.wrapped);
 
     try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(!sample.isFull());
     try std.testing.expectEqual(@as(usize, fifo_capacity - 5), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const hello_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 5), hello_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), hello_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 5), hello_spans.total_visible);
+    try std.testing.expect(!hello_spans.wrapped);
 
     var value: u8 = 0;
     while (!sample.isFull()) : (value +%= 1) {
@@ -637,28 +699,53 @@ test "bytestream fifo sample exposes empty full and wrapped state boundaries exp
     try std.testing.expect(!sample.pushByte(255));
     try std.testing.expectEqual(@as(usize, 0), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const full_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, fifo_capacity), full_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), full_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), full_spans.total_visible);
+    try std.testing.expect(!full_spans.wrapped);
 
     _ = sample.skipByte() orelse unreachable;
     try std.testing.expect(!sample.isFull());
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expectEqual(@as(usize, 1), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const post_skip_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), post_skip_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), post_skip_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), post_skip_spans.total_visible);
+    try std.testing.expect(!post_skip_spans.wrapped);
 
     try std.testing.expect(sample.pushByte(255));
     try std.testing.expect(sample.isFull());
     try std.testing.expect(sample.usesWrappedStorageWindow());
+    const wrapped_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), wrapped_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 1), wrapped_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), wrapped_spans.total_visible);
+    try std.testing.expect(wrapped_spans.wrapped);
 
     sample.reset();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const reset_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 0), reset_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), reset_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), reset_spans.total_visible);
+    try std.testing.expect(!reset_spans.wrapped);
 
     try sample.exit();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
+    const exited_spans = sample.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, 0), exited_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), exited_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), exited_spans.total_visible);
+    try std.testing.expect(!exited_spans.wrapped);
 }
 
 test "bytestream fifo sample makes ownership and lifetime boundaries explicit" {
