@@ -49,10 +49,11 @@ This lane does not justify broad runtime policy machinery on its own.
 The current tree still carries a real bounded policy-and-unsafe packet, but it is smaller than older versions of this survey claimed:
 
 - `zigux/helpers/layout_assert.zig` keeps compile-time size, alignment, field-type, and offset checks for the canonical ABI root while also covering the shipped `MmioRange` and `RbtreeRootView` layouts that now sit inside the same bounded packet.
-- `zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromByte`, `actionForByte`, and `canReturnByte` so ABI panic-mode tags can stay reviewable without being re-decoded elsewhere in the packet.
-- `zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromByte`, `requiresExplicitCallerByte`, and `permitsGlobalFallbackByte` so ABI byte tags do not need to be re-decoded elsewhere in the packet.
+- `zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.
+- `zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, and `permitsGlobalFallbackPolicyBytes` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.
 - `zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.
 - `zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, and `write32()` rather than widening into a larger policy substrate.
+- `scripts/zigux/check-phase3-policy-byte-guards.py` now gives the shared ABI check path a dedicated reserved-byte guard across the policy helpers and this survey note instead of leaving that contract implicit.
 - `zigux/tests/phase3_abi.zig` is the live shared Zig proof packet that imports these helpers today, and `zigux/tests/phase3_abi_dump.zig` keeps the ABI-side `InteropPolicy` and `MmioRange` layout and constant evidence visible on the shared dump path.
 - `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat these helpers as part of the shared `abi` slice.
 
@@ -68,8 +69,8 @@ That means this lane remains note-and-marker maintenance inside the shared ABI p
 
 Current same-family progress already includes three helper-local byte-policy tightenings:
 
-- the panic helper now decodes ABI panic-mode bytes explicitly instead of forcing raw-byte callers to re-map `.abort`, `.bug`, and `.warn` elsewhere in the packet
-- the allocator helper now decodes ABI allocator-mode bytes explicitly instead of forcing raw-byte callers to rediscover caller-ownership and global-fallback policy elsewhere in the packet
+- the panic helper now decodes ABI panic-mode bytes explicitly and rejects nonzero reserved bytes instead of forcing raw-byte callers to re-map `.abort`, `.bug`, and `.warn` elsewhere in the packet
+- the allocator helper now decodes ABI allocator-mode bytes explicitly and rejects nonzero reserved bytes instead of forcing raw-byte callers to rediscover caller-ownership and global-fallback policy elsewhere in the packet
 - the narrow unsafe helper now decodes the ABI unsafe-scope bytes explicitly instead of leaving reserved-byte and unknown-scope handling implicit
 - the remaining same-lane gap is still the absence of a dedicated focused replay pair beyond the shared ABI packet, not a need for a broader runtime policy subsystem
 
