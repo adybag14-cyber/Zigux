@@ -154,6 +154,13 @@
       "why_now": "The dedicated checker, the dedicated survey gate, the shared build replay, and the shared Linux-style Phase 10 routes now keep the bounded core packet reviewable as the roadmap's lab-only driver validation evidence."
     },
     {
+      "id": "phase10-core-dual-implementation-bridge",
+      "status": "blocked_on_risky_transport",
+      "kind": "dual_implementation_boundary",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The slice already records dual implementations for risky transport-facing paths as intentionally missing, so the survey packet needs to carry that same blocked bridge before the core lane can imply a truer lab-driver step."
+    },
+    {
       "id": "phase10-core-probe-remove-lifecycle",
       "status": "blocked_on_risky_transport",
       "kind": "lab_driver_starter",
