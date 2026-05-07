@@ -28,6 +28,9 @@ const Fixture = struct {
         next_zero: usize,
         first_and: usize,
         next_and: usize,
+        inclusive_boundary_next: usize,
+        inclusive_boundary_zero: usize,
+        inclusive_boundary_and: usize,
         past_nbits_next: usize,
         past_nbits_zero: usize,
         past_nbits_and: usize,
@@ -212,6 +215,28 @@ test "phase 1 helper ports match committed parity fixture" {
     const find_rhs = [_]find_bit.Word{ @as(find_bit.Word, 1) << 9, @as(find_bit.Word, 1) << 2 };
     try std.testing.expectEqual(fixture.find_bit.first_and, find_bit.findFirstAndBit(&find_lhs, &find_rhs, fixture.find_bit.bits_per_long * 2));
     try std.testing.expectEqual(fixture.find_bit.next_and, find_bit.findNextAndBit(&find_lhs, &find_rhs, fixture.find_bit.bits_per_long * 2, 10));
+
+    const inclusive_boundary = fixture.find_bit.bits_per_long - 1;
+    const inclusive_set_map = [_]find_bit.Word{
+        (@as(find_bit.Word, 1) << @intCast(inclusive_boundary)),
+        0,
+    };
+    const inclusive_zero_map = [_]find_bit.Word{
+        ~(@as(find_bit.Word, 1) << @intCast(inclusive_boundary)),
+        ~@as(find_bit.Word, 0),
+    };
+    try std.testing.expectEqual(
+        fixture.find_bit.inclusive_boundary_next,
+        find_bit.findNextBit(&inclusive_set_map, fixture.find_bit.bits_per_long * 2, inclusive_boundary),
+    );
+    try std.testing.expectEqual(
+        fixture.find_bit.inclusive_boundary_zero,
+        find_bit.findNextZeroBit(&inclusive_zero_map, fixture.find_bit.bits_per_long * 2, inclusive_boundary),
+    );
+    try std.testing.expectEqual(
+        fixture.find_bit.inclusive_boundary_and,
+        find_bit.findNextAndBit(&inclusive_set_map, &inclusive_set_map, fixture.find_bit.bits_per_long * 2, inclusive_boundary),
+    );
 
     const past_nbits_boundary = fixture.find_bit.past_nbits_next;
     const past_nbits_empty = [_]find_bit.Word{};
