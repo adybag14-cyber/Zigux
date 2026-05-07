@@ -308,6 +308,59 @@ test "phase 7 rbtree clearNode marks detached nodes as empty" {
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.prev(&node));
 }
 
+test "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours" {
+    const LinkedEntry = struct {
+        key: i32,
+        linked: rbtree.NodeLinked = rbtree.NodeLinked.init(),
+    };
+
+    const helpers = struct {
+        fn entryFromNode(node: *const rbtree.Node) *const LinkedEntry {
+            const linked: *const rbtree.NodeLinked = @fieldParentPtr("node", node);
+            return @fieldParentPtr("linked", linked);
+        }
+
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            return entryFromNode(lhs).key < entryFromNode(rhs).key;
+        }
+    };
+
+    var entries = [_]LinkedEntry{
+        .{ .key = 10 },
+        .{ .key = 15 },
+        .{ .key = 5 },
+        .{ .key = 12 },
+    };
+    var root = rbtree.RootLinked.init();
+
+    try std.testing.expect(rbtree.addLinked(&entries[0].linked, &root, helpers.compare));
+    try std.testing.expect(!rbtree.addLinked(&entries[1].linked, &root, helpers.compare));
+    try std.testing.expect(rbtree.addLinked(&entries[2].linked, &root, helpers.compare));
+    try std.testing.expect(!rbtree.addLinked(&entries[3].linked, &root, helpers.compare));
+
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, &entries[2].linked), root.leftmost);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, &entries[0].linked), entries[2].linked.next);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, &entries[3].linked), entries[0].linked.next);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, &entries[1].linked), entries[3].linked.next);
+
+    try std.testing.expect(rbtree.eraseLinked(&entries[3].linked, &root));
+    try std.testing.expect(rbtree.emptyNode(&entries[3].linked.node));
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[3].linked.prev);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[3].linked.next);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, &entries[0].linked), entries[2].linked.next);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, &entries[2].linked), entries[0].linked.prev);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, &entries[1].linked), entries[0].linked.next);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, &entries[0].linked), entries[1].linked.prev);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, &entries[2].linked), root.leftmost);
+
+    try std.testing.expect(rbtree.eraseLinked(&entries[2].linked, &root));
+    try std.testing.expect(rbtree.emptyNode(&entries[2].linked.node));
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[2].linked.prev);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[2].linked.next);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, &entries[0].linked), root.leftmost);
+    try std.testing.expectEqual(@as(?*rbtree.NodeLinked, null), entries[0].linked.prev);
+}
+
 test "phase 7 rbtree find helpers walk duplicate-key ranges" {
     var parsed = try loadFixture(std.testing.allocator);
     defer parsed.deinit();
