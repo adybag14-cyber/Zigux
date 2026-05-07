@@ -115,10 +115,10 @@ Primary Phase 5 packet
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
 Keep explicit
-- `formattedMessage()` and the selected-string branch
+- `formattedMessage()`, the selected-string branch, and the public `runPayloadBoundaryReplay()` formatting cue
+- vararg-payload and relative-location markers in the public replay summary
 - the exact `checked_focus` order
-- the public `runPayloadBoundaryReplay()` and `runCallbackBoundaryReplay()` helpers
-- balanced register-then-unregister callback flow
+- the public `runCallbackBoundaryReplay()` helper plus balanced register-then-unregister callback flow
 - `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection
 - post-exit replay rejection
 
