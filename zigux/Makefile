@@ -6,7 +6,7 @@ PHONY += phase5-test phase5
 PHONY += phase6-validate phase6-test phase6-perf phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6
 PHONY += phase7-validate phase7-test phase7
 PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8
-PHONY += phase9-runtime-atomic64-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test phase9
+PHONY += phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test phase9
 PHONY += phase10-test phase10
 PHONY += phase11-contract phase11-test phase11-hvc-survey phase11
 PHONY += phase12-smoke
@@ -211,6 +211,9 @@ phase8: phase8-validate phase8-test
 
 phase9-runtime-atomic64-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig
+
+phase9-runtime-bitmap-top-bit-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig
 
 phase9-runtime-trace-events-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig
