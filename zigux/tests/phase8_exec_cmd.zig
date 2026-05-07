@@ -128,6 +128,7 @@ test "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet expl
     defer std.testing.allocator.free(checklist);
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the parked Phase 8 `exec-cmd` packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "`zigux/tests/phase8_exec_cmd_only_build.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "`make -C zigux phase8-exec-cmd-test`") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "`make -C zigux phase8-validate`") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "helper-first, output-stable deferred-exec planning packet") != null);
