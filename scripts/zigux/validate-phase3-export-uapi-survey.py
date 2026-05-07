@@ -146,7 +146,9 @@ def validate(root: Path) -> list[str]:
         if rel in REQUIRED_MARKERS:
             text = path.read_text(encoding="utf-8")
             for marker in REQUIRED_MARKERS[rel]:
-                if marker not in text:
+                if rel == SURVEY_REL:
+                    require_exact_line_count(issues, text, "survey_marker", marker)
+                elif marker not in text:
                     issues.append(f"missing_marker:{rel}:{marker}")
 
     docs_root_path = root / DOCS_ROOT_REL
@@ -361,10 +363,41 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         expected = (
-            "missing_marker:Documentation/zigux/phase3-export-uapi-boundary-survey.md:`PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`"
+            "missing_survey_marker:`PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`"
         )
         if issues != [expected]:
             raise SystemExit(f"phase3-export-uapi-self-test:survey_growth_rule_guard_failed:{issues}")
+
+        _write(
+            root / SURVEY_REL,
+            "\n".join(
+                (
+                    "# Phase 3 Export Shim and UAPI Boundary Survey",
+                    "## Status",
+                    "- `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-with-legacy-head-anchor`",
+                    "- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`",
+                    "- `PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`",
+                    "",
+                )
+            ),
+        )
+
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                "- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`\n",
+                "- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`\n"
+                "- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`\n",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        expected = (
+            "duplicate_survey_marker:2:`PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`"
+        )
+        if issues != [expected]:
+            raise SystemExit(f"phase3-export-uapi-self-test:survey_duplicate_guard_failed:{issues}")
 
         _write(
             root / SURVEY_REL,
@@ -632,7 +665,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:workflow_guard_failed:{issues}")
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
