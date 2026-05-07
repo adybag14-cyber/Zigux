@@ -23,6 +23,9 @@ RETRYABLE_HTTP_STATUS_CODES = {500, 502, 503, 504}
 DOWNLOAD_RETRIES = 4
 DOWNLOAD_TIMEOUT = 120.0
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
+TOOLCHAIN_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'
+FALLBACK_CHANNEL = 'master'
 
 
 def normalize_os(name: str) -> str:
@@ -49,6 +52,19 @@ def normalize_arch(name: str) -> str:
 
 def is_explicit_version(channel: str) -> bool:
     return VERSION_KEY_RE.fullmatch(channel) is not None
+
+
+def load_policy_channel(policy_path: Path = TOOLCHAIN_POLICY, fallback: str = FALLBACK_CHANNEL) -> str:
+    if not policy_path.exists():
+        return fallback
+    try:
+        payload = json.loads(policy_path.read_text(encoding='utf-8'))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f'invalid toolchain policy JSON in {policy_path}: {exc.msg}') from exc
+    channel = payload.get('channel')
+    if not isinstance(channel, str) or not channel.strip():
+        raise SystemExit(f'invalid channel in {policy_path}')
+    return channel.strip()
 
 
 def open_url(url: str | urllib.request.Request, *, retries: int = 3, timeout: float = 30.0):
@@ -288,6 +304,26 @@ def run_self_test() -> int:
         'https://ziglang.org/builds/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz',
     )
 
+    with tempfile.TemporaryDirectory(prefix='zigux_install_zig_policy_') as tmp_dir:
+        policy_path = Path(tmp_dir) / 'zig-toolchain-policy.json'
+        assert load_policy_channel(policy_path, '0.15.0') == '0.15.0'
+        policy_path.write_text('{"channel":"0.17.0-dev.87+9b177a7d2"}\n', encoding='utf-8')
+        assert load_policy_channel(policy_path, '0.15.0') == '0.17.0-dev.87+9b177a7d2'
+        policy_path.write_text('{"channel":7}\n', encoding='utf-8')
+        try:
+            load_policy_channel(policy_path, '0.15.0')
+        except SystemExit as exc:
+            assert 'invalid channel' in str(exc)
+        else:
+            raise AssertionError('expected invalid channel to fail')
+        policy_path.write_text('{not-json}\n', encoding='utf-8')
+        try:
+            load_policy_channel(policy_path, '0.15.0')
+        except SystemExit as exc:
+            assert 'invalid toolchain policy JSON' in str(exc)
+        else:
+            raise AssertionError('expected invalid JSON policy to fail')
+
     class FakeResponse:
         def __init__(self, events: list[bytes | BaseException], *, status: int):
             self._events = list(events)
@@ -420,13 +456,13 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=15')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=19')
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description='Install Zig from the official Zig download index or a direct version archive URL.')
-    parser.add_argument('--channel', default='master', help='Channel or version key from ziglang.org/download/index.json, or an explicit Zig version string.')
+    parser.add_argument('--channel', default=None, help='Channel or version key from ziglang.org/download/index.json, or an explicit Zig version string. Defaults to scripts/zigux/zig-toolchain-policy.json when available, otherwise master.')
     parser.add_argument('--dest', default='.zig-toolchain', help='Install root directory')
     parser.add_argument('--system', help='Override detected OS key (linux, macos, windows)')
     parser.add_argument('--arch', help='Override detected architecture key (x86_64, aarch64, x86)')
@@ -437,13 +473,14 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
+    channel = args.channel or load_policy_channel()
     system_key = args.system or normalize_os(platform.system())
     arch_key = args.arch or normalize_arch(platform.machine())
 
-    index = load_index(args.channel)
-    target_key, version, tarball_url = resolve_target(index, args.channel, arch_key, system_key)
+    index = load_index(channel)
+    target_key, version, tarball_url = resolve_target(index, channel, arch_key, system_key)
 
-    print(f'ZIG_INSTALL_CHANNEL={args.channel}')
+    print(f'ZIG_INSTALL_CHANNEL={channel}')
     print(f'ZIG_INSTALL_VERSION={version}')
     print(f'ZIG_INSTALL_TARGET={target_key}')
     print(f'ZIG_INSTALL_URL={tarball_url}')
