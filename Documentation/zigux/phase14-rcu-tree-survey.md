@@ -1,13 +1,13 @@
 # Phase 14 RCU Tree Survey
 
-This document records the bounded Phase 14 survey lane `P14-L16` around `kernel/rcu/tree.c`.
+This document records the bounded Phase 14 survey lane `P14-L13` around `kernel/rcu/tree.c`.
 
 ## Status
 - `PHASE14_STATUS=freeze_in_c`
 - `PHASE14_SLICE=rcu-tree-survey-gap`
-- `PHASE14_LANE_KEY=P14-L16`
+- `PHASE14_LANE_KEY=P14-L13`
 - `PHASE14_SURVEYED_COMMIT=4c889233d157960514b241bcd5aff7cac5fda312`
-- scope: the dedicated Phase 14 RCU tree survey gate, its manifest, the shared Phase 14 build wiring, the shared review checklist entry for this boundary packet, and this lane note that compares the roadmap destination against the current freeze boundary without shipping a bridge
+- scope: the dedicated Phase 14 RCU tree survey gate, its manifest, the shared Phase 14 build wiring, the shared review checklist entry for this boundary packet, and this lane note that compares the roadmap destination against the current freeze boundary without shipping a live bridge
 - survey provenance refreshed against verified `master` head `4c889233d157960514b241bcd5aff7cac5fda312`
 - product boundary:
   - `zigux/tests/phase14_rcu_tree_survey.zig`
@@ -22,20 +22,20 @@ This document records the bounded Phase 14 survey lane `P14-L16` around `kernel/
 The Phase 14 roadmap names `kernel/rcu/tree_bridge.zig` as the long-term destination for a bounded RCU tree study, but the current freeze map also lists `kernel/rcu/tree.c` in the deep-core keep-it-in-C set.
 That tension matters because the live anchor is already 4,931 lines and it does not stand alone. `kernel/rcu/tree_plugin.h` adds another 1,369 lines of plugin and flavor glue, `kernel/rcu/tree_exp.h` adds 1,118 lines of expedited-GP coordination, `kernel/rcu/tree_nocb.h` adds 1,702 lines of callback-offload logic, and even nearby `kernel/rcu/update.c` still depends on the existing state machine.
 The upstream design references also stay large and specific: `Documentation/RCU/Design/Requirements/Requirements.rst` is 2,873 lines and `Documentation/RCU/Design/Memory-Ordering/Tree-RCU-Memory-Ordering.rst` adds another 648 lines of ordering detail.
-The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.zig`.
-It is to make the blocked state reviewable and record the stay-in-C checklist seams, rollback threshold, and blocker packet so future runs can compare the roadmap target against the current freeze boundary without overstating progress or sneaking in a placeholder wrapper.
+The honest move for this lane is therefore not to start a live `kernel/rcu/tree_bridge.zig` bridge or placeholder wrapper.
+It is to keep the roadmap destination reviewable through the already-landed boundary map in `kernel/rcu/tree_bridge.zig` and to record the stay-in-C checklist seams, rollback threshold, and blocker packet so future runs can compare the roadmap target against the current freeze boundary without overstating progress or sneaking in a live bridge claim.
 
 ## Roadmap boundary map
 - `zigux/tests/`: `reviewable_survey_landed` via `zigux/tests/phase14_rcu_tree_survey.zig`, which keeps the RCU tree blocker, rollback threshold, and survey package machine-checkable beside the rest of the Phase 14 gates.
 - `Documentation/zigux/`: `reviewable_survey_landed` via `Documentation/zigux/phase14-rcu-tree-survey.md`, which records the roadmap-vs-freeze comparison, the current checklist seams, the rollback threshold, and the current freeze-in-C blocker in one reviewable note.
-- `kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence` because `kernel/rcu/tree.c` is still a freeze-in-C anchor and the current survey evidence still ties grace-period publication, expedited waits, public wait-and-barrier APIs, NOCB offload, idle-or-dyntick watching transitions, CPU hotplug migration, and memory-ordering behavior tightly enough that a Phase 14 bridge claim or a placeholder wrapper would overstate progress.
+- `kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence` because `kernel/rcu/tree.c` is still a freeze-in-C anchor and the current survey evidence still ties grace-period publication, expedited waits, public wait-and-barrier APIs, NOCB offload, idle-or-dyntick watching transitions, CPU hotplug migration, and memory-ordering behavior tightly enough that a Phase 14 live bridge claim or placeholder wrapper would overstate progress.
 
 ## Survey findings
 - `kernel/rcu/tree.c` is present on `master` at 4,931 lines and remains part of the explicit freeze-in-C set.
 - `kernel/rcu/tree_plugin.h`, `kernel/rcu/tree_exp.h`, and `kernel/rcu/tree_nocb.h` show that normal GP sequencing, expedited waits, and callback offload are split across tightly coupled files rather than living behind a small helper seam.
 - `kernel/rcu/update.c` remains a nearby consumer of the same RCU state machine, which makes a one-file bridge story misleading.
 - `Documentation/RCU/Design/Requirements/Requirements.rst` and `Documentation/RCU/Design/Memory-Ordering/Tree-RCU-Memory-Ordering.rst` reinforce that Tree RCU correctness depends on ordering and quiescent-state guarantees, not only on symbol cataloging.
-- the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, the workqueue bridge lane, the ring-buffer survey lane, and the skbuff bridge lane, so the highest-value non-overlapping RCU step remains a survey package that records why the roadmap destination stays blocked.
+- the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, the workqueue bridge lane, the ring-buffer survey lane, the skbuff bridge lane, and the review-only `kernel/rcu/tree_bridge.zig` boundary map, so the highest-value non-overlapping RCU step remains a survey package that records why the roadmap destination stays blocked.
 - the current manifest now records a landed freeze-boundary checklist around grace-period sequence publication, the memory-ordering lock network, expedited-GP funnel or stall behavior, NOCB bypass or wakeup handoffs, idle-watch re-entry and core invocation, quiescent-state propagation plus callback acceleration, callback enqueue plus batch invocation, callback offload, public wait and barrier APIs, CPU hotplug and callback migration, and the rollback threshold that governs any future reopen attempt.
 
 ## Decision checklist
@@ -115,6 +115,7 @@ The current lane state is:
 - landed `phase14-rcu-tree-survey-gate`
 - landed `phase14-rcu-tree-survey-note`
 - landed `phase14-rcu-tree-boundary-decision-checklist`
+- landed `phase14-rcu-tree-boundary-map-starter`
 - landed `phase14-rcu-tree-quiescent-state-followup`
 - landed `phase14-rcu-tree-callback-enqueue-followup`
 - landed `phase14-rcu-tree-callback-offload-followup`
@@ -125,12 +126,12 @@ The current lane state is:
 - landed `phase14-rcu-tree-rollback-threshold-guardrail`
 - blocked `phase14-rcu-tree-bridge-blocker`
 
-This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/rcu/tree.c` remains in the freeze set for now, and that the repo still does not ship a placeholder or empty `kernel/rcu/tree_bridge.zig` wrapper.
+This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/rcu/tree.c` remains in the freeze set for now, and that the repo ships only a review-only `kernel/rcu/tree_bridge.zig` boundary map rather than a live bridge wrapper.
 
 ## Non-goals
 
 This survey slice does not claim:
-- a `kernel/rcu/tree_bridge.zig` implementation
+- a live `kernel/rcu/tree_bridge.zig` implementation
 - a placeholder or empty `kernel/rcu/tree_bridge.zig` wrapper
 - grace-period start or completion parity
 - expedited-GP CPU selection, IPI, or stall handling parity
