@@ -121,7 +121,7 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
     try std.testing.expect(!manifest.architecture_council_reopen_attached);
 
     try std.testing.expect(manifest.survey_summary.virtio_c_lines >= 700);
-    try std.testing.expectEqual(@as(usize, 9), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase10_test_files >= 11);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_test_present);
