@@ -499,53 +499,120 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_script_readme_text() -> str:
-    helper_lines = [f"- `{marker}`" for marker in REQUIRED_SCRIPT_MARKERS]
+    helper_lines = [
+        "- `check-zig-toolchain.py`",
+        "- `install-zig.py`",
+        "- `check-fixdep-diff.py`",
+        "- `check-genksyms-bridge.py`",
+        "- `check-phase2-genksyms-bridge-selftest-alignment.py`",
+        "- `check-genksyms-crc-diff.py`",
+        "- `check-kconfig-bridge.py`",
+        "- `check-phase2-tests-readme-alignment.py`",
+        "- `check-phase2-cross-selftest-alignment.py`",
+        "- `check-phase2-toolchain-pin-scope.py`",
+        "- `check-phase2-cross.py`",
+        "- `check-mk-elfconfig-diff.py`",
+        "- `validate-phase2.py`",
+        "- `validate-phase2-closure.py`",
+        "- `fixdep.zig`",
+        "- `genksyms.zig`",
+        "- `genksyms_crc.zig`",
+        "- `kconfig/conf_bridge.zig`",
+        "- `kconfig/confdata_bridge.zig`",
+        "- `mk_elfconfig.zig`",
+    ]
     return "\n".join(helper_lines) + "\n"
 
 
 def write_stub_guard(path: Path, *, self_test_marker: str, live_markers: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    live_body = "\n".join(f"        print({marker!r})" for marker in live_markers)
-    script = f'''#!/usr/bin/env python3
-import sys
-
-if "--self-test" in sys.argv:
-    print({self_test_marker!r})
-else:
-{live_body}
-'''
-    path.write_text(script, encoding="utf-8")
+    lines = [
+        "#!/usr/bin/env python3",
+        "import argparse",
+        "",
+        "def main() -> int:",
+        '    parser = argparse.ArgumentParser()',
+        '    parser.add_argument("--self-test", action="store_true")',
+        "    args = parser.parse_args()",
+        "    if args.self_test:",
+    ]
+    for marker_line in self_test_marker.split("\n"):
+        if marker_line:
+            lines.append(f'        print("{marker_line}")')
+    lines.extend(
+        [
+            "        return 0",
+            "",
+        ]
+    )
+    for marker in live_markers:
+        lines.append(f'    print("{marker}")')
+    lines.extend(
+        [
+            "    return 0",
+            "",
+            'if __name__ == "__main__":',
+            "    raise SystemExit(main())",
+            "",
+        ]
+    )
+    write_text(path, "\n".join(lines))
 
 
 def build_self_test_root(root: Path) -> None:
     for path in required_files(root):
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if not path.exists():
-            path.write_text("\n", encoding="utf-8")
-    write_text(root / "zigux/tests/fixtures/phase2_cross_targets.json", "[]\n")
+        if path.suffix:
+            write_text(path, "")
+        else:
+            path.mkdir(parents=True, exist_ok=True)
+
+    write_text(root / "scripts/zigux/fixdep.zig", "test \"fixdep stub\" {}\n")
+    write_text(root / "scripts/zigux/genksyms.zig", "test \"genksyms stub\" {}\n")
+    write_text(root / "scripts/zigux/genksyms_crc.zig", "test \"genksyms crc stub\" {}\n")
+    write_text(root / "scripts/zigux/mk_elfconfig.zig", "test \"mk_elfconfig stub\" {}\n")
+    write_text(root / "scripts/zigux/kconfig/conf_bridge.zig", "test \"conf bridge stub\" {}\n")
+    write_text(root / "scripts/zigux/kconfig/confdata_bridge.zig", "test \"confdata bridge stub\" {}\n")
+    write_text(root / "scripts/zigux/validate-phase2.py", "validator stub\n")
+    write_text(root / "scripts/zigux/validate-phase2-closure.py", "closure validator stub\n")
+    write_text(root / "scripts/zigux/check-zig-toolchain.py", "toolchain checker stub\n")
+    write_text(root / "scripts/zigux/install-zig.py", "toolchain installer stub\n")
+    write_text(root / "scripts/zigux/zig-toolchain-policy.json", "{}\n")
     write_text(root / "zigux/tests/fixtures/phase2_tool_manifest.json", "{}\n")
+    write_text(root / "zigux/tests/fixtures/phase2_cross_targets.json", "{}\n")
     write_text(root / "zigux/tests/fixtures/fixdep/cases.json", "{}\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample.d", "target: source\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample.c", "int main(void) { return 0; }\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample.h", "#pragma once\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample-config.h", "#pragma once\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample.rmeta", "\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample_expected.txt", "sample\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample_multi_target.d", "target1 target2: shared.h\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample2.c", "int sample2(void) { return 0; }\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample2-config.h", "#pragma once\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample2.so", "\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/shared#config.h", "#pragma once\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt", "sample_multi_target\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample_missing_dep.d", "target: missing.h\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample_missing_dep_source.c", "int missing_dep(void) { return 0; }\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample_missing_dep_expected.txt", "missing_dep\n")
-    write_text(root / "zigux/tests/fixtures/fixdep/sample_missing_dep_expected.stderr.txt", "missing.h\n")
-    write_text(root / "zigux/tests/fixtures/genksyms_crc/inputs.txt", "symbol\n")
+    for rel in [
+        "sample.d",
+        "sample.c",
+        "sample.h",
+        "sample-config.h",
+        "sample.rmeta",
+        "sample_expected.txt",
+        "sample_multi_target.d",
+        "sample2.c",
+        "sample2-config.h",
+        "sample2.so",
+        "shared#config.h",
+        "sample_multi_target_expected.txt",
+        "sample_missing_dep.d",
+        "sample_missing_dep_source.c",
+        "sample_missing_dep_expected.txt",
+        "sample_missing_dep_expected.stderr.txt",
+    ]:
+        write_text(root / "zigux/tests/fixtures/fixdep" / rel, "\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_crc/genksyms_crc_c_harness.c", "\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_crc/inputs.txt", "\n")
     write_text(root / "zigux/tests/fixtures/genksyms_crc/expected.json", "{}\n")
-    write_text(root / "zigux/tests/fixtures/genksyms_bridge/cases.json", '{"cases": []}\n')
-    write_text(root / "zigux/tests/fixtures/kconfig_bridge/cases.json", '{"conf_cases": [], "confdata_cases": []}\n')
-    write_text(root / "zigux/tests/fixtures/mk_elfconfig/cases.json", "[]\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c", "\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_bridge/cases.json", '{"cases": [{"expected": "minimal_expected.json"}, {"expected": "debug_reference_types_expected.json"}, {"expected": "long_options_expected.json"}, {"expected": "quiet_overrides_warning_expected.json"}]}\n')
+    write_text(root / "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json", "{}\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json", "{}\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json", "{}\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json", "{}\n")
+    write_text(root / "zigux/tests/fixtures/kconfig_bridge/cases.json", '{"conf_cases": [{"expected": "olddefconfig_expected.json"}, {"expected": "sample_expected.json"}], "confdata_cases": [{"input": "sample.config", "expected": "syncconfig_expected.json"}]}\n')
+    write_text(root / "zigux/tests/fixtures/kconfig_bridge/syncconfig_expected.json", "{}\n")
+    write_text(root / "zigux/tests/fixtures/kconfig_bridge/olddefconfig_expected.json", "{}\n")
+    write_text(root / "zigux/tests/fixtures/kconfig_bridge/sample.config", "\n")
+    write_text(root / "zigux/tests/fixtures/kconfig_bridge/sample_expected.json", "{}\n")
+    write_text(root / "zigux/tests/fixtures/mk_elfconfig/cases.json", '[{"expected": "elf32_expected.json"}, {"expected": "elf64_expected.json"}, {"expected": "invalid_class_expected.json"}, {"expected": "not_elf_expected.json"}, {"expected": "truncated_expected.json"}]\n')
     write_text(root / "zigux/tests/fixtures/mk_elfconfig/elf32.hex", "7f454c46\n")
     write_text(root / "zigux/tests/fixtures/mk_elfconfig/elf64.hex", "7f454c46\n")
     write_text(root / "zigux/tests/fixtures/mk_elfconfig/invalid_class.hex", "7f454c46\n")
@@ -556,13 +623,6 @@ def build_self_test_root(root: Path) -> None:
     write_text(root / "zigux/tests/fixtures/mk_elfconfig/invalid_class_expected.json", "{}\n")
     write_text(root / "zigux/tests/fixtures/mk_elfconfig/not_elf_expected.json", "{}\n")
     write_text(root / "zigux/tests/fixtures/mk_elfconfig/truncated_expected.json", "{}\n")
-    write_text(root / "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json", "{}\n")
-    write_text(root / "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json", "{}\n")
-    write_text(root / "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json", "{}\n")
-    write_text(root / "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json", "{}\n")
-    write_text(root / "zigux/tests/fixtures/kconfig_bridge/olddefconfig_expected.json", "{}\n")
-    write_text(root / "zigux/tests/fixtures/kconfig_bridge/sample.config", "\n")
-    write_text(root / "zigux/tests/fixtures/kconfig_bridge/sample_expected.json", "{}\n")
     write_text(root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", "\n".join(REQUIRED_LEDGER_MARKERS) + "\n")
     write_text(root / ".github" / "workflows" / "zigux-bootstrap.yml", "\n".join(f"run: {marker}" for marker in REQUIRED_WORKFLOW_MARKERS) + "\n")
     write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join(REQUIRED_DOC_MARKERS) + "\n")
