@@ -33,6 +33,7 @@ const OwnershipEntry = struct {
 const LifecycleBoundarySummary = struct {
     pre_execution_handoff_only: bool,
     requires_idle_registration_snapshot: bool,
+    failed_exit_state_retained_until_drain: bool,
     metadata_only_registration_labels: []const []const u8,
     shared_request_surface: []const u8,
     live_registration_parity: []const u8,
@@ -676,6 +677,7 @@ test "phase 9 runtime loader allocator/init-flow replay keeps exact current init
 
     try std.testing.expect(kretprobe.value.lifecycle_boundary_summary.pre_execution_handoff_only);
     try std.testing.expect(kretprobe.value.lifecycle_boundary_summary.requires_idle_registration_snapshot);
+    try std.testing.expect(kretprobe.value.lifecycle_boundary_summary.failed_exit_state_retained_until_drain);
     try std.testing.expectEqual(@as(usize, 2), kretprobe.value.lifecycle_boundary_summary.metadata_only_registration_labels.len);
     try std.testing.expectEqualStrings(
         "register_kretprobe",
