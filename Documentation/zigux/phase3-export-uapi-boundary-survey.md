@@ -4,11 +4,21 @@ This note records the current export-shim and starter UAPI boundary that still s
 
 ## Status
 
-- `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-with-legacy-head-anchor`
+- `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run`
 - `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`
 - `PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`
+- `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
+- `PHASE3_EXPORT_SHIM_BLOB_SHA=61513b232951d2f0fa5167fc7c90fa982f5949d1`
+- `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
+- `PHASE3_UAPI_VERSION_BLOB_SHA=c3c05ea2384bba3882d7a79312f429ef3ec88ca0`
+- `PHASE3_LINUX_HEADER_PATH=include/linux/zigux.h`
+- `PHASE3_LINUX_HEADER_BLOB_SHA=c8cfd9590d2d0039ad087bb020a236fdc0a2b4ff`
+- `PHASE3_ABI_HEADER_PATH=include/zigux/abi.h`
+- `PHASE3_ABI_HEADER_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
 
 ## Live Boundary
+
+The blob markers above are the authoritative packet-local evidence for the currently shipped export shim, starter UAPI helper, Linux-facing aggregation header, and canonical ABI header in this connector-only run.
 
 - `zigux/kernel/export_shim.zig` keeps the starter export boundary narrow by relaying the shared boundary-header helpers from `zigux/uapi/version.zig` and by normalizing explicit success or errno-style export status values.
 - `zigux/uapi/version.zig` keeps the starter UAPI version contract reviewable through canonical versus future-compatible boundary-header helpers without widening into a broader UAPI packet.
