@@ -92,6 +92,9 @@ pub fn hexDumpLineLength(
 ) usize {
     const rowsize = normalizedRowsize(rowsize_input);
     const len = @min(len_input, rowsize);
+    if (len == 0) {
+        return 0;
+    }
     const groupsize = normalizedGroupsize(len, groupsize_input);
     const ngroups = len / groupsize;
 
@@ -476,6 +479,15 @@ test "hexdump one-byte caller buffers still report full length and stay NUL term
 
     var empty = [_]u8{0xaa};
     try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(input[0..0], 16, 1, empty[0..], false));
+    try std.testing.expectEqual(@as(u8, 0), empty[0]);
+}
+
+test "hexdump empty input reports zero required length for plain and ascii modes" {
+    var empty = [_]u8{0xaa};
+
+    try std.testing.expectEqual(@as(usize, 0), hexDumpLineLength(0, 16, 1, false));
+    try std.testing.expectEqual(@as(usize, 0), hexDumpLineLength(0, 16, 1, true));
+    try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(&[_]u8{}, 16, 1, empty[0..], true));
     try std.testing.expectEqual(@as(u8, 0), empty[0]);
 }
 
