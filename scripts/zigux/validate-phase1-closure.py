@@ -263,7 +263,9 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
 EXPECTED_REVIEW_ANCHORS = {
     "tools/lib/bitmap.zig": {
         "helper_test_anchors": [
+            'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
             'test "bitmap allocator helpers size zero and free their buffers"',
+            'test "bitmap size aliases round bit counts to full words in bytes"',
             'test "bitmap set clear weight and empty full helpers"',
             'test "bitmap fill clamps tail bits in partial words"',
             'test "bitmap and andnot equal intersects subset"',
@@ -276,6 +278,7 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "bitmap copy aliases preserve tail clearing and extension semantics"',
             'test "bitmap copy alias preserves raw source words without tail clearing"',
             'test "bitmap zero-bit helpers stay explicit no-ops"',
+            'test "bitmap Linux-style aliases mirror the primary helper surface"',
         ],
         "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
         "predicate_tail_mask_anchor": 'test "bitmap predicates ignore out-of-range tail bits"',
