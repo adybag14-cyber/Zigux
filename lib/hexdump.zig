@@ -344,6 +344,29 @@ test "hex conversion helpers cover mixed-case decoding and upper or lower encodi
     try std.testing.expectEqualStrings("00AB7FF0", upper[0..]);
 }
 
+test "hex nibble helpers stay aligned with byte-pack helpers across the full byte range" {
+    var lower: [2]u8 = undefined;
+    var upper: [2]u8 = undefined;
+    var decoded: [1]u8 = undefined;
+
+    for (0..256) |value| {
+        const byte: u8 = @intCast(value);
+
+        _ = try hexBytePack(lower[0..], byte);
+        _ = try hexBytePackUpper(upper[0..], byte);
+
+        try std.testing.expectEqual(hexAscHi(byte), lower[0]);
+        try std.testing.expectEqual(hexAscLo(byte), lower[1]);
+        try std.testing.expectEqual(hexAscUpperHi(byte), upper[0]);
+        try std.testing.expectEqual(hexAscUpperLo(byte), upper[1]);
+
+        try hex2bin(decoded[0..], lower[0..]);
+        try std.testing.expectEqual(byte, decoded[0]);
+        try hex2bin(decoded[0..], upper[0..]);
+        try std.testing.expectEqual(byte, decoded[0]);
+    }
+}
+
 test "hex conversion helpers reject malformed sources and undersized destinations" {
     var decoded: [4]u8 = undefined;
     var short_encoded: [7]u8 = undefined;
