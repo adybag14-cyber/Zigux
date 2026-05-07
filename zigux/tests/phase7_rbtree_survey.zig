@@ -247,6 +247,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(helper_impl, "pub const RootLinked");
     try expectContains(helper_impl, "pub fn addLinked");
     try expectContains(helper_impl, "pub fn eraseLinked");
+    try expectContains(helper_impl, "pub fn clearLinkedNode");
     try expectContains(helper_impl, "pub fn eraseInit");
     try expectContains(helper_impl, "pub fn replaceNodeCached");
     try expectContains(helper_impl, "pub fn firstPostorder");
@@ -261,6 +262,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(helper_tests, "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable");
     try expectContains(helper_tests, "phase 7 rbtree detached nodes stay non-empty until callers clear them");
     try expectContains(helper_tests, "phase 7 rbtree clearNode marks detached nodes as empty");
+    try expectContains(helper_tests, "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours");
     try expectContains(helper_tests, "phase 7 rbtree find helpers walk duplicate-key ranges");
     try expectContains(helper_tests, "phase 7 rbtree postorder traversal matches committed parity fixture");
     try expectContains(helper_tests, "try std.testing.expectEqual(@as(?*Node, null), nextPostorder(null));");
