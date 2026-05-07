@@ -211,6 +211,17 @@ def run_self_test() -> int:
             return 1
         write_text(root / MAKEFILE_PATH, f"phase14-validate:\n\tpython3 {CHECKER_PATH}\n")
 
+        smoke_survey_path = root / SMOKE_SURVEY_PATH
+        smoke_survey_path.unlink()
+        errors = check(root)
+        if not errors or f"missing file: {SMOKE_SURVEY_PATH}" not in errors:
+            print(
+                "self-test expected failure when the shared smoke survey file was missing",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
+
         broken_manifest_path = root / MANIFEST_PATH
         broken_manifest_path.write_text(json.dumps({"surfaces": []}, indent=2) + "\n", encoding="utf-8")
         errors = check(root)
@@ -219,6 +230,30 @@ def run_self_test() -> int:
         ):
             print(
                 "self-test expected failure when the manifest lost the docs-root checker surface",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    "surfaces": [
+                        {
+                            "path": CHECKER_PATH,
+                            "required_marker": MARKER,
+                        }
+                    ]
+                },
+                indent=2,
+            ) + "\n",
+        )
+
+        makefile_path = root / MAKEFILE_PATH
+        makefile_path.unlink()
+        errors = check(root)
+        if not errors or f"missing file: {MAKEFILE_PATH}" not in errors:
+            print(
+                "self-test expected failure when the Makefile was missing",
                 file=sys.stderr,
             )
             return 1
