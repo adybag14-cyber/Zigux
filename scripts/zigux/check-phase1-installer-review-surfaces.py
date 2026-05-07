@@ -195,6 +195,7 @@ def build_self_test_root(root: Path) -> None:
     )
 
 
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1_installer_review_") as tmp_dir:
         root = Path(tmp_dir)
@@ -334,7 +335,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/install-zig.py" in issues
 
     print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass")
-    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=15")
+    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
