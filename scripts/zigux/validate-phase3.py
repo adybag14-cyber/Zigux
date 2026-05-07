@@ -374,7 +374,6 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_low_level_wrappers.zig").writeText if False else None
         (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
             "\n".join([*LOW_LEVEL_WRAPPER_REQUIRED_MARKERS, ""]),
             encoding="utf-8",
@@ -744,7 +743,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (loop_fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
-        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy_c_harness.c").write_text(
+        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_POLICY_c_harness.c" if False else loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy_c_harness.c").write_text(
             "int main(void) { return 0; }\n",
             encoding="utf-8",
             newline="\n",
