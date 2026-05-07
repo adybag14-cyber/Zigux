@@ -103,10 +103,10 @@ const boundary_areas = [_]BoundaryArea{
     },
     .{
         .id = "worker-pool-concurrency",
-        .summary = "Keep worker-pool concurrency management explicitly in C.",
+        .summary = "Keep worker-pool concurrency management and hotplug-driven topology rebinding explicitly in C.",
         .ownership = .stay_in_c,
-        .anchor_symbols = &[_][]const u8{ "manage_workers", "struct worker_pool" },
-        .rationale = "The pool manager owns worker creation, idle culling, busy hashing, forward-progress checks, and lock-protected state transitions; this is the central concurrency boundary that Zigux should only audit before any wrapper work grows deeper.",
+        .anchor_symbols = &[_][]const u8{ "manage_workers", "POOL_DISASSOCIATED", "unbound_wq_update_pwq" },
+        .rationale = "The pool manager owns worker creation, idle culling, busy hashing, forward-progress checks, and the disassociation or rebound rules that flip POOL_DISASSOCIATED while wq_online_cpumask, wq_unbound_cpumask, and unbound_wq_update_pwq() rebuild placement around CPU hotplug and pod topology, so Zigux should only audit this boundary rather than pretend a wrapper can safely own rebinding or migration.",
     },
     .{
         .id = "rescuer-and-scheduler-hooks",
@@ -130,10 +130,10 @@ const audit_checkpoints = [_]AuditCheckpoint{
     .{
         .id = "worker-pool-forward-progress",
         .anchor_symbol = "struct worker_pool",
-        .summary = "Keep forward-progress and runnable-worker accounting under the existing worker_pool lock discipline.",
+        .summary = "Keep forward-progress, disassociation, and runnable-worker accounting under the existing worker_pool lock discipline.",
         .guard = .pool_lock_held,
-        .observed_fields = &[_][]const u8{ "pool->last_progress_ts", "pool->nr_running", "pool->worklist" },
-        .blocked_by = "worker_pool forward-progress timestamps, runnable counts, and pending worklist state are all lock-coupled and watchdog-adjacent, so Phase 14 should only name the fields and leave the live updates in C.",
+        .observed_fields = &[_][]const u8{ "pool->last_progress_ts", "pool->nr_running", "pool->worklist", "pool->flags" },
+        .blocked_by = "worker_pool forward-progress timestamps, runnable counts, pending worklist state, and the POOL_DISASSOCIATED hotplug posture are lock-coupled and topology-sensitive, so Phase 14 should only name the fields and leave the live updates plus rebinding in C.",
         .ownership = .stay_in_c,
     },
     .{
@@ -252,7 +252,7 @@ const blocked_live_behaviors = [_][]const u8{
     "delayed-work requeue ownership",
     "scheduler callback parity",
     "rescuer execution ownership",
-    "hotplug-driven worker migration",
+    "hotplug-driven worker migration and topology rebinding",
 };
 
 pub const WorkqueueBridgeLab = struct {
@@ -303,7 +303,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Leave this lane in blocked maintenance; hotplug-driven worker migration and scheduler-visible worker-state behavior stay in C even after the flush-drain active-color governance note and the delayed-work requeue decision.";
+        return "Leave this lane in blocked maintenance; hotplug-driven worker migration via POOL_DISASSOCIATED, wq_online_cpumask, wq_unbound_cpumask, and unbound_wq_update_pwq() plus scheduler-visible worker-state behavior stay in C even after the flush-drain active-color governance note and the delayed-work requeue decision.";
     }
 };
 
@@ -361,6 +361,9 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expectEqualStrings("worker-pool-concurrency", map.areas[5].id);
     try std.testing.expect(map.areas[5].ownership == .stay_in_c);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[5].rationale, "forward-progress") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[5].rationale, "POOL_DISASSOCIATED") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[5].rationale, "wq_unbound_cpumask") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[5].rationale, "unbound_wq_update_pwq()") != null);
 
     try std.testing.expectEqualStrings("rescuer-and-scheduler-hooks", map.areas[6].id);
     try std.testing.expect(map.areas[6].ownership == .stay_in_c);
@@ -378,6 +381,8 @@ test "workqueue bridge concurrency audit stays review-only" {
     try std.testing.expectEqual(@as(usize, 14), WorkqueueBridgeLab.auditCheckpointCount());
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "blocked maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "hotplug-driven worker migration") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "POOL_DISASSOCIATED") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "unbound_wq_update_pwq()") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "scheduler-visible worker-state behavior") != null);
 
     try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
@@ -388,6 +393,8 @@ test "workqueue bridge concurrency audit stays review-only" {
     try std.testing.expectEqualStrings("worker-pool-forward-progress", audit.checkpoints[1].id);
     try std.testing.expect(audit.checkpoints[1].guard == .pool_lock_held);
     try std.testing.expectEqualStrings("pool->last_progress_ts", audit.checkpoints[1].observed_fields[0]);
+    try std.testing.expectEqualStrings("pool->flags", audit.checkpoints[1].observed_fields[3]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[1].blocked_by, "POOL_DISASSOCIATED") != null);
 
     try std.testing.expectEqualStrings("max-active-ordering-gate", audit.checkpoints[2].id);
     try std.testing.expect(audit.checkpoints[2].guard == .pool_lock_held);
