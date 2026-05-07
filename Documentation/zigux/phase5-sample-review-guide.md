@@ -115,7 +115,7 @@ Primary Phase 5 packet
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
 Keep explicit
-- `formattedMessage()`, the selected-string branch, and the public `runPayloadBoundaryReplay()` formatting cue
+- `formattedMessage()`, the selected-string plus `iter=%d` replay, and the public `runPayloadBoundaryReplay()` formatting cue
 - vararg-payload and relative-location markers in the public replay summary
 - the exact `checked_focus` order
 - the public `runCallbackBoundaryReplay()` helper plus balanced register-then-unregister callback flow
@@ -142,7 +142,8 @@ Keep out of scope
 - Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, or direct `*bitmap*` Phase 5 reference sample.
 - Keep direct bitmap helper reviewability under `tools/lib/bitmap.zig`, `Documentation/zigux/phase1-closure.md`, and `Documentation/zigux/phase4-validation-matrix.md` instead of counting bitmap as a fifth Phase 5 sample.
 - Keep the separate runtime bitmap family under `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_build.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/tests/phase9_build.zig` instead of treating bitmap as a shared Phase 5 approved idiom.
-- Formatting-helper reviewability still stays with the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 helper packet; do not infer a fifth formatting sample from `trace_events_sample`.
+- Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample; keep treating the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` as the approved formatting idiom cue.
+- Formatting-helper reviewability still stays with the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet; do not infer a fifth formatting sample from `trace_events_sample`.
 
 ## Next-step rule
 
