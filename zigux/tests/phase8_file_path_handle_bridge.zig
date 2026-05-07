@@ -74,6 +74,15 @@ test "phase 8 userspace-kernel bridge boundary survey keeps queued bridge work e
     try expectContains(survey, "epoll-backed perf FD registration");
     try expectContains(survey, "poll waits");
     try expectContains(survey, "make -C zigux phase8-validate");
+    try expectContains(survey, "python3 scripts/zigux/validate-phase8.py --self-test");
+    try expectContains(survey, "python3 scripts/zigux/validate-phase8.py");
+    try expectContains(survey, "make -C zigux phase8-file-path-handle-bridge-test");
+    try expectContains(survey, "zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all");
+    try expectContains(survey, "make -C zigux phase8-perf-buffer-poll-test");
+    try expectContains(survey, "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all");
+    try expectContains(survey, "make -C zigux phase8-test");
+    try expectContains(survey, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
+    try expectContains(survey, "make -C zigux phase8");
 }
 
 test "phase 8 file-path handle bridge helper stays wired into its focused Phase 8 build shard" {
