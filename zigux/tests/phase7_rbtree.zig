@@ -200,6 +200,43 @@ test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stabl
     try std.testing.expectEqualSlices(i32, fixture.ordered.replace_order, replaced_actual[0..replaced_index]);
 }
 
+test "phase 7 rbtree cached helpers return leftmost handoff state" {
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 20 },
+        .{ .key = 15 },
+    };
+    var replacement = Entry{ .key = 5 };
+    var root = rbtree.RootCached.init();
+
+    try std.testing.expectEqual(@as(?*rbtree.Node, &entries[0].node), rbtree.addCached(&entries[0].node, &root, less));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &entries[1].node), rbtree.addCached(&entries[1].node, &root, less));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.addCached(&entries[2].node, &root, less));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.addCached(&entries[3].node, &root, less));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &entries[1].node), rbtree.firstCached(&root));
+
+    rbtree.replaceNodeCached(&entries[1].node, &replacement.node, &root);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &replacement.node), rbtree.firstCached(&root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &replacement.node), rbtree.first(&root.root));
+
+    try std.testing.expectEqual(@as(?*rbtree.Node, &entries[0].node), rbtree.eraseCached(&replacement.node, &root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &entries[0].node), rbtree.firstCached(&root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &entries[0].node), rbtree.first(&root.root));
+
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.eraseCached(&entries[3].node, &root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &entries[0].node), rbtree.firstCached(&root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &entries[0].node), rbtree.first(&root.root));
+}
+
 test "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable" {
     var parsed = try loadFixture(std.testing.allocator);
     defer parsed.deinit();
