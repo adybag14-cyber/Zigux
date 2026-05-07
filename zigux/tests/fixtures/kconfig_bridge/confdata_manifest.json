@@ -45,7 +45,7 @@
     "confdata bridge parses bounded config states",
     "confdata bridge emits bounded json output",
     "confdata bridge decodes escaped quoted strings",
-    "confdata bridge decodes escaped control sequences in quoted strings",
+    "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
     "confdata bridge escapes low control bytes in json output",
     "confdata bridge accepts CRLF config lines",
     "confdata bridge preserves trailing carriage return on final unterminated value line",
