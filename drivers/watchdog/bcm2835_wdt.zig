@@ -33,6 +33,21 @@ pub const ConfigSnapshot = struct {
     max_hw_heartbeat_ms: u32,
 };
 
+pub const WatchdogMetadataSummary = struct {
+    anchor: []const u8,
+    identity: []const u8,
+    supports_set_timeout: bool,
+    supports_magic_close: bool,
+    supports_keepalive_ping: bool,
+    supports_start: bool,
+    supports_stop: bool,
+    supports_get_timeleft: bool,
+    supports_restart: bool,
+    min_timeout_sec: u32,
+    max_timeout_sec: u32,
+    max_hw_heartbeat_ms: u32,
+};
+
 pub const ProbeSummary = struct {
     anchor: []const u8,
     timeout_sec: u32,
@@ -171,6 +186,24 @@ pub const Bcm2835WatchdogLab = struct {
         return .{
             .anchor = descriptor().anchor,
             .timeout_sec = self.timeout_sec,
+            .max_timeout_sec = max_timeout_sec,
+            .max_hw_heartbeat_ms = max_hw_heartbeat_ms,
+        };
+    }
+
+    pub fn watchdogMetadataSummary(self: *const Self) WatchdogMetadataSummary {
+        _ = self;
+        return .{
+            .anchor = descriptor().anchor,
+            .identity = "Broadcom BCM2835 Watchdog timer",
+            .supports_set_timeout = true,
+            .supports_magic_close = true,
+            .supports_keepalive_ping = true,
+            .supports_start = true,
+            .supports_stop = true,
+            .supports_get_timeleft = true,
+            .supports_restart = true,
+            .min_timeout_sec = min_timeout_sec,
             .max_timeout_sec = max_timeout_sec,
             .max_hw_heartbeat_ms = max_hw_heartbeat_ms,
         };
@@ -445,6 +478,24 @@ test "descriptor advertises registration and poweroff plumbing coverage" {
     try std.testing.expect(descriptor.provides_simple_driver_starter);
     try std.testing.expect(descriptor.touches_platform_registration);
     try std.testing.expect(descriptor.touches_poweroff_plumbing);
+}
+
+test "watchdog metadata summary keeps Linux-facing identity ops and timeout bounds reviewable" {
+    const lab = try Bcm2835WatchdogLab.init(8);
+    const metadata = lab.watchdogMetadataSummary();
+
+    try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", metadata.anchor);
+    try std.testing.expectEqualStrings("Broadcom BCM2835 Watchdog timer", metadata.identity);
+    try std.testing.expect(metadata.supports_set_timeout);
+    try std.testing.expect(metadata.supports_magic_close);
+    try std.testing.expect(metadata.supports_keepalive_ping);
+    try std.testing.expect(metadata.supports_start);
+    try std.testing.expect(metadata.supports_stop);
+    try std.testing.expect(metadata.supports_get_timeleft);
+    try std.testing.expect(metadata.supports_restart);
+    try std.testing.expectEqual(min_timeout_sec, metadata.min_timeout_sec);
+    try std.testing.expectEqual(max_timeout_sec, metadata.max_timeout_sec);
+    try std.testing.expectEqual(max_hw_heartbeat_ms, metadata.max_hw_heartbeat_ms);
 }
 
 test "registration outcome exposes claimed poweroff ownership" {
