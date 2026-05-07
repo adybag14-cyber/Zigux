@@ -100,6 +100,11 @@ static uint16_t compute_bytes(const unsigned char *bytes, size_t len)
 	return (uint16_t)~partial_bytes(bytes, len, 0);
 }
 
+static uint16_t ip_fast_csum(const unsigned char *iph, unsigned int ihl_words)
+{
+	return compute_bytes(iph, ihl_words * 4U);
+}
+
 static uint32_t csum_tcpudp_nofold(uint32_t saddr, uint32_t daddr,
 				   uint32_t len, uint8_t proto, uint32_t sum)
 {
@@ -206,9 +211,9 @@ int main(void)
 
 	print_u16_case("compute", "empty", compute_bytes(empty, 0));
 	print_u16_case("compute", "two-byte word", compute_bytes(two_byte_word, sizeof(two_byte_word)));
-	print_u16_case("compute", "ipv4 header", compute_bytes(ipv4_header, sizeof(ipv4_header)));
 	print_u16_case("compute", "odd payload", compute_bytes(odd_payload, 5));
 	print_u16_case("compute", "carry-heavy payload", compute_bytes(carry_payload, sizeof(carry_payload)));
+	print_u16_case("ip-fast-csum", "ipv4 header", ip_fast_csum(ipv4_header, sizeof(ipv4_header) / 4U));
 
 	print_u32_case("partial", "odd payload with saturated seed", partial_bytes(odd_payload, 5, 0xffffU));
 	print_u32_case("partial", "carry-heavy payload with unfolded seed", partial_bytes(carry_payload, sizeof(carry_payload), 0x1fffeU));
