@@ -37,7 +37,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
   - docs-root tranche summaries should keep naming `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and the focused `phase3_export_uapi_layout` replay so the active Phase 3 packet does not collapse back into an ABI-plus-policy-only note when the boundary starter moves
 - current shared ABI replay:
   - `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
-  - `PHASE3_ABI_MANIFEST_FILE_COUNT=26`
+  - `PHASE3_ABI_MANIFEST_FILE_COUNT=27`
   - `PHASE3_ABI_REPLAY_SCOPE=shared dump plus focused low-level wrapper replay`
   - the live `phase3_abi` packet now exercises the curated boundary header and export status root, bitmap and cpumask views, list and hlist views, err_ptr and xarray summaries, the current ida and minor-allocation/dev-region planning ladder, and the currently shipped chrdev notify/ack delivery-budget guard families through the shared dump and layout harness
   - the focused syntax gate now fail-closes on fused top-level C header declarations in `include/zigux/abi.h` plus fused top-level `;pub const` declarations in `zigux/bindings/abi.zig` or `zigux/bindings/dev_t.zig` until the authoritative header and curated bindings body are split back into parse-clean lines
