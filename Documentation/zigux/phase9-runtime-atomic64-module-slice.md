@@ -7,7 +7,7 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-module-starter`
 - `PHASE9_LANE_KEY=P9-L01`
-- scope: lifecycle starter, selftest hook surface, guarded lifecycle parity evidence, dedicated Phase 9 test wiring, a bounded loader-handoff scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, shared request-surface proof, dedicated runtime survey gate, survey-note ownership closure, and survey-manifest closure only
+- scope: lifecycle starter, selftest hook surface, guarded lifecycle parity evidence, dedicated Phase 9 test wiring, a bounded loader-handoff scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, shared request-surface proof including initialized-stage shared-request snapshot stability, prepared selftest-hook and shared-plan drift proofs, and release-order synchronization proof, dedicated runtime survey gate, survey-note ownership closure, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
   - `samples/zigux/runtime_atomic64_loader.zig`
@@ -36,7 +36,7 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 - a selftest summary that groups the C anchor into arithmetic, bitwise, returning, swap, and guard-operation families
 - a narrow `add_unless` guard-path pilot on top of the existing atomic helpers without pretending broader runtime-substrate support
 - a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, and `add_unless` expectations
-- a bounded `runtime_atomic64_loader` scaffold that names the planned init and exit handoff, the current atomic64 operation-family summary, the shared `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` request path, the shared request-surface proof, and the no-substrate release path while the real runtime substrate remains unavailable
+- a bounded `runtime_atomic64_loader` scaffold that names the planned init and exit handoff, the current atomic64 operation-family summary, the shared `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` request path, the caller-provided allocator handoff, the shared request-surface proof, initialized-stage shared-request snapshot stability, prepared selftest-hook and shared-plan drift proofs, the no-substrate release path, and release-order synchronization proof while the real runtime substrate remains unavailable
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` now keeps that split explicit as the shared owner map, so this atomic64 starter stays in the pilot-family lane while the reusable loader facade, allocator/init-flow replay, and build-only surface checker remain shared-lane evidence
 - the shared `zigux/kernel/runtime_loader.zig` facade stays a review-only Phase 9 handoff packet under the freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary, so the starter keeps the shared request path explicit without implying scheduler-facing substrate closure or a freeze-map status change
 - dedicated Phase 9 tests, the runtime atomic64 survey note and survey gate, the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade plus allocator/init-flow contract packet, and a `make -C zigux phase9` entry
@@ -62,4 +62,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime atomic64 lane and keep broader work blocked until a shared runtime loader substrate can consume the bounded init, selftest, and exit handoff plan beyond the current shared load-plan and request facade and turn this guarded evidence into real runtime module lifecycle parity.
+Stay in the Phase 9 runtime atomic64 lane and keep broader work blocked until a shared runtime loader substrate can consume the bounded init, selftest, and exit handoff plan beyond the current shared load-plan, initialized-stage snapshot, selftest-hook drift, shared-plan drift, and release-order proofs and turn this guarded evidence into real runtime module lifecycle parity.
