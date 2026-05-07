@@ -68,7 +68,7 @@ The current landed slice covers:
 The current tests check:
 
 - signed integer parsing and comma handling
-- Linux-style hyphen range expansion, validation-only counting, and leading-plus numeric acceptance for `get_option()` and `get_options()`
+- validator-only `get_option()` acceptance plus Linux-style hyphen range expansion, validation-only counting, and leading-plus numeric acceptance for `get_option()` and `get_options()`
 - descending-range early stop behavior
 - memory-size suffix scaling, leading-plus numeric acceptance, and accurate parse-stop reporting in `memparse()`
 - exact bare-option matching for comma-delimited flags, including leading and doubled-comma empty-option acceptance plus trailing-comma rejection
