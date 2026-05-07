@@ -9,7 +9,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
 - archival packet identity remains `P11-L08`, while current scheduled continuity for this archived bcm2835 watchdog packet is tracked through `P11-L10`; keep later DesignWare follow-up on `P11-L11`
 - scope: keep the current `bcm2835_wdt` starter honest about what is already validated, name the current timeout-window and register-image evidence alongside the registration-outcome, platform-handoff, poweroff-path, and remove-time callback-identity evidence, and avoid overclaiming live platform registration, PM wiring, or poweroff coordination before those behaviors exist in Zigux
 - latest focused replays: `zig test zigux/tests/phase11_bcm2835_wdt.zig`, `zig test drivers/watchdog/bcm2835_wdt_verify.zig`, and `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still pass for the bounded bcm2835 packet on current `master`
-- shared replay boundary: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` still includes `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`, but this watchdog-local matrix no longer claims that the whole current shared Phase 11 replay is green when unrelated non-watchdog drift can reopen elsewhere on `master`
+- shared replay boundary: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` still includes `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`, and the shipped wrapper `make -C zigux phase11` still routes through that same shared packet, but this watchdog-local matrix no longer claims that the whole current shared Phase 11 replay is green when unrelated non-watchdog drift can reopen elsewhere on `master`
 - current repo reality:
   - `drivers/watchdog/bcm2835_wdt.zig`
   - `drivers/watchdog/bcm2835_wdt_verify.zig`
@@ -54,8 +54,9 @@ Without this matrix, the slice and survey named the right next step but did not 
 ## Shared Replay Surface
 
 - current shared replay wiring on `master` includes `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`
-- exact shared command:
+- exact shared commands:
   - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+  - `make -C zigux phase11`
 - shared replay posture for this watchdog lane:
   - `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet
   - full-bundle green status for the wider current Phase 11 replay is intentionally tracked outside this watchdog-local matrix because unrelated non-watchdog drift can reopen elsewhere on `master`
