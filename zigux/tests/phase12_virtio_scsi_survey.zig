@@ -327,10 +327,14 @@ test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped bu
         "https://github.com/adybag14-cyber/Zigux/blob/master/drivers/scsi/virtio_scsi.zig",
         "https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-virtio-scsi-slice.md",
         "https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-virtio-scsi-survey.md",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-complex-driver-lane-sequencing.md",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-raw-github-coverage-survey.md",
         "https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-closure-checklist.md",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-coordination-matrix.md",
         "https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/README.md",
         "https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_build.zig",
         "https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_virtio_scsi.zig",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
         "https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_virtio_scsi_survey.zig",
         "https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_virtio_scsi_manifest.json",
         "https://github.com/adybag14-cyber/Zigux/blob/master/scripts/zigux/README.md",
@@ -339,20 +343,28 @@ test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped bu
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/scsi/virtio_scsi.zig",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-virtio-scsi-slice.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-virtio-scsi-survey.md",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-complex-driver-lane-sequencing.md",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-raw-github-coverage-survey.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-closure-checklist.md",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-coordination-matrix.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/README.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_build.zig",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_virtio_scsi.zig",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_virtio_scsi_survey.zig",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_virtio_scsi_manifest.json",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/scripts/zigux/README.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/README.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/Makefile",
-        "- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
-        "1. `make -C zigux phase12-smoke`",
-        "2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
-        "3. `make -C zigux phase12`",
+        "- current virtio_scsi smoke packet surfaces: `zigux/tests/phase12_virtio_scsi.zig` and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
+        "1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
+        "2. `make -C zigux phase12-smoke`",
+        "3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+        "4. `make -C zigux phase12`",
         "Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether those same shipped surfaces are close enough to describe the active Phase 12 tranche as release-closed.",
+        "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md` should stay visible beside this fallback catalog and the compact release coordination matrix",
+        "`Documentation/zigux/phase12-raw-github-coverage-survey.md` should stay visible beside this fallback catalog so the two commit-pinned artifacts plus two shared-tree-only anchors split remains reviewable without turning this driver-local note into a broader fallback-ownership summary.",
+        "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback catalog, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback catalog into a second sequencing document.",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.",
         "This catalog should stay read-only and should not be used to imply an unshipped `validate-phase12.py`, any `check-phase12-*.py` packet, or a `make -C zigux phase12-validate` target.",
     };
@@ -363,18 +375,22 @@ test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped bu
 
     try std.testing.expectEqual(
         @as(usize, 1),
-        std.mem.count(u8, catalog, "- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`"),
+        std.mem.count(u8, catalog, "- current virtio_scsi smoke packet surfaces: `zigux/tests/phase12_virtio_scsi.zig` and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`"),
     );
     try std.testing.expectEqual(
         @as(usize, 1),
-        std.mem.count(u8, catalog, "1. `make -C zigux phase12-smoke`"),
+        std.mem.count(u8, catalog, "1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`"),
     );
     try std.testing.expectEqual(
         @as(usize, 1),
-        std.mem.count(u8, catalog, "2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`"),
+        std.mem.count(u8, catalog, "2. `make -C zigux phase12-smoke`"),
     );
     try std.testing.expectEqual(
         @as(usize, 1),
-        std.mem.count(u8, catalog, "3. `make -C zigux phase12`"),
+        std.mem.count(u8, catalog, "3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`"),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        std.mem.count(u8, catalog, "4. `make -C zigux phase12`"),
     );
 }
