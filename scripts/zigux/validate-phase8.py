@@ -57,6 +57,7 @@ REQUIRED_FILES = [
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "tools/lib/bpf/zigux_segments/pin_path.zig",
     "tools/lib/bpf/zigux_segments/type_names.zig",
+    "tools/lib/bpf/zigux_segments/verify.zig",
 ]
 
 REQUIRED_SEGMENTS = {
@@ -385,6 +386,11 @@ REQUIRED_MARKERS = {
         "standalone timer or clockevent helper behavior",
     ],
     "zigux/tests/phase8_libbpf_segments_only_build.zig": [
+        "../../tools/lib/bpf/zigux_segments/verify.zig",
+        "phase8-libbpf-segment-tests",
+        "phase8-libbpf-segment-verify-tests",
+    ],
+    "zigux/tests/phase8_libbpf_segments_only_build.zig": [
         "\"phase8_libbpf_segments.zig\"",
         "phase8-libbpf-segment-tests",
     ],
@@ -652,6 +658,7 @@ def run_self_test() -> None:
         ("missing_exec_cmd_test", "zigux/tests/phase8_exec_cmd.zig"),
         ("missing_exec_cmd_only_build", "zigux/tests/phase8_exec_cmd_only_build.zig"),
         ("missing_manifest", MANIFEST_PATH),
+        ("missing_libbpf_verify_helper", "tools/lib/bpf/zigux_segments/verify.zig"),
     ]
 
     marker_cases = [
@@ -780,6 +787,13 @@ def run_self_test() -> None:
             "phase 8 perf-buffer poll helper keeps the final return-path choice explicit",
             "phase 8 perf-buffer poll helper keeps the return choice compact",
             "zigux/tests/phase8_perf_buffer_poll.zig: phase 8 perf-buffer poll helper keeps the final return-path choice explicit",
+        ),
+        (
+            "phase8_libbpf_segments_only_build_verify_module",
+            "zigux/tests/phase8_libbpf_segments_only_build.zig",
+            "../../tools/lib/bpf/zigux_segments/verify.zig",
+            "../../tools/lib/bpf/zigux_segments/verify_missing.zig",
+            "zigux/tests/phase8_libbpf_segments_only_build.zig: ../../tools/lib/bpf/zigux_segments/verify.zig",
         ),
         (
             "bridge_helper_observation_export",
