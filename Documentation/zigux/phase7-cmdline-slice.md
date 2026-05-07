@@ -16,6 +16,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
   - `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
   - `scripts/zigux/validate-phase7.py`
   - `scripts/zigux/check-phase7-make-wrapper.py`
+  - `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
   - `zigux/tests/phase7_build.zig`
   - `zigux/Makefile`
 
@@ -49,6 +50,7 @@ Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference samp
 5. keep the shared validator-first packet explicit
 - `python3 scripts/zigux/validate-phase7.py`
 - `python3 scripts/zigux/check-phase7-make-wrapper.py`
+- `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
 - `make -C zigux phase7-validate`
 
 6. run the shared Phase 7 helper gate
@@ -75,7 +77,7 @@ The current tests check:
 - C-style stop-at-NUL handling for bare-option scans
 - serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination
 - caller-owned buffer discipline for `next_arg()`: `nextArg()` writes NUL sentinels into the supplied mutable buffer and returns borrowed `param`, `value`, and `rest` slices into that same storage
-- the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice
+- the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice
 
 ## Non-goals
 
