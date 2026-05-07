@@ -8,7 +8,7 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 - `PHASE15_LANE_KEY=P15-L16`
 - `PHASE15_SLICE=indefinite-c-policy-field-sync-followup`
 - scope: one dedicated indefinite-C policy note, one manifest, one Zig test, the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build, and the linked field-sync between the policy note, the shared scripts-root validator-first route, the review-process packet fields, the parity scorecard wording, and the reserved evidence-archive templates
-- survey provenance refreshed against verified `master` head `7b5519444e8f73f84c68dc3e63580fcaef06ffb6`
+- survey provenance refreshed against verified `master` head `2359c03fa82626b7359467c9b8bc9d0b092de5aa`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
