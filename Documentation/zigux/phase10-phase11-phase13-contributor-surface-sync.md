@@ -55,14 +55,27 @@ For the active virtio contributor packet, confirm wording still matches the curr
 - `zigux/tests/README.md`
 - `zigux/tests/phase10_build.zig`
 - `zigux/tests/phase10_closure_manifest.json`
+- `zigux/tests/phase10_virtio_core.zig`
+- `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_core_reset_queue.zig`
+- `zigux/tests/phase10_virtio_core_survey.zig`
 - `zigux/tests/phase10_virtio_driver_id.zig`
+- `zigux/tests/phase10_virtio_ring.zig`
+- `zigux/tests/phase10_virtio_ring_manifest.json`
+- `zigux/tests/phase10_virtio_ring_survey.zig`
+- `zigux/tests/phase10_virtio_input.zig`
+- `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_input_status_drain.zig`
+- `zigux/tests/phase10_virtio_input_survey.zig`
+- `zigux/tests/phase10_virtio_mmio.zig`
+- `zigux/tests/phase10_virtio_mmio_manifest.json`
+- `zigux/tests/phase10_virtio_mmio_survey.zig`
 - `scripts/zigux/check-phase10-core-packet.py`
 - `scripts/zigux/check-phase10-ring-packet.py`
 - `scripts/zigux/check-phase10-input-packet.py`
 - `scripts/zigux/check-phase10-mmio-packet.py`
 - `zigux/Makefile`
+- `zig build test --build-file zigux/tests/phase10_build.zig`
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
@@ -139,7 +152,7 @@ Before closing a contributor-guidance change, ask:
 - Did a shared scripts-root Phase 13 summary keep `zigux/tests/phase13_landlock_syscalls_reviewability.zig` implicit after the contributor guide, compact tests-root companion, or review checklist made that focused landlock reviewability shard explicit as direct evidence beside `zigux/tests/phase13_landlock_syscalls.zig`?
 - Did a checklist prompt keep an old replay count after the docs-root summary changed?
 - Did docs-root or scripts-root add a new replay, checker, manifest, or survey file that the shared contributor prompts still compress into older shorthand?
-- Did one shared Phase 10 prompt collapse the shipped `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, or `scripts/zigux/check-phase10-mmio-packet.py` guards back into core-only shorthand, leave the scripts-root Phase 10 flow talking as if only the core and input packet guards exist, or drop `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, or `zigux/tests/phase10_virtio_input_status_drain.zig` after the packet-local evidence named them explicitly?
+- Did one shared Phase 10 prompt collapse the shipped `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, or `scripts/zigux/check-phase10-mmio-packet.py` guards back into core-only shorthand, leave the scripts-root Phase 10 flow talking as if only the core and input packet guards exist, or drop `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, or `zigux/tests/phase10_virtio_mmio_survey.zig` after the packet-local evidence named them explicitly?
 - Did one shared Phase 13 prompt turn shipped adjacent release-surface evidence such as `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, `zigux/helpers/notifier_chain_view.zig`, or the shipped `scripts/zigux/check-phase13-notifier-packet.py` route into extra replay steps, drop that adjacent notifier checker from the packet, or otherwise misstate the notifier evidence?
 - Do any shared Phase 13 prompts still imply `scripts/zigux/check-phase13-release-replay-exact-counts.py` as a shipped surface even though that exact-count checker does not currently round-trip on `master`?
 
