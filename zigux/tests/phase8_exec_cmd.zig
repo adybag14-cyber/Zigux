@@ -134,3 +134,20 @@ test "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet expl
     try std.testing.expect(std.mem.indexOf(u8, checklist, "helper-first, output-stable deferred-exec planning packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "without widening into direct process-launch parity") != null);
 }
+
+test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {
+    const io = std.testing.io;
+    const docs_root = try std.Io.Dir.cwd().readFileAlloc(
+        io,
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(docs_root);
+
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase8-exec-cmd-slice.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "zigux/tests/phase8_exec_cmd.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "zigux/tests/phase8_exec_cmd_only_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "make -C zigux phase8-exec-cmd-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "make -C zigux phase8-validate") != null);
+}
