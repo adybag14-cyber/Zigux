@@ -6,6 +6,7 @@ test "phase12 virtio scsi queue planner stays anchored to virtio_scsi.c" {
     try std.testing.expectEqualStrings("virtio_scsi_queue_lab", descriptor.name);
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_queue_family_planner);
+    try std.testing.expect(descriptor.provides_host_shape_summary);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_scsi_host);
     try std.testing.expect(descriptor.touches_transport_reset);
@@ -58,6 +59,72 @@ test "phase12 virtio scsi probe snapshot keeps queue clamp and probe-only bounda
     try std.testing.expectEqual(@as(u16, 1), poll_queue.local_index);
     try std.testing.expectEqual(@as(u16, 3), poll_queue.global_index);
     try std.testing.expectEqual(virtio_scsi.RequestQueueKind.request_poll, poll_queue.kind);
+}
+
+test "phase12 virtio scsi host shape summary keeps pre-registration host fields reviewable" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const summary = try lab.captureHostShapeSummary(.{
+        .num_queues = 8,
+        .requested_poll_queues = 3,
+        .seg_max = 128,
+        .cmd_per_lun = 64,
+        .max_target = 31,
+        .max_lun = 15,
+        .max_sectors = 2048,
+    });
+
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 8), summary.request_queues);
+    try std.testing.expectEqual(@as(u16, 5), summary.default_queues);
+    try std.testing.expectEqual(@as(u16, 3), summary.poll_queues);
+    try std.testing.expectEqual(@as(u32, 128), summary.sg_tablesize);
+    try std.testing.expectEqual(@as(u32, 64), summary.cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 2048), summary.max_sectors);
+    try std.testing.expectEqual(@as(u32, 32), summary.max_id);
+    try std.testing.expectEqual(@as(u32, 0x4010), summary.max_lun);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_cdb_size), summary.max_cmd_len);
+    try std.testing.expectEqual(@as(u16, 8), summary.nr_hw_queues);
+    try std.testing.expectEqual(@as(u16, 3), summary.nr_maps);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_dma_boundary), summary.dma_boundary);
+    try std.testing.expect(summary.uses_map_queues);
+    try std.testing.expect(summary.uses_commit_rqs);
+    try std.testing.expect(summary.uses_mq_poll);
+    try std.testing.expect(summary.preserves_pre_registration_scope);
+}
+
+test "phase12 virtio scsi host shape summary defaults non-poll hosts and blocks frozen planning" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const summary = try lab.captureHostShapeSummary(.{
+        .num_queues = 1,
+        .requested_poll_queues = 9,
+        .seg_max = 0,
+        .cmd_per_lun = 0,
+        .max_target = 0,
+        .max_lun = 0,
+        .max_sectors = 0,
+    });
+
+    try std.testing.expectEqual(@as(u16, 1), summary.default_queues);
+    try std.testing.expectEqual(@as(u16, 0), summary.poll_queues);
+    try std.testing.expectEqual(@as(u32, 1), summary.sg_tablesize);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_cmd_per_lun), summary.cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_max_sectors), summary.max_sectors);
+    try std.testing.expectEqual(@as(u32, 1), summary.max_id);
+    try std.testing.expectEqual(@as(u32, 0x4001), summary.max_lun);
+    try std.testing.expectEqual(@as(u16, 1), summary.nr_maps);
+    try std.testing.expect(!summary.uses_mq_poll);
+
+    _ = try lab.planQueueLayout(2, 1);
+    _ = try lab.freezeForTransportReset();
+    try std.testing.expectError(error.TransportFrozen, lab.captureHostShapeSummary(.{
+        .num_queues = 2,
+        .requested_poll_queues = 1,
+        .seg_max = 32,
+        .cmd_per_lun = 8,
+        .max_target = 1,
+        .max_lun = 1,
+        .max_sectors = 512,
+    }));
 }
 
 test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery boundary" {
@@ -159,7 +226,7 @@ test "phase12 virtio scsi recovery event ownership and rollback keep the frozen 
     try std.testing.expectEqual(@as(u16, 0), rollback.recovery_generation);
     try std.testing.expect(rollback.blocks_queue_planning_until_restore);
     try std.testing.expect(rollback.blocks_request_queue_access_until_restore);
-    try std.testing.expect(rollback.keeps_frozen_layout_for_restore);
+    try std.testing.expect(rollback.keeps_frozen_layoutForRestore);
     try std.testing.expect(rollback.clears_live_layout_after_restore);
     try std.testing.expect(rollback.requires_replan_before_queue_reuse);
 
@@ -183,7 +250,7 @@ test "phase12 virtio scsi recovery event rearm summary stays tied to the frozen 
     try std.testing.expect(summary.reuses_frozen_event_queue_index);
     try std.testing.expect(summary.requires_device_ready_before_rearm);
     try std.testing.expect(summary.rearms_event_queue_before_event_recycling);
-    try std.testing.expect(summary.rearms_event_queue_before_request_queue_reuse);
+    try std.testing.expect(summary.rearms_event_queueBeforeRequestQueueReuse);
 }
 
 test "phase12 virtio scsi recovery event rearm summary requires a frozen transport" {
