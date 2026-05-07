@@ -55,6 +55,6 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
 
 ## Next bounded step
 
-Leave this note parked unless fresh repo inspection shows that the shared Phase 12 docs, fallback-overview, compact release-coordination matrix, or review surfaces are blurring `virtio_net`, `nvme_pci`, and `virtio_scsi` back together.
+Leave this note parked unless fresh repo inspection shows that the shared Phase 12 docs, scripts-root summary, tests-root summary, fallback-overview, compact release-coordination matrix, or review surfaces are blurring `virtio_net`, `nvme_pci`, and `virtio_scsi` back together.
 
-If the lane reopens, keep the next step inside the smallest docs-root, tests-root, fallback-overview, compact-matrix, or checker wording repair that restores those three driver-local ownership boundaries without reopening PMO closure drift control or the separate libbpf helper packet.
+If the lane reopens, keep the next step inside the smallest docs-root, scripts-root, tests-root, fallback-overview, compact-matrix, or checker wording repair that restores those three driver-local ownership boundaries without reopening PMO closure drift control or the separate libbpf helper packet.
