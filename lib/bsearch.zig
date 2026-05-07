@@ -600,7 +600,7 @@ test "typed helpers short-circuit empty input without invoking comparators" {
 }
 
 test "raw helpers short-circuit empty input and accept c abi comparator pointers" {
-    const empty = [_]i32{};
+    var empty = [_]i32{};
 
     raw_compare_call_count = 0;
     try std.testing.expectEqual(
@@ -610,6 +610,10 @@ test "raw helpers short-circuit empty input and accept c abi comparator pointers
     try std.testing.expectEqual(@as(usize, 0), raw_compare_call_count);
     try std.testing.expect(
         bsearch(&@as(i32, 5), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(i32), compareOpaqueIntCounted) == null,
+    );
+    try std.testing.expectEqual(@as(usize, 0), raw_compare_call_count);
+    try std.testing.expect(
+        bsearchMutable(&@as(i32, 5), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(i32), compareOpaqueIntCounted) == null,
     );
     try std.testing.expectEqual(@as(usize, 0), raw_compare_call_count);
 
