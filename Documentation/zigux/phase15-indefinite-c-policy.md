@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 - `PHASE15_STATUS=indefinite_c_policy_survey_landed`
 - `PHASE15_LANE_KEY=P15-L16`
 - `PHASE15_SLICE=indefinite-c-policy-field-sync-followup`
-- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and the linked field-sync between the policy note, the shared scripts-root validator-first route, the review-process packet fields, the parity scorecard wording, and the reserved evidence-archive templates
+- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build, and the linked field-sync between the policy note, the shared scripts-root validator-first route, the review-process packet fields, the parity scorecard wording, and the reserved evidence-archive templates
 - survey provenance refreshed against verified `master` head `7b5519444e8f73f84c68dc3e63580fcaef06ffb6`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
@@ -25,6 +25,8 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
   - `zigux/Makefile`
   - `zigux/tests/phase15_indefinite_c_policy.json`
   - `zigux/tests/phase15_indefinite_c_policy.zig`
+  - `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`
+  - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
   - `zigux/tests/phase15_build.zig`
 
 ## Why this slice exists
@@ -114,7 +116,7 @@ The current lane state is:
 - landed `phase15-indefinite-c-field-sync-followup`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane narrow. Zigux gains a dedicated, reviewable Phase 15 policy for code that remains in C indefinitely, keeps the shared validator-first route explicit beside the dedicated policy note and its paired test, and still does not claim Architecture Council approval for any status change or any new deep-core Zig ownership.
+This keeps the lane narrow. Zigux gains a dedicated, reviewable Phase 15 policy for code that remains in C indefinitely, keeps the shared validator-first route explicit beside the dedicated policy note and its paired test, keeps the focused blocker-evidence and lane-owner-alignment replays inside the same bounded policy packet, and still does not claim Architecture Council approval for any status change or any new deep-core Zig ownership.
 
 ## Non-goals
 
