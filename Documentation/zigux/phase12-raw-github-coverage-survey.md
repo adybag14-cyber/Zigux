@@ -14,6 +14,7 @@ It is a fallback-read overview, not a closure claim, not a validator-first route
 - commit-pinned fallback artifacts: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - shared-tree-only anchors: `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
+- shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
 
 ## Coverage split
 
@@ -53,6 +54,8 @@ Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO compan
 `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase12-release-sequencing.md` should keep this shared fallback overview visible beside that same PMO companion so the two-artifact-plus-two-anchor split does not disappear from the shared release packet while the narrower driver-local fallback notes stay unchanged.
 
 `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, and `zigux/tests/README.md` should stay aligned on that same split so the compact coordination view remains reviewable while the tests-root packet keeps the matrix reminder explicit.
+
+`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` should be reread beside this shared fallback overview whenever shared Phase 12 libbpf ownership wording changes so the fallback split does not blur the reviewability lane, the helper-sized ready-next lane, the deferred bridge and queue-routing lane, and the blocked object-model wall back into one vague `libbpf` bucket.
 
 `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion for `virtio_net`, `nvme_pci`, and `virtio_scsi`, so this shared fallback overview should be reread beside that lane map instead of letting the mixed fallback split blur those three driver lanes back together.
 
