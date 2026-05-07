@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 from pathlib import Path
 import tempfile
 
@@ -16,6 +17,8 @@ EXPORT_SHIM_REL = "zigux/kernel/export_shim.zig"
 UAPI_VERSION_REL = "zigux/uapi/version.zig"
 LINUX_HEADER_REL = "include/linux/zigux.h"
 ABI_HEADER_REL = "include/zigux/abi.h"
+ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
+BUILD_FILE_REL = "zigux/tests/build.zig"
 EXPORT_UAPI_LAYOUT_REL = "zigux/tests/phase3_export_uapi_layout.zig"
 
 REQUIRED_FILES = (
@@ -26,8 +29,21 @@ REQUIRED_FILES = (
     UAPI_VERSION_REL,
     LINUX_HEADER_REL,
     ABI_HEADER_REL,
+    ABI_MANIFEST_REL,
+    BUILD_FILE_REL,
     EXPORT_UAPI_LAYOUT_REL,
     WORKFLOW_REL,
+)
+
+MANIFEST_REQUIRED_FILES = (
+    SURVEY_REL,
+    EXPORT_SHIM_REL,
+    UAPI_VERSION_REL,
+    LINUX_HEADER_REL,
+    ABI_HEADER_REL,
+    BUILD_FILE_REL,
+    EXPORT_UAPI_LAYOUT_REL,
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
 )
 
 SURVEY_EXACT_MARKERS = (
@@ -179,6 +195,31 @@ def extract_backticked_values(text: str, key: str) -> list[str]:
     return values
 
 
+def validate_manifest(root: Path, issues: list[str]) -> None:
+    manifest_path = root / ABI_MANIFEST_REL
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        issues.append(f"missing_manifest:{ABI_MANIFEST_REL}")
+        return
+    except json.JSONDecodeError as exc:
+        issues.append(f"invalid_manifest:{ABI_MANIFEST_REL}:{exc.msg}")
+        return
+
+    files = manifest.get("files")
+    if not isinstance(files, list) or not all(isinstance(item, str) for item in files):
+        issues.append(f"invalid_manifest_files:{ABI_MANIFEST_REL}")
+        return
+
+    file_count = manifest.get("file_count")
+    if file_count != len(files):
+        issues.append(f"stale_manifest_file_count:{ABI_MANIFEST_REL}:{file_count}!={len(files)}")
+
+    for rel in MANIFEST_REQUIRED_FILES:
+        if rel not in files:
+            issues.append(f"manifest_missing_required_file:{rel}")
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -215,6 +256,8 @@ def validate(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing_marker:{rel}:{marker}")
+
+    validate_manifest(root, issues)
 
     docs_root_path = root / DOCS_ROOT_REL
     if docs_root_path.exists():
@@ -325,11 +368,13 @@ def run_self_test() -> int:
     linux_header_text = "\n".join(
         (
             "#include <zigux/abi.h>",
-            "static inline struct zigux_export_status zigux_status_ok(zigux_u16 facility)",
+            "static inline struct zigux_export_status zigux_status_ok(",
+            "    zigux_u16 facility)",
             "{",
             "    return (struct zigux_export_status){ .facility = facility };",
             "}",
-            "static inline struct zigux_export_status zigux_status_err(zigux_s32 code, zigux_u16 facility)",
+            "static inline struct zigux_export_status zigux_status_err(",
+            "    zigux_s32 code, zigux_u16 facility)",
             "{",
             "    return (struct zigux_export_status){ .code = code, .facility = facility };",
             "}",
@@ -417,10 +462,7 @@ def run_self_test() -> int:
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_export_uapi_") as tmp_dir:
         root = Path(tmp_dir)
-        _write(
-            root / SURVEY_REL,
-            "placeholder\n",
-        )
+        _write(root / SURVEY_REL, "placeholder\n")
         _write(
             root / DOCS_ROOT_REL,
             "\n".join(
@@ -447,7 +489,23 @@ def run_self_test() -> int:
         _write(root / UAPI_VERSION_REL, uapi_version_text)
         _write(root / LINUX_HEADER_REL, linux_header_text)
         _write(root / ABI_HEADER_REL, abi_header_text)
+        _write(root / BUILD_FILE_REL, '// build step placeholder\n')
         _write(root / EXPORT_UAPI_LAYOUT_REL, export_uapi_layout_text)
+        _write(root / "scripts/zigux/validate-phase3-export-uapi-survey.py", "# self-reference\n")
+        _write(
+            root / ABI_MANIFEST_REL,
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "active",
+                    "slice": "abi-substrate-skeleton",
+                    "file_count": len(MANIFEST_REQUIRED_FILES),
+                    "files": list(MANIFEST_REQUIRED_FILES),
+                },
+                indent=2,
+            )
+            + "\n",
+        )
         _write(
             root / WORKFLOW_REL,
             "\n".join(
@@ -533,9 +591,31 @@ def run_self_test() -> int:
         ]
         if issues != expected:
             raise SystemExit(f"phase3-export-uapi-self-test:workflow_guard_failed:{issues}")
+        _write(
+            root / WORKFLOW_REL,
+            "\n".join(
+                (
+                    "- name: Validate Phase 3 export/UAPI survey",
+                    "  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
+                    "- name: Self-test Phase 3 export/UAPI survey",
+                    "  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+                    "",
+                )
+            ),
+        )
+
+        manifest_path = root / ABI_MANIFEST_REL
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["files"] = [rel for rel in manifest["files"] if rel != EXPORT_UAPI_LAYOUT_REL]
+        manifest["file_count"] = len(manifest["files"])
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+        issues = validate(root)
+        expected = [f"manifest_missing_required_file:{EXPORT_UAPI_LAYOUT_REL}"]
+        if issues != expected:
+            raise SystemExit(f"phase3-export-uapi-self-test:manifest_required_file_guard_failed:{issues}")
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -559,7 +639,7 @@ def main() -> int:
         return 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY=pass")
-    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=9")
+    print(f"PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     return 0
 
 
