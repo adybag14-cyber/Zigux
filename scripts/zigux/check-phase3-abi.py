@@ -19,6 +19,15 @@ def main() -> int:
     )
     if syntax_check.returncode != 0:
         return syntax_check.returncode
+
+    constant_parity_check = subprocess.run(
+        [sys.executable, "scripts/zigux/survey-phase3-abi-constant-parity.py"],
+        cwd=ROOT,
+        check=False,
+    )
+    if constant_parity_check.returncode != 0:
+        return constant_parity_check.returncode
+
     return run_from_wrapper(__file__)
 
 
