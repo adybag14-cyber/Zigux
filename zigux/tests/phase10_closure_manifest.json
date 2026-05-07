@@ -142,14 +142,14 @@
     "zigux/tests/phase10_virtio_ring_manifest.json": [
       "phase10-virtqueue-shape-helper",
       "phase10-used-buffer-polling-helper",
-      "phase10-callback-disable-helper",
       "phase10-callback-enable-helper",
-      "phase10-callback-enable-prepare-helper",
       "phase10-callback-delay-helper",
       "phase10-notify-prepare-helper",
-      "phase10-queue-reset-guard-helper",
+      "phase10-broken-queue-poll-guard",
       "phase10-queue-reset-helper",
-      "phase10-broken-queue-recovery-helper"
+      "phase10-queue-reset-readiness-helper",
+      "phase10-ring-verify-replay",
+      "phase10-virtio-ring-slice-note"
     ]
   },
   "landed_input_helper_evidence": {
