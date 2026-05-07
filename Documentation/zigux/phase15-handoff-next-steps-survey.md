@@ -22,7 +22,7 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 
 ## Current Handoff Surface
 
-- the shared governance packet is present through the freeze map, review checklist, review-process note, parity scorecard, indefinite-C policy, docs root, the scripts root, the tests root, the Phase 15 scripts-root checkers `scripts/zigux/check-phase15-scripts-readme-alignment.py` and `scripts/zigux/check-phase15-review-process-handoff.py`, the validator-first route `make -C zigux phase15-validate`, the shared workflow, and `make -C zigux phase15`
+- the shared governance packet is present through `Documentation/zigux/README.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the Phase 15 scripts-root checkers `scripts/zigux/check-phase15-scripts-readme-alignment.py` and `scripts/zigux/check-phase15-review-process-handoff.py`, the validator-first route `make -C zigux phase15-validate`, the shared workflow, and `make -C zigux phase15`
 - this dedicated handoff note, its manifest, and its focused Zig guard are now wired into the shared `zigux/tests/phase15_build.zig` replay so the parked next-step synthesis remains reviewable as a bounded packet
 - the dedicated shared-build handoff replay gap is now closed on current `master`
 - the docs-root pointer back to this handoff packet is now present in current `Documentation/zigux/README.md`
