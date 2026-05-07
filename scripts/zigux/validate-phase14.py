@@ -34,7 +34,7 @@ REQUIRED_COMMANDS = [
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
-    "make -C zigux phase14"
+    "make -C zigux phase14",
 ]
 COMPILE_MATRIX_ROWS = [
     ("phase14-workqueue-bridge-tests", "phase14_workqueue_bridge.zig", "full_bundle_only"),
@@ -476,7 +476,7 @@ def run_self_test() -> int:
         ]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
             build_lines.append("b.addTest(.{")
-            build_lines.append("b.addRunArtifact(")
+            buildLines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
@@ -599,6 +599,16 @@ def run_self_test() -> int:
         errors = check(root)
         if "phase14 rollback-threshold sequencing checker forced failure" not in errors:
             print("self-test expected rollback-threshold checker subprocess failure", file=sys.stderr)
+            return 1
+        broken_rollback_checker.write_text(
+            "#!/usr/bin/env python3\n"
+            f"\"\"\"{CHECKER_MARKER}\"\"\"\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 rollback-threshold sequencing checker failed without output" not in errors:
+            print("self-test expected rollback-threshold checker silent subprocess failure", file=sys.stderr)
             return 1
         write_text(root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         broken_release_boundary_checker = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
