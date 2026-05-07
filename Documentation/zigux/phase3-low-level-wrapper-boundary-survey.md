@@ -1,6 +1,6 @@
 # Phase 3 Low-Level Wrapper Boundary Survey
 
-This note records the current atomic, barrier, and MMIO boundary for the bounded Phase 3 ABI substrate on live `master`.
+This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary for the bounded Phase 3 ABI substrate on live `master`.
 
 ## Status
 
@@ -17,6 +17,10 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_MMIO_SCOPE=range-read8-write8-read16-write16-read32-write32-read64-write64`
 - `PHASE3_MMIO_STATUS=byte-16-bit-32-bit-and-64-bit-mmio-through-narrow-pointer-bridge`
 - `PHASE3_MMIO_BLOB_SHA=3e53168ff806ef94e691667f84ec871cfa6d4288`
+- `PHASE3_NARROW_UNSAFE_PATH=zigux/unsafe/narrow.zig`
+- `PHASE3_NARROW_UNSAFE_SCOPE=address-byte-offset-align1-pointer-slice-const-pointer-write-and-interop-policy-unsafe-scope-byte-decoders`
+- `PHASE3_NARROW_UNSAFE_STATUS=align1-raw-pointer-bridge-plus-explicit-unsafe-scope-byte-policy`
+- `PHASE3_NARROW_UNSAFE_BLOB_SHA=36b4ac26dbd71daf7ed55bf5344c519f62c23ffb`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay`
 - `PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface`
@@ -44,7 +48,7 @@ For this lane, the roadmap requirements are still narrow:
 - explicit narrow-unsafe review instead of hidden raw-pointer expansion
 - compile, layout, dump, and focused replay evidence that tells reviewers exactly how much of the low-level wrapper family is actually proven on current `master`
 
-That still does not require a broad kernel-style low-level helper family. It does require the repo to say clearly which low-level wrappers are already shipped, which focused replay is real, and which broader proof still comes from the shared ABI packet.
+That still does not require a broad kernel-style low-level helper family. It does require the repo to say clearly which low-level wrappers are already shipped, which focused replay is real, which narrow-unsafe bridge is actually pinned, and which broader proof still comes from the shared ABI packet.
 
 ## Live Repo Reality
 
@@ -55,6 +59,7 @@ The current tree carries a real low-level wrapper packet:
 - `zigux/helpers/atomic.zig` exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, with helper-local tests still carrying a few atomic edge cases beyond the focused replay.
 - `zigux/helpers/barrier.zig` exposes `acquire`, `release`, `full`, and `acquireRelease()` through local compiler-barrier wrappers, with direct locality proof now also present in the focused replay.
 - `zigux/helpers/mmio.zig` exposes `range`, `read8`, `write8`, `read16`, `write16`, `read32`, `write32`, `read64`, and `write64`, all routed through the narrow pointer bridge in `zigux/unsafe/narrow.zig`, which now keeps the MMIO pointer handoff at `align(1)` so byte-addressed 16-bit, 32-bit, and 64-bit accesses do not silently assume stronger alignment than the helper packet proves.
+- `zigux/unsafe/narrow.zig` exposes `addressOf`, `byteOffset`, `pointerAt`, `constSliceAt`, `constPointerAt`, `writeValueAt`, and the explicit unsafe-scope decoders `scopeFromInteropPolicyBytes`, `scopeFromInteropPolicy`, `scopeFromByte`, `recognizes*`, and `permits*`, with helper-local tests keeping the raw-pointer bridge plus the interop-policy unsafe-scope bytes reviewable beside the focused MMIO replay.
 - `zigux/tests/phase3_low_level_wrappers.zig` now directly proves the shipped helper surface, including fetch, signed atomic arithmetic and min/max edges, monotonic strong `compareExchange()`, `acq_rel` strong `compareExchange()` mismatch handling, weak compare-exchange coverage, explicit barrier-locality replay, non-`seq_cst` ordering, plus byte-addressed 16-bit, 32-bit, and 64-bit MMIO range descriptors and odd-offset MMIO behavior.
 - The shared compile, layout, and dump proof for this packet still lives in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/expected.json`, and `zigux/tests/fixtures/phase3_abi_manifest.json`.
 
@@ -70,12 +75,13 @@ The live gap is no longer helper absence and it is no longer the absence of a de
 
 The current reviewability gap is narrower:
 
-- the helper files already ship the bounded atomic, barrier, and MMIO surface listed above
-- the repo now has a dedicated focused replay for that starter packet in `zigux/tests/phase3_low_level_wrappers.zig`
+- the helper files already ship the bounded atomic, barrier, MMIO, and narrow-unsafe surface listed above
+- the repo now has a dedicated focused replay for the shipped low-level helper operations in `zigux/tests/phase3_low_level_wrappers.zig`
+- the repo also has helper-local tests in `zigux/unsafe/narrow.zig` that keep the raw-pointer bridge and explicit unsafe-scope byte policy reviewable where the narrow surface actually lives
 - the focused replay now covers signed `fetchAdd` and `fetchSub`, signed `fetchMin` and `fetchMax`, monotonic strong `compareExchange()`, `acq_rel` strong `compareExchange()` mismatch handling, byte/16-bit/32-bit/64-bit MMIO range descriptors, non-`seq_cst` atomic orderings, direct barrier-locality proof, and the byte-addressed alignment handoff for odd-offset 16-bit, 32-bit, and 64-bit MMIO
 - the shared ABI packet remains the broader compile, layout, and dump proof surface for this family
 
-That repo reality still fits the roadmap's wrapper-first posture, but it means this survey should describe the widened focused replay honestly without pretending it replaces the shared ABI packet.
+That repo reality still fits the roadmap's wrapper-first posture, but it means this survey should describe the widened focused replay honestly while also pinning the narrow-unsafe bridge instead of leaving that evidence implied through MMIO prose alone.
 
 ## Next Bounded Step
 
