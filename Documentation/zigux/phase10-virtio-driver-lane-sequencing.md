@@ -76,11 +76,12 @@ This lane may talk about adjacent MMIO footing when the survey compares roadmap 
 
 This lane consumes shared core, ring, and MMIO prerequisites, but it does not own wrapper-layer growth in those packets. Its next bounded work stays inside input registration truthfulness, ownership notes, wrapper-facing verify replays, or similarly narrow survey-backed repairs.
 
-The current MMIO packet owns MMIO helper footing and risky-transport boundaries:
+`P10-L10` MMIO lane owns MMIO helper footing and risky-transport boundaries:
 
 - `Documentation/zigux/phase10-virtio-mmio-slice.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
+- `zigux/tests/phase10_virtio_mmio.zig`
 - `zigux/tests/phase10_virtio_mmio_survey.zig`
 - `scripts/zigux/check-phase10-mmio-packet.py`
 - `drivers/virtio/virtio_mmio.zig`
@@ -92,7 +93,7 @@ Ring, core, and input lanes may cite this packet as adjacent evidence, but they 
 - If a Phase 10 run changes `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, the core manifest, the core survey gate, or the core checker, that work belongs to the core lane.
 - If a Phase 10 run changes `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, the ring manifest, the ring survey gate, or the ring checker, that work belongs to the ring lane.
 - If a Phase 10 run changes `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, the input manifest, the input survey gate, the focused status-drain replay, or the input checker, that work belongs to the input lane.
-- If a Phase 10 run changes `drivers/virtio/virtio_mmio.zig`, the MMIO manifest, the MMIO survey gate, or the MMIO checker, that work belongs to the MMIO packet instead of ring, input, or core follow-through.
+- If a Phase 10 run changes `drivers/virtio/virtio_mmio.zig`, the direct `zigux/tests/phase10_virtio_mmio.zig` replay, the MMIO manifest, the MMIO survey gate, or the MMIO checker, that work belongs to the MMIO packet instead of ring, input, or core follow-through.
 - Shared build or make replay drift should only reopen the smallest directly coupled lane packet unless the break truly spans multiple driver packets at once.
 
 ## Next bounded step
