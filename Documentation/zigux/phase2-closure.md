@@ -113,18 +113,19 @@ Phase 2 is only considered closed when all of the following are green:
 
 ## Fixdep Closure Packet
 
-The bounded fixdep closure packet currently keeps five committed artifact cases plus focused helper-local guards reviewable:
+The bounded fixdep closure packet currently keeps six committed artifact cases plus focused helper-local guards reviewable:
 
-- `PHASE2_FIXDEP_CASE_COUNT=5`
-- `PHASE2_FIXDEP_CASES=sample,sample_escaped_space,sample_multi_target,sample_comment_only,sample_missing_dep`
-- `PHASE2_FIXDEP_STDOUT_PACKET=sample_expected.txt,sample_escaped_space_expected.txt,sample_multi_target_expected.txt,sample_comment_only_expected.txt,sample_missing_dep_expected.txt`
+- `PHASE2_FIXDEP_CASE_COUNT=6`
+- `PHASE2_FIXDEP_CASES=sample,sample_escaped_space,sample_multi_target,sample_comment_only,sample_missing_dep,sample_escaped_hash_comment_chain`
+- `PHASE2_FIXDEP_STDOUT_PACKET=sample_expected.txt,sample_escaped_space_expected.txt,sample_multi_target_expected.txt,sample_comment_only_expected.txt,sample_missing_dep_expected.txt,sample_escaped_hash_comment_chain_expected.txt`
 - `PHASE2_FIXDEP_STDERR_PACKET=sample_comment_only_expected.stderr.txt,sample_missing_dep_expected.stderr.txt`
 - `PHASE2_FIXDEP_PACKET=zigux/tests/fixtures/fixdep/manifest.json`
-- `PHASE2_FIXDEP_HELPER_LOCAL_ANCHOR_COUNT=4`
+- `PHASE2_FIXDEP_HELPER_LOCAL_ANCHOR_COUNT=5`
 - the shared Phase 2 tool manifest points at the same tool-local packet through `fixdep_packet`, keeping the committed fixdep case list and stdout/stderr packet reviewable without widening the broader Phase 2 manifest surface
-- success coverage stays anchored by `sample_expected.txt`, `sample_escaped_space_expected.txt`, and `sample_multi_target_expected.txt`
+- success coverage stays anchored by `sample_expected.txt`, `sample_escaped_space_expected.txt`, `sample_multi_target_expected.txt`, and `sample_escaped_hash_comment_chain_expected.txt`
 - bounded failure coverage stays anchored by the comment-only parse error and missing-dependency open error fixtures in `zigux/tests/fixtures/fixdep/`
-- helper-local anchors in `zig test scripts/zigux/fixdep.zig` now include `dep parsing returns NoTargets for comment-only depfiles`, `dep parsing skips bytes after the first embedded NUL`, `dependency file reads beyond the legacy one mebibyte ceiling`, and `output write failure uses C-style wording`
+- `sample_escaped_hash_comment_chain_expected.txt` now keeps the rustc-style escaped `#` dependency, continued comment, and concatenated second-target tail reviewable in the shared packet instead of only in helper-local coverage
+- helper-local anchors in `zig test scripts/zigux/fixdep.zig` now include `dep parsing returns NoTargets for comment-only depfiles`, `dep parsing keeps escaped spaces inside tokens`, `dep parsing skips bytes after the first embedded NUL`, `dependency file reads beyond the legacy one mebibyte ceiling`, and `output write failure uses C-style wording`
 
 ## Genksyms Bridge Closure Packet
 
