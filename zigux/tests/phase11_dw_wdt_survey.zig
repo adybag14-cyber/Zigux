@@ -8,6 +8,7 @@ const SurveySummary = struct {
     dw_wdt_zig_present: bool,
     dw_wdt_test_present: bool,
     dw_wdt_registration_scaffold_present: bool,
+    dw_wdt_registration_order_present: bool,
     dw_wdt_slice_note_present: bool,
     dw_wdt_survey_gate_present: bool,
     dw_wdt_survey_note_present: bool,
@@ -65,10 +66,11 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     try std.testing.expect(manifest.survey_summary.dw_wdt_zig_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_test_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_registration_scaffold_present);
+    try std.testing.expect(manifest.survey_summary.dw_wdt_registration_order_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_slice_note_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -82,6 +84,7 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     var saw_platform_blocker = false;
     var saw_probe_summary = false;
     var saw_registration_gap = false;
+    var saw_registration_order_scaffold = false;
     var saw_teardown_parity = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -142,6 +145,13 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "timeout-programming intent") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device handoff") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-registration-order-scaffold")) {
+            saw_registration_order_scaffold = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt_registration_scaffold.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "timer-clock path choice") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device request ordering") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-teardown-parity")) {
             saw_teardown_parity = true;
             try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt_verify.zig", gap.zigux_destination);
@@ -170,7 +180,7 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -180,6 +190,7 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_probe_summary);
     try std.testing.expect(saw_registration_gap);
+    try std.testing.expect(saw_registration_order_scaffold);
     try std.testing.expect(saw_teardown_parity);
     try std.testing.expect(saw_platform_ready_next);
     try std.testing.expect(saw_platform_blocker);
@@ -219,6 +230,8 @@ test "phase11 dw_wdt survey note, slice note, and validation matrix stay aligned
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "platform-backed registration scaffolding") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_register_device") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-registration-scaffold-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11_dw_wdt_registration_scaffold.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "register-device request ordering") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-verify-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/watchdog/dw_wdt_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L12`") != null);
