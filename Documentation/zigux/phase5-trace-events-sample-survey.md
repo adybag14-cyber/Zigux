@@ -68,9 +68,10 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 
 ## Latest verification posture
 
-Fresh live current-`master` inspection on 2026-05-06 confirmed that the shipped trace-events packet still presents one repo-local, non-runtime review surface rather than a runtime handoff claim.
+Fresh live current-`master` inspection on 2026-05-07 confirmed that the shipped trace-events packet still presents one repo-local, non-runtime review surface rather than a runtime handoff claim.
 
 - `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` still describe the same bounded payload, formatting, callback, and teardown contract
+- the manifest-backed review prompts and survey gate still keep the exact `checked_focus` order plus the `unregisterFunctionCallback()` underflow, `OutstandingRegistration`, and post-exit replay-rejection cues explicit after the latest same-family prompt tightening
 - the public `runPayloadBoundaryReplay()` and `runCallbackBoundaryReplay()` helpers, `formattedMessage()` surface, replay-summary callback-path markers, and registration-balance cue all remain explicit on current `master`
 - the survey gate still enforces repo-local review guidance by keeping the no-standalone-format-sample boundary tied to the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet
 - the shared review route remains `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `make -C zigux phase5-test`, and `make -C zigux phase5`, while the sample stays visibly separate from the Phase 9 `runtime_trace_events` family
@@ -124,4 +125,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Keep this trace-events note packet parked unless fresh repo inspection shows another same-family helper or contributor-guidance drift on current `master`. 
+Keep this trace-events note packet parked unless fresh repo inspection shows the survey note, manifest review prompts, survey gate, or shared trace-events sample guidance drifting apart on current `master`.
