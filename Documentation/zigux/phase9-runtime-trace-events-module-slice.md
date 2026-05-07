@@ -7,7 +7,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
 - `PHASE9_SURVEYED_COMMIT=ccd5361c3b193d26587c6396f029fc335c783c6e`
-- scope: lifecycle starter, bounded event-emission and registration behavior, a tiny payload-oriented diff gate, a loader-handoff scaffold, the focused `phase9-runtime-trace-events-tests` build step, the dedicated lane-sequencing owner map, and lane-local survey-note plus manifest closure while the shared runtime-loader lane keeps the reusable facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` shard adjacent but separately owned
+- scope: lifecycle starter, bounded event-emission and registration behavior, a tiny payload-oriented diff gate, a loader-handoff scaffold, the focused `phase9-runtime-trace-events-tests` build step, the adjacent lane-sequencing owner map reference, and lane-local survey-note plus manifest closure while the shared runtime-loader lane keeps the reusable facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` shard adjacent but separately owned
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
   - `samples/zigux/runtime_trace_events_loader.zig`
@@ -16,11 +16,12 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
   - `zigux/tests/runtime_trace_events_manifest.json`
   - `zigux/tests/runtime_trace_events_survey.zig`
   - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
+  - `zigux/tests/phase9_build.zig`
+- adjacent owner-map and shared-loader reminder surfaces:
   - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
   - `zigux/kernel/runtime_loader.zig`
   - `zigux/kernel/runtime_loader_contract.zig`
   - `zigux/tests/runtime_loader_allocator_init_flow.zig`
-  - `zigux/tests/phase9_build.zig`
   - `zigux/Makefile`
 
 ## Why this slice exists
@@ -42,7 +43,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - concrete main-thread payload literals for the current bounded `foo_bar`, template, conditional, template-print, and relative-location replay path, including the exported `iter=%d` format template
 - concrete function-callback payload labels for the current bounded replay path
 - a bounded `runtime_trace_events_loader` scaffold that names the planned entry and exit hooks, the `tracepoint_probe_register` and `tracepoint_probe_unregister` metadata-only labels, the current event-family summary, the prepared and initialized-stage snapshots that stay explicit even if the sample mutates again before runtime handoff, the shared-request bridge through the existing runtime-loader contract, the no-substrate release path, and the idle-registration-snapshot requirement while the shared runtime-loader surface remains unavailable
-- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` now stays inside this slice's shipped product boundary too, so the trace-events starter keeps the shared loader lane, the pilot-family owner split, and the separate `phase9-runtime-trace-events-tests` versus `phase9-runtime-loader-shared-tests` routing explicit instead of leaving that boundary implicit across the survey note and shared reminder surfaces alone
+- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` stays adjacent as the shared owner map this slice points back to, so the trace-events starter keeps the shared loader lane, the pilot-family owner split, and the separate `phase9-runtime-trace-events-tests` versus `phase9-runtime-loader-shared-tests` routing explicit without claiming that the sequencing note or shared loader packet belongs to the trace-events-owned boundary
 - runtime task ownership or event-loop substrate parity remains blocked behind that shared runtime-loader surface
 - polling-backed wake or dispatch behavior remains blocked behind the same shared runtime-loader surface
 - dedicated Phase 9 sample, module, and diff tests that now assert those sample-local lifecycle proofs as well as the registration and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate
