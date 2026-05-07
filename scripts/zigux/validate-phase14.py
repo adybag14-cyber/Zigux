@@ -498,7 +498,85 @@ def run_self_test() -> int:
             print("self-test expected compile-matrix row failure", file=sys.stderr)
             return 1
         write_text(broken_smoke_note, "\n".join(matrix_lines) + "\n")
+        broken_smoke_note.write_text(
+            broken_smoke_note.read_text(encoding="utf-8").replace(
+                "coverage `focused_and_full_bundle`",
+                "coverage `full_bundle_only`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 smoke note focused compile-shard count drifted from the current one-shard packet" not in errors:
+            print("self-test expected focused compile-shard count failure", file=sys.stderr)
+            return 1
+        write_text(broken_smoke_note, "\n".join(matrix_lines) + "\n")
+        broken_smoke_note.write_text(
+            broken_smoke_note.read_text(encoding="utf-8").replace(
+                "coverage `full_bundle_only`",
+                "coverage `focused_and_full_bundle`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet" not in errors:
+            print("self-test expected full-bundle-only compile count failure", file=sys.stderr)
+            return 1
+        write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
         broken_build = root / "zigux/tests/phase14_build.zig"
+        broken_build.write_text(
+            broken_build.read_text(encoding="utf-8").replace(
+                "b.addTest(.{\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 build bundle no longer declares the current five compile artifacts" not in errors:
+            print("self-test expected compile-artifact declaration count failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
+        broken_build.write_text(
+            broken_build.read_text(encoding="utf-8").replace(
+                "b.addRunArtifact(\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 build bundle no longer wires the current five compile-artifact runs" not in errors:
+            print("self-test expected compile-artifact run count failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
+        broken_build.write_text(
+            broken_build.read_text(encoding="utf-8").replace(
+                COMPILE_MATRIX_ROWS[0][0] + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if f"missing compile-artifact label in zigux/tests/phase14_build.zig: {COMPILE_MATRIX_ROWS[0][0]}" not in errors:
+            print("self-test expected compile-artifact label failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
+        broken_build.write_text(
+            broken_build.read_text(encoding="utf-8").replace(
+                COMPILE_MATRIX_ROWS[0][1] + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if f"missing compile-artifact root in zigux/tests/phase14_build.zig: {COMPILE_MATRIX_ROWS[0][1]}" not in errors:
+            print("self-test expected compile-artifact root failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         broken_build.write_text(
             broken_build.read_text(encoding="utf-8").replace(
                 "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n",
