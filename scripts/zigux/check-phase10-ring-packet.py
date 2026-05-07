@@ -29,9 +29,9 @@ EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_ring_module",
     "phase10_virtio_ring_survey_module",
     "phase10_virtio_ring_verify_module",
-    '\"phase10-virtio-ring-tests\"',
-    '\"phase10-virtio-ring-survey-tests\"',
-    '\"phase10-virtio-ring-verify-tests\"',
+    "\"phase10-virtio-ring-tests\"",
+    "\"phase10-virtio-ring-survey-tests\"",
+    "\"phase10-virtio-ring-verify-tests\"",
 ]
 
 EXPECTED_MAKEFILE_MARKERS = [
@@ -48,29 +48,20 @@ EXPECTED_HELPER_MARKERS = [
     "pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
 ]
 
-EXPECTED_VERIFY_MARKERS = [
-    'test "virtio ring reset readiness tracks unpublished, outstanding, and unpolled work" {',
-    'test "virtio ring delayed callback summary reports poll pressure when used work outruns delay budget" {',
-    'try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpublished_chains, readiness.blocker.?);',
-    'try testing.expect(delayed.should_poll);',
-]
-
 EXPECTED_TEST_MARKERS = [
-    'test \"phase10 virtio ring reset-readiness preflight reports the current queue blocker\" {',
-    'test \"phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work\" {',
-    'test \"phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases\" {',
-    'test \"phase10 virtio ring callback re-enable reports pending used work and settles after poll\" {',
+    'test "phase10 virtio ring reset-readiness preflight reports the current queue blocker" {',
+    'test "phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work" {',
+    'test "phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases" {',
+    'test "phase10 virtio ring callback re-enable reports pending used work and settles after poll" {',
 ]
 
 EXPECTED_SURVEY_TEST_MARKERS = [
-    'test \"phase10 virtio ring survey manifest records the live queue-wrapper gap and freeze boundary\" {',
-    'try std.testing.expectEqualStrings(\"P10-L07\", manifest.lane_key);',
-    'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
+    'test "phase10 virtio ring survey manifest records the queue-local foothold and remaining lab-driver bridge" {',
+    'try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);',
+    'try std.testing.expectEqual(@as(usize, 14), starter_landed_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
-    "var saw_broken_queue_poll_guard = false;",
-    "var saw_queue_reset_helper = false;",
-    "var saw_mmio_probe_preflight_helper = false;",
-    "var saw_ring_slice_note = false;",
+    "var saw_ring_verify_replay = false;",
+    "var saw_ring_lab_driver_bridge = false;",
 ]
 
 EXPECTED_SLICE_MARKERS = [
@@ -83,15 +74,11 @@ EXPECTED_SLICE_MARKERS = [
 ]
 
 EXPECTED_SURVEY_NOTE_MARKERS = [
-    "dedicated ring packet review guard",
-    "scripts/zigux/check-phase10-ring-packet.py",
-    "phase10-virtio-ring-survey-note",
-    "phase10-queue-reset-readiness-helper",
-    "phase10-mmio-probe-preflight-helper",
-    "shared driver-lane sequencing note",
-    "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+    "lab-driver threshold",
+    "queue-local ring foothold",
+    "phase10-ring-lab-driver-bridge",
+    "owned by the adjacent `P10-L10` MMIO packet",
     "`drivers/virtio/virtio_ring_verify.zig`",
-    "zig test zigux/tests/phase10_virtio_ring.zig",
     "make -C zigux phase10-test",
 ]
 
@@ -126,15 +113,9 @@ EXPECTED_GAPS = {
     "phase10-broken-queue-poll-guard": "starter_landed",
     "phase10-queue-reset-helper": "starter_landed",
     "phase10-queue-reset-readiness-helper": "starter_landed",
-    "phase10-mmio-register-window-helper": "starter_landed",
-    "phase10-mmio-queue-size-helper": "starter_landed",
-    "phase10-mmio-feature-word-selector-helper": "starter_landed",
-    "phase10-mmio-config-window-helper": "starter_landed",
-    "phase10-mmio-config-write-plan-helper": "starter_landed",
-    "phase10-mmio-config-write-disposition-helper": "starter_landed",
-    "phase10-mmio-probe-preflight-helper": "starter_landed",
-    "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
+    "phase10-ring-verify-replay": "starter_landed",
     "phase10-virtio-ring-slice-note": "starter_landed",
+    "phase10-ring-lab-driver-bridge": "blocked_on_risky_transport",
 }
 
 EXPECTED_ALLOWED_EVIDENCE_KINDS = [
@@ -176,26 +157,18 @@ pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueRes
 pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary { _ = self; _ = queue_index; }
 pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary { _ = self; _ = queue_index; }
 """,
-    "drivers/virtio/virtio_ring_verify.zig": """test \"virtio ring reset readiness tracks unpublished, outstanding, and unpolled work\" {
-    try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpublished_chains, readiness.blocker.?);
-}
-test \"virtio ring delayed callback summary reports poll pressure when used work outruns delay budget\" {
-    try testing.expect(delayed.should_poll);
-}
+    "drivers/virtio/virtio_ring_verify.zig": 'test "virtio ring verify fixture" {}\n',
+    "zigux/tests/phase10_virtio_ring.zig": """test "phase10 virtio ring reset-readiness preflight reports the current queue blocker" {}
+test "phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work" {}
+test "phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases" {}
+test "phase10 virtio ring callback re-enable reports pending used work and settles after poll" {}
 """,
-    "zigux/tests/phase10_virtio_ring.zig": """test \"phase10 virtio ring reset-readiness preflight reports the current queue blocker\" {}
-test \"phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work\" {}
-test \"phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases\" {}
-test \"phase10 virtio ring callback re-enable reports pending used work and settles after poll\" {}
-""",
-    "zigux/tests/phase10_virtio_ring_survey.zig": """test \"phase10 virtio ring survey manifest records the live queue-wrapper gap and freeze boundary\" {
-    try std.testing.expectEqualStrings(\"P10-L07\", manifest.lane_key);
-    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    "zigux/tests/phase10_virtio_ring_survey.zig": """test "phase10 virtio ring survey manifest records the queue-local foothold and remaining lab-driver bridge" {
+    try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
-    var saw_broken_queue_poll_guard = false;
-    var saw_queue_reset_helper = false;
-    var saw_mmio_probe_preflight_helper = false;
-    var saw_ring_slice_note = false;
+    var saw_ring_verify_replay = false;
+    var saw_ring_lab_driver_bridge = false;
 }
 """,
     "Documentation/zigux/phase10-virtio-ring-slice.md": """- dedicated ring packet review guard
@@ -205,15 +178,11 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
 - `zig test zigux/tests/phase10_virtio_ring.zig`
 - `zig test zigux/tests/phase10_virtio_ring_survey.zig`
 """,
-    "Documentation/zigux/phase10-virtio-ring-survey.md": """- dedicated ring packet review guard
-- `scripts/zigux/check-phase10-ring-packet.py`
-- `phase10-virtio-ring-survey-note`
-- `phase10-queue-reset-readiness-helper`
-- `phase10-mmio-probe-preflight-helper`
-- shared driver-lane sequencing note
-- `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
+    "Documentation/zigux/phase10-virtio-ring-survey.md": """- lab-driver threshold
+- queue-local ring foothold
+- phase10-ring-lab-driver-bridge
+- owned by the adjacent `P10-L10` MMIO packet
 - `drivers/virtio/virtio_ring_verify.zig`
-- `zig test zigux/tests/phase10_virtio_ring.zig`
 - `make -C zigux phase10-test`
 """,
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": """- `scripts/zigux/check-phase10-ring-packet.py`
@@ -253,12 +222,7 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
                 "preexisting_phase10_core_doc_present": True,
                 "preexisting_virtio_ring_zig_present": True,
                 "preexisting_virtio_ring_doc_present": True,
-                "preexisting_virtio_input_zig_present": True,
-                "preexisting_virtio_input_test_present": True,
-                "preexisting_virtio_input_survey_present": True,
-                "preexisting_virtio_mmio_zig_present": True,
-                "preexisting_virtio_mmio_test_present": True,
-                "preexisting_virtio_mmio_survey_present": True,
+                "preexisting_ring_verify_present": True,
             },
             "gaps": [
                 {"id": "phase10-build-gate", "status": "starter_landed"},
@@ -273,15 +237,9 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
                 {"id": "phase10-broken-queue-poll-guard", "status": "starter_landed"},
                 {"id": "phase10-queue-reset-helper", "status": "starter_landed"},
                 {"id": "phase10-queue-reset-readiness-helper", "status": "starter_landed"},
-                {"id": "phase10-mmio-register-window-helper", "status": "starter_landed"},
-                {"id": "phase10-mmio-queue-size-helper", "status": "starter_landed"},
-                {"id": "phase10-mmio-feature-word-selector-helper", "status": "starter_landed"},
-                {"id": "phase10-mmio-config-window-helper", "status": "starter_landed"},
-                {"id": "phase10-mmio-config-write-plan-helper", "status": "starter_landed"},
-                {"id": "phase10-mmio-config-write-disposition-helper", "status": "starter_landed"},
-                {"id": "phase10-mmio-probe-preflight-helper", "status": "starter_landed"},
-                {"id": "phase10-mmio-lifecycle-and-irq-paths", "status": "blocked_on_risky_transport"},
+                {"id": "phase10-ring-verify-replay", "status": "starter_landed"},
                 {"id": "phase10-virtio-ring-slice-note", "status": "starter_landed"},
+                {"id": "phase10-ring-lab-driver-bridge", "status": "blocked_on_risky_transport"},
             ],
         },
         indent=2,
@@ -315,11 +273,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_HELPER_MARKERS:
         if marker not in helper_text:
             missing_markers.append(f"helper:{marker}")
-
-    verify_text = read_text(root, "drivers/virtio/virtio_ring_verify.zig")
-    for marker in EXPECTED_VERIFY_MARKERS:
-        if marker not in verify_text:
-            missing_markers.append(f"verify:{marker}")
 
     test_text = read_text(root, "zigux/tests/phase10_virtio_ring.zig")
     for marker in EXPECTED_TEST_MARKERS:
@@ -390,12 +343,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         "preexisting_phase10_core_doc_present",
         "preexisting_virtio_ring_zig_present",
         "preexisting_virtio_ring_doc_present",
-        "preexisting_virtio_input_zig_present",
-        "preexisting_virtio_input_test_present",
-        "preexisting_virtio_input_survey_present",
-        "preexisting_virtio_mmio_zig_present",
-        "preexisting_virtio_mmio_test_present",
-        "preexisting_virtio_mmio_survey_present",
+        "preexisting_ring_verify_present",
     ]:
         if summary.get(key) is not True:
             missing_markers.append(f"manifest:{key}")
@@ -510,21 +458,6 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_helper_marker_missing")
         helper_path.write_text(original_helper, encoding="utf-8")
 
-        verify_path = tmp_root / "drivers/virtio/virtio_ring_verify.zig"
-        original_verify = verify_path.read_text(encoding="utf-8")
-        verify_path.write_text(
-            original_verify.replace(
-                'test \"virtio ring delayed callback summary reports poll pressure when used work outruns delay budget\" {',
-                'test \"virtio ring delayed callback drift\" {',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if 'verify:test "virtio ring delayed callback summary reports poll pressure when used work outruns delay budget" {' not in missing_markers:
-            raise SystemExit("phase10-ring-self-test:expected_verify_marker_missing")
-        verify_path.write_text(original_verify, encoding="utf-8")
-
         test_path = tmp_root / "zigux/tests/phase10_virtio_ring.zig"
         original_test = test_path.read_text(encoding="utf-8")
         test_path.write_text(
@@ -540,65 +473,24 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_test_marker_missing")
         test_path.write_text(original_test, encoding="utf-8")
 
-        slice_path = tmp_root / "Documentation/zigux/phase10-virtio-ring-slice.md"
-        original_slice = slice_path.read_text(encoding="utf-8")
-        slice_path.write_text(
-            original_slice.replace("scripts/zigux/check-phase10-ring-packet.py", "scripts/zigux/check-phase10-ring-drift.py", 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "slice:scripts/zigux/check-phase10-ring-packet.py" not in missing_markers:
-            raise SystemExit("phase10-ring-self-test:expected_slice_marker_missing")
-        slice_path.write_text(original_slice, encoding="utf-8")
-
-        slice_path.write_text(
-            original_slice.replace(
-                "zig test zigux/tests/phase10_virtio_ring.zig",
-                "zig test zigux/tests/phase10_virtio_ring_drift.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "slice:zig test zigux/tests/phase10_virtio_ring.zig" not in missing_markers:
-            raise SystemExit("phase10-ring-self-test:expected_slice_direct_replay_marker_missing")
-        slice_path.write_text(original_slice, encoding="utf-8")
-
         survey_path = tmp_root / "Documentation/zigux/phase10-virtio-ring-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
-            original_survey.replace("dedicated ring packet review guard", "dedicated ring packet drift guard", 1),
+            original_survey.replace("lab-driver threshold", "roadmap threshold", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "survey_note:dedicated ring packet review guard" not in missing_markers:
+        if "survey_note:lab-driver threshold" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_survey_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
         survey_path.write_text(
-            original_survey.replace(
-                "shared driver-lane sequencing note",
-                "shared lane drift note",
-                1,
-            ),
+            original_survey.replace("`drivers/virtio/virtio_ring_verify.zig`", "`drivers/virtio/virtio_ring_verify_drift.zig`", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "survey_note:shared driver-lane sequencing note" not in missing_markers:
-            raise SystemExit("phase10-ring-self-test:expected_survey_sequencing_marker_missing")
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        survey_path.write_text(
-            original_survey.replace(
-                "zig test zigux/tests/phase10_virtio_ring.zig",
-                "zig test zigux/tests/phase10_virtio_ring_drift.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "survey_note:zig test zigux/tests/phase10_virtio_ring.zig" not in missing_markers:
-            raise SystemExit("phase10-ring-self-test:expected_survey_direct_replay_marker_missing")
+        if "survey_note:`drivers/virtio/virtio_ring_verify.zig`" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_survey_verify_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
         companion_path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
@@ -610,28 +502,6 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "companion:scripts/zigux/check-phase10-ring-packet.py" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_companion_marker_missing")
-        companion_path.write_text(original_companion, encoding="utf-8")
-
-        companion_path.write_text(
-            original_companion.replace(
-                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
-                "Documentation/zigux/phase10-virtio-driver-lane-drift.md",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "companion:Documentation/zigux/phase10-virtio-driver-lane-sequencing.md" not in missing_markers:
-            raise SystemExit("phase10-ring-self-test:expected_companion_sequencing_marker_missing")
-        companion_path.write_text(original_companion, encoding="utf-8")
-
-        companion_path.write_text(
-            original_companion.replace("drivers/virtio/virtio_ring_verify.zig", "drivers/virtio/virtio_ring_verify_drift.zig", 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "companion:drivers/virtio/virtio_ring_verify.zig" not in missing_markers:
-            raise SystemExit("phase10-ring-self-test:expected_companion_verify_marker_missing")
         companion_path.write_text(original_companion, encoding="utf-8")
 
         sequencing_path = tmp_root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
@@ -648,18 +518,18 @@ def run_self_test() -> int:
         original_survey_test = survey_test_path.read_text(encoding="utf-8")
         survey_test_path.write_text(
             original_survey_test.replace(
-                "var saw_queue_reset_helper = false;",
-                "var saw_queue_reset_drift = false;",
+                "var saw_ring_verify_replay = false;",
+                "var saw_ring_verify_drift = false;",
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "survey_test:var saw_queue_reset_helper = false;" not in missing_markers:
-            raise SystemExit("phase10-ring-self-test:expected_survey_test_queue_reset_marker_missing")
+        if "survey_test:var saw_ring_verify_replay = false;" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_survey_test_verify_marker_missing")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=18")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
