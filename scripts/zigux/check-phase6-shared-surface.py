@@ -121,7 +121,7 @@ REQUIRED_SNIPPETS = {
     "Documentation/zigux/phase6-hexdump-slice.md": [
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_SLICE=hexdump-leaf-helper`",
-        "- lane state: helper, fixture, dedicated perf gate, and external parity slices landed; parked unless a new `hexdump.c` parity issue appears",
+        "- lane state: helper, fixture, and dedicated perf gate slice landed; parked unless a new `hexdump.c` parity or perf-threshold issue appears",
         "- `hexDumpToBuffer`",
         "- serialized required-length vectors for `hexDumpLineLength` and zero-buffer `hexDumpToBuffer`",
         "- a dedicated perf replay that benchmarks the existing four-case perf fixture packet against the committed `fixtures.prepareExpectedLine(...)` reference path",
@@ -317,7 +317,12 @@ EXACT_OCCURRENCE_MARKERS = {
     ],
 }
 
-REMOVED_PATHS = ["scripts/zigux/validate-phase6.py"]
+REMOVED_PATHS = [
+    "scripts/zigux/validate-phase6.py",
+    "zigux/tests/phase6_hexdump_c_parity.zig",
+    "zigux/tests/fixtures/phase6_hexdump_c_harness.c",
+    "scripts/zigux/check-phase6-hexdump-c-parity.py",
+]
 
 
 def read_text(path: Path) -> str:
@@ -456,8 +461,8 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "Documentation/zigux/phase6-hexdump-slice.md",
-            "helper, fixture, dedicated perf gate, and external parity slices landed; parked unless a new `hexdump.c` parity issue appears",
-            "helper, fixture, and dedicated perf gate slices landed; parked unless a new `hexdump.c` parity issue appears",
+            "lane state: helper, fixture, and dedicated perf gate slice landed; parked unless a new `hexdump.c` parity or perf-threshold issue appears",
+            "lane state: helper, fixture, dedicated perf gate, and external parity slices landed; parked unless a new `hexdump.c` parity issue appears",
         )
         assert_failure(
             root,
