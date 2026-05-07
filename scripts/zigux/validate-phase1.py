@@ -87,6 +87,14 @@ PHASE1_REPLAY_MARKERS = [
     "fixture.find_bit.tail_clamped_first",
     "fixture.find_bit.tail_zero_clamped_next",
     "fixture.find_bit.tail_and_clamped_next",
+    "fixture.find_bit.inclusive_boundary_next",
+    "fixture.find_bit.inclusive_boundary_zero",
+    "fixture.find_bit.inclusive_boundary_and",
+    "fixture.find_bit.past_nbits_next",
+    "fixture.find_bit.past_nbits_zero",
+    "fixture.find_bit.past_nbits_and",
+    "fixture.find_bit.tail_clamped_last",
+    "fixture.find_bit.tail_clamped_empty_last",
     "fixture.bitmap.scnprintf",
     "fixture.bitmap.truncated_scnprintf_len",
     "fixture.bitmap.truncated_scnprintf",
@@ -375,6 +383,14 @@ def run_self_test() -> None:
         'fixture.find_bit.tail_clamped_first\n'
         'fixture.find_bit.tail_zero_clamped_next\n'
         'fixture.find_bit.tail_and_clamped_next\n'
+        'fixture.find_bit.inclusive_boundary_next\n'
+        'fixture.find_bit.inclusive_boundary_zero\n'
+        'fixture.find_bit.inclusive_boundary_and\n'
+        'fixture.find_bit.past_nbits_next\n'
+        'fixture.find_bit.past_nbits_zero\n'
+        'fixture.find_bit.past_nbits_and\n'
+        'fixture.find_bit.tail_clamped_last\n'
+        'fixture.find_bit.tail_clamped_empty_last\n'
         'fixture.bitmap.scnprintf\n'
         'fixture.bitmap.truncated_scnprintf_len\n'
         'fixture.bitmap.truncated_scnprintf\n'
@@ -408,6 +424,7 @@ def run_self_test() -> None:
         (tmp_root / "zigux" / "tests" / "README.md").write_text(DOC_MARKERS["tests_root_phase1_packet"][0] + "\n" + DOC_MARKERS["tests_root_phase1_packet"][1] + "\n", encoding="utf-8")
         (tmp_root / "Documentation" / "zigux" / "review-checklist.md").write_text(DOC_MARKERS["review_checklist_phase1_packet"][0] + "\n" + DOC_MARKERS["review_checklist_phase1_packet"][1] + "\n", encoding="utf-8")
         (tmp_root / "tools" / "lib" / "bitmap.zig").write_text('\n'.join(SOURCE_MARKERS["bitmap_test_anchor"][1]) + '\n', encoding="utf-8")
+        (tmp_root / "tools" / "lib" / "find_bit.zig").writeText = None
         (tmp_root / "tools" / "lib" / "find_bit.zig").write_text('\n'.join(SOURCE_MARKERS["find_bit_test_anchor"][1]) + '\n', encoding="utf-8")
         (tmp_root / "tools" / "lib" / "string.zig").write_text('\n'.join(SOURCE_MARKERS["string_test_anchor"][1]) + '\n', encoding="utf-8")
         (tmp_root / "tools" / "lib" / "rbtree.zig").write_text('\n'.join(SOURCE_MARKERS["rbtree_test_anchor"][1]) + '\n', encoding="utf-8")
