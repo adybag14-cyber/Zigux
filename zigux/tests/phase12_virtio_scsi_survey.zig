@@ -154,6 +154,8 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recovery event-rearm summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "event-buffer ownership summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fallback path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reversible-delivery drill") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-driver-starter")) {
@@ -271,12 +273,18 @@ test "phase12 virtio_scsi survey note keeps the active lane identity and fallbac
     defer std.testing.allocator.free(survey_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L13") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "owner lane: `P12-L13`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "does not own the active survey packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "restore queue rebind summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recovery event-rearm summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "event-buffer ownership summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Rollback and Reversible Delivery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "reversible-delivery evidence:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback drill:") != null);
 }
 
 test "phase12 virtio_scsi slice note keeps the rollback drill explicit" {
