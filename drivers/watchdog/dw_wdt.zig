@@ -161,6 +161,7 @@ pub const RemoveSummary = struct {
 pub const TeardownOutcome = enum {
     reset_control_stop,
     continued_heartbeat,
+    idle_noop,
 };
 
 pub const TeardownSummary = struct {
@@ -372,19 +373,24 @@ pub const DwWdtLab = struct {
     }
 
     pub fn teardownSummary(self: *Self) !TeardownSummary {
-        if (!self.isEnabled()) _ = try self.start();
-
-        const runtime = self.stop();
+        const running_before_teardown = self.isEnabled();
+        const runtime = if (running_before_teardown) self.stop() else self.runtimeSnapshot();
         return .{
             .anchor = descriptor().anchor,
             .can_stop = self.has_reset_control,
-            .running_before_teardown = true,
+            .running_before_teardown = running_before_teardown,
             .timeout_sec = self.actual_timeout_sec,
             .response_mode = self.response_mode,
-            .outcome = if (self.has_reset_control) .reset_control_stop else .continued_heartbeat,
-            .stop_invoked = true,
-            .enable_bit_cleared = (runtime.registers.control & control_reg_wdt_en_mask) == 0,
-            .interrupt_cleared = runtime.registers.interrupt_status == 0,
+            .outcome = if (!running_before_teardown)
+                .idle_noop
+            else if (self.has_reset_control)
+                .reset_control_stop
+            else
+                .continued_heartbeat,
+            .stop_invoked = running_before_teardown,
+            .enable_bit_cleared = !running_before_teardown or
+                (runtime.registers.control & control_reg_wdt_en_mask) == 0,
+            .interrupt_cleared = !running_before_teardown or runtime.registers.interrupt_status == 0,
             .running_after_teardown = runtime.running,
             .hardware_running_after_teardown = runtime.hardware_running,
         };
@@ -652,8 +658,22 @@ test "remove without reset control leaves active hardware running after unregist
     try std.testing.expect(summary.remove_leaves_hardware_running);
 }
 
-test "teardown summary records reset-backed stop versus continued heartbeat outcomes" {
+test "teardown summary records idle no-op plus active stop-backed outcomes" {
     var unstoppable = try DwWdtLab.initFixedTops(65_536, false);
+    const idle_unstoppable_teardown = try unstoppable.teardownSummary();
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", idle_unstoppable_teardown.anchor);
+    try std.testing.expect(!idle_unstoppable_teardown.can_stop);
+    try std.testing.expect(!idle_unstoppable_teardown.running_before_teardown);
+    try std.testing.expectEqual(@as(u32, 32), idle_unstoppable_teardown.timeout_sec);
+    try std.testing.expectEqual(ResponseMode.reset, idle_unstoppable_teardown.response_mode);
+    try std.testing.expectEqual(TeardownOutcome.idle_noop, idle_unstoppable_teardown.outcome);
+    try std.testing.expect(!idle_unstoppable_teardown.stop_invoked);
+    try std.testing.expect(idle_unstoppable_teardown.enable_bit_cleared);
+    try std.testing.expect(idle_unstoppable_teardown.interrupt_cleared);
+    try std.testing.expect(!idle_unstoppable_teardown.running_after_teardown);
+    try std.testing.expect(!idle_unstoppable_teardown.hardware_running_after_teardown);
+
+    _ = try unstoppable.start();
     const unstoppable_teardown = try unstoppable.teardownSummary();
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", unstoppable_teardown.anchor);
     try std.testing.expect(!unstoppable_teardown.can_stop);
@@ -668,6 +688,19 @@ test "teardown summary records reset-backed stop versus continued heartbeat outc
     try std.testing.expect(unstoppable_teardown.hardware_running_after_teardown);
 
     var stoppable = try DwWdtLab.initFixedTops(65_536, true);
+    const idle_stoppable_teardown = try stoppable.teardownSummary();
+    try std.testing.expect(idle_stoppable_teardown.can_stop);
+    try std.testing.expect(!idle_stoppable_teardown.running_before_teardown);
+    try std.testing.expectEqual(@as(u32, 32), idle_stoppable_teardown.timeout_sec);
+    try std.testing.expectEqual(ResponseMode.reset, idle_stoppable_teardown.response_mode);
+    try std.testing.expectEqual(TeardownOutcome.idle_noop, idle_stoppable_teardown.outcome);
+    try std.testing.expect(!idle_stoppable_teardown.stop_invoked);
+    try std.testing.expect(idle_stoppable_teardown.enable_bit_cleared);
+    try std.testing.expect(idle_stoppable_teardown.interrupt_cleared);
+    try std.testing.expect(!idle_stoppable_teardown.running_after_teardown);
+    try std.testing.expect(!idle_stoppable_teardown.hardware_running_after_teardown);
+
+    _ = try stoppable.start();
     const stoppable_teardown = try stoppable.teardownSummary();
     try std.testing.expect(stoppable_teardown.can_stop);
     try std.testing.expect(stoppable_teardown.running_before_teardown);
