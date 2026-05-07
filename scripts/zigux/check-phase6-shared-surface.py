@@ -23,7 +23,7 @@ REQUIRED_SNIPPETS = {
     ],
     "scripts/zigux/README.md": [
         "- `check-phase6-shared-surface.py`",
-        "- the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
+        "- the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
         "- `make -C zigux phase6-validate` keeps the shared Phase 6 surface checker wired through the Zigux convenience target.",
         "- `zig build test --build-file zigux/tests/phase6_build.zig` is the bundled helper replay for the current `base64`, `bsearch`, `checksum`, and `hexdump` packet.",
         "- there is no separate shared `validate-phase6.py` or broader external portability checker packet beyond `check-phase6-shared-surface.py` on `master`; the shipped dedicated perf replays are `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`, while `make -C zigux phase6-perf` remains the narrow aggregate route for the checksum and hexdump perf packet rather than a bundle-wide Phase 6 perf closure",
@@ -42,7 +42,7 @@ REQUIRED_SNIPPETS = {
     "Documentation/zigux/phase6-base64-slice.md": [
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_SLICE=base64-leaf-helper`",
-        "- lane state: helper, fixture, perf, and external parity slice landed; parked unless a new `base64.c` parity or slowdown issue appears",
+        "- lane state: helper, fixture, and dedicated perf slice landed; parked unless a new helper-local parity or slowdown issue appears",
         "- `Variant.imap`",
         "- fixture-backed decode-length parity through `bytes` across the full committed valid std, URL-safe, and IMAP decode corpus",
         "- invalid-input rejection through both `bytes` and `decode` for malformed, embedded-NUL, and variant-mismatched decode inputs",
@@ -340,7 +340,7 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "Documentation/zigux/phase6-base64-slice.md",
-            "helper, fixture, perf, and external parity slice landed",
+            "helper, fixture, and dedicated perf slice landed",
             "helper and fixture slice landed",
         )
         assert_failure(
