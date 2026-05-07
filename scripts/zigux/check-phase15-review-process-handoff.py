@@ -329,7 +329,7 @@ def write_fixture_tree(root: Path) -> None:
         "",
     )), encoding="utf-8")
 
-    (root / REVIEW_CHECKLIST_PATH).writeText("\n".join((
+    (root / REVIEW_CHECKLIST_PATH).write_text("\n".join((
         "# Review Checklist",
         *REQUIRED_REVIEW_CHECKLIST_MARKERS,
         "",
