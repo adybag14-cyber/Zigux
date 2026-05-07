@@ -44,6 +44,15 @@ EXPECTED_SORTED_LINES = sorted(
         "fold\tall ones saturates to sixteen bits\t0x0000",
         "from32to16\tmixed words preserve the remaining payload\t0x68ac",
         "fold\tmixed words preserve the remaining payload\t0x9753",
+        "unfold\tzero\t0x00000000",
+        "unfold\tone\t0x00000001",
+        "unfold\tipv4 header checksum word\t0x00009c5d",
+        "unfold\tall ones\t0x0000ffff",
+        "add16\tsaturated plus one wraps with carry\t0x0001",
+        "add16\tsaturated plus zero stays saturated\t0xffff",
+        "add16\tsaturated plus saturated preserves ones complement\t0xffff",
+        "sub16\tzero minus one borrows across ones complement\t0xfffe",
+        "sub16\tsubtracting a prior addend recovers the original word\t0x1234",
         "replace\tpayload-word\t0xffffd8dd",
         "replace-by-diff\tipv4-total-length\t0x9c59",
         "replace2\tipv4-total-length\t0x9c59",
@@ -187,7 +196,7 @@ def run_self_test() -> int:
         and str(ZIG_RUNNER) in build_text,
         True,
     )
-    assert_equal("expected_surface_case_count", len(EXPECTED_SORTED_LINES), 30)
+    assert_equal("expected_surface_case_count", len(EXPECTED_SORTED_LINES), 39)
     assert_equal(
         "sorted_lines",
         sorted_lines("partial\tseeded\t0x00000001\ncompute\tempty\t0xffff\n"),
