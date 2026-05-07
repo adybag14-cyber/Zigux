@@ -428,7 +428,7 @@ def main_validation(root: Path) -> list[str]:
         "PHASE2_KCONFIG_BRIDGE_CONFDATA_CASES=" + ",".join(confdata_case_names),
         "PHASE2_KCONFIG_BRIDGE_CONFDATA_EXPECTED_PACKET=" + ",".join(confdata_expected_packet),
         "confdata bridge decodes escaped quoted strings",
-        "confdata bridge decodes escaped control sequences in quoted strings",
+        "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
         "confdata bridge keeps trailing escaped backslashes in quoted strings",
         "confdata bridge accepts CRLF config lines",
         "confdata bridge preserves trailing carriage return on final unterminated value line",
