@@ -291,7 +291,7 @@ def check_compile_matrix(root: Path) -> list[str]:
         errors.append("phase14 smoke note focused compile-shard count drifted from the current one-shard packet")
     if smoke_note_text.count("coverage `full_bundle_only`") != 4:
         errors.append("phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet")
-    if build_text.count("b.addTest(.") != 5:
+    if build_text.count("b.addTest(.{") != 5:
         errors.append("phase14 build bundle no longer declares the current five compile artifacts")
     if build_text.count("b.addRunArtifact(") != 5:
         errors.append("phase14 build bundle no longer wires the current five compile-artifact runs")
@@ -541,7 +541,7 @@ def run_self_test() -> int:
             return 1
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         broken_traceability = root / TRACEABILITY_PATH
-        broken_traceability.writeText(
+        broken_traceability.write_text(
             broken_traceability.read_text(encoding="utf-8").replace("- lane key: `P14-L08`\n", "", 1),
             encoding="utf-8",
         )
