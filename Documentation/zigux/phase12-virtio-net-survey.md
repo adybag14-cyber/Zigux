@@ -6,7 +6,7 @@ This document records the bounded Phase 12 survey lane around `drivers/net/virti
 
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=virtio-net-survey`
-- scope: survey manifest, dedicated survey gate, shared Phase 12 build wiring, the `drivers/net/virtio_net.zig` probe snapshot starter plus the direct `phase12_virtio_net_syntax_lab.zig` smoke shard, its queue-recovery, receive-refill, transmit-recycle, and mergeable-buffer-length follow-ups, the segmented rollout boundary that keeps the active tranche below live DMA-backed work, and a lane note that compares the live repo state against the roadmap for the broader driver
+- scope: survey manifest, dedicated survey gate, shared Phase 12 build wiring, the `drivers/net/virtio_net.zig` probe snapshot starter plus the direct `phase12_virtio_net_syntax_lab.zig` smoke shard, its queue-recovery, receive-refill, transmit-recycle, and mergeable-buffer-length follow-ups, the segmented rollout boundary that keeps the active tranche below live DMA-backed work, and `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, the anti-overlap lane note that compares the live repo state against the roadmap for the broader driver
 - product boundary:
   - `zigux/tests/phase12_virtio_net_manifest.json`
   - `zigux/tests/phase12_virtio_net_survey.zig`
