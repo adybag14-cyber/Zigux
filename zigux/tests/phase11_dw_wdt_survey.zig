@@ -7,6 +7,7 @@ const SurveySummary = struct {
     preexisting_phase11_bcm2835_lane_present: bool,
     dw_wdt_zig_present: bool,
     dw_wdt_test_present: bool,
+    dw_wdt_registration_scaffold_present: bool,
     dw_wdt_slice_note_present: bool,
     dw_wdt_survey_gate_present: bool,
     dw_wdt_survey_note_present: bool,
@@ -63,6 +64,7 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_bcm2835_lane_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_zig_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_test_present);
+    try std.testing.expect(manifest.survey_summary.dw_wdt_registration_scaffold_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_slice_note_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_note_present);
@@ -216,6 +218,7 @@ test "phase11 dw_wdt survey note, slice note, and validation matrix stay aligned
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "teardown and failure-mode parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "platform-backed registration scaffolding") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_register_device") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-registration-scaffold-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-verify-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/watchdog/dw_wdt_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L12`") != null);
