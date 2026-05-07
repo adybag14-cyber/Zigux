@@ -164,6 +164,25 @@ test "hvc_console verify keeps notifier prerequisite failures explicit" {
     }));
 }
 
+test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks" {
+    var console = try hvc_console.HvcConsoleLab.init(16);
+    _ = console.instantiate(0xa6);
+
+    const targetless_sysrq = try console.summarizeSysrqHandoff(.{
+        .console_index_matches_boot_console = true,
+        .sysrq_break_seen = true,
+        .notifier_target_present = false,
+    });
+    try std.testing.expect(targetless_sysrq.console_index_matches_boot_console);
+    try std.testing.expect(targetless_sysrq.sysrq_break_seen);
+    try std.testing.expect(targetless_sysrq.sysrq_dispatch_requested);
+    try std.testing.expect(!targetless_sysrq.notifier_target_present);
+    try std.testing.expect(!targetless_sysrq.notifier_callbacks_deferred);
+    try std.testing.expect(targetless_sysrq.khvcd_worker_execution_deferred);
+    try std.testing.expect(targetless_sysrq.host_io_deferred);
+    try std.testing.expect(targetless_sysrq.remove_handoff_still_required);
+}
+
 test "hvc_console verify keeps sysrq notifier deferral false without dispatch" {
     var console = try hvc_console.HvcConsoleLab.init(9);
     _ = console.instantiate(0x91);
