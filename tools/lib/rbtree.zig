@@ -209,7 +209,7 @@ pub fn add(node: *Node, root: *Root, less: LessFn) void {
     insertColor(node, root);
 }
 
-pub fn addCached(node: *Node, root: *RootCached, less: LessFn) void {
+pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
     var link = &root.root.node;
     var parent: ?*Node = null;
     var leftmost = true;
@@ -226,6 +226,7 @@ pub fn addCached(node: *Node, root: *RootCached, less: LessFn) void {
 
     linkNode(node, parent, link);
     insertColorCached(node, root, leftmost);
+    return if (leftmost) node else null;
 }
 
 pub fn findAdd(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {
@@ -868,6 +869,44 @@ test "rbtree nextMatch walks the duplicate range in order" {
     try std.testing.expect(nextMatch(&duplicate, cursor, cmp) == null);
 }
 
+test "rbtree addCached returns the inserted node only when it becomes leftmost" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    var first_entry = Entry{ .key = 10, .serial = 0 };
+    var larger_entry = Entry{ .key = 12, .serial = 1 };
+    var smaller_entry = Entry{ .key = 5, .serial = 2 };
+    var duplicate_entry = Entry{ .key = 5, .serial = 3 };
+    var root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), addCached(&first_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, null), addCached(&larger_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, &smaller_entry.node), addCached(&smaller_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &smaller_entry.node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, null), addCached(&duplicate_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &smaller_entry.node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+}
+
 test "rbtree cached root keeps the leftmost pointer in sync" {
     const Entry = struct {
         key: i32,
@@ -895,7 +934,7 @@ test "rbtree cached root keeps the leftmost pointer in sync" {
     try std.testing.expect(firstCached(&root) == null);
 
     for (&entries) |*entry| {
-        addCached(&entry.node, &root, less);
+        _ = addCached(&entry.node, &root, less);
     }
 
     try std.testing.expectEqual(first(&root.root), firstCached(&root));
@@ -914,7 +953,7 @@ test "rbtree cached root keeps the leftmost pointer in sync" {
     try std.testing.expectEqual(@as(*Node, &replacement.node), firstCached(&root).?);
     try std.testing.expectEqual(first(&root.root), firstCached(&root));
 
-    addCached(&new_leftmost.node, &root, less);
+    _ = addCached(&new_leftmost.node, &root, less);
     try std.testing.expectEqual(@as(*Node, &new_leftmost.node), firstCached(&root).?);
     try std.testing.expectEqual(first(&root.root), firstCached(&root));
 }
@@ -936,7 +975,7 @@ test "rbtree eraseCached returns null for a singleton cached tree" {
     var entry = Entry{ .key = 7 };
     var root = RootCached.init();
 
-    addCached(&entry.node, &root, less);
+    _ = addCached(&entry.node, &root, less);
 
     try std.testing.expectEqual(@as(*Node, &entry.node), firstCached(&root).?);
     try std.testing.expect(eraseCached(&entry.node, &root) == null);
@@ -966,7 +1005,7 @@ test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligne
     var root = RootCached.init();
 
     for (&entries) |*entry| {
-        addCached(&entry.node, &root, less);
+        _ = addCached(&entry.node, &root, less);
     }
 
     eraseInitCached(&entries[1].node, &root);
@@ -998,7 +1037,7 @@ test "rbtree eraseInitCached clears singleton cached roots before reseed" {
     var second_entry = Entry{ .key = 6 };
     var root = RootCached.init();
 
-    addCached(&first_entry.node, &root, less);
+    _ = addCached(&first_entry.node, &root, less);
     try std.testing.expectEqual(@as(?*Node, &first_entry.node), firstCached(&root));
 
     eraseInitCached(&first_entry.node, &root);
@@ -1006,7 +1045,7 @@ test "rbtree eraseInitCached clears singleton cached roots before reseed" {
     try std.testing.expectEqual(@as(?*Node, null), root.root.node);
     try std.testing.expectEqual(@as(?*Node, null), firstCached(&root));
 
-    addCached(&second_entry.node, &root, less);
+    _ = addCached(&second_entry.node, &root, less);
     try std.testing.expectEqual(@as(?*Node, &second_entry.node), firstCached(&root));
     try std.testing.expectEqual(first(&root.root), firstCached(&root));
 }
