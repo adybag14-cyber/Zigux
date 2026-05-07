@@ -114,7 +114,7 @@ test "hvc_console verify keeps remove handoff explicit when tty is already absen
     try std.testing.expect(!tty_gone_remove.host_io_pending);
 }
 
-test "hvc_console verify keeps cleanup missing-reference failures explicit" {
+test "hvc_console verify keeps cleanup prerequisite failures explicit" {
     var console = try hvc_console.HvcConsoleLab.init(14);
     _ = console.instantiate(0xe1);
 
