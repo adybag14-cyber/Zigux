@@ -142,6 +142,10 @@ fn expectInitializedSharedRequestShape(plan: runtime_loader.LoadPlan) !void {
     try std.testing.expectEqual(@as(usize, 0), plan.init_flow.exit_runs);
 }
 
+fn expectFileContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 test "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs" {
     const plans = [_]runtime_loader.LoadPlan{
         makePlan(
@@ -417,6 +421,52 @@ test "phase 9 runtime loader allocator/init-flow replay rejects stale loader sta
         },
     };
     try std.testing.expectError(error.LoaderNotRequired, runtime_loader.prepareRequest(no_loader_needed));
+}
+
+test "phase 9 runtime loader allocator/init-flow replay keeps the shared build route explicit" {
+    const phase9_build = try readRepoFileAlloc(std.testing.allocator, "zigux/tests/phase9_build.zig", 96 * 1024);
+    defer std.testing.allocator.free(phase9_build);
+
+    try expectFileContains(
+        phase9_build,
+        ".root_source_file = b.path(\"runtime_loader_allocator_init_flow.zig\")",
+    );
+    try expectFileContains(
+        phase9_build,
+        "runtime_loader_allocator_init_flow_module.addImport(\"runtime_loader\", runtime_loader_facade_module);",
+    );
+    try expectFileContains(
+        phase9_build,
+        "runtime_loader_allocator_init_flow_module.addImport(\"runtime_loader_contract\", runtime_loader_contract_module);",
+    );
+    try expectFileContains(
+        phase9_build,
+        ".name = \"phase9-runtime-loader-allocator-init-flow-tests\"",
+    );
+    try expectFileContains(
+        phase9_build,
+        "const runtime_loader_shared_tests_step = b.step(",
+    );
+    try expectFileContains(
+        phase9_build,
+        "\"phase9-runtime-loader-shared-tests\"",
+    );
+    try expectFileContains(
+        phase9_build,
+        "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);",
+    );
+    try expectFileContains(
+        phase9_build,
+        "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);",
+    );
+    try expectFileContains(
+        phase9_build,
+        "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);",
+    );
+    try expectFileContains(
+        phase9_build,
+        "test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);",
+    );
 }
 
 test "phase 9 runtime loader allocator/init-flow replay keeps exact current init and registration evidence explicit" {
