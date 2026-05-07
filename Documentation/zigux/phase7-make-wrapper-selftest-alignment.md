@@ -35,4 +35,4 @@ Phase 7 is already parked as a shared validator-first helper bundle, but the mak
 
 ## Next bounded step
 
-Leave this shared governance note parked unless fresh repo inspection finds one more real drift between `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `validate-phase7.py`, `zigux/Makefile`, the Phase 7 workflow route, or the shared docs-root, checklist, and tests-root Phase 7 summaries.
+Fresh repo inspection still shows the broad docs-root Phase 7 summary in `Documentation/zigux/README.md` omitting `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, even though the parked scripts-root packet and `scripts/zigux/validate-phase7.py` already require that checker and this note. If a safe full-file publication path is available, prefer a one-file docs-root truthfulness repair before touching helper code, fixtures, or any wider Phase 7 surface.
