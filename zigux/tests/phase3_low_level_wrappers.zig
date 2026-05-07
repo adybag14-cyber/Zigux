@@ -52,23 +52,28 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     barrier.full();
     barrier.acquireRelease();
 
-    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     const base = narrow.addressOf(&bytes[0]);
     const aligned_halfword: *align(1) const u16 = @ptrCast(&bytes[2]);
     const aligned_word: *align(1) const u32 = @ptrCast(&bytes[@sizeOf(u32)]);
-    const byte_desc = mmio.range(base, 8, 1);
-    const halfword_desc = mmio.range(base, 8, 2);
-    const desc = mmio.range(base, 8, 4);
+    const aligned_doubleword: *align(1) const u64 = @ptrCast(&bytes[@sizeOf(u64)]);
+    const byte_desc = mmio.range(base, 24, 1);
+    const halfword_desc = mmio.range(base, 24, 2);
+    const word_desc = mmio.range(base, 24, 4);
+    const dword_desc = mmio.range(base, 24, 8);
 
     try std.testing.expectEqual(base, byte_desc.base_addr);
-    try std.testing.expectEqual(@as(u32, 8), byte_desc.length);
+    try std.testing.expectEqual(@as(u32, 24), byte_desc.length);
     try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);
     try std.testing.expectEqual(base, halfword_desc.base_addr);
-    try std.testing.expectEqual(@as(u32, 8), halfword_desc.length);
+    try std.testing.expectEqual(@as(u32, 24), halfword_desc.length);
     try std.testing.expectEqual(@as(u32, 2), halfword_desc.stride);
-    try std.testing.expectEqual(base, desc.base_addr);
-    try std.testing.expectEqual(@as(u32, 8), desc.length);
-    try std.testing.expectEqual(@as(u32, 4), desc.stride);
+    try std.testing.expectEqual(base, word_desc.base_addr);
+    try std.testing.expectEqual(@as(u32, 24), word_desc.length);
+    try std.testing.expectEqual(@as(u32, 4), word_desc.stride);
+    try std.testing.expectEqual(base, dword_desc.base_addr);
+    try std.testing.expectEqual(@as(u32, 24), dword_desc.length);
+    try std.testing.expectEqual(@as(u32, 8), dword_desc.stride);
 
     mmio.write8(base, 1, 0x5a);
     try std.testing.expectEqual(@as(u8, 0x5a), bytes[1]);
@@ -82,6 +87,10 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     try std.testing.expectEqual(@as(u32, 0xfeedbeef), aligned_word.*);
     try std.testing.expectEqual(@as(u32, 0xfeedbeef), mmio.read32(base, @sizeOf(u32)));
 
+    mmio.write64(base, @sizeOf(u64), 0x0123_4567_89ab_cdef);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), aligned_doubleword.*);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), mmio.read64(base, @sizeOf(u64)));
+
     const odd_halfword: *align(1) const u16 = @ptrCast(&bytes[1]);
     mmio.write16(base, 1, 0x1234);
     try std.testing.expectEqual(@as(u16, 0x1234), odd_halfword.*);
@@ -93,9 +102,9 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     try std.testing.expectEqual(@as(u32, 0x89abcdef), mmio.read32(base, 3));
 
     const odd_doubleword: *align(1) const u64 = @ptrCast(&bytes[5]);
-    mmio.write64(base, 5, 0x0123_4567_89ab_cdef);
-    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), odd_doubleword.*);
-    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), mmio.read64(base, 5));
+    mmio.write64(base, 5, 0xfedc_ba98_7654_3210);
+    try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), odd_doubleword.*);
+    try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), mmio.read64(base, 5));
 }
 
 test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {
