@@ -199,7 +199,6 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     try std.testing.expect(std.mem.indexOf(u8, note, "a Phase 5 approved `samples/zigux/` reference idiom") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_loader.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_top_bit_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_top_bit_contract.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "a landed sample-backed runtime starter with selftest-hook metadata under `samples/zigux/runtime_bitmap.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "the shared `zigux/tests/phase9_build.zig` gate still carries the direct `phase9-runtime-bitmap-sample-tests` leg") != null);
@@ -233,8 +232,7 @@ test "phase 9 runtime bitmap survey cross-checks the shared sample-root boundary
     try std.testing.expect(std.mem.indexOf(u8, sample_root, "- `samples/zigux/trace_events_sample.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root, "later runtime follow-ons stay under the separate Phase 9 `samples/zigux/runtime_*` family and should not be counted as extra Phase 5 reference anchors") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root, "Separate Phase 9 runtime pilot family") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_root, "- `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_{build,contract}.zig` companion replay keep the `lib/test_bitmap.c` starter, loader handoff, and top-bit boundary fixture distinct from the Phase 5 sample packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_root, "samples/zigux/runtime_bitmap_top_bit_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root, "- `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` companion replay keep the `lib/test_bitmap.c` starter, loader handoff, and top-bit boundary fixture distinct from the Phase 5 sample packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root, "samples/zigux/runtime_bitmap_top_bit_contract.zig") != null);
 }
 
