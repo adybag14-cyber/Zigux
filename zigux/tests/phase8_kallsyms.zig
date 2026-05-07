@@ -109,6 +109,53 @@ test "phase 8 kallsyms chunked parser also rejects oversized names" {
     try std.testing.expectEqual(@as(usize, 0), symbols.items.len);
 }
 
+test "phase 8 kallsyms segmented reader bubbles callback failures unchanged" {
+    const SliceReader = struct {
+        bytes: []const u8,
+        index: usize = 0,
+
+        pub fn read(self: *@This(), dest: []u8) !usize {
+            if (self.index >= self.bytes.len) return 0;
+            const amt = @min(dest.len, self.bytes.len - self.index);
+            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
+            self.index += amt;
+            return amt;
+        }
+    };
+
+    const ErroringState = struct {
+        seen: usize = 0,
+    };
+
+    const ErroringCollector = struct {
+        fn collect(state: *ErroringState, symbol: kallsyms.ParsedSymbol) !void {
+            state.seen += 1;
+            if (std.mem.eql(u8, symbol.name, "weak_handler")) {
+                return error.DownstreamParserConsumerFailed;
+            }
+        }
+    };
+
+    const contents =
+        "ffffffff81000000 T startup_64\n" ++
+        "ffffffff81000200 W weak_handler\n";
+    var reader = SliceReader{ .bytes = contents };
+    var scratch_buffer: [9]u8 = undefined;
+    var state = ErroringState{};
+
+    try std.testing.expectError(
+        error.DownstreamParserConsumerFailed,
+        kallsyms.forEachParsedReader(
+            std.testing.allocator,
+            &reader,
+            &scratch_buffer,
+            &state,
+            ErroringCollector.collect,
+        ),
+    );
+    try std.testing.expectEqual(@as(usize, 2), state.seen);
+}
+
 test "phase 8 kallsyms wrappers preserve the parked callback contract" {
     const CallbackState = struct {
         names: std.ArrayList([]u8),
