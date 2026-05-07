@@ -101,7 +101,7 @@ test "phase 7 string helper boundary keeps the exact current sample inventory an
     for (runtime_seen) |seen| try std.testing.expect(seen);
 }
 
-test "phase 7 sample root notes keep the exact no-string-sample boundary explicit" {
+test "phase 7 sample root notes keep the exact parked no-sample boundaries explicit" {
     const allocator = std.testing.allocator;
     const readme = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(readme);
@@ -114,8 +114,30 @@ test "phase 7 sample root notes keep the exact no-string-sample boundary explici
     try expectContains(readme, "Documentation/zigux/phase7-string-helpers-slice.md");
     try expectContains(readme, "lib/string_helpers.zig");
     try expectContains(readme, "zigux/tests/phase7_build.zig");
+    try expectContains(readme, "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;");
+    try expectContains(readme, "Documentation/zigux/phase7-cmdline-slice.md");
+    try expectContains(readme, "zigux/tests/phase7_cmdline.zig");
+    try expectContains(readme, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectContains(readme, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;");
+    try expectContains(readme, "Documentation/zigux/phase7-argv-split-slice.md");
+    try expectContains(readme, "zigux/tests/phase7_argv_split.zig");
+    try expectContains(readme, "zigux/tests/phase7_argv_split_survey.zig");
+    try expectContains(readme, "scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(readme, "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;");
+    try expectContains(readme, "Documentation/zigux/phase7-rbtree-slice.md");
+    try expectContains(readme, "lib/rbtree.zig");
+    try expectContains(readme, "zigux/tests/phase7_rbtree.zig");
+    try expectContains(readme, "zigux/tests/phase7_rbtree_survey.zig");
+    try expectContains(readme, "scripts/zigux/check-phase7-rbtree-parity.py");
     try expectContains(readme, "samples/zigux/runtime_bitmap_top_bit_build.zig");
     try expectContains(readme, "samples/zigux/runtime_bitmap_top_bit_contract.zig");
+
+    try expectOccurrenceCount(readme, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;", 1);
+    try expectOccurrenceCount(readme, "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;", 1);
+    try expectOccurrenceCount(readme, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;", 1);
+    try expectOccurrenceCount(readme, "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;", 1);
+    try expectOccurrenceCount(readme, "scripts/zigux/check-phase7-argv-split-packet.py", 1);
+    try expectOccurrenceCount(readme, "scripts/zigux/check-phase7-rbtree-parity.py", 1);
 }
 
 test "phase 7 helper packet keeps the exact sample-boundary guard and Phase 5 build boundary wired" {
