@@ -29,6 +29,10 @@ pub fn alloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
     return try allocator.alloc(Word, nwords);
 }
 
+pub fn bitmap_alloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
+    return alloc(allocator, nbits);
+}
+
 pub fn zalloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
     const nwords = bitsToWords(nbits);
     if (nwords == 0) {
@@ -40,11 +44,19 @@ pub fn zalloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
     return bitmap;
 }
 
+pub fn bitmap_zalloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
+    return zalloc(allocator, nbits);
+}
+
 pub fn free(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
     if (bitmap.*) |slice| {
         allocator.free(slice);
     }
     bitmap.* = null;
+}
+
+pub fn bitmap_free(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
+    free(allocator, bitmap);
 }
 
 pub fn zero(dst: []Word, nbits: usize) void {
@@ -58,6 +70,10 @@ pub fn zero(dst: []Word, nbits: usize) void {
     @memset(dst[0..nwords], 0);
 }
 
+pub fn bitmap_zero(dst: []Word, nbits: usize) void {
+    zero(dst, nbits);
+}
+
 pub fn fill(dst: []Word, nbits: usize) void {
     assertBitmapLen(dst, nbits);
     if (nbits == 0) {
@@ -69,14 +85,26 @@ pub fn fill(dst: []Word, nbits: usize) void {
     dst[nwords - 1] = lastWordMask(nbits);
 }
 
+pub fn bitmap_fill(dst: []Word, nbits: usize) void {
+    fill(dst, nbits);
+}
+
 pub fn empty(src: []const Word, nbits: usize) bool {
     assertBitmapLen(src, nbits);
     return find_bit.findFirstBit(src, nbits) == nbits;
 }
 
+pub fn bitmap_empty(src: []const Word, nbits: usize) bool {
+    return empty(src, nbits);
+}
+
 pub fn full(src: []const Word, nbits: usize) bool {
     assertBitmapLen(src, nbits);
     return find_bit.findFirstZeroBit(src, nbits) == nbits;
+}
+
+pub fn bitmap_full(src: []const Word, nbits: usize) bool {
+    return full(src, nbits);
 }
 
 pub fn weight(src: []const Word, nbits: usize) usize {
@@ -97,6 +125,10 @@ pub fn weight(src: []const Word, nbits: usize) usize {
     return total;
 }
 
+pub fn bitmap_weight(src: []const Word, nbits: usize) usize {
+    return weight(src, nbits);
+}
+
 pub fn orBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
     const nwords = bitsToWords(nbits);
     std.debug.assert(dst.len >= nwords);
@@ -111,6 +143,10 @@ pub fn orBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize)
     }
 }
 
+pub fn bitmap_or(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
+    orBits(dst, src1, src2, nbits);
+}
+
 pub fn xorBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
     const nwords = bitsToWords(nbits);
     std.debug.assert(dst.len >= nwords);
@@ -123,6 +159,10 @@ pub fn xorBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize
     for (0..nwords) |idx| {
         dst[idx] = src1[idx] ^ src2[idx];
     }
+}
+
+pub fn bitmap_xor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
+    xorBits(dst, src1, src2, nbits);
 }
 
 pub fn andBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
@@ -147,6 +187,10 @@ pub fn andBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize
     return result != 0;
 }
 
+pub fn bitmap_and(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
+    return andBits(dst, src1, src2, nbits);
+}
+
 pub fn andNotBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src1, nbits);
@@ -167,6 +211,10 @@ pub fn andNotBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: us
     }
 
     return result != 0;
+}
+
+pub fn bitmap_andnot(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
+    return andNotBits(dst, src1, src2, nbits);
 }
 
 pub fn equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
@@ -190,6 +238,10 @@ pub fn equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
     return true;
 }
 
+pub fn bitmap_equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
+    return equal(src1, src2, nbits);
+}
+
 pub fn intersects(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
@@ -211,6 +263,10 @@ pub fn intersects(src1: []const Word, src2: []const Word, nbits: usize) bool {
     return false;
 }
 
+pub fn bitmap_intersects(src1: []const Word, src2: []const Word, nbits: usize) bool {
+    return intersects(src1, src2, nbits);
+}
+
 pub fn subset(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
@@ -230,6 +286,10 @@ pub fn subset(src1: []const Word, src2: []const Word, nbits: usize) bool {
     }
 
     return true;
+}
+
+pub fn bitmap_subset(src1: []const Word, src2: []const Word, nbits: usize) bool {
+    return subset(src1, src2, nbits);
 }
 
 pub fn setRange(map: []Word, start: usize, len: usize) void {
@@ -258,6 +318,10 @@ pub fn setRange(map: []Word, start: usize, len: usize) void {
     }
 }
 
+pub fn bitmap_set(map: []Word, start: usize, len: usize) void {
+    setRange(map, start, len);
+}
+
 pub fn clearRange(map: []Word, start: usize, len: usize) void {
     if (len == 0) {
         return;
@@ -282,6 +346,10 @@ pub fn clearRange(map: []Word, start: usize, len: usize) void {
         mask_to_clear &= lastWordMask(size);
         map[ptr] &= ~mask_to_clear;
     }
+}
+
+pub fn bitmap_clear(map: []Word, start: usize, len: usize) void {
+    clearRange(map, start, len);
 }
 
 pub fn copy(dst: []Word, src: []const Word, nbits: usize) void {
@@ -393,6 +461,10 @@ pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
     }
 
     return written;
+}
+
+pub fn bitmap_scnprintf(bitmap_words: []const Word, nbits: usize, buffer: []u8) usize {
+    return scnprintf(bitmap_words, nbits, buffer);
 }
 
 test "bitmap allocator helpers size zero and free their buffers" {
@@ -614,4 +686,74 @@ test "bitmap zero-bit helpers stay explicit no-ops" {
     const rendered = scnprintf(&[_]Word{}, 0, &buffer);
     try std.testing.expectEqual(@as(usize, 0), rendered);
     try std.testing.expectEqual(@as(u8, 0), buffer[0]);
+}
+
+test "bitmap Linux-style aliases mirror the primary helper surface" {
+    const allocator = std.testing.allocator;
+    const nbits = bits_per_long + 5;
+    const lhs = [_]Word{ ~@as(Word, 0), (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
+    const rhs = [_]Word{ 0x0f, (@as(Word, 1) << 2) };
+
+    var allocated = try bitmap_alloc(allocator, nbits);
+    defer bitmap_free(allocator, &allocated);
+    try std.testing.expectEqual(try alloc(allocator, 0) == null, try bitmap_alloc(allocator, 0) == null);
+    try std.testing.expect(allocated != null);
+
+    var zero_allocated = try bitmap_zalloc(allocator, nbits);
+    defer bitmap_free(allocator, &zero_allocated);
+    try std.testing.expect(zero_allocated != null);
+    for (zero_allocated.?) |word| {
+        try std.testing.expectEqual(@as(Word, 0), word);
+    }
+
+    var primary_map = [_]Word{ 0, 0 };
+    var alias_map = [_]Word{ 0, 0 };
+    setRange(&primary_map, 1, 3);
+    bitmap_set(&alias_map, 1, 3);
+    setRange(&primary_map, bits_per_long + 2, 2);
+    bitmap_set(&alias_map, bits_per_long + 2, 2);
+    try std.testing.expectEqualSlices(Word, &primary_map, &alias_map);
+    clearRange(&primary_map, 1, 3);
+    bitmap_clear(&alias_map, 1, 3);
+    clearRange(&primary_map, bits_per_long + 2, 2);
+    bitmap_clear(&alias_map, bits_per_long + 2, 2);
+    try std.testing.expectEqualSlices(Word, &primary_map, &alias_map);
+
+    fill(&primary_map, nbits);
+    bitmap_fill(&alias_map, nbits);
+    try std.testing.expectEqualSlices(Word, &primary_map, &alias_map);
+    zero(&primary_map, nbits);
+    bitmap_zero(&alias_map, nbits);
+    try std.testing.expectEqualSlices(Word, &primary_map, &alias_map);
+
+    try std.testing.expectEqual(weight(&lhs, nbits), bitmap_weight(&lhs, nbits));
+    try std.testing.expectEqual(empty(&[_]Word{ 0, 0 }, nbits), bitmap_empty(&[_]Word{ 0, 0 }, nbits));
+    try std.testing.expectEqual(full(&[_]Word{ ~@as(Word, 0), lastWordMask(nbits) }, nbits), bitmap_full(&[_]Word{ ~@as(Word, 0), lastWordMask(nbits) }, nbits));
+
+    var primary_dst = [_]Word{ 0, 0 };
+    var alias_dst = [_]Word{ 0, 0 };
+    orBits(&primary_dst, &lhs, &rhs, nbits);
+    bitmap_or(&alias_dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    xorBits(&primary_dst, &lhs, &rhs, nbits);
+    bitmap_xor(&alias_dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    try std.testing.expectEqual(andBits(&primary_dst, &lhs, &rhs, nbits), bitmap_and(&alias_dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    try std.testing.expectEqual(andNotBits(&primary_dst, &lhs, &rhs, nbits), bitmap_andnot(&alias_dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqualSlices(Word, &primary_dst, &alias_dst);
+
+    try std.testing.expectEqual(equal(&lhs, &rhs, nbits), bitmap_equal(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(intersects(&lhs, &rhs, nbits), bitmap_intersects(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(subset(&rhs, &lhs, nbits), bitmap_subset(&rhs, &lhs, nbits));
+
+    var primary_buffer: [32]u8 = undefined;
+    var alias_buffer: [32]u8 = undefined;
+    const primary_len = scnprintf(&lhs, nbits, &primary_buffer);
+    const alias_len = bitmap_scnprintf(&lhs, nbits, &alias_buffer);
+    try std.testing.expectEqual(primary_len, alias_len);
+    try std.testing.expectEqualStrings(primary_buffer[0..primary_len], alias_buffer[0..alias_len]);
 }
