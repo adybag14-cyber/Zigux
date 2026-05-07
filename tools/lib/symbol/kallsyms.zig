@@ -48,11 +48,8 @@ fn trimTrailingCarriageReturn(line: []const u8) []const u8 {
     return line;
 }
 
-fn validateNameLen(name: []const u8) ParseLineError![]const u8 {
-    if (name.len > KSYM_NAME_LEN) {
-        return error.SymbolNameTooLong;
-    }
-    return name;
+fn normalizeName(name: []const u8) []const u8 {
+    return if (name.len > KSYM_NAME_LEN) name[0..KSYM_NAME_LEN] else name;
 }
 
 pub fn parseLine(line: []const u8) ParseLineError!?ParsedSymbol {
@@ -66,7 +63,7 @@ pub fn parseLine(line: []const u8) ParseLineError!?ParsedSymbol {
     if (symbol_type == ' ' or trimmed[first_space + 2] != ' ') return null;
 
     const start = std.fmt.parseUnsigned(u64, trimmed[0..first_space], 16) catch return null;
-    const name = try validateNameLen(trimmed[first_space + 3 ..]);
+    const name = normalizeName(trimmed[first_space + 3 ..]);
 
     return .{
         .name = name,
@@ -283,15 +280,17 @@ test "kallsyms helpers preserve classification and malformed-line behavior" {
     try std.testing.expectEqual(@as(?ParsedSymbol, null), try parseLine("not-hex T broken"));
 }
 
-test "parseLine rejects oversized names instead of truncating them" {
+test "parseLine truncates oversized names instead of failing them" {
     const too_long_name = "a" ** (KSYM_NAME_LEN + 9);
     const oversized_line = try std.fmt.allocPrint(std.testing.allocator, "1 T {s}", .{too_long_name});
     defer std.testing.allocator.free(oversized_line);
 
-    try std.testing.expectError(error.SymbolNameTooLong, parseLine(oversized_line));
+    const parsed = (try parseLine(oversized_line)) orelse unreachable;
+    try std.testing.expectEqual(@as(usize, KSYM_NAME_LEN), parsed.name.len);
+    try std.testing.expectEqualStrings(too_long_name[0..KSYM_NAME_LEN], parsed.name);
 }
 
-test "chunked parsing preserves split records and fails closed on oversized names" {
+test "chunked parsing preserves split records and truncates oversized names" {
     const OwnedParsedSymbol = struct {
         name: []u8,
         symbol_type: u8,
@@ -345,11 +344,9 @@ test "chunked parsing preserves split records and fails closed on oversized name
         .chunks = &.{ first_chunk, second_chunk },
     };
 
-    try std.testing.expectError(
-        error.SymbolNameTooLong,
-        forEachParsedChunked(std.testing.allocator, &oversized_state, nextFixtureChunk, &parsed, Collector.append),
-    );
-    try std.testing.expectEqual(@as(usize, 0), parsed.items.len);
+    try forEachParsedChunked(std.testing.allocator, &oversized_state, nextFixtureChunk, &parsed, Collector.append);
+    try std.testing.expectEqual(@as(usize, 1), parsed.items.len);
+    try std.testing.expectEqualStrings(too_long_name[0..KSYM_NAME_LEN], parsed.items[0].name);
 }
 
 test "reader, path, and callback wrappers preserve the parked parser contract" {
