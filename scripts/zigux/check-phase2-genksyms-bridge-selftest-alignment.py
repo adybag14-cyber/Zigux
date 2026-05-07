@@ -18,7 +18,7 @@ BRIDGE_MANIFEST_PATH = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
 
 REQUIRED_BRIDGE_MARKERS = (
     "print('GENKSYMS_BRIDGE_SELF_TEST=pass')",
-    "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6')",
+    "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=7')",
 )
 REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
@@ -112,7 +112,9 @@ def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | N
 
     payload = {
         "tool": "scripts/zigux/genksyms.zig",
+        "status": "closed",
         "mode": "wrapper-first bridge",
+        "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
         "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
         "harness": "zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c",
         "case_count": len(case_names),
@@ -228,7 +230,7 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(
             (
                 "print('GENKSYMS_BRIDGE_SELF_TEST=pass')",
-                "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6')",
+                "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=7')",
                 "",
             )
         ),
@@ -351,6 +353,24 @@ def run_self_test() -> int:
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
         assert any(block == "MANIFEST_FIELD_MISMATCHES" and value.startswith("normalized_stderr_packet:") for block, value in issues)
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / BRIDGE_MANIFEST
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["status"] = "open"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(block == "MANIFEST_FIELD_MISMATCHES" and value.startswith("status:") for block, value in issues)
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / BRIDGE_MANIFEST
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["fixture_root"] = "zigux/tests/fixtures/other_bridge"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(block == "MANIFEST_FIELD_MISMATCHES" and value.startswith("fixture_root:") for block, value in issues)
         cases += 1
 
         build_self_test_root(root)
