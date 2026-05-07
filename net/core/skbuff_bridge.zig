@@ -61,6 +61,19 @@ pub const LifetimeAudit = struct {
     next_step: []const u8,
 };
 
+pub const FreezeGuardrail = struct {
+    anchor: []const u8,
+    status_bucket: []const u8,
+    named_owner: []const u8,
+    validation_gate: []const u8,
+    rollback_owner: []const u8,
+    rollback_threshold: []const u8,
+    blocked_gap_id: []const u8,
+    next_step_posture: []const u8,
+    required_evidence: []const []const u8,
+    automatic_return_to_blocked_triggers: []const []const u8,
+};
+
 const boundary_areas = [_]BoundaryArea{
     .{
         .id = "allocation-entrypoints",
@@ -234,6 +247,19 @@ const concurrency_sensitive_blocked_behaviors = [_][]const u8{
     "segmentation tail-list publication and validate_xmit_skb_list consumer coordination",
 };
 
+const freeze_required_evidence = [_][]const u8{
+    "explicit stay-in-C wording for `segs->prev`, `tail->next`, and `validate_xmit_skb_list()`",
+    "the blocked `phase14-skbuff-live-ownership-blocker` kept visible beside the no-smaller-follow-up posture",
+    "explicit wording that qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination remain in C",
+};
+
+const freeze_return_to_blocked_triggers = [_][]const u8{
+    "any edit that drops the named validation gate or rollback owner",
+    "missing freeze-in-C or stay-in-C wording for the exported tail-publication checkpoint",
+    "any manifest refresh that changes the blocked live-ownership gap without refreshing this survey note",
+    "any edit that weakens the explicit no-smaller-follow-up stance and silently implies a fresh skbuff wrapper step",
+};
+
 pub const SkbuffBridgeLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -264,6 +290,21 @@ pub const SkbuffBridgeLab = struct {
             .checkpoints = audit_checkpoints[0..],
             .blocked_live_behaviors = blocked_live_behaviors[0..],
             .next_step = nextAuditFocus(),
+        };
+    }
+
+    pub fn freezeGuardrail() FreezeGuardrail {
+        return .{
+            .anchor = descriptor().anchor,
+            .status_bucket = "freeze_in_c",
+            .named_owner = "Core-Adjacent Pod",
+            .validation_gate = "zig build test --build-file zigux/tests/phase14_build.zig --summary all plus make -C zigux phase14",
+            .rollback_owner = "Repo Tooling Pod",
+            .rollback_threshold = "keep this packet in freeze_in_c posture and return it to blocked skbuff-packet maintenance if the validation gate, rollback owner, blocked live-ownership gap, or explicit stay-in-C wording around qdisc-facing publication stops being visible in the same survey packet.",
+            .blocked_gap_id = "phase14-skbuff-live-ownership-blocker",
+            .next_step_posture = nextAuditFocus(),
+            .required_evidence = freeze_required_evidence[0..],
+            .automatic_return_to_blocked_triggers = freeze_return_to_blocked_triggers[0..],
         };
     }
 
@@ -331,6 +372,32 @@ pub const SkbuffBridgeLab = struct {
 
     pub fn concurrencySensitiveBlockedBehaviors() []const []const u8 {
         return concurrency_sensitive_blocked_behaviors[0..];
+    }
+
+    pub fn requiredFreezeEvidenceCount() usize {
+        return freeze_required_evidence.len;
+    }
+
+    pub fn hasRequiredFreezeEvidence(evidence: []const u8) bool {
+        for (freeze_required_evidence) |required_evidence| {
+            if (std.mem.eql(u8, required_evidence, evidence)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pub fn automaticReturnToBlockedTriggerCount() usize {
+        return freeze_return_to_blocked_triggers.len;
+    }
+
+    pub fn hasAutomaticReturnToBlockedTrigger(trigger: []const u8) bool {
+        for (freeze_return_to_blocked_triggers) |blocked_trigger| {
+            if (std.mem.eql(u8, blocked_trigger, trigger)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     pub fn nextAuditFocus() []const u8 {
@@ -461,6 +528,34 @@ test "skbuff bridge concurrency-sensitive checkpoint catalog stays anchored to t
     }
 
     try std.testing.expect(!SkbuffBridgeLab.isConcurrencySensitiveCheckpoint("checksum-complete-state-cache"));
+}
+
+test "skbuff bridge freeze guardrail stays machine-checkable" {
+    const guardrail = SkbuffBridgeLab.freezeGuardrail();
+
+    try std.testing.expectEqualStrings("net/core/skbuff.c", guardrail.anchor);
+    try std.testing.expectEqualStrings("freeze_in_c", guardrail.status_bucket);
+    try std.testing.expectEqualStrings("Core-Adjacent Pod", guardrail.named_owner);
+    try std.testing.expectEqualStrings("Repo Tooling Pod", guardrail.rollback_owner);
+    try std.testing.expectEqualStrings("phase14-skbuff-live-ownership-blocker", guardrail.blocked_gap_id);
+    try std.testing.expect(std.mem.indexOf(u8, guardrail.validation_gate, "zigux/tests/phase14_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, guardrail.validation_gate, "make -C zigux phase14") != null);
+    try std.testing.expect(std.mem.indexOf(u8, guardrail.rollback_threshold, "freeze_in_c posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, guardrail.rollback_threshold, "qdisc-facing publication") != null);
+    try std.testing.expect(std.mem.indexOf(u8, guardrail.next_step_posture, "No smaller review-only skbuff checkpoint remains") != null);
+    try std.testing.expectEqual(@as(usize, 3), guardrail.required_evidence.len);
+    try std.testing.expectEqual(@as(usize, 4), guardrail.automatic_return_to_blocked_triggers.len);
+    try std.testing.expectEqual(@as(usize, 3), SkbuffBridgeLab.requiredFreezeEvidenceCount());
+    try std.testing.expectEqual(@as(usize, 4), SkbuffBridgeLab.automaticReturnToBlockedTriggerCount());
+    try std.testing.expect(SkbuffBridgeLab.hasRequiredFreezeEvidence("explicit stay-in-C wording for `segs->prev`, `tail->next`, and `validate_xmit_skb_list()`"));
+    try std.testing.expect(SkbuffBridgeLab.hasRequiredFreezeEvidence("the blocked `phase14-skbuff-live-ownership-blocker` kept visible beside the no-smaller-follow-up posture"));
+    try std.testing.expect(SkbuffBridgeLab.hasRequiredFreezeEvidence("explicit wording that qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination remain in C"));
+    try std.testing.expect(SkbuffBridgeLab.hasAutomaticReturnToBlockedTrigger("any edit that drops the named validation gate or rollback owner"));
+    try std.testing.expect(SkbuffBridgeLab.hasAutomaticReturnToBlockedTrigger("missing freeze-in-C or stay-in-C wording for the exported tail-publication checkpoint"));
+    try std.testing.expect(SkbuffBridgeLab.hasAutomaticReturnToBlockedTrigger("any manifest refresh that changes the blocked live-ownership gap without refreshing this survey note"));
+    try std.testing.expect(SkbuffBridgeLab.hasAutomaticReturnToBlockedTrigger("any edit that weakens the explicit no-smaller-follow-up stance and silently implies a fresh skbuff wrapper step"));
+    try std.testing.expect(!SkbuffBridgeLab.hasRequiredFreezeEvidence("nonexistent freeze evidence"));
+    try std.testing.expect(!SkbuffBridgeLab.hasAutomaticReturnToBlockedTrigger("nonexistent return trigger"));
 }
 
 test "skbuff bridge lookup helpers keep the review-only catalog queryable" {
