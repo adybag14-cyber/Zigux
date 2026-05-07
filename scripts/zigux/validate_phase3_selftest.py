@@ -12,7 +12,7 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 10
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 12
 
 
 @dataclass(frozen=True)
@@ -56,6 +56,11 @@ SELF_TEST_TARGETS = (
         "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
         "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",
         ("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=",),
+    ),
+    SelfTestTarget(
+        "scripts/zigux/check-phase3-policy-byte-guards.py",
+        "PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass",
+        ("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=",),
     ),
     SelfTestTarget(
         "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
@@ -308,6 +313,46 @@ def run_self_test() -> int:
         )
         assert run_targets(duplicate_policy_aux_root) == [
             "duplicate_aux_marker:scripts/zigux/validate-phase3-policy-unsafe-survey.py:2:PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT="
+        ]
+
+        missing_policy_byte_aux_root = tmp_root / "missing-policy-byte-aux"
+        _populate_root(missing_policy_byte_aux_root)
+        write_script(
+            missing_policy_byte_aux_root / "scripts/zigux/check-phase3-policy-byte-guards.py",
+            "PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass",
+        )
+        assert run_targets(missing_policy_byte_aux_root) == [
+            "missing_aux_marker:scripts/zigux/check-phase3-policy-byte-guards.py:PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT="
+        ]
+
+        duplicate_policy_byte_aux_root = tmp_root / "duplicate-policy-byte-aux"
+        _populate_root(duplicate_policy_byte_aux_root)
+        duplicate_policy_byte_aux_path = (
+            duplicate_policy_byte_aux_root / "scripts/zigux/check-phase3-policy-byte-guards.py"
+        )
+        duplicate_policy_byte_aux_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "import sys",
+                    "",
+                    'if "--self-test" in sys.argv:',
+                    '    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")',
+                    '    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=1")',
+                    '    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=2")',
+                    "    raise SystemExit(0)",
+                    "",
+                    'raise SystemExit("expected --self-test")',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert run_targets(duplicate_policy_byte_aux_root) == [
+            "duplicate_aux_marker:scripts/zigux/check-phase3-policy-byte-guards.py:2:PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT="
         ]
 
         stderr_root = tmp_root / "stderr"
