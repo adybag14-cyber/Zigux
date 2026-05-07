@@ -79,6 +79,8 @@ REQUIRED_NOTE_MARKERS = [
     "phase11-hvc-console-export-signature-assert",
     "phase11-uapi-header-parity-surface",
     "notifier_hangup_irq",
+    "dedicated `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` step",
+    "rather than the shared `test` step",
 ]
 
 REQUIRED_SURVEY_MARKERS = [
@@ -268,6 +270,13 @@ def run_self_test() -> int:
         )
         expect_failure(
             root,
+            "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+            "rather than the shared `test` step",
+            "through the shared test step",
+            "note missing markers",
+        )
+        expect_failure(
+            root,
             "Documentation/zigux/phase11-shared-replay-contract.md",
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
             "zigux/tests/phase11_header_packet_absent.zig",
@@ -295,7 +304,7 @@ def run_self_test() -> int:
             "zigux_destination mismatch",
         )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=6")
+    print("phase11-header-boundary-packet: self-test cases=7")
     return 0
 
 
