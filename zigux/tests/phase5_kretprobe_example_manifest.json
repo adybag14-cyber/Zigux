@@ -7,11 +7,11 @@
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the manifest and survey test still describe the exact skip, return-value, duration, missed-summary, lifecycle-guard, sample-owned runRecoveryReplay() teardown recovery, and fixed maxactiveBudget() = 20 cue run through phase5_build.zig, with runLifecycleGuardReplay() keeping pre-init and post-init guard boundaries explicit",
+    "the manifest and survey test still describe the exact sample-owned runRetargetReplay() symbol-selection guard, skip, return-value, duration, missed-summary, lifecycle-guard, runRecoveryReplay() teardown recovery, and fixed maxactiveBudget() = 20 cue run through phase5_build.zig, with runLifecycleGuardReplay() keeping pre-init and post-init guard boundaries explicit",
     "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
     "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
     "ownershipSummary keeps cold, initialized, armed, replay_complete, and exited snapshots explicit instead of leaving lifecycle review hidden in raw fields",
-    "sample-owned runRecoveryReplay() keeps direct retargeting, outstanding-instance rejection, timestamp-order rejection and recovery, and post-exit handler rejection explicit instead of leaving teardown hidden in external tests",
+    "sample-owned runRetargetReplay() keeps empty-symbol rejection, pre-init retargeting, and post-init retarget rejection explicit, while runRecoveryReplay() keeps outstanding-instance rejection, timestamp-order rejection and recovery, and post-exit handler rejection explicit instead of leaving teardown hidden in external tests",
     "docs and tests still keep register_kretprobe, unregister_kretprobe, pt_regs return extraction, and runtime module wiring out of scope for this Phase 5 sample while keeping the separate Phase 9 runtime_kretprobe starter explicit"
   ],
   "exact_checks": [
@@ -19,6 +19,11 @@
       "id": "default-symbol",
       "kind": "anchor_shape",
       "expected": "the in-memory sample keeps kernel_clone as the default symbol name while allowing pre-init retargeting"
+    },
+    {
+      "id": "retarget-replay",
+      "kind": "anchor_shape",
+      "expected": "runRetargetReplay keeps empty-symbol rejection, pre-init retargeting to do_sys_openat2, initialized post-retarget state, and post-init retarget rejection explicit"
     },
     {
       "id": "skip-kernel-thread",
