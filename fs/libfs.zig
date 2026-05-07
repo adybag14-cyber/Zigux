@@ -18,6 +18,7 @@ pub const ModuleDescriptor = struct {
     provides_transaction_publish_planning: bool,
     provides_transaction_release_planning: bool,
     provides_addressability_planning: bool,
+    provides_simple_open_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -150,6 +151,14 @@ pub const AddressabilityPlan = struct {
     return_code: i32,
 };
 
+pub const SimpleOpenPlan = struct {
+    anchor: []const u8,
+    inode_private_data_present: bool,
+    stores_inode_private_data_in_file_private_data: bool,
+    leaves_existing_private_data_unchanged_when_null: bool,
+    return_code: i32,
+};
+
 pub const LibFsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -165,6 +174,7 @@ pub const LibFsHelperLab = struct {
             .provides_transaction_publish_planning = true,
             .provides_transaction_release_planning = true,
             .provides_addressability_planning = true,
+            .provides_simple_open_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -515,6 +525,16 @@ pub const LibFsHelperLab = struct {
             .clears_private_data_slot = true,
             .null_private_data_is_allowed = true,
             .consumes_private_data_lifetime = true,
+            .return_code = 0,
+        };
+    }
+
+    pub fn simpleOpenPlan(has_inode_private_data: bool) SimpleOpenPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .inode_private_data_present = has_inode_private_data,
+            .stores_inode_private_data_in_file_private_data = has_inode_private_data,
+            .leaves_existing_private_data_unchanged_when_null = !has_inode_private_data,
             .return_code = 0,
         };
     }
