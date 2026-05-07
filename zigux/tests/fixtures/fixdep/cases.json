@@ -9,6 +9,15 @@
     "expected_exit_code": 0
   },
   {
+    "name": "sample_escaped_space",
+    "depfile": "sample_escaped_space.d",
+    "target": "sample_escaped_space.o",
+    "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_escaped_space.o",
+    "expected": "sample_escaped_space_expected.txt",
+    "expected_stdout": "sample_escaped_space_expected.txt",
+    "expected_exit_code": 0
+  },
+  {
     "name": "sample_multi_target",
     "depfile": "sample_multi_target.d",
     "target": "module/sample2.o",
