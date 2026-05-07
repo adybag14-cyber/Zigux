@@ -16,7 +16,6 @@
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
-- `drivers/tty/hvc/hvc_console.zig`
 - `drivers/tty/hvc/hvc_console.h`
 
 ## Boundary Packet
