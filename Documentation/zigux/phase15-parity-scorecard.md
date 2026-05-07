@@ -6,9 +6,9 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 
 - `PHASE15_STATUS=freeze_in_c_governance`
 - `PHASE15_SLICE=parity-scorecard-stale-evidence-cleanup`
-- `PHASE15_LANE_KEY=P15-L12`
+- `PHASE15_LANE_KEY=P15-Y03`
 - scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking, and one machine-checked aggregate metrics block for the active freeze-in-C anchors
-- survey provenance refreshed against verified `master` head `39cdd038909f9834a8702070a697a0bf2111cb66`
+- survey provenance refreshed against verified `master` head `2359c03fa82626b7359467c9b8bc9d0b092de5aa`
 - required review-process record fields tracked in the manifest: `10`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
