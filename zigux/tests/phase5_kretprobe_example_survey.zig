@@ -268,6 +268,11 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "skip, private-data-shape, return-value, duration, fixed `maxactiveBudget()` cue, `ownershipSummary()` lifecycle snapshots, and teardown-boundary replay checks",
         "descriptor, manifest, `ownershipSummary()`, lifecycle-guard, and shared `phase5_build.zig` entrypoint prompts",
         "separate Phase 9 runtime starter",
+        "current `master` still ships no standalone `samples/zigux/*bitmap*` Phase 5 reference sample",
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "samples/zigux/runtime_bitmap.zig",
+        "samples/zigux/runtime_bitmap_loader.zig",
+        "zigux/tests/phase9_build.zig",
     };
 
     for (docs_root_markers) |needle| {
@@ -288,6 +293,9 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "fixed `maxactiveBudget()` cue",
         "timestamp-order rejection and recovery",
         "post-exit handler rejection",
+        "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*bitmap*` reference sample",
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "samples/zigux/runtime_bitmap.zig",
     };
 
     for (checklist_markers) |needle| {
@@ -311,6 +319,15 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "fixed `maxactiveBudget()` cue",
         "timestamp-order rejection and recovery",
         "post-exit handler rejection",
+        "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample",
+        "tools/lib/bitmap.zig",
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "Documentation/zigux/phase9-runtime-bitmap-survey.md",
+        "samples/zigux/runtime_bitmap.zig",
+        "samples/zigux/runtime_bitmap_loader.zig",
+        "zigux/kernel/runtime_loader.zig",
+        "zigux/kernel/runtime_loader_contract.zig",
+        "zigux/tests/phase9_build.zig",
     };
 
     for (sample_root_markers) |needle| {
