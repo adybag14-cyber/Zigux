@@ -1,0 +1,57 @@
+{
+  "lane_key": "P4-L20",
+  "phase": "Phase 4",
+  "owner": "Validation and Perf Team",
+  "rollback_owner": "Validation and Perf Team",
+  "surveyed_gates": [
+    {
+      "surface": "zigux/tests/atomic64_diff.zig",
+      "gate_owner": "ABI and Runtime Team",
+      "gate_rollback_owner": "ABI and Runtime Team",
+      "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens"
+    },
+    {
+      "surface": "zigux/tests/bitmap_diff.zig",
+      "gate_owner": "Shared Subsystems Pod",
+      "gate_rollback_owner": "Shared Subsystems Pod",
+      "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks"
+    }
+  ],
+  "survey_summary": {
+    "phase4_build_step_present": true,
+    "phase4_validation_matrix_present": true,
+    "shared_phase4_test_step_includes_survey": false,
+    "benchmark_command_unapproved": true,
+    "acceptable_limit_unapproved": true
+  },
+  "gaps": [
+    {
+      "id": "phase4-perf-baseline-survey-manifest",
+      "status": "starter_landed",
+      "kind": "survey_manifest",
+      "zigux_destination": "zigux/tests/phase4_perf_baseline_manifest.json",
+      "why_now": "The roadmap still requires perf baselines and thresholds, so the narrowest honest progress is a manifest-backed survey packet that keeps the current unapproved benchmark-command and acceptable-limit posture machine-checked without inventing numbers."
+    },
+    {
+      "id": "phase4-perf-baseline-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase4_perf_baseline_survey.zig",
+      "why_now": "A dedicated Phase 4 survey gate keeps the current correctness-only posture for the shipped atomic64 and bitmap rollback gates measurable without treating that local survey route as shared CI perf approval."
+    },
+    {
+      "id": "phase4-perf-baseline-atomic64-command",
+      "status": "ready_next",
+      "kind": "perf_command",
+      "zigux_destination": "zigux/tests/atomic64_diff.zig",
+      "why_now": "The atomic64 rollback gate is still correctness-only, so the next bounded same-lane step is one benchmark command plus one acceptable limit for the existing atomic64 replay before Phase 4 claims perf coverage."
+    },
+    {
+      "id": "phase4-perf-baseline-bitmap-command",
+      "status": "ready_next",
+      "kind": "perf_command",
+      "zigux_destination": "zigux/tests/bitmap_diff.zig",
+      "why_now": "The bitmap rollback gate is still correctness-only, so the next bounded same-lane step is one benchmark command plus one acceptable limit for the existing bitmap replay before Phase 4 claims perf coverage."
+    }
+  ]
+}
