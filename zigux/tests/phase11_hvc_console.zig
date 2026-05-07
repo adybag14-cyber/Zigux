@@ -450,6 +450,25 @@ test "phase11 hvc console keeps khvcd polling wakeups and teardown pressure revi
     try std.testing.expect(notifier_only.bounded_reschedule_pending);
     try std.testing.expect(!notifier_only.teardown_host_io_pending);
 
+    const hangup_only = try console.summarizeKhvcdPollingContract(.{
+        .close = .{
+            .port_initialized = false,
+            .open_count_before_close = 2,
+        },
+        .notifier_hangup_pending = true,
+    });
+    try std.testing.expect(!hangup_only.final_close_wait_required);
+    try std.testing.expect(!hangup_only.clears_port_initialized_on_final_close);
+    try std.testing.expect(!hangup_only.notifier_add_pending);
+    try std.testing.expect(hangup_only.notifier_hangup_pending);
+    try std.testing.expect(hangup_only.notifier_driven_wakeup_pending);
+    try std.testing.expect(!hangup_only.read_poll_pending);
+    try std.testing.expect(!hangup_only.write_poll_pending);
+    try std.testing.expect(!hangup_only.poll_driven_wakeup_pending);
+    try std.testing.expect(hangup_only.khvcd_polling_pending);
+    try std.testing.expect(hangup_only.bounded_reschedule_pending);
+    try std.testing.expect(hangup_only.teardown_host_io_pending);
+
     _ = console.teardown();
     try std.testing.expectError(error.ConsoleUnavailable, console.summarizeKhvcdPollingContract(.{}));
 }
