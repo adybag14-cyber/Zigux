@@ -354,6 +354,10 @@ pub fn stringUnescape(src: []const u8, dst: []u8, size: usize, flags: u32) usize
     return dst_index;
 }
 
+pub fn stringUnescapeInplace(buf: []u8, flags: u32) usize {
+    return stringUnescape(buf, buf, 0, flags);
+}
+
 pub fn stringEscapeMem(src: []const u8, dst: []u8, flags: u32, only: ?[]const u8) usize {
     var dst_index: usize = 0;
     const dict = only orelse "";
@@ -883,6 +887,16 @@ test "stringUnescape supports combined flags, in-place use, and bounded output" 
     try std.testing.expectEqualSlices(u8, "\n\r", bounded[0..2]);
     try std.testing.expectEqual(@as(u8, 0), bounded[2]);
     try std.testing.expectEqual(@as(u8, '!'), bounded[3]);
+}
+
+test "stringUnescapeInplace reuses the in-place core path without touching bytes after the first NUL" {
+    var inplace = [_]u8{ '\\', 'n', '\\', 'x', '4', '1', 0, '?', '?' };
+    const len = stringUnescapeInplace(inplace[0..], UNESCAPE_ANY);
+    try std.testing.expectEqual(@as(usize, 2), len);
+    try std.testing.expectEqualSlices(u8, "\nA", inplace[0..len]);
+    try std.testing.expectEqual(@as(u8, 0), inplace[len]);
+    try std.testing.expectEqual(@as(u8, '?'), inplace[7]);
+    try std.testing.expectEqual(@as(u8, '?'), inplace[8]);
 }
 
 test "stringUnescape exact-fit destination still decodes an escape" {
