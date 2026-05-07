@@ -139,18 +139,17 @@ This shared note owns those exact convenience-target names for closure work; lat
 - the same freeze-map follow-through still carries no linked `Documentation/zigux/phase15-parity-scorecard.md` entry and no Architecture Council status-change request for the shared Phase 9 loader packet on current `master`; if either artifact appears, reopen the shared loader lane as a governance change first instead of treating it as routine pilot-family evidence drift
 - `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet
 - treat that review-checklist prompt and `scripts/zigux/check-phase9-build-only-surface.py` as one coupled release-discipline packet: a checklist-side Phase 9 reminder refresh is incomplete unless the shared checker keeps this sequencing note, the shipped self-test-hook ownership marker, and the older freeze-map follow-through coupled instead of only trusting the surrounding reminder surfaces
-- `scripts/zigux/check-phase9-build-only-surface.py` now exact-counts the older freeze-map prompt follow-through and also fails closed when the checklist-side owner map drifts, but it still treats this sequencing note as path-only evidence instead of validating the shared-loader self-test-hook ownership bullet directly, so the next honest same-lane checker follow-through is to fail closed on that marker before broader shared-loader contract or reminder-surface work reopens
+- `scripts/zigux/check-phase9-build-only-surface.py` now exact-counts the older freeze-map prompt follow-through and also fails closed on both the sequencing note's shared-loader self-test-hook ownership bullet and the coupled checklist-side validation-packet marker, so the shared loader lane no longer has a parked checker-local selftest-hook follow-through on current `master`
 - `zigux/tests/README.md` now keeps the shared Phase 9 runtime-loader packet broad while also naming the focused `phase9-runtime-loader-shared-tests` step, so the shared loader lane no longer has a parked tests-root reminder follow-through on current `master`
 - reopen this shared lane only if one of the shared reminder surfaces drifts again or if the shared loader lane picks up a new bounded validation surface that needs to be named across the packet
 
 ## Recommended next-step order
 
-1. shared loader lane: fail closed on the sequencing note's shipped self-test-hook ownership bullet if `scripts/zigux/check-phase9-build-only-surface.py` is reopened again
-2. shared reminder refresh: only if another docs-root, scripts-root, tests-root, samples-root, or checklist surface drifts after this alignment
-3. shared loader lane: if a new bounded validation surface lands, wire it through `scripts/zigux/check-phase9-build-only-surface.py` before reopening broader request-contract, allocator/init-flow, or build-only reviewability work
-4. bitmap lane: only if the goal is to refine the already-landed top-bit companion or the survey-local `phase9_build.zig` marker alignment inside `zigux/tests/runtime_bitmap_survey.zig`
-5. trace-events lane: only if the goal is to refine the trace-events-local registration-drain or failed-exit recovery proof inside `samples/zigux/runtime_trace_events_loader.zig`
-6. atomic64 or kretprobe lanes: only when the change stays inside that family’s sample, loader, module, diff, survey, or blocked-state evidence packet
+1. shared reminder refresh: only if another docs-root, scripts-root, tests-root, samples-root, or checklist surface drifts after this alignment
+2. shared loader lane: if a new bounded validation surface lands, wire it through `scripts/zigux/check-phase9-build-only-surface.py` before reopening broader request-contract, allocator/init-flow, or build-only reviewability work
+3. bitmap lane: only if the goal is to refine the already-landed top-bit companion or the survey-local `phase9_build.zig` marker alignment inside `zigux/tests/runtime_bitmap_survey.zig`
+4. trace-events lane: only if the goal is to refine the trace-events-local registration-drain or failed-exit recovery proof inside `samples/zigux/runtime_trace_events_loader.zig`
+5. atomic64 or kretprobe lanes: only when the change stays inside that family’s sample, loader, module, diff, survey, or blocked-state evidence packet
 
 ## Anti-overlap rule
 
