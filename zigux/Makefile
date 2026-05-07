@@ -1,7 +1,7 @@
 PHONY += phase1-validate phase1-test phase1-bench phase1
 PHONY += phase2-validate phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2
 PHONY += phase3-validate phase3-selftest phase3-abi phase3-interop phase3
-PHONY += phase4-validate phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-bitmap-diff phase4-bitmap-live-helper-replay phase4
+PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-bitmap-diff phase4-bitmap-live-helper-replay phase4
 PHONY += phase5-test phase5
 PHONY += phase6-validate phase6-test phase6-perf phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6
 PHONY += phase7-validate phase7-test phase7
@@ -121,6 +121,11 @@ phase3: phase3-validate phase3-abi phase3-interop
 phase4-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
+
+phase4-artifact-diff-contract:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
 
 phase4-test:
