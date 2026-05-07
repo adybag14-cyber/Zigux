@@ -101,6 +101,7 @@ CONTRIBUTOR_GUIDE_REQUIRED_MARKERS = [
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
     "zigux/tests/README.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase13-release.py",
@@ -125,6 +126,7 @@ CONTRIBUTOR_GUIDE_EXACT_COUNTS = {
     "Documentation/zigux/phase13-release-notes-survey.md": 2,
     "Documentation/zigux/phase13-roadmap-traceability.md": 2,
     "Documentation/zigux/phase13-notifier-list-survey.md": 2,
+    "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": 4,
     "zigux/tests/phase13_notifier_list_manifest.json": 2,
     "zigux/tests/phase13_notifier_list_reviewability.zig": 2,
     "zigux/bindings/notifier_abi.zig": 2,
@@ -512,6 +514,48 @@ def run_self_test() -> int:
             validate(root),
             ["contributor-workflow-guide:scripts/zigux/check-phase13-landlock-ruleset-packet.py"],
             "missing_contributor_guide_landlock_checker_marker_failed",
+        )
+        _write(
+            contributor_guide_path,
+            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
+        )
+        case_count += 1
+
+        contributor_guide_path.write_text(
+            "\n".join(
+                marker
+                for marker in _repeat_markers(
+                    CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS
+                ).splitlines()
+                if marker != "Documentation/zigux/phase13-shared-helper-lane-sequencing.md"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            [
+                "contributor-workflow-guide:Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
+                "contributor-workflow-guide-exact:Documentation/zigux/phase13-shared-helper-lane-sequencing.md:expected=4:actual=0",
+            ],
+            "missing_contributor_guide_sequencing_marker_failed",
+        )
+        _write(
+            contributor_guide_path,
+            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
+        )
+        case_count += 1
+
+        contributor_guide_path.write_text(
+            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS).replace(
+                "Documentation/zigux/phase13-shared-helper-lane-sequencing.md\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["contributor-workflow-guide-exact:Documentation/zigux/phase13-shared-helper-lane-sequencing.md:expected=4:actual=3"],
+            "contributor_guide_sequencing_exact_count_guard_failed",
         )
         _write(
             contributor_guide_path,
