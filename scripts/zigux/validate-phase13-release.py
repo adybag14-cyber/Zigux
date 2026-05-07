@@ -104,6 +104,7 @@ CONTRIBUTOR_GUIDE_REQUIRED_MARKERS = [
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase13-release.py",
     "scripts/zigux/check-phase13-devres-packet.py",
+    "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
     "zigux/Makefile",
     "zigux/tests/phase13_build.zig",
     "Documentation/zigux/phase13-release-notes-survey.md",
@@ -145,6 +146,7 @@ CONTRIBUTOR_SYNC_REQUIRED_MARKERS = [
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
     "scripts/zigux/check-phase13-devres-packet.py",
+    "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
     "scripts/zigux/validate-phase13-release.py",
     "zigux/Makefile",
     "shared validator-first replay route separate from the broader shipped adjacent release-surface evidence",
@@ -215,6 +217,7 @@ SCRIPTS_REQUIRED_MARKERS = [
     "zigux/helpers/notifier_chain_view.zig",
     "validate-phase13-release.py",
     "check-phase13-devres-packet.py",
+    "check-phase13-landlock-ruleset-packet.py",
     "zigux/tests/phase13_build.zig",
     "phase13_libfs.zig",
     "phase13_devres.zig",
@@ -238,6 +241,7 @@ TESTS_REQUIRED_MARKERS = [
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
     "scripts/zigux/check-phase13-devres-packet.py",
+    "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
     "scripts/zigux/validate-phase13-release.py",
     "make -C zigux phase13-validate",
     "make -C zigux phase13",
@@ -285,6 +289,7 @@ MAKE_REQUIRED_LINES = [
     "phase13-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py",
     "phase13: phase13-validate phase13-test",
 ]
 
@@ -370,6 +375,7 @@ def _baseline_makefile() -> str:
             "phase13-validate:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py",
             "",
             "phase13-test:",
             "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase13_build.zig",
@@ -480,6 +486,77 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
 
         _assert_only(validate(root), [], "baseline_failed")
+        case_count += 1
+
+        contributor_guide_path = root / "Documentation/zigux/phase13-contributor-workflow-guide.md"
+        contributor_guide_path.write_text(
+            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS).replace(
+                "scripts/zigux/check-phase13-landlock-ruleset-packet.py\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["contributor-workflow-guide:scripts/zigux/check-phase13-landlock-ruleset-packet.py"],
+            "missing_contributor_guide_landlock_checker_marker_failed",
+        )
+        _write(
+            contributor_guide_path,
+            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
+        )
+        case_count += 1
+
+        scripts_readme_path = root / "scripts/zigux/README.md"
+        scripts_readme_path.write_text(
+            "\n".join(
+                marker
+                for marker in SCRIPTS_REQUIRED_MARKERS
+                if marker != "check-phase13-landlock-ruleset-packet.py"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["scripts-readme:check-phase13-landlock-ruleset-packet.py"],
+            "missing_scripts_readme_landlock_checker_marker_failed",
+        )
+        _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
+        tests_readme_path = root / "zigux/tests/README.md"
+        tests_readme_path.write_text(
+            "\n".join(
+                marker
+                for marker in TESTS_REQUIRED_MARKERS
+                if marker != "scripts/zigux/check-phase13-landlock-ruleset-packet.py"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["tests-readme:scripts/zigux/check-phase13-landlock-ruleset-packet.py"],
+            "missing_tests_readme_landlock_checker_marker_failed",
+        )
+        _write(root / "zigux/tests/README.md", "\n".join(TESTS_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
+        makefile_path = root / "zigux/Makefile"
+        makefile_path.write_text(
+            _baseline_makefile().replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py"],
+            "missing_makefile_landlock_checker_route_failed",
+        )
+        _write(root / "zigux/Makefile", _baseline_makefile())
         case_count += 1
 
         tests_review_companion_path = root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
