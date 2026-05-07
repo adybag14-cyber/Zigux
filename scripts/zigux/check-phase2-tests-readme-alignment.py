@@ -15,6 +15,8 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase2-closure.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
     "scripts/zigux/check-genksyms-crc-diff.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
@@ -28,6 +30,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/fixdep.zig",
     "scripts/zigux/genksyms_crc.zig",
     "scripts/zigux/kconfig/conf_bridge.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig",
@@ -118,6 +121,8 @@ TESTS_README_MARKERS = [
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
     "scripts/zigux/check-phase2-cross.py",
@@ -128,6 +133,7 @@ TESTS_README_MARKERS = [
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
+    "zig test scripts/zigux/fixdep.zig",
     "zig test scripts/zigux/genksyms_crc.zig",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
@@ -163,7 +169,7 @@ EXACT_COUNT_CHECKS = {
         "zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
         "python3 scripts/zigux/validate-phase2.py": 1,
         "python3 scripts/zigux/validate-phase2-closure.py": 1,
-        "make -C zigux phase2-validate": 1,
+        "make -C zigux phase2-validate": 2,
         "make -C zigux phase2": 1,
     },
     "Documentation/zigux/review-checklist.md": {
@@ -178,10 +184,13 @@ EXACT_COUNT_CHECKS = {
     "zigux/tests/README.md": {
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2": 1,
+        "scripts/zigux/check-phase2-fixdep-gate.py": 1,
+        "scripts/zigux/check-fixdep-diff.py": 1,
         "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
         "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1,
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
         "scripts/zigux/check-genksyms-crc-diff.py": 1,
+        "zig test scripts/zigux/fixdep.zig": 1,
         "zig test scripts/zigux/genksyms_crc.zig": 1,
     },
     "zigux/Makefile": {
@@ -794,6 +803,56 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in TESTS_README_MARKERS
+                if marker != "scripts/zigux/check-phase2-fixdep-gate.py"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "tests_readme:scripts/zigux/check-phase2-fixdep-gate.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(TESTS_README_MARKERS)
+            + "\nscripts/zigux/check-phase2-fixdep-gate.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "tests_readme:exact_count:scripts/zigux/check-phase2-fixdep-gate.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(
+                marker
+                for marker in TESTS_README_MARKERS
+                if marker != "scripts/zigux/check-fixdep-diff.py"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "tests_readme:scripts/zigux/check-fixdep-diff.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(TESTS_README_MARKERS)
+            + "\nscripts/zigux/check-fixdep-diff.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "tests_readme:exact_count:scripts/zigux/check-fixdep-diff.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(
+                marker
+                for marker in TESTS_README_MARKERS
                 if marker != "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py"
             )
             + "\n",
@@ -869,6 +928,31 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in TESTS_README_MARKERS
+                if marker != "zig test scripts/zigux/fixdep.zig"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "tests_readme:zig test scripts/zigux/fixdep.zig" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(TESTS_README_MARKERS)
+            + "\nzig test scripts/zigux/fixdep.zig\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "tests_readme:exact_count:zig test scripts/zigux/fixdep.zig:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(
+                marker
+                for marker in TESTS_README_MARKERS
                 if marker != "zig test scripts/zigux/genksyms_crc.zig"
             )
             + "\n",
@@ -914,7 +998,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=73")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=79")
     return 0
 
 
