@@ -33,17 +33,17 @@ The same deferred boundary also stops before any ownership of `execl_cmd()`: the
 1. run the focused Zig module tests
 - `zig test tools/lib/subcmd/exec-cmd.zig`
 
-2. run the focused exec-cmd shared replay
-- `zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all`
-
-3. run the shared Phase 8 validator route
+2. run the shared Phase 8 validator route
 - `make -C zigux phase8-validate`
 
-4. run the bundled Phase 8 tooling gate
-- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+3. run the focused exec-cmd shared replay
+- `zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all`
 
-5. run the focused convenience target
+4. run the focused convenience target
 - `make -C zigux phase8-exec-cmd-test`
+
+5. run the bundled Phase 8 tooling gate
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Current parity surface
 
@@ -62,7 +62,7 @@ The current tests check:
 
 - the focused Phase 8 replay stays on integrated environment setup, path shaping, deferred-handoff behavior, and the review surfaces that tie this parked packet back to the live C helper, checklist hook, and validator-first route
 - helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, rooted `argv[0]` slash-avoidance edge, logical-`PWD` alias acceptance proof, and the `collectExeclArgs()` overflow and missing-null guards instead of duplicating them in the coupled Phase 8 replay
-- the shared `make -C zigux phase8-validate` route now keeps this parked command-boundary slice aligned with the live Phase 8 validator-first packet before the broader tooling replay runs
+- the shared `make -C zigux phase8-validate` route now keeps this parked command-boundary slice aligned before the focused exec-cmd replay and the broader tooling replay run
 
 ## Non-goals
 
