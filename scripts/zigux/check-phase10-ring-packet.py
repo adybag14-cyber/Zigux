@@ -48,6 +48,13 @@ EXPECTED_HELPER_MARKERS = [
     "pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
 ]
 
+EXPECTED_VERIFY_MARKERS = [
+    'test "virtio ring reset readiness tracks unpublished, outstanding, and unpolled work" {',
+    'test "virtio ring delayed callback summary reports poll pressure when used work outruns delay budget" {',
+    'try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpublished_chains, readiness.blocker.?);',
+    'try testing.expect(delayed.should_poll);',
+]
+
 EXPECTED_TEST_MARKERS = [
     'test \"phase10 virtio ring reset-readiness preflight reports the current queue blocker\" {',
     'test \"phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work\" {',
@@ -169,7 +176,13 @@ pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueRes
 pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary { _ = self; _ = queue_index; }
 pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary { _ = self; _ = queue_index; }
 """,
-    "drivers/virtio/virtio_ring_verify.zig": "test \"virtio ring verify fixture\" {}\n",
+    "drivers/virtio/virtio_ring_verify.zig": """test \"virtio ring reset readiness tracks unpublished, outstanding, and unpolled work\" {
+    try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpublished_chains, readiness.blocker.?);
+}
+test \"virtio ring delayed callback summary reports poll pressure when used work outruns delay budget\" {
+    try testing.expect(delayed.should_poll);
+}
+""",
     "zigux/tests/phase10_virtio_ring.zig": """test \"phase10 virtio ring reset-readiness preflight reports the current queue blocker\" {}
 test \"phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work\" {}
 test \"phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases\" {}
@@ -302,6 +315,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_HELPER_MARKERS:
         if marker not in helper_text:
             missing_markers.append(f"helper:{marker}")
+
+    verify_text = read_text(root, "drivers/virtio/virtio_ring_verify.zig")
+    for marker in EXPECTED_VERIFY_MARKERS:
+        if marker not in verify_text:
+            missing_markers.append(f"verify:{marker}")
 
     test_text = read_text(root, "zigux/tests/phase10_virtio_ring.zig")
     for marker in EXPECTED_TEST_MARKERS:
@@ -492,6 +510,21 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_helper_marker_missing")
         helper_path.write_text(original_helper, encoding="utf-8")
 
+        verify_path = tmp_root / "drivers/virtio/virtio_ring_verify.zig"
+        original_verify = verify_path.read_text(encoding="utf-8")
+        verify_path.write_text(
+            original_verify.replace(
+                'test \"virtio ring delayed callback summary reports poll pressure when used work outruns delay budget\" {',
+                'test \"virtio ring delayed callback drift\" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'verify:test "virtio ring delayed callback summary reports poll pressure when used work outruns delay budget" {' not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_verify_marker_missing")
+        verify_path.write_text(original_verify, encoding="utf-8")
+
         test_path = tmp_root / "zigux/tests/phase10_virtio_ring.zig"
         original_test = test_path.read_text(encoding="utf-8")
         test_path.write_text(
@@ -626,7 +659,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_survey_test_queue_reset_marker_missing")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
