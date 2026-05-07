@@ -164,8 +164,43 @@ test "hvc_console verify keeps notifier prerequisite failures explicit" {
     }));
 }
 
+test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces" {
+    var console = try hvc_console.HvcConsoleLab.init(5);
+    _ = console.instantiate(0x51);
+
+    const never_registered = try console.summarizeNotifierHandoff(.{
+        .tty_registration_ready = false,
+        .sysrq_dispatch_requested = false,
+        .notifier_target_present = true,
+    });
+    try std.testing.expect(!never_registered.tty_registration_ready);
+    try std.testing.expect(!never_registered.sysrq_dispatch_requested);
+    try std.testing.expect(never_registered.notifier_target_present);
+    try std.testing.expect(!never_registered.notifier_registration_requested);
+    try std.testing.expect(!never_registered.notifier_callbacks_deferred);
+    try std.testing.expect(!never_registered.notifier_unregister_deferred);
+    try std.testing.expect(never_registered.khvcd_worker_execution_deferred);
+    try std.testing.expect(never_registered.host_io_deferred);
+    try std.testing.expect(never_registered.remove_handoff_still_required);
+
+    const targetless_sysrq = try console.summarizeNotifierHandoff(.{
+        .tty_registration_ready = true,
+        .sysrq_dispatch_requested = true,
+        .notifier_target_present = false,
+    });
+    try std.testing.expect(targetless_sysrq.tty_registration_ready);
+    try std.testing.expect(targetless_sysrq.sysrq_dispatch_requested);
+    try std.testing.expect(!targetless_sysrq.notifier_target_present);
+    try std.testing.expect(!targetless_sysrq.notifier_registration_requested);
+    try std.testing.expect(!targetless_sysrq.notifier_callbacks_deferred);
+    try std.testing.expect(!targetless_sysrq.notifier_unregister_deferred);
+    try std.testing.expect(targetless_sysrq.khvcd_worker_execution_deferred);
+    try std.testing.expect(targetless_sysrq.host_io_deferred);
+    try std.testing.expect(targetless_sysrq.remove_handoff_still_required);
+}
+
 test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks" {
-    var console = try hvc_console.HvcConsoleLab.init(16);
+    var console = try hvc_console.HvcConsoleLab.init(7);
     _ = console.instantiate(0xa6);
 
     const targetless_sysrq = try console.summarizeSysrqHandoff(.{
