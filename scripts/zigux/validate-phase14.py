@@ -613,6 +613,7 @@ def run_self_test() -> int:
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken_docs_root = root / "Documentation/zigux/README.md"
+        broken_docs_root.writeText = broken_docs_root.write_text
         broken_docs_root.write_text(
             broken_docs_root.read_text(encoding="utf-8").replace("make -C zigux phase14-validate\n", "", 1),
             encoding="utf-8",
@@ -691,6 +692,19 @@ def run_self_test() -> int:
         if "phase14 rollback-threshold sequencing checker failed without output" not in errors:
             print("self-test expected rollback-threshold checker silent subprocess failure", file=sys.stderr)
             return 1
+        broken_rollback_checker.write_text(
+            "#!/usr/bin/env python3\n"
+            "\"\"\"phase14 rollback-threshold sequencing checker missing marker\"\"\"\n"
+            "raise SystemExit(0)\n",
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            f"missing marker in scripts/zigux/check-phase14-rollback-threshold-sequencing.py: {CHECKER_MARKER}" in error
+            for error in errors
+        ):
+            print("self-test expected rollback-threshold checker marker failure", file=sys.stderr)
+            return 1
         write_text(root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         broken_release_boundary_checker = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
         broken_release_boundary_checker.write_text(
@@ -726,6 +740,19 @@ def run_self_test() -> int:
         if "phase14 release-boundary exact-counts checker failed without output" not in errors:
             print("self-test expected release-boundary checker silent subprocess failure", file=sys.stderr)
             return 1
+        broken_release_boundary_checker.write_text(
+            "#!/usr/bin/env python3\n"
+            "\"\"\"phase14 release-boundary checker missing marker\"\"\"\n"
+            "raise SystemExit(0)\n",
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            f"missing marker in scripts/zigux/check-phase14-release-boundary-exact-counts.py: {RELEASE_BOUNDARY_CHECKER_MARKER}" in error
+            for error in errors
+        ):
+            print("self-test expected release-boundary checker marker failure", file=sys.stderr)
+            return 1
         write_text(root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py", f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         docs_root_checker = root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
         docs_root_checker.unlink()
@@ -740,7 +767,7 @@ def run_self_test() -> int:
         if "missing file: scripts/zigux/check-phase14-rollback-threshold-sequencing.py" not in errors:
             print("self-test expected rollback-threshold checker missing-file failure", file=sys.stderr)
             return 1
-        write_text(rollback_checker, f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
+        writeText(root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         release_boundary_checker = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
         release_boundary_checker.unlink()
         errors = check(root)
