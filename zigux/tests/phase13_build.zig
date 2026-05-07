@@ -52,6 +52,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const phase13_devres_boundary_evidence_module = b.createModule(.{
+        .root_source_file = b.path("phase13_devres_boundary_evidence.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const phase13_landlock_ruleset_module = b.createModule(.{
         .root_source_file = b.path("phase13_landlock_ruleset.zig"),
         .target = target,
@@ -97,6 +103,12 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase13_devres_dma_coherent_tests = b.addRunArtifact(phase13_devres_dma_coherent_tests);
 
+    const phase13_devres_boundary_evidence_tests = b.addTest(.{
+        .name = "phase13-devres-boundary-evidence-tests",
+        .root_module = phase13_devres_boundary_evidence_module,
+    });
+    const run_phase13_devres_boundary_evidence_tests = b.addRunArtifact(phase13_devres_boundary_evidence_tests);
+
     const phase13_landlock_ruleset_tests = b.addTest(.{
         .name = "phase13-landlock-ruleset-tests",
         .root_module = phase13_landlock_ruleset_module,
@@ -120,6 +132,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase13_devres_tests.step);
     test_step.dependOn(&run_phase13_devres_reviewability_tests.step);
     test_step.dependOn(&run_phase13_devres_dma_coherent_tests.step);
+    test_step.dependOn(&run_phase13_devres_boundary_evidence_tests.step);
     test_step.dependOn(&run_phase13_landlock_ruleset_tests.step);
     test_step.dependOn(&run_phase13_landlock_syscalls_tests.step);
     test_step.dependOn(&run_phase13_libfs_reviewability_tests.step);
