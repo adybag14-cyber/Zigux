@@ -30,7 +30,7 @@ Those two notes remain truthful shared-tree-only anchors on `master`. They are r
 
 ## Shared replay reminder
 
-The shipped Phase 12 packet on `master` still keeps the same smoke-first replay order, including the attached-toolchain fallback when `zig` is absent from `PATH`, used by the PMO sequencing and closure companion notes.
+The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order below, including the attached-toolchain fallback when `zig` is absent from `PATH`, used by the PMO sequencing and closure companion notes.
 
 - current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 
