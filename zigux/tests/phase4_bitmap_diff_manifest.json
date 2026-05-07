@@ -7,6 +7,11 @@
   "live_gate_blob_sha": "825823b724a96c6d4fcca97071ddad8202686587",
   "helper_replay_path": "zigux/tests/phase4_bitmap_live_helper_replay.zig",
   "helper_replay_blob_sha": "24418ad890696a59b95276fe8dec7eaeecf25172",
+  "owner": "Shared Subsystems Pod",
+  "rollback_owner": "Shared Subsystems Pod",
+  "shared_validator_path": "scripts/zigux/validate-phase4.py",
+  "shared_matrix_path": "Documentation/zigux/phase4-validation-matrix.md",
+  "shared_gate_evidence_path": "Documentation/zigux/phase4-gate-evidence.md",
   "gate_evidence_path": "Documentation/zigux/phase4-gate-evidence.md",
   "gate_evidence_blob_sha": "3832b62978802753bf89d720a36d3f23a2b264b6",
   "phase4_build_present": true,
@@ -14,7 +19,7 @@
   "phase4_build_uses_bitmap_diff_survey": true,
   "phase4_build_blob_sha": "3164f1e56835ae0f0511d890f150dc374b45d1f4",
   "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
-  "roadmap_gap_summary": "the roadmap target zigux/tests/bitmap_diff.zig is already present as the current bounded bitmap rollback gate, and the same lane now needs its shared Phase 4 gate-evidence note to keep the bitmap rollback commands, threshold posture, and checksum-backed checkpoint summary explicit beside the helper-backed replay and the shared phase4_build.zig entrypoint so note coverage fails closed instead of relying on one-off readbacks",
+  "roadmap_gap_summary": "the roadmap target zigux/tests/bitmap_diff.zig is already present as the current bounded bitmap rollback gate, and the same lane now needs its shared Phase 4 gate-evidence note to keep the bitmap rollback commands, threshold posture, checksum-backed checkpoint summary, and the explicit Shared Subsystems Pod owner plus rollback owner metadata reviewable beside the helper-backed replay and the shared phase4_build.zig entrypoint so note coverage fails closed instead of relying on one-off readbacks",
   "reversible_delivery_evidence": "keep zigux/tests/bitmap_diff.zig, zigux/tests/phase4_bitmap_live_helper_replay.zig, Documentation/zigux/phase4-gate-evidence.md, zigux/tests/phase4_bitmap_diff_manifest.json, zigux/tests/phase4_bitmap_diff_survey.zig, and zigux/tests/phase4_build.zig aligned so the roadmap-named bitmap rollback gate, the shipped helper-backed replay, the exact-readback note coverage, the manifest-backed reviewability survey, and the shared Phase 4 entrypoint stay measurable and reversible on the current head",
-  "ready_next": "keep Documentation/zigux/phase4-gate-evidence.md, scripts/zigux/validate-phase4.py, Documentation/zigux/phase4-validation-matrix.md, zigux/tests/bitmap_diff.zig, zigux/tests/phase4_bitmap_live_helper_replay.zig, zigux/tests/phase4_bitmap_diff_manifest.json, zigux/tests/phase4_bitmap_diff_survey.zig, and zigux/tests/phase4_build.zig aligned so the bounded bitmap rollback packet stays reviewable, then decide in a later same-lane follow-up whether the broader Phase 4 validator or matrix should promote this bitmap survey packet more directly without widening into samples or perf-threshold approval"
+  "ready_next": "keep Documentation/zigux/phase4-gate-evidence.md, scripts/zigux/validate-phase4.py, Documentation/zigux/phase4-validation-matrix.md, zigux/tests/bitmap_diff.zig, zigux/tests/phase4_bitmap_live_helper_replay.zig, zigux/tests/phase4_bitmap_diff_manifest.json, and zigux/tests/phase4_bitmap_diff_survey.zig aligned so the bounded bitmap rollback packet keeps its explicit Shared Subsystems Pod owner plus rollback owner metadata reviewable on the active survey packet, then decide in a later same-lane follow-up whether the broader Phase 4 validator or matrix should promote this bitmap survey packet more directly without widening into samples or perf-threshold approval"
 }
