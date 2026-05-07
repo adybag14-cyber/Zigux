@@ -43,6 +43,7 @@
       "try std.testing.expectEqualStrings(\"1.50Ki\", cStringPrefix(&replay.compact_size_text.bytes));",
       "try std.testing.expectEqualSlices(u8, \"line\\n\", replay.unescaped_text.bytes[0..replay.unescaped_text.len]);",
       "try std.testing.expectEqualSlices(u8, \"\\\\x0a\", replay.escaped_text.bytes[0..replay.escaped_text.len]);",
+      "try std.testing.expectEqualSlices(u8, \"A\\\\n\\tZ\", replay.selected_escape_text.bytes[0..replay.selected_escape_text.len]);",
       "try std.testing.expectEqualSlices(u8, \"A\\\\x0aZ\", replay.appended_escape_text.bytes[0..replay.appended_escape_text.len]);",
       "try std.testing.expectEqual(@as(usize, 4), replay.checked_focus.len);"
     ]
@@ -81,14 +82,14 @@
       "status": "starter_landed",
       "kind": "reference_sample",
       "zigux_destination": "samples/zigux/string_helpers_sample.zig",
-      "why_now": "The bounded non-runtime sample makes the already-landed helper contract easier to review by replaying descriptor, lifecycle, newline matching, binary size rendering, compact formatting, and deterministic plus append-selected escape behavior without widening helper semantics."
+      "why_now": "The bounded non-runtime sample makes the already-landed helper contract easier to review by replaying descriptor, lifecycle, newline matching, binary size rendering, compact formatting, deterministic only-selected newline escaping, and append-selected newline hex escaping without widening helper semantics."
     },
     {
       "id": "phase7-string-helpers-sample-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_string_helpers_sample_survey.zig",
-      "why_now": "A manifest-backed survey gate keeps the helper, shared fixtures, sample replay, and shared Phase 7 build entrypoint aligned so the widened sample evidence does not land as an undocumented side path."
+      "why_now": "A manifest-backed survey gate keeps the helper, shared fixtures, sample replay, and shared Phase 7 build entrypoint aligned so the widened sample evidence, including only-selected and append-selected newline escaping, does not land as an undocumented side path."
     },
     {
       "id": "phase7-string-helpers-slice-note",
