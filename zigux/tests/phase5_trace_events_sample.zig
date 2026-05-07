@@ -31,6 +31,12 @@ test "phase 5 trace-events sample replays the bounded payload and callback idiom
     try std.testing.expect(replay.function_callback_path_checked);
     try std.testing.expect(replay.registration_balance_restored);
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqual(sample.SampleFocus.payload_shape, replay.checked_focus[0]);
+    try std.testing.expectEqual(sample.SampleFocus.string_selection, replay.checked_focus[1]);
+    try std.testing.expectEqual(sample.SampleFocus.formatted_message, replay.checked_focus[2]);
+    try std.testing.expectEqual(sample.SampleFocus.conditional_event_families, replay.checked_focus[3]);
+    try std.testing.expectEqual(sample.SampleFocus.function_callback_registration, replay.checked_focus[4]);
+    try std.testing.expectEqual(sample.SampleFocus.ownership_and_lifetime, replay.checked_focus[5]);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
 }
