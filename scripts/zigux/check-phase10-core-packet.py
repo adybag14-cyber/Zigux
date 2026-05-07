@@ -23,6 +23,7 @@ FILES = [
     "Documentation/zigux/phase10-virtio-core-survey.md",
     "Documentation/zigux/phase10-virtio-core-slice.md",
     "drivers/virtio/virtio.zig",
+    "drivers/virtio/virtio_verify.zig",
     "drivers/virtio/virtio_driver_id.zig",
 ]
 
@@ -30,6 +31,9 @@ EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_core_module",
     'phase10-virtio-core-tests',
     "run_phase10_virtio_core_tests",
+    "phase10_virtio_core_verify_module",
+    'phase10-virtio-core-verify-tests',
+    "run_phase10_virtio_core_verify_tests",
     "phase10_virtio_core_survey_module",
     'phase10-virtio-core-survey-tests',
     "run_phase10_virtio_core_survey_tests",
@@ -63,6 +67,14 @@ EXPECTED_CORE_TEST_MARKERS = [
     "phase10 virtio core renders bounded features_show bitstrings across device, driver, and negotiated views",
     "const lifecycle = device.lifecycleGuardSummary();",
     "const negotiated_bits = device.featureAttributeSummary(.negotiated);",
+]
+
+EXPECTED_VERIFY_TEST_MARKERS = [
+    'test "virtio core lifecycle guard advances through bounded wrapper readiness checkpoints" {',
+    'test "virtio core wrapper summaries keep narrowed features and reset teardown visible" {',
+    'try std.testing.expectEqualStrings("drivers/virtio/virtio.c", lifecycle.anchor);',
+    'const replay = device.resetReplaySummary();',
+    'device.reset();',
 ]
 
 EXPECTED_NOTE_MARKERS = [
@@ -164,6 +176,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         if marker not in core_test_text:
             missing_markers.append(f"core_test:{marker}")
 
+    verify_text = read_text(root, "drivers/virtio/virtio_verify.zig")
+    for marker in EXPECTED_VERIFY_TEST_MARKERS:
+        if marker not in verify_text:
+            missing_markers.append(f"verify:{marker}")
+
     reset_queue_text = read_text(root, "zigux/tests/phase10_virtio_core_reset_queue.zig")
     for marker in EXPECTED_RESET_QUEUE_MARKERS:
         if marker not in reset_queue_text:
@@ -258,6 +275,7 @@ def run_self_test() -> int:
         "Documentation/zigux/phase10-virtio-core-survey.md": read_text(ROOT, "Documentation/zigux/phase10-virtio-core-survey.md"),
         "Documentation/zigux/phase10-virtio-core-slice.md": read_text(ROOT, "Documentation/zigux/phase10-virtio-core-slice.md"),
         "drivers/virtio/virtio.zig": read_text(ROOT, "drivers/virtio/virtio.zig"),
+        "drivers/virtio/virtio_verify.zig": read_text(ROOT, "drivers/virtio/virtio_verify.zig"),
         "drivers/virtio/virtio_driver_id.zig": read_text(ROOT, "drivers/virtio/virtio_driver_id.zig"),
     }
 
@@ -305,6 +323,28 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if 'build:run_phase10_virtio_core_tests' not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_core_build_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
+        build_path.write_text(
+            original_build.replace(
+                "run_phase10_virtio_core_verify_tests",
+                "run_phase10_virtio_core_verify_drift",
+                2,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'build:run_phase10_virtio_core_verify_tests' not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_core_verify_build_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
+        build_path.write_text(
+            original_build.replace('"phase10-virtio-core-verify-tests"', '"phase10-virtio-core-verify-drift"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'build:phase10-virtio-core-verify-tests' not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_core_verify_test_name_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
         build_path.write_text(
@@ -400,9 +440,38 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_negotiated_feature_marker_missing")
         core_test_path.write_text(original_core_test, encoding="utf-8")
 
+        verify_path = tmp_root / "drivers/virtio/virtio_verify.zig"
+        original_verify = verify_path.read_text(encoding="utf-8")
+        verify_path.write_text(
+            original_verify.replace(
+                'test "virtio core lifecycle guard advances through bounded wrapper readiness checkpoints" {',
+                'test "virtio core lifecycle guard drift" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'verify:test "virtio core lifecycle guard advances through bounded wrapper readiness checkpoints" {' not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_verify_title_missing")
+        verify_path.write_text(original_verify, encoding="utf-8")
+
+        verify_path.write_text(
+            original_verify.replace(
+                "const replay = device.resetReplaySummary();",
+                "const replay = device.resetReplayDrift();",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "verify:const replay = device.resetReplaySummary();" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_verify_reset_replay_marker_missing")
+        verify_path.write_text(original_verify, encoding="utf-8")
+
         reset_queue_path = tmp_root / "zigux/tests/phase10_virtio_core_reset_queue.zig"
         original_reset_queue = reset_queue_path.read_text(encoding="utf-8")
-        reset_queue_path.write_text(
+        reset_queue_path.writeText = reset_queue_path.write_text
+        reset_queue_path.writeText(
             original_reset_queue.replace(
                 "try std.testing.expect(reset_summary.driver_ready);",
                 "try std.testing.expect(reset_summary.driver_ready_drift);",
@@ -543,7 +612,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_transport_bridge_wording_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
