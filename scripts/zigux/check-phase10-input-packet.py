@@ -23,6 +23,7 @@ FILES = [
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "Documentation/zigux/phase10-virtio-input-slice.md",
@@ -117,6 +118,13 @@ EXPECTED_STATUS_DRAIN_MARKERS = [
     'test "phase10 virtio input drains queued status completions without touching suppressed multitouch counters" {',
     "suppressed_status_count",
     "StatusCompletionCountExceedsQueued",
+]
+
+EXPECTED_QUEUE_CALLBACK_PREFLIGHT_MARKERS = [
+    'test "phase10 virtio input queue callback preflight reports queue and ready blockers and resets cleanly" {',
+    "QueueCallbackPreflightBlocker.event_queue_unconfigured",
+    "QueueCallbackPreflightBlocker.device_not_ready",
+    "ready_for_queue_callbacks",
 ]
 
 EXPECTED_SURVEY_TEST_MARKERS = [
@@ -266,6 +274,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_STATUS_DRAIN_MARKERS:
         if marker not in status_drain_text:
             missing_markers.append(f"status_drain:{marker}")
+
+    queue_callback_preflight_text = read_text(root, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig")
+    for marker in EXPECTED_QUEUE_CALLBACK_PREFLIGHT_MARKERS:
+        if marker not in queue_callback_preflight_text:
+            missing_markers.append(f"queue_callback_preflight:{marker}")
 
     survey_test_text = read_text(root, "zigux/tests/phase10_virtio_input_survey.zig")
     for marker in EXPECTED_SURVEY_TEST_MARKERS:
@@ -492,6 +505,17 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_status_drain_marker_missing")
         status_drain_path.write_text(original_status_drain, encoding="utf-8")
 
+        queue_callback_preflight_path = tmp_root / "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig"
+        original_queue_callback_preflight = queue_callback_preflight_path.read_text(encoding="utf-8")
+        queue_callback_preflight_path.write_text(
+            original_queue_callback_preflight.replace("ready_for_queue_callbacks", "ready_for_queue_drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "queue_callback_preflight:ready_for_queue_callbacks" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_queue_callback_preflight_marker_missing")
+        queue_callback_preflight_path.write_text(original_queue_callback_preflight, encoding="utf-8")
+
         survey_path = tmp_root / "Documentation/zigux/phase10-virtio-input-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
@@ -588,7 +612,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=20")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
