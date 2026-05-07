@@ -475,7 +475,7 @@ def run_self_test() -> int:
             "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
         ]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
-            build_lines.append("b.addTest(.{")
+            build_lines.append("b.addTest(.")
             build_lines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
@@ -636,6 +636,16 @@ def run_self_test() -> int:
             print("self-test expected scripts-root marker failure", file=sys.stderr)
             return 1
         write_text(root / "scripts/zigux/README.md", "\n".join(REQUIRED_FILE_MARKERS["scripts/zigux/README.md"]) + "\n")
+        broken_validator = root / "scripts/zigux/validate-phase14.py"
+        broken_validator.write_text(
+            broken_validator.read_text(encoding="utf-8").replace(f"{MARKER}\n", "", 1),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(f"missing marker in scripts/zigux/validate-phase14.py: {MARKER}" in error for error in errors):
+            print("self-test expected validator marker failure", file=sys.stderr)
+            return 1
+        write_text(root / "scripts/zigux/validate-phase14.py", "\n".join(REQUIRED_FILE_MARKERS["scripts/zigux/validate-phase14.py"]) + "\n")
         broken_checker = root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
         broken_checker.write_text(
             "#!/usr/bin/env python3\n"
