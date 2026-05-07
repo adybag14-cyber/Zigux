@@ -463,3 +463,47 @@ test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
     try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
     try std.testing.expectEqualStrings("drivers\\", summary.entries[0].value);
 }
+
+test "confdata bridge emits no entries for empty CONFIG symbol names" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 160), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(std.testing.allocator,
+        \\CONFIG_=y
+        \\# CONFIG_ is not set
+        \\CONFIG_VALID=m
+        \\
+    , &capture);
+
+    try std.testing.expectEqualStrings(
+        "{\"counts\":{\"set\":1,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_VALID\",\"kind\":\"tristate\",\"value\":\"m\"}]}\n",
+        capture.list.items,
+    );
+}
