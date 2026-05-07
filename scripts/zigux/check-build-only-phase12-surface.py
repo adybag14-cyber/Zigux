@@ -103,12 +103,16 @@ REQUIRED_FILE_MARKERS = {
     NVME_FALLBACK_MAP_PATH: [
         "PMO closure companion",
         "Documentation/zigux/phase12-release-closure-checklist.md",
+        "Documentation/zigux/phase12-release-coordination-matrix.md",
+        "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback map, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback map into a second sequencing document.",
         "The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
     ],
     VIRTIO_SCSI_FALLBACK_PATH: [
         "PMO closure companion",
         "Documentation/zigux/phase12-release-closure-checklist.md",
+        "Documentation/zigux/phase12-release-coordination-matrix.md",
+        "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback catalog, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback catalog into a second sequencing document.",
         "The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
     ],
@@ -306,6 +310,8 @@ Phase 12 notes
         """# Phase 12 NVMe PCI Raw GitHub Fallback Map
 - PMO closure companion
 - Documentation/zigux/phase12-release-closure-checklist.md
+- Documentation/zigux/phase12-release-coordination-matrix.md
+- `Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback map, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback map into a second sequencing document.
 - The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.
 - The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`
 """,
@@ -316,6 +322,8 @@ Phase 12 notes
         """# Phase 12 Virtio SCSI Raw GitHub Fallback Catalog
 - PMO closure companion
 - Documentation/zigux/phase12-release-closure-checklist.md
+- Documentation/zigux/phase12-release-coordination-matrix.md
+- `Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback catalog, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback catalog into a second sequencing document.
 - The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.
 - The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`
 """,
@@ -727,6 +735,25 @@ def run_self_test() -> int:
             return 1
         nvme_fallback_path.write_text(original_nvme_fallback, encoding="utf-8")
 
+        broken_nvme_fallback = original_nvme_fallback.replace(
+            "- `Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback map, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback map into a second sequencing document.\n",
+            "",
+            1,
+        )
+        nvme_fallback_path.write_text(broken_nvme_fallback, encoding="utf-8")
+        failures = validate(root)
+        expected = (
+            f"{NVME_FALLBACK_MAP_PATH}:"
+            "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback map, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback map into a second sequencing document."
+        )
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("nvme-fallback-coordination-matrix-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        nvme_fallback_path.write_text(original_nvme_fallback, encoding="utf-8")
+
         virtio_scsi_fallback_path = root / VIRTIO_SCSI_FALLBACK_PATH
         original_virtio_scsi_fallback = virtio_scsi_fallback_path.read_text(encoding="utf-8")
         broken_virtio_scsi_fallback = original_virtio_scsi_fallback.replace(
@@ -743,6 +770,25 @@ def run_self_test() -> int:
         if expected not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("virtio-scsi-fallback-shared-smoke-order-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        virtio_scsi_fallback_path.write_text(original_virtio_scsi_fallback, encoding="utf-8")
+
+        broken_virtio_scsi_fallback = original_virtio_scsi_fallback.replace(
+            "- `Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback catalog, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback catalog into a second sequencing document.\n",
+            "",
+            1,
+        )
+        virtio_scsi_fallback_path.write_text(broken_virtio_scsi_fallback, encoding="utf-8")
+        failures = validate(root)
+        expected = (
+            f"{VIRTIO_SCSI_FALLBACK_PATH}:"
+            "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback catalog, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback catalog into a second sequencing document."
+        )
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("virtio-scsi-fallback-coordination-matrix-guard")
             for failure in failures:
                 print(failure)
             return 1
