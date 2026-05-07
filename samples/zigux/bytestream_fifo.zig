@@ -126,6 +126,34 @@ pub const HelperBoundarySummary = struct {
     pop_after_reset: ?u8,
 };
 
+pub const QueueShapeCheckpoint = struct {
+    stage: SampleStage,
+    count: usize,
+    available: usize,
+    is_empty: bool,
+    is_full: bool,
+    wrapped_window: bool,
+    spans: VisibleSpanSummary,
+};
+
+pub const QueueShapeReplaySummary = struct {
+    stage_before_replay: SampleStage,
+    cold: QueueShapeCheckpoint,
+    after_init: QueueShapeCheckpoint,
+    hello_copy_count: usize,
+    after_hello: QueueShapeCheckpoint,
+    at_capacity: QueueShapeCheckpoint,
+    overflow_rejected: bool,
+    skipped_at_capacity: u8,
+    post_skip: QueueShapeCheckpoint,
+    refill_value: u8,
+    wrapped_refill: QueueShapeCheckpoint,
+    after_reset: QueueShapeCheckpoint,
+    after_exit: QueueShapeCheckpoint,
+    init_runs: usize,
+    exit_runs: usize,
+};
+
 pub const ShortDrainSummary = struct {
     initial_copy_count: usize,
     first_drain: [3]u8,
@@ -205,6 +233,18 @@ pub const BytestreamFifoSample = struct {
             .second_span_len = self.len - first_span_len,
             .total_visible = self.len,
             .wrapped = first_span_len < self.len,
+        };
+    }
+
+    fn queueShapeCheckpoint(self: *const Self) QueueShapeCheckpoint {
+        return .{
+            .stage = self.stage(),
+            .count = self.count(),
+            .available = self.available(),
+            .is_empty = self.isEmpty(),
+            .is_full = self.isFull(),
+            .wrapped_window = self.usesWrappedStorageWindow(),
+            .spans = self.visibleSpanSummary(),
         };
     }
 
@@ -333,6 +373,55 @@ pub const BytestreamFifoSample = struct {
             .count_after_skip = count_after_skip,
             .count_after_reset = count_after_reset,
             .pop_after_reset = pop_after_reset,
+        };
+    }
+
+    pub fn runQueueShapeReplay(self: *Self) !QueueShapeReplaySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        const cold = self.queueShapeCheckpoint();
+        try self.init();
+        const after_init = self.queueShapeCheckpoint();
+
+        const hello_copy_count = self.enqueueSlice("hello");
+        const after_hello = self.queueShapeCheckpoint();
+
+        var value: u8 = 0;
+        while (!self.isFull()) : (value +%= 1) {
+            if (!self.pushByte(value)) return error.UnexpectedQueueShapeFillFailure;
+        }
+        const at_capacity = self.queueShapeCheckpoint();
+        const overflow_rejected = !self.pushByte(255);
+
+        const skipped_at_capacity = self.skipByte() orelse return error.UnexpectedSkipOnEmpty;
+        const post_skip = self.queueShapeCheckpoint();
+
+        const refill_value: u8 = 255;
+        if (!self.pushByte(refill_value)) return error.UnexpectedQueueShapeRefillFailure;
+        const wrapped_refill = self.queueShapeCheckpoint();
+
+        self.reset();
+        const after_reset = self.queueShapeCheckpoint();
+
+        try self.exit();
+        const after_exit = self.queueShapeCheckpoint();
+
+        return .{
+            .stage_before_replay = .cold,
+            .cold = cold,
+            .after_init = after_init,
+            .hello_copy_count = hello_copy_count,
+            .after_hello = after_hello,
+            .at_capacity = at_capacity,
+            .overflow_rejected = overflow_rejected,
+            .skipped_at_capacity = skipped_at_capacity,
+            .post_skip = post_skip,
+            .refill_value = refill_value,
+            .wrapped_refill = wrapped_refill,
+            .after_reset = after_reset,
+            .after_exit = after_exit,
+            .init_runs = self.init_runs,
+            .exit_runs = self.exit_runs,
         };
     }
 
@@ -659,95 +748,108 @@ test "bytestream fifo sample keeps preview truncation explicit" {
 
 test "bytestream fifo sample exposes empty full and wrapped state boundaries explicitly" {
     var sample = BytestreamFifoSample{};
+    const queue_shape = try sample.runQueueShapeReplay();
 
-    try std.testing.expect(sample.isEmpty());
-    try std.testing.expect(!sample.isFull());
+    try std.testing.expectEqual(SampleStage.cold, queue_shape.stage_before_replay);
+
+    try std.testing.expectEqual(SampleStage.cold, queue_shape.cold.stage);
+    try std.testing.expect(queue_shape.cold.is_empty);
+    try std.testing.expect(!queue_shape.cold.is_full);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.cold.count);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), queue_shape.cold.available);
+    try std.testing.expect(!queue_shape.cold.wrapped_window);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.cold.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.cold.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.cold.spans.total_visible);
+    try std.testing.expect(!queue_shape.cold.spans.wrapped);
+
+    try std.testing.expectEqual(SampleStage.initialized, queue_shape.after_init.stage);
+    try std.testing.expect(queue_shape.after_init.is_empty);
+    try std.testing.expect(!queue_shape.after_init.is_full);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_init.count);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), queue_shape.after_init.available);
+    try std.testing.expect(!queue_shape.after_init.wrapped_window);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_init.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_init.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_init.spans.total_visible);
+    try std.testing.expect(!queue_shape.after_init.spans.wrapped);
+
+    try std.testing.expectEqual(@as(usize, 5), queue_shape.hello_copy_count);
+    try std.testing.expectEqual(SampleStage.initialized, queue_shape.after_hello.stage);
+    try std.testing.expect(!queue_shape.after_hello.is_empty);
+    try std.testing.expect(!queue_shape.after_hello.is_full);
+    try std.testing.expectEqual(@as(usize, 5), queue_shape.after_hello.count);
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 5), queue_shape.after_hello.available);
+    try std.testing.expect(!queue_shape.after_hello.wrapped_window);
+    try std.testing.expectEqual(@as(usize, 5), queue_shape.after_hello.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_hello.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 5), queue_shape.after_hello.spans.total_visible);
+    try std.testing.expect(!queue_shape.after_hello.spans.wrapped);
+
+    try std.testing.expectEqual(SampleStage.initialized, queue_shape.at_capacity.stage);
+    try std.testing.expect(!queue_shape.at_capacity.is_empty);
+    try std.testing.expect(queue_shape.at_capacity.is_full);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), queue_shape.at_capacity.count);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.at_capacity.available);
+    try std.testing.expect(!queue_shape.at_capacity.wrapped_window);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), queue_shape.at_capacity.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.at_capacity.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), queue_shape.at_capacity.spans.total_visible);
+    try std.testing.expect(!queue_shape.at_capacity.spans.wrapped);
+    try std.testing.expect(queue_shape.overflow_rejected);
+
+    try std.testing.expectEqual(@as(u8, 'h'), queue_shape.skipped_at_capacity);
+    try std.testing.expectEqual(SampleStage.initialized, queue_shape.post_skip.stage);
+    try std.testing.expect(!queue_shape.post_skip.is_empty);
+    try std.testing.expect(!queue_shape.post_skip.is_full);
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), queue_shape.post_skip.count);
+    try std.testing.expectEqual(@as(usize, 1), queue_shape.post_skip.available);
+    try std.testing.expect(!queue_shape.post_skip.wrapped_window);
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), queue_shape.post_skip.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.post_skip.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), queue_shape.post_skip.spans.total_visible);
+    try std.testing.expect(!queue_shape.post_skip.spans.wrapped);
+
+    try std.testing.expectEqual(@as(u8, 255), queue_shape.refill_value);
+    try std.testing.expectEqual(SampleStage.initialized, queue_shape.wrapped_refill.stage);
+    try std.testing.expect(!queue_shape.wrapped_refill.is_empty);
+    try std.testing.expect(queue_shape.wrapped_refill.is_full);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), queue_shape.wrapped_refill.count);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.wrapped_refill.available);
+    try std.testing.expect(queue_shape.wrapped_refill.wrapped_window);
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), queue_shape.wrapped_refill.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 1), queue_shape.wrapped_refill.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), queue_shape.wrapped_refill.spans.total_visible);
+    try std.testing.expect(queue_shape.wrapped_refill.spans.wrapped);
+
+    try std.testing.expectEqual(SampleStage.initialized, queue_shape.after_reset.stage);
+    try std.testing.expect(queue_shape.after_reset.is_empty);
+    try std.testing.expect(!queue_shape.after_reset.is_full);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_reset.count);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), queue_shape.after_reset.available);
+    try std.testing.expect(!queue_shape.after_reset.wrapped_window);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_reset.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_reset.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_reset.spans.total_visible);
+    try std.testing.expect(!queue_shape.after_reset.spans.wrapped);
+
+    try std.testing.expectEqual(SampleStage.exited, queue_shape.after_exit.stage);
+    try std.testing.expect(queue_shape.after_exit.is_empty);
+    try std.testing.expect(!queue_shape.after_exit.is_full);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_exit.count);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), queue_shape.after_exit.available);
+    try std.testing.expect(!queue_shape.after_exit.wrapped_window);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_exit.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_exit.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_exit.spans.total_visible);
+    try std.testing.expect(!queue_shape.after_exit.spans.wrapped);
+
+    try std.testing.expectEqual(@as(usize, 1), queue_shape.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), queue_shape.exit_runs);
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
-    const cold_spans = sample.visibleSpanSummary();
-    try std.testing.expectEqual(@as(usize, 0), cold_spans.first_span_len);
-    try std.testing.expectEqual(@as(usize, 0), cold_spans.second_span_len);
-    try std.testing.expectEqual(@as(usize, 0), cold_spans.total_visible);
-    try std.testing.expect(!cold_spans.wrapped);
-
-    try sample.init();
-    try std.testing.expect(sample.isEmpty());
-    try std.testing.expect(!sample.isFull());
-    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
-    try std.testing.expect(!sample.usesWrappedStorageWindow());
-    const initialized_spans = sample.visibleSpanSummary();
-    try std.testing.expectEqual(@as(usize, 0), initialized_spans.first_span_len);
-    try std.testing.expectEqual(@as(usize, 0), initialized_spans.second_span_len);
-    try std.testing.expectEqual(@as(usize, 0), initialized_spans.total_visible);
-    try std.testing.expect(!initialized_spans.wrapped);
-
-    try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
-    try std.testing.expect(!sample.isEmpty());
-    try std.testing.expect(!sample.isFull());
-    try std.testing.expectEqual(@as(usize, fifo_capacity - 5), sample.available());
-    try std.testing.expect(!sample.usesWrappedStorageWindow());
-    const hello_spans = sample.visibleSpanSummary();
-    try std.testing.expectEqual(@as(usize, 5), hello_spans.first_span_len);
-    try std.testing.expectEqual(@as(usize, 0), hello_spans.second_span_len);
-    try std.testing.expectEqual(@as(usize, 5), hello_spans.total_visible);
-    try std.testing.expect(!hello_spans.wrapped);
-
-    var value: u8 = 0;
-    while (!sample.isFull()) : (value +%= 1) {
-        try std.testing.expect(sample.pushByte(value));
-    }
-    try std.testing.expect(sample.isFull());
-    try std.testing.expect(!sample.isEmpty());
-    try std.testing.expect(!sample.pushByte(255));
-    try std.testing.expectEqual(@as(usize, 0), sample.available());
-    try std.testing.expect(!sample.usesWrappedStorageWindow());
-    const full_spans = sample.visibleSpanSummary();
-    try std.testing.expectEqual(@as(usize, fifo_capacity), full_spans.first_span_len);
-    try std.testing.expectEqual(@as(usize, 0), full_spans.second_span_len);
-    try std.testing.expectEqual(@as(usize, fifo_capacity), full_spans.total_visible);
-    try std.testing.expect(!full_spans.wrapped);
-
-    _ = sample.skipByte() orelse unreachable;
-    try std.testing.expect(!sample.isFull());
-    try std.testing.expect(!sample.isEmpty());
-    try std.testing.expectEqual(@as(usize, 1), sample.available());
-    try std.testing.expect(!sample.usesWrappedStorageWindow());
-    const post_skip_spans = sample.visibleSpanSummary();
-    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), post_skip_spans.first_span_len);
-    try std.testing.expectEqual(@as(usize, 0), post_skip_spans.second_span_len);
-    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), post_skip_spans.total_visible);
-    try std.testing.expect(!post_skip_spans.wrapped);
-
-    try std.testing.expect(sample.pushByte(255));
-    try std.testing.expect(sample.isFull());
-    try std.testing.expect(sample.usesWrappedStorageWindow());
-    const wrapped_spans = sample.visibleSpanSummary();
-    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), wrapped_spans.first_span_len);
-    try std.testing.expectEqual(@as(usize, 1), wrapped_spans.second_span_len);
-    try std.testing.expectEqual(@as(usize, fifo_capacity), wrapped_spans.total_visible);
-    try std.testing.expect(wrapped_spans.wrapped);
-
-    sample.reset();
-    try std.testing.expect(sample.isEmpty());
-    try std.testing.expect(!sample.isFull());
-    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
-    try std.testing.expect(!sample.usesWrappedStorageWindow());
-    const reset_spans = sample.visibleSpanSummary();
-    try std.testing.expectEqual(@as(usize, 0), reset_spans.first_span_len);
-    try std.testing.expectEqual(@as(usize, 0), reset_spans.second_span_len);
-    try std.testing.expectEqual(@as(usize, 0), reset_spans.total_visible);
-    try std.testing.expect(!reset_spans.wrapped);
-
-    try sample.exit();
-    try std.testing.expect(sample.isEmpty());
-    try std.testing.expect(!sample.isFull());
-    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
-    try std.testing.expect(!sample.usesWrappedStorageWindow());
-    const exited_spans = sample.visibleSpanSummary();
-    try std.testing.expectEqual(@as(usize, 0), exited_spans.first_span_len);
-    try std.testing.expectEqual(@as(usize, 0), exited_spans.second_span_len);
-    try std.testing.expectEqual(@as(usize, 0), exited_spans.total_visible);
-    try std.testing.expect(!exited_spans.wrapped);
 }
 
 test "bytestream fifo sample makes ownership and lifetime boundaries explicit" {
