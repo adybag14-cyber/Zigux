@@ -10,19 +10,26 @@ Use this note when a change touches any of these active Phase 13 helper families
   * `security/landlock/ruleset.zig`
   * `security/landlock/syscalls.zig`
 
-This note matters most when the shared Phase 13 replay is already present on `master` and the next useful step could drift from helper-local work into packet-truthfulness wording, shared release-route churn, or adjacent release-surface evidence.
+This note matters most when the shared Phase 13 replay is already present on `master` and the next useful step could drift from helper-local work into packet-truthfulness wording, shared release-route churn, broader contributor-surface sync, or adjacent release-surface evidence.
 
 ## Shared packet surfaces that do not transfer ownership
 
 These surfaces keep the current helper tranche reviewable, but they do not make one lane the owner of every nearby Phase 13 file:
+  * `Documentation/zigux/README.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+  * `Documentation/zigux/phase13-contributor-workflow-guide.md`
+  * `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+  * `scripts/zigux/README.md`
+  * `zigux/tests/README.md`
   * `scripts/zigux/validate-phase13-release.py`
   * `scripts/zigux/check-phase13-devres-packet.py`
   * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
   * `zigux/tests/phase13_build.zig`
   * `make -C zigux phase13-validate`
   * `make -C zigux phase13`
-  * `Documentation/zigux/phase13-contributor-workflow-guide.md`
-  * `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+
+They coordinate the shared contributor-facing and validator-first packet, but they do not transfer helper-lane ownership across `libfs`, `devres`, `landlock`, or adjacent notifier evidence.
 
 ## Lane map
 
@@ -91,10 +98,10 @@ They stay reviewable beside the Phase 13 helper tranche, but they are not extra 
 ## Anti-overlap rules
 
 1. If a run touches `lib/devres.zig`, decide first whether the work is helper parity or packet truthfulness. Do only one in the same run unless the packet would otherwise become false on current `master`.
-2. If a run only refreshes manifests, survey notes, reviewability checks, or checker wording, keep it out of helper backlog delivery.
-3. Shared replay routes may be updated when the packet shape really changes, but they do not justify widening from `libfs` into `devres`, from `devres` into `landlock`, or from any shared-helper lane into notifier ABI evidence.
+2. If a run only refreshes manifests, survey notes, reviewability checks, checker wording, or shared contributor prompts, keep it out of helper backlog delivery.
+3. Shared replay routes and shared contributor-facing surfaces may be updated when the packet shape really changes, but they do not justify widening from `libfs` into `devres`, from `devres` into `landlock`, or from any shared-helper lane into notifier ABI evidence.
 4. If two nearby runs touch `devres` at once, the helper-parity lane owns `lib/devres.zig`; the packet-truthfulness lane narrows to survey, manifest, reviewability, DMA-boundary, and checker surfaces until the helper file stabilizes again.
 
 ## Next safe follow-up
 
-Reopen this note only if Phase 13 adds a new shared-helper family, promotes adjacent notifier evidence into the shared replay route, or blurs the current `libfs` versus `devres` versus `landlock` split again.
+Reopen this note only if Phase 13 adds a new shared-helper family, promotes adjacent notifier evidence into the shared replay route, blurs the current `libfs` versus `devres` versus `landlock` split again, or changes which broad contributor-facing surfaces must stay aligned around that packet.
