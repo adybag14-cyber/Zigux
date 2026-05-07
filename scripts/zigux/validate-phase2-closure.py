@@ -19,6 +19,7 @@ CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT = (
 )
 CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 CHECK_PHASE2_TESTS_README_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
+CHECK_PHASE2_TOOL_MANIFEST_PACKETS = ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"
 DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
@@ -51,6 +52,8 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1,
     "scripts/zigux/validate-phase2-closure.py": 1,
     "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+    "scripts/zigux/check-phase2-tool-manifest-packets.py --self-test": 1,
+    "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
     "scripts/zigux/check-phase2-cross.py --self-test": 1,
     "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
     "scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
@@ -86,6 +89,8 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1,
     "python3 scripts/zigux/validate-phase2-closure.py": 1,
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+    "python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
     "python3 scripts/zigux/check-phase2-cross.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}": 1,
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
@@ -111,7 +116,6 @@ PHASE2_WORKFLOW_EXACT_LINES = {
     "run: zig test scripts/zigux/mk_elfconfig.zig": 1,
 }
 
-
 def required_files_for(root: Path) -> list[Path]:
     return [
         root / "Documentation" / "zigux" / "phase2-closure.md",
@@ -128,6 +132,7 @@ def required_files_for(root: Path) -> list[Path]:
         root / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
         root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
         root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
+        root / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",
         root / "scripts" / "zigux" / "validate-phase2-closure.py",
         root / "scripts" / "zigux" / "fixdep.zig",
         root / "scripts" / "zigux" / "genksyms.zig",
@@ -153,13 +158,11 @@ def required_files_for(root: Path) -> list[Path]:
         root / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
     ]
 
-
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise SystemExit(f"{label}:expected_object")
     return payload
-
 
 def collect_genksyms_expected_files(cases_payload: dict[str, object]) -> tuple[list[Path], list[str]]:
     issues: list[str] = []
@@ -189,7 +192,6 @@ def collect_genksyms_expected_files(cases_payload: dict[str, object]) -> tuple[l
         seen_expected.add(expected)
         expected_files.append(GENKSYMS_CASES.parent / expected)
     return expected_files, issues
-
 
 def collect_confdata_case_metadata(
     cases_payload: dict[str, object],
@@ -235,7 +237,6 @@ def collect_confdata_case_metadata(
             expected_packet.append(expected_rel_path)
     return discovered_files, case_names, expected_packet, issues
 
-
 def validate_exact_makefile_runs(text: str) -> list[str]:
     issues: list[str] = []
     lines = [line.strip() for line in text.splitlines()]
@@ -249,7 +250,6 @@ def validate_exact_makefile_runs(text: str) -> list[str]:
         if count != expected_count:
             issues.append(f"make_exact_line:{expected_line}:count={count}:expected={expected_count}")
     return issues
-
 
 def validate_exact_workflow_runs(text: str) -> list[str]:
     issues: list[str] = []
@@ -269,7 +269,6 @@ def validate_exact_workflow_runs(text: str) -> list[str]:
             )
     return issues
 
-
 def make_ok_text() -> str:
     return "\n".join(
         [
@@ -281,6 +280,8 @@ def make_ok_text() -> str:
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tool-manifest-packets.py",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
@@ -304,7 +305,6 @@ def make_ok_text() -> str:
         ]
     )
 
-
 def workflow_ok_text() -> str:
     return (
         "\n".join(
@@ -318,6 +318,8 @@ def workflow_ok_text() -> str:
                 "run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
                 "run: python3 scripts/zigux/validate-phase2-closure.py",
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+                "run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
                 "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
                 "run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}",
                 "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
@@ -344,11 +346,9 @@ def workflow_ok_text() -> str:
         + "\n"
     )
 
-
 def require_marker(text: str, marker: str, bucket: list[str], prefix: str) -> None:
     if marker not in text:
         bucket.append(f"{prefix}:{marker}")
-
 
 def main_validation(root: Path) -> list[str]:
     required_files = required_files_for(root)
@@ -409,6 +409,8 @@ def main_validation(root: Path) -> list[str]:
         "x86_64-linux",
         "PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py",
         "PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard",
+        "PHASE2_TOOL_MANIFEST_PACKET_SELF_TEST=python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+        "PHASE2_TOOL_MANIFEST_PACKET_GATE=python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
         "PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=19",
         "PHASE2_GENKSYMS_BRIDGE_CASES=minimal,debug_reference_types,long_options,abbreviated_long_options,ambiguous_long_option,quiet_overrides_warning,explicit_option_terminator,positional_passthrough,lone_dash_passthrough,help,abbreviated_help,version,abbreviated_version,invalid_option,missing_reference_argument,unsupported_long_option,missing_long_reference_argument,missing_long_dump_types_argument,too_many_reference_files",
         "PHASE2_GENKSYMS_BRIDGE_STDOUT_PACKET=minimal_expected.json,debug_reference_types_expected.json,long_options_expected.json,abbreviated_long_options_expected.json,quiet_overrides_warning_expected.json,explicit_option_terminator_expected.json,positional_passthrough_expected.json,lone_dash_passthrough_expected.json",
@@ -458,6 +460,8 @@ def main_validation(root: Path) -> list[str]:
         "python3 scripts/zigux/check-kconfig-bridge.py",
         "python3 scripts/zigux/check-mk-elfconfig-diff.py",
         "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+        "python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+        "python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
         "python3 scripts/zigux/check-phase2-cross.py --self-test",
         "python3 scripts/zigux/check-phase2-cross.py --target",
         "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
@@ -500,6 +504,7 @@ def main_validation(root: Path) -> list[str]:
         "phase2-cross:",
         "check-zig-toolchain.py",
         "check-phase2-tests-readme-alignment.py",
+        "check-phase2-tool-manifest-packets.py",
         "check-phase2-cross-selftest-alignment.py --self-test",
         "check-phase2-cross-selftest-alignment.py",
         "check-phase2-toolchain-pin-scope.py --self-test",
@@ -556,7 +561,6 @@ def main_validation(root: Path) -> list[str]:
     if len(targets_manifest.get("targets", [])) != 3:
         issues.append(f"targets:len={len(targets_manifest.get('targets', []))}")
     return issues
-
 
 def run_self_test() -> int:
     cases: list[tuple[str, list[str], list[str]]] = []
@@ -643,7 +647,6 @@ def run_self_test() -> int:
     print(f"PHASE2_CLOSURE_SELF_TEST_CASE_COUNT={len(cases)}")
     return 0
 
-
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--self-test", action="store_true")
@@ -685,7 +688,7 @@ def main() -> int:
     )
     print(
         "PHASE2_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{49 + len(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + 23 + 6 + 3 + 27}"
+        f"{51 + len(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + 25 + 6 + 4 + 29}"
     )
     return 0
 
