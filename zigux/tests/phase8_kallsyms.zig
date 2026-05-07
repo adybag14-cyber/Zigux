@@ -7,16 +7,16 @@ test "phase 8 kallsyms module imports cleanly" {
     _ = kallsyms;
 }
 
-test "phase 8 kallsyms slice note keeps the fail-closed oversized-name contract explicit" {
+test "phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit" {
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "PHASE8_SLICE=kallsyms-parse-wrapper-parked"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "helper-first expansion"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "output-stable tooling behavior"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "one direct `kallsymsParse()` wrapper"));
-    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "oversized symbol names now raise `error.SymbolNameTooLong`"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "oversized symbol names now truncate to `KSYM_NAME_LEN`"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "make -C zigux phase8-help-kallsyms-test"));
 }
 
-test "phase 8 kallsyms direct parser rejects oversized names" {
+test "phase 8 kallsyms direct parser truncates oversized names" {
     const parsed = (try kallsyms.parseLine("ffffffff81000100 t secondary_startup_64")) orelse unreachable;
     try std.testing.expectEqual(@as(u64, 0xffffffff81000100), parsed.start);
     try std.testing.expectEqualStrings("secondary_startup_64", parsed.name);
@@ -25,10 +25,12 @@ test "phase 8 kallsyms direct parser rejects oversized names" {
     const oversized_line = try std.fmt.allocPrint(std.testing.allocator, "1 T {s}", .{too_long_name});
     defer std.testing.allocator.free(oversized_line);
 
-    try std.testing.expectError(error.SymbolNameTooLong, kallsyms.parseLine(oversized_line));
+    const truncated = (try kallsyms.parseLine(oversized_line)) orelse unreachable;
+    try std.testing.expectEqual(@as(usize, kallsyms.KSYM_NAME_LEN), truncated.name.len);
+    try std.testing.expectEqualStrings(too_long_name[0..kallsyms.KSYM_NAME_LEN], truncated.name);
 }
 
-test "phase 8 kallsyms chunked parser also rejects oversized names" {
+test "phase 8 kallsyms chunked parser also truncates oversized names" {
     const ChunkFixtureState = struct {
         chunks: []const []const u8,
         index: usize = 0,
@@ -96,17 +98,15 @@ test "phase 8 kallsyms chunked parser also rejects oversized names" {
         .chunks = &.{ first_chunk, second_chunk },
     };
 
-    try std.testing.expectError(
-        error.SymbolNameTooLong,
-        kallsyms.forEachParsedChunked(
-            std.testing.allocator,
-            &oversized_state,
-            ChunkFixture.next,
-            &symbols,
-            Collector.append,
-        ),
+    try kallsyms.forEachParsedChunked(
+        std.testing.allocator,
+        &oversized_state,
+        ChunkFixture.next,
+        &symbols,
+        Collector.append,
     );
-    try std.testing.expectEqual(@as(usize, 0), symbols.items.len);
+    try std.testing.expectEqual(@as(usize, 1), symbols.items.len);
+    try std.testing.expectEqualStrings(too_long_name[0..kallsyms.KSYM_NAME_LEN], symbols.items[0].name);
 }
 
 test "phase 8 kallsyms segmented reader bubbles callback failures unchanged" {
