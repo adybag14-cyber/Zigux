@@ -96,6 +96,7 @@
         "test \"strlcpy copies and returns the source length\"",
         "test \"streq matches C-string equality semantics\"",
         "test \"skip trim remove and replace spaces work in place\"",
+        "test \"strreplace mirrors replaceChar C-string semantics\"",
         "test \"strHasPrefix honors C-string boundaries\"",
         "test \"strstarts mirrors the header-level prefix helper\"",
         "test \"strEndsWith honors C-string boundaries\"",
