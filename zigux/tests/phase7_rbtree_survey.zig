@@ -251,10 +251,10 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(helper_impl, "pub fn replaceNodeCached");
     try expectContains(helper_impl, "pub fn firstPostorder");
     try expectContains(helper_impl, "pub fn nextPostorder");
-    try expectContains(helper_impl, "test \"rbtree linked helpers track leftmost and neighbour links\"");
-    try expectContains(helper_impl, "test \"rbtree eraseInit clears detached nodes after erase\"");
-    try expectContains(helper_impl, "test \"rbtree replaceNode keeps displaced nodes non-empty until cleared\"");
-    try expectContains(helper_impl, "test \"rbtree postorder and empty node helpers behave\"");
+    try expectContains(helper_impl, "test \\\"rbtree linked helpers track leftmost and neighbour links\\\"");
+    try expectContains(helper_impl, "test \\\"rbtree eraseInit clears detached nodes after erase\\\"");
+    try expectContains(helper_impl, "test \\\"rbtree replaceNode keeps displaced nodes non-empty until cleared\\\"");
+    try expectContains(helper_impl, "test \\\"rbtree postorder and empty node helpers behave\\\"");
     try expectContains(helper_tests, "phase 7 rbtree traversal helpers walk a manually linked tree");
     try expectContains(helper_tests, "phase 7 rbtree replaceNode and postorder helpers preserve structure");
     try expectContains(helper_tests, "phase 7 rbtree balancing helpers keep ordered insert erase traversal stable");
