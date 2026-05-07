@@ -305,6 +305,9 @@ test "phase 9 runtime atomic64 survey source-checks the direct sample evidence p
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "shared_request.requestRuntimeLoad()") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "shared_request.releaseWithoutSubstrate()") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "error.SharedLoadPlanDrift") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "try std.testing.expectError(error.SharedLoadPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "runtime_loader.prepareRequest(initialized_shared_plan)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "runtime_loader.prepareRequest(selftest_shared_plan)") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "error.InvalidSelftestHookEvidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader emits the shared runtime-loader contract plan\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader keeps initialized-stage shared contract plans explicit\"") != null);
