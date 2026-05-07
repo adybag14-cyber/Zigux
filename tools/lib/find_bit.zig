@@ -354,6 +354,20 @@ test "find last bit scans backward across words" {
     try std.testing.expectEqual(@as(usize, bits_per_long + 3), findLastBit(&bitmap, nbits));
 }
 
+test "find last bit ignores storage beyond an exact word boundary" {
+    const nbits = bits_per_long;
+    const boundary = bits_per_long - 1;
+    var bitmap = [_]Word{
+        @as(Word, 1) << @intCast(boundary),
+        @as(Word, 1) << 5,
+    };
+
+    try std.testing.expectEqual(@as(usize, boundary), findLastBit(&bitmap, nbits));
+
+    bitmap[0] = 0;
+    try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));
+}
+
 test "find last bit clamps tail words to nbits" {
     const nbits = bits_per_long + 5;
     var bitmap = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 10) };
