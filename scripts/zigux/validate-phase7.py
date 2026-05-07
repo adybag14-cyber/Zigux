@@ -361,6 +361,14 @@ EXACT_COUNT_MARKERS = {
         ("This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.", 1),
         ("no `samples/zigux/*string*` Phase 5 reference sample is expected here;", 1),
     ],
+    "zigux/tests/phase7_cmdline_survey.zig": [
+        ("Documentation/zigux/phase7-cmdline-slice.md", 1),
+        ("zigux/tests/phase7_cmdline.zig", 1),
+        ("zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig", 1),
+        ("phase 7 getOption and getOptions preserve Linux-style range parsing", 1),
+        ("phase 7 parseOptionStr matches only exact bare options", 1),
+        ("phase 7 nextArg matches serialized edge fixtures", 1),
+    ],
 }
 
 FIXTURE_OVERRIDES = {
