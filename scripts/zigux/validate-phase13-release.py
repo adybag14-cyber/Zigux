@@ -215,6 +215,7 @@ TESTS_REVIEW_COMPANION_REQUIRED_MARKERS = [
 
 TESTS_REVIEW_COMPANION_EXACT_COUNTS = {
     "Documentation/zigux/phase13-notifier-list-survey.md": 2,
+    "Documentation/zigux/phase13-devres-survey.md": 3,
     "zigux/tests/phase13_notifier_list_manifest.json": 3,
     "zigux/tests/phase13_notifier_list_reviewability.zig": 2,
     "include/zigux/notifier_abi.h": 3,
@@ -855,6 +856,23 @@ def run_self_test() -> int:
             validate(root),
             ["tests-review-companion-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=3:actual=2"],
             "tests_review_companion_landlock_reviewability_exact_count_guard_failed",
+        )
+        _write(
+            tests_review_companion_path,
+            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
+        )
+        case_count += 1
+
+        tests_review_companion_path.write_text(
+            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS).replace(
+                "Documentation/zigux/phase13-devres-survey.md\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["tests-review-companion-exact:Documentation/zigux/phase13-devres-survey.md:expected=3:actual=2"],
+            "tests_review_companion_devres_survey_exact_count_guard_failed",
         )
         _write(
             tests_review_companion_path,
