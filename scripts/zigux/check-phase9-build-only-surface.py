@@ -161,6 +161,10 @@ REQUIRED_FREEZE_MAP_MARKERS = [
     "scheduler-facing substrate closure or a freeze-map status change",
 ]
 
+REQUIRED_FREEZE_MAP_EXACT_COUNTS = {
+    REQUIRED_FREEZE_MAP_MARKERS[0]: 1,
+}
+
 REQUIRED_MAKEFILE_MARKERS = [
     "PHONY += phase9-test phase9",
     "phase9-test:",
@@ -377,6 +381,7 @@ def validate(root: Path) -> list[str]:
     ensure_exact_counts(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_EXACT_COUNTS)
     ensure_exact_counts(failures, "samples_readme", samples_readme, REQUIRED_SAMPLES_README_EXACT_COUNTS)
     ensure_exact_counts(failures, "review_checklist", review_checklist, REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS)
+    ensure_exact_counts(failures, "freeze_map", freeze_map, REQUIRED_FREEZE_MAP_EXACT_COUNTS)
     ensure_exact_counts(failures, "phase9_build", phase9_build, REQUIRED_PHASE9_BUILD_EXACT_COUNTS)
 
     for marker in FORBIDDEN_MAKEFILE_MARKERS:
@@ -599,6 +604,19 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(root)
+        freeze_map_path = root / FREEZE_MAP_PATH
+        freeze_map = freeze_map_path.read_text(encoding="utf-8")
+        freeze_map_path.write_text(
+            freeze_map + REQUIRED_FREEZE_MAP_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"freeze_map_exact_count:{REQUIRED_FREEZE_MAP_MARKERS[0]}:expected=1:actual=2",
+            "duplicate_freeze_map_phase9_boundary",
+        )
+
+        write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
@@ -807,7 +825,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=31")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
