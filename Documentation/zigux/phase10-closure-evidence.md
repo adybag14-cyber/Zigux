@@ -18,7 +18,7 @@ This document records the bounded shared closure packet for the active Phase 10 
 Current `master` already ships a real Phase 10 packet:
 
 - the bounded virtio core, ring, input, and MMIO Zig slices
-- the four dedicated packet checkers
+- the four dedicated packet checkers plus the shared freeze-boundary checker
 - the shared `zigux/tests/phase10_build.zig` build route
 - the Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` entrypoints
 
@@ -53,6 +53,7 @@ The shared Phase 10 closure packet currently stays inside:
 - `Documentation/zigux/phase10-virtio-mmio-slice.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
+- `zigux/tests/phase10_closure_manifest.json`
 - `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_input_manifest.json`
@@ -73,6 +74,7 @@ The shared Phase 10 closure packet currently stays inside:
 - `scripts/zigux/check-phase10-ring-packet.py`
 - `scripts/zigux/check-phase10-input-packet.py`
 - `scripts/zigux/check-phase10-mmio-packet.py`
+- `scripts/zigux/check-phase10-mmio-freeze-boundary.py`
 - `zigux/Makefile`
 
 ## Closure Gates
@@ -84,6 +86,7 @@ The honest shared closure gates on current `master` are:
 - `python3 scripts/zigux/check-phase10-ring-packet.py`
 - `python3 scripts/zigux/check-phase10-input-packet.py`
 - `python3 scripts/zigux/check-phase10-mmio-packet.py`
+- `python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py`
 
 2. shared Phase 10 build replay
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
