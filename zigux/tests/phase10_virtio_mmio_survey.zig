@@ -75,6 +75,22 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     );
     defer std.testing.allocator.free(slice_note);
 
+    const build_file = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase10_build.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(build_file);
+
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -144,6 +160,15 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase10_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "../../drivers/virtio/virtio_ring_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "../../drivers/virtio/virtio_input_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-ring-verify-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-input-verify-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase10_virtio_ring_verify_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase10_virtio_input_verify_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "scripts/zigux/check-phase10-ring-packet.py --self-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "scripts/zigux/check-phase10-input-packet.py --self-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "$(ZIG) build test --build-file zigux/tests/phase10_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_ring_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_input_verify.zig") != null);
