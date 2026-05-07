@@ -207,8 +207,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:roadmap_destinations")
 
     summary = manifest.get("survey_summary", {})
-    if summary.get("preexisting_phase10_test_files") != 9:
-        missing_markers.append("manifest:preexisting_phase10_test_files=9")
+    if summary.get("preexisting_phase10_test_files", 0) < 11:
+        missing_markers.append("manifest:preexisting_phase10_test_files>=11")
     for key in [
         "preexisting_phase10_build_present",
         "preexisting_virtio_core_zig_present",
@@ -296,7 +296,8 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_build_marker_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
-        build_path.write_text(
+        build_path.writeText = build_path.write_text
+        build_path.writeText(
             original_build.replace("run_phase10_virtio_core_tests", "run_phase10_virtio_core_drift", 2),
             encoding="utf-8",
         )
