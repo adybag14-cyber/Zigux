@@ -174,7 +174,7 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try std.testing.expectEqual(@as(usize, 4), manifest.sample_replay_contract.checked_focus.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.sample_replay_contract.lifecycle_states.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.sample_replay_contract.helper_call_markers.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.sample_replay_contract.test_assertions.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.sample_replay_contract.test_assertions.len);
 
     var starter_landed_count: usize = 0;
     var saw_helper = false;
@@ -308,8 +308,8 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
         "`samples/zigux/string_helpers_sample.zig`",
         "`zigux/tests/phase7_string_helpers_sample_manifest.json`",
         "`zigux/tests/phase7_string_helpers_sample_survey.zig`",
-        "the bounded `samples/zigux/string_helpers_sample.zig` replay for descriptor ownership, lifecycle transitions, newline-tolerant matching, binary size rendering, compact no-space-no-bytes formatting, and deterministic plus append-selected newline hex escaping",
-        "the manifest-backed `zigux/tests/phase7_string_helpers_sample_survey.zig` gate so the helper, shared fixtures, sample replay, and slice note stay aligned in one reviewable packet after the added compact-format and append-selected escape proofs",
+        "the bounded `samples/zigux/string_helpers_sample.zig` replay for descriptor ownership, lifecycle transitions, newline-tolerant matching, binary size rendering, compact no-space-no-bytes formatting, deterministic only-selected newline escaping, and append-selected newline hex escaping",
+        "the manifest-backed `zigux/tests/phase7_string_helpers_sample_survey.zig` gate so the helper, shared fixtures, sample replay, and slice note stay aligned in one reviewable packet after the added compact-format, only-selected newline escaping, and append-selected escape proofs",
     };
     for (expected_doc_markers) |marker| {
         try expectContains(slice_note, marker);
@@ -319,6 +319,7 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
 test "phase 7 string helper sample survey replays the shared fixture-backed outputs directly" {
     const newline_suffix = try findUniqueUnescapeCase("sample replay newline suffix");
     const newline_hex_escape = try findUniqueEscapeCase("sample replay newline hex escape");
+    const selected_newline_escape = try findUniqueEscapeCase("dictionary-limited space escaping");
     const append_newline_hex_escape = try findUniqueEscapeCase("append dictionary entries with hex escaping");
 
     var sample = string_helpers_sample.StringHelpersSample{};
@@ -332,6 +333,8 @@ test "phase 7 string helper sample survey replays the shared fixture-backed outp
     try std.testing.expectEqualSlices(u8, newline_suffix.expected, replay.unescaped_text.bytes[0..replay.unescaped_text.len]);
     try std.testing.expectEqual(newline_hex_escape.expected_len, replay.escaped_text.len);
     try std.testing.expectEqualSlices(u8, newline_hex_escape.expected, replay.escaped_text.bytes[0..replay.escaped_text.len]);
+    try std.testing.expectEqual(selected_newline_escape.expected_len, replay.selected_escape_text.len);
+    try std.testing.expectEqualSlices(u8, selected_newline_escape.expected, replay.selected_escape_text.bytes[0..replay.selected_escape_text.len]);
     try std.testing.expectEqual(append_newline_hex_escape.expected_len, replay.appended_escape_text.len);
     try std.testing.expectEqualSlices(u8, append_newline_hex_escape.expected, replay.appended_escape_text.bytes[0..replay.appended_escape_text.len]);
 
