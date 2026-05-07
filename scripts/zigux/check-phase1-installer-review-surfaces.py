@@ -51,6 +51,9 @@ CLOSURE_MARKERS = [
     "- `scripts/zigux/install-zig.py`",
     "- `scripts/zigux/check-phase1-installer-review-surfaces.py`",
     "- `python3 scripts/zigux/install-zig.py --self-test`",
+    "- explicit opt-in to Node 24 action execution on GitHub-hosted runners",
+    "- no known dependency on the deprecated Node 20 runtime",
+    "- Zig installation through an in-repo official-download step instead of a Node 20-bound action",
 ]
 
 WORKFLOW_MARKERS = [
@@ -265,6 +268,18 @@ def run_self_test() -> int:
         )
         assert (
             "phase1_closure_installer_packet:- `python3 scripts/zigux/install-zig.py --self-test`:expected>=1:actual=0"
+            in issues
+        )
+        assert (
+            "phase1_closure_installer_packet:- explicit opt-in to Node 24 action execution on GitHub-hosted runners:expected>=1:actual=0"
+            in issues
+        )
+        assert (
+            "phase1_closure_installer_packet:- no known dependency on the deprecated Node 20 runtime:expected>=1:actual=0"
+            in issues
+        )
+        assert (
+            "phase1_closure_installer_packet:- Zig installation through an in-repo official-download step instead of a Node 20-bound action:expected>=1:actual=0"
             in issues
         )
 
