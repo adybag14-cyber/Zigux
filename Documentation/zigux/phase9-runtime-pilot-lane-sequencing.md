@@ -47,7 +47,6 @@ Own:
 
 - `samples/zigux/runtime_bitmap.zig`
 - `samples/zigux/runtime_bitmap_loader.zig`
-- `samples/zigux/runtime_bitmap_top_bit_build.zig`
 - `samples/zigux/runtime_bitmap_top_bit_contract.zig`
 - `zigux/tests/runtime_bitmap_module.zig`
 - `zigux/tests/runtime_bitmap_diff.zig`
