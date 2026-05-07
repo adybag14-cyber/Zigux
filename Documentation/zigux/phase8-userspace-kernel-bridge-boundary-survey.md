@@ -26,7 +26,7 @@ The live Phase 8 packet already carries a bounded fdinfo helper slice, but the a
 
 The currently landed bridge-side helper remains intentionally small:
 
-- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` keeps exact `"/proc/%d/fdinfo/%d"` assembly, bounded fdinfo map-info parsing, explicit decimal or octal or hex numeric handling, compact completion summaries, and planning-only reuse-pinned-map attempt gating reviewable
+- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` keeps exact `"/proc/%d/fdinfo/%d"` assembly, bounded fdinfo map-info parsing, explicit decimal or octal or hex numeric handling, compact completion summaries, the helper-only `mapReuseObservationFromFdinfo()` handoff from parsed fdinfo fields into reuse planning, and planning-only reuse-pinned-map attempt gating reviewable
 - the landed reuse-planning helper requires a non-empty pinned path plus compatible fdinfo-derived map info before any real reopen attempt can even be considered, while still keeping actual bpffs opens and handle replacement outside the current Zig slice
 - `zigux/tests/phase8_file_path_handle_bridge.zig` keeps the helper packet wired to stable path, ignored-line, repeated-field, numeric-base, summary, and planning-only reopen-attempt expectations
 - the adjacent `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` packet keeps bounded `perf_buffer__poll(timeout_ms)` wait-result classification, poll waits, ready-buffer bookkeeping, and ordered record-processing summaries reviewable without claiming live epoll wiring, per-CPU setup, mmap-backed ring ownership, or standalone timer or clockevent helper behavior
@@ -36,6 +36,7 @@ The currently landed bridge-side helper remains intentionally small:
 
 The current packet is productively landed, but the remaining bridge-facing work still needs a sharp fence:
 
+- `mapReuseObservationFromFdinfo()` now keeps the fdinfo-to-observation handoff inside the shipped helper packet so later reuse planning starts from bounded parsed map info instead of raw fdinfo text
 - `resolveReusePinnedMapAttempt()` now stays inside the shipped helper packet as a planning-only gate: it only checks for a non-empty pinned path, compatible fdinfo-derived map info, and truncated-name reuse compatibility before any future reopen path is allowed to proceed
 - `planTokenPreparation()` remains outside the shipped helper packet because token construction would widen the slice from stable text parsing into capability and ownership setup
 - direct procfs reads, bpffs opens, `bpf_obj_get()` reopen flow, and fd close or ownership semantics remain intentionally outside the current packet
@@ -83,4 +84,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-Keep this survey parked beside the landed fdinfo helper packet, the new planning-only reopen gate, and the adjacent bounded poll helper until one adjacent bridge step is ready to move as a single bounded review surface. Keep the shared `make -C zigux phase8-validate` route explicit in that parked boundary so validator-first review stays ahead of the bridge-side replay, and keep the deferred `perf-buffer-online-cpu-routing` packet explicitly parked beside the current helper family so the file-path bridge note does not accidentally over-claim libbpf parity. The next honest reopen remains the smallest helper-first packet that can connect the current fdinfo note and planning-only gate to queued token preparation or actual reopen handling without widening into direct procfs reads, bpffs opens, loader-facing libbpf work, or live interrupt-routing behavior.
+Keep this survey parked beside the landed fdinfo helper packet, the explicit fdinfo-to-observation handoff, the planning-only reopen gate, and the adjacent bounded poll helper until one adjacent bridge step is ready to move as a single bounded review surface. Keep the shared `make -C zigux phase8-validate` route explicit in that parked boundary so validator-first review stays ahead of the bridge-side replay, and keep the deferred `perf-buffer-online-cpu-routing` packet explicitly parked beside the current helper family so the file-path bridge note does not accidentally over-claim libbpf parity. The next honest reopen remains the smallest helper-first packet that can connect the current fdinfo note and planning-only gate to queued token preparation or actual reopen handling without widening into direct procfs reads, bpffs opens, loader-facing libbpf work, or live interrupt-routing behavior.
