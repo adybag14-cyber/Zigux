@@ -326,6 +326,7 @@ pub const RulesetHelperLab = struct {
             var updated = rule;
 
             if (incoming.level == 0) {
+                try validateIncomingLayerAccess(incoming);
                 if (rule.num_layers != 1 or rule.layers[0].level != 0) {
                     return error.InvalidExistingRule;
                 }
@@ -493,3 +494,24 @@ pub const RulesetHelperLab = struct {
         };
     }
 };
+
+test "landlock ruleset insertion rejects empty access when extending a level-zero rule" {
+    const base_rule = RulePlan{
+        .num_layers = 1,
+        .layers = [_]Layer{.{ .level = 0, .access = 0x2 }} ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 1)),
+    };
+
+    try std.testing.expectError(error.EmptyAccess, RulesetHelperLab.planRuleInsertion(
+        base_rule,
+        &.{.{ .level = 0, .access = 0 }},
+        1,
+    ));
+}
+
+test "landlock ruleset insertion still rejects empty access for new rules" {
+    try std.testing.expectError(error.EmptyAccess, RulesetHelperLab.planRuleInsertion(
+        null,
+        &.{.{ .level = 0, .access = 0 }},
+        0,
+    ));
+}
