@@ -28,6 +28,8 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(slice_note, "started as a small runtime-safe leaf batch and now keeps its landed formatting, escaping, and allocator-backed helpers reviewable through the same bounded Zig gates instead of widening into broader ownership families");
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "before deeper formatting, escaping, or allocation-backed helpers are attempted") == null);
     try expectContains(slice_note, "The current bounded slice covers:");
+    try expectContains(slice_note, "`kstrdup_and_replace()`");
+    try expectContains(slice_note, "first-NUL-bounded duplicated replacement that returns an owned escaped-for-callers copy without mutating bytes beyond the exported C-string prefix");
     try expectContains(slice_note, "`kasprintf_strarray()` over the bounded sequential prefix-index ownership path");
     try expectContains(slice_note, "`kfree_strarray()` over the bounded repeated-teardown-safe release path");
     try expectContains(slice_note, "one allocator-backed `kasprintf_strarray()` proof that returns sequential `prefix-index` owned strings together with a trailing null-pointer view for C-style callers");
@@ -113,6 +115,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     defer allocator.free(helper_tests);
     try expectContains(helper_tests, "phase 7 string matching preserves null-terminated search semantics");
     try expectContains(helper_tests, "phase 7 match helpers accept Linux-style all-entries search bounds");
+    try expectContains(helper_tests, "phase 7 replacement and padding helpers work in place");
     try expectContains(helper_tests, "phase 7 parseIntArray keeps base and sign parsing explicit");
     try expectContains(helper_tests, "phase 7 parseIntArray respects first-NUL and no-entry behavior");
     try expectContains(helper_tests, "phase 7 parseIntArrayUser copies a bounded user buffer before parsing");
@@ -135,12 +138,14 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_impl, "pub fn stringUnescape");
     try expectContains(helper_impl, "pub fn stringUnescapeInplace");
     try expectContains(helper_impl, "pub fn stringEscapeMem");
+    try expectContains(helper_impl, "pub fn kstrdupAndReplace");
     try expectContains(helper_impl, "pub fn kstrdupQuotable");
     try expectContains(helper_impl, "pub fn kasprintfStrarray");
     try expectContains(helper_impl, "pub fn skipSpaces");
     try expectContains(helper_impl, "pub fn strim");
     try expectContains(helper_impl, "test \"matchString stops at null sentinels and returns -EINVAL on miss\"");
     try expectContains(helper_impl, "test \"sysfsMatchString reuses sysfs newline semantics\"");
+    try expectContains(helper_impl, "test \"kstrdupAndReplace duplicates the first-NUL prefix before replacing bytes\"");
     try expectContains(helper_impl, "test \"stringGetSize formats decimal and binary units with Linux-style rounding\"");
     try expectContains(helper_impl, "test \"stringGetSize respects no-space and no-bytes modifiers\"");
     try expectContains(helper_impl, "test \"stringGetSize reports truncated output length without losing termination\"");
