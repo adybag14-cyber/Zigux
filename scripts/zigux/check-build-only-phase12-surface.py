@@ -117,6 +117,8 @@ REQUIRED_FILE_MARKERS = {
     ],
     TESTS_README_PATH: [
         "keep `Documentation/zigux/phase12-release-closure-checklist.md` visible beside `Documentation/zigux/phase12-release-sequencing.md`",
+        "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
+        "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`scripts/zigux/check-build-only-phase12-surface.py`",
@@ -321,6 +323,8 @@ Phase 12 flow
         TESTS_README_PATH,
         """# zigux/tests
 - keep `Documentation/zigux/phase12-release-closure-checklist.md` visible beside `Documentation/zigux/phase12-release-sequencing.md`
+- `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
+- `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - `zigux/tests/phase12_virtio_net_syntax_lab.zig`
 - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - `scripts/zigux/check-build-only-phase12-surface.py`
@@ -675,6 +679,40 @@ def run_self_test() -> int:
                 print(failure)
             return 1
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        tests_readme_path = root / TESTS_README_PATH
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        broken_tests_readme = original_tests_readme.replace(
+            "- `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`\n",
+            "",
+            1,
+        )
+        tests_readme_path.write_text(broken_tests_readme, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{TESTS_README_PATH}:`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("tests-readme-complex-driver-lane-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        broken_tests_readme = original_tests_readme.replace(
+            "- `Documentation/zigux/phase12-raw-github-coverage-survey.md`\n",
+            "",
+            1,
+        )
+        tests_readme_path.write_text(broken_tests_readme, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{TESTS_README_PATH}:`Documentation/zigux/phase12-raw-github-coverage-survey.md`"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("tests-readme-raw-coverage-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
         build_path = root / PHASE12_BUILD_PATH
         original_build = build_path.read_text(encoding="utf-8")
