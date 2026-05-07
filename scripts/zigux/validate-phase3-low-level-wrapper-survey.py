@@ -63,7 +63,9 @@ ABI_MANIFEST_REQUIRED_FILES = (
     "scripts/zigux/check-phase3-policy-byte-guards.py",
     ABI_SLICE_DOC_REL,
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    DOC_REL,
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
 )
 
 REQUIRED_DOC_MARKERS = (
