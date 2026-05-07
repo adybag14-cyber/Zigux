@@ -401,25 +401,20 @@ EXPECTED_REVIEW_ANCHORS = {
     },
 }
 
-
 def repo_root_from_arg(root_arg: str | None) -> Path:
     return DEFAULT_ROOT if root_arg is None else Path(root_arg).resolve()
-
 
 def load_text(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
 
-
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
-
 
 def load_json_file(path: Path, label: str) -> tuple[Any | None, list[str]]:
     try:
         return json.loads(path.read_text(encoding="utf-8")), []
     except json.JSONDecodeError as exc:
         return None, [f"{label}:json_decode_error:{exc.msg}:line={exc.lineno}:column={exc.colno}"]
-
 
 def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
     missing: list[str] = []
@@ -428,7 +423,6 @@ def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) 
         if actual_count != expected_count:
             missing.append(f"{label}:expected={expected_count}:actual={actual_count}")
     return missing
-
 
 def collect_exact_line_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
     actual_counts: dict[str, int] = {}
@@ -443,14 +437,12 @@ def collect_exact_line_count_markers(text: str, markers: list[tuple[str, str, in
             missing.append(f"{label}:expected={expected_count}:actual={actual_count}")
     return missing
 
-
 def extract_workflow_job(text: str, job_name: str) -> str:
     pattern = re.compile(
         rf"(?ms)^  {re.escape(job_name)}:\n(.*?)(?=^  [A-Za-z0-9_-]+:\n|\Z)"
     )
     match = pattern.search(text)
     return "" if match is None else match.group(0)
-
 
 def collect_workflow_markers(text: str) -> list[str]:
     missing: list[str] = []
@@ -462,7 +454,6 @@ def collect_workflow_markers(text: str) -> list[str]:
     if "mlugg/setup-zig@" in text:
         missing.append("workflow:remove mlugg/setup-zig@")
     return missing
-
 
 def collect_manifest_review_anchor_markers(manifest: dict[str, Any]) -> list[str]:
     missing: list[str] = []
@@ -495,7 +486,6 @@ def collect_manifest_review_anchor_markers(manifest: dict[str, Any]) -> list[str
             if helper_review[key] != expected_value:
                 missing.append(f"manifest:review_anchor_value={helper}:{key}")
     return missing
-
 
 def collect_manifest_markers(manifest: object, root: Path) -> list[str]:
     if not isinstance(manifest, dict):
@@ -539,7 +529,6 @@ def collect_manifest_markers(manifest: object, root: Path) -> list[str]:
         missing.append(f"manifest:duplicate_helper={rel}")
     missing.extend(collect_manifest_review_anchor_markers(manifest))
     return missing
-
 
 def collect_bench_expectation_markers(expectations: object) -> list[str]:
     if not isinstance(expectations, dict):
@@ -592,24 +581,19 @@ def collect_bench_expectation_markers(expectations: object) -> list[str]:
             missing.append(f"bench_expectations:unexpected_checksum={item}")
     return missing
 
-
 def count_manifest_review_anchor_expectations() -> int:
     return 1 + len(EXPECTED_REVIEW_ANCHORS) + sum(
         len(fields) for fields in EXPECTED_REVIEW_ANCHORS.values()
     )
 
-
 def count_manifest_metadata_expectations() -> int:
     return 4 + len(EXPECTED_HELPERS)
-
 
 def count_bench_expectation_expectations() -> int:
     return 1 + len(EXPECTED_BENCH_ITERATIONS) + len(EXPECTED_BENCH_CHECKSUMS)
 
-
 def render_marker_fixture(markers: list[tuple[str, str, int]]) -> str:
     return "\n".join(marker for _, marker, _ in markers) + "\n"
-
 
 def make_fixture_root(tmp_root: Path) -> None:
     for rel in REQUIRED_FILES + EXPECTED_HELPERS:
@@ -631,7 +615,6 @@ def make_fixture_root(tmp_root: Path) -> None:
     (tmp_root / "zigux/tests/build.zig").write_text(render_marker_fixture(REQUIRED_BUILD_MARKERS), encoding="utf-8")
     (tmp_root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md").write_text(render_marker_fixture(REQUIRED_LEDGER_MARKERS), encoding="utf-8")
     (tmp_root / "zigux/Makefile").write_text(render_marker_fixture(REQUIRED_MAKEFILE_MARKERS), encoding="utf-8")
-    (tmp_root / "Documentation/zigux/README.md").writeText = None
     (tmp_root / "Documentation/zigux/README.md").write_text(render_marker_fixture(REQUIRED_DOCS_ROOT_MARKERS), encoding="utf-8")
     (tmp_root / "scripts/zigux/README.md").write_text(render_marker_fixture(REQUIRED_SCRIPTS_README_MARKERS), encoding="utf-8")
     (tmp_root / "zigux/tests/README.md").write_text(render_marker_fixture(REQUIRED_TESTS_README_MARKERS), encoding="utf-8")
@@ -657,7 +640,6 @@ def make_fixture_root(tmp_root: Path) -> None:
         json.dumps(bench, indent=2) + "\n",
         encoding="utf-8",
     )
-
 
 def collect_missing_markers(root: Path) -> list[str]:
     closure = load_text(root, "Documentation/zigux/phase1-closure.md")
@@ -695,7 +677,6 @@ def collect_missing_markers(root: Path) -> list[str]:
     if bench_expectations is not None:
         missing.extend(collect_bench_expectation_markers(bench_expectations))
     return missing
-
 
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_closure_") as tmp_dir_str:
@@ -811,7 +792,6 @@ def run_self_test() -> None:
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=17")
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 1 closure packet.")
     parser.add_argument("--self-test", action="store_true", help="Run validator self-test cases without reading repo files.")
@@ -848,7 +828,6 @@ def main() -> int:
         f"{len(REQUIRED_CLOSURE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_EXACT_WORKFLOW_MARKERS) + len(REQUIRED_PHASE1_WORKFLOW_MARKERS) + len(REQUIRED_BUILD_MARKERS) + len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + count_manifest_review_anchor_expectations() + count_manifest_metadata_expectations() + count_bench_expectation_expectations()}"
     )
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
