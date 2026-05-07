@@ -3,6 +3,7 @@ const base64 = @import("base64");
 const fixtures = @import("fixtures/phase6_base64_vectors.zig");
 
 const Io = std.Io;
+const bench_sample_count: usize = 3;
 
 const BenchResult = struct {
     elapsed_ns: u64,
@@ -44,6 +45,12 @@ fn sampleAccumulator(bytes: []const u8) u64 {
 fn slowdownPct(helper_ns: u64, reference_ns: u64) u64 {
     if (helper_ns <= reference_ns or reference_ns == 0) return 0;
     return @intCast((@as(u128, helper_ns - reference_ns) * 100) / @as(u128, reference_ns));
+}
+
+fn medianNs(samples: []u64) u64 {
+    std.debug.assert(samples.len == bench_sample_count);
+    std.mem.sort(u64, samples, {}, std.sort.asc(u64));
+    return samples[samples.len / 2];
 }
 
 fn runHelperEncodeBench(case: fixtures.PerfCase, variant: base64.Variant) !BenchResult {
@@ -131,28 +138,49 @@ pub fn main(init: std.process.Init) !void {
             return error.Base64PerfStdDecodeMismatch;
         }
 
-        const helper_encode_result = try runHelperEncodeBench(case, variant);
-        const std_encode_result = try runStdEncodeBench(case, codec);
-        const helper_decode_result = try runHelperDecodeBench(helper_encoded[0..helper_encoded_len], case.payload.len, case.padding, variant, case.iterations);
-        const std_decode_result = try runStdDecodeBench(std_encoded_slice, case.payload.len, codec, case.iterations);
+        var helper_encode_elapsed_samples: [bench_sample_count]u64 = undefined;
+        var std_encode_elapsed_samples: [bench_sample_count]u64 = undefined;
+        var helper_decode_elapsed_samples: [bench_sample_count]u64 = undefined;
+        var std_decode_elapsed_samples: [bench_sample_count]u64 = undefined;
+        var helper_encode_accumulator: u64 = 0;
+        var helper_decode_accumulator: u64 = 0;
 
-        const encode_slowdown_pct = slowdownPct(helper_encode_result.elapsed_ns, std_encode_result.elapsed_ns);
-        const decode_slowdown_pct = slowdownPct(helper_decode_result.elapsed_ns, std_decode_result.elapsed_ns);
+        for (0..bench_sample_count) |sample_index| {
+            const helper_encode_result = try runHelperEncodeBench(case, variant);
+            const std_encode_result = try runStdEncodeBench(case, codec);
+            const helper_decode_result = try runHelperDecodeBench(helper_encoded[0..helper_encoded_len], case.payload.len, case.padding, variant, case.iterations);
+            const std_decode_result = try runStdDecodeBench(std_encoded_slice, case.payload.len, codec, case.iterations);
+
+            helper_encode_elapsed_samples[sample_index] = helper_encode_result.elapsed_ns;
+            std_encode_elapsed_samples[sample_index] = std_encode_result.elapsed_ns;
+            helper_decode_elapsed_samples[sample_index] = helper_decode_result.elapsed_ns;
+            std_decode_elapsed_samples[sample_index] = std_decode_result.elapsed_ns;
+
+            if (helper_encode_result.accumulator != std_encode_result.accumulator or helper_decode_result.accumulator != std_decode_result.accumulator) {
+                return error.Base64PerfAccumulatorMismatch;
+            }
+
+            helper_encode_accumulator = helper_encode_result.accumulator;
+            helper_decode_accumulator = helper_decode_result.accumulator;
+        }
+
+        const helper_encode_ns = medianNs(helper_encode_elapsed_samples[0..]);
+        const std_encode_ns = medianNs(std_encode_elapsed_samples[0..]);
+        const helper_decode_ns = medianNs(helper_decode_elapsed_samples[0..]);
+        const std_decode_ns = medianNs(std_decode_elapsed_samples[0..]);
+        const encode_slowdown_pct = slowdownPct(helper_encode_ns, std_encode_ns);
+        const decode_slowdown_pct = slowdownPct(helper_decode_ns, std_decode_ns);
 
         try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_ITERATIONS={d}\n", .{ case.label, case.iterations });
-        try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_ENCODE_HELPER_NS={d}\n", .{ case.label, helper_encode_result.elapsed_ns });
-        try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_ENCODE_REFERENCE_NS={d}\n", .{ case.label, std_encode_result.elapsed_ns });
+        try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_ENCODE_HELPER_NS={d}\n", .{ case.label, helper_encode_ns });
+        try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_ENCODE_REFERENCE_NS={d}\n", .{ case.label, std_encode_ns });
         try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_ENCODE_SLOWDOWN_PCT={d}\n", .{ case.label, encode_slowdown_pct });
         try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_ENCODE_THRESHOLD_PCT={d}\n", .{ case.label, case.max_encode_slowdown_pct });
-        try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_DECODE_HELPER_NS={d}\n", .{ case.label, helper_decode_result.elapsed_ns });
-        try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_DECODE_REFERENCE_NS={d}\n", .{ case.label, std_decode_result.elapsed_ns });
+        try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_DECODE_HELPER_NS={d}\n", .{ case.label, helper_decode_ns });
+        try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_DECODE_REFERENCE_NS={d}\n", .{ case.label, std_decode_ns });
         try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_DECODE_SLOWDOWN_PCT={d}\n", .{ case.label, decode_slowdown_pct });
         try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_DECODE_THRESHOLD_PCT={d}\n", .{ case.label, case.max_decode_slowdown_pct });
-        try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_ACCUMULATOR={d}\n", .{ case.label, helper_encode_result.accumulator +% helper_decode_result.accumulator });
-
-        if (helper_encode_result.accumulator != std_encode_result.accumulator or helper_decode_result.accumulator != std_decode_result.accumulator) {
-            return error.Base64PerfAccumulatorMismatch;
-        }
+        try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_ACCUMULATOR={d}\n", .{ case.label, helper_encode_accumulator +% helper_decode_accumulator });
 
         if (encode_slowdown_pct > case.max_encode_slowdown_pct or decode_slowdown_pct > case.max_decode_slowdown_pct) {
             failed = true;
@@ -166,4 +194,9 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.flush();
 
     if (failed) return error.Base64PerfRegression;
+}
+
+test "medianNs selects the middle sample after sorting" {
+    var samples = [_]u64{ 91, 12, 47 };
+    try std.testing.expectEqual(@as(u64, 47), medianNs(samples[0..]));
 }
