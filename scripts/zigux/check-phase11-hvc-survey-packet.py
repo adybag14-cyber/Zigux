@@ -45,6 +45,7 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`drivers/tty/hvc/hvc_console_verify.zig`",
     "`zigux/tests/phase11_hvc_cleanup.zig`",
+    "cleanup-prerequisite failure replays in `drivers/tty/hvc/hvc_console_verify.zig`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`zigux/Makefile`",
     "`.github/workflows/zigux-bootstrap.yml`",
@@ -69,7 +70,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 12
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -167,6 +168,7 @@ The live archival packet now belongs to lane `P11-L16`.
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `drivers/tty/hvc/hvc_console_verify.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
+- keeps the compile-local final-close, hung-up cleanup, and cleanup-prerequisite failure replays in `drivers/tty/hvc/hvc_console_verify.zig` explicit inside the shared packet
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
@@ -175,16 +177,16 @@ The live archival packet now belongs to lane `P11-L16`.
     )
     write_text(
         root / VERIFY_REPLAY_PATH,
-        """const std = @import("std");
-test "synthetic hvc verify replay" {
+        """const std = @import(\"std\");
+test \"synthetic hvc verify replay\" {
     try std.testing.expect(true);
 }
 """,
     )
     write_text(
         root / CLEANUP_REPLAY_PATH,
-        """const std = @import("std");
-test "synthetic hvc cleanup replay" {
+        """const std = @import(\"std\");
+test \"synthetic hvc cleanup replay\" {
     try std.testing.expect(true);
 }
 """,
@@ -192,10 +194,10 @@ test "synthetic hvc cleanup replay" {
     write_text(
         root / BUILD_PATH,
         """const phase11_hvc_console_survey_tests = b.addTest(.{
-    .name = "phase11-hvc-console-survey-tests",
+    .name = \"phase11-hvc-console-survey-tests\",
 });
 
-const hvc_console_survey_step = b.step("hvc-console-survey", "Run the dedicated Phase 11 hvc_console archival survey");
+const hvc_console_survey_step = b.step(\"hvc-console-survey\", \"Run the dedicated Phase 11 hvc_console archival survey\");
 hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);
 """,
     )
@@ -223,7 +225,7 @@ jobs:
     write_text(
         root / SCRIPT_PATH,
         """#!/usr/bin/env python3
-print("synthetic survey packet checker")
+print(\"synthetic survey packet checker\")
 """,
     )
 
@@ -276,6 +278,12 @@ def run_self_test() -> int:
                 TEARDOWN_NOTE_PATH,
                 "`tty_port_put()`",
                 "teardown_note:tty_port_put()",
+            )
+            expect_failure(
+                root,
+                VALIDATION_MATRIX_PATH,
+                "cleanup-prerequisite failure replays in `drivers/tty/hvc/hvc_console_verify.zig`",
+                "validation_matrix:cleanup-prerequisite failure replays in `drivers/tty/hvc/hvc_console_verify.zig`",
             )
             expect_failure(
                 root,
