@@ -117,17 +117,35 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
+    var saw_winsize_layout = false;
+    var saw_hv_ops_layout = false;
     for (manifest.gaps) |gap| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
         try std.testing.expect(gap.why_now.len > 0);
         try std.testing.expect(isAllowedStatus(gap.status));
         if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1 else if (std.mem.eql(u8, gap.status, "ready_next")) ready_next_count += 1 else blocked_count += 1;
+
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-winsize-layout-assert")) {
+            saw_winsize_layout = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_survey.zig", gap.zigux_destination);
+            try expectContains(gap.why_now, "size 8");
+            try expectContains(gap.why_now, "offsets 0, 2, 4, and 6");
+        }
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-hv-ops-layout-assert")) {
+            saw_hv_ops_layout = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_survey.zig", gap.zigux_destination);
+            try expectContains(gap.why_now, "size 72");
+            try expectContains(gap.why_now, "callback table layout proof");
+            try expectContains(gap.why_now, "offsets 0 through 64");
+        }
     }
 
     try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
+    try std.testing.expect(saw_winsize_layout);
+    try std.testing.expect(saw_hv_ops_layout);
 }
 
 test "phase11 hvc console survey keeps a bounded winsize layout proof" {
