@@ -104,6 +104,11 @@ pub fn compute(bytes: []const u8) u16 {
     return fold(partial(bytes, 0));
 }
 
+pub fn ipFastCsum(header: []const u8) u16 {
+    std.debug.assert((header.len & 3) == 0);
+    return compute(header);
+}
+
 fn normalize(sum: u32) u32 {
     var value = sum;
     while ((value >> 16) != 0) {
