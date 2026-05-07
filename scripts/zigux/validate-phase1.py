@@ -87,6 +87,12 @@ PHASE1_REPLAY_MARKERS = [
     "fixture.find_bit.tail_clamped_first",
     "fixture.find_bit.tail_zero_clamped_next",
     "fixture.find_bit.tail_and_clamped_next",
+    "fixture.bitmap.scnprintf",
+    "fixture.bitmap.truncated_scnprintf_len",
+    "fixture.bitmap.truncated_scnprintf",
+    "fixture.bitmap.terminator_only_scnprintf_len",
+    "fixture.bitmap.terminator_only_nul",
+    "fixture.bitmap.zero_length_scnprintf_len",
     "fixture.bitmap.partial_xor_nbits",
     "fixture.bitmap.partial_xor_masked_values",
     "fixture.string.replace_char",
@@ -120,6 +126,10 @@ SOURCE_MARKERS = {
         [
             'test "bitmap range helpers honor exact first-word boundaries"',
             'test "bitmap predicates ignore out-of-range tail bits"',
+            'test "bitmap scnprintf reports full length while truncating the buffer"',
+            'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
+            'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+            'test "bitmap copy alias preserves raw source words without tail clearing"',
             'test "bitmap zero-bit helpers stay explicit no-ops"',
         ],
     ),
@@ -148,7 +158,19 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
         ],
         "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
         "predicate_tail_mask_anchor": 'test "bitmap predicates ignore out-of-range tail bits"',
+        "parity_fixture_keys": [
+            "scnprintf",
+            "truncated_scnprintf_len",
+            "truncated_scnprintf",
+            "terminator_only_scnprintf_len",
+            "terminator_only_nul",
+            "zero_length_scnprintf_len",
+        ],
         "partial_xor_review_fields": ["partial_xor_nbits", "partial_xor_masked_values"],
+        "scnprintf_truncation_anchor": 'test "bitmap scnprintf reports full length while truncating the buffer"',
+        "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+        "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
+        "zero_bit_noop_anchor": 'test "bitmap zero-bit helpers stay explicit no-ops"',
     },
     "tools/lib/find_bit.zig": {
         "tail_clamp_fixture_keys": [
@@ -239,6 +261,18 @@ def collect_phase1_fixture_mismatches(root: Path) -> list[str]:
     if not isinstance(bitmap, dict):
         mismatches.append("phase1_fixture_bitmap:bitmap:expected=object:actual=missing")
     else:
+        if bitmap.get("scnprintf") != "1-3,7,10-11":
+            mismatches.append(f"phase1_fixture_bitmap:scnprintf:expected='1-3,7,10-11':actual={bitmap.get('scnprintf')!r}")
+        if bitmap.get("truncated_scnprintf_len") != 7:
+            mismatches.append(f"phase1_fixture_bitmap:truncated_scnprintf_len:expected=7:actual={bitmap.get('truncated_scnprintf_len')!r}")
+        if bitmap.get("truncated_scnprintf") != "1-3,7,1":
+            mismatches.append(f"phase1_fixture_bitmap:truncated_scnprintf:expected='1-3,7,1':actual={bitmap.get('truncated_scnprintf')!r}")
+        if bitmap.get("terminator_only_scnprintf_len") != 0:
+            mismatches.append(f"phase1_fixture_bitmap:terminator_only_scnprintf_len:expected=0:actual={bitmap.get('terminator_only_scnprintf_len')!r}")
+        if bitmap.get("terminator_only_nul") != 0:
+            mismatches.append(f"phase1_fixture_bitmap:terminator_only_nul:expected=0:actual={bitmap.get('terminator_only_nul')!r}")
+        if bitmap.get("zero_length_scnprintf_len") != 0:
+            mismatches.append(f"phase1_fixture_bitmap:zero_length_scnprintf_len:expected=0:actual={bitmap.get('zero_length_scnprintf_len')!r}")
         if bitmap.get("partial_xor_nbits") != 4:
             mismatches.append(f"phase1_fixture_bitmap:partial_xor_nbits:expected=4:actual={bitmap.get('partial_xor_nbits')!r}")
         if bitmap.get("partial_xor_masked_values") != [14]:
@@ -329,6 +363,15 @@ def make_fixture_root(root: Path) -> None:
 def run_self_test() -> None:
     test_text = (
         'test "phase 1 helper ports match committed parity fixture" {\n'
+        'fixture.find_bit.tail_clamped_first\n'
+        'fixture.find_bit.tail_zero_clamped_next\n'
+        'fixture.find_bit.tail_and_clamped_next\n'
+        'fixture.bitmap.scnprintf\n'
+        'fixture.bitmap.truncated_scnprintf_len\n'
+        'fixture.bitmap.truncated_scnprintf\n'
+        'fixture.bitmap.terminator_only_scnprintf_len\n'
+        'fixture.bitmap.terminator_only_nul\n'
+        'fixture.bitmap.zero_length_scnprintf_len\n'
         'fixture.bitmap.partial_xor_nbits\n'
         'bitmap.lastWordMask(fixture.bitmap.partial_xor_nbits)\n'
         'fixture.bitmap.partial_xor_masked_values\n'
@@ -348,7 +391,7 @@ def run_self_test() -> None:
     )
     replay = extract_test_body(test_text, "phase 1 helper ports match committed parity fixture")
     assert replay is not None
-    assert not collect_presence_markers(replay, "phase1_parity_replay_marker", ["fixture.bitmap.partial_xor_nbits","fixture.bitmap.partial_xor_masked_values","fixture.string.replace_char","fixture.string.replace_char_end","fixture.string.replace_char_cstr_end","fixture.string.replace_char_cstr_bytes","fixture.string.memchr_inv_index","fixture.string.memchr_inv_none","fixture.rbtree.find_found_key","fixture.rbtree.find_missing","fixture.rbtree.find_first_serial","fixture.rbtree.next_match_serials","fixture.rbtree.next_match_terminal_null"])
+    assert not collect_presence_markers(replay, "phase1_parity_replay_marker", PHASE1_REPLAY_MARKERS)
     assert extract_test_body(test_text, "missing") is None
     with tempfile.TemporaryDirectory() as tmp:
         tmp_root = Path(tmp)
@@ -361,7 +404,7 @@ def run_self_test() -> None:
         (tmp_root / "tools" / "lib" / "string.zig").write_text('\n'.join(SOURCE_MARKERS["string_test_anchor"][1]) + '\n', encoding="utf-8")
         (tmp_root / "tools" / "lib" / "rbtree.zig").write_text('\n'.join(SOURCE_MARKERS["rbtree_test_anchor"][1]) + '\n', encoding="utf-8")
         (tmp_root / "zigux" / "tests" / "phase1_helpers.zig").write_text('\n'.join(PHASE1_IMPORT_MARKERS) + '\n' + 'test "phase 1 helper ports match committed parity fixture" {\n' + '\n'.join(PHASE1_REPLAY_MARKERS) + '\n}\n' + '\n'.join(HELPER_FOLLOWUP_TESTS) + '\n', encoding="utf-8")
-        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").write_text(json.dumps({"argv_split": {},"bitmap": {"partial_xor_nbits": 4, "partial_xor_masked_values": [14]},"cmdline": {},"ctype": {},"find_bit": {"bits_per_long": 64,"tail_clamped_first": 69,"tail_clamped_next": 69,"tail_zero_clamped_first": 69,"tail_zero_clamped_next": 69,"tail_and_clamped_first": 69,"tail_and_clamped_next": 69},"hweight": {},"list_sort": {},"rbtree": {"find_found_key": 41,"find_missing": True,"find_first_serial": 3,"next_match_serials": [3, 4],"next_match_terminal_null": True},"slab": {},"str_error_r": {},"string": {"replace_char": "a_b","replace_char_end": 3,"replace_char_cstr_end": 2,"replace_char_cstr_bytes": [97, 95, 0, 45, 122],"memchr_inv_index": 4,"memchr_inv_none": True},"vsprintf": {},"zalloc": {}}, separators=(",", ":")), encoding="utf-8")
+        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").write_text(json.dumps({"argv_split": {},"bitmap": {"scnprintf": "1-3,7,10-11","truncated_scnprintf_len": 7,"truncated_scnprintf": "1-3,7,1","terminator_only_scnprintf_len": 0,"terminator_only_nul": 0,"zero_length_scnprintf_len": 0,"partial_xor_nbits": 4, "partial_xor_masked_values": [14]},"cmdline": {},"ctype": {},"find_bit": {"bits_per_long": 64,"tail_clamped_first": 69,"tail_clamped_next": 69,"tail_zero_clamped_first": 69,"tail_zero_clamped_next": 69,"tail_and_clamped_first": 69,"tail_and_clamped_next": 69},"hweight": {},"list_sort": {},"rbtree": {"find_found_key": 41,"find_missing": True,"find_first_serial": 3,"next_match_serials": [3, 4],"next_match_terminal_null": True},"slab": {},"str_error_r": {},"string": {"replace_char": "a_b","replace_char_end": 3,"replace_char_cstr_end": 2,"replace_char_cstr_bytes": [97, 95, 0, 45, 122],"memchr_inv_index": 4,"memchr_inv_none": True},"vsprintf": {},"zalloc": {}}, separators=(",", ":")), encoding="utf-8")
         (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").write_text(json.dumps({"phase": "Phase 1","status": "closed","helper_count": len(EXPECTED_HELPERS),"helpers": EXPECTED_HELPERS,"review_anchors": EXPECTED_MANIFEST_HELPER_FIELDS}, indent=2) + "\n", encoding="utf-8")
         assert not collect_missing_markers(tmp_root)
     print("PHASE1_VALIDATION_SELF_TEST=pass")
