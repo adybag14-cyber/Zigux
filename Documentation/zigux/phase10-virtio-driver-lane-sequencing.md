@@ -100,7 +100,7 @@ This lane consumes shared core, ring, and MMIO prerequisites, but it does not ow
 - `scripts/zigux/check-phase10-mmio-packet.py`
 - `drivers/virtio/virtio_mmio.zig`
 
-Ring, core, and input lanes may cite this packet as adjacent evidence, but they should not absorb its transport-identity helper, queue-discovery, IRQ, reset, or lifecycle follow-up.
+Ring, core, and input lanes may cite this packet as adjacent evidence, but they should not absorb its config-window, config-write planning, config-write disposition, transport-identity, probe-preflight, selected-queue readiness, queue-discovery, IRQ, reset, or lifecycle follow-up. Its next bounded work stays inside those already-landed MMIO wrapper footholds or similarly narrow checker, manifest, slice-note, survey-note, or helper-test repairs until fresh reopen evidence exists for broader transport work.
 
 ## Anti-overlap rules
 
