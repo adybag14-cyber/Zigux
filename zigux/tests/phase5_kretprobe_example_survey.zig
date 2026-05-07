@@ -53,7 +53,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -63,8 +63,10 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     var saw_ownership_prompt = false;
     var saw_budget_prompt = false;
     var saw_non_goal_prompt = false;
+    var saw_retarget_prompt = false;
     var saw_private_data_check = false;
     var saw_symbol_check = false;
+    var saw_retarget_check = false;
     var saw_duration_check = false;
     var saw_budget_check = false;
     var saw_ownership_check = false;
@@ -92,6 +94,11 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         {
             saw_symbol_prompt = true;
         }
+        if (std.mem.indexOf(u8, prompt, "runRetargetReplay()") != null and
+            std.mem.indexOf(u8, prompt, "empty-symbol rejection") != null)
+        {
+            saw_retarget_prompt = true;
+        }
         if (std.mem.indexOf(u8, prompt, "maxactiveBudget()") != null and
             std.mem.indexOf(u8, prompt, "20") != null)
         {
@@ -117,6 +124,12 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "default-symbol")) {
             saw_symbol_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "kernel_clone") != null);
+        }
+        if (std.mem.eql(u8, check.id, "retarget-replay")) {
+            saw_retarget_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runRetargetReplay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "do_sys_openat2") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "initialized post-retarget state") != null);
         }
         if (std.mem.eql(u8, check.id, "private-data-shape")) {
             saw_private_data_check = true;
@@ -160,11 +173,13 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_lifecycle_guard_prompt);
     try std.testing.expect(saw_private_data_prompt);
     try std.testing.expect(saw_symbol_prompt);
+    try std.testing.expect(saw_retarget_prompt);
     try std.testing.expect(saw_budget_prompt);
     try std.testing.expect(saw_ownership_prompt);
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_private_data_check);
     try std.testing.expect(saw_symbol_check);
+    try std.testing.expect(saw_retarget_check);
     try std.testing.expect(saw_duration_check);
     try std.testing.expect(saw_budget_check);
     try std.testing.expect(saw_ownership_check);
@@ -227,8 +242,8 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "zig fmt --check",
         "zig test samples/zigux/kretprobe_example.zig",
         "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-        "passed `3/3` sample self-checks",
-        "passed `5/5` build steps and `7/7` tests",
+        "passed `5/5` sample self-checks",
+        "passed `6/6` paired boundary tests",
         "symbol_name = kernel_clone",
         "private_data_size_bytes = 8",
         "return_value = 42",
@@ -237,6 +252,10 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "nmissed = 1",
         "maxactive = 20",
         "replay_runs = 1",
+        "symbol_before_retarget = kernel_clone",
+        "symbol_after_retarget = do_sys_openat2",
+        "empty_symbol_rejected = true",
+        "post_init_retarget_rejected = true",
         "pre_init_anchor_rejected = true",
         "pre_init_exit_rejected = true",
         "double_init_rejected = true",
@@ -247,6 +266,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "active_instances = 1",
         "entry_timestamp_armed = true",
         "the focused `zigux/tests/phase5_kretprobe_example.zig` boundary replay also still held",
+        "runRetargetReplay(\"do_sys_openat2\")` kept the sample-owned symbol-selection packet explicit",
         "entryHandler(false, 11) still skips the kernel-thread path",
         "entryHandler(true, 120) still rejects an outstanding tracked instance",
         "retHandler(37, 145) still yields duration 45",
@@ -254,10 +274,11 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "retHandler(9, 260) still recovers with duration 60",
         "cold -> initialized -> replay_complete",
         "cold -> initialized -> exited",
+        "runRetargetReplay()",
         "runLifecycleGuardReplay()",
         "the kretprobe-owned survey note, the shared Phase 5 guide, or the manifest-backed replay prompts drifting apart",
         "phase5_build.zig` plus make replay route",
-        "focused `zigux/tests/phase5_kretprobe_example.zig` replay still keep direct retargeting, outstanding-instance rejection, timestamp-order rejection and recovery, and post-exit teardown rejection explicit",
+        "focused `zigux/tests/phase5_kretprobe_example.zig` replay still keep direct handler boundaries, outstanding-instance rejection, timestamp-order rejection and recovery, and post-exit teardown rejection explicit",
     };
 
     for (required_mentions) |needle| {
@@ -366,6 +387,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "Documentation/zigux/phase9-runtime-bitmap-survey.md",
         "samples/zigux/runtime_bitmap.zig",
         "samples/zigux/runtime_bitmap_loader.zig",
+        "samples/zigux/runtime_bitmap_top_bit_build.zig",
         "samples/zigux/runtime_bitmap_top_bit_contract.zig",
         "zigux/kernel/runtime_loader.zig",
         "zigux/kernel/runtime_loader_contract.zig",
