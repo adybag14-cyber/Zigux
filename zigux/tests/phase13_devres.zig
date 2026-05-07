@@ -17,6 +17,7 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expect(descriptor.provides_ioremap_wc_wrapper_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
+    try std.testing.expect(descriptor.provides_ioremap_resource_plain_wrapper_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_wc_wrapper_planning);
     try std.testing.expect(descriptor.provides_of_iomap_planning);
     try std.testing.expect(descriptor.provides_pretty_name_helper);
@@ -183,6 +184,57 @@ test "phase13 devres plans a non-posted managed ioremap resource mapping" {
         .err => |failure| {
             std.debug.print("unexpected failure: {any}\n", .{failure});
             return error.UnexpectedFailure;
+        },
+    }
+}
+
+test "phase13 devres plain resource wrapper keeps the direct managed-resource export explicit" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResourcePlain(std.testing.allocator, .{
+        .device_name = "serial-plain",
+        .resource = .{
+            .start = 0x1800,
+            .end = 0x187f,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "regs",
+        },
+    });
+
+    switch (outcome) {
+        .mapped => |plan| {
+            defer std.testing.allocator.free(plan.pretty_name);
+            try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+            try std.testing.expectEqualStrings("serial-plain regs", plan.pretty_name);
+            try std.testing.expectEqual(devres.IoremapType.normal, plan.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x80), plan.size);
+            try std.testing.expect(plan.requests_region);
+            try std.testing.expect(!plan.releases_region_on_remap_failure);
+        },
+        .err => return error.UnexpectedFailure,
+    }
+}
+
+test "phase13 devres plain resource wrapper keeps remap-failure cleanup shaping" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResourcePlain(std.testing.allocator, .{
+        .device_name = "serial-plain-fail",
+        .resource = .{
+            .start = 0x1900,
+            .end = 0x193f,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "regs",
+        },
+        .remap_succeeds = false,
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.ErrorStage.remap, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);
+            try std.testing.expectEqual(devres.IoremapType.normal, failure.effective_type);
+            try std.testing.expect(failure.requests_region);
+            try std.testing.expect(failure.releases_region_on_remap_failure);
         },
     }
 }
@@ -407,15 +459,13 @@ test "phase13 devres plans devm_of_iomap around translated resources and optiona
 }
 
 test "phase13 devres reports address-translation failure before managed resource planning" {
-    const resources = [_]devres.Resource{
-        .{
-            .start = 0x8000,
-            .end = 0x801f,
-            .is_memory = true,
-            .nonposted = false,
-            .name = "only",
-        },
-    };
+    const resources = [_]devres.Resource{.{
+        .start = 0x8000,
+        .end = 0x801f,
+        .is_memory = true,
+        .nonposted = false,
+        .name = "only",
+    }};
 
     const outcome = try devres.DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
         .device_name = "uart2",
@@ -440,15 +490,13 @@ test "phase13 devres reports address-translation failure before managed resource
 }
 
 test "phase13 devres preserves translated size when devm_of_iomap hits downstream remap failure" {
-    const resources = [_]devres.Resource{
-        .{
-            .start = 0x9000,
-            .end = 0x903f,
-            .is_memory = true,
-            .nonposted = false,
-            .name = "regs",
-        },
-    };
+    const resources = [_]devres.Resource{.{
+        .start = 0x9000,
+        .end = 0x903f,
+        .is_memory = true,
+        .nonposted = false,
+        .name = "regs",
+    }};
 
     const outcome = try devres.DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
         .device_name = "spi0",
@@ -474,15 +522,13 @@ test "phase13 devres preserves translated size when devm_of_iomap hits downstrea
 }
 
 test "phase13 devres preserves translated size when devm_of_iomap hits downstream region busy" {
-    const resources = [_]devres.Resource{
-        .{
-            .start = 0xa000,
-            .end = 0xa05f,
-            .is_memory = true,
-            .nonposted = true,
-            .name = "regs",
-        },
-    };
+    const resources = [_]devres.Resource{.{
+        .start = 0xa000,
+        .end = 0xa05f,
+        .is_memory = true,
+        .nonposted = true,
+        .name = "regs",
+    }};
 
     const outcome = try devres.DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
         .device_name = "spi1",
@@ -508,15 +554,13 @@ test "phase13 devres preserves translated size when devm_of_iomap hits downstrea
 }
 
 test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning" {
-    const resources = [_]devres.Resource{
-        .{
-            .start = 0xb000,
-            .end = 0xb00f,
-            .is_memory = true,
-            .nonposted = false,
-            .name = "regs",
-        },
-    };
+    const resources = [_]devres.Resource{.{
+        .start = 0xb000,
+        .end = 0xb00f,
+        .is_memory = true,
+        .nonposted = false,
+        .name = "regs",
+    }};
 
     const outcome = try devres.DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
         .device_name = "spi2",
