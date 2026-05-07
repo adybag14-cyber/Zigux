@@ -221,6 +221,29 @@ pub const KhvcdPollingContractSnapshot = struct {
     teardown_host_io_pending: bool,
 };
 
+pub const HangupDisconnectRequest = struct {
+    port_count_before_hangup: usize = 1,
+    notifier_hangup_present: bool = false,
+    buffered_write_len: usize = 0,
+};
+
+pub const HangupDisconnectSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    cancel_resize_pending: bool,
+    hangup_skipped: bool,
+    port_count_before_hangup: usize,
+    port_count_after_hangup: usize,
+    tty_detached: bool,
+    clears_outbuf: bool,
+    buffered_write_len_before_hangup: usize,
+    buffered_write_len_after_hangup: usize,
+    notifier_hangup_pending: bool,
+    keeps_console_binding: bool,
+};
+
 pub const WriteSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -516,6 +539,33 @@ pub const HvcConsoleLab = struct {
             .bounded_reschedule_pending = khvcd_polling_pending,
             .teardown_host_io_pending = request.notifier_hangup_pending or
                 poll_driven_wakeup_pending,
+        };
+    }
+
+    pub fn summarizeHangupDisconnect(
+        self: *const Self,
+        request: HangupDisconnectRequest,
+    ) !HangupDisconnectSnapshot {
+        const slot = self.slotSnapshot();
+        if (!slot.usable_for_console) return error.ConsoleUnavailable;
+
+        const hangup_skipped = request.port_count_before_hangup == 0;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = slot.slot_index,
+            .vtermno = slot.vtermno,
+            .adapter_present = slot.adapter_present,
+            .cancel_resize_pending = true,
+            .hangup_skipped = hangup_skipped,
+            .port_count_before_hangup = request.port_count_before_hangup,
+            .port_count_after_hangup = 0,
+            .tty_detached = !hangup_skipped,
+            .clears_outbuf = !hangup_skipped,
+            .buffered_write_len_before_hangup = request.buffered_write_len,
+            .buffered_write_len_after_hangup = if (hangup_skipped) request.buffered_write_len else 0,
+            .notifier_hangup_pending = !hangup_skipped and request.notifier_hangup_present,
+            .keeps_console_binding = true,
         };
     }
 
