@@ -21,6 +21,7 @@ pub const Command = union(enum) {
 
 pub const ParseFailure = union(enum) {
     invalid_option: []const u8,
+    ambiguous_option: []const u8,
     missing_option_argument: []const u8,
     unexpected_option_argument: []const u8,
 };
@@ -109,6 +110,18 @@ fn writeInvalidOptionError(writer: anytype, option: []const u8) !void {
     try writer.print("invalid option -- '{s}'\n", .{rendered});
 }
 
+fn writeAmbiguousOptionError(writer: anytype, option: []const u8) !void {
+    try writer.print("option '{s}' is ambiguous; possibilities:", .{option});
+
+    const option_name = if (std.mem.startsWith(u8, option, "--")) option[2..] else option;
+    for (long_option_specs) |spec| {
+        if (std.mem.startsWith(u8, spec.name, option_name)) {
+            try writer.print(" '{s}'", .{spec.failure_name});
+        }
+    }
+    try writer.writeByte('\n');
+}
+
 fn writeMissingOptionArgumentError(writer: anytype, option: []const u8) !void {
     if (std.mem.startsWith(u8, option, "--")) {
         try writer.print("option '{s}' requires an argument\n", .{option});
@@ -164,18 +177,25 @@ const ParseAction = union(enum) {
     failure: ParseFailure,
 };
 
-fn resolveLongOption(name: []const u8) ?LongOptionSpec {
+const LongOptionResolution = union(enum) {
+    none,
+    ambiguous,
+    match: LongOptionSpec,
+};
+
+fn resolveLongOption(name: []const u8) LongOptionResolution {
     var prefix_match: ?LongOptionSpec = null;
     var prefix_count: usize = 0;
     for (long_option_specs) |spec| {
-        if (std.mem.eql(u8, name, spec.name)) return spec;
+        if (std.mem.eql(u8, name, spec.name)) return .{ .match = spec };
         if (std.mem.startsWith(u8, spec.name, name)) {
             prefix_match = spec;
             prefix_count += 1;
         }
     }
-    if (prefix_count == 1) return prefix_match;
-    return null;
+    if (prefix_count == 1) return .{ .match = prefix_match.? };
+    if (prefix_count > 1) return .ambiguous;
+    return .none;
 }
 
 fn parseLongOption(
@@ -187,8 +207,10 @@ fn parseLongOption(
 ) !ParseAction {
     const arg = args[index.*];
     const name_end = std.mem.indexOfScalar(u8, arg, '=') orelse arg.len;
-    const option = resolveLongOption(arg[2..name_end]) orelse {
-        return .{ .failure = .{ .invalid_option = arg } };
+    const option = switch (resolveLongOption(arg[2..name_end])) {
+        .match => |spec| spec,
+        .ambiguous => return .{ .failure = .{ .ambiguous_option = arg[0..name_end] } },
+        .none => return .{ .failure = .{ .invalid_option = arg } },
     };
     const inline_value = if (name_end < arg.len) arg[name_end + 1 ..] else null;
 
@@ -362,6 +384,7 @@ pub fn main(init: std.process.Init) !void {
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
             switch (failure) {
                 .invalid_option => |option| try writeInvalidOptionError(&stderr_writer.interface, option),
+                .ambiguous_option => |option| try writeAmbiguousOptionError(&stderr_writer.interface, option),
                 .missing_option_argument => |option| try writeMissingOptionArgumentError(&stderr_writer.interface, option),
                 .unexpected_option_argument => |option| try writeUnexpectedOptionArgumentError(&stderr_writer.interface, option),
             }
@@ -398,5 +421,23 @@ pub fn main(init: std.process.Init) !void {
             try renderGenksymsBridge(&stdout_writer.interface, request);
             try stdout_writer.interface.flush();
         },
+    }
+}
+
+const testing = std.testing;
+
+test "parseArgs reports ambiguous abbreviated long options" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
+    const args = [_][]const u8{ "--d" };
+    const outcome = try parseArgs(arena_state.allocator(), &args);
+
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .ambiguous_option => |option| try testing.expectEqualStrings("--d", option),
+            else => return error.UnexpectedParseFailure,
+        },
+        else => return error.ExpectedAmbiguousLongOptionFailure,
     }
 }
