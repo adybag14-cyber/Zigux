@@ -76,7 +76,7 @@
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "A real loadable module entry point and lifecycle parity still depend on shared runtime substrate pieces that the repo has not started yet."
+      "why_now": "A real loadable module entry point and lifecycle parity still depend on shared runtime substrate pieces that the repo has only started as request-contract scaffolds; `zigux/kernel/runtime_loader.zig` can validate and hold the prepared bitmap handoff plan, but no live loader binding consumes that plan yet."
     }
   ]
 }
