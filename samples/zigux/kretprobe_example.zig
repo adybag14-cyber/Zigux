@@ -76,6 +76,20 @@ pub const LifecycleGuardSummary = struct {
     init_runs: usize,
 };
 
+pub const RecoveryReplaySummary = struct {
+    anchor: []const u8,
+    symbol_name: []const u8,
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
+    outstanding_exit_rejected: bool,
+    invalid_timestamp_rejected: bool,
+    recovered_duration_ns: i64,
+    post_exit_record_rejected: bool,
+    post_exit_entry_rejected: bool,
+    post_exit_ret_rejected: bool,
+    exit_runs: usize,
+};
+
 pub const OwnershipSummary = struct {
     anchor: []const u8,
     symbol_name: []const u8,
@@ -297,6 +311,71 @@ pub const KretprobeExampleSample = struct {
         };
     }
 
+    pub fn runRecoveryReplay(self: *Self, symbol_name: []const u8) !RecoveryReplaySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        try self.retargetSymbol(symbol_name);
+        try self.init();
+        const armed = try self.entryHandler(true, 200);
+        if (!armed) return error.UnexpectedEntrySkip;
+
+        var outstanding_exit_rejected = false;
+        if (self.exit()) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.OutstandingProbeInstance => outstanding_exit_rejected = true,
+            else => return err,
+        }
+
+        var invalid_timestamp_rejected = false;
+        if (self.retHandler(9, 199)) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidTimestampOrder => invalid_timestamp_rejected = true,
+            else => return err,
+        }
+
+        const recovered = try self.retHandler(9, 260);
+        try self.exit();
+
+        var post_exit_record_rejected = false;
+        if (self.recordMissedInstance()) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => post_exit_record_rejected = true,
+        }
+
+        var post_exit_entry_rejected = false;
+        if (self.entryHandler(true, 300)) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => post_exit_entry_rejected = true,
+            else => return err,
+        }
+
+        var post_exit_ret_rejected = false;
+        if (self.retHandler(11, 320)) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => post_exit_ret_rejected = true,
+            else => return err,
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .symbol_name = self.symbol_name,
+            .stage_before_replay = .cold,
+            .stage_after_replay = self.stage(),
+            .outstanding_exit_rejected = outstanding_exit_rejected,
+            .invalid_timestamp_rejected = invalid_timestamp_rejected,
+            .recovered_duration_ns = recovered.duration_ns,
+            .post_exit_record_rejected = post_exit_record_rejected,
+            .post_exit_entry_rejected = post_exit_entry_rejected,
+            .post_exit_ret_rejected = post_exit_ret_rejected,
+            .exit_runs = self.exit_runs,
+        };
+    }
+
     pub fn exit(self: *Self) !void {
         switch (self.stage()) {
             .initialized, .replay_complete => {},
@@ -395,4 +474,21 @@ test "kretprobe sample ownership summary keeps lifecycle snapshots explicit" {
     try std.testing.expectEqual(sample_instance.maxactiveBudget(), summary.maxactive);
     try std.testing.expectEqual(@as(usize, 1), summary.exit_runs);
     try std.testing.expect(!summary.entry_timestamp_armed);
+}
+
+test "kretprobe sample recovery replay keeps teardown and post-exit boundaries explicit" {
+    var sample_instance = KretprobeExampleSample{};
+    const replay = try sample_instance.runRecoveryReplay("do_sys_openat2");
+
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", replay.anchor);
+    try std.testing.expectEqualStrings("do_sys_openat2", replay.symbol_name);
+    try std.testing.expectEqual(SampleStage.cold, replay.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.exited, replay.stage_after_replay);
+    try std.testing.expect(replay.outstanding_exit_rejected);
+    try std.testing.expect(replay.invalid_timestamp_rejected);
+    try std.testing.expectEqual(@as(i64, 60), replay.recovered_duration_ns);
+    try std.testing.expect(replay.post_exit_record_rejected);
+    try std.testing.expect(replay.post_exit_entry_rejected);
+    try std.testing.expect(replay.post_exit_ret_rejected);
+    try std.testing.expectEqual(@as(usize, 1), replay.exit_runs);
 }
