@@ -68,7 +68,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
 
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("949f23c72846a70a027e80f594cc4061c7d9e5e4", manifest.phase4_validation_matrix_blob_sha);
+    try std.testing.expectEqualStrings("48b5d74e2b1dc117249553cab829f590fe56396e", manifest.phase4_validation_matrix_blob_sha);
     try std.testing.expectEqualStrings("93d0c533776d650b66d484311cbfd93d8bd0954a", manifest.phase4_review_checklist_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
@@ -80,7 +80,8 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/runtime_atomic64_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "single bounded replay body") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Phase 9") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "exact-readback note still needs its own sibling pin refresh") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "same current matrix, validator, and review-checklist surfaces again") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "acceptable-limit threshold packet is still pending") != null);
 
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/atomic64_diff.zig") != null,
@@ -104,14 +105,12 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "shared reviewer checklist") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "rollback-owner matrix") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "measurable and reversible") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "separate exact-readback note catches up in its own bounded step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "same rollback surfaces pinned") != null);
 
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "benchmark command") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "acceptable limit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Documentation/zigux/phase4-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Documentation/zigux/phase4-gate-evidence.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "phase4_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "validate-phase4.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "phase4-validation-matrix.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "review-checklist") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "wrapper-first rollback surface") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared runtime replay body") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "sample and perf-baseline follow-ups") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "atomic64 handoff packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "correctness-only replay routes") != null);
 }
