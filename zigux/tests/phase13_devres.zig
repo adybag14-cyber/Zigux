@@ -12,10 +12,12 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expectEqualStrings("devres_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
+    try std.testing.expect(descriptor.provides_ioremap_uc_wrapper_planning);
     try std.testing.expect(descriptor.provides_ioremap_plain_wrapper_planning);
     try std.testing.expect(descriptor.provides_ioremap_wc_wrapper_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
+    try std.testing.expect(descriptor.provides_ioremap_resource_wc_wrapper_planning);
     try std.testing.expect(descriptor.provides_of_iomap_planning);
     try std.testing.expect(descriptor.provides_pretty_name_helper);
     try std.testing.expect(descriptor.provides_arch_io_wc_memtype_planning);
@@ -86,6 +88,35 @@ test "phase13 devres plain ioremap wrapper frees the release record on map failu
     });
 
     try std.testing.expectEqual(devres.ManagedIoremapKind.plain, result.kind);
+    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
+    try std.testing.expect(!result.added_to_devres);
+    try std.testing.expect(!result.release_record_retained);
+    try std.testing.expect(result.release_record_freed);
+    try std.testing.expect(!result.should_unmap_on_detach);
+}
+
+test "phase13 devres uncached ioremap wrapper preserves the managed lifetime path" {
+    const result = try devres.DevresHelperLab.planManagedIoremapAcquireUc(.{
+        .release_record_allocated = true,
+        .mapped_address = 0x2600,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
+    try std.testing.expectEqual(devres.ManagedIoremapKind.uncached, result.kind);
+    try std.testing.expectEqual(@as(?usize, 0x2600), result.mapped_address);
+    try std.testing.expect(result.added_to_devres);
+    try std.testing.expect(result.release_record_retained);
+    try std.testing.expect(!result.release_record_freed);
+    try std.testing.expect(result.should_unmap_on_detach);
+}
+
+test "phase13 devres uncached ioremap wrapper frees the release record on map failure" {
+    const result = try devres.DevresHelperLab.planManagedIoremapAcquireUc(.{
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(devres.ManagedIoremapKind.uncached, result.kind);
     try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
     try std.testing.expect(!result.added_to_devres);
     try std.testing.expect(!result.release_record_retained);
@@ -177,6 +208,56 @@ test "phase13 devres keeps requested mapping types and unnamed pretty names" {
             try std.testing.expectEqual(@as(u64, 0x20), plan.size);
         },
         .err => return error.UnexpectedFailure,
+    }
+}
+
+test "phase13 devres WC resource wrapper preserves the requested WC mapping type" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResourceWc(std.testing.allocator, .{
+        .device_name = "gpu-wc",
+        .resource = .{
+            .start = 0x3000,
+            .end = 0x31ff,
+            .is_memory = true,
+            .nonposted = true,
+            .name = "fb",
+        },
+    });
+
+    switch (outcome) {
+        .mapped => |plan| {
+            defer std.testing.allocator.free(plan.pretty_name);
+            try std.testing.expectEqualStrings("gpu-wc fb", plan.pretty_name);
+            try std.testing.expectEqual(devres.IoremapType.wc, plan.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x200), plan.size);
+            try std.testing.expect(plan.requests_region);
+            try std.testing.expect(!plan.releases_region_on_remap_failure);
+        },
+        .err => return error.UnexpectedFailure,
+    }
+}
+
+test "phase13 devres WC resource wrapper keeps busy-region failure shaping" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResourceWc(std.testing.allocator, .{
+        .device_name = "gpu-busy",
+        .resource = .{
+            .start = 0x2400,
+            .end = 0x243f,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "framebuffer",
+        },
+        .request_region_granted = false,
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.ErrorStage.request_region, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.busy, failure.error_code);
+            try std.testing.expectEqual(devres.IoremapType.wc, failure.effective_type);
+            try std.testing.expect(failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+        },
     }
 }
 
@@ -573,7 +654,9 @@ test "phase13 devres manifest records the current dma/scatterlist boundary packe
     try expectContains(manifest_text, "\"id\": \"phase13-devres-arch-phys-wc-token-planner\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-live-dma-backed-helpers\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
+    try expectContains(manifest_text, "devm_ioremap_uc()");
     try expectContains(manifest_text, "devm_ioremap_wc()");
+    try expectContains(manifest_text, "devm_ioremap_resource_wc()");
     try expectContains(manifest_text, "\"status\": \"starter_landed\"");
     try expectContains(manifest_text, "\"status\": \"blocked_on_dma_state\"");
     try expectContains(manifest_text, "dmam_alloc_*");
