@@ -360,6 +360,7 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "memparse saturates signed overflow instead of trapping"',
             'test "memparse keeps signed values and their trailing rest aligned"',
             'test "memparse consumes suffix after saturation"',
+            'test "memparse applies suffixes before signed clamping"',
             'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
         ],
         "memparse_review_anchors": [
@@ -367,6 +368,7 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "memparse saturates signed overflow instead of trapping"',
             'test "memparse keeps signed values and their trailing rest aligned"',
             'test "memparse consumes suffix after saturation"',
+            'test "memparse applies suffixes before signed clamping"',
         ],
         "prefix_suffix_review_anchors": [
             'test "strHasPrefix honors C-string boundaries"',
@@ -753,6 +755,14 @@ def run_self_test() -> None:
         make_fixture_root(tmp_root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        helper_test_anchors = manifest["review_anchors"]["tools/lib/string.zig"]["helper_test_anchors"]
+        helper_test_anchors.remove('test "memparse applies suffixes before signed clamping"')
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "manifest:review_anchor_value=tools/lib/string.zig:helper_test_anchors" in missing
+        make_fixture_root(tmp_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         del manifest["review_anchors"]["tools/lib/string.zig"]["shared_replace_char_cstr_review_summary"]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = collect_missing_markers(tmp_root)
@@ -793,7 +803,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [".github/workflows/zigux-bootstrap.yml"]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=15")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=16")
 
 
 def main() -> int:
