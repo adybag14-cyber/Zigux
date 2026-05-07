@@ -48,3 +48,38 @@ test "phase3 barrier wrappers stay local to caller state" {
     try std.testing.expectEqual(@as(u8, 8), left);
     try std.testing.expectEqual(@as(u8, 21), right);
 }
+
+test "phase3 barrier wrappers keep acquire-release handoff reviewable" {
+    const Packet = struct {
+        ready: bool,
+        value: u32,
+        mirror: u32,
+    };
+
+    var packet = Packet{
+        .ready = false,
+        .value = 0,
+        .mirror = 0,
+    };
+
+    packet.value = 41;
+    release();
+    packet.ready = true;
+
+    acquire();
+    try std.testing.expect(packet.ready);
+    try std.testing.expectEqual(@as(u32, 41), packet.value);
+
+    full();
+    packet.mirror = packet.value;
+    acquireRelease();
+
+    try std.testing.expectEqual(@as(u32, 41), packet.mirror);
+
+    packet.value = 73;
+    release();
+    packet.ready = false;
+    acquire();
+    try std.testing.expect(!packet.ready);
+    try std.testing.expectEqual(@as(u32, 73), packet.value);
+}
