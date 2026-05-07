@@ -38,6 +38,8 @@ The highest-value honest step in this lane is therefore a very small probe snaps
 - the queueing packet now also carries one driver-local recovery ownership order note: the frozen snapshot owns remembered queue shape and recovery intent until data queues are rebuilt, control-virtqueue restore owns queue-pair governance after that data-queue rebuild when a control queue exists, RSS reapply owns steering-state handoff only after the control queue is back, receive refill stays subordinate to the resumed data queues, and transmit recycle remains last because completion-side queue reuse still depends on receive-refill coordination before steady-state ownership can return.
 - the newly landed mergeable-buffer-length follow-up keeps one more throughput-facing handoff explicit without widening into live DMA or NAPI work: once a frozen mergeable snapshot exists, the lab can mirror `get_mergeable_buf_len()` by recording whether the selected buffer length stays at the observed average packet size, clamps to the minimum floor, caps at page payload, or falls back to page-minus-room sizing when XDP headroom reserves aligned room for `skb_shared_info`.
 - the active packet now treats those landed probe, syntax-lab, queue-recovery, receive-refill, transmit-recycle, and mergeable-buffer-length steps as a segmented rollout boundary: the runtime-data-path boundary remains blocked until roadmap-approved DMA-safe abstractions, queueing correctness substrate work, and throughput plus recovery parity evidence exist, so the current tranche still stops short of live page-pool DMA, refill loops, XDP execution, NAPI, control-virtqueue commands, or net-device lifecycle work.
+- use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether this survey-backed packet is close enough to describe the active Phase 12 tranche as release-closed.
+- keep `Documentation/zigux/phase12-release-coordination-matrix.md` visible beside that same PMO closure companion so the compact lane-owner split, fallback split, and smoke-set summary stay reviewable without flattening the `virtio_net` lane into broader PMO prose.
 
 ## Recorded gaps
 
@@ -86,6 +88,8 @@ This survey slice does not claim:
 - `make -C zigux phase12`
 
 Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether this survey-backed packet is close enough to describe the active Phase 12 tranche as release-closed.
+
+Keep `Documentation/zigux/phase12-release-coordination-matrix.md` visible beside that same PMO closure companion when judging whether the compact lane-owner split, fallback split, and smoke-set summary still match this survey-backed packet.
 
 ## Next bounded step
 
