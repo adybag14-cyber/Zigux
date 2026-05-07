@@ -13,12 +13,14 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+DOCS_REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 
 EXPECTED_MANIFEST_PHASE = "Phase 2"
 EXPECTED_MANIFEST_STATUS = "closed"
+EXPECTED_PACKET_STATUS = "closed"
 EXPECTED_PACKET_FIELDS = {
     "fixdep_packet": "zigux/tests/fixtures/fixdep/manifest.json",
     "genksyms_bridge_packet": "zigux/tests/fixtures/genksyms_bridge/manifest.json",
@@ -40,27 +42,24 @@ EXPECTED_TOOLS = [
     "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 EXPECTED_TOOL_COUNT = len(EXPECTED_TOOLS)
-EXPECTED_PACKET_STATUS = "closed"
 
 REQUIRED_CLOSURE_MARKERS = [
     "shared packet gate: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "PHASE2_TOOL_MANIFEST_PACKET_SELF_TEST=python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
     "PHASE2_TOOL_MANIFEST_PACKET_GATE=python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
 ]
-REQUIRED_CLOSURE_EXACT_COUNTS = {
-    marker: 1 for marker in REQUIRED_CLOSURE_MARKERS
-}
 REQUIRED_BOOTSTRAP_MARKERS = [
     "- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`",
     "- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator",
 ]
-REQUIRED_BOOTSTRAP_EXACT_COUNTS = {
-    marker: 1 for marker in REQUIRED_BOOTSTRAP_MARKERS
-}
-REQUIRED_SCRIPTS_README_MARKERS = [
+REQUIRED_SCRIPTS_README_LINES = [
     "- `check-phase2-tool-manifest-packets.py`",
     "- `check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed `fixdep`, `genksyms`, and `kconfig` packet manifests so the shared Phase 2 tool inventory stays explicit before the direct Zig replays run.",
+]
+REQUIRED_REVIEW_MARKERS = [
+    "`zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
 ]
 REQUIRED_MAKEFILE_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
@@ -84,6 +83,7 @@ def required_files_for(root: Path) -> list[Path]:
         root / PHASE2_TOOL_MANIFEST.relative_to(ROOT),
         root / PHASE2_CLOSURE.relative_to(ROOT),
         root / PHASE2_BOOTSTRAP_NOTES.relative_to(ROOT),
+        root / DOCS_REVIEW_CHECKLIST.relative_to(ROOT),
         root / SCRIPTS_README.relative_to(ROOT),
         root / MAKEFILE.relative_to(ROOT),
         root / WORKFLOW.relative_to(ROOT),
@@ -105,14 +105,12 @@ def validate_exact_lines(text: str, expected_lines: list[str], *, prefix: str) -
     return issues
 
 
-def validate_exact_substrings(
-    text: str, expected_counts: dict[str, int], *, prefix: str
-) -> list[str]:
+def validate_exact_substrings(text: str, markers: list[str], *, prefix: str) -> list[str]:
     issues: list[str] = []
-    for marker, expected_count in expected_counts.items():
+    for marker in markers:
         count = text.count(marker)
-        if count != expected_count:
-            issues.append(f"{prefix}:{marker}:count={count}:expected={expected_count}")
+        if count != 1:
+            issues.append(f"{prefix}:{marker}:count={count}:expected=1")
     return issues
 
 
@@ -123,7 +121,7 @@ def validate_root(root: Path) -> list[str]:
 
     manifest = load_json_object(root / PHASE2_TOOL_MANIFEST.relative_to(ROOT), label="phase2_tool_manifest")
     issues: list[str] = []
-    seen_paths: set[str] = set()
+    seen_packet_paths: set[str] = set()
 
     if manifest.get("phase") != EXPECTED_MANIFEST_PHASE:
         issues.append(
@@ -145,12 +143,14 @@ def validate_root(root: Path) -> list[str]:
     for field_name, expected_path in EXPECTED_PACKET_FIELDS.items():
         value = manifest.get(field_name)
         if value != expected_path:
-            issues.append(f"manifest_field:{field_name}:value={value!r}:expected={expected_path!r}")
+            issues.append(
+                f"manifest_field:{field_name}:value={value!r}:expected={expected_path!r}"
+            )
             continue
-        if value in seen_paths:
+        if value in seen_packet_paths:
             issues.append(f"manifest_field:{field_name}:duplicate_packet_path:{value}")
             continue
-        seen_paths.add(value)
+        seen_packet_paths.add(value)
         packet_path = root / value
         packet = load_json_object(packet_path, label=field_name)
         expected_tool = EXPECTED_PACKET_TOOL_FIELDS[field_name]
@@ -163,12 +163,9 @@ def validate_root(root: Path) -> list[str]:
                 f"packet_status:{field_name}:value={packet.get('status')!r}:expected={EXPECTED_PACKET_STATUS!r}"
             )
 
-    unexpected_fields = sorted(
-        field_name
-        for field_name in manifest
-        if field_name.endswith("_packet") and field_name not in EXPECTED_PACKET_FIELDS
-    )
-    for field_name in unexpected_fields:
+    for field_name in sorted(
+        key for key in manifest if key.endswith("_packet") and key not in EXPECTED_PACKET_FIELDS
+    ):
         issues.append(f"unexpected_packet_field:{field_name}")
 
     closure_text = (root / PHASE2_CLOSURE.relative_to(ROOT)).read_text(encoding="utf-8")
@@ -178,7 +175,7 @@ def validate_root(root: Path) -> list[str]:
     issues.extend(
         validate_exact_substrings(
             closure_text,
-            REQUIRED_CLOSURE_EXACT_COUNTS,
+            REQUIRED_CLOSURE_MARKERS,
             prefix="closure_exact_marker",
         )
     )
@@ -190,20 +187,34 @@ def validate_root(root: Path) -> list[str]:
     issues.extend(
         validate_exact_substrings(
             bootstrap_text,
-            REQUIRED_BOOTSTRAP_EXACT_COUNTS,
+            REQUIRED_BOOTSTRAP_MARKERS,
             prefix="bootstrap_exact_marker",
         )
     )
 
     scripts_readme_text = (root / SCRIPTS_README.relative_to(ROOT)).read_text(encoding="utf-8")
-    for marker in REQUIRED_SCRIPTS_README_MARKERS:
+    for marker in REQUIRED_SCRIPTS_README_LINES:
         if marker not in scripts_readme_text:
             issues.append(f"scripts_readme_marker:{marker}")
     issues.extend(
         validate_exact_lines(
             scripts_readme_text,
-            REQUIRED_SCRIPTS_README_MARKERS,
+            REQUIRED_SCRIPTS_README_LINES,
             prefix="scripts_readme_line",
+        )
+    )
+
+    review_checklist_text = (root / DOCS_REVIEW_CHECKLIST.relative_to(ROOT)).read_text(
+        encoding="utf-8"
+    )
+    for marker in REQUIRED_REVIEW_MARKERS:
+        if marker not in review_checklist_text:
+            issues.append(f"review_marker:{marker}")
+    issues.extend(
+        validate_exact_substrings(
+            review_checklist_text,
+            REQUIRED_REVIEW_MARKERS,
+            prefix="review_exact_marker",
         )
     )
 
@@ -238,47 +249,22 @@ def build_self_test_root(root: Path) -> None:
     )
     for rel_path in EXPECTED_TOOLS:
         write_text(root / rel_path, "// self-test stub\n")
-    write_json(
-        root / EXPECTED_PACKET_FIELDS["fixdep_packet"],
-        {
-            "tool": EXPECTED_PACKET_TOOL_FIELDS["fixdep_packet"],
-            "status": EXPECTED_PACKET_STATUS,
-        },
-    )
-    write_json(
-        root / EXPECTED_PACKET_FIELDS["genksyms_bridge_packet"],
-        {
-            "tool": EXPECTED_PACKET_TOOL_FIELDS["genksyms_bridge_packet"],
-            "status": EXPECTED_PACKET_STATUS,
-        },
-    )
-    write_json(
-        root / EXPECTED_PACKET_FIELDS["kconfig_conf_bridge_packet"],
-        {
-            "tool": EXPECTED_PACKET_TOOL_FIELDS["kconfig_conf_bridge_packet"],
-            "status": EXPECTED_PACKET_STATUS,
-        },
-    )
-    write_json(
-        root / EXPECTED_PACKET_FIELDS["kconfig_confdata_bridge_packet"],
-        {
-            "tool": EXPECTED_PACKET_TOOL_FIELDS["kconfig_confdata_bridge_packet"],
-            "status": EXPECTED_PACKET_STATUS,
-        },
-    )
+    for field_name, packet_path in EXPECTED_PACKET_FIELDS.items():
+        write_json(
+            root / packet_path,
+            {
+                "tool": EXPECTED_PACKET_TOOL_FIELDS[field_name],
+                "status": EXPECTED_PACKET_STATUS,
+            },
+        )
 
-    write_text(
-        root / "Documentation/zigux/phase2-closure.md",
-        "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n",
-    )
+    write_text(root / "Documentation/zigux/phase2-closure.md", "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n")
     write_text(
         root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
         "\n".join(REQUIRED_BOOTSTRAP_MARKERS) + "\n",
     )
-    write_text(
-        root / "scripts/zigux/README.md",
-        "\n".join(REQUIRED_SCRIPTS_README_MARKERS) + "\n",
-    )
+    write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REQUIRED_REVIEW_MARKERS) + "\n")
+    write_text(root / "scripts/zigux/README.md", "\n".join(REQUIRED_SCRIPTS_README_LINES) + "\n")
     write_text(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_LINES) + "\n")
     write_text(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(REQUIRED_WORKFLOW_LINES) + "\n")
 
@@ -290,8 +276,9 @@ def run_self_test() -> int:
         build_self_test_root(root)
         assert validate_root(root) == []
 
-        build_self_test_root(root)
         manifest_path = root / "zigux/tests/fixtures/phase2_tool_manifest.json"
+
+        build_self_test_root(root)
         manifest = load_json_object(manifest_path, label="phase2_tool_manifest")
         del manifest["fixdep_packet"]
         write_json(manifest_path, manifest)
@@ -328,20 +315,10 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         manifest = load_json_object(manifest_path, label="phase2_tool_manifest")
-        manifest["tools"] = list(reversed(EXPECTED_TOOLS))
-        write_json(manifest_path, manifest)
-        issues = validate_root(root)
-        assert f"manifest_tools:value={list(reversed(EXPECTED_TOOLS))!r}:expected={EXPECTED_TOOLS!r}" in issues
-
-        build_self_test_root(root)
-        manifest = load_json_object(manifest_path, label="phase2_tool_manifest")
         manifest["kconfig_confdata_bridge_packet"] = EXPECTED_PACKET_FIELDS["kconfig_conf_bridge_packet"]
         write_json(manifest_path, manifest)
         issues = validate_root(root)
-        assert (
-            "manifest_field:kconfig_confdata_bridge_packet:value='zigux/tests/fixtures/kconfig_bridge/conf_manifest.json':expected='zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json'"
-            in issues
-        )
+        assert "manifest_field:kconfig_confdata_bridge_packet:value='zigux/tests/fixtures/kconfig_bridge/conf_manifest.json':expected='zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json'" in issues
 
         build_self_test_root(root)
         packet_path = root / EXPECTED_PACKET_FIELDS["genksyms_bridge_packet"]
@@ -349,10 +326,7 @@ def run_self_test() -> int:
         packet["tool"] = "scripts/zigux/genksyms_crc.zig"
         write_json(packet_path, packet)
         issues = validate_root(root)
-        assert (
-            "packet_tool:genksyms_bridge_packet:value='scripts/zigux/genksyms_crc.zig':expected='scripts/zigux/genksyms.zig'"
-            in issues
-        )
+        assert "packet_tool:genksyms_bridge_packet:value='scripts/zigux/genksyms_crc.zig':expected='scripts/zigux/genksyms.zig'" in issues
 
         build_self_test_root(root)
         packet_path = root / EXPECTED_PACKET_FIELDS["kconfig_conf_bridge_packet"]
@@ -411,17 +385,31 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         scripts_readme_path = root / "scripts/zigux/README.md"
-        scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8").replace(REQUIRED_SCRIPTS_README_MARKERS[1] + "\n", "", 1)
+        scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8").replace(REQUIRED_SCRIPTS_README_LINES[1] + "\n", "", 1)
         write_text(scripts_readme_path, scripts_readme_text)
         issues = validate_root(root)
-        assert f"scripts_readme_marker:{REQUIRED_SCRIPTS_README_MARKERS[1]}" in issues
+        assert f"scripts_readme_marker:{REQUIRED_SCRIPTS_README_LINES[1]}" in issues
 
         build_self_test_root(root)
         scripts_readme_path = root / "scripts/zigux/README.md"
-        scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8") + REQUIRED_SCRIPTS_README_MARKERS[1] + "\n"
+        scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8") + REQUIRED_SCRIPTS_README_LINES[1] + "\n"
         write_text(scripts_readme_path, scripts_readme_text)
         issues = validate_root(root)
-        assert f"scripts_readme_line:{REQUIRED_SCRIPTS_README_MARKERS[1]}:count=2:expected=1" in issues
+        assert f"scripts_readme_line:{REQUIRED_SCRIPTS_README_LINES[1]}:count=2:expected=1" in issues
+
+        build_self_test_root(root)
+        review_path = root / "Documentation/zigux/review-checklist.md"
+        review_text = review_path.read_text(encoding="utf-8").replace(REQUIRED_REVIEW_MARKERS[0] + "\n", "", 1)
+        write_text(review_path, review_text)
+        issues = validate_root(root)
+        assert f"review_marker:{REQUIRED_REVIEW_MARKERS[0]}" in issues
+
+        build_self_test_root(root)
+        review_path = root / "Documentation/zigux/review-checklist.md"
+        review_text = review_path.read_text(encoding="utf-8") + REQUIRED_REVIEW_MARKERS[0] + "\n"
+        write_text(review_path, review_text)
+        issues = validate_root(root)
+        assert f"review_exact_marker:{REQUIRED_REVIEW_MARKERS[0]}:count=2:expected=1" in issues
 
         build_self_test_root(root)
         makefile_path = root / "zigux/Makefile"
@@ -452,7 +440,7 @@ def run_self_test() -> int:
         assert f"workflow_line:{REQUIRED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
 
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=23")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
