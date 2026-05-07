@@ -107,6 +107,34 @@ pub const RemoveSummary = struct {
     poweroff_handler_left_in_place: bool,
 };
 
+pub const OwnershipMatrixPath = enum {
+    claimed_poweroff_handler,
+    conflicting_poweroff_handler,
+    failed_registration,
+};
+
+pub const OwnershipMatrixRow = struct {
+    anchor: []const u8,
+    path: OwnershipMatrixPath,
+    system_power_controller: bool,
+    poweroff_handler_present_before_probe: bool,
+    registration_succeeded: bool,
+    probe_error_returned: bool,
+    poweroff_handler_present_after_probe: bool,
+    poweroff_handler_claimed: bool,
+    poweroff_handler_owned_by_driver: bool,
+    poweroff_path_ready: bool,
+    halt_partition_requested: bool,
+    restart_armed: bool,
+    clear_poweroff_handler_requested: bool,
+    poweroff_handler_left_in_place: bool,
+};
+
+pub const OwnershipMatrixSummary = struct {
+    anchor: []const u8,
+    rows: [3]OwnershipMatrixRow,
+};
+
 pub const RuntimeSnapshot = struct {
     anchor: []const u8,
     running: bool,
@@ -296,6 +324,58 @@ pub const Bcm2835WatchdogLab = struct {
         );
     }
 
+    pub fn ownershipMatrixSummary(self: *const Self) OwnershipMatrixSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .rows = .{
+                self.ownershipMatrixRow(.claimed_poweroff_handler, true, false, true),
+                self.ownershipMatrixRow(.conflicting_poweroff_handler, true, true, true),
+                self.ownershipMatrixRow(.failed_registration, true, false, false),
+            },
+        };
+    }
+
+    fn ownershipMatrixRow(
+        self: *const Self,
+        path: OwnershipMatrixPath,
+        system_power_controller: bool,
+        poweroff_handler_present: bool,
+        registration_succeeded: bool,
+    ) OwnershipMatrixRow {
+        const registration = self.registrationOutcomeSummary(
+            system_power_controller,
+            poweroff_handler_present,
+            registration_succeeded,
+        );
+        const poweroff = self.poweroffSummary(
+            registration.system_power_controller,
+            registration.poweroff_handler_present_after_probe,
+            registration.poweroff_handler_owned_by_driver,
+        );
+        const remove = self.removeSummary(
+            registration.system_power_controller,
+            registration.poweroff_handler_present_after_probe,
+            registration.poweroff_handler_owned_by_driver,
+        );
+
+        return .{
+            .anchor = descriptor().anchor,
+            .path = path,
+            .system_power_controller = registration.system_power_controller,
+            .poweroff_handler_present_before_probe = poweroff_handler_present,
+            .registration_succeeded = registration.registration_succeeded,
+            .probe_error_returned = registration.probe_error_returned,
+            .poweroff_handler_present_after_probe = registration.poweroff_handler_present_after_probe,
+            .poweroff_handler_claimed = registration.poweroff_handler_claimed,
+            .poweroff_handler_owned_by_driver = registration.poweroff_handler_owned_by_driver,
+            .poweroff_path_ready = poweroff.poweroff_path_ready,
+            .halt_partition_requested = poweroff.halt_partition_requested,
+            .restart_armed = poweroff.restart_armed,
+            .clear_poweroff_handler_requested = remove.clear_poweroff_handler_requested,
+            .poweroff_handler_left_in_place = remove.poweroff_handler_left_in_place,
+        };
+    }
+
     pub fn loadRegisters(self: *Self, registers: RegisterImage) RuntimeSnapshot {
         self.registers = registers;
         return self.runtimeSnapshot();
@@ -394,4 +474,43 @@ test "remove after registration clears only driver-owned poweroff handler" {
     const failed_remove = lab.removeAfterRegistrationSummary(true, false, false);
     try std.testing.expect(!failed_remove.clear_poweroff_handler_requested);
     try std.testing.expect(!failed_remove.poweroff_handler_left_in_place);
+}
+
+test "ownership matrix keeps registration poweroff and teardown outcomes aligned" {
+    const lab = try Bcm2835WatchdogLab.init(8);
+    const matrix = lab.ownershipMatrixSummary();
+
+    try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", matrix.anchor);
+
+    const claimed = matrix.rows[0];
+    try std.testing.expectEqual(OwnershipMatrixPath.claimed_poweroff_handler, claimed.path);
+    try std.testing.expect(claimed.registration_succeeded);
+    try std.testing.expect(claimed.poweroff_handler_claimed);
+    try std.testing.expect(claimed.poweroff_handler_owned_by_driver);
+    try std.testing.expect(claimed.poweroff_path_ready);
+    try std.testing.expect(claimed.halt_partition_requested);
+    try std.testing.expect(claimed.restart_armed);
+    try std.testing.expect(claimed.clear_poweroff_handler_requested);
+    try std.testing.expect(!claimed.poweroff_handler_left_in_place);
+
+    const conflict = matrix.rows[1];
+    try std.testing.expectEqual(OwnershipMatrixPath.conflicting_poweroff_handler, conflict.path);
+    try std.testing.expect(conflict.registration_succeeded);
+    try std.testing.expect(conflict.poweroff_handler_present_before_probe);
+    try std.testing.expect(!conflict.poweroff_handler_claimed);
+    try std.testing.expect(!conflict.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!conflict.poweroff_path_ready);
+    try std.testing.expect(!conflict.clear_poweroff_handler_requested);
+    try std.testing.expect(conflict.poweroff_handler_left_in_place);
+
+    const failed = matrix.rows[2];
+    try std.testing.expectEqual(OwnershipMatrixPath.failed_registration, failed.path);
+    try std.testing.expect(!failed.registration_succeeded);
+    try std.testing.expect(failed.probe_error_returned);
+    try std.testing.expect(!failed.poweroff_handler_present_after_probe);
+    try std.testing.expect(!failed.poweroff_handler_claimed);
+    try std.testing.expect(!failed.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!failed.poweroff_path_ready);
+    try std.testing.expect(!failed.clear_poweroff_handler_requested);
+    try std.testing.expect(!failed.poweroff_handler_left_in_place);
 }
