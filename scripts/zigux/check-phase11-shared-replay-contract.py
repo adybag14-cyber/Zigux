@@ -51,6 +51,13 @@ REQUIRED_CONTRACT_MARKERS = [
     "there is no dedicated shared `validate-phase11.py` on `master`",
     "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`",
     "there is no broader multi-checker Phase 11 validator stack on `master`",
+    "The dedicated archival bcm2835 evidence also stays explicit beside that shared route:",
+    "`Documentation/zigux/phase11-bcm2835-wdt-survey.md`",
+    "`zigux/tests/phase11_bcm2835_wdt_manifest.json`",
+    "`zigux/tests/phase11_bcm2835_wdt_survey.zig`",
+    "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
+    "`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`",
+    "`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
 ]
 REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS = [
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
@@ -140,7 +147,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 36
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 41
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -192,6 +199,11 @@ SELF_TEST_CASES = [
     (PHASE11_CONTRACT_PATH, "phase11_contract", "`scripts/zigux/check-phase11-hvc-survey-packet.py`", REQUIRED_CONTRACT_MARKERS[10]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", "`zigux/tests/phase11_hvc_console_manifest.json`", REQUIRED_CONTRACT_MARKERS[12]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", "`make -C zigux phase11-hvc-survey`", REQUIRED_CONTRACT_MARKERS[13]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[27], REQUIRED_CONTRACT_MARKERS[27]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[28], REQUIRED_CONTRACT_MARKERS[28]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[29], REQUIRED_CONTRACT_MARKERS[29]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[32], REQUIRED_CONTRACT_MARKERS[32]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[33], REQUIRED_CONTRACT_MARKERS[33]),
 ]
 
 FIXTURE_CONTENT = {
