@@ -8,7 +8,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 - `PHASE9_SLICE=runtime-atomic64-survey`
 - `PHASE9_LANE_KEY=P9-L01`
 - `PHASE9_SURVEYED_COMMIT=ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
-- scope: survey manifest, dedicated runtime survey gate, landed sample-backed module starter, landed module gate, landed diff gate, the bounded sample-side loader scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, and the lane-level review note that keeps the still-unlanded shared runtime-loader substrate explicit without claiming loadable-module parity
+- scope: survey manifest, dedicated runtime survey gate, landed sample-backed module starter, landed module gate, landed diff gate, the bounded sample-side loader scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, the initialized-stage shared-request snapshot stability proof, the prepared selftest-hook and shared-plan drift proofs, the shared release-order synchronization proof, and the lane-level review note that keeps the still-unlanded shared runtime-loader substrate explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
   - `samples/zigux/runtime_atomic64_loader.zig`
@@ -40,7 +40,7 @@ The live repo now has a bounded `runtime_atomic64` starter, dedicated module tes
 - the roadmap's selftest-hook requirement is already landed through the sample descriptor and `runSelftest()` contract in `samples/zigux/runtime_atomic64.zig`.
 - the bounded sample-side loader scaffold now records explicit init and exit symbol names, a prepared handoff summary, and the no-substrate release path without claiming that a shared runtime loader already exists.
 - guarded init, selftest, and exit transitions plus the bounded loader handoff make lifecycle evidence reviewable, but full runtime module lifecycle parity still depends on the shared runtime substrate.
-- the live repo now also carries `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and `zigux/Makefile`, and the atomic64 loader packet now makes its shared request-surface proof explicit through `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` while keeping the allocator handoff, init-flow counts, release-without-substrate path, and Linux-style `make -C zigux phase9` replay route reviewable without claiming a real module-loading substrate.
+- the live repo now also carries `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and `zigux/Makefile`, and the atomic64 loader packet now makes its shared request-surface proof explicit through `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` while keeping the caller-provided allocator handoff, init-flow counts, initialized-stage shared-request snapshot stability, prepared selftest-hook and shared-plan drift checks, release-without-substrate path, and release-order synchronization reviewable without claiming a real module-loading substrate.
 - the shared `zigux/kernel/runtime_loader.zig` facade remains a review-only Phase 9 packet under the freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary, so this lane keeps the handoff proof explicit without claiming scheduler-facing substrate closure or a freeze-map status change.
 - runtime substrate work is still missing, so the lane intentionally stops at bounded lifecycle, selftest-hook, and loader-handoff behavior rather than claiming real module registration parity.
 
@@ -53,6 +53,7 @@ The current direct atomic64 sample contract is verified through these exact chec
 - selftest closure: `runSelftest()` still reports the ordered operation families `arithmetic`, `bitwise`, `returning_ops`, `swap_ops`, and `guard_ops`, keeps the counter stable at `19`, records one selftest run, and leaves later swap or second-selftest attempts blocked after exit
 - loader snapshot stability: after `prepare()` captures the selftest-complete handoff with counter snapshot `17`, later sample mutation still leaves the pending loader handoff at snapshot `17` even while the live sample moves through swap, compare-swap, `add_unless`, `and`, and `xor` to the visible counter `15` before `requestRuntimeLoad()`
 - shared loader-request binding: `toSharedLoadPlan()` and `runtime_loader.prepareRequest()` still preserve the caller-provided allocator handoff, the bounded init-flow counts, the `waiting_on_runtime_substrate` transition, and the exact prepared snapshot without claiming a real loadable runtime substrate on `master`
+- shared request failure-mode proof: the initialized-stage shared request still keeps `handoff_stage=initialized` and `selftest_runs=0` after later selftest activity, prepared selftest-hook drift and shared-plan drift still fail closed before any live atomic64 claim, and out-of-order release attempts still keep the loader and shared request synchronized until both finally reach `released_without_substrate`
 
 ## Recorded gaps
 
