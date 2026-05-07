@@ -74,6 +74,7 @@ The current tests check:
 - null-terminated pointer-vector access through `cArgv()`
 - copied-buffer ownership so later source mutation does not affect split results
 - copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated
+- separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results
 - blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`
 - exported storage and argv views resetting back to the canonical empty sentinels after teardown
 
