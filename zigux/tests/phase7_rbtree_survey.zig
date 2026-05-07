@@ -255,9 +255,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(helper_impl, "test \"rbtree eraseInit clears detached nodes after erase\"");
     try expectContains(helper_impl, "test \"rbtree replaceNode keeps displaced nodes non-empty until cleared\"");
     try expectContains(helper_impl, "test \"rbtree postorder and empty node helpers behave\"");
+    try expectContains(helper_tests, "phase 7 rbtree traversal helpers walk a manually linked tree");
+    try expectContains(helper_tests, "phase 7 rbtree replaceNode and postorder helpers preserve structure");
+    try expectContains(helper_tests, "phase 7 rbtree balancing helpers keep ordered insert erase traversal stable");
     try expectContains(helper_tests, "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable");
     try expectContains(helper_tests, "phase 7 rbtree detached nodes stay non-empty until callers clear them");
     try expectContains(helper_tests, "phase 7 rbtree clearNode marks detached nodes as empty");
+    try expectContains(helper_tests, "phase 7 rbtree find helpers walk duplicate-key ranges");
+    try expectContains(helper_tests, "phase 7 rbtree postorder traversal matches committed parity fixture");
     try expectContains(helper_tests, "try std.testing.expectEqual(@as(?*Node, null), nextPostorder(null));");
     try expectContains(samples_readme, "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;");
     try expectContains(samples_readme, "Documentation/zigux/phase7-rbtree-slice.md");
