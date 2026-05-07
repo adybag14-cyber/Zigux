@@ -37,6 +37,7 @@ const Manifest = struct {
     bootstrap_ledger_anchor: []const u8,
     repo_evidence: RepoEvidence,
     open_handoff_gaps: []const Gap,
+    reopen_triggers: []const []const u8,
     pending_next_steps: []const []const u8,
 };
 
@@ -79,9 +80,14 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(manifest.repo_evidence.paired_parity_scorecard_blocker_posture_matches);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
     try std.testing.expectEqual(@as(usize, 1), manifest.open_handoff_gaps.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.reopen_triggers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.pending_next_steps.len);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "packet drifts again") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "deep-core blocker posture changes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reopen_triggers[0], "evidence_packet_stale_or_contradictory") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reopen_triggers[1], "narrower_followup_answers_blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reopen_triggers[2], "ownership_or_validation_changed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "evidence_packet_stale_or_contradictory") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "narrower_followup_answers_blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "ownership_or_validation_changed") != null);
     try std.testing.expectEqualStrings("phase15-deep-core-status-change-blocker", manifest.open_handoff_gaps[0].id);
 }
 
@@ -171,6 +177,10 @@ test "phase 15 handoff note keeps the repaired validator-first surface and remai
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "lane identity is refreshed to `P15-L08`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "remaining blocked work is only the deep-core status-change evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "blocker-posture agreement instead of exact-head parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "parked next-bound queue now mirrors the named scorecard reopen-trigger catalog") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "evidence_packet_stale_or_contradictory") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "narrower_followup_answers_blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "ownership_or_validation_changed") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
