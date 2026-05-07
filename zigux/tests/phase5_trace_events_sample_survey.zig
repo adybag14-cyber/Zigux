@@ -296,6 +296,30 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     try expectContains(samples_root, "Documentation/zigux/phase7-rbtree-slice.md");
     try expectContains(samples_root, "zigux/tests/phase7_rbtree.zig");
 
+    const review_guide = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-sample-review-guide.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(review_guide);
+
+    const review_guide_markers = [_][]const u8{
+        "### `trace_events_sample`",
+        "Documentation/zigux/phase5-trace-events-sample-survey.md",
+        "samples/zigux/trace_events_sample.zig",
+        "`formattedMessage()`, the selected-string plus `iter=%d` replay, and the public `runPayloadBoundaryReplay()` formatting cue",
+        "the public `runCallbackBoundaryReplay()` helper plus balanced register-then-unregister callback flow",
+        "`unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection",
+        "post-exit replay rejection",
+        "Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample;",
+        "Formatting-helper reviewability still stays with the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet; do not infer a fifth formatting sample from `trace_events_sample`.",
+    };
+
+    for (review_guide_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, review_guide, needle) != null);
+    }
+
     const docs_root = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/README.md",
