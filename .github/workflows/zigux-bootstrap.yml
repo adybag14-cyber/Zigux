@@ -303,7 +303,7 @@ jobs:
         run: make -C zigux phase7-validate
 
       - name: Run Phase 7 runtime helper tests
-        run: zig build test --build-file zigux/tests/phase7_build.zig --summary all
+        run: make -C zigux phase7-test
 
       - name: Validate Phase 8 tooling packet
         run: make -C zigux phase8-validate
