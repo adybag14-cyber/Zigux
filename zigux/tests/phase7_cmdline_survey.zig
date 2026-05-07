@@ -26,7 +26,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "exact bare-option matching for comma-delimited flags, including leading and doubled-comma empty-option acceptance plus trailing-comma rejection");
     try expectContains(slice_note, "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination");
     try expectContains(slice_note, "caller-owned buffer discipline for `next_arg()`: `nextArg()` writes NUL sentinels into the supplied mutable buffer and returns borrowed `param`, `value`, and `rest` slices into that same storage");
-    try expectContains(slice_note, "the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice");
+    try expectContains(slice_note, "the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice");
 
     const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
     defer allocator.free(docs_root);
@@ -51,6 +51,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     defer allocator.free(scripts_root);
     try expectContains(scripts_root, "scripts/zigux/validate-phase7.py");
     try expectContains(scripts_root, "scripts/zigux/check-phase7-make-wrapper.py");
+    try expectContains(scripts_root, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
     try expectContains(scripts_root, "scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(scripts_root, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(scripts_root, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
@@ -60,12 +61,31 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     const validate_phase7 = try readRepoFile(allocator, "scripts/zigux/validate-phase7.py");
     defer allocator.free(validate_phase7);
     try expectContains(validate_phase7, "\"Documentation/zigux/phase7-cmdline-slice.md\"");
+    try expectContains(validate_phase7, "\"Documentation/zigux/phase7-make-wrapper-selftest-alignment.md\"");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_build.zig\"");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_cmdline.zig\"");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_cmdline_survey.zig\"");
     try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig\"");
     try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-make-wrapper.py\"");
+    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py\"");
     try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-build-wiring.py\"");
+
+    const alignment_note = try readRepoFile(allocator, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
+    defer allocator.free(alignment_note);
+    try expectContains(alignment_note, "PHASE7_LANE_KEY=P7-Y05");
+    try expectContains(alignment_note, "`scripts/zigux/check-phase7-make-wrapper.py`");
+    try expectContains(alignment_note, "`scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`");
+    try expectContains(alignment_note, "`scripts/zigux/validate-phase7.py`");
+    try expectContains(alignment_note, "`make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface");
+    try expectContains(alignment_note, "this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`");
+
+    const alignment_checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
+    defer allocator.free(alignment_checker);
+    try expectContains(alignment_checker, "scripts/zigux/check-phase7-make-wrapper.py");
+    try expectContains(alignment_checker, "zigux/Makefile");
+    try expectContains(alignment_checker, ".github/workflows/zigux-bootstrap.yml");
+    try expectContains(alignment_checker, "PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_SELF_TEST=pass");
+    try expectContains(alignment_checker, "PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass");
 
     const samples_root = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(samples_root);
