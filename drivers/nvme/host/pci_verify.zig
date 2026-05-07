@@ -123,3 +123,37 @@ test "nvme pci recovery replay keeps legacy short-form request literals compatib
     try testing.expect(legacy_shape.io_queues_must_be_rebuilt);
     try testing.expectEqual(@as(usize, 1), legacy_shape.io_queues_dropped_by_reset);
 }
+
+test "nvme pci recovery replay renegotiates stale reservations against a reduced controller cap" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(8, 6);
+    try testing.expectEqual(@as(usize, 6), reservation.reserved_io_queues);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    const replay = try lab.replayReservedIoQueues(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", replay.anchor);
+    try testing.expectEqual(@as(usize, 6), replay.requested_io_queues);
+    try testing.expectEqual(@as(usize, 3), replay.controller_io_queue_limit);
+    try testing.expectEqual(@as(usize, 64), replay.planner_remaining_io_slots);
+    try testing.expectEqual(@as(usize, 3), replay.reserved_io_queues);
+    try testing.expectEqual(@as(u16, 1), replay.first_queue_id);
+    try testing.expectEqual(@as(u16, 3), replay.last_queue_id);
+    try testing.expectEqual(@as(usize, 3), replay.planned_io_queues_after_reserve);
+    try testing.expect(replay.controller_limited);
+    try testing.expect(!replay.planner_limited);
+    try testing.expect(!replay.queues_frozen);
+    try testing.expectEqual(@as(u32, 1), replay.reset_generation);
+
+    const next = try lab.planIoQueue(8, 64, false);
+    try testing.expectEqual(@as(u16, 4), next.queue_id);
+}
