@@ -1,0 +1,18 @@
+{
+  "lane_key": "P4-L07",
+  "phase": "Phase 4",
+  "roadmap_target_path": "zigux/tests/bitmap_diff.zig",
+  "roadmap_bitmap_diff_present": true,
+  "live_gate_path": "zigux/tests/bitmap_diff.zig",
+  "live_gate_blob_sha": "8c6f95f3ebacdfba3bf2a25ed3ed15df030bdfaa",
+  "helper_replay_path": "zigux/tests/phase4_bitmap_live_helper_replay.zig",
+  "helper_replay_blob_sha": "24418ad890696a59b95276fe8dec7eaeecf25172",
+  "phase4_build_present": true,
+  "phase4_build_uses_bitmap_diff": true,
+  "phase4_build_uses_bitmap_diff_survey": true,
+  "phase4_build_blob_sha": "3164f1e56835ae0f0511d890f150dc374b45d1f4",
+  "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+  "roadmap_gap_summary": "the roadmap target zigux/tests/bitmap_diff.zig is already present as the current bounded bitmap rollback gate, but unlike the atomic64 lane it did not yet ship a manifest-backed survey packet that keeps the live gate, the helper-backed replay, and the shared phase4_build.zig entrypoint measurable together",
+  "reversible_delivery_evidence": "keep zigux/tests/bitmap_diff.zig, zigux/tests/phase4_bitmap_live_helper_replay.zig, zigux/tests/phase4_bitmap_diff_manifest.json, zigux/tests/phase4_bitmap_diff_survey.zig, and zigux/tests/phase4_build.zig aligned so the roadmap-named bitmap rollback gate, the shipped helper-backed replay, the manifest-backed reviewability survey, and the shared Phase 4 entrypoint stay measurable and reversible on the current head",
+  "ready_next": "keep zigux/tests/bitmap_diff.zig, zigux/tests/phase4_bitmap_live_helper_replay.zig, zigux/tests/phase4_bitmap_diff_manifest.json, zigux/tests/phase4_bitmap_diff_survey.zig, and zigux/tests/phase4_build.zig aligned so the bounded bitmap rollback packet stays reviewable, then decide in a later same-lane follow-up whether the shared Phase 4 validator and docs-root matrix should promote this survey packet into the broader rollback-ownership record without widening into samples or perf-threshold approval"
+}
