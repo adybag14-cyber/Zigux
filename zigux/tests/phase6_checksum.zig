@@ -210,6 +210,7 @@ test "ipv6 pseudo header accumulation stays aligned across representative lanes"
     };
 
     for (cases) |case| {
+        _ = case.name;
         var pseudo_header: [40]u8 = undefined;
         appendIpv6PseudoHeader(pseudo_header[0..], &case.saddr, &case.daddr, case.len, case.proto);
 
@@ -251,6 +252,21 @@ test "fixture-backed fold cases keep the public checksum helper reviewable" {
         try std.testing.expectEqual(case.expected_folded, checksum.from32to16(case.sum));
         try std.testing.expectEqual(case.expected_folded, @as(u16, @intCast(foldCarry(case.sum))));
         try std.testing.expectEqual(@as(u16, ~case.expected_folded), checksum.fold(case.sum));
+    }
+}
+
+test "fixture-backed 16-bit carry helpers stay reviewable on the exported checksum surface" {
+    try std.testing.expectEqual(@as(usize, 3), fixtures.add16_cases.len);
+    try std.testing.expectEqual(@as(usize, 2), fixtures.sub16_cases.len);
+    try std.testing.expectEqualStrings("saturated plus one wraps with carry", fixtures.add16_cases[0].name);
+    try std.testing.expectEqual(@as(u16, 0x1234), fixtures.sub16_cases[1].expected);
+
+    for (fixtures.add16_cases) |case| {
+        try std.testing.expectEqual(case.expected, checksum.add16(case.sum, case.addend));
+    }
+
+    for (fixtures.sub16_cases) |case| {
+        try std.testing.expectEqual(case.expected, checksum.sub16(case.sum, case.addend));
     }
 }
 
