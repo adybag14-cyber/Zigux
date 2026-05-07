@@ -454,6 +454,47 @@ test "phase11 hvc console keeps khvcd polling wakeups and teardown pressure revi
     try std.testing.expectError(error.ConsoleUnavailable, console.summarizeKhvcdPollingContract(.{}));
 }
 
+test "phase11 hvc console keeps hangup disconnect teardown boundaries reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(9);
+    _ = console.instantiate(0x90);
+
+    const active_hangup = try console.summarizeHangupDisconnect(.{
+        .port_count_before_hangup = 2,
+        .notifier_hangup_present = true,
+        .buffered_write_len = 5,
+    });
+    try std.testing.expectEqual(@as(usize, 9), active_hangup.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x90), active_hangup.vtermno);
+    try std.testing.expect(active_hangup.adapter_present);
+    try std.testing.expect(active_hangup.cancel_resize_pending);
+    try std.testing.expect(!active_hangup.hangup_skipped);
+    try std.testing.expectEqual(@as(usize, 2), active_hangup.port_count_before_hangup);
+    try std.testing.expectEqual(@as(usize, 0), active_hangup.port_count_after_hangup);
+    try std.testing.expect(active_hangup.tty_detached);
+    try std.testing.expect(active_hangup.clears_outbuf);
+    try std.testing.expectEqual(@as(usize, 5), active_hangup.buffered_write_len_before_hangup);
+    try std.testing.expectEqual(@as(usize, 0), active_hangup.buffered_write_len_after_hangup);
+    try std.testing.expect(active_hangup.notifier_hangup_pending);
+    try std.testing.expect(active_hangup.keeps_console_binding);
+
+    const stale_hangup = try console.summarizeHangupDisconnect(.{
+        .port_count_before_hangup = 0,
+        .notifier_hangup_present = true,
+        .buffered_write_len = 3,
+    });
+    try std.testing.expect(stale_hangup.cancel_resize_pending);
+    try std.testing.expect(stale_hangup.hangup_skipped);
+    try std.testing.expectEqual(@as(usize, 0), stale_hangup.port_count_after_hangup);
+    try std.testing.expect(!stale_hangup.tty_detached);
+    try std.testing.expect(!stale_hangup.clears_outbuf);
+    try std.testing.expectEqual(@as(usize, 3), stale_hangup.buffered_write_len_after_hangup);
+    try std.testing.expect(!stale_hangup.notifier_hangup_pending);
+    try std.testing.expect(stale_hangup.keeps_console_binding);
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeHangupDisconnect(.{}));
+}
+
 test "phase11 hvc_console adds carriage returns and keeps final flush intent on successful writes" {
     var console = try hvc_console.HvcConsoleLab.init(1);
     const slot = console.instantiate(0x41);
