@@ -38,6 +38,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const perf_baseline_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase4_perf_baseline_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const bitmap_diff_module = b.createModule(.{
         .root_source_file = b.path("bitmap_diff.zig"),
         .target = target,
@@ -67,6 +72,12 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_atomic64_diff_survey_module,
     });
     const run_runtime_atomic64_diff_survey_tests = b.addRunArtifact(runtime_atomic64_diff_survey_tests);
+
+    const perf_baseline_survey_tests = b.addTest(.{
+        .name = "phase4-perf-baseline-survey-tests",
+        .root_module = perf_baseline_survey_module,
+    });
+    const run_perf_baseline_survey_tests = b.addRunArtifact(perf_baseline_survey_tests);
 
     const bitmap_diff_tests = b.addTest(.{
         .name = "phase4-bitmap-diff-tests",
@@ -104,6 +115,12 @@ pub fn build(b: *std.Build) void {
         "Run the manifest-backed Phase 4 runtime atomic64 handoff survey",
     );
     runtime_atomic64_diff_survey_step.dependOn(&run_runtime_atomic64_diff_survey_tests.step);
+
+    const perf_baseline_survey_step = b.step(
+        "phase4-perf-baseline-survey",
+        "Run the dedicated Phase 4 perf-baseline posture survey without widening the shared correctness-first packet",
+    );
+    perf_baseline_survey_step.dependOn(&run_perf_baseline_survey_tests.step);
 
     const bitmap_diff_step = b.step("phase4-bitmap-diff", "Run the isolated Phase 4 bitmap diff replay");
     bitmap_diff_step.dependOn(&run_bitmap_diff_tests.step);
