@@ -16,6 +16,7 @@ ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
 CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
 CONFDATA_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
 FIXTURE_DIR = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge"
+
 REQUIRED_CONFDATA_CASES = [
     "sample",
     "escaped_strings",
@@ -28,6 +29,7 @@ REQUIRED_CONFDATA_CASES = [
     "uppercase_tristate",
     "non_config_lines",
 ]
+
 REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge parses bounded config states",
     "confdata bridge emits bounded json output",
@@ -43,6 +45,7 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge ignores empty CONFIG symbol names",
     "confdata bridge keeps trailing escaped backslashes in quoted strings",
 ]
+
 REQUIRED_CONF_CASE_MODES = [
     "olddefconfig",
     "syncconfig",
@@ -56,7 +59,16 @@ REQUIRED_CONF_CASE_MODES = [
     "savedefconfig",
     "listnewconfig",
 ]
-EXPECTED_SELF_TEST_CASE_COUNT = 15
+
+ALLCONFIG_OVERRIDE_MODES = {
+    "allnoconfig",
+    "allyesconfig",
+    "allmodconfig",
+    "alldefconfig",
+    "randconfig",
+}
+
+EXPECTED_SELF_TEST_CASE_COUNT = 17
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -66,9 +78,9 @@ def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
 def find_zig(explicit: str | None) -> str:
     if explicit:
         return explicit
-    env = shutil.which("zig")
-    if env:
-        return env
+    found = shutil.which("zig")
+    if found:
+        return found
     fallback = ROOT.parent / "toolchains" / "zig-master" / "current" / "zig.exe"
     if fallback.exists():
         return str(fallback)
@@ -128,18 +140,8 @@ def collect_confdata_manifest_issues(
 
     source_helper_anchors = ordered_confdata_helper_anchors(confdata_bridge_path)
     if source_helper_anchors != REQUIRED_CONFDATA_HELPER_ANCHORS:
-        issues.append(
-            (
-                "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL",
-                ",".join(source_helper_anchors),
-            )
-        )
-        issues.append(
-            (
-                "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED",
-                ",".join(REQUIRED_CONFDATA_HELPER_ANCHORS),
-            )
-        )
+        issues.append(("CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL", ",".join(source_helper_anchors)))
+        issues.append(("CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED", ",".join(REQUIRED_CONFDATA_HELPER_ANCHORS)))
 
     manifest = json.loads(confdata_manifest.read_text(encoding="utf-8"))
     expected_case_names = [str(case["name"]) for case in confdata_cases]
@@ -156,20 +158,10 @@ def collect_confdata_manifest_issues(
     for field_name, expected_value in exact_fields.items():
         actual_value = manifest.get(field_name)
         if actual_value != expected_value:
-            issues.append(
-                (
-                    "CONFDATA_MANIFEST_FIELD_MISMATCH",
-                    f"{field_name}:actual={actual_value!r}:expected={expected_value!r}",
-                )
-            )
+            issues.append(("CONFDATA_MANIFEST_FIELD_MISMATCH", f"{field_name}:actual={actual_value!r}:expected={expected_value!r}"))
 
     if manifest.get("case_count") != len(confdata_cases):
-        issues.append(
-            (
-                "CONFDATA_MANIFEST_CASE_COUNT_MISMATCH",
-                f"actual={manifest.get('case_count')!r}:expected={len(confdata_cases)}",
-            )
-        )
+        issues.append(("CONFDATA_MANIFEST_CASE_COUNT_MISMATCH", f"actual={manifest.get('case_count')!r}:expected={len(confdata_cases)}"))
 
     sequence_fields = {
         "cases": expected_case_names,
@@ -180,18 +172,11 @@ def collect_confdata_manifest_issues(
     for field_name, expected_values in sequence_fields.items():
         actual_values = manifest.get(field_name)
         if actual_values != expected_values:
-            issues.append(
-                (
-                    f"CONFDATA_MANIFEST_{field_name.upper()}_MISMATCH",
-                    f"actual={actual_values!r}:expected={expected_values!r}",
-                )
-            )
+            issues.append((f"CONFDATA_MANIFEST_{field_name.upper()}_MISMATCH", f"actual={actual_values!r}:expected={expected_values!r}"))
 
     for rel_path in expected_input_packet + expected_output_packet:
         if not (fixture_dir / rel_path).exists():
-            issues.append(
-                ("CONFDATA_MANIFEST_REFERENCES_MISSING_FIXTURE", rel_path)
-            )
+            issues.append(("CONFDATA_MANIFEST_REFERENCES_MISSING_FIXTURE", rel_path))
 
     return issues
 
@@ -206,7 +191,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     conf_cases = cases["conf_cases"]
     bridge_modes = ordered_conf_modes(conf_bridge)
     bridge_mode_set = set(bridge_modes)
-    manifest_modes = {case["mode"] for case in conf_cases}
+    manifest_modes = {str(case["mode"]) for case in conf_cases}
     for mode in REQUIRED_CONF_CASE_MODES:
         if mode not in manifest_modes:
             issues.append(("MISSING_REQUIRED_CONF_CASE_MODES", mode))
@@ -228,7 +213,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     seen_names: dict[str, str] = {}
     for group_name in ("conf_cases", "confdata_cases"):
         for case in cases[group_name]:
-            name = case["name"]
+            name = str(case["name"])
             previous_group = seen_names.get(name)
             if previous_group is not None:
                 issues.append(("DUPLICATE_KCONFIG_CASE_NAMES", f"{name}:{previous_group},{group_name}"))
@@ -249,6 +234,13 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
             for field_name in ("seed", "probability"):
                 if field_name in case:
                     issues.append(("INVALID_CONF_CASE_RANDCONFIG_FIELDS", f"{name}:{field_name}"))
+
+        if mode != "syncconfig" and "nosilentupdate" in case:
+            issues.append(("INVALID_CONF_CASE_SYNCCONFIG_FIELDS", f"{name}:nosilentupdate"))
+
+        if mode not in ALLCONFIG_OVERRIDE_MODES and "allconfig" in case:
+            issues.append(("INVALID_CONF_CASE_ALLCONFIG_FIELDS", f"{name}:allconfig"))
+
         rel_path = case["expected"]
         if not (fixture_dir / rel_path).exists():
             issues.append(("MISSING_CONF_CASE_EXPECTED_PATHS", f"{name}:expected:{rel_path}"))
@@ -296,7 +288,7 @@ def render_confdata_bridge_self_test_source() -> str:
 def build_self_test_root(root: Path) -> None:
     write_text(
         root / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
-        """const std = @import(\"std\");
+        """const std = @import("std");
 
 pub const Mode = enum {
     olddefconfig,
@@ -327,150 +319,29 @@ pub const Mode = enum {
         json.dumps(
             {
                 "conf_cases": [
-                    {
-                        "name": "olddefconfig",
-                        "mode": "olddefconfig",
-                        "kconfig": "Kconfig",
-                        "config": ".config",
-                        "arch": "x86_64",
-                        "expected": "olddefconfig_expected.json",
-                    },
-                    {
-                        "name": "syncconfig",
-                        "mode": "syncconfig",
-                        "kconfig": "Kconfig",
-                        "config": "out/.config",
-                        "arch": "riscv64",
-                        "expected": "syncconfig_expected.json",
-                    },
-                    {
-                        "name": "alldefconfig",
-                        "mode": "alldefconfig",
-                        "kconfig": "Kconfig",
-                        "config": "build/.config",
-                        "arch": "arm64",
-                        "expected": "alldefconfig_expected.json",
-                    },
-                    {
-                        "name": "allmodconfig",
-                        "mode": "allmodconfig",
-                        "kconfig": "Kconfig",
-                        "config": "mod/.config",
-                        "arch": "arm",
-                        "expected": "allmodconfig_expected.json",
-                    },
-                    {
-                        "name": "randconfig",
-                        "mode": "randconfig",
-                        "kconfig": "Kconfig",
-                        "config": "rand/.config",
-                        "arch": "x86_64",
-                        "seed": "0xC0FFEE",
-                        "probability": "15:25",
-                        "expected": "randconfig_expected.json",
-                    },
-                    {
-                        "name": "yes2modconfig",
-                        "mode": "yes2modconfig",
-                        "kconfig": "Kconfig",
-                        "config": "rewrite/.config",
-                        "arch": "x86",
-                        "expected": "yes2modconfig_expected.json",
-                    },
-                    {
-                        "name": "mod2yesconfig",
-                        "mode": "mod2yesconfig",
-                        "kconfig": "Kconfig",
-                        "config": "promote/.config",
-                        "arch": "x86",
-                        "expected": "mod2yesconfig_expected.json",
-                    },
-                    {
-                        "name": "mod2noconfig",
-                        "mode": "mod2noconfig",
-                        "kconfig": "Kconfig",
-                        "config": "demote/.config",
-                        "arch": "x86",
-                        "expected": "mod2noconfig_expected.json",
-                    },
-                    {
-                        "name": "defconfig",
-                        "mode": "defconfig",
-                        "kconfig": "Kconfig",
-                        "config": "out/.config",
-                        "arch": "arm64",
-                        "mode_arg": "arch/arm64/configs/defconfig",
-                        "expected": "defconfig_expected.json",
-                    },
-                    {
-                        "name": "savedefconfig",
-                        "mode": "savedefconfig",
-                        "kconfig": "Kconfig",
-                        "config": ".config",
-                        "arch": "x86_64",
-                        "mode_arg": "defconfig.out",
-                        "expected": "savedefconfig_expected.json",
-                    },
-                    {
-                        "name": "listnewconfig",
-                        "mode": "listnewconfig",
-                        "kconfig": "Kconfig",
-                        "config": "out/list.config",
-                        "arch": "x86_64",
-                        "expected": "listnewconfig_expected.json",
-                    },
+                    {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
+                    {"name": "syncconfig", "mode": "syncconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "riscv64", "nosilentupdate": "1", "expected": "syncconfig_expected.json"},
+                    {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "expected": "alldefconfig_expected.json"},
+                    {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "allconfig": "", "expected": "allmodconfig_expected.json"},
+                    {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
+                    {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
+                    {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
+                    {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"},
+                    {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
+                    {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "defconfig.out", "expected": "savedefconfig_expected.json"},
+                    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "expected": "listnewconfig_expected.json"},
                 ],
                 "confdata_cases": [
-                    {
-                        "name": "sample",
-                        "input": "sample.config",
-                        "expected": "sample_expected.json",
-                    },
-                    {
-                        "name": "escaped_strings",
-                        "input": "escaped_strings.config",
-                        "expected": "escaped_strings_expected.json",
-                    },
-                    {
-                        "name": "escaped_control_sequences",
-                        "input": "escaped_control_sequences.config",
-                        "expected": "escaped_control_sequences_expected.json",
-                    },
-                    {
-                        "name": "trailing_escaped_backslash",
-                        "input": "trailing_escaped_backslash.config",
-                        "expected": "trailing_escaped_backslash_expected.json",
-                    },
-                    {
-                        "name": "sample_crlf",
-                        "input": "sample_crlf.config",
-                        "expected": "sample_crlf_expected.json",
-                    },
-                    {
-                        "name": "explicit_n_tristate",
-                        "input": "explicit_n_tristate.config",
-                        "expected": "explicit_n_tristate_expected.json",
-                    },
-                    {
-                        "name": "final_trailing_carriage_return",
-                        "input": "final_trailing_carriage_return.config",
-                        "expected": "final_trailing_carriage_return_expected.json",
-                    },
-                    {
-                        "name": "final_unterminated_unset_comment",
-                        "input": "final_unterminated_unset_comment.config",
-                        "expected": "final_unterminated_unset_comment_expected.json",
-                    },
-                    {
-                        "name": "uppercase_tristate",
-                        "input": "uppercase_tristate.config",
-                        "expected": "uppercase_tristate_expected.json",
-                    },
-                    {
-                        "name": "non_config_lines",
-                        "input": "non_config_lines.config",
-                        "expected": "non_config_lines_expected.json",
-                    },
+                    {"name": "sample", "input": "sample.config", "expected": "sample_expected.json"},
+                    {"name": "escaped_strings", "input": "escaped_strings.config", "expected": "escaped_strings_expected.json"},
+                    {"name": "escaped_control_sequences", "input": "escaped_control_sequences.config", "expected": "escaped_control_sequences_expected.json"},
+                    {"name": "trailing_escaped_backslash", "input": "trailing_escaped_backslash.config", "expected": "trailing_escaped_backslash_expected.json"},
+                    {"name": "sample_crlf", "input": "sample_crlf.config", "expected": "sample_crlf_expected.json"},
+                    {"name": "explicit_n_tristate", "input": "explicit_n_tristate.config", "expected": "explicit_n_tristate_expected.json"},
+                    {"name": "final_trailing_carriage_return", "input": "final_trailing_carriage_return.config", "expected": "final_trailing_carriage_return_expected.json"},
+                    {"name": "final_unterminated_unset_comment", "input": "final_unterminated_unset_comment.config", "expected": "final_unterminated_unset_comment_expected.json"},
+                    {"name": "uppercase_tristate", "input": "uppercase_tristate.config", "expected": "uppercase_tristate_expected.json"},
+                    {"name": "non_config_lines", "input": "non_config_lines.config", "expected": "non_config_lines_expected.json"},
                 ],
             },
             indent=2,
@@ -587,14 +458,8 @@ def run_self_test() -> int:
         payload["conf_cases"][1], payload["conf_cases"][3] = payload["conf_cases"][3], payload["conf_cases"][1]
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
-        assert (
-            "CONF_CASE_MODE_ORDER_ACTUAL",
-            "olddefconfig,allmodconfig,alldefconfig,syncconfig,randconfig,yes2modconfig,mod2yesconfig,mod2noconfig,defconfig,savedefconfig,listnewconfig",
-        ) in issues
-        assert (
-            "CONF_CASE_MODE_ORDER_EXPECTED",
-            "olddefconfig,syncconfig,alldefconfig,allmodconfig,randconfig,yes2modconfig,mod2yesconfig,mod2noconfig,defconfig,savedefconfig,listnewconfig",
-        ) in issues
+        assert ("CONF_CASE_MODE_ORDER_ACTUAL", "olddefconfig,allmodconfig,alldefconfig,syncconfig,randconfig,yes2modconfig,mod2yesconfig,mod2noconfig,defconfig,savedefconfig,listnewconfig") in issues
+        assert ("CONF_CASE_MODE_ORDER_EXPECTED", "olddefconfig,syncconfig,alldefconfig,allmodconfig,randconfig,yes2modconfig,mod2yesconfig,mod2noconfig,defconfig,savedefconfig,listnewconfig") in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -619,6 +484,22 @@ def run_self_test() -> int:
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert ("INVALID_CONF_CASE_RANDCONFIG_FIELDS", "olddefconfig:seed") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][0]["allconfig"] = "mini.config"
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert ("INVALID_CONF_CASE_ALLCONFIG_FIELDS", "olddefconfig:allconfig") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][0]["nosilentupdate"] = "1"
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert ("INVALID_CONF_CASE_SYNCCONFIG_FIELDS", "olddefconfig:nosilentupdate") in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -648,41 +529,22 @@ def run_self_test() -> int:
         payload["confdata_cases"].pop()
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
-        assert (
-            "CONFDATA_CASE_ORDER_ACTUAL",
-            ",".join(REQUIRED_CONFDATA_CASES[:-1]),
-        ) in issues
-        assert (
-            "CONFDATA_CASE_ORDER_EXPECTED",
-            ",".join(REQUIRED_CONFDATA_CASES),
-        ) in issues
+        assert ("CONFDATA_CASE_ORDER_ACTUAL", ",".join(REQUIRED_CONFDATA_CASES[:-1])) in issues
+        assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues
         checks_run += 1
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["confdata_cases"][1], payload["confdata_cases"][2] = (
-            payload["confdata_cases"][2],
-            payload["confdata_cases"][1],
-        )
+        payload["confdata_cases"][1], payload["confdata_cases"][2] = payload["confdata_cases"][2], payload["confdata_cases"][1]
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
-        assert (
-            "CONFDATA_CASE_ORDER_ACTUAL",
-            "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines",
-        ) in issues
-        assert (
-            "CONFDATA_CASE_ORDER_EXPECTED",
-            ",".join(REQUIRED_CONFDATA_CASES),
-        ) in issues
+        assert ("CONFDATA_CASE_ORDER_ACTUAL", "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines") in issues
+        assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues
         checks_run += 1
 
         build_self_test_root(root)
         source = confdata_bridge_path.read_text(encoding="utf-8")
-        source = source.replace(
-            'test "confdata bridge emits bounded json output" {\n',
-            'test "confdata bridge emits reordered json output" {\n',
-            1,
-        )
+        source = source.replace('test "confdata bridge emits bounded json output" {\n', 'test "confdata bridge emits reordered json output" {\n', 1)
         write_text(confdata_bridge_path, source)
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
@@ -717,11 +579,7 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check bounded kconfig bridge fixture parity.")
     parser.add_argument("--zig", help="Explicit zig executable path")
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run built-in manifest coverage without compiling the bridge tools.",
-    )
+    parser.add_argument("--self-test", action="store_true", help="Run built-in manifest coverage without compiling the bridge tools.")
     args = parser.parse_args()
 
     if args.self_test:
@@ -743,19 +601,17 @@ def main() -> int:
 
         for case in cases["conf_cases"]:
             actual = tmp_dir / f"{case['name']}.actual.json"
-            cmd = [
-                str(conf_exe),
-                case["mode"],
-                case["kconfig"],
-                case["config"],
-                case["arch"],
-            ]
+            cmd = [str(conf_exe), case["mode"], case["kconfig"], case["config"], case["arch"]]
             if "mode_arg" in case:
                 cmd.append(case["mode_arg"])
+            if "allconfig" in case:
+                cmd.append(f"allconfig={case['allconfig']}")
             if "seed" in case:
                 cmd.append(f"seed={case['seed']}")
             if "probability" in case:
                 cmd.append(f"probability={case['probability']}")
+            if "nosilentupdate" in case:
+                cmd.append(f"nosilentupdate={case['nosilentupdate']}")
             result = run(cmd, cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding="utf-8", newline="\n")
             run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(FIXTURE_DIR / case["expected"]), str(actual)], cwd=str(ROOT))
