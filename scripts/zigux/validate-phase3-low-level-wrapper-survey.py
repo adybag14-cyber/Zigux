@@ -34,6 +34,7 @@ ABI_MANIFEST_REQUIRED_FILES = (
     "include/linux/zigux.h",
     "zigux/bindings/abi.zig",
     "zigux/bindings/dev_t.zig",
+    "zigux/bindings/notifier_abi.zig",
     "zigux/helpers/layout_assert.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
@@ -52,6 +53,8 @@ ABI_MANIFEST_REQUIRED_FILES = (
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/artifact_diff.py",
+    "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     ABI_SLICE_DOC_REL,
@@ -413,6 +416,7 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
+        (root / BARRIER_REL).writeText = None
         (root / BARRIER_REL).write_text(
             "\n".join(
                 (
