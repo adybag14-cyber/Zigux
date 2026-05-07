@@ -22,6 +22,7 @@ FILES = [
     "Documentation/zigux/phase10-virtio-ring-slice.md",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
 ]
 
 EXPECTED_BUILD_MARKERS = [
@@ -79,6 +80,8 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "phase10-virtio-ring-survey-note",
     "phase10-queue-reset-readiness-helper",
     "phase10-mmio-probe-preflight-helper",
+    "shared driver-lane sequencing note",
+    "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
     "`drivers/virtio/virtio_ring_verify.zig`",
     "zig test zigux/tests/phase10_virtio_ring.zig",
     "make -C zigux phase10-test",
@@ -87,9 +90,19 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
 EXPECTED_COMPANION_MARKERS = [
     "scripts/zigux/check-phase10-ring-packet.py",
     "drivers/virtio/virtio_ring_verify.zig",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "make -C zigux phase10-test",
+]
+
+EXPECTED_SEQUENCING_MARKERS = [
+    "`P10-L07` ring lane owns queue-local virtqueue-wrapper evidence:",
+    "Documentation/zigux/phase10-virtio-ring-survey.md",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "scripts/zigux/check-phase10-ring-packet.py",
+    "drivers/virtio/virtio_ring_verify.zig",
+    "broken-queue recovery or packed-ring event-index review",
 ]
 
 EXPECTED_GAPS = {
@@ -174,15 +187,25 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
 - `phase10-virtio-ring-survey-note`
 - `phase10-queue-reset-readiness-helper`
 - `phase10-mmio-probe-preflight-helper`
+- shared driver-lane sequencing note
+- `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
 - `drivers/virtio/virtio_ring_verify.zig`
 - `zig test zigux/tests/phase10_virtio_ring.zig`
 - `make -C zigux phase10-test`
 """,
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": """- `scripts/zigux/check-phase10-ring-packet.py`
 - `drivers/virtio/virtio_ring_verify.zig`
+- `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_ring_survey.zig`
 - `make -C zigux phase10-test`
+""",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": """- `P10-L07` ring lane owns queue-local virtqueue-wrapper evidence:
+- `Documentation/zigux/phase10-virtio-ring-survey.md`
+- `zigux/tests/phase10_virtio_ring_manifest.json`
+- `scripts/zigux/check-phase10-ring-packet.py`
+- `drivers/virtio/virtio_ring_verify.zig`
+- broken-queue recovery or packed-ring event-index review
 """,
     "zigux/tests/phase10_virtio_ring_manifest.json": json.dumps(
         {
@@ -287,6 +310,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         if marker not in companion_text:
             missing_markers.append(f"companion:{marker}")
 
+    sequencing_text = read_text(root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md")
+    for marker in EXPECTED_SEQUENCING_MARKERS:
+        if marker not in sequencing_text:
+            missing_markers.append(f"sequencing:{marker}")
+
     manifest = json.loads(read_text(root, "zigux/tests/phase10_virtio_ring_manifest.json"))
     if manifest.get("lane_key") != "P10-L07":
         missing_markers.append("manifest:lane_key=P10-L07")
@@ -382,6 +410,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_lane_key_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest_path.writeText = None
         manifest_path.write_text(
             original_manifest.replace('\"freeze_boundary_status\": \"aligned\"', '\"freeze_boundary_status\": \"drifted\"', 1),
             encoding="utf-8",
@@ -488,6 +517,19 @@ def run_self_test() -> int:
 
         survey_path.write_text(
             original_survey.replace(
+                "shared driver-lane sequencing note",
+                "shared lane drift note",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:shared driver-lane sequencing note" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_survey_sequencing_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
                 "zig test zigux/tests/phase10_virtio_ring.zig",
                 "zig test zigux/tests/phase10_virtio_ring_drift.zig",
                 1,
@@ -511,15 +553,39 @@ def run_self_test() -> int:
         companion_path.write_text(original_companion, encoding="utf-8")
 
         companion_path.write_text(
+            original_companion.replace(
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+                "Documentation/zigux/phase10-virtio-driver-lane-drift.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "companion:Documentation/zigux/phase10-virtio-driver-lane-sequencing.md" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_companion_sequencing_marker_missing")
+        companion_path.write_text(original_companion, encoding="utf-8")
+
+        companion_path.write_text(
             original_companion.replace("drivers/virtio/virtio_ring_verify.zig", "drivers/virtio/virtio_ring_verify_drift.zig", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
         if "companion:drivers/virtio/virtio_ring_verify.zig" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_companion_verify_marker_missing")
+        companion_path.write_text(original_companion, encoding="utf-8")
+
+        sequencing_path = tmp_root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
+        original_sequencing = sequencing_path.read_text(encoding="utf-8")
+        sequencing_path.write_text(
+            original_sequencing.replace("scripts/zigux/check-phase10-ring-packet.py", "scripts/zigux/check-phase10-ring-drift.py", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "sequencing:scripts/zigux/check-phase10-ring-packet.py" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_sequencing_marker_missing")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
