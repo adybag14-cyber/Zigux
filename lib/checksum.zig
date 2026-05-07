@@ -55,6 +55,10 @@ pub fn fold(sum: u32) u16 {
     return ~from32to16(sum);
 }
 
+pub fn unfold(sum: u16) u32 {
+    return sum;
+}
+
 pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
     var result = normalize(sum);
     result = add(result, saddr >> 16);
@@ -114,10 +118,6 @@ fn normalizeWide(sum: u64) u32 {
         value = (value & 0xffff) + (value >> 16);
     }
     return @intCast(value);
-}
-
-fn unfold(sum: u16) u32 {
-    return sum;
 }
 
 pub fn add16(sum: u16, addend: u16) u16 {
@@ -252,6 +252,21 @@ test "replacement helpers match direct recomputation for payload and header edit
     ipv4_header[14] = 0x00;
     ipv4_header[15] = 0x02;
     try std.testing.expectEqual(compute(&ipv4_header), replace4(checksum_before_addr_change, 0xc0a8_0001, 0xc0a8_0002));
+}
+
+test "unfold exposes stored checksum words for replacement helpers" {
+    const stored_word_cases = [_]u16{ 0x0000, 0x0001, 0x9c5d, 0xffff };
+    const replacement_stable_cases = [_]u16{ 0x0001, 0x9c5d, 0xfffe };
+
+    for (stored_word_cases) |case| {
+        try std.testing.expectEqual(@as(u32, case), unfold(case));
+    }
+
+    for (replacement_stable_cases) |case| {
+        try std.testing.expectEqual(case, replaceByDiff(case, 0));
+        try std.testing.expectEqual(case, replace2(case, 0x1234, 0x1234));
+        try std.testing.expectEqual(case, replace4(case, 0xc0a8_0001, 0xc0a8_0001));
+    }
 }
 
 test "pseudo-header helpers match direct pseudo-header plus payload recomputation" {
