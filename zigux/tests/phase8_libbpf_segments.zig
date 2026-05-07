@@ -80,10 +80,10 @@ const expected_companion_c_files = [_]ExpectedCompanionFile{
 const expected_segmentation_notes = [_]ExpectedSegmentationNote{
     .{
         .destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-        .landed_scope_count = 8,
+        .landed_scope_count = 11,
         .queued_scope_count = 2,
         .first_landed_scope = "buildProcFdinfoPath() bounded /proc/<pid>/fdinfo/<fd> pathname shaping",
-        .last_landed_scope = "isMapReuseCompatible() helper-only reused-map compatibility comparison",
+        .last_landed_scope = "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects",
         .first_queued_scope = "direct procfs reads and descriptor ownership flow",
         .last_queued_scope = "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
         .why_now_fragment = "future surveys can keep promoting bounded bridge behavior",
@@ -126,7 +126,7 @@ const expected_segments = [_]ExpectedSegment{
     .{
         .id = "P8-L15-S05",
         .slug = "fdinfo-map-info-helpers",
-        .status = "ready_next",
+        .status = "starter_landed",
         .kind = "helper_first",
         .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
         .anchor_range_count = 1,
@@ -383,7 +383,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(phase8_note, "The manifest currently records twelve bounded segments");
     try expectContains(phase8_note, "six landed bounded slices");
     try expectContains(phase8_note, "four helper-first starters, one shared file-path bridge helper packet, and one perf-buffer poll adjunct");
-    try expectContains(phase8_note, "`fdinfo-map-info-helpers` still stays queued as the next helper-first catalog entry");
+    try expectContains(phase8_note, "`fdinfo-map-info-helpers` has now joined the landed bridge packet");
     try expectContains(phase8_note, "`map-reuse-compatibility` has now joined the landed bridge packet");
     try expectContains(phase8_note, "helper-only reused-map name resolution");
     try expectContains(phase8_note, "bounded fdinfo helper packet");
