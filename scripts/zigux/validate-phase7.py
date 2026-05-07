@@ -380,6 +380,8 @@ EXACT_COUNT_MARKERS = {
         ("phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable", 1),
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
+        ("zigux/tests/phase7_rbtree_manifest.json", 1),
+        ("python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test", 1),
         ("PHASE7_LANE_KEY=P7-Y04", 1),
         ("phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable", 1),
         ("phase 7 rbtree detached nodes stay non-empty until callers clear them", 1),
