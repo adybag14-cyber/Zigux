@@ -87,6 +87,7 @@ These surfaces remain adjacent release evidence:
   * `Documentation/zigux/phase13-release-notes-survey.md`
   * `Documentation/zigux/phase13-roadmap-traceability.md`
   * `Documentation/zigux/phase13-notifier-list-survey.md`
+  * `scripts/zigux/check-phase13-notifier-packet.py`
   * `zigux/tests/phase13_notifier_list_manifest.json`
   * `zigux/tests/phase13_notifier_list_reviewability.zig`
   * `include/zigux/notifier_abi.h`
