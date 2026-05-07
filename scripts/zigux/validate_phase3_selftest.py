@@ -12,7 +12,7 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 12
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 13
 
 
 @dataclass(frozen=True)
@@ -196,6 +196,16 @@ def run_self_test() -> int:
         )
         assert run_targets(wrong_marker_root) == [
             "missing_pass_marker:scripts/zigux/survey-phase3-abi-constant-parity.py:PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass"
+        ]
+
+        wrong_abi_bindings_marker_root = tmp_root / "wrong-abi-bindings-marker"
+        _populate_root(wrong_abi_bindings_marker_root)
+        write_script(
+            wrong_abi_bindings_marker_root / "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+            "WRONG_MARKER=pass",
+        )
+        assert run_targets(wrong_abi_bindings_marker_root) == [
+            "missing_pass_marker:scripts/zigux/validate-phase3-abi-bindings-syntax.py:PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass"
         ]
 
         duplicate_marker_root = tmp_root / "duplicate-marker"
