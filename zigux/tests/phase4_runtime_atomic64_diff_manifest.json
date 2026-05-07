@@ -15,15 +15,15 @@
   "phase4_build_blob_sha": "3164f1e56835ae0f0511d890f150dc374b45d1f4",
   "phase4_validator_atomic64_diff_present": true,
   "phase4_validator_runtime_atomic64_diff_present": true,
-  "phase4_validator_blob_sha": "60dd5759e0c149f70802e4474b2e22513ceabcab",
+  "phase4_validator_blob_sha": "f552b17b663ca92db07db954bccf26585c5ca93b",
   "phase9_build_present": true,
   "phase9_build_blob_sha": "ca1c72f01108e57b4fc118aeed6b5a33a5ce54ea",
   "phase4_validation_matrix_atomic64_diff_note_present": true,
   "phase4_validation_matrix_runtime_atomic64_note_present": true,
-  "phase4_validation_matrix_blob_sha": "f14c9826dfb5b9271b0dd085edec23a36209a4ff",
-  "phase4_review_checklist_blob_sha": "e1def97f99abd39d47b9b2fd35ea8c833b4d13c3",
+  "phase4_validation_matrix_blob_sha": "949f23c72846a70a027e80f594cc4061c7d9e5e4",
+  "phase4_review_checklist_blob_sha": "93d0c533776d650b66d484311cbfd93d8bd0954a",
   "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
-  "roadmap_gap_summary": "the roadmap target zigux/tests/atomic64_diff.zig is present as the Phase 4 wrapper, zigux/tests/phase4_build.zig still runs through it, zigux/tests/runtime_atomic64_diff.zig remains the single bounded replay body that the Phase 9 runtime packet reuses directly, and current repo readback now shows the exact-readback packet, validation matrix, and reviewer checklist pin already aligned on master, so the next bounded same-lane step is to keep that Phase 4 reviewer packet truthful while the broader sample and perf-baseline follow-ups stay intentionally open",
-  "reversible_delivery_evidence": "keep zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, zigux/tests/phase4_build.zig, scripts/zigux/validate-phase4.py, Documentation/zigux/review-checklist.md, and Documentation/zigux/phase4-validation-matrix.md aligned so the roadmap-named wrapper, the shared runtime replay body, the shared Phase 4 entrypoint, the validator-first bootstrap replay, the shared reviewer checklist, and the rollback-owner matrix stay measurable and reversible on the current head",
-  "ready_next": "keep zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, zigux/tests/phase4_build.zig, zigux/tests/phase4_runtime_atomic64_diff_survey.zig, scripts/zigux/validate-phase4.py, Documentation/zigux/review-checklist.md, and Documentation/zigux/phase4-validation-matrix.md aligned so the current wrapper-first rollback surface, shared runtime replay body, exact-readback packet, and reviewer checklist remain reviewable before any wider Phase 9 handoff or broader Phase 4 perf-baseline step changes"
+  "roadmap_gap_summary": "the roadmap target zigux/tests/atomic64_diff.zig is present as the Phase 4 wrapper, zigux/tests/phase4_build.zig still runs through it, zigux/tests/runtime_atomic64_diff.zig remains the single bounded replay body that the Phase 9 runtime packet reuses directly, and the manifest-backed handoff pins are now current again even though the separate exact-readback note still needs its own sibling pin refresh, so the next bounded same-lane step stays inside that remaining review-surface drift while the broader sample and perf-baseline follow-ups remain intentionally open",
+  "reversible_delivery_evidence": "keep zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, zigux/tests/phase4_build.zig, scripts/zigux/validate-phase4.py, Documentation/zigux/review-checklist.md, and Documentation/zigux/phase4-validation-matrix.md aligned so the roadmap-named wrapper, the shared runtime replay body, the shared Phase 4 entrypoint, the validator-first bootstrap replay, the shared reviewer checklist, and the rollback-owner matrix stay measurable and reversible on the current head while the separate exact-readback note catches up in its own bounded step",
+  "ready_next": "refresh Documentation/zigux/phase4-gate-evidence.md so the separate exact-readback packet catches up to the current phase4_build.zig, validate-phase4.py, phase4-validation-matrix.md, review-checklist, and shared review-surface pins without widening the lane beyond the current wrapper-first rollback surface, shared runtime replay body, and intentionally open sample and perf-baseline follow-ups"
 }
