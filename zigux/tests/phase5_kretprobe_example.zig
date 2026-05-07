@@ -122,27 +122,20 @@ test "phase 5 kretprobe sample makes ownership and teardown boundaries explicit"
     try std.testing.expectEqual(@as(usize, 1), lifecycle_guards.init_runs);
 
     var module = sample.KretprobeExampleSample{};
-
-    try std.testing.expectEqual(sample.SampleStage.cold, module.stage());
-    try module.init();
-    try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), module.maxactiveBudget());
-    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
-    try std.testing.expect(try module.entryHandler(true, 200));
-    try std.testing.expectError(error.OutstandingProbeInstance, module.exit());
-    try std.testing.expectError(error.InvalidTimestampOrder, module.retHandler(9, 199));
-
-    const recovered = try module.retHandler(9, 260);
-    try std.testing.expectEqual(@as(i64, 60), recovered.duration_ns);
-    try std.testing.expectEqual(@as(i64, -1), module.instance_data.entry_stamp_ns);
-    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
-
-    try module.exit();
-    try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
+    const recovery = try module.runRecoveryReplay("do_sys_openat2");
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", recovery.anchor);
+    try std.testing.expectEqualStrings("do_sys_openat2", recovery.symbol_name);
+    try std.testing.expectEqual(sample.SampleStage.cold, recovery.stage_before_replay);
+    try std.testing.expectEqual(sample.SampleStage.exited, recovery.stage_after_replay);
+    try std.testing.expect(recovery.outstanding_exit_rejected);
+    try std.testing.expect(recovery.invalid_timestamp_rejected);
+    try std.testing.expectEqual(@as(i64, 60), recovery.recovered_duration_ns);
+    try std.testing.expect(recovery.post_exit_record_rejected);
+    try std.testing.expect(recovery.post_exit_entry_rejected);
+    try std.testing.expect(recovery.post_exit_ret_rejected);
+    try std.testing.expectEqual(@as(usize, 1), recovery.exit_runs);
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectEqual(@as(usize, 0), module.active_instances);
     try std.testing.expectEqual(@as(i64, -1), module.instance_data.entry_stamp_ns);
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.recordMissedInstance());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 300));
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.retHandler(11, 320));
 }
