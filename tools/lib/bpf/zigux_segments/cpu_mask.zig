@@ -22,33 +22,61 @@ pub const ChunkReader = struct {
     readFn: *const fn (context: ?*anyopaque, buffer: []u8) anyerror!?usize,
 };
 
+const ParsedUnsigned = struct {
+    value: usize,
+    consumed: usize,
+};
+
+const ParsedRange = struct {
+    start: usize,
+    end: usize,
+    consumed: usize,
+};
+
 fn isDelimiter(byte: u8) bool {
     return byte == ',' or byte == '\n';
 }
 
-fn parseRangeToken(token: []const u8) ParseCpuMaskError!struct { start: usize, end: usize } {
-    if (token.len == 0) {
+fn parseUnsignedPrefix(input: []const u8) ?ParsedUnsigned {
+    var cursor: usize = 0;
+    while (cursor < input.len and std.ascii.isDigit(input[cursor])) : (cursor += 1) {}
+    if (cursor == 0) {
+        return null;
+    }
+
+    const value = std.fmt.parseUnsigned(usize, input[0..cursor], 10) catch return null;
+    return .{ .value = value, .consumed = cursor };
+}
+
+fn parseRangePrefix(input: []const u8) ParseCpuMaskError!ParsedRange {
+    var cursor: usize = 0;
+    while (cursor < input.len and std.ascii.isWhitespace(input[cursor])) : (cursor += 1) {}
+    if (cursor >= input.len) {
         return error.InvalidCpuRange;
     }
 
-    if (std.mem.indexOfScalar(u8, token, '-')) |dash_index| {
-        const start_text = token[0..dash_index];
-        const end_text = token[dash_index + 1 ..];
-        if (start_text.len == 0 or end_text.len == 0) {
-            return error.InvalidCpuRange;
-        }
+    const parsed_start = parseUnsignedPrefix(input[cursor..]) orelse return error.InvalidCpuRange;
+    const start = parsed_start.value;
+    cursor += parsed_start.consumed;
 
-        const start = std.fmt.parseUnsigned(usize, start_text, 10) catch return error.InvalidCpuRange;
-        const end = std.fmt.parseUnsigned(usize, end_text, 10) catch return error.InvalidCpuRange;
-        if (start > end) {
-            return error.InvalidCpuRange;
-        }
-
-        return .{ .start = start, .end = end };
+    var end = start;
+    if (cursor < input.len and input[cursor] == '-') {
+        cursor += 1;
+        while (cursor < input.len and std.ascii.isWhitespace(input[cursor])) : (cursor += 1) {}
+        const parsed_end = parseUnsignedPrefix(input[cursor..]) orelse return error.InvalidCpuRange;
+        end = parsed_end.value;
+        cursor += parsed_end.consumed;
     }
 
-    const cpu = std.fmt.parseUnsigned(usize, token, 10) catch return error.InvalidCpuRange;
-    return .{ .start = cpu, .end = cpu };
+    if (start > end) {
+        return error.InvalidCpuRange;
+    }
+
+    return .{
+        .start = start,
+        .end = end,
+        .consumed = cursor,
+    };
 }
 
 pub fn parseCpuMaskString(allocator: std.mem.Allocator, input: []const u8) !CpuMask {
@@ -63,10 +91,8 @@ pub fn parseCpuMaskString(allocator: std.mem.Allocator, input: []const u8) !CpuM
             break;
         }
 
-        const token_start = cursor;
-        while (cursor < input.len and !isDelimiter(input[cursor])) : (cursor += 1) {}
-        const token = input[token_start..cursor];
-        const range = try parseRangeToken(token);
+        const range = try parseRangePrefix(input[cursor..]);
+        cursor += range.consumed;
         saw_range = true;
 
         const previous_len = mask.items.len;
@@ -155,12 +181,28 @@ test "parseCpuMaskString tolerates repeated delimiters and newline-terminated ma
     try std.testing.expect(parsed.values[6]);
 }
 
+test "parseCpuMaskString keeps libbpf whitespace parity for direct input" {
+    const parsed = try parseCpuMaskString(std.testing.allocator, "\r0-1,\t4\n6-7");
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 8), parsed.values.len);
+    try std.testing.expectEqual(@as(usize, 5), parsed.countSet());
+    try std.testing.expect(parsed.values[0]);
+    try std.testing.expect(parsed.values[1]);
+    try std.testing.expect(!parsed.values[2]);
+    try std.testing.expect(!parsed.values[3]);
+    try std.testing.expect(parsed.values[4]);
+    try std.testing.expect(!parsed.values[5]);
+    try std.testing.expect(parsed.values[6]);
+    try std.testing.expect(parsed.values[7]);
+}
+
 test "parseCpuMaskString rejects empty and malformed ranges" {
     try std.testing.expectError(error.EmptyCpuRange, parseCpuMaskString(std.testing.allocator, ",\n"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "3-1"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "x"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "1-"));
-    try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "\r0-1"));
+    try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, ",\r,"));
 }
 
 test "parseCpuMaskFromReader accepts chunked sysfs-style input" {
@@ -202,7 +244,7 @@ test "parseCpuMaskFromReader accepts chunked sysfs-style input" {
     try std.testing.expect(parsed.values[6]);
 }
 
-test "parseCpuMaskFromReader keeps carriage-return drift rejected" {
+test "parseCpuMaskFromReader keeps libbpf whitespace parity for chunked input" {
     const ReaderState = struct {
         chunks: []const []const u8,
         index: usize = 0,
@@ -221,14 +263,24 @@ test "parseCpuMaskFromReader keeps carriage-return drift rejected" {
     };
 
     var state = ReaderState{
-        .chunks = &.{ "0-2,\r", "4\n" },
+        .chunks = &.{ "0-2,\r", "4\n", "\t6\n" },
     };
     var scratch: [8]u8 = undefined;
-
-    try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
+    const parsed = try parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
         .context = &state,
         .readFn = ReaderState.read,
-    }));
+    });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 7), parsed.values.len);
+    try std.testing.expectEqual(@as(usize, 5), parsed.countSet());
+    try std.testing.expect(parsed.values[0]);
+    try std.testing.expect(parsed.values[1]);
+    try std.testing.expect(parsed.values[2]);
+    try std.testing.expect(!parsed.values[3]);
+    try std.testing.expect(parsed.values[4]);
+    try std.testing.expect(!parsed.values[5]);
+    try std.testing.expect(parsed.values[6]);
 }
 
 test "parseCpuMaskFromReader rejects invalid reader contracts" {
