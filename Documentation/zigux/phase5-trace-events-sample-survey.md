@@ -6,7 +6,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 - `PHASE5_STATUS=parked`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
-- `PHASE5_LANE_KEY=P5-L24`
+- `PHASE5_LANE_KEY=P5-L16`
 - `PHASE5_SURVEYED_COMMIT=beb1065024e41b266c1492d7be5a446c04e42368`
 - scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, and exact bounded checks for the first `samples/zigux/` trace-events replay
 - product boundary:
