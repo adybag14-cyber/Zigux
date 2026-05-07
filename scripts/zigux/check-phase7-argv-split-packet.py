@@ -246,7 +246,6 @@ def run_self_test() -> None:
 
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
         original_slice = slice_path.read_text(encoding="utf-8")
-        slice_path.writeText = None
         slice_path.write_text(
             original_slice.replace("python3 scripts/zigux/check-phase7-argv-split-packet.py", "", 1),
             encoding="utf-8",
