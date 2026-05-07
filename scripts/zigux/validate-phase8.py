@@ -111,6 +111,8 @@ REQUIRED_MARKERS = {
         "\"/proc/%d/fdinfo/%d\" assembly plus bounded fdinfo text parsing",
         "helper-only reused-map compatibility packet",
         "planning-only reopen-attempt disposition",
+        "planning-only token-preparation gate",
+        "planTokenPreparation()",
         "zigux/tests/phase8_file_path_handle_bridge.zig",
         "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
         "no direct procfs reads",
@@ -333,6 +335,7 @@ REQUIRED_MARKERS = {
         "phase 8 file-path handle bridge helper keeps fdinfo map info parsing compact",
         "phase 8 file-path handle bridge helper keeps fdinfo observations reusable for planning-only compatibility",
         "phase 8 file-path handle bridge helper keeps planning-only reopen attempts explicit",
+        "phase 8 file-path handle bridge helper keeps planning-only token preparation explicit",
         "mapReuseObservationFromFdinfo",
     ],
     "zigux/tests/phase8_file_path_handle_bridge_only_build.zig": [
@@ -419,6 +422,7 @@ REQUIRED_MARKERS = {
         "pub fn mapReuseObservationFromFdinfo",
         "pub fn summarizeMapReuseCompatibility",
         "pub fn resolveReusePinnedMapAttempt",
+        "pub fn planTokenPreparation",
         "map_flags",
         "/proc/{d}/fdinfo/{d}",
     ],
@@ -664,6 +668,20 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-file-path-handle-bridge-slice.md: planning-only reopen-attempt disposition",
         ),
         (
+            "file_path_bridge_slice_token_preparation_gate",
+            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+            "planning-only token-preparation gate",
+            "planning-only token gate",
+            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md: planning-only token-preparation gate",
+        ),
+        (
+            "file_path_bridge_slice_token_preparation_export",
+            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+            "planTokenPreparation()",
+            "planTokenPrep()",
+            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md: planTokenPreparation()",
+        ),
+        (
             "libbpf_survey_reuse_name_resolution",
             "Documentation/zigux/phase8-libbpf-segment-survey.md",
             "helper-only reused-map name resolution",
@@ -713,6 +731,13 @@ def run_self_test() -> None:
             "zigux/tests/phase8_file_path_handle_bridge.zig: mapReuseObservationFromFdinfo",
         ),
         (
+            "phase8_bridge_test_token_preparation",
+            "zigux/tests/phase8_file_path_handle_bridge.zig",
+            "phase 8 file-path handle bridge helper keeps planning-only token preparation explicit",
+            "phase 8 file-path handle bridge helper keeps token preparation compact",
+            "zigux/tests/phase8_file_path_handle_bridge.zig: phase 8 file-path handle bridge helper keeps planning-only token preparation explicit",
+        ),
+        (
             "phase8_perf_buffer_poll_test_counted_ready_guard",
             "zigux/tests/phase8_perf_buffer_poll.zig",
             "ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch",
@@ -753,6 +778,13 @@ def run_self_test() -> None:
             "pub fn resolveReusePinnedMapAttempt",
             "pub fn resolvePinnedMapAttempt",
             "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig: pub fn resolveReusePinnedMapAttempt",
+        ),
+        (
+            "bridge_helper_token_preparation_export",
+            "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+            "pub fn planTokenPreparation",
+            "pub fn prepareTokenPlan",
+            "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig: pub fn planTokenPreparation",
         ),
         (
             "survey_exact_once_duplicate",
