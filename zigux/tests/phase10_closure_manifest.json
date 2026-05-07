@@ -118,10 +118,10 @@
       "mmio": "P10-L18"
     },
     "surveyed_commits": {
-      "core": "d30cbe483a2f019ae797b309a29556bd58fe00d0",
-      "ring": "fe8a43ea2e186da0da152198b571dff57ea3c38c",
-      "input": "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
-      "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb"
+      "core": "7a4454d0474106972cad7e164b79293bd54a40c6",
+      "ring": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
+      "input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
+      "mmio": "84f90e23ad1c28ae345905d5293a8c5395f37d43"
     }
   },
   "ready_transport_followups": {
