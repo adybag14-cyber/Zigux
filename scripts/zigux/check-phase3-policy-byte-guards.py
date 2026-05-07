@@ -13,6 +13,7 @@ ALLOCATOR_POLICY_REL = "zigux/helpers/allocator_policy.zig"
 UNSAFE_NARROW_REL = "zigux/unsafe/narrow.zig"
 
 REQUIRED_SURVEY_SNIPPETS = (
+    "`PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`",
     "`zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
     "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, and `permitsGlobalFallbackPolicyBytes` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
     "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.",
@@ -98,6 +99,19 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
 
         build_valid_workspace(root)
+        broken_dump_gate = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "`PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`\n",
+            "",
+            1,
+        )
+        write(root / SURVEY_REL, broken_dump_gate)
+        issues = validate(root)
+        assert (
+            "missing_survey_snippet:`PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`"
+            in issues
+        )
+
+        build_valid_workspace(root)
         broken_panic = (root / PANIC_POLICY_REL).read_text(encoding="utf-8").replace(
             "try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));\n",
             "",
@@ -133,7 +147,7 @@ def run_self_test() -> int:
         assert "missing_unsafe_snippet:try std.testing.expect(!recognizesInteropPolicyBytes(1, 1));" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=4")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
