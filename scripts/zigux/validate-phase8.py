@@ -195,7 +195,7 @@ REQUIRED_MARKERS = {
         "helper-first, output-stable deferred-exec planning packet",
         "without widening into direct process-launch parity",
         "`kernel/workqueue.c`",
-        "if the change touches the shared active Phase 8 libbpf packet",
+        "if the change touches the shared parked Phase 8 libbpf packet",
         "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
         "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
