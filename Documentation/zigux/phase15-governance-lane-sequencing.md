@@ -111,6 +111,9 @@ Own:
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
 - the shared build-wire touch in `zigux/tests/phase15_build.zig`
 
+When this lane touches a shared summary surface, keep that summary compact and boundary-first.
+A shared summary such as `Documentation/zigux/review-checklist.md` does not need to re-enumerate every Phase 15 owner-map, readiness, handoff-manifest, or blocker-evidence replay if those details remain explicit in this sequencing note, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`.
+
 This lane may also touch one shared summary surface such as `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, or `Documentation/zigux/review-checklist.md`, but only when that summary is blurring the current owner split.
 
 Do not use this lane to change any deep-core blocker disposition, any Architecture Council approval posture, or any packet-local evidence field that belongs to one of the owning lanes above.
@@ -120,6 +123,7 @@ Do not use this lane to change any deep-core blocker disposition, any Architectu
 The strongest current Phase 15 sequencing rule is simple:
 
 - keep packet-local truthfulness or evidence changes inside the owning lane above
+- keep shared summaries compact while packet-local replay inventories stay in the sequencing note, readiness note, handoff note, or dedicated replay guards
 - use `P15-Y06` only for shared summaries or shared build wiring
 - keep every Phase 15 governance run parked unless a named reopen trigger fires or the deep-core blocker posture changes
 
