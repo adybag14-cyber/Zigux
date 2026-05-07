@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
-- `PHASE9_SURVEYED_COMMIT=248bfeaa7f2beddc283c3e398fc36fec3c841242`
+- `PHASE9_SURVEYED_COMMIT=2a1851e145a648f0792e2bba2fee100e9884a1de`
 - lane: `P9-L13`
 - scope: survey manifest, starter sample, dedicated module, survey, and diff gates, the bounded loader-handoff scaffold, the focused `phase9-runtime-kretprobe-tests` build step, and explicit adjacency to the separate shared runtime-loader lane that owns the facade, contract, allocator/init-flow replay, focused shared runtime-loader shard, and the workflow-backed `make -C zigux phase9` route
 - product boundary:
