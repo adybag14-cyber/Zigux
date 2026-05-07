@@ -51,12 +51,18 @@ PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER = (
     "`make -C zigux phase9` replay"
 )
 
+PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER = (
+    "- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet"
+)
+
 REQUIRED_PHASE9_LANE_SEQUENCING_MARKERS = [
     PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER,
+    PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER,
 ]
 
 REQUIRED_PHASE9_LANE_SEQUENCING_EXACT_COUNTS = {
     PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER: 1,
+    PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER: 1,
 }
 
 REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS = [
@@ -598,6 +604,28 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing.replace(PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing:{PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing + PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing_exact_count:{PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
             makefile + "phase9-runtime-loader-shared-tests:\n",
@@ -609,7 +637,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=7")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=9")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
