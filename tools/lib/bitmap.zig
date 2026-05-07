@@ -16,6 +16,14 @@ pub fn lastWordMask(nbits: usize) Word {
     return find_bit.lastWordMask(nbits);
 }
 
+pub fn sizeBytes(nbits: usize) usize {
+    return bitsToWords(nbits) * @sizeOf(Word);
+}
+
+pub fn bitmap_size(nbits: usize) usize {
+    return sizeBytes(nbits);
+}
+
 fn assertBitmapLen(bitmap: []const Word, nbits: usize) void {
     std.debug.assert(bitmap.len >= bitsToWords(nbits));
 }
@@ -491,6 +499,14 @@ test "bitmap allocator helpers size zero and free their buffers" {
     try std.testing.expect(empty_alloc == null);
     const empty_zalloc = try zalloc(allocator, 0);
     try std.testing.expect(empty_zalloc == null);
+}
+
+test "bitmap size aliases round bit counts to full words in bytes" {
+    try std.testing.expectEqual(@as(usize, 0), sizeBytes(0));
+    try std.testing.expectEqual(@sizeOf(Word), sizeBytes(1));
+    try std.testing.expectEqual(@sizeOf(Word), bitmap_size(bits_per_long));
+    try std.testing.expectEqual(2 * @sizeOf(Word), sizeBytes(bits_per_long + 1));
+    try std.testing.expectEqual(sizeBytes(bits_per_long + 5), bitmap_size(bits_per_long + 5));
 }
 
 test "bitmap set clear weight and empty full helpers" {
