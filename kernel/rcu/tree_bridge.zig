@@ -124,6 +124,20 @@ const boundary_areas = [_]BoundaryArea{
         .anchor_symbols = &[_][]const u8{ "__call_rcu_common", "call_rcu_core", "rcu_do_batch" },
         .rationale = "Callback lifecycle ownership still depends on segmented callback lists, overload tracking, NOCB offload state, and time-bounded batch execution under the existing Tree RCU core.",
     },
+    .{
+        .id = "public-wait-and-barrier-contract",
+        .summary = "Keep public wait, polling-cookie startup, and callback-barrier ownership in C while the bridge records the contract.",
+        .ownership = .stay_in_c,
+        .anchor_symbols = &[_][]const u8{ "synchronize_rcu", "start_poll_synchronize_rcu", "rcu_barrier" },
+        .rationale = "Public wait and barrier APIs still select between normal and expedited grace-period machinery, can lock live root-node state when polling starts a new GP, and must drain callbacks across online, offline, and offloaded CPUs.",
+    },
+    .{
+        .id = "cpu-hotplug-callback-migration",
+        .summary = "Keep CPU enrollment, teardown, and callback migration inside the live Tree RCU hierarchy.",
+        .ownership = .stay_in_c,
+        .anchor_symbols = &[_][]const u8{ "rcutree_prepare_cpu", "rcutree_report_cpu_dead", "rcutree_migrate_callbacks" },
+        .rationale = "CPU hotplug still rewires the live hierarchy, quiescent-state bookkeeping, and callback ownership between CPUs while preserving the same wakeup and ordering guarantees as normal execution.",
+    },
 };
 
 const audit_checkpoints = [_]AuditCheckpoint{
@@ -300,6 +314,17 @@ pub const RcuTreeBridgeLab = struct {
         };
     }
 
+    pub fn boundaryAreaCount() usize {
+        return boundary_areas.len;
+    }
+
+    pub fn boundaryAreaById(id: []const u8) ?BoundaryArea {
+        for (boundary_areas) |area| {
+            if (std.mem.eql(u8, area.id, id)) return area;
+        }
+        return null;
+    }
+
     pub fn stayInCDecisionCount() usize {
         var count: usize = 0;
         for (boundary_areas) |area| {
@@ -403,8 +428,9 @@ test "rcu tree bridge boundary map records the stay-in-c decision packet" {
 
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", map.anchor);
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
-    try std.testing.expectEqual(@as(usize, 7), map.areas.len);
-    try std.testing.expectEqual(@as(usize, 7), RcuTreeBridgeLab.stayInCDecisionCount());
+    try std.testing.expectEqual(@as(usize, 9), map.areas.len);
+    try std.testing.expectEqual(@as(usize, 9), RcuTreeBridgeLab.boundaryAreaCount());
+    try std.testing.expectEqual(@as(usize, 9), RcuTreeBridgeLab.stayInCDecisionCount());
     try std.testing.expect(std.mem.indexOf(u8, RcuTreeBridgeLab.nextAuditFocus(), "review-only") != null);
     try std.testing.expect(std.mem.indexOf(u8, RcuTreeBridgeLab.nextAuditFocus(), "Architecture Council reopen record") != null);
 
@@ -420,6 +446,26 @@ test "rcu tree bridge boundary map records the stay-in-c decision packet" {
 
     try std.testing.expectEqualStrings("callback-enqueue-and-batch-invocation", map.areas[6].id);
     try std.testing.expectEqualStrings("rcu_do_batch", map.areas[6].anchor_symbols[2]);
+
+    const public_wait = RcuTreeBridgeLab.boundaryAreaById("public-wait-and-barrier-contract") orelse return error.MissingBoundaryArea;
+    try std.testing.expectEqualStrings("start_poll_synchronize_rcu", public_wait.anchor_symbols[1]);
+    try std.testing.expect(std.mem.indexOf(u8, public_wait.rationale, "offloaded CPUs") != null);
+
+    const hotplug = RcuTreeBridgeLab.boundaryAreaById("cpu-hotplug-callback-migration") orelse return error.MissingBoundaryArea;
+    try std.testing.expectEqualStrings("rcutree_migrate_callbacks", hotplug.anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, hotplug.rationale, "callback ownership between CPUs") != null);
+}
+
+test "rcu tree bridge boundary map stays aligned with the concurrency audit" {
+    const map = RcuTreeBridgeLab.boundaryMap();
+    const audit = RcuTreeBridgeLab.concurrencyAudit();
+
+    try std.testing.expectEqual(map.areas.len, audit.checkpoints.len);
+
+    for (audit.checkpoints) |checkpoint| {
+        const area = RcuTreeBridgeLab.boundaryAreaById(checkpoint.id) orelse return error.MissingBoundaryArea;
+        try std.testing.expect(area.ownership == checkpoint.ownership);
+    }
 }
 
 test "rcu tree bridge concurrency audit stays review-only" {
