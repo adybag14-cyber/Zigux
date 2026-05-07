@@ -34,6 +34,7 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
     "direct-port driver starter",
     "hardware validation matrix",
     "teardown and failure-mode parity",
+    "repo reality now carries one bounded starter for each Phase 11 simple-production-driver roadmap anchor",
 ]
 
 REQUIRED_TEARDOWN_NOTE_MARKERS = [
@@ -56,6 +57,7 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "`zigux/Makefile`",
     "`.github/workflows/zigux-bootstrap.yml`",
     "`make -C zigux phase11-hvc-survey`",
+    "remaining Phase 11 gap is live integration depth, not missing starter coverage",
 ]
 
 REQUIRED_MANIFEST_MARKERS = [
@@ -86,7 +88,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 17
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -168,6 +170,7 @@ The live archival packet now belongs to lane `P11-L16`.
 - `scripts/zigux/check-phase11-hvc-survey-packet.py` keeps the dedicated archival survey note, validation matrix, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around the same delivery route
 - `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` keep those HVC review surfaces coupled to the wider Phase 11 replay route
 - the bounded archival checkpoint keeps `drivers/tty/hvc/hvc_console.zig` framed as a direct-port driver starter with a hardware validation matrix and teardown and failure-mode parity kept host-free
+- repo reality now carries one bounded starter for each Phase 11 simple-production-driver roadmap anchor
 """,
     )
     write_text(
@@ -196,6 +199,7 @@ The live archival packet now belongs to lane `P11-L16`.
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter while the dedicated archival `make -C zigux phase11-hvc-survey` bootstrap replay remains the only extra CI step for the separate survey route
+- remaining Phase 11 gap is live integration depth, not missing starter coverage
 """,
     )
     write_text(
@@ -319,6 +323,12 @@ def run_self_test() -> int:
             )
             expect_failure(
                 root,
+                SURVEY_NOTE_PATH,
+                "repo reality now carries one bounded starter for each Phase 11 simple-production-driver roadmap anchor",
+                "survey_note:repo reality now carries one bounded starter for each Phase 11 simple-production-driver roadmap anchor",
+            )
+            expect_failure(
+                root,
                 TEARDOWN_NOTE_PATH,
                 "`tty_port_put()`",
                 "teardown_note:tty_port_put()",
@@ -334,6 +344,12 @@ def run_self_test() -> int:
                 VALIDATION_MATRIX_PATH,
                 "`make -C zigux phase11-hvc-survey`",
                 "validation_matrix:`make -C zigux phase11-hvc-survey`",
+            )
+            expect_failure(
+                root,
+                VALIDATION_MATRIX_PATH,
+                "remaining Phase 11 gap is live integration depth, not missing starter coverage",
+                "validation_matrix:remaining Phase 11 gap is live integration depth, not missing starter coverage",
             )
             expect_failure(
                 root,
