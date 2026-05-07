@@ -30,7 +30,7 @@ const Manifest = struct {
     ready_next: []const u8,
 };
 
-test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift explicit" {
+test "phase 4 atomic64 survey keeps wrapper handoff and sibling blob pins explicit" {
     const parsed = try std.json.parseFromSlice(
         Manifest,
         std.testing.allocator,
@@ -68,8 +68,8 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
 
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("48b5d74e2b1dc117249553cab829f590fe56396e", manifest.phase4_validation_matrix_blob_sha);
-    try std.testing.expectEqualStrings("93d0c533776d650b66d484311cbfd93d8bd0954a", manifest.phase4_review_checklist_blob_sha);
+    try std.testing.expectEqualStrings("cbe787dcabe45d30423fd6e098ef642bdcc75c83", manifest.phase4_validation_matrix_blob_sha);
+    try std.testing.expectEqualStrings("26673337fc9279572a60523d1de89e7793f30312", manifest.phase4_review_checklist_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
