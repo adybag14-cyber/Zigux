@@ -47,7 +47,9 @@ REQUIRED_FILE_MARKERS = {
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+        "`drivers/nvme/host/pci_verify.zig`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
+        "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`",
     ],
     PHASE12_SEQUENCE_PATH: [
@@ -77,7 +79,7 @@ REQUIRED_FILE_MARKERS = {
     PHASE12_RAW_GITHUB_COVERAGE_PATH: [
         "commit-pinned fallback artifacts:",
         "shared-tree-only anchors:",
-        "direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
+        "The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order used by the PMO sequencing and closure companion notes.",
         "current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
@@ -86,13 +88,13 @@ REQUIRED_FILE_MARKERS = {
     NVME_FALLBACK_MAP_PATH: [
         "PMO closure companion",
         "Documentation/zigux/phase12-release-closure-checklist.md",
-        "direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
+        "The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
     ],
     VIRTIO_SCSI_FALLBACK_PATH: [
         "PMO closure companion",
         "Documentation/zigux/phase12-release-closure-checklist.md",
-        "direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
+        "The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
     ],
     VIRTIO_NET_SURVEY_PATH: [
@@ -210,7 +212,9 @@ Phase 12 notes
 - `Documentation/zigux/phase12-release-closure-checklist.md`
 - `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
 - `Documentation/zigux/phase12-raw-github-coverage-survey.md`
+- `drivers/nvme/host/pci_verify.zig`
 - `zigux/tests/phase12_virtio_net_syntax_lab.zig`
+- `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`
 """,
     )
@@ -255,7 +259,7 @@ Phase 12 notes
         """# Phase 12 Raw GitHub Coverage Survey
 - commit-pinned fallback artifacts:
 - shared-tree-only anchors:
-- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+- The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order used by the PMO sequencing and closure companion notes.
 - current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion
 - The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`
@@ -268,7 +272,7 @@ Phase 12 notes
         """# Phase 12 NVMe PCI Raw GitHub Fallback Map
 - PMO closure companion
 - Documentation/zigux/phase12-release-closure-checklist.md
-- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+- The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.
 - The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`
 """,
     )
@@ -278,7 +282,7 @@ Phase 12 notes
         """# Phase 12 Virtio SCSI Raw GitHub Fallback Catalog
 - PMO closure companion
 - Documentation/zigux/phase12-release-closure-checklist.md
-- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+- The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.
 - The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`
 """,
     )
@@ -408,6 +412,38 @@ def run_self_test() -> int:
             return 1
         checklist_path.write_text(original_checklist, encoding="utf-8")
 
+        broken_checklist = original_checklist.replace(
+            "- `drivers/nvme/host/pci_verify.zig`\n",
+            "",
+            1,
+        )
+        checklist_path.write_text(broken_checklist, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{REVIEW_CHECKLIST_PATH}:`drivers/nvme/host/pci_verify.zig`"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("review-checklist-nvme-verify-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+
+        broken_checklist = original_checklist.replace(
+            "- `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`\n",
+            "",
+            1,
+        )
+        checklist_path.write_text(broken_checklist, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{REVIEW_CHECKLIST_PATH}:`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("review-checklist-virtio-scsi-syntax-lab-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+
         sequence_path = root / PHASE12_SEQUENCE_PATH
         original_sequence = sequence_path.read_text(encoding="utf-8")
         broken_sequence = original_sequence.replace(
@@ -506,7 +542,7 @@ def run_self_test() -> int:
         raw_coverage_path.write_text(original_raw_coverage, encoding="utf-8")
 
         broken_raw_coverage = original_raw_coverage.replace(
-            "- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`\n",
+            "- The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order used by the PMO sequencing and closure companion notes.\n",
             "",
             1,
         )
@@ -514,11 +550,11 @@ def run_self_test() -> int:
         failures = validate(root)
         expected = (
             f"{PHASE12_RAW_GITHUB_COVERAGE_PATH}:"
-            "direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`"
+            "The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order used by the PMO sequencing and closure companion notes."
         )
         if expected not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
-            print("raw-coverage-direct-build-preflight-guard")
+            print("raw-coverage-shared-smoke-order-guard")
             for failure in failures:
                 print(failure)
             return 1
@@ -546,7 +582,7 @@ def run_self_test() -> int:
         nvme_fallback_path = root / NVME_FALLBACK_MAP_PATH
         original_nvme_fallback = nvme_fallback_path.read_text(encoding="utf-8")
         broken_nvme_fallback = original_nvme_fallback.replace(
-            "- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`\n",
+            "- The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.\n",
             "",
             1,
         )
@@ -554,11 +590,11 @@ def run_self_test() -> int:
         failures = validate(root)
         expected = (
             f"{NVME_FALLBACK_MAP_PATH}:"
-            "direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`"
+            "The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below."
         )
         if expected not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
-            print("nvme-fallback-direct-build-preflight-guard")
+            print("nvme-fallback-shared-smoke-order-guard")
             for failure in failures:
                 print(failure)
             return 1
@@ -567,7 +603,7 @@ def run_self_test() -> int:
         virtio_scsi_fallback_path = root / VIRTIO_SCSI_FALLBACK_PATH
         original_virtio_scsi_fallback = virtio_scsi_fallback_path.read_text(encoding="utf-8")
         broken_virtio_scsi_fallback = original_virtio_scsi_fallback.replace(
-            "- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`\n",
+            "- The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.\n",
             "",
             1,
         )
@@ -575,11 +611,11 @@ def run_self_test() -> int:
         failures = validate(root)
         expected = (
             f"{VIRTIO_SCSI_FALLBACK_PATH}:"
-            "direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`"
+            "The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below."
         )
         if expected not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
-            print("virtio-scsi-fallback-direct-build-preflight-guard")
+            print("virtio-scsi-fallback-shared-smoke-order-guard")
             for failure in failures:
                 print(failure)
             return 1
