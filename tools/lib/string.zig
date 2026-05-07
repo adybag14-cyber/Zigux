@@ -358,6 +358,16 @@ test "skip trim remove and replace spaces work in place" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 0, '-' }, &replace_cstr_buf);
 }
 
+test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace" {
+    var trim_buf = [_]u8{ ' ', 'a', 'b', 0, ' ', '\t', 'x' };
+    try std.testing.expectEqualStrings("ab", trimSpaces(&trim_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'a', 'b', 0, ' ', '\t', 'x' }, &trim_buf);
+
+    var strim_buf = [_]u8{ ' ', 'a', 'b', 0, ' ', '\n', 'y' };
+    try std.testing.expectEqualStrings("ab", strim(&strim_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'a', 'b', 0, ' ', '\n', 'y' }, &strim_buf);
+}
+
 test "strreplace mirrors replaceChar C-string semantics" {
     var replace_buf = [_]u8{ 'a', '-', 'b' };
     try std.testing.expectEqual(@as(usize, 3), strreplace(&replace_buf, '-', '_'));
