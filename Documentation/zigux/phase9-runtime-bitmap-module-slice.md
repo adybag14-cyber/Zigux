@@ -7,7 +7,7 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
 - `PHASE9_LANE_KEY=P9-L05`
-- scope: lifecycle starter, sample-side loader scaffold, focused top-bit companion replay, bitmap range mutation and copy behavior, bounded differential coverage, dedicated Phase 9 survey and test wiring, the shared runtime-loader facade plus allocator/init-flow contract replay, the dedicated lane-sequencing owner map, and lane-local survey-note plus manifest closure only
+- scope: lifecycle starter, sample-side loader scaffold, focused top-bit companion replay, bitmap range mutation and copy behavior, bounded differential coverage, dedicated Phase 9 survey and test wiring, the shared runtime-loader facade plus allocator/init-flow contract replay, the shared request-surface proof including initialized-stage shared-request snapshot stability, prepared selftest-hook and shared-plan drift proofs, and release-order synchronization proof, the dedicated lane-sequencing owner map, and lane-local survey-note plus manifest closure only
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
@@ -41,7 +41,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
 - a focused top-bit companion replay that keeps bit `127` as the highest valid bit, replays one-bit summary behavior at the top boundary, and rejects out-of-range mutation past `128`
 - a table-driven differential gate that replays a few `lib/test_bitmap.c` expectations for set, clear, summary, and copy behavior
-- a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, captures the handoff bitmap summary, and keeps no-substrate release behavior explicit without claiming a real module loader
+- a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, captures the handoff bitmap summary, keeps the shared `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` request surface explicit, proves initialized-stage shared-request snapshots stay stable across later selftest activity, proves prepared selftest-hook and shared-plan drift fail closed before any live bitmap claim, and keeps the no-substrate release path plus release-order synchronization explicit without claiming a real module loader
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` now stays inside this slice's shipped product boundary too, so the bitmap starter keeps the shared loader lane, the bitmap-local top-bit companion replay, and the pilot-family owner split explicit instead of leaving that routing implicit across the survey note and shared reminder surfaces alone
 - dedicated Phase 9 tests, survey coverage, manifest closure, the shared `zigux/kernel/runtime_loader.zig` facade, the shared `zigux/kernel/runtime_loader_contract.zig` plus `zigux/tests/runtime_loader_allocator_init_flow.zig` replay, and the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard wired into the shared `zigux/tests/phase9_build.zig` gate and `make -C zigux phase9`
 
