@@ -13,7 +13,7 @@
   "shared_matrix_path": "Documentation/zigux/phase4-validation-matrix.md",
   "shared_gate_evidence_path": "Documentation/zigux/phase4-gate-evidence.md",
   "gate_evidence_path": "Documentation/zigux/phase4-gate-evidence.md",
-  "gate_evidence_blob_sha": "d1c6fb8a01d871cf89b4af71ff48acfa24790c34",
+  "gate_evidence_blob_sha": "00648b28a5f98ab776310fe28019e0364791245d",
   "phase4_build_present": true,
   "phase4_build_uses_bitmap_diff": true,
   "phase4_build_uses_bitmap_diff_survey": true,
