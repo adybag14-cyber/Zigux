@@ -76,6 +76,17 @@ pub const LifecycleGuardSummary = struct {
     init_runs: usize,
 };
 
+pub const RetargetReplaySummary = struct {
+    anchor: []const u8,
+    symbol_before_retarget: []const u8,
+    symbol_after_retarget: []const u8,
+    stage_before_retarget: SampleStage,
+    stage_after_init: SampleStage,
+    empty_symbol_rejected: bool,
+    post_init_retarget_rejected: bool,
+    init_runs: usize,
+};
+
 pub const RecoveryReplaySummary = struct {
     anchor: []const u8,
     symbol_name: []const u8,
@@ -311,6 +322,42 @@ pub const KretprobeExampleSample = struct {
         };
     }
 
+    pub fn runRetargetReplay(self: *Self, symbol_name: []const u8) !RetargetReplaySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        const symbol_before_retarget = self.symbol_name;
+
+        var empty_symbol_rejected = false;
+        if (self.retargetSymbol("")) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidSymbolName => empty_symbol_rejected = true,
+            else => return err,
+        }
+
+        try self.retargetSymbol(symbol_name);
+        try self.init();
+
+        var post_init_retarget_rejected = false;
+        if (self.retargetSymbol(default_symbol_name)) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => post_init_retarget_rejected = true,
+            else => return err,
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .symbol_before_retarget = symbol_before_retarget,
+            .symbol_after_retarget = self.symbol_name,
+            .stage_before_retarget = .cold,
+            .stage_after_init = self.stage(),
+            .empty_symbol_rejected = empty_symbol_rejected,
+            .post_init_retarget_rejected = post_init_retarget_rejected,
+            .init_runs = self.init_runs,
+        };
+    }
+
     pub fn runRecoveryReplay(self: *Self, symbol_name: []const u8) !RecoveryReplaySummary {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
@@ -427,6 +474,20 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 20), replay.maxactive);
     try std.testing.expectEqual(@as(usize, 20), sample_instance.maxactiveBudget());
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+}
+
+test "kretprobe sample retarget replay keeps symbol selection explicit" {
+    var sample_instance = KretprobeExampleSample{};
+    const replay = try sample_instance.runRetargetReplay("do_sys_openat2");
+
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", replay.anchor);
+    try std.testing.expectEqualStrings(KretprobeExampleSample.default_symbol_name, replay.symbol_before_retarget);
+    try std.testing.expectEqualStrings("do_sys_openat2", replay.symbol_after_retarget);
+    try std.testing.expectEqual(SampleStage.cold, replay.stage_before_retarget);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_after_init);
+    try std.testing.expect(replay.empty_symbol_rejected);
+    try std.testing.expect(replay.post_init_retarget_rejected);
+    try std.testing.expectEqual(@as(usize, 1), replay.init_runs);
 }
 
 test "kretprobe sample ownership summary keeps lifecycle snapshots explicit" {
