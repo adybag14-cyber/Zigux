@@ -68,10 +68,12 @@ The current checksum helper surface exercised by this slice covers:
 - `tcpUdpV6Nofold`
 - `partial`
 - `compute`
+- `ipFastCsum`
 
 The current tests check:
 
 - fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs
+- explicit IPv4 fast-header parity through `ipFastCsum` over the fixture-backed 20-byte header case
 - incremental partial-sum chaining across even and odd fragment boundaries
 - non-zero seeded `partial` accumulation parity across odd, carry-heavy, and pre-folded seed inputs
 - fixture-backed carry-discipline and imported KUnit random-prefix replays for all-ones prefixes and no-spurious-carry seeded cases
