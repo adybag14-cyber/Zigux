@@ -11,6 +11,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - scope: roadmap-vs-repo sample delivery, approved reference-sample idiom guidance, and exact bounded checks for the first `samples/zigux/` kfifo-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kfifo-sample-survey.md`
+  - `Documentation/zigux/phase5-sample-review-guide.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
   - `samples/zigux/README.md`
@@ -51,7 +52,7 @@ The Phase 5 gap is now narrowed to one landed sample-backed reference pattern fo
   - lifecycle setup and teardown around `example_init()` and `example_exit()`
   - procfs and user-copy plumbing through `proc_create`, `kfifo_from_user`, `kfifo_to_user`, and mutex-protected read or write paths
 - the live Zigux repo now ships bounded Phase 5 side-by-side samples under `samples/zigux/` for the `kfifo`, `kobject`, `kretprobe`, and `trace-events` anchors, while still keeping the later Phase 9 runtime starters and loader-side follow-ons separate from these non-runtime reference readings.
-- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already help keep this FIFO note aligned with the same four-sample Phase 5 packet described from the docs root, scripts root, sample root, and tests root.
+- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already help keep this FIFO note aligned with the same four-sample Phase 5 packet described from the docs root, shared guide, sample root, scripts root, and tests root.
 - the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice.
 
 ## Approved idiom for the landed kfifo-style sample
@@ -105,7 +106,7 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly c
 - does `BytestreamFifoSample.descriptor()` still name the Linux anchor `samples/kfifo/bytestream-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` still describe the exact queue-order replay, preview truncation boundary, the non-destructive snapshot contract, lifecycle boundary, bounded helper contract, and remaining-capacity evidence run through `zigux/tests/phase5_build.zig`?
 - does that same approved in-memory FIFO idiom still keep queue-shape evidence explicit so `available()` and `usesWrappedStorageWindow()` stay aligned with the `visibleSpanSummary()` split cues across the same cold, full, and rollover boundaries reviewers expect from a bounded ring sample?
-- do the shared Phase 5 contributor surfaces in `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still point at this exact sample packet and keep it separate from the later Phase 9 runtime starters instead of leaving this note to carry the boundary alone?
+- do `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still point at this exact sample packet and keep it separate from the later Phase 9 runtime starters instead of leaving this note to carry the boundary alone?
 - do the shared Phase 5 packet and this sample note still say clearly that there is no standalone `samples/zigux/*bitmap*` Phase 5 reference sample, so direct bitmap helper reviewability stays under `tools/lib/bitmap.zig`, `Documentation/zigux/phase1-closure.md`, and `Documentation/zigux/phase4-validation-matrix.md` while the separate Phase 9 runtime bitmap family stays under `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/tests/phase9_build.zig` instead of being misread as a fifth Phase 5 sample?
 - does that same helper-facing packet still keep the short-drain bytestream contract explicit so draining a three-byte destination from `"hello"` yields `"hel"`, preserves the `"lo"` remainder in queue order, and returns `0` once the queue is empty again?
 - if the sample behavior changes, is the manifest updated alongside the replay expectations instead of leaving reviewers to infer the new contract from code alone?
@@ -119,7 +120,7 @@ The current gap is not "Zigux lacks every sample." The more precise gap is:
 
 - the repo now has four reviewable Phase 5 samples plus later runtime-oriented starters and loader-side follow-ons in `samples/zigux/`
 - the completed Phase 5 sample set still has to stay visibly separate from the later Phase 9 runtime starters and loader-side follow-ons for `trace-events`, `kretprobe`, `bitmap`, and `atomic64`
-- the shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too, so this survey note does not understate the already-shipped review surface for the landed sample
+- the shared docs-root, Phase 5 guide, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too, so this survey note does not understate the already-shipped review surface for the landed sample
 - the kfifo sample now covers queue-order replay, explicit queue-shape rollover cues, and one ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
 
 This slice closes the `kfifo` survey-only gap by landing the first sample-backed replay and documenting its exact checks so future Phase 5 work can advance from a concrete baseline instead of another round of ambiguous sample naming.
@@ -161,4 +162,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and tighten contributor guidance or one exact replay check only if fresh repo inspection shows a real sample drift on current `master`, while keeping the landed Phase 5 sample set distinct from the later Phase 9 runtime starters and their loader-side follow-ons.
+Stay in the Phase 5 samples-and-reference-patterns lane and tighten contributor guidance or one exact replay check only if fresh repo inspection shows a real sample drift on current `master`, while keeping the landed Phase 5 sample set distinct from the later Phase 9 runtime starters and their loader-side follow-ons and keeping the shared guide, note, manifest, and shared replay route aligned.
