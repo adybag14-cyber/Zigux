@@ -45,7 +45,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs.zig",
-      "why_now": "Dedicated starter tests keep the current helper surface honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-emit handoff bookkeeping, and the landed transaction acquire, publish, and release planners."
+      "why_now": "Dedicated starter tests keep the current helper surface honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-emit handoff bookkeeping, the landed transaction acquire, publish, and release planners, and the new simple_open() private-data handoff planner."
     },
     {
       "id": "phase13-libfs-slice-note",
@@ -87,35 +87,49 @@
       "status": "starter_landed",
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The libfs helper lab now models the pure `simple_transaction_get()` acquire path, including the page-bounded staging-buffer size limit, the single-write-per-open guard, and the empty-response starting state before any live file-local publish, read, or release behavior is claimed."
+      "why_now": "The libfs helper lab now models the pure simple_transaction_get() acquire path, including the page-bounded staging-buffer size limit, the single-write-per-open guard, and the empty-response starting state before any live file-local publish, read, or release behavior is claimed."
     },
     {
       "id": "phase13-libfs-transaction-publish-helper",
       "status": "starter_landed",
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The libfs helper lab now models the pure `simple_transaction_set()` publish path, including the response-size limit, the required private-data handoff, the publish barrier, and the resulting publish bookkeeping before any live readback or release state is claimed."
+      "why_now": "The libfs helper lab now models the pure simple_transaction_set() publish path, including the response-size limit, the required private-data handoff, the publish barrier, and the resulting publish bookkeeping before any live readback or release state is claimed."
     },
     {
       "id": "phase13-libfs-transaction-release-helper",
       "status": "starter_landed",
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The libfs helper lab now models the pure `simple_transaction_release()` lifetime path, including page-backed private-data cleanup, release bookkeeping, and the zero return path before any live readback, file lifecycle, or cursor-backed state is claimed."
+      "why_now": "The libfs helper lab now models the pure simple_transaction_release() lifetime path, including page-backed private-data cleanup, release bookkeeping, and the zero return path before any live readback, file lifecycle, or cursor-backed state is claimed."
     },
     {
       "id": "phase13-libfs-dcache-dir-open-helper",
       "status": "starter_landed",
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The libfs helper lab now models the pure `dcache_dir_open()` setup path, including cursor allocation from `file->f_path.dentry`, the `private_data` handoff, and the `-ENOMEM` fallback before any sibling traversal, lock ordering, or live cursor mutation is claimed."
+      "why_now": "The libfs helper lab now models the pure dcache_dir_open() setup path, including cursor allocation from file->f_path.dentry, the private_data handoff, and the -ENOMEM fallback before any sibling traversal, lock ordering, or live cursor mutation is claimed."
+    },
+    {
+      "id": "phase13-libfs-addressability-helper",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models the pure generic_check_addressable() capacity gate around shift-overflow rejection, zero-block passthrough, minimum block-size validation, and explicit sector-addressability plus page-cache limit checks before any live superblock, page-cache, or inode ownership is claimed."
+    },
+    {
+      "id": "phase13-libfs-simple-open-helper",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models the pure simple_open() handoff by recording when inode->i_private is copied into file->private_data, when a null inode-private slot leaves prior file-private state untouched, and the unconditional zero return path before any live file lifecycle or inode mutation is claimed."
     },
     {
       "id": "phase13-libfs-dcache-cursor-helpers",
       "status": "blocked_on_vfs_state",
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next libfs follow-up now narrows to deeper `dcache_readdir()` cursor-resume helpers, but that step still depends on sibling-list traversal, reschedule-aware cursor movement, and lock-ordering context that should stay explicit before another helper-first slice is modeled."
+      "why_now": "The next libfs follow-up now narrows to deeper dcache_readdir() cursor-resume helpers, but that step still depends on sibling-list traversal, reschedule-aware cursor movement, and lock-ordering context that should stay explicit before another helper-first slice is modeled."
     }
   ]
 }
