@@ -13,6 +13,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 DOCS_REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 MAKEFILE = ROOT / "zigux" / "Makefile"
@@ -53,9 +54,13 @@ REQUIRED_BOOTSTRAP_MARKERS = [
     "- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, `.github/workflows/zigux-bootstrap.yml`, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator",
 ]
+REQUIRED_DOCS_ROOT_MARKERS = [
+    "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
+    "the bounded `fixdep`, `genksyms`, `genksyms_crc`, `kconfig`, and `mk_elfconfig` helper packet",
+]
 REQUIRED_SCRIPTS_README_LINES = [
     "- `check-phase2-tool-manifest-packets.py`",
-    "- `check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed `fixdep`, `genksyms`, and `kconfig` packet manifests so the shared Phase 2 tool inventory stays explicit before the direct Zig replays run.",
+    "- `check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed `fixdep`, `genksyms`, and `kconfig` packet manifests so the shared Phase 2 tool inventory, self-test route, and live gate wiring stay explicit before the direct Zig replays run.",
 ]
 REQUIRED_REVIEW_MARKERS = [
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
@@ -83,6 +88,7 @@ def required_files_for(root: Path) -> list[Path]:
         root / PHASE2_TOOL_MANIFEST.relative_to(ROOT),
         root / PHASE2_CLOSURE.relative_to(ROOT),
         root / PHASE2_BOOTSTRAP_NOTES.relative_to(ROOT),
+        root / DOCS_ROOT_README.relative_to(ROOT),
         root / DOCS_REVIEW_CHECKLIST.relative_to(ROOT),
         root / SCRIPTS_README.relative_to(ROOT),
         root / MAKEFILE.relative_to(ROOT),
@@ -192,6 +198,18 @@ def validate_root(root: Path) -> list[str]:
         )
     )
 
+    docs_root_text = (root / DOCS_ROOT_README.relative_to(ROOT)).read_text(encoding="utf-8")
+    for marker in REQUIRED_DOCS_ROOT_MARKERS:
+        if marker not in docs_root_text:
+            issues.append(f"docs_root_marker:{marker}")
+    issues.extend(
+        validate_exact_substrings(
+            docs_root_text,
+            REQUIRED_DOCS_ROOT_MARKERS,
+            prefix="docs_root_exact_marker",
+        )
+    )
+
     scripts_readme_text = (root / SCRIPTS_README.relative_to(ROOT)).read_text(encoding="utf-8")
     for marker in REQUIRED_SCRIPTS_README_LINES:
         if marker not in scripts_readme_text:
@@ -263,6 +281,7 @@ def build_self_test_root(root: Path) -> None:
         root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
         "\n".join(REQUIRED_BOOTSTRAP_MARKERS) + "\n",
     )
+    write_text(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
     write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REQUIRED_REVIEW_MARKERS) + "\n")
     write_text(root / "scripts/zigux/README.md", "\n".join(REQUIRED_SCRIPTS_README_LINES) + "\n")
     write_text(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_LINES) + "\n")
@@ -391,6 +410,20 @@ def run_self_test() -> int:
         assert f"bootstrap_exact_marker:{REQUIRED_BOOTSTRAP_MARKERS[0]}:count=2:expected=1" in issues
 
         build_self_test_root(root)
+        docs_root_path = root / "Documentation/zigux/README.md"
+        docs_root_text = docs_root_path.read_text(encoding="utf-8").replace(REQUIRED_DOCS_ROOT_MARKERS[0] + "\n", "", 1)
+        write_text(docs_root_path, docs_root_text)
+        issues = validate_root(root)
+        assert f"docs_root_marker:{REQUIRED_DOCS_ROOT_MARKERS[0]}" in issues
+
+        build_self_test_root(root)
+        docs_root_path = root / "Documentation/zigux/README.md"
+        docs_root_text = docs_root_path.read_text(encoding="utf-8") + REQUIRED_DOCS_ROOT_MARKERS[0] + "\n"
+        write_text(docs_root_path, docs_root_text)
+        issues = validate_root(root)
+        assert f"docs_root_exact_marker:{REQUIRED_DOCS_ROOT_MARKERS[0]}:count=2:expected=1" in issues
+
+        build_self_test_root(root)
         scripts_readme_path = root / "scripts/zigux/README.md"
         scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8").replace(REQUIRED_SCRIPTS_README_LINES[1] + "\n", "", 1)
         write_text(scripts_readme_path, scripts_readme_text)
@@ -447,7 +480,7 @@ def run_self_test() -> int:
         assert f"workflow_line:{REQUIRED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
 
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=25")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
