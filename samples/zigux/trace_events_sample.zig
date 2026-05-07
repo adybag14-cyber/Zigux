@@ -70,6 +70,7 @@ pub const CallbackBoundarySummary = struct {
     total_event_calls_after_replay: usize,
     function_callback_path_checked: bool,
     registration_depth_after_register: usize,
+    registration_depth_after_unregister: usize,
     registration_balance_restored: bool,
 };
 
@@ -277,6 +278,7 @@ pub const TraceEventsReferenceSample = struct {
         const registration_depth_after_register = self.registration_depth;
         try self.replayFunctionIteration(count);
         try self.unregisterFunctionCallback();
+        const registration_depth_after_unregister = self.registration_depth;
 
         return .{
             .stage_before_callback = .initialized,
@@ -286,7 +288,8 @@ pub const TraceEventsReferenceSample = struct {
             .total_event_calls_after_replay = self.total_event_calls,
             .function_callback_path_checked = self.saw_function_callback_path,
             .registration_depth_after_register = registration_depth_after_register,
-            .registration_balance_restored = self.registration_depth == 0,
+            .registration_depth_after_unregister = registration_depth_after_unregister,
+            .registration_balance_restored = registration_depth_after_unregister == 0,
         };
     }
 
@@ -388,6 +391,7 @@ test "trace-events sample keeps payload and callback boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 8), callback_boundary.total_event_calls_after_replay);
     try std.testing.expect(callback_boundary.function_callback_path_checked);
     try std.testing.expectEqual(@as(usize, 1), callback_boundary.registration_depth_after_register);
+    try std.testing.expectEqual(@as(usize, 0), callback_boundary.registration_depth_after_unregister);
     try std.testing.expect(callback_boundary.registration_balance_restored);
     try std.testing.expectEqual(SampleStage.initialized, module.stage());
 }
