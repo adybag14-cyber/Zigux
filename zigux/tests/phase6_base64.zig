@@ -177,7 +177,7 @@ test "phase 6 base64 reports destination bounds before decoding" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xdd, 0xdd }, unpadded_buf[0..]);
 }
 
-test "phase 6 base64 exact-fit encode and decode buffers stay accepted across std and imap variants" {
+test "phase 6 base64 exact-fit encode and decode buffers stay accepted across std, urlsafe, and imap variants" {
     const encode_cases = [_]struct {
         input: []const u8,
         expected: []const u8,
@@ -186,6 +186,8 @@ test "phase 6 base64 exact-fit encode and decode buffers stay accepted across st
     }{
         .{ .input = "fooba", .expected = "Zm9vYmE=", .padding = true, .variant = .std },
         .{ .input = "fooba", .expected = "Zm9vYmE", .padding = false, .variant = .std },
+        .{ .input = &fixtures.variant_sample, .expected = "APv_f4A=", .padding = true, .variant = .urlsafe },
+        .{ .input = &fixtures.variant_sample, .expected = "APv_f4A", .padding = false, .variant = .urlsafe },
         .{ .input = &fixtures.variant_sample, .expected = "APv,f4A=", .padding = true, .variant = .imap },
         .{ .input = &fixtures.variant_sample, .expected = "APv,f4A", .padding = false, .variant = .imap },
     };
@@ -202,6 +204,8 @@ test "phase 6 base64 exact-fit encode and decode buffers stay accepted across st
     const decode_cases = [_]DecodeCase{
         .{ .input = "Zm9vYmE=", .expected = "fooba", .padding = true, .variant = .std },
         .{ .input = "Zm9vYmE", .expected = "fooba", .padding = false, .variant = .std },
+        .{ .input = "APv_f4A=", .expected = &fixtures.variant_sample, .padding = true, .variant = .urlsafe },
+        .{ .input = "APv_f4A", .expected = &fixtures.variant_sample, .padding = false, .variant = .urlsafe },
         .{ .input = "APv,f4A=", .expected = &fixtures.variant_sample, .padding = true, .variant = .imap },
         .{ .input = "APv,f4A", .expected = &fixtures.variant_sample, .padding = false, .variant = .imap },
     };
