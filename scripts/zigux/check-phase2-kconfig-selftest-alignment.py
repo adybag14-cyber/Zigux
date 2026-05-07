@@ -19,13 +19,13 @@ CONFDATA_PACKET_PATH = "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.js
 
 REQUIRED_CHECKER_MARKERS = (
     "REQUIRED_CONFDATA_CASES = [",
-    "EXPECTED_SELF_TEST_CASE_COUNT = 14",
+    "EXPECTED_SELF_TEST_CASE_COUNT = 17",
     'print("KCONFIG_BRIDGE_SELF_TEST=pass")',
     'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")',
 )
 REQUIRED_CHECKER_EXACT_COUNTS = {
     "REQUIRED_CONFDATA_CASES = [": 1,
-    "EXPECTED_SELF_TEST_CASE_COUNT = 14": 1,
+    "EXPECTED_SELF_TEST_CASE_COUNT = 17": 1,
     'print("KCONFIG_BRIDGE_SELF_TEST=pass")': 1,
     'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")': 1,
 }
@@ -98,28 +98,17 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in REQUIRED_CHECKER_MARKERS:
         if marker not in checker_text:
             issues.append(("MISSING_CHECKER_MARKERS", marker))
-
     for marker, expected_count in REQUIRED_CHECKER_EXACT_COUNTS.items():
         count = count_exact_substrings(checker_text, marker)
         if count != expected_count:
-            issues.append(
-                (
-                    "DUPLICATE_CHECKER_MARKERS",
-                    f"{marker}:count={count}:expected={expected_count}",
-                )
-            )
+            issues.append(("DUPLICATE_CHECKER_MARKERS", f"{marker}:count={count}:expected={expected_count}"))
 
     for marker in REQUIRED_VALIDATOR_MARKERS:
         count = count_exact_lines(validator_text, marker)
         if count == 0:
             issues.append(("MISSING_VALIDATOR_MARKERS", marker))
         elif count != REQUIRED_VALIDATOR_EXACT_COUNTS[marker]:
-            issues.append(
-                (
-                    "DUPLICATE_VALIDATOR_MARKERS",
-                    f"{marker}:count={count}:expected={REQUIRED_VALIDATOR_EXACT_COUNTS[marker]}",
-                )
-            )
+            issues.append(("DUPLICATE_VALIDATOR_MARKERS", f"{marker}:count={count}:expected={REQUIRED_VALIDATOR_EXACT_COUNTS[marker]}"))
 
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -138,24 +127,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in REQUIRED_CLOSURE_MARKERS:
         if marker not in closure_text:
             issues.append(("MISSING_CLOSURE_MARKERS", marker))
-
     for marker, expected_count in REQUIRED_CLOSURE_EXACT_COUNTS.items():
         count = closure_text.count(marker)
         if count != expected_count:
-            issues.append(
-                (
-                    "DUPLICATE_CLOSURE_MARKERS",
-                    f"{marker}:count={count}:expected={expected_count}",
-                )
-            )
+            issues.append(("DUPLICATE_CLOSURE_MARKERS", f"{marker}:count={count}:expected={expected_count}"))
 
     if tool_manifest.get("kconfig_confdata_bridge_packet") != CONFDATA_PACKET_PATH:
-        issues.append(
-            (
-                "INVALID_TOOL_MANIFEST_PACKET",
-                f"kconfig_confdata_bridge_packet={tool_manifest.get('kconfig_confdata_bridge_packet')!r}",
-            )
-        )
+        issues.append(("INVALID_TOOL_MANIFEST_PACKET", f"kconfig_confdata_bridge_packet={tool_manifest.get('kconfig_confdata_bridge_packet')!r}"))
 
     return issues
 
@@ -205,7 +183,7 @@ def build_self_test_root(root: Path) -> None:
                 "REQUIRED_CONFDATA_CASES = [",
                 "    'sample',",
                 "]",
-                "EXPECTED_SELF_TEST_CASE_COUNT = 14",
+                "EXPECTED_SELF_TEST_CASE_COUNT = 17",
                 'print("KCONFIG_BRIDGE_SELF_TEST=pass")',
                 'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")',
                 "",
@@ -313,233 +291,105 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / CHECKER
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_CHECKER_MARKERS[0],
-                REQUIRED_CHECKER_MARKERS[0] + "\n" + REQUIRED_CHECKER_MARKERS[0],
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[0], REQUIRED_CHECKER_MARKERS[0] + "\n" + REQUIRED_CHECKER_MARKERS[0], 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert (
-            "DUPLICATE_CHECKER_MARKERS",
-            f"{REQUIRED_CHECKER_MARKERS[0]}:count=2:expected=1",
-        ) in issues
+        assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[0]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / CHECKER
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_CHECKER_MARKERS[1],
-                REQUIRED_CHECKER_MARKERS[1] + "\n" + REQUIRED_CHECKER_MARKERS[1],
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[1], REQUIRED_CHECKER_MARKERS[1] + "\n" + REQUIRED_CHECKER_MARKERS[1], 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert (
-            "DUPLICATE_CHECKER_MARKERS",
-            f"{REQUIRED_CHECKER_MARKERS[1]}:count=2:expected=1",
-        ) in issues
+        assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[1]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / CHECKER
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_CHECKER_MARKERS[2],
-                REQUIRED_CHECKER_MARKERS[2] + "\n" + REQUIRED_CHECKER_MARKERS[2],
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[2], REQUIRED_CHECKER_MARKERS[2] + "\n" + REQUIRED_CHECKER_MARKERS[2], 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert (
-            "DUPLICATE_CHECKER_MARKERS",
-            f"{REQUIRED_CHECKER_MARKERS[2]}:count=2:expected=1",
-        ) in issues
+        assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[2]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / CHECKER
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_CHECKER_MARKERS[3],
-                REQUIRED_CHECKER_MARKERS[3] + "\n" + REQUIRED_CHECKER_MARKERS[3],
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[3], REQUIRED_CHECKER_MARKERS[3] + "\n" + REQUIRED_CHECKER_MARKERS[3], 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert (
-            "DUPLICATE_CHECKER_MARKERS",
-            f"{REQUIRED_CHECKER_MARKERS[3]}:count=2:expected=1",
-        ) in issues
+        assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[3]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / VALIDATOR
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_VALIDATOR_MARKERS[0] + "\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[0] + "\n", "", 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[0]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / VALIDATOR
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_VALIDATOR_MARKERS[0] + "\n",
-                REQUIRED_VALIDATOR_MARKERS[0] + "\n" + REQUIRED_VALIDATOR_MARKERS[0] + "\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[0] + "\n", REQUIRED_VALIDATOR_MARKERS[0] + "\n" + REQUIRED_VALIDATOR_MARKERS[0] + "\n", 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert (
-            "DUPLICATE_VALIDATOR_MARKERS",
-            f"{REQUIRED_VALIDATOR_MARKERS[0]}:count=2:expected=1",
-        ) in issues
+        assert ("DUPLICATE_VALIDATOR_MARKERS", f"{REQUIRED_VALIDATOR_MARKERS[0]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / VALIDATOR
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_VALIDATOR_MARKERS[1] + "\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[1] + "\n", "", 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[1]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / VALIDATOR
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_VALIDATOR_MARKERS[1] + "\n",
-                REQUIRED_VALIDATOR_MARKERS[1] + "\n" + REQUIRED_VALIDATOR_MARKERS[1] + "\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[1] + "\n", REQUIRED_VALIDATOR_MARKERS[1] + "\n" + REQUIRED_VALIDATOR_MARKERS[1] + "\n", 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert (
-            "DUPLICATE_VALIDATOR_MARKERS",
-            f"{REQUIRED_VALIDATOR_MARKERS[1]}:count=2:expected=1",
-        ) in issues
+        assert ("DUPLICATE_VALIDATOR_MARKERS", f"{REQUIRED_VALIDATOR_MARKERS[1]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / VALIDATOR
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_VALIDATOR_MARKERS[2] + "\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[2] + "\n", "", 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[2]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / VALIDATOR
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_VALIDATOR_MARKERS[2] + "\n",
-                REQUIRED_VALIDATOR_MARKERS[2] + "\n" + REQUIRED_VALIDATOR_MARKERS[2] + "\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[2] + "\n", REQUIRED_VALIDATOR_MARKERS[2] + "\n" + REQUIRED_VALIDATOR_MARKERS[2] + "\n", 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert (
-            "DUPLICATE_VALIDATOR_MARKERS",
-            f"{REQUIRED_VALIDATOR_MARKERS[2]}:count=2:expected=1",
-        ) in issues
+        assert ("DUPLICATE_VALIDATOR_MARKERS", f"{REQUIRED_VALIDATOR_MARKERS[2]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / VALIDATOR
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_VALIDATOR_MARKERS[3] + "\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[3] + "\n", "", 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[3]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / VALIDATOR
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_VALIDATOR_MARKERS[3] + "\n",
-                REQUIRED_VALIDATOR_MARKERS[3] + "\n" + REQUIRED_VALIDATOR_MARKERS[3] + "\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[3] + "\n", REQUIRED_VALIDATOR_MARKERS[3] + "\n" + REQUIRED_VALIDATOR_MARKERS[3] + "\n", 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert (
-            "DUPLICATE_VALIDATOR_MARKERS",
-            f"{REQUIRED_VALIDATOR_MARKERS[3]}:count=2:expected=1",
-        ) in issues
+        assert ("DUPLICATE_VALIDATOR_MARKERS", f"{REQUIRED_VALIDATOR_MARKERS[3]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / VALIDATOR
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_VALIDATOR_MARKERS[4] + "\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[4] + "\n", "", 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[4]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / VALIDATOR
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_VALIDATOR_MARKERS[4] + "\n",
-                REQUIRED_VALIDATOR_MARKERS[4] + "\n" + REQUIRED_VALIDATOR_MARKERS[4] + "\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[4] + "\n", REQUIRED_VALIDATOR_MARKERS[4] + "\n" + REQUIRED_VALIDATOR_MARKERS[4] + "\n", 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert (
-            "DUPLICATE_VALIDATOR_MARKERS",
-            f"{REQUIRED_VALIDATOR_MARKERS[4]}:count=2:expected=1",
-        ) in issues
+        assert ("DUPLICATE_VALIDATOR_MARKERS", f"{REQUIRED_VALIDATOR_MARKERS[4]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / MAKEFILE
-        path.write_text(
-            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[0], "\ttrue"),
-            encoding="utf-8",
-        )
+        path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[0], "\ttrue"), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_MAKEFILE_HOOKS", REQUIRED_MAKEFILE_LINES[0]) in issues
         cases += 1
@@ -553,176 +403,114 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / MAKEFILE
-        path.write_text(
-            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[2], "\ttrue"),
-            encoding="utf-8",
-        )
+        path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[2], "\ttrue"), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_MAKEFILE_HOOKS", REQUIRED_MAKEFILE_LINES[2]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / MAKEFILE
-        path.write_text(
-            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[3]),
-            encoding="utf-8",
-        )
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[3]), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_MAKEFILE_HOOKS", f"{REQUIRED_MAKEFILE_LINES[3]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / MAKEFILE
-        path.write_text(
-            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[4], "\ttrue"),
-            encoding="utf-8",
-        )
+        path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[4], "\ttrue"), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_MAKEFILE_HOOKS", REQUIRED_MAKEFILE_LINES[4]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / MAKEFILE
-        path.write_text(
-            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[5]),
-            encoding="utf-8",
-        )
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[5]), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_MAKEFILE_HOOKS", f"{REQUIRED_MAKEFILE_LINES[5]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / MAKEFILE
-        path.write_text(
-            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[6], "phase2: phase2-validate phase2-tools phase2-cross"),
-            encoding="utf-8",
-        )
+        path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[6], "phase2: phase2-validate phase2-tools phase2-cross"), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_MAKEFILE_HOOKS", REQUIRED_MAKEFILE_LINES[6]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / MAKEFILE
-        path.write_text(
-            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[6]),
-            encoding="utf-8",
-        )
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[6]), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_MAKEFILE_HOOKS", f"{REQUIRED_MAKEFILE_LINES[6]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / WORKFLOW
-        path.write_text(
-            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[0], "        run: python3 other.py"),
-            encoding="utf-8",
-        )
+        path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[0], "        run: python3 other.py"), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_WORKFLOW_HOOKS", REQUIRED_WORKFLOW_LINES[0]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / WORKFLOW
-        path.write_text(
-            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[1]),
-            encoding="utf-8",
-        )
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[1]), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[1]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / WORKFLOW
-        path.write_text(
-            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[2], "        run: python3 other.py --self-test"),
-            encoding="utf-8",
-        )
+        path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[2], "        run: python3 other.py --self-test"), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_WORKFLOW_HOOKS", REQUIRED_WORKFLOW_LINES[2]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / WORKFLOW
-        path.write_text(
-            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[3]),
-            encoding="utf-8",
-        )
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[3]), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[3]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / WORKFLOW
-        path.write_text(
-            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[4], "        run: zig test scripts/zigux/other.zig"),
-            encoding="utf-8",
-        )
+        path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[4], "        run: zig test scripts/zigux/other.zig"), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_WORKFLOW_HOOKS", REQUIRED_WORKFLOW_LINES[4]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / WORKFLOW
-        path.write_text(
-            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[5]),
-            encoding="utf-8",
-        )
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[5]), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[5]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / CLOSURE
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(REQUIRED_CLOSURE_MARKERS[0], "", 1),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CLOSURE_MARKERS[0], "", 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_CLOSURE_MARKERS", REQUIRED_CLOSURE_MARKERS[0]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / CLOSURE
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(REQUIRED_CLOSURE_MARKERS[1], "", 1),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CLOSURE_MARKERS[1], "", 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_CLOSURE_MARKERS", REQUIRED_CLOSURE_MARKERS[1]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / CLOSURE
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_CLOSURE_MARKERS[0],
-                REQUIRED_CLOSURE_MARKERS[0] + "\n" + REQUIRED_CLOSURE_MARKERS[0],
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CLOSURE_MARKERS[0], REQUIRED_CLOSURE_MARKERS[0] + "\n" + REQUIRED_CLOSURE_MARKERS[0], 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert (
-            "DUPLICATE_CLOSURE_MARKERS",
-            f"{REQUIRED_CLOSURE_MARKERS[0]}:count=2:expected=1",
-        ) in issues
+        assert ("DUPLICATE_CLOSURE_MARKERS", f"{REQUIRED_CLOSURE_MARKERS[0]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / CLOSURE
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_CLOSURE_MARKERS[1],
-                REQUIRED_CLOSURE_MARKERS[1] + "\n" + REQUIRED_CLOSURE_MARKERS[1],
-                1,
-            ),
-            encoding="utf-8",
-        )
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CLOSURE_MARKERS[1], REQUIRED_CLOSURE_MARKERS[1] + "\n" + REQUIRED_CLOSURE_MARKERS[1], 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert (
-            "DUPLICATE_CLOSURE_MARKERS",
-            f"{REQUIRED_CLOSURE_MARKERS[1]}:count=2:expected=1",
-        ) in issues
+        assert ("DUPLICATE_CLOSURE_MARKERS", f"{REQUIRED_CLOSURE_MARKERS[1]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
@@ -740,10 +528,7 @@ def run_self_test() -> int:
         payload["kconfig_confdata_bridge_packet"] = "zigux/tests/fixtures/kconfig_bridge/other_manifest.json"
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert (
-            "INVALID_TOOL_MANIFEST_PACKET",
-            "kconfig_confdata_bridge_packet='zigux/tests/fixtures/kconfig_bridge/other_manifest.json'",
-        ) in issues
+        assert ("INVALID_TOOL_MANIFEST_PACKET", "kconfig_confdata_bridge_packet='zigux/tests/fixtures/kconfig_bridge/other_manifest.json'") in issues
         cases += 1
 
     assert cases == EXPECTED_SELF_TEST_CASE_COUNT
@@ -753,9 +538,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Check that the Phase 2 kconfig replay guard stays wired into the shared gate surface."
-    )
+    parser = argparse.ArgumentParser(description="Check that the Phase 2 kconfig replay guard stays wired into the shared gate surface.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
