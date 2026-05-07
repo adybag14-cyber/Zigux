@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
-- `PHASE9_LANE_KEY=P9-Y02`
+- `PHASE9_LANE_KEY=P9-L08`
 - scope: lifecycle starter, sample-side loader scaffold, focused top-bit companion replay, bitmap range mutation and copy behavior, bounded differential coverage, dedicated Phase 9 survey and test wiring, the shared runtime-loader facade plus allocator/init-flow contract replay, the shared request-surface proof including initialized-stage shared-request snapshot stability, prepared selftest-hook and shared-plan drift proofs, and release-order synchronization proof, the dedicated lane-sequencing owner map, and lane-local survey-note plus manifest closure only
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
