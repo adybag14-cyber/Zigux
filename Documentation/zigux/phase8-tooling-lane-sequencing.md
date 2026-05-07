@@ -70,9 +70,9 @@ The next honest symbol reopen should stay helper-local, such as one fresh symbol
 ### 3. Libbpf helper lane: parked unless a tighter same-lane gap appears
 Use this lane for bounded work inside the current `tools/lib/bpf/zigux_segments/` helper family and its paired tests and surveys.
 
-Legacy validator continuity marker: `### 3. Libbpf helper lane: the current active Phase 8 implementation surface` still names this shared owner lane even though the helper-family packet itself is parked between bounded follow-ups.
+Legacy validator continuity marker: older Phase 8 checker readbacks may still mention `### 3. Libbpf helper lane: the current active Phase 8 implementation surface`, but that phrase is retained only as compatibility context, not as the live lane heading.
 
-This heading stays stable for shared validator continuity, and the live helper-family packet itself is currently parked after the landed file-path bridge, perf-buffer poll, and shared tests-root reminder updates. Reopen it only when a smaller same-lane libbpf helper, validator, checker, survey, README, or wording gap is visible again.
+The live heading for this lane is the parked wording above, and the helper-family packet itself remains parked after the landed file-path bridge, perf-buffer poll, and shared tests-root reminder updates. Reopen it only when a smaller same-lane libbpf helper, validator, checker, survey, README, or wording gap is visible again.
 
 Current parked review packet:
 - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
