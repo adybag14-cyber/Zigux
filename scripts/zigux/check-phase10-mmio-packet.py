@@ -27,8 +27,8 @@ FILES = [
 EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_mmio_module",
     "phase10_virtio_mmio_survey_module",
-    '"phase10-virtio-mmio-tests"',
-    '"phase10-virtio-mmio-survey-tests"',
+    '\"phase10-virtio-mmio-tests\"',
+    '\"phase10-virtio-mmio-survey-tests\"',
     "run_phase10_virtio_mmio_tests.step",
     "run_phase10_virtio_mmio_survey_tests.step",
 ]
@@ -43,10 +43,12 @@ EXPECTED_MAKEFILE_MARKERS = [
 EXPECTED_HELPER_MARKERS = [
     "pub const ConfigWritePlanSummary = struct {",
     "pub const ConfigWriteDispositionSummary = struct {",
+    "pub const FeatureNegotiationSummary = struct {",
     "pub const TransportIdentitySummary = struct {",
     "pub const SelectedQueueReadinessSummary = struct {",
     "pub fn planConfigWriteOffset(self: *Self, offset: u32, planned_value: u32) !ConfigWritePlanSummary {",
     "pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary {",
+    "pub fn featureNegotiationSummary(self: *const Self) FeatureNegotiationSummary {",
     "pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {",
     "pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary {",
     "pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {",
@@ -55,6 +57,7 @@ EXPECTED_HELPER_MARKERS = [
 EXPECTED_TEST_MARKERS = [
     'test "phase10 virtio mmio plans a bounded config-word write without mutating config space" {',
     'test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {',
+    'test "phase10 virtio mmio summarizes bounded feature negotiation before lifecycle work" {',
     'test "phase10 virtio mmio summarizes transport identity before lifecycle work" {',
     'test "phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work" {',
     'test "phase10 virtio mmio keeps the legacy probe preflight path ready when transport identity stays aligned" {',
@@ -80,7 +83,8 @@ EXPECTED_SURVEY_TEST_MARKERS = [
     'try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_ring_verify.zig") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_input_verify.zig") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, slice_note, "selected-queue readiness summary") != null);',
-    'try std.testing.expect(starter_landed_count >= 16);',
+    'try std.testing.expect(starter_landed_count >= 17);',
+    "var saw_mmio_feature_negotiation = false;",
     "var saw_mmio_transport_identity = false;",
     "var saw_mmio_selected_queue_readiness = false;",
 ]
@@ -126,6 +130,7 @@ EXPECTED_GAPS = {
     "phase10-mmio-queue-size-helper": "starter_landed",
     "phase10-virtio-mmio-slice-note": "starter_landed",
     "phase10-mmio-feature-word-selector-helper": "starter_landed",
+    "phase10-mmio-feature-negotiation-summary-helper": "starter_landed",
     "phase10-mmio-config-window-helper": "starter_landed",
     "phase10-mmio-config-write-plan-helper": "starter_landed",
     "phase10-mmio-transport-identity-helper": "starter_landed",
@@ -173,10 +178,12 @@ test_step.dependOn(&run_phase10_virtio_mmio_survey_tests.step);
 """,
     "drivers/virtio/virtio_mmio.zig": """pub const ConfigWritePlanSummary = struct {};
 pub const ConfigWriteDispositionSummary = struct {};
+pub const FeatureNegotiationSummary = struct {};
 pub const TransportIdentitySummary = struct {};
 pub const SelectedQueueReadinessSummary = struct {};
 pub fn planConfigWriteOffset(self: *Self, offset: u32, planned_value: u32) !ConfigWritePlanSummary { _ = self; _ = offset; _ = planned_value; return .{}; }
 pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary { _ = self; return .{}; }
+pub fn featureNegotiationSummary(self: *const Self) FeatureNegotiationSummary { _ = self; return .{}; }
 pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary { _ = self; return .{}; }
 pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary { _ = self; return .{}; }
 pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self; return .{}; }
@@ -185,6 +192,7 @@ pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self
     "drivers/virtio/virtio_input_verify.zig": 'test "virtio input verify fixture" {}\n',
     "zigux/tests/phase10_virtio_mmio.zig": """test "phase10 virtio mmio plans a bounded config-word write without mutating config space" {}
 test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {}
+test "phase10 virtio mmio summarizes bounded feature negotiation before lifecycle work" {}
 test "phase10 virtio mmio summarizes transport identity before lifecycle work" {}
 test "phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work" {}
 test "phase10 virtio mmio keeps the legacy probe preflight path ready when transport identity stays aligned" {}
@@ -208,7 +216,8 @@ test "phase10 virtio mmio summarizes selected-queue readiness before queue hando
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_ring_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_input_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "selected-queue readiness summary") != null);
-    try std.testing.expect(starter_landed_count >= 16);
+    try std.testing.expect(starter_landed_count >= 17);
+    var saw_mmio_feature_negotiation = false;
     var saw_mmio_transport_identity = false;
     var saw_mmio_selected_queue_readiness = false;
 }
@@ -280,6 +289,7 @@ test "phase10 virtio mmio summarizes selected-queue readiness before queue hando
                 {"id": "phase10-mmio-queue-size-helper", "status": "starter_landed"},
                 {"id": "phase10-virtio-mmio-slice-note", "status": "starter_landed"},
                 {"id": "phase10-mmio-feature-word-selector-helper", "status": "starter_landed"},
+                {"id": "phase10-mmio-feature-negotiation-summary-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-config-window-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-config-write-plan-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-transport-identity-helper", "status": "starter_landed"},
@@ -440,11 +450,11 @@ def run_self_test() -> int:
         build_path = tmp_root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
-            original_build.replace('"phase10-virtio-mmio-survey-tests"', '"phase10-virtio-mmio-survey-drift"', 1),
+            original_build.replace('\"phase10-virtio-mmio-survey-tests\"', '\"phase10-virtio-mmio-survey-drift\"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'build:"phase10-virtio-mmio-survey-tests"' not in missing_markers:
+        if 'build:\"phase10-virtio-mmio-survey-tests\"' not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_build_survey_marker_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
