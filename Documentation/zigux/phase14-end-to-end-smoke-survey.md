@@ -9,6 +9,7 @@ This document records the shared Phase 14 smoke lane that keeps the current stud
 - `PHASE14_SHARED_LANE=P14-L07`
 - `PHASE14_SHARED_REPLAY_PRESENT=yes`
 - `PHASE14_SMOKE_SHARD_PRESENT=yes`
+- `PHASE14_VALIDATE_SELF_TEST=python3 scripts/zigux/validate-phase14.py --self-test`
 - `PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate`
 - `PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py`
 - `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`
@@ -66,6 +67,7 @@ Within that packet, `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay e
 
 Shared smoke commands:
 
+- `python3 scripts/zigux/validate-phase14.py --self-test`
 - `make -C zigux phase14-validate`
 - `make -C zigux phase14-smoke`
 - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
@@ -98,6 +100,7 @@ Anchor packets in the current smoke bundle:
 ## Shared Smoke Findings
 
 - `zigux/Makefile`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and this smoke note align on the shipped validator, focused smoke shard, shared full-bundle replay, and convenience wrapper for the current study-only packet.
+- `scripts/zigux/validate-phase14.py --self-test` now gives the shared smoke packet a direct validator-local replay route for the built-in checker-failure coverage, so the silent-failure proof inside the validator no longer stays implicit behind the broader `make -C zigux phase14-validate` path.
 - `scripts/zigux/check-phase14-docs-root-smoke-summary.py` now also keeps this shared smoke note and the manifest-backed packet inventory tied to the shipped `phase14-validate` route instead of leaving the docs-root smoke-summary checker implicit in `zigux/Makefile` alone.
 - `Documentation/zigux/phase14-core-boundary-traceability.md` keeps the current ring-buffer, skbuff, and RCU lane keys, surveyed commits, ready-next posture, blocked gaps, and stay-in-C decisions visible in one cross-anchor note instead of leaving that boundary evidence to separate lane notes or run memory alone.
 - `zigux/tests/phase14_build.zig` keeps one dedicated smoke shard for `phase14-end-to-end-smoke-tests`, while the four anchor-local artifacts remain `full_bundle_only` under the broader Phase 14 test replay.
@@ -109,7 +112,7 @@ Anchor packets in the current smoke bundle:
 
 - named owner: `Core-Adjacent Pod`
 - status bucket: `study_only`
-- validation gate: `make -C zigux phase14-validate && make -C zigux phase14-smoke && make -C zigux phase14-test && make -C zigux phase14`
+- validation gate: `python3 scripts/zigux/validate-phase14.py --self-test && make -C zigux phase14-validate && make -C zigux phase14-smoke && make -C zigux phase14-test && make -C zigux phase14`
 - rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`
 - review blocker status: `blocked_on_stay_in_c_evidence`
 
@@ -136,17 +139,19 @@ This shared smoke slice does not claim:
 
 ## Gates
 
-1. Run the shared validator.
+1. Run the validator self-test.
+   `python3 scripts/zigux/validate-phase14.py --self-test`
+2. Run the shared validator.
    `make -C zigux phase14-validate`
-2. Run the focused smoke shard.
+3. Run the focused smoke shard.
    `make -C zigux phase14-smoke`
    `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
-3. Run the shared full-bundle replay.
+4. Run the shared full-bundle replay.
    `make -C zigux phase14-test`
    `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
-4. Run the convenience wrapper.
+5. Run the convenience wrapper.
    `make -C zigux phase14`
-5. Use the attached-toolchain fallback only when `zig` is not already on `PATH`.
+6. Use the attached-toolchain fallback only when `zig` is not already on `PATH`.
    `make -C zigux phase14-validate ZIG=/absolute/path/to/attached-zig/zig`
    `make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig`
    `make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig`
