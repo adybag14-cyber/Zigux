@@ -84,6 +84,14 @@ test "phase11 bcm2835_wdt survey manifest, shared contract, and validation matri
     );
     defer std.testing.allocator.free(slice_doc);
 
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -124,16 +132,18 @@ test "phase11 bcm2835_wdt survey manifest, shared contract, and validation matri
     try std.testing.expect(std.mem.indexOf(u8, contract_doc, "`zigux/tests/phase11_bcm2835_wdt_survey.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, contract_doc, "The active watchdog validation packets also stay explicit beside that shared route:") != null);
     try std.testing.expect(std.mem.indexOf(u8, contract_doc, "- bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contract_doc, "`make -C zigux phase11`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, expected_commit_pin) != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "latest focused replays: `zig test zigux/tests/phase11_bcm2835_wdt.zig`, `zig test drivers/watchdog/bcm2835_wdt_verify.zig`, and `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still pass for the bounded bcm2835 packet on current `master`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "shared replay boundary: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` still includes `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "shared replay boundary: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` still includes `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`, and the shipped wrapper `make -C zigux phase11` still routes through that same shared packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "## Shared Replay Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-bcm2835-wdt-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-bcm2835-wdt-verify-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-bcm2835-wdt-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "make -C zigux phase11") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_bcm2835_wdt_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "watchdog metadata surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "WDIOF_SETTIMEOUT") != null);
@@ -157,7 +167,7 @@ test "phase11 bcm2835_wdt survey manifest, shared contract, and validation matri
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "small poweroff-path summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tiny registration-outcome summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tiny platform-registration or PM-base handoff summary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/tests/phase11_build.zig` still compiles and runs the gpio starter checks, the bcm2835 starter checks, and the bcm2835 survey check together") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/tests/phase11_build.zig` still compiles and runs the gpio starter checks, the `phase11-bcm2835-wdt-tests` starter replay, the `phase11-bcm2835-wdt-verify-tests` verify replay, and the `phase11-bcm2835-wdt-survey-tests` survey replay together, and `make -C zigux phase11` still replays that same shared packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the archival survey now carries `P11-L08` packet identity so the bcm2835 watchdog review record stays traceable alongside the live manifest, survey gate, and validator ownership for the current lane key") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`P11-L05`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Any later move into live platform registration, PM base plumbing, or shared poweroff-handler coordination should stay blocked") != null);
@@ -168,4 +178,8 @@ test "phase11 bcm2835_wdt survey manifest, shared contract, and validation matri
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff callback only when `pm_power_off` still points at `bcm2835_power_off`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "register-image transition coverage") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "remaining gap is a later hardware-facing decision about whether to model any live platform registration or PM base plumbing") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase11: phase11-contract phase11-test phase11-hvc-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase11-test:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase11-contract:") != null);
 }
