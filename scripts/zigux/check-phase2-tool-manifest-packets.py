@@ -51,7 +51,7 @@ REQUIRED_CLOSURE_MARKERS = [
 REQUIRED_BOOTSTRAP_MARKERS = [
     "- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`",
     "- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`",
-    "- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator",
+    "- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, `.github/workflows/zigux-bootstrap.yml`, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator",
 ]
 REQUIRED_SCRIPTS_README_LINES = [
     "- `check-phase2-tool-manifest-packets.py`",
@@ -378,6 +378,13 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         bootstrap_path = root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
+        bootstrap_text = bootstrap_path.read_text(encoding="utf-8").replace(REQUIRED_BOOTSTRAP_MARKERS[2] + "\n", "", 1)
+        write_text(bootstrap_path, bootstrap_text)
+        issues = validate_root(root)
+        assert f"bootstrap_marker:{REQUIRED_BOOTSTRAP_MARKERS[2]}" in issues
+
+        build_self_test_root(root)
+        bootstrap_path = root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
         bootstrap_text = bootstrap_path.read_text(encoding="utf-8") + REQUIRED_BOOTSTRAP_MARKERS[0] + "\n"
         write_text(bootstrap_path, bootstrap_text)
         issues = validate_root(root)
@@ -426,21 +433,21 @@ def run_self_test() -> int:
         assert f"makefile_line:{REQUIRED_MAKEFILE_LINES[0]}:count=2:expected=1" in issues
 
         build_self_test_root(root)
-        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_path = root / ".github" / "workflows" / "zigux-bootstrap.yml"
         workflow_text = workflow_path.read_text(encoding="utf-8").replace(REQUIRED_WORKFLOW_LINES[1] + "\n", "", 1)
         write_text(workflow_path, workflow_text)
         issues = validate_root(root)
         assert f"workflow_line:{REQUIRED_WORKFLOW_LINES[1]}:count=0:expected=1" in issues
 
         build_self_test_root(root)
-        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_path = root / ".github" / "workflows" / "zigux-bootstrap.yml"
         workflow_text = workflow_path.read_text(encoding="utf-8") + REQUIRED_WORKFLOW_LINES[1] + "\n"
         write_text(workflow_path, workflow_text)
         issues = validate_root(root)
         assert f"workflow_line:{REQUIRED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
 
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=24")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
