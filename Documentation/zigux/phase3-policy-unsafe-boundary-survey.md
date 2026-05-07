@@ -66,9 +66,10 @@ That means this lane remains note-and-marker maintenance inside the shared ABI p
 
 ## Current Boundary Gap
 
-Current same-family progress already includes two helper-local byte-policy tightenings:
+Current same-family progress already includes three helper-local byte-policy tightenings:
 
 - the panic helper now decodes ABI panic-mode bytes explicitly instead of forcing raw-byte callers to re-map `.abort`, `.bug`, and `.warn` elsewhere in the packet
+- the allocator helper now decodes ABI allocator-mode bytes explicitly instead of forcing raw-byte callers to rediscover caller-ownership and global-fallback policy elsewhere in the packet
 - the narrow unsafe helper now decodes the ABI unsafe-scope bytes explicitly instead of leaving reserved-byte and unknown-scope handling implicit
 - the remaining same-lane gap is still the absence of a dedicated focused replay pair beyond the shared ABI packet, not a need for a broader runtime policy subsystem
 
