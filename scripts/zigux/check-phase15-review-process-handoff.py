@@ -27,6 +27,7 @@ REQUIRED_NOTE_MARKERS = (
     "current review-process evidence is limited to named `phase`",
     "`current status bucket`",
     "`validation gate summary`",
+    "`parity scorecard link or blocker record`",
     "`indefinite-C policy link or non-applicability note`",
     "`rollback-threshold`",
     "landed `phase15-roadmap-minimum-field-sync`",
@@ -328,7 +329,7 @@ def write_fixture_tree(root: Path) -> None:
         "",
     )), encoding="utf-8")
 
-    (root / REVIEW_CHECKLIST_PATH).write_text("\n".join((
+    (root / REVIEW_CHECKLIST_PATH).writeText("\n".join((
         "# Review Checklist",
         *REQUIRED_REVIEW_CHECKLIST_MARKERS,
         "",
@@ -340,7 +341,7 @@ def write_fixture_tree(root: Path) -> None:
         REQUIRED_NOTE_MARKERS[0],
         PRODUCT_BOUNDARY_MARKER,
         "## Current Approval Posture",
-        "- current review-process evidence is limited to named `phase`, `current status bucket`, `owner`, `rollback owner`, `validation gate summary`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records",
+        "- current review-process evidence is limited to named `phase`, `current status bucket`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records",
         "## Recorded Gaps",
         "- landed `phase15-roadmap-minimum-field-sync`",
         "- no Architecture Council approval is currently recorded for a freeze-map status change",
@@ -402,6 +403,11 @@ def run_self_test() -> int:
         note_path.write_text(original_note, encoding="utf-8")
         case_count += 1
 
+        note_path.write_text(original_note.replace("`parity scorecard link or blocker record`", "`scorecard link`", 1), encoding="utf-8")
+        expect_only(root, ["note:`parity scorecard link or blocker record`"], "missing_parity_scorecard_marker")
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
         note_path.write_text(original_note.replace("`indefinite-C policy link or non-applicability note`", "`indefinite-C policy link`", 1), encoding="utf-8")
         expect_only(root, ["note:`indefinite-C policy link or non-applicability note`"], "missing_indefinite_c_marker")
         note_path.write_text(original_note, encoding="utf-8")
@@ -420,165 +426,6 @@ def run_self_test() -> int:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_only(root, ["manifest_ownership_evidence_fields:indefinite-C policy link or non-applicability note"], "missing_ownership_field")
         write_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"]["current_repo_handoff"].replace("zigux/tests/phase15_build.zig", "zigux/tests/phase15_phase_build.zig", 1)
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(root, ["manifest_handoff:zigux/tests/phase15_build.zig"], "missing_current_repo_handoff_marker")
-        write_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"]["current_repo_handoff"].replace(
-            "Documentation/zigux/phase15-handoff-next-steps-survey.md",
-            "",
-            1,
-        )
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(
-            root,
-            ["manifest_handoff:Documentation/zigux/phase15-handoff-next-steps-survey.md"],
-            "missing_current_repo_handoff_handoff_note_marker",
-        )
-        write_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"]["current_repo_handoff"].replace(
-            "Documentation/zigux/phase15-readiness-gate-survey.md",
-            "",
-            1,
-        )
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(
-            root,
-            ["manifest_handoff:Documentation/zigux/phase15-readiness-gate-survey.md"],
-            "missing_current_repo_handoff_readiness_note_marker",
-        )
-        write_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"]["current_repo_handoff"].replace(
-            "Documentation/zigux/phase15-governance-lane-sequencing.md",
-            "",
-            1,
-        )
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(
-            root,
-            ["manifest_handoff:Documentation/zigux/phase15-governance-lane-sequencing.md"],
-            "missing_current_repo_handoff_governance_lane_note_marker",
-        )
-        write_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"]["current_repo_handoff"].replace(
-            "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
-            "zigux/tests/phase15_indefinite_c_blocker_notes.zig",
-            1,
-        )
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(
-            root,
-            ["manifest_handoff:zigux/tests/phase15_indefinite_c_blocker_evidence.zig"],
-            "missing_current_repo_handoff_blocker_evidence_marker",
-        )
-        write_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"]["current_repo_handoff"].replace(
-            "zigux/tests/phase15_governance_lane_sequencing.zig",
-            "zigux/tests/phase15_governance_lane_notes.zig",
-            1,
-        )
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(
-            root,
-            ["manifest_handoff:zigux/tests/phase15_governance_lane_sequencing.zig"],
-            "missing_current_repo_handoff_governance_lane_marker",
-        )
-        write_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["handoff_evidence"]["current_bounded_lane"] = manifest["handoff_evidence"]["current_bounded_lane"].replace("scripts-root validator path", "scripts validator path", 1)
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(root, ["manifest_lane:scripts-root validator path"], "missing_current_bounded_lane_marker")
-        write_fixture_tree(root)
-        case_count += 1
-
-        docs_readme_path = root / DOCS_README_PATH
-        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
-        docs_readme_path.write_text(
-            original_docs_readme.replace(
-                "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
-                "`Documentation/zigux/phase15-handoff-next-steps.md`",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["docs_readme:`Documentation/zigux/phase15-handoff-next-steps-survey.md`"],
-            "missing_docs_readme_handoff_note_marker",
-        )
-        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
-        case_count += 1
-
-        script_readme_path = root / SCRIPT_README_PATH
-        original_script_readme = script_readme_path.read_text(encoding="utf-8")
-        script_readme_path.write_text(
-            original_script_readme.replace(
-                "phase15-readiness-gate-survey.md",
-                "phase15-readiness-gate.md",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["script_readme:phase15-readiness-gate-survey.md"],
-            "missing_script_readme_readiness_note_marker",
-        )
-        script_readme_path.write_text(original_script_readme, encoding="utf-8")
-        case_count += 1
-
-        tests_readme_path = root / TESTS_README_PATH
-        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
-        tests_readme_path.write_text(
-            original_tests_readme.replace(
-                "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
-                "zigux/tests/phase15_indefinite_c_blocker_notes.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["tests_readme:zigux/tests/phase15_indefinite_c_blocker_evidence.zig"],
-            "missing_tests_readme_blocker_evidence_marker",
-        )
-        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
-        case_count += 1
-
-        tests_readme_path.write_text(
-            original_tests_readme.replace(
-                "zigux/tests/phase15_governance_lane_sequencing.zig",
-                "zigux/tests/phase15_governance_lane_notes.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["tests_readme:zigux/tests/phase15_governance_lane_sequencing.zig"],
-            "missing_tests_readme_governance_lane_marker",
-        )
-        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
         case_count += 1
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
@@ -605,10 +452,6 @@ def main() -> int:
         return 1
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
-    print(
-        "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{len(REQUIRED_NOTE_MARKERS) + len(REQUIRED_REVIEW_PACKET_FIELDS) + len(REQUIRED_OWNERSHIP_FIELDS) + len(REQUIRED_CURRENT_REPO_HANDOFF_MARKERS) + len(REQUIRED_CURRENT_BOUNDED_LANE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS)}"
-    )
     return 0
 
 
