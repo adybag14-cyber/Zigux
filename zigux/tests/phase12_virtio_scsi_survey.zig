@@ -307,7 +307,7 @@ test "phase12 virtio_scsi slice note keeps the rollback drill explicit" {
     }
 }
 
-test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped build-only replay surface" {
+test "phase12 virtio scsi raw fallback catalog stays aligned with the shipped build-only replay surface" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -393,4 +393,52 @@ test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped bu
         @as(usize, 1),
         std.mem.count(u8, catalog, "4. `make -C zigux phase12`"),
     );
+}
+
+test "phase12 virtio scsi shared release packet keeps rollback evidence explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const release_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-release-sequencing.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(release_note);
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    const release_fragments = [_][]const u8{
+        "The current storage-lane rollback drill is a bounded `virtio_scsi` lab surface, not a tranche-wide recovery claim.",
+        "`Documentation/zigux/phase12-virtio-scsi-slice.md` now records a lab-only freeze or restore boundary",
+        "reversible-delivery scaffolding",
+        "the bounded storage rollback drill is reviewable release evidence",
+    };
+
+    for (release_fragments) |fragment| {
+        try expectContains(release_note, fragment);
+    }
+
+    const checklist_fragments = [_][]const u8{
+        "`Documentation/zigux/phase12-virtio-scsi-slice.md`",
+        "`Documentation/zigux/phase12-virtio-scsi-survey.md`",
+        "`zigux/tests/phase12_virtio_scsi.zig`",
+        "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
+        "`zigux/tests/phase12_virtio_scsi_manifest.json`",
+        "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
+        "`make -C zigux phase12-smoke`",
+        "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+        "`make -C zigux phase12`",
+    };
+
+    for (checklist_fragments) |fragment| {
+        try expectContains(review_checklist, fragment);
+    }
 }
