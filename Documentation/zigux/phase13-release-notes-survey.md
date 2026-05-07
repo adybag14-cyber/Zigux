@@ -35,6 +35,8 @@ The shipped `lib/devres.zig` lab plus the paired `zigux/tests/phase13_devres.zig
 
 The same validator-first release route on current `master` also reruns `scripts/zigux/check-phase13-landlock-ruleset-packet.py` beside the shared release validator and the `devres` packet checker, so the helper-only ruleset blockers stay explicit without turning that dedicated packet guard into an eighth shared replay step.
 
+`Documentation/zigux/phase13-shared-helper-lane-sequencing.md` stays paired with that shipped release packet as the owner map for the active `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` helper families. It keeps the shared validator-first route, the seven-test build-backed replay, and the adjacent notifier evidence from collapsing into one ownerless Phase 13 surface just because those helpers now travel through the same release-facing packet on `master`.
+
 ## Adjacent release evidence
 
 These files are shipped adjacent release-surface evidence on `master`, but they do not add extra shared replay steps beyond the seven-test route above:
