@@ -49,7 +49,7 @@ This lane should stay inside filesystem-helper delivery or packet-local truthful
 
 Owns `lib/devres.zig` when the work is to add or validate direct helper behavior such as managed ioremap planners, wrapper entry points, memtype bookkeeping, or retained cleanup-token shaping.
 
-That lane may update narrowly coupled direct helper checks, but it should not reopen the survey note, manifest, DMA-boundary replay, or checker wording unless the current packet would otherwise become false on `master`.
+That lane may update narrowly coupled direct helper checks, but it should not reopen the survey note, manifest, DMA-boundary replay, exact boundary-evidence replay, or checker wording unless the current packet would otherwise become false on `master`.
 
 ### `devres` packet-truthfulness lane
 
@@ -57,6 +57,7 @@ Owns the `devres` packet surfaces when the work is to keep the current Phase 13 
   * `zigux/tests/phase13_devres.zig`
   * `zigux/tests/phase13_devres_reviewability.zig`
   * `zigux/tests/phase13_devres_dma_coherent.zig`
+  * `zigux/tests/phase13_devres_boundary_evidence.zig`
   * `zigux/tests/phase13_devres_manifest.json`
   * `Documentation/zigux/phase13-devres-slice.md`
   * `Documentation/zigux/phase13-devres-survey.md`
