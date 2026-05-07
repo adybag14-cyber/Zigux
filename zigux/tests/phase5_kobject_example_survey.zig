@@ -201,6 +201,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         "manifest-backed replay",
         "keep sysfs creation, `kernel_kobj` integration, uevents, and module-registration claims out of scope",
         "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "make -C zigux phase5-test",
         "`samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
         "shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too",
     };
