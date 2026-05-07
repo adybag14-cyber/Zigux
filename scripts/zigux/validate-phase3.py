@@ -37,6 +37,11 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/check-phase3-policy-byte-guards.py",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
 )
@@ -369,6 +374,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+        (paths.tests_dir / "phase3_low_level_wrappers.zig").writeText if False else None
         (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
             "\n".join([*LOW_LEVEL_WRAPPER_REQUIRED_MARKERS, ""]),
             encoding="utf-8",
