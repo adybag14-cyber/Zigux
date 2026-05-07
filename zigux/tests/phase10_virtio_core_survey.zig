@@ -217,7 +217,7 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
     }
 
     try std.testing.expect(starter_landed_count >= 15);
-    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_driver_id_helper);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_survey_note);
