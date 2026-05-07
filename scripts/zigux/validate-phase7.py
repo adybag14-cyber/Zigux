@@ -347,6 +347,10 @@ EXACT_COUNT_MARKERS = {
     "zigux/tests/phase7_string_helpers_survey.zig": [
         ("Documentation/zigux/phase7-string-helpers-slice.md", 1),
         ("zigux/tests/phase7_string_helpers.zig", 1),
+        ("zigux/tests/phase7_string_helpers_sample_boundary.zig", 1),
+        ("scripts/zigux/validate-phase7.py", 1),
+        ("zigux/tests/phase7_build.zig", 1),
+        ("scripts/zigux/check-phase7-build-wiring.py", 1),
         ("phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds", 1),
         ("phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned", 1),
         ("phase 7 kstrdupQuotable frees the owned copy when allocation fails", 1),
