@@ -81,6 +81,7 @@ The current tests check:
 - a direct 30-case C-vs-Zig replay for compute, seeded partial, composition, IPv4 and IPv6 pseudo-header, direct `negate`, direct `from32to16` and `fold`, and incremental replacement behavior
 - helper-local wraparound, double-negation, and one's-complement carry checks for `negate`
 - helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop
+- the live perf fixture matrix keeps `64B` at `iterations = 200_000` and `1501B` at `iterations = 12_000`, with `max_slowdown_pct = 150` for both cases
 
 The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place, borrows a small carry-discipline shape from `lib/tests/checksum_kunit.c` without claiming a full KUnit surface port, and now pairs that fixture corpus with a direct external C replay so reviewable parity does not stop at Zig-only expectations.
 
