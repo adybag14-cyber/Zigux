@@ -134,3 +134,38 @@ test "virtio ring clearBroken exposes the next reset blocker instead of hiding q
     try testing.expectEqual(@as(u16, 1), readiness.pending_used_chain_count);
     try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, readiness.blocker.?);
 }
+
+test "virtio ring packed event-index summary stays queue-local and reports when polling can wait" {
+    var lab = virtio_ring.VirtioRingLab{};
+    try lab.defineQueue(1, 8, .split, true, false);
+    try testing.expectError(error.QueueLayoutDoesNotSupportPackedEventIndex, lab.packedEventIndexSummary(1));
+
+    try lab.defineQueue(2, 8, .packed_ring, false, true);
+    try testing.expectError(error.QueueDoesNotUseEventIndex, lab.packedEventIndexSummary(2));
+
+    try lab.defineQueue(3, 8, .packed_ring, true, true);
+    inline for (0..4) |_| {
+        try lab.publishDescriptorChain(3);
+    }
+    _ = try lab.prepareKick(3);
+    try lab.recordUsedChains(3, 1);
+    try lab.disableCallback(3);
+
+    var summary = try lab.packedEventIndexSummary(3);
+    try testing.expect(summary.callback_enabled);
+    try testing.expectEqual(@as(u16, 1), summary.pending_used_chain_count);
+    try testing.expectEqual(@as(u16, 3), summary.outstanding_chain_count);
+    try testing.expectEqual(@as(u16, 3), summary.event_index_window);
+    try testing.expectEqual(@as(u16, 4), summary.event_index_target_idx);
+    try testing.expect(!summary.should_poll);
+
+    try lab.disableCallback(3);
+    try lab.recordUsedChains(3, 2);
+    summary = try lab.packedEventIndexSummary(3);
+    try testing.expect(summary.callback_enabled);
+    try testing.expectEqual(@as(u16, 3), summary.pending_used_chain_count);
+    try testing.expectEqual(@as(u16, 1), summary.outstanding_chain_count);
+    try testing.expectEqual(@as(u16, 1), summary.event_index_window);
+    try testing.expectEqual(@as(u16, 4), summary.event_index_target_idx);
+    try testing.expect(summary.should_poll);
+}
