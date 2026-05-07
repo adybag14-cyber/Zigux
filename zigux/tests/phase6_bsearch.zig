@@ -48,6 +48,10 @@ fn compareDescendingU32(key: *const u32, item: *const u32) i32 {
     };
 }
 
+fn compareDescendingU32Alias(key: *const u32, item: *const u32) i32 {
+    return compareDescendingU32(key, item);
+}
+
 fn compareDescendingU32C(key: *const u32, item: *const u32) callconv(.c) i32 {
     return compareDescendingU32(key, item);
 }
@@ -56,6 +60,10 @@ fn compareDescendingOpaqueU32(key: *const anyopaque, item: *const anyopaque) i32
     const typed_key: *const u32 = @ptrCast(@alignCast(key));
     const typed_item: *const u32 = @ptrCast(@alignCast(item));
     return compareDescendingU32(typed_key, typed_item);
+}
+
+fn compareDescendingOpaqueU32Alias(key: *const anyopaque, item: *const anyopaque) i32 {
+    return compareDescendingOpaqueU32(key, item);
 }
 
 fn compareDescendingOpaqueU32C(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
@@ -471,6 +479,20 @@ test "phase 6 bsearch accepts runtime-selected native comparator pointers" {
     }
 }
 
+test "phase 6 bsearch accepts runtime-selected descending native comparator alias pointers" {
+    const values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
+    const comparators = [_]bsearch.Comparator(u32, u32){ compareDescendingU32, compareDescendingU32Alias };
+
+    for (comparators) |compare| {
+        try std.testing.expectEqual(@as(?usize, 3), bsearch.searchIndex(u32, u32, &@as(u32, 21), values[0..], compare));
+        const found = bsearch.search(u32, u32, &@as(u32, 13), values[0..], compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@as(u32, 13), found.*);
+        try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(found));
+        try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 22), values[0..], compare));
+        try std.testing.expect(bsearch.search(u32, u32, &@as(u32, 22), values[0..], compare) == null);
+    }
+}
+
 test "phase 6 bsearch accepts runtime-selected c abi comparator pointers" {
     const values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
     const ascending_comparators = [_]bsearch.CComparator(u32, u32){ compareU32C, compareU32C };
@@ -507,6 +529,29 @@ test "phase 6 bsearch accepts runtime-selected raw native comparator pointers" {
         try std.testing.expectEqual(
             @as(?usize, null),
             bsearch.bsearchIndex(&@as(u32, 7), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare),
+        );
+    }
+}
+
+test "phase 6 bsearch accepts runtime-selected descending raw native comparator alias pointers" {
+    const values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
+    const comparators = [_]bsearch.RawComparator{ compareDescendingOpaqueU32, compareDescendingOpaqueU32Alias };
+
+    for (comparators) |compare| {
+        try std.testing.expectEqual(
+            @as(?usize, 3),
+            bsearch.bsearchIndex(&@as(u32, 21), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare),
+        );
+        const found = bsearch.bsearch(&@as(u32, 13), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare) orelse return error.TestUnexpectedResult;
+        const typed_found: *const u32 = @ptrCast(@alignCast(found));
+        try std.testing.expectEqual(@as(u32, 13), typed_found.*);
+        try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_found));
+        try std.testing.expectEqual(
+            @as(?usize, null),
+            bsearch.bsearchIndex(&@as(u32, 22), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare),
+        );
+        try std.testing.expect(
+            bsearch.bsearch(&@as(u32, 22), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare) == null,
         );
     }
 }
