@@ -94,10 +94,12 @@ The current tests check:
 - copied-user-buffer, first-NUL-bounded, truncated-count, and short-buffer-fault behavior through `parse_int_array_user()`
 - deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
 - in-place unescape behavior and bounded destination termination
+- exact-fit, terminator-only, and zero-capacity destination handling for `string_unescape()` so the helper's bounded write discipline stays reviewable
 - deterministic escape-space, special, null, octal, and hex output cases
 - dictionary-limited `only` filtering plus `ESCAPE_APPEND` behavior for one newline-focused printable escape proof
 - printable, non-printable, non-ascii, and non-printable-or-non-ascii passthrough filters over a hex-escaped bounded subset
 - truncation accounting that returns the full would-be escaped length without promising an appended terminator
+- zero-capacity escape-destination accounting that still reports the full would-be escaped length without promising an appended terminator
 - one allocator-backed `kasprintf_strarray()` proof that returns sequential `prefix-index` owned strings together with a trailing null-pointer view for C-style callers
 - one `kfree_strarray()` proof that keeps first-NUL prefix handling, zero-count sentinel reuse, repeated teardown, and setup-failure cleanup safe
 - the dedicated survey gate that keeps the roadmap anchor, helper replay, shared build route, and no-string-sample boundary reviewable together
