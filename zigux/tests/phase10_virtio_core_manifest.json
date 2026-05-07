@@ -28,7 +28,7 @@
   "architecture_council_reopen_attached": false,
   "survey_summary": {
     "virtio_c_lines": 730,
-    "preexisting_phase10_test_files": 9,
+    "preexisting_phase10_test_files": 11,
     "preexisting_phase10_build_present": true,
     "preexisting_virtio_core_zig_present": true,
     "preexisting_virtio_core_test_present": true,
