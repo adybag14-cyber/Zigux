@@ -32,6 +32,7 @@ REQUIRED_CHECKER_EXACT_COUNTS = {
 REQUIRED_VALIDATOR_MARKERS = (
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "python3 scripts/zigux/check-kconfig-bridge.py",
     "zig test scripts/zigux/kconfig/conf_bridge.zig",
     "zig test scripts/zigux/kconfig/confdata_bridge.zig",
@@ -39,6 +40,7 @@ REQUIRED_VALIDATOR_MARKERS = (
 REQUIRED_VALIDATOR_EXACT_COUNTS = {
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
+    "python3 scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "python3 scripts/zigux/check-kconfig-bridge.py": 1,
     "zig test scripts/zigux/kconfig/conf_bridge.zig": 1,
     "zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
@@ -68,7 +70,7 @@ REQUIRED_CLOSURE_EXACT_COUNTS = {
     f"`PHASE2_KCONFIG_BRIDGE_CONFDATA_PACKET={CONFDATA_PACKET_PATH}`": 1,
     "`kconfig_confdata_bridge_packet`": 1,
 }
-EXPECTED_SELF_TEST_CASE_COUNT = 36
+EXPECTED_SELF_TEST_CASE_COUNT = 38
 
 
 def read_text(path: Path) -> str:
@@ -196,6 +198,7 @@ def build_self_test_root(root: Path) -> None:
             (
                 "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
                 "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+                "python3 scripts/zigux/check-kconfig-bridge.py --self-test",
                 "python3 scripts/zigux/check-kconfig-bridge.py",
                 "zig test scripts/zigux/kconfig/conf_bridge.zig",
                 "zig test scripts/zigux/kconfig/confdata_bridge.zig",
@@ -385,6 +388,20 @@ def run_self_test() -> int:
         path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[4] + "\n", REQUIRED_VALIDATOR_MARKERS[4] + "\n" + REQUIRED_VALIDATOR_MARKERS[4] + "\n", 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_VALIDATOR_MARKERS", f"{REQUIRED_VALIDATOR_MARKERS[4]}:count=2:expected=1") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[5] + "\n", "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[5]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[5] + "\n", REQUIRED_VALIDATOR_MARKERS[5] + "\n" + REQUIRED_VALIDATOR_MARKERS[5] + "\n", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_VALIDATOR_MARKERS", f"{REQUIRED_VALIDATOR_MARKERS[5]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
