@@ -37,6 +37,7 @@ DOCS_ROOT_MARKERS = [
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+    "scripts/zigux/check-phase3-abi-dump-gate.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
@@ -234,6 +235,7 @@ def run_self_test() -> int:
         assert "docs_root:scripts/zigux/validate_phase3_selftest.py" in issues
         assert "docs_root:scripts/zigux/check-phase3-selftest-surface.py" in issues
         assert "docs_root:scripts/zigux/check-phase3-readme-tooling-inventory.py" in issues
+        assert "docs_root:scripts/zigux/check-phase3-abi-dump-gate.py" in issues
         assert "docs_root:scripts/zigux/check-phase3-catalog-selftest.py" in issues
         assert "docs_root:scripts/zigux/validate-phase3-policy-unsafe-survey.py" in issues
         assert "docs_root:scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in issues
@@ -510,7 +512,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=26")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
