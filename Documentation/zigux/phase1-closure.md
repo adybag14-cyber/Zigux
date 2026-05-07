@@ -166,7 +166,7 @@ For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local undersco
 
 - `tools/lib/find_bit.zig`
 
-That means `test "low-level underscore aliases mirror the primary find helpers"` stays present and review-visible whenever `_find_first_bit()`, `_find_first_and_bit()`, `_find_first_zero_bit()`, `_find_next_bit()`, `_find_next_and_bit()`, or `_find_next_zero_bit()` changes. This helper-local test is the bounded proof that the Linux-style underscore entry points stay behaviorally locked to the primary Zig helpers instead of drifting into a second semantics path.
+That means `test "low-level underscore aliases mirror the primary find helpers"` stays present and review-visible whenever `_find_first_bit()`, `_find_first_and_bit()`, `_find_first_zero_bit()`, `_find_next_bit()`, `_find_next_and_bit()`, `_find_next_zero_bit()`, or `_find_last_bit()` changes. This helper-local test is the bounded proof that the Linux-style underscore entry points stay behaviorally locked to the primary Zig helpers instead of drifting into a second semantics path.
 
 - `PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore alias proof stays explicit through the direct find_bit test anchor so the Linux-style underscore entry points remain behaviorally locked to the primary Zig helpers`
 
