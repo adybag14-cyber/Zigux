@@ -13,6 +13,7 @@ test "phase 8 kallsyms slice note keeps the C-aligned truncation contract explic
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "output-stable tooling behavior"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "one direct `kallsymsParse()` wrapper"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "oversized symbol names now truncate to `KSYM_NAME_LEN`"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "weak-object `V` and `v` classes still follow the current C header contract"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "make -C zigux phase8-help-kallsyms-test"));
 }
 
@@ -28,6 +29,15 @@ test "phase 8 kallsyms direct parser truncates oversized names" {
     const truncated = (try kallsyms.parseLine(oversized_line)) orelse unreachable;
     try std.testing.expectEqual(@as(usize, kallsyms.KSYM_NAME_LEN), truncated.name.len);
     try std.testing.expectEqualStrings(too_long_name[0..kallsyms.KSYM_NAME_LEN], truncated.name);
+}
+
+test "phase 8 kallsyms keeps weak object classes on the current header-backed path" {
+    try std.testing.expectEqual(kallsyms.elf_stb_global, kallsyms.kallsyms2ElfBinding('V'));
+    try std.testing.expectEqual(kallsyms.elf_stb_local, kallsyms.kallsyms2ElfBinding('v'));
+    try std.testing.expectEqual(kallsyms.elf_stt_object, kallsyms.kallsyms2ElfType('V'));
+    try std.testing.expectEqual(kallsyms.elf_stt_object, kallsyms.kallsyms2ElfType('v'));
+    try std.testing.expect(!kallsyms.isFunction('V'));
+    try std.testing.expect(!kallsyms.isFunction('v'));
 }
 
 test "phase 8 kallsyms chunked parser also truncates oversized names" {
