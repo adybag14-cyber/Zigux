@@ -95,6 +95,37 @@ test "phase10 virtio mmio exposes a bounded device-feature selector read window"
     try std.testing.expectError(error.ReadOnlyRegister, device.writeRegister(.device_features, 0));
 }
 
+test "phase10 virtio mmio summarizes bounded feature negotiation before lifecycle work" {
+    var device = try virtio_mmio.VirtioMmioLab.init(42, &[_]u16{ 8, 16 });
+
+    try device.stageDeviceFeatureWord(0, 0xa5a5_0001);
+    try device.stageDeviceFeatureWord(1, 0x5a5a_0002);
+
+    var summary = device.featureNegotiationSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, 0), summary.selected_device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0xa5a5_0001), summary.device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0), summary.driver_features);
+    try std.testing.expect(summary.feature_word_selector_in_range);
+    try std.testing.expect(summary.device_feature_window_ready);
+    try std.testing.expect(summary.driver_feature_register_ready);
+    try std.testing.expect(summary.ready_for_feature_handoff);
+
+    _ = try device.writeRegister(.device_features_sel, 1);
+    _ = try device.writeRegister(.driver_features, 0x55aa_33cc);
+    summary = device.featureNegotiationSummary();
+    try std.testing.expectEqual(@as(u32, 1), summary.selected_device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0x5a5a_0002), summary.device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0x55aa_33cc), summary.driver_features);
+    try std.testing.expect(summary.ready_for_feature_handoff);
+
+    device.selected_device_feature_word = virtio_mmio.feature_word_capacity;
+    summary = device.featureNegotiationSummary();
+    try std.testing.expect(!summary.feature_word_selector_in_range);
+    try std.testing.expectEqual(@as(u32, 0), summary.device_feature_word);
+    try std.testing.expect(!summary.ready_for_feature_handoff);
+}
+
 test "phase10 virtio mmio exposes a bounded config-word window before irq or lifecycle work" {
     var device = try virtio_mmio.VirtioMmioLab.init(52, &[_]u16{ 8, 16 });
 
