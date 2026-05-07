@@ -255,6 +255,16 @@ int main(void)
 	print_u16_case("from32to16", "mixed words preserve the remaining payload", csum_from32to16(0x12345678U));
 	print_u16_case("fold", "mixed words preserve the remaining payload", csum_fold(0x12345678U));
 
+	print_u32_case("unfold", "zero", csum_unfold(0x0000));
+	print_u32_case("unfold", "one", csum_unfold(0x0001));
+	print_u32_case("unfold", "ipv4 header checksum word", csum_unfold(0x9c5d));
+	print_u32_case("unfold", "all ones", csum_unfold(0xffff));
+	print_u16_case("add16", "saturated plus one wraps with carry", csum16_add(0xffff, 0x0001));
+	print_u16_case("add16", "saturated plus zero stays saturated", csum16_add(0xffff, 0x0000));
+	print_u16_case("add16", "saturated plus saturated preserves ones complement", csum16_add(0xffff, 0xffff));
+	print_u16_case("sub16", "zero minus one borrows across ones complement", csum16_sub(0x0000, 0x0001));
+	print_u16_case("sub16", "subtracting a prior addend recovers the original word", csum16_sub(0xbe01, 0xabcd));
+
 	old_partial = partial_bytes(payload, sizeof(payload), 0);
 	old_word = ((uint32_t)payload[0] << 8) | payload[1];
 	payload[0] = 0x12;
