@@ -75,17 +75,6 @@ fn nextConfigLine(input: []const u8, cursor: *usize) ?[]const u8 {
     return remaining;
 }
 
-fn decodeEscapeByte(byte: u8) u8 {
-    return switch (byte) {
-        'n' => '\n',
-        'r' => '\r',
-        't' => '\t',
-        'b' => '\x08',
-        'f' => '\x0c',
-        else => byte,
-    };
-}
-
 fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8 {
     const inner = raw_value[1 .. raw_value.len - 1];
     var decoded = std.ArrayList(u8).empty;
@@ -97,7 +86,7 @@ fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8
         if (byte == '\\') {
             if (index + 1 < inner.len) {
                 index += 1;
-                try decoded.append(allocator, decodeEscapeByte(inner[index]));
+                try decoded.append(allocator, inner[index]);
             }
             continue;
         }
@@ -299,7 +288,7 @@ test "confdata bridge decodes escaped quoted strings" {
     try std.testing.expectEqualStrings("drivers\\zigux", summary.entries[1].value);
 }
 
-test "confdata bridge decodes escaped control sequences in quoted strings" {
+test "confdata bridge strips backslashes from escaped control sequences like upstream confdata" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
         \\CONFIG_TEXT="line\nindent\tmark\bslot\fform\rend"
@@ -309,7 +298,7 @@ test "confdata bridge decodes escaped control sequences in quoted strings" {
 
     try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
     try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
-    try std.testing.expectEqualStrings("line\nindent\tmark\x08slot\x0cform\rend", summary.entries[0].value);
+    try std.testing.expectEqualStrings("linenindenttmarkbslotfformrend", summary.entries[0].value);
 }
 
 test "confdata bridge escapes low control bytes in json output" {
