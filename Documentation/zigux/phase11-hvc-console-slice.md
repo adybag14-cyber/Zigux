@@ -15,7 +15,7 @@ The starter stays intentionally narrow:
 - adds a tiny notifier-facing handoff summary that keeps notifier registration intent, deferred callback ownership, and deferred unregister timing reviewable without claiming live callback execution
 - mirrors the slot teardown that clears the early-console binding
 
-This slice does not claim tty-driver registration, notifier callback execution, khvcd polling, live sysrq dispatch, hotplug discovery, or live hypervisor-backed reads and writes yet.
+This slice does not claim live tty-driver registration, notifier callback execution, khvcd polling, live sysrq dispatch, hotplug discovery, or live hypervisor-backed reads and writes yet.
 
 `Documentation/zigux/phase11-hvc-console-validation-matrix.md` now records the first kernel-integration validation matrix for close-wait teardown parity, the landed cleanup replay, the landed remove-path handoff, the landed tty-registration handoff, the landed sysrq handoff, and the landed notifier-facing handoff without widening into host-backed I/O. `Documentation/zigux/phase11-hvc-console-teardown-note.md` now keeps the close, cleanup, and remove ownership split in one driver-local note so the teardown handoffs stay readable without reopening shared review infrastructure. `drivers/tty/hvc/hvc_console_verify.zig` now adds one compile-local teardown replay that keeps the final-close chain and the hung-up or detached teardown matrix reviewable beside the shared `zigux/tests/phase11_build.zig` packet.
 
