@@ -1,0 +1,37 @@
+# Phase 7 Make-Wrapper Self-Test Alignment
+
+This document records the bounded shared Phase 7 integration-governance surface around the make-wrapper self-test route.
+
+## Status
+
+- `PHASE7_STATUS=parked`
+- `PHASE7_SLICE=phase7-make-wrapper-selftest-alignment`
+- `PHASE7_LANE_KEY=P7-Y05`
+- scope: shared validator and make-wrapper self-test alignment only
+- lane state: dedicated alignment checker and shared validator route landed; parked unless the shared Phase 7 validator, Makefile, or bootstrap workflow drifts away from the same self-test packet
+- product boundary:
+  - `scripts/zigux/check-phase7-make-wrapper.py`
+  - `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
+  - `scripts/zigux/validate-phase7.py`
+  - `zigux/Makefile`
+  - `.github/workflows/zigux-bootstrap.yml`
+
+## Why this note exists
+
+Phase 7 is already parked as a shared validator-first helper bundle, but the make-wrapper self-test surface is a shared route rather than a helper-owned packet. This note keeps that shared route explicit so the self-test stays centralized in the make path instead of drifting into ad hoc workflow calls or disappearing from the shared validator.
+
+## Current shared contract
+
+- `scripts/zigux/check-phase7-make-wrapper.py --self-test` stays owned by `zigux/Makefile` rather than a direct workflow-only invocation
+- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py` keeps `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around that centralized self-test path
+- `scripts/zigux/validate-phase7.py` keeps this shared governance note inside the parked Phase 7 validator-first packet
+- `make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface
+
+## Non-goals
+
+- this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`
+- this note does not add a new per-slice CI step or a broader `phase7_build_inventory` packet
+
+## Next bounded step
+
+Leave this shared governance note parked unless fresh repo inspection finds one more real drift between `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `validate-phase7.py`, `zigux/Makefile`, or the Phase 7 workflow route.
