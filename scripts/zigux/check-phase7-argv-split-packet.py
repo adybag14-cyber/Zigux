@@ -46,10 +46,13 @@ REQUIRED_MARKERS = {
         "split.cArgv()",
         "phase 7 argvSplit token buffer does not alias the source text",
         "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy",
+        "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
         "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
+        "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
+        "phase 7 argvSplit deinit clears exported storage and argv views",
         "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
         "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
         "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
@@ -71,6 +74,15 @@ REQUIRED_MARKERS = {
         "first NUL stops counting and splitting",
         "quote characters stay inside returned tokens",
     ],
+    "lib/argv_split.zig": [
+        "pub fn countArgc",
+        "pub fn argvSplit",
+        "pub fn argvSplitWithArgc",
+        "pub fn argvFree",
+        "pub fn cArgv",
+        "test \"argvSplit frees intermediate allocations when allocator failure interrupts setup\"",
+        "test \"argvSplit reports overflow before sizing the null-terminated argv vector\"",
+    ],
 }
 
 EXACT_COUNT_MARKERS = {
@@ -80,8 +92,8 @@ EXACT_COUNT_MARKERS = {
         ("PHASE7_LANE_KEY=", 1),
     ],
     "zigux/tests/phase7_argv_split_manifest.json": [
-        ('\"id\": \"phase7-argv-split-packet-checker\"', 1),
-        ('\"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\"', 1),
+        ('"id": "phase7-argv-split-packet-checker"', 1),
+        ('"zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py"', 1),
     ],
 }
 
@@ -127,7 +139,7 @@ def write_fixture_root(tmp_root: Path) -> None:
         "zigux/tests/phase7_argv_split_survey.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"]) + "\n",
         "zigux/tests/phase7_argv_split_manifest.json": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_argv_split_manifest.json"]) + "\n",
         "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/fixtures/phase7_argv_split_vectors.zig"]) + "\n",
-        "lib/argv_split.zig": "// fixture\n",
+        "lib/argv_split.zig": "\n".join(REQUIRED_MARKERS["lib/argv_split.zig"]) + "\n",
     }
 
     for rel, marker_counts in EXACT_COUNT_MARKERS.items():
@@ -223,6 +235,16 @@ def run_self_test() -> None:
             "missing_argv_split_vectors_fixture",
             tmp_root,
             "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+        )
+        case_count += 1
+        write_fixture_root(tmp_root)
+
+        helper_path = tmp_root / "lib" / "argv_split.zig"
+        helper_path.unlink()
+        expect_missing_file(
+            "missing_argv_split_helper_impl",
+            tmp_root,
+            "lib/argv_split.zig",
         )
         case_count += 1
         write_fixture_root(tmp_root)
@@ -348,6 +370,22 @@ def run_self_test() -> None:
 
         tests_path.write_text(
             original_tests.replace(
+                "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_argc_out_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
                 "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
                 "",
                 1,
@@ -358,6 +396,38 @@ def run_self_test() -> None:
             "argv_split_terminator_alignment_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
+                "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_distinct_owned_views_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
+                "phase 7 argvSplit deinit clears exported storage and argv views",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_deinit_clears_views_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit deinit clears exported storage and argv views",
         )
         case_count += 1
         tests_path.write_text(original_tests, encoding="utf-8")
@@ -415,6 +485,36 @@ def run_self_test() -> None:
         )
         case_count += 1
         fixture_path.write_text(original_fixture, encoding="utf-8")
+
+        helper_path = tmp_root / "lib" / "argv_split.zig"
+        original_helper = helper_path.read_text(encoding="utf-8")
+        helper_path.write_text(
+            original_helper.replace("pub fn argvSplitWithArgc", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_helper_surface_marker",
+            tmp_root,
+            "lib/argv_split.zig: pub fn argvSplitWithArgc",
+        )
+        case_count += 1
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                "test \"argvSplit reports overflow before sizing the null-terminated argv vector\"",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_helper_overflow_marker",
+            tmp_root,
+            "lib/argv_split.zig: test \"argvSplit reports overflow before sizing the null-terminated argv vector\"",
+        )
+        case_count += 1
+        helper_path.write_text(original_helper, encoding="utf-8")
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
