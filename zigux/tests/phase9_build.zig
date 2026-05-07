@@ -288,6 +288,7 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_bitmap_survey_module,
     });
     const run_runtime_bitmap_survey_tests = b.addRunArtifact(runtime_bitmap_survey_tests);
+    run_runtime_bitmap_survey_tests.setCwd(b.path("../.."));
     const runtime_trace_events_survey_tests = b.addTest(.{
         .name = "phase9-runtime-trace-events-survey-tests",
         .root_module = runtime_trace_events_survey_module,
