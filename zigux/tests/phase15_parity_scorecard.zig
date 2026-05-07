@@ -138,9 +138,9 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-Y03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("2359c03fa82626b7359467c9b8bc9d0b092de5aa", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("4fc891b380cdd2991dff7676ade7f844df1b55fd", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 19), manifest.review_process.required_record_field_count);
     try std.testing.expectEqual(manifest.review_process.required_record_field_count, manifest.review_process.required_record_fields.len);
@@ -414,7 +414,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     try std.testing.expect(saw_archive_reporting);
     try std.testing.expect(saw_template_followup);
     try std.testing.expect(saw_sync_followup);
-    try std.testing.expect(saw_anchor_owner_tracking);
+    try std.testing.expect(saw_anchor_ownerTracking);
     try std.testing.expect(saw_retirement_rule);
     try std.testing.expect(saw_reopen_trigger_followup);
     try std.testing.expect(saw_roadmap_handoff_followup);
