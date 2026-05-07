@@ -13,6 +13,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase8-exec-cmd-slice.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "zigux/Makefile",
     "zigux/tests/phase8_build.zig",
     "zigux/tests/phase8_exec_cmd.zig",
@@ -20,6 +21,16 @@ REQUIRED_FILES = [
     "tools/lib/subcmd/exec-cmd.zig",
     "tools/lib/subcmd/exec-cmd.c",
 ]
+
+EXACT_ONCE_SECTION_MARKERS = {
+    "zigux/tests/README.md": [
+        {
+            "start": "  * `zigux/tests/phase8_build.zig`\n",
+            "end": "  * `zigux/tests/phase9_build.zig`\n",
+            "needle": "  * `zigux/tests/phase8_exec_cmd_only_build.zig`\n",
+        },
+    ],
+}
 
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-exec-cmd-slice.md": [
@@ -50,6 +61,13 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase8_exec_cmd_only_build.zig",
         "make -C zigux phase8-validate",
         "make -C zigux phase8-exec-cmd-test",
+    ],
+    "zigux/tests/README.md": [
+        "Phase 8 flow",
+        "`zigux/tests/phase8_exec_cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd_only_build.zig`",
+        "`make -C zigux phase8-exec-cmd-test`",
+        "`make -C zigux phase8`",
     ],
     "zigux/Makefile": [
         "phase8-validate:",
@@ -111,17 +129,66 @@ def collect_missing_markers(root: Path) -> list[str]:
     return missing
 
 
+def collect_exact_section_errors(root: Path) -> list[str]:
+    errors: list[str] = []
+    for rel, section_specs in EXACT_ONCE_SECTION_MARKERS.items():
+        text = (root / rel).read_text(encoding="utf-8")
+        for spec in section_specs:
+            start = text.find(spec["start"])
+            if start == -1:
+                errors.append(f"{rel}: missing_section_start:{spec['start'].strip()}")
+                continue
+
+            section_start = start + len(spec["start"])
+            end = text.find(spec["end"], section_start)
+            if end == -1:
+                errors.append(f"{rel}: missing_section_end:{spec['end'].strip()}")
+                continue
+
+            section = text[section_start:end]
+            if section.count(spec["needle"]) != 1:
+                errors.append(
+                    f"{rel}: exact_once_section_marker:{spec['needle'].rstrip()}"
+                )
+    return errors
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, []
-    return [], collect_missing_markers(root)
+    missing_markers = collect_missing_markers(root)
+    missing_markers.extend(collect_exact_section_errors(root))
+    return [], missing_markers
+
+
+def build_tests_readme_fixture() -> str:
+    return "\n".join(
+        [
+            "Phase 8 flow",
+            "  * `zigux/tests/phase8_build.zig`",
+            "  * `zigux/tests/phase8_exec_cmd.zig`",
+            "  * `zigux/tests/phase8_exec_cmd_only_build.zig`",
+            "  * `make -C zigux phase8-exec-cmd-test`",
+            "  * `make -C zigux phase8`",
+            "  * `zigux/tests/phase9_build.zig`",
+        ]
+    ) + "\n"
+
+
+FIXTURE_OVERRIDES = {
+    "zigux/tests/README.md": build_tests_readme_fixture(),
+}
 
 
 def write_fixture_root(tmp_root: Path) -> None:
     for rel, markers in REQUIRED_MARKERS.items():
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
+        override = FIXTURE_OVERRIDES.get(rel)
+        if override is not None:
+            path.write_text(override, encoding="utf-8")
+            continue
         path.write_text("\n".join(markers) + "\n", encoding="utf-8")
 
 
@@ -150,6 +217,7 @@ def run_self_test() -> None:
         ("missing_slice", "Documentation/zigux/phase8-exec-cmd-slice.md"),
         ("missing_checklist", "Documentation/zigux/review-checklist.md"),
         ("missing_scripts_readme", "scripts/zigux/README.md"),
+        ("missing_tests_readme", "zigux/tests/README.md"),
         ("missing_makefile", "zigux/Makefile"),
         ("missing_phase8_build", "zigux/tests/phase8_build.zig"),
         ("missing_exec_cmd_test", "zigux/tests/phase8_exec_cmd.zig"),
@@ -214,6 +282,34 @@ def run_self_test() -> None:
             "make -C zigux phase8-exec-cmd-test",
             "make -C zigux phase8-exec-test",
             "scripts/zigux/README.md: make -C zigux phase8-exec-cmd-test",
+        ),
+        (
+            "tests_readme_phase8_flow",
+            "zigux/tests/README.md",
+            "Phase 8 flow",
+            "Phase 8 route",
+            "zigux/tests/README.md: Phase 8 flow",
+        ),
+        (
+            "tests_readme_focused_build",
+            "zigux/tests/README.md",
+            "`zigux/tests/phase8_exec_cmd_only_build.zig`",
+            "`zigux/tests/phase8_exec_cmd_build.zig`",
+            "zigux/tests/README.md: `zigux/tests/phase8_exec_cmd_only_build.zig`",
+        ),
+        (
+            "tests_readme_make_route",
+            "zigux/tests/README.md",
+            "`make -C zigux phase8-exec-cmd-test`",
+            "`make -C zigux phase8-exec-test`",
+            "zigux/tests/README.md: `make -C zigux phase8-exec-cmd-test`",
+        ),
+        (
+            "tests_readme_exec_cmd_exact_once_duplicate",
+            "zigux/tests/README.md",
+            "  * `zigux/tests/phase8_exec_cmd_only_build.zig`\n",
+            "  * `zigux/tests/phase8_exec_cmd_only_build.zig`\n  * `zigux/tests/phase8_exec_cmd_only_build.zig`\n",
+            "zigux/tests/README.md: exact_once_section_marker:  * `zigux/tests/phase8_exec_cmd_only_build.zig`",
         ),
         (
             "makefile_route",
@@ -341,7 +437,12 @@ def run_self_test() -> None:
 
         for case, rel, old, new, expected in marker_cases:
             mutate_file(tmp_root, rel, old, new, case)
-            expect_missing_marker(case, tmp_root, expected)
+            if "exact_once_section_marker" in expected:
+                missing_files, missing_markers = validate(tmp_root)
+                assert missing_files == [], case
+                assert missing_markers == [expected], case
+            else:
+                expect_missing_marker(case, tmp_root, expected)
             write_fixture_root(tmp_root)
 
     print("PHASE8_EXEC_CMD_PACKET_SELF_TEST=pass")
