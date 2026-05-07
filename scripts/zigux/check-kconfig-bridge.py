@@ -28,6 +28,19 @@ REQUIRED_CONFDATA_CASES = [
     "uppercase_tristate",
     "non_config_lines",
 ]
+REQUIRED_CONF_CASE_MODES = [
+    "olddefconfig",
+    "syncconfig",
+    "alldefconfig",
+    "allmodconfig",
+    "randconfig",
+    "yes2modconfig",
+    "mod2yesconfig",
+    "mod2noconfig",
+    "defconfig",
+    "savedefconfig",
+    "listnewconfig",
+]
 EXPECTED_SELF_TEST_CASE_COUNT = 11
 
 
@@ -75,9 +88,9 @@ def ordered_conf_modes(conf_bridge_path: Path) -> list[str]:
     return modes
 
 
-def expected_conf_case_order(bridge_modes: list[str], conf_cases: list[dict[str, object]]) -> list[str]:
+def expected_conf_case_order(conf_cases: list[dict[str, object]]) -> list[str]:
     manifest_mode_set = {str(case["mode"]) for case in conf_cases}
-    return [mode for mode in bridge_modes if mode in manifest_mode_set]
+    return [mode for mode in REQUIRED_CONF_CASE_MODES if mode in manifest_mode_set]
 
 
 def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
@@ -94,7 +107,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("UNSUPPORTED_CONF_CASE_MODES", mode))
 
     manifest_mode_order = [str(case["mode"]) for case in conf_cases]
-    expected_mode_order = expected_conf_case_order(bridge_modes, conf_cases)
+    expected_mode_order = expected_conf_case_order(conf_cases)
     if manifest_mode_order != expected_mode_order:
         issues.append(("CONF_CASE_MODE_ORDER_ACTUAL", ",".join(manifest_mode_order)))
         issues.append(("CONF_CASE_MODE_ORDER_EXPECTED", ",".join(expected_mode_order)))
