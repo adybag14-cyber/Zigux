@@ -235,6 +235,7 @@ fn clampSignedMagnitude(magnitude: u64, negative: bool) u64 {
 pub fn memparse(text: []const u8) MemparseResult {
     const prefix = parseSignedPrefix(text);
     const base_info = parseBase(text, prefix.start);
+    const signed_input = prefix.start != 0;
 
     var idx = base_info.digits_start;
     var parsed_any = false;
@@ -250,9 +251,17 @@ pub fn memparse(text: []const u8) MemparseResult {
         return .{ .value = 0, .rest = text };
     }
 
+    if (idx < text.len) {
+        if (signed_input) {
+            magnitude = applySuffix(magnitude, text[idx]);
+        }
+    }
+
     var result = clampSignedMagnitude(magnitude, prefix.negative);
     if (idx < text.len) {
-        result = applySuffix(result, text[idx]);
+        if (!signed_input) {
+            result = applySuffix(result, text[idx]);
+        }
         switch (text[idx]) {
             'E', 'e', 'P', 'p', 'T', 't', 'G', 'g', 'M', 'm', 'K', 'k' => idx += 1,
             else => {},
@@ -503,4 +512,14 @@ test "memparse consumes suffix after saturation" {
     const saturated = memparse("18446744073709551615Ktail");
     try std.testing.expectEqual(std.math.maxInt(u64), saturated.value);
     try std.testing.expectEqualStrings("tail", saturated.rest);
+}
+
+test "memparse applies suffixes before signed clamping" {
+    const negative = memparse("-2Ktail");
+    try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -2048))), negative.value);
+    try std.testing.expectEqualStrings("tail", negative.rest);
+
+    const positive = memparse("+3Mmore");
+    try std.testing.expectEqual(@as(u64, 3 << 20), positive.value);
+    try std.testing.expectEqualStrings("more", positive.rest);
 }
