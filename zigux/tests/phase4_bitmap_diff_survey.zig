@@ -9,6 +9,11 @@ const Manifest = struct {
     live_gate_blob_sha: []const u8,
     helper_replay_path: []const u8,
     helper_replay_blob_sha: []const u8,
+    owner: []const u8,
+    rollback_owner: []const u8,
+    shared_validator_path: []const u8,
+    shared_matrix_path: []const u8,
+    shared_gate_evidence_path: []const u8,
     gate_evidence_path: []const u8,
     gate_evidence_blob_sha: []const u8,
     phase4_build_present: bool,
@@ -125,4 +130,20 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
     try expectContains(gate_evidence_source, "final_first_zero=109");
     try expectContains(gate_evidence_source, "final_weight=1005");
     try expectContains(gate_evidence_source, "final_nth_seven=123");
+}
+
+test "phase 4 bitmap survey keeps owner and rollback owner governance explicit" {
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_source, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
+    try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.owner);
+    try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.rollback_owner);
+    try std.testing.expectEqualStrings("scripts/zigux/validate-phase4.py", manifest.shared_validator_path);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", manifest.shared_matrix_path);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.shared_gate_evidence_path);
+
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Shared Subsystems Pod owner plus rollback owner metadata") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Shared Subsystems Pod owner plus rollback owner metadata") != null);
 }
