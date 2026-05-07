@@ -8,8 +8,11 @@ Use it when a change touches more than one Phase 5 sample surface, when a review
 
 The current shared Phase 5 packet on `master` is:
 
+- `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
 - the four survey notes under `Documentation/zigux/`
 - the four sample modules under `samples/zigux/`
 - the four manifest-backed test packets under `zigux/tests/`
