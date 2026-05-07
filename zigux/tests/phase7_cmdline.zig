@@ -61,6 +61,20 @@ test "phase 7 getOption and getOptions preserve Linux-style range parsing" {
     try std.testing.expectEqual(@as(i32, 1), single_validate[0]);
 }
 
+test "phase 7 getOption preserves validator-only numeric acceptance" {
+    var plain: []const u8 = "7";
+    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&plain, null));
+    try std.testing.expectEqualStrings("", plain);
+
+    var comma: []const u8 = "+9,tail";
+    try std.testing.expectEqual(@as(u8, 2), cmdline.getOption(&comma, null));
+    try std.testing.expectEqualStrings("tail", comma);
+
+    var range: []const u8 = "5-8";
+    try std.testing.expectEqual(@as(u8, 3), cmdline.getOption(&range, null));
+    try std.testing.expectEqualStrings("-8", range);
+}
+
 test "phase 7 memparse preserves suffix scaling, leading plus, and stop index semantics" {
     var index: usize = 0;
     try std.testing.expectEqual(@as(u64, 64 * 1024), cmdline.memparse("64K,panic", &index));
