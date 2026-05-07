@@ -134,6 +134,16 @@ fn readBigEndianU32(bytes: []const u8) u32 {
     return std.mem.readInt(u32, pair, .big);
 }
 
+fn writeBigEndianU16(bytes: []u8, value: u16) void {
+    const pair: *[2]u8 = @ptrCast(bytes[0..2]);
+    std.mem.writeInt(u16, pair, value, .big);
+}
+
+fn writeBigEndianU32(bytes: []u8, value: u32) void {
+    const pair: *[4]u8 = @ptrCast(bytes[0..4]);
+    std.mem.writeInt(u32, pair, value, .big);
+}
+
 test "negate wraps around unfolded checksum sums" {
     try std.testing.expectEqual(@as(u32, 0), negate(0));
     try std.testing.expectEqual(@as(u32, 0xffff_ffff), negate(1));
@@ -242,6 +252,38 @@ test "replacement helpers match direct recomputation for payload and header edit
     ipv4_header[14] = 0x00;
     ipv4_header[15] = 0x02;
     try std.testing.expectEqual(compute(&ipv4_header), replace4(checksum_before_addr_change, 0xc0a8_0001, 0xc0a8_0002));
+}
+
+test "pseudo-header helpers match direct pseudo-header plus payload recomputation" {
+    const ipv4_payload = [_]u8{ 0xde, 0xad, 0xbe, 0xef, 0xfa };
+    const ipv4_saddr: u32 = 0xc0a8_0001;
+    const ipv4_daddr: u32 = 0xc0a8_00c7;
+    const ipv4_proto: u8 = 17;
+    const ipv4_partial = tcpUdpNofold(partial(&ipv4_payload, 0), ipv4_saddr, ipv4_daddr, ipv4_payload.len, ipv4_proto);
+    var ipv4_packet: [17]u8 = undefined;
+    writeBigEndianU32(ipv4_packet[0..4], ipv4_saddr);
+    writeBigEndianU32(ipv4_packet[4..8], ipv4_daddr);
+    ipv4_packet[8] = 0;
+    ipv4_packet[9] = ipv4_proto;
+    writeBigEndianU16(ipv4_packet[10..12], ipv4_payload.len);
+    @memcpy(ipv4_packet[12..], &ipv4_payload);
+    try std.testing.expectEqual(compute(&ipv4_packet), fold(ipv4_partial));
+
+    const ipv6_payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36, 0xaa };
+    const ipv6_saddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe };
+    const ipv6_daddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf };
+    const ipv6_proto: u8 = 58;
+    const ipv6_partial = tcpUdpV6Nofold(partial(&ipv6_payload, 0), &ipv6_saddr, &ipv6_daddr, ipv6_payload.len, ipv6_proto);
+    var ipv6_packet: [47]u8 = undefined;
+    @memcpy(ipv6_packet[0..16], &ipv6_saddr);
+    @memcpy(ipv6_packet[16..32], &ipv6_daddr);
+    writeBigEndianU32(ipv6_packet[32..36], ipv6_payload.len);
+    ipv6_packet[36] = 0;
+    ipv6_packet[37] = 0;
+    ipv6_packet[38] = 0;
+    ipv6_packet[39] = ipv6_proto;
+    @memcpy(ipv6_packet[40..], &ipv6_payload);
+    try std.testing.expectEqual(compute(&ipv6_packet), fold(ipv6_partial));
 }
 
 test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
