@@ -80,6 +80,9 @@ REQUIRED_FILE_MARKERS = {
         "excluded from this note on purpose: the shared PMO release packet and the non-driver libbpf helper packet",
         "`Documentation/zigux/phase12-release-sequencing.md`",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
+        "`make -C zigux phase12 ZIG=<attached-zig-path>`",
+        "That rollback drill is storage-lane-local evidence, not a shared Phase 12 recovery claim.",
     ],
     PHASE12_RAW_GITHUB_COVERAGE_PATH: [
         "commit-pinned fallback artifacts:",
@@ -214,6 +217,34 @@ def mutation_label(rel_path: str, marker: str) -> str:
     compact = compact.replace("+", "plus").replace("=", "eq")
     compact = compact[:56].strip("-")
     return f"{stem}-{compact or 'marker'}-guard"
+
+
+def validate(root: Path) -> list[str]:
+    failures: list[str] = []
+
+    for rel_path in REQUIRED_FILE_MARKERS:
+        if not (root / rel_path).exists():
+            failures.append(f"missing_file:{rel_path}")
+
+    for rel_path in FORBIDDEN_FILES:
+        if (root / rel_path).exists():
+            failures.append(f"unexpected_file:{rel_path}")
+
+    for pattern in FORBIDDEN_GLOBS:
+        for path in sorted(root.glob(pattern)):
+            if path.is_file():
+                failures.append(f"unexpected_file:{path.relative_to(root)}")
+
+    if failures:
+        return failures
+
+    for rel_path, markers in REQUIRED_FILE_MARKERS.items():
+        text = read_text(root, rel_path)
+        for marker in markers:
+            if marker not in text:
+                failures.append(f"{rel_path}:{marker}")
+
+    return failures
 
 
 def run_self_test() -> int:
