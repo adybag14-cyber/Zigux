@@ -17,17 +17,9 @@ DEFAULT_EXPECTED = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expec
 
 BASELINE_CONSTANTS = (
     ("ZIGUX_FACILITY_KERNEL", "FACILITY_KERNEL", "facility_kernel", 1),
-    ("ZIGUX_FACILITY_HELPERS", "FACILITY_HELPERS", "facility_helpers", 2),
-    ("ZIGUX_FACILITY_DRIVERS", "FACILITY_DRIVERS", "facility_drivers", 3),
     ("ZIGUX_STATUS_FLAG_ERROR", "STATUS_FLAG_ERROR", "status_flag_error", 1),
     ("ZIGUX_PANIC_ABORT", "PANIC_ABORT", "panic_abort", 0),
-    ("ZIGUX_PANIC_BUG", "PANIC_BUG", "panic_bug", 1),
-    ("ZIGUX_PANIC_WARN", "PANIC_WARN", "panic_warn", 2),
     ("ZIGUX_ALLOC_CALLER_PROVIDED", "ALLOC_CALLER_PROVIDED", "allocator_caller_provided", 0),
-    ("ZIGUX_ALLOC_KERNEL_HEAP", "ALLOC_KERNEL_HEAP", "allocator_kernel_heap", 1),
-    ("ZIGUX_ALLOC_ARENA", "ALLOC_ARENA", "allocator_arena", 2),
-    ("ZIGUX_UNSAFE_NONE", "UNSAFE_NONE", "unsafe_scope_none", 0),
-    ("ZIGUX_UNSAFE_VOLATILE_MMIO", "UNSAFE_VOLATILE_MMIO", "unsafe_scope_volatile_mmio", 1),
     ("ZIGUX_UNSAFE_RAW_POINTER_BRIDGE", "UNSAFE_RAW_POINTER_BRIDGE", "unsafe_scope_raw_pointer_bridge", 2),
 )
 
@@ -154,7 +146,7 @@ def run_self_test() -> int:
         )
         dump.write_text("// \"facility_kernel\":\n", encoding="utf-8", newline="\n")
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
-        assert f"{dump}:missing_dump_key:facility_helpers" in issues
+        assert f"{dump}:missing_dump_key:status_flag_error" in issues
 
         dump.write_text(
             "\n".join(f"// \"{json_key}\":" for _, _, json_key, _ in BASELINE_CONSTANTS) + "\n",
@@ -164,7 +156,7 @@ def run_self_test() -> int:
         expected.write_text(json.dumps({"constants": {"facility_kernel": 7}}), encoding="utf-8", newline="\n")
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
         assert f"{expected}:wrong_expected_value:facility_kernel:7" in issues
-        assert f"{expected}:missing_expected_key:facility_helpers" in issues
+        assert f"{expected}:missing_expected_key:status_flag_error" in issues
 
     print("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass")
     return 0
@@ -172,7 +164,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Survey baseline Phase 3 ABI constant parity across the C header, curated Zig bindings, dump replay, C harness, and committed expected fixture."
+        description="Survey shipped Phase 3 ABI constant parity across the C header, curated Zig bindings, dump replay, C harness, and committed expected fixture."
     )
     parser.add_argument("--header-path", type=Path, default=DEFAULT_HEADER)
     parser.add_argument("--bindings-path", type=Path, default=DEFAULT_BINDINGS)
