@@ -10,6 +10,68 @@ const BenchResult = struct {
     checksum_accumulator: u64,
 };
 
+fn perfPayloadFingerprint(bytes: []const u8) u64 {
+    var acc: u64 = 0xcbf2_9ce4_8422_2325;
+    for (bytes, 0..) |byte, idx| {
+        acc ^= @as(u64, byte) +% (@as(u64, @intCast(idx)) << 8);
+        acc *%= 0x0000_0100_0000_01b3;
+    }
+    return acc;
+}
+
+fn validatePerfMatrix() !void {
+    const expected = [_]struct {
+        label: []const u8,
+        len: usize,
+        iterations: usize,
+        max_slowdown_pct: u64,
+        fingerprint: u64,
+    }{
+        .{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0x3193_4305_ba03_9b45 },
+        .{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0x457f_efb1_ea64_3164 },
+    };
+
+    var saw_64b = false;
+    var saw_1501b = false;
+
+    if (fixtures.perf_cases.len != expected.len) return error.ChecksumPerfMatrixMismatch;
+
+    for (expected, 0..) |want, idx| {
+        const actual = fixtures.perf_cases[idx];
+        if (!std.mem.eql(u8, want.label, actual.label)) return error.ChecksumPerfMatrixMismatch;
+        if (want.len != actual.bytes.len) return error.ChecksumPerfMatrixMismatch;
+        if (want.iterations != actual.iterations) return error.ChecksumPerfMatrixMismatch;
+        if (want.max_slowdown_pct != actual.max_slowdown_pct) return error.ChecksumPerfMatrixMismatch;
+        if (want.fingerprint != perfPayloadFingerprint(actual.bytes)) return error.ChecksumPerfMatrixMismatch;
+    }
+
+    for (fixtures.perf_cases, 0..) |case, idx| {
+        if (case.bytes.len == 0 or case.iterations == 0 or case.max_slowdown_pct == 0) {
+            return error.ChecksumPerfMatrixMismatch;
+        }
+
+        if (std.mem.eql(u8, case.label, "64B")) {
+            if (case.bytes.len != 64 or case.iterations != 200_000 or case.max_slowdown_pct != 150 or saw_64b) {
+                return error.ChecksumPerfMatrixMismatch;
+            }
+            saw_64b = true;
+        } else if (std.mem.eql(u8, case.label, "1501B")) {
+            if (case.bytes.len != 1501 or case.iterations != 12_000 or case.max_slowdown_pct != 150 or saw_1501b) {
+                return error.ChecksumPerfMatrixMismatch;
+            }
+            saw_1501b = true;
+        } else {
+            return error.ChecksumPerfMatrixMismatch;
+        }
+
+        for (fixtures.perf_cases[idx + 1 ..]) |other| {
+            if (std.mem.eql(u8, case.label, other.label)) return error.ChecksumPerfMatrixMismatch;
+        }
+    }
+
+    if (!saw_64b or !saw_1501b) return error.ChecksumPerfMatrixMismatch;
+}
+
 fn referenceInternetChecksum(bytes: []const u8) u16 {
     var acc: u64 = 0;
     var index: usize = 0;
@@ -72,6 +134,8 @@ fn medianNs(samples: []u64) u64 {
 }
 
 pub fn main(init: std.process.Init) !void {
+    try validatePerfMatrix();
+
     const io = init.io;
     var stdout_buffer: [4096]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
