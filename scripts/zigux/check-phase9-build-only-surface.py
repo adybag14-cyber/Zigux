@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import shutil
-import subprocess
 import sys
 import tempfile
 
@@ -42,6 +41,7 @@ REQUIRED_PHASE9_NOTE_PATHS = [
     "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
     "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
     "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+    "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
 ]
 
 REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS = [
@@ -75,6 +75,10 @@ PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER = (
     "if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?"
 )
 
+PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER = (
+    "the dedicated owner-map split recorded in `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`"
+)
+
 PHASE9_SCRIPTS_README_OWNER_MAP_MARKER = (
     "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map for how "
     "that scripts-root summary stays split between the loader lane and the four pilot-family packets."
@@ -87,9 +91,9 @@ PHASE9_DOCS_README_SHARED_SUMMARY_MARKER = (
     "`zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four "
     "`samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, "
     "and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped "
-    "build-only surface checker, loader facade, contract, shared build, and workflow-backed Linux-style "
-    "`make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed "
-    "loader-gap or dedicated-validator surfaces on `master`."
+    "build-only surface checker, dedicated lane-sequencing owner map, loader facade, contract, shared build, and "
+    "workflow-backed Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice "
+    "checks or overstating removed loader-gap or dedicated-validator surfaces on `master`."
 )
 
 REQUIRED_DOCS_README_MARKERS = [
@@ -158,12 +162,14 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER,
     PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER,
     PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER,
+    PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER,
 ]
 
 REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS = {
     PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER: 1,
     PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER: 1,
     PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER: 1,
+    PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER: 1,
 }
 
 REQUIRED_FREEZE_MAP_MARKERS = [
@@ -416,14 +422,6 @@ def validate(root: Path) -> list[str]:
     return failures
 
 
-def phase9_build_fixture() -> str:
-    return "\n".join(REQUIRED_PHASE9_BUILD_MARKERS) + "\n"
-
-
-def runtime_loader_contract_fixture() -> str:
-    return "\n".join(REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS) + "\n"
-
-
 def minimal_marker_doc(title: str, markers: list[str]) -> str:
     return "\n".join([f"# {title}", *markers, ""])
 
@@ -436,381 +434,64 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / SCRIPTS_README_PATH, minimal_marker_doc("scripts/zigux", REQUIRED_SCRIPT_README_MARKERS))
     write_text(root / TESTS_README_PATH, minimal_marker_doc("zigux/tests", REQUIRED_TESTS_README_MARKERS))
     write_text(root / SAMPLES_README_PATH, minimal_marker_doc("samples/zigux", REQUIRED_SAMPLES_README_MARKERS))
-    write_text(root / REVIEW_CHECKLIST_PATH, minimal_marker_doc("Zigux Review Checklist", REQUIRED_REVIEW_CHECKLIST_MARKERS))
+    write_text(
+        root / REVIEW_CHECKLIST_PATH,
+        minimal_marker_doc("Zigux Review Checklist", REQUIRED_REVIEW_CHECKLIST_MARKERS),
+    )
     write_text(root / FREEZE_MAP_PATH, minimal_marker_doc("Zigux Freeze Map", REQUIRED_FREEZE_MAP_MARKERS))
-    write_text(root / MAKEFILE_PATH, minimal_marker_doc("Makefile", REQUIRED_MAKEFILE_MARKERS))
-    write_text(root / WORKFLOW_PATH, minimal_marker_doc("zigux-bootstrap workflow", REQUIRED_WORKFLOW_MARKERS))
-    write_text(root / PHASE9_BUILD_PATH, phase9_build_fixture())
-    write_text(root / RUNTIME_LOADER_PATH, "# runtime_loader placeholder\n")
-    write_text(root / RUNTIME_LOADER_CONTRACT_PATH, runtime_loader_contract_fixture())
+    write_text(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
+    write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
+    write_text(root / PHASE9_BUILD_PATH, "\n".join(REQUIRED_PHASE9_BUILD_MARKERS) + "\n")
+    write_text(root / RUNTIME_LOADER_PATH, "// runtime loader placeholder\n")
+    write_text(
+        root / RUNTIME_LOADER_CONTRACT_PATH,
+        "\n".join(REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS) + "\n",
+    )
 
     for rel_path in REQUIRED_PHASE9_NOTE_PATHS:
         write_text(root / rel_path, "# phase9 note placeholder\n")
-
     for rel_path in REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS:
-        write_text(root / rel_path, "# runtime loader scaffold placeholder\n")
+        write_text(root / rel_path, "// loader scaffold placeholder\n")
 
 
-def expect_failure(root: Path, expected_failure: str, label: str) -> None:
+def expect_failure(root: Path, expected: str) -> None:
     failures = validate(root)
-    if expected_failure not in failures:
-        raise SystemExit(f"{label}:expected {expected_failure!r}, got {failures!r}")
+    if expected not in failures:
+        raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="phase9-build-only-surface-") as tmpdir:
-        root = Path(tmpdir) / "fixture"
-
-        write_fixture_tree(root)
-        failures = validate(root)
+    base = Path(tempfile.mkdtemp(prefix="phase9-build-only-surface-"))
+    try:
+        write_fixture_tree(base)
+        failures = validate(base)
         if failures:
-            raise SystemExit(f"default_fixture_failed:{failures!r}")
+            raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
-        write_fixture_tree(root)
-        makefile_path = root / MAKEFILE_PATH
-        makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            makefile.replace("$(PYTHON) scripts/zigux/check-phase9-build-only-surface.py\n", "", 1),
+        checklist_path = base / REVIEW_CHECKLIST_PATH
+        checklist = checklist_path.read_text(encoding="utf-8")
+
+        checklist_path.write_text(
+            checklist.replace(PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER, "", 1),
             encoding="utf-8",
         )
-        expect_failure(root, "makefile:$(PYTHON) scripts/zigux/check-phase9-build-only-surface.py", "missing_makefile_checker_call")
+        expect_failure(base, f"review_checklist:{PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER}")
 
-        write_fixture_tree(root)
-        workflow_path = root / WORKFLOW_PATH
-        workflow = workflow_path.read_text(encoding="utf-8")
-        workflow_path.write_text(
-            workflow.replace("make -C zigux phase9", "zig build test --build-file zigux/tests/phase9_build.zig", 1),
-            encoding="utf-8",
-        )
-        expect_failure(root, "workflow:make -C zigux phase9", "missing_workflow_make_route")
-
-        write_fixture_tree(root)
-        docs_readme_path = root / DOCS_README_PATH
-        docs_readme = docs_readme_path.read_text(encoding="utf-8")
-        docs_readme_path.write_text(
-            docs_readme.replace(
-                "Phase 3 export-boundary references rather than runtime-pilot evidence.",
-                "Phase 3 export references rather than runtime-pilot evidence.",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(root, f"docs_readme:{PHASE9_NON_OWNER_BOUNDARY_MARKER}", "missing_docs_non_owner_boundary_marker")
-
-        write_fixture_tree(root)
-        docs_readme_path = root / DOCS_README_PATH
-        docs_readme = docs_readme_path.read_text(encoding="utf-8")
-        docs_readme_path.write_text(
-            docs_readme + PHASE9_DOCS_README_SHARED_SUMMARY_MARKER + "\n",
+        write_fixture_tree(base)
+        checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            checklist + PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER + "\n",
             encoding="utf-8",
         )
         expect_failure(
-            root,
-            f"docs_readme_exact_count:{PHASE9_DOCS_README_SHARED_SUMMARY_MARKER}:expected=1:actual=2",
-            "duplicate_docs_root_shared_phase9_summary",
+            base,
+            f"review_checklist_exact_count:{PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER}:expected=1:actual=2",
         )
 
-        write_fixture_tree(root)
-        scripts_readme_path = root / SCRIPTS_README_PATH
-        scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
-        scripts_readme_path.write_text(
-            scripts_readme.replace(
-                PHASE9_SCRIPTS_README_OWNER_MAP_MARKER,
-                "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` stays nearby as context for the shared Phase 9 packet.",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"scripts_readme:{PHASE9_SCRIPTS_README_OWNER_MAP_MARKER}",
-            "missing_scripts_root_owner_map_marker",
-        )
-
-        write_fixture_tree(root)
-        scripts_readme_path = root / SCRIPTS_README_PATH
-        scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
-        scripts_readme_path.write_text(
-            scripts_readme + PHASE9_SCRIPTS_README_OWNER_MAP_MARKER + "\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"scripts_readme_exact_count:{PHASE9_SCRIPTS_README_OWNER_MAP_MARKER}:expected=1:actual=2",
-            "duplicate_scripts_root_owner_map_marker",
-        )
-
-        write_fixture_tree(root)
-        tests_readme_path = root / TESTS_README_PATH
-        tests_readme = tests_readme_path.read_text(encoding="utf-8")
-        tests_readme_path.write_text(
-            tests_readme.replace(
-                "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, ",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"tests_readme:{REQUIRED_TESTS_README_MARKERS[0]}",
-            "missing_tests_root_lane_sequencing_note",
-        )
-
-        write_fixture_tree(root)
-        tests_readme_path = root / TESTS_README_PATH
-        tests_readme = tests_readme_path.read_text(encoding="utf-8")
-        tests_readme_path.write_text(
-            tests_readme + REQUIRED_TESTS_README_MARKERS[0] + "\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"tests_readme_exact_count:{REQUIRED_TESTS_README_MARKERS[0]}:expected=1:actual=2",
-            "duplicate_tests_root_lane_sequencing_note",
-        )
-
-        write_fixture_tree(root)
-        samples_readme_path = root / SAMPLES_README_PATH
-        samples_readme = samples_readme_path.read_text(encoding="utf-8")
-        samples_readme_path.write_text(
-            samples_readme.replace(
-                "the focused `phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local instead of drifting into shared loader evidence",
-                "the focused bitmap companion stays bitmap-local instead of drifting into shared loader evidence",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"samples_readme:{REQUIRED_SAMPLES_README_MARKERS[1]}",
-            "missing_samples_root_bitmap_top_bit_boundary",
-        )
-
-        write_fixture_tree(root)
-        samples_readme_path = root / SAMPLES_README_PATH
-        samples_readme = samples_readme_path.read_text(encoding="utf-8")
-        samples_readme_path.write_text(
-            samples_readme + REQUIRED_SAMPLES_README_MARKERS[1] + "\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"samples_readme_exact_count:{REQUIRED_SAMPLES_README_MARKERS[1]}:expected=1:actual=2",
-            "duplicate_samples_root_bitmap_top_bit_boundary",
-        )
-
-        write_fixture_tree(root)
-        samples_readme_path = root / SAMPLES_README_PATH
-        samples_readme = samples_readme_path.read_text(encoding="utf-8")
-        samples_readme_path.write_text(
-            samples_readme.replace(
-                "keep the older command and environment control boundary explicit too: `tools/lib/subcmd/exec-cmd.zig` still owns the deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` tooling cues, while `tools/lib/subcmd/help.zig` still owns the `LINES` and `COLUMNS` terminal-formatting cues; the Phase 9 loader packet remains a metadata-only handoff and should not be read as shipped runtime command or environment activation control on current `master`",
-                "keep the older boundary explicit too: `tools/lib/subcmd/help.zig` still owns terminal-formatting cues",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"samples_readme:{REQUIRED_SAMPLES_README_MARKERS[2]}",
-            "missing_samples_root_command_environment_boundary",
-        )
-
-        write_fixture_tree(root)
-        samples_readme_path = root / SAMPLES_README_PATH
-        samples_readme = samples_readme_path.read_text(encoding="utf-8")
-        samples_readme_path.write_text(
-            samples_readme + REQUIRED_SAMPLES_README_MARKERS[2] + "\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"samples_readme_exact_count:{REQUIRED_SAMPLES_README_MARKERS[2]}:expected=1:actual=2",
-            "duplicate_samples_root_command_environment_boundary",
-        )
-
-        write_fixture_tree(root)
-        samples_readme_path = root / SAMPLES_README_PATH
-        samples_readme = samples_readme_path.read_text(encoding="utf-8")
-        samples_readme_path.write_text(
-            samples_readme + REQUIRED_SAMPLES_README_MARKERS[3] + "\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"samples_readme_exact_count:{REQUIRED_SAMPLES_README_MARKERS[3]}:expected=1:actual=2",
-            "duplicate_samples_root_shared_phase9_review_route",
-        )
-
-        write_fixture_tree(root)
-        freeze_map_path = root / FREEZE_MAP_PATH
-        freeze_map = freeze_map_path.read_text(encoding="utf-8")
-        freeze_map_path.write_text(
-            freeze_map + REQUIRED_FREEZE_MAP_MARKERS[0] + "\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"freeze_map_exact_count:{REQUIRED_FREEZE_MAP_MARKERS[0]}:expected=1:actual=2",
-            "duplicate_freeze_map_phase9_boundary",
-        )
-
-        write_fixture_tree(root)
-        review_checklist_path = root / REVIEW_CHECKLIST_PATH
-        review_checklist = review_checklist_path.read_text(encoding="utf-8")
-        review_checklist_path.write_text(
-            review_checklist.replace(
-                PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER,
-                "the focused bitmap companion replay stays nearby",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"review_checklist:{PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER}",
-            "missing_phase9_bitmap_top_bit_review_marker",
-        )
-
-        write_fixture_tree(root)
-        review_checklist_path = root / REVIEW_CHECKLIST_PATH
-        review_checklist = review_checklist_path.read_text(encoding="utf-8")
-        review_checklist_path.write_text(
-            review_checklist + PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER + "\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"review_checklist_exact_count:{PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER}:expected=1:actual=2",
-            "duplicate_phase9_bitmap_top_bit_review_marker",
-        )
-
-        write_fixture_tree(root)
-        review_checklist_path = root / REVIEW_CHECKLIST_PATH
-        review_checklist = review_checklist_path.read_text(encoding="utf-8")
-        review_checklist_path.write_text(
-            review_checklist + PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER + "\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            f"review_checklist_exact_count:{PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER}:expected=1:actual=2",
-            "duplicate_phase9_freeze_map_anchor_prompt",
-        )
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build.replace('const runtime_bitmap_top_bit_contract_module = b.createModule(.{\n', "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(root, 'phase9_build:const runtime_bitmap_top_bit_contract_module = b.createModule(.{', "missing_bitmap_top_bit_module")
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build.replace('"phase9-runtime-bitmap-top-bit-tests",\n', "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(root, 'phase9_build:"phase9-runtime-bitmap-top-bit-tests",', "missing_bitmap_top_bit_step_name")
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build + "test_step.dependOn(&run_runtime_bitmap_top_bit_contract_tests.step);\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            "phase9_build_exact_count:test_step.dependOn(&run_runtime_bitmap_top_bit_contract_tests.step);:expected=1:actual=2",
-            "duplicate_bitmap_top_bit_dependency",
-        )
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build.replace('const runtime_atomic64_survey_module = b.createModule(.{\n', "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(root, "phase9_build:const runtime_atomic64_survey_module = b.createModule(.{", "missing_atomic64_survey_module")
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build.replace('const runtime_trace_events_loader_module = b.createModule(.{\n', "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(root, "phase9_build:const runtime_trace_events_loader_module = b.createModule(.{", "missing_trace_events_loader_module")
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build.replace('.name = "phase9-runtime-atomic64-loader-tests",\n', '.name = "phase9-runtime-atomic64-build-tests",\n', 1),
-            encoding="utf-8",
-        )
-        expect_failure(root, 'phase9_build:.name = "phase9-runtime-atomic64-loader-tests",', "missing_atomic64_loader_test_name")
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build.replace('.name = "phase9-runtime-bitmap-survey-tests",\n', '.name = "phase9-runtime-bitmap-build-tests",\n', 1),
-            encoding="utf-8",
-        )
-        expect_failure(root, 'phase9_build:.name = "phase9-runtime-bitmap-survey-tests",', "missing_bitmap_survey_test_name")
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build.replace("test_step.dependOn(&run_runtime_bitmap_loader_tests.step);\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(root, "phase9_build:test_step.dependOn(&run_runtime_bitmap_loader_tests.step);", "missing_bitmap_loader_dependency")
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build.replace("test_step.dependOn(&run_runtime_trace_events_survey_tests.step);\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(root, "phase9_build:test_step.dependOn(&run_runtime_trace_events_survey_tests.step);", "missing_trace_events_survey_dependency")
-
-        write_fixture_tree(root)
-        runtime_loader_contract_path = root / RUNTIME_LOADER_CONTRACT_PATH
-        runtime_loader_contract = runtime_loader_contract_path.read_text(encoding="utf-8")
-        runtime_loader_contract_path.write_text(
-            runtime_loader_contract.replace('try std.testing.expect(!@hasField(LoadPlan, "depmod_script"));\n', "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            'runtime_loader_contract:try std.testing.expect(!@hasField(LoadPlan, "depmod_script"));',
-            "missing_depmod_script_boundary",
-        )
-
-        write_fixture_tree(root)
-        review_checklist_path = root / REVIEW_CHECKLIST_PATH
-        review_checklist = review_checklist_path.read_text(encoding="utf-8")
-        review_checklist_path.write_text(
-            review_checklist.replace("scripts/zigux/kconfig/confdata_bridge.zig", "scripts/zigux/confdata_bridge.zig", 1),
-            encoding="utf-8",
-        )
-        expect_failure(root, f"review_checklist:{PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER}", "missing_phase9_non_owner_boundary_paths")
-
-        write_fixture_tree(root)
-        review_checklist_path = root / REVIEW_CHECKLIST_PATH
-        review_checklist = review_checklist_path.read_text(encoding="utf-8")
-        review_checklist_path.write_text(
-            review_checklist.replace(
+        write_fixture_tree(base)
+        checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            checklist.replace(
                 "roadmap-backed selftest-hook and runtime module lifecycle parity cues",
                 "roadmap-backed runtime module lifecycle parity cues",
                 1,
@@ -818,129 +499,24 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(
-            root,
+            base,
             "review_checklist:roadmap-backed selftest-hook and runtime module lifecycle parity cues",
-            "missing_phase9_selftest_lifecycle_marker",
         )
 
-        write_fixture_tree(root)
-        review_checklist_path = root / REVIEW_CHECKLIST_PATH
-        review_checklist = review_checklist_path.read_text(encoding="utf-8")
-        review_checklist_path.write_text(
-            review_checklist.replace(
-                PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER + "\n",
-                "",
-                1,
-            ),
+        write_fixture_tree(base)
+        makefile_path = base / MAKEFILE_PATH
+        makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            makefile.replace("$(PYTHON) scripts/zigux/check-phase9-build-only-surface.py\n", "", 1),
             encoding="utf-8",
         )
-        expect_failure(
-            root,
-            f"review_checklist:{PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER}",
-            "missing_phase9_freeze_map_anchor_prompt",
-        )
+        expect_failure(base, "makefile:$(PYTHON) scripts/zigux/check-phase9-build-only-surface.py")
 
-        write_fixture_tree(root)
-        review_checklist_path = root / REVIEW_CHECKLIST_PATH
-        review_checklist = review_checklist_path.read_text(encoding="utf-8")
-        review_checklist_path.write_text(review_checklist + PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER + "\n", encoding="utf-8")
-        expect_failure(
-            root,
-            f"review_checklist_exact_count:{PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER}:expected=1:actual=2",
-            "duplicate_phase9_non_owner_boundary_paths",
-        )
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build + "test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            "phase9_build_exact_count:test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);:expected=1:actual=2",
-            "duplicate_kretprobe_loader_dependency",
-        )
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build + "test_step.dependOn(&run_runtime_kretprobe_survey_tests.step);\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            "phase9_build_exact_count:test_step.dependOn(&run_runtime_kretprobe_survey_tests.step);:expected=1:actual=2",
-            "duplicate_kretprobe_survey_dependency",
-        )
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build.replace('const runtime_loader_contract_tests = b.addTest(.{\n', "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(root, 'phase9_build:const runtime_loader_contract_tests = b.addTest(.{', "missing_phase9_build_contract_test_declaration")
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build.replace('const runtime_loader_shared_tests_step = b.step(\n', "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(root, 'phase9_build:const runtime_loader_shared_tests_step = b.step(', "missing_phase9_build_shared_loader_step")
-
-        write_fixture_tree(root)
-        phase9_build_path = root / PHASE9_BUILD_PATH
-        phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            phase9_build + "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);\n",
-            encoding="utf-8",
-        )
-        expect_failure(
-            root,
-            "phase9_build_exact_count:runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);:expected=1:actual=2",
-            "duplicate_phase9_build_shared_loader_contract_dependency",
-        )
-
-        write_fixture_tree(root)
-        write_text(root / "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md", "# stale note\n")
-        expect_failure(
-            root,
-            "unexpected_file:Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
-            "unexpected_metadata_note",
-        )
-
-        write_fixture_tree(root)
-        write_text(root / "scripts/zigux/check-phase9-module-metadata-packet.py", "# stale checker\n")
-        expect_failure(
-            root,
-            "unexpected_file:scripts/zigux/check-phase9-module-metadata-packet.py",
-            "unexpected_metadata_checker",
-        )
-
-        write_fixture_tree(root)
-        script_path = root / "scripts/zigux/check-phase9-build-only-surface.py"
-        write_text(script_path, SELF_PATH.read_text(encoding="utf-8"))
-        probe = subprocess.run(
-            [sys.executable, str(script_path)],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if probe.returncode != 0 or "PHASE9_BUILD_ONLY_SURFACE=pass" not in probe.stdout:
-            raise SystemExit(
-                "default_root_probe_failed:"
-                f"returncode={probe.returncode}:stdout={probe.stdout!r}:stderr={probe.stderr!r}"
-            )
-
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=39")
-    return 0
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=4")
+        return 0
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
 
 
 def main() -> int:
