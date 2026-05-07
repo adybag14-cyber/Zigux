@@ -2,7 +2,7 @@
 
 This guide keeps the current shipped Phase 13 shared-helper packet reviewable for contributors who are touching helper code, manifests, or the shared replay wiring.
 
-Use `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` when nearby runs could otherwise collapse `libfs`, `devres` helper parity, `devres` packet truthfulness, `landlock`, and adjacent notifier evidence into one ownerless bucket.
+Use `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` when nearby runs could otherwise collapse `libfs`, `devres` helper parity, `devres` packet truthfulness, `landlock/ruleset`, `landlock/syscalls`, and adjacent notifier evidence into one ownerless bucket.
 
 ## Scope
 
@@ -65,7 +65,7 @@ If you update the shared release packet or convenience workflow:
 
 Do not quietly erase these active Phase 13 limits from manifests, notes, or contributor guidance:
   * the current shared validator-first replay route covers only `libfs`, `devres`, `devres` reviewability, `devres_dma_coherent`, `landlock/ruleset`, `landlock/syscalls`, and `libfs` reviewability
-  * `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` keeps `libfs`, `devres` helper-parity work, `devres` packet-truthfulness work, `landlock`, and adjacent notifier evidence split into separate ownership routes even when they share the same validator-first replay path
+  * `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` keeps `libfs`, `devres` helper-parity work, `devres` packet-truthfulness work, `landlock/ruleset`, `landlock/syscalls`, and adjacent notifier evidence split into separate ownership routes even when they share the same validator-first replay path
   * `zigux/tests/phase13_landlock_syscalls_reviewability.zig` is shipped focused direct evidence beside `zigux/tests/phase13_landlock_syscalls.zig`, but it does not add an eighth shared replay step beyond the validator-first route above
   * the dedicated `devres` boundary checker remains part of the validator-first route through `scripts/zigux/check-phase13-devres-packet.py`
   * the dedicated Landlock ruleset boundary checker remains part of the validator-first route through `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
