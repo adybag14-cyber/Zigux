@@ -307,6 +307,8 @@ test "runtime atomic64 sample keeps selftest-complete replay local to the sample
 
     try module.exit();
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(i64, 17), module.snapshotCounter());
+    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
