@@ -237,6 +237,13 @@ const Entry = struct {
     value: u32,
 };
 
+const RawRecord = extern struct {
+    key: i32,
+    tag: u16,
+    flags: u16,
+    value: i32,
+};
+
 fn compareName(key: *const []const u8, item: *const Entry) i32 {
     return switch (std.mem.order(u8, key.*, item.name)) {
         .lt => -1,
@@ -290,6 +297,12 @@ fn linearRawSearchIndexI32(
     }
 
     return null;
+}
+
+fn compareOpaqueRecordKey(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const RawRecord = @ptrCast(@alignCast(item));
+    return compareInt(typed_key, &typed_item.key);
 }
 
 test "searchIndex finds values at the beginning middle and end of a sorted slice" {
@@ -784,4 +797,42 @@ test "bsearchMutable returns a mutable pointer to the matching element" {
     typed_found.* = 17;
     try std.testing.expectEqual(@as(i32, 17), values[4]);
     try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_found));
+}
+
+test "raw helpers honor member_size across record entries and preserve mutable write-through" {
+    var records = [_]RawRecord{
+        .{ .key = 2, .tag = 10, .flags = 0, .value = 20 },
+        .{ .key = 4, .tag = 11, .flags = 1, .value = 40 },
+        .{ .key = 7, .tag = 12, .flags = 0, .value = 70 },
+        .{ .key = 11, .tag = 13, .flags = 2, .value = 110 },
+        .{ .key = 16, .tag = 14, .flags = 0, .value = 160 },
+        .{ .key = 23, .tag = 15, .flags = 4, .value = 230 },
+        .{ .key = 42, .tag = 16, .flags = 0, .value = 420 },
+    };
+    const raw_records: [*]u8 = @ptrCast(records[0..].ptr);
+
+    try std.testing.expectEqual(
+        @as(?usize, 3),
+        bsearchIndex(&@as(i32, 11), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareOpaqueRecordKey),
+    );
+
+    const found = bsearch(&@as(i32, 23), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareOpaqueRecordKey) orelse return error.TestUnexpectedResult;
+    const typed_found: *const RawRecord = @ptrCast(@alignCast(found));
+    try std.testing.expectEqual(@as(i32, 23), typed_found.key);
+    try std.testing.expectEqual(@as(i32, 230), typed_found.value);
+    try std.testing.expectEqual(@intFromPtr(&records[5]), @intFromPtr(typed_found));
+
+    try std.testing.expectEqual(
+        @as(?usize, null),
+        bsearchIndex(&@as(i32, 19), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareOpaqueRecordKey),
+    );
+    try std.testing.expect(
+        bsearch(&@as(i32, 19), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareOpaqueRecordKey) == null,
+    );
+
+    const mutable = bsearchMutable(&@as(i32, 16), raw_records, records.len, @sizeOf(RawRecord), compareOpaqueRecordKey) orelse return error.TestUnexpectedResult;
+    const typed_mutable: *RawRecord = @ptrCast(@alignCast(mutable));
+    try std.testing.expectEqual(@intFromPtr(&records[4]), @intFromPtr(typed_mutable));
+    typed_mutable.value = 161;
+    try std.testing.expectEqual(@as(i32, 161), records[4].value);
 }
