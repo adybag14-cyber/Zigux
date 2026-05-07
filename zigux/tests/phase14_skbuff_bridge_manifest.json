@@ -23,6 +23,63 @@
     "preexisting_phase14_skbuff_slice_note_present": true,
     "preexisting_phase14_skbuff_survey_note_present": true
   },
+  "decision_checklist": [
+    {
+      "id": "shared-info-refcount-ownership",
+      "summary": "Keep skb_shared_info refcount splits and header-write eligibility explicitly in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "struct skb_shared_info",
+        "dataref",
+        "skb_header_cloned"
+      ],
+      "rationale": "The split dataref model and header-clone rules decide whether headers may be mutated at all, so they are core ownership logic rather than a safe Phase 14 wrapper target."
+    },
+    {
+      "id": "destructor-and-free-path",
+      "summary": "Keep destructor callbacks and final release ordering explicitly in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_release_head_state",
+        "skb_release_data",
+        "consume_skb"
+      ],
+      "rationale": "Teardown crosses destructor callbacks, destructor_arg payloads, frag lists, and final consume or free paths, which is exactly the kind of lifetime ownership Phase 14 should record and leave in C."
+    },
+    {
+      "id": "segmentation-partial-tail-owner-transfer",
+      "summary": "Track partial-GSO metadata rewrites and the final sock-owned tail transfer before segmented output ownership leaves the bridge study boundary.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_segment",
+        "SKB_GSO_PARTIAL",
+        "sock_wfree"
+      ],
+      "rationale": "skb_segment() promotes NETIF_F_GSO_PARTIAL into SKB_GSO_PARTIAL, clears SKB_GSO_DODGY, rewrites each segment's gso_size, gso_segs, gso_type, and SKB_GSO_CB(iter)->data_offset, then transfers sock-owned backpressure state by swapping the tail skb truesize, destructor, and sk with head_skb when head_skb->destructor == sock_wfree, so Zigux should keep both the partial-seg metadata path and the tail-owner transfer in C while only naming the handoff."
+    },
+    {
+      "id": "segmentation-checksum-data-offset-crossover",
+      "summary": "Track the checksum-to-data-offset crossover that seeds each output skb before later tail publication.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_segment",
+        "SKB_GSO_CB",
+        "remcsum_offload"
+      ],
+      "rationale": "skb_segment() carries checksum state forward by seeding SKB_GSO_CB(nskb)->csum and SKB_GSO_CB(nskb)->csum_start, rewrites SKB_GSO_CB(iter)->data_offset as the remaining bytes shrink, and only later publishes the tail chain through segs->prev with remcsum_offload in play, so Zigux should keep this checksum-to-publication crossover in C while only recording the boundary."
+    },
+    {
+      "id": "segmentation-tail-publication-consumer-contract",
+      "summary": "Record the exported tail-list publication contract before segmented output leaves skb_segment() for xmit-list consumers.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_segment",
+        "segs->prev",
+        "validate_xmit_skb_list"
+      ],
+      "rationale": "skb_segment() only publishes the accumulated list tail after wiring segs->prev and finalizing the last segment's gso_size or gso_segs clamp, then hands that exported list to validate_xmit_skb_list() under the existing qdisc and xmit ownership model, so Zigux should keep tail publication and downstream consumer coordination in C while only recording the contract."
+    }
+  ],
   "gaps": [
     {
       "id": "phase14-build-gate",
@@ -65,6 +122,13 @@
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase14-skbuff-bridge-survey.md",
       "why_now": "The survey note compares the 7,476-line skbuff anchor, its 5,467-line public header, and a nearby datagram user against the new bridge so future runs stay honest about what still belongs in C."
+    },
+    {
+      "id": "phase14-skbuff-boundary-decision-checklist",
+      "status": "starter_landed",
+      "kind": "governance",
+      "zigux_destination": "zigux/tests/phase14_skbuff_bridge_manifest.json",
+      "why_now": "The skbuff bridge now needs one explicit packet-local checklist that turns the existing stay-in-C decisions around dataref ownership, consume_skb() teardown, and the qdisc-facing skb_segment() publication checkpoints into machine-checkable evidence instead of leaving those decisions implied across code and prose."
     },
     {
       "id": "phase14-skbuff-concurrency-audit-outline",
