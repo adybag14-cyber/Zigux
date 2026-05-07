@@ -262,6 +262,7 @@
     "python3 scripts/zigux/check-phase10-ring-packet.py",
     "python3 scripts/zigux/check-phase10-input-packet.py",
     "python3 scripts/zigux/check-phase10-mmio-packet.py",
+    "python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py",
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "make -C zigux phase10-test",
     "make -C zigux phase10"
