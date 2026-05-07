@@ -107,6 +107,11 @@ REQUIRED_CLOSURE_MARKERS = [
         1,
     ),
     (
+        "closure_find_bit_underscore_alias_review_count",
+        "PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore alias proof stays explicit through the direct find_bit test anchor so the Linux-style underscore entry points remain behaviorally locked to the primary Zig helpers",
+        1,
+    ),
+    (
         "closure_find_bit_tail_clamp_review_count",
         "PHASE1_FIND_BIT_TAIL_CLAMP_REVIEW=tail_clamped_first, tail_clamped_next, tail_zero_clamped_first, tail_zero_clamped_next, tail_and_clamped_first, and tail_and_clamped_next stay explicit through the shared Phase 1 parity fixture and replay so last-word scans cannot silently leak masked tail bits beyond nbits",
         1,
@@ -256,6 +261,7 @@ EXPECTED_REVIEW_ANCHORS = {
         "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
         "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
         "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
+        "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers"',
         "tail_clamp_fixture_keys": [
             "tail_clamped_first",
             "tail_clamped_next",
