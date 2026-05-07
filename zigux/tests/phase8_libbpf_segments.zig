@@ -306,7 +306,7 @@ test "phase 8 libbpf survey note keeps segmented helper-first rollout explicit" 
     try expectContains(phase8_note, "any direct Zig port of `tools/lib/bpf/libbpf.c`");
 }
 
-test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
+test "phase 8 libbpf survey note stays aligned with the landed helper packet and workflow shards" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -349,6 +349,14 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(perf_buffer_poll_note);
+
+    const workflow_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        ".github/workflows/zigux-bootstrap.yml",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(workflow_note);
 
     const product_boundary = try requireSection(
         phase8_note,
@@ -435,4 +443,13 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(perf_buffer_poll_note, "make -C zigux phase8-perf-buffer-poll-test");
     try expectContains(perf_buffer_poll_note, "no standalone timer helper");
     try expectContains(perf_buffer_poll_note, "no standalone clockevent helper");
+
+    try expectContains(workflow_note, "Validate Phase 8 tooling packet");
+    try expectContains(workflow_note, "Run focused Phase 8 help and kallsyms tests");
+    try expectContains(workflow_note, "Run focused Phase 8 libbpf shard tests");
+    try expectContains(workflow_note, "make -C zigux phase8-file-path-handle-bridge-test");
+    try expectContains(workflow_note, "make -C zigux phase8-libbpf-segments-test");
+    try expectContains(workflow_note, "make -C zigux phase8-perf-buffer-poll-test");
+    try expectContains(workflow_note, "Run Phase 8 tooling tests");
+    try expectContains(workflow_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
 }
