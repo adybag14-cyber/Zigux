@@ -55,7 +55,7 @@ REQUIRED_REVIEW_NOTE_MARKERS = [
     '- deterministic replay entrypoint: `python3 scripts/zigux/check-artifact-diff-contract.py` is the reviewable contract rerun for the shared host-side helper and should stay aligned with the outward line rules below',
     '- review rule: any change to the helper\'s emitted `ARTIFACT_DIFF=*`, `MODE=*`, path, or SHA-256 lines must update this note in the same change so the published host-side artifact packet stays reviewable',
     '- boundary: keep this note scoped to the shared host-side diff helper; Phase 4 gate ownership for `zigux/tests/*.zig` still belongs in `Documentation/zigux/phase4-validation-matrix.md`',
-    '- deterministic helper contract: `ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS]`',
+    '- deterministic helper contract: `ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS|EXPECTED_JSON_ERROR|ACTUAL_JSON_ERROR]`',
     '- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_TEXT` must prove both the stable text pass shape and the direct text mismatch fail shape',
     '- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_JSON` must prove canonical JSON equivalence while `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID` proves malformed JSON fails without inventing digest or exists markers',
     '- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_SHA256` must prove both the shared digest pass line and the exact expected-vs-actual digest drift lines',
@@ -379,7 +379,7 @@ def run_self_test() -> int:
     )
     covered_cases.append('helper_summary_status_drift')
 
-    bad_helper_count_lines = helper_self_test_expected_lines()
+    bad_helper_count_lines = helper_self_test_expectedLines()
     bad_helper_count_lines[1] = 'ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=17'
     expect_assertion(
         'helper_summary_count_drift',
@@ -447,7 +447,7 @@ def run_self_test() -> int:
     covered_cases.append('contract_summary_base_case_order_drift')
 
     bad_repeat_count_lines = expected_contract_summary_lines()
-    bad_repeat_count_lines[3] = 'ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=3'
+    bad_repeat_countLines[3] = 'ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=3'
     expect_assertion(
         'contract_summary_repeat_count_drift',
         lambda: assert_contract_output(bad_repeat_count_lines),
@@ -630,7 +630,7 @@ def main() -> int:
                 f'ACTUAL={actual}',
             ],
         )
-        covered_cases.append('text_mismatch')
+        coveredCases.append('text_mismatch')
         actual.write_text('alpha\nbeta\n', encoding='utf-8', newline='\n')
 
         run_contract_case(
