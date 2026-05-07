@@ -22,6 +22,9 @@ HEADER_FUSED_MARKERS = (
 )
 REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
+    "zigux/bindings/abi.zig",
+    "zigux/bindings/dev_t.zig",
+    "zigux/helpers/layout_assert.zig",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
@@ -29,6 +32,10 @@ REQUIRED_MANIFEST_FILES = (
 REQUIRED_DOC_MARKERS = (
     "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
+)
+REQUIRED_BINDINGS_DOC_MARKERS = (
+    "zigux/bindings/abi.zig",
+    "zigux/bindings/dev_t.zig",
 )
 REQUIRED_EXPORT_UAPI_DOC_MARKERS = (
     "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
@@ -92,7 +99,7 @@ def validate_gate_contract(manifest_path: Path, doc_path: Path) -> list[str]:
                 issues.append(f"{manifest_path}:missing_manifest_file:{required_file}")
 
     doc_markers = _normalize_doc_lines(doc_path.read_text(encoding="utf-8"))
-    for marker in (*REQUIRED_DOC_MARKERS, *REQUIRED_EXPORT_UAPI_DOC_MARKERS):
+    for marker in (*REQUIRED_DOC_MARKERS, *REQUIRED_BINDINGS_DOC_MARKERS, *REQUIRED_EXPORT_UAPI_DOC_MARKERS):
         if marker not in doc_markers:
             issues.append(f"{doc_path}:missing_doc_marker:{marker}")
     return issues
@@ -193,6 +200,8 @@ def run_self_test() -> int:
                 [
                     "- `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
                     "- `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test`",
+                    "- `zigux/bindings/abi.zig`",
+                    "- `zigux/bindings/dev_t.zig`",
                     "- `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`",
                     "- `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`",
                     "- `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
@@ -312,6 +321,7 @@ def run_self_test() -> int:
             f"{doc}:missing_doc_marker:{marker}"
             for marker in (
                 "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
+                *REQUIRED_BINDINGS_DOC_MARKERS,
                 *REQUIRED_EXPORT_UAPI_DOC_MARKERS,
             )
         ]
