@@ -265,11 +265,10 @@ def check_traceability_note(root: Path) -> list[str]:
     errors = list(marker_errors)
     for marker, expected_count in Counter(expected_markers).items():
         actual_count = text.count(marker)
-        if expected_count == 1:
+        if actual_count != expected_count:
             if actual_count == 0:
                 errors.append(f"missing marker in {TRACEABILITY_PATH}: {marker}")
-            continue
-        if actual_count != expected_count:
+                continue
             errors.append(
                 f"marker count drift in {TRACEABILITY_PATH}: {marker} "
                 f"(expected {expected_count}, found {actual_count})"
@@ -553,6 +552,24 @@ def run_self_test() -> int:
             print("self-test expected traceability failure", file=sys.stderr)
             return 1
         write_text(root / TRACEABILITY_PATH, "\n".join(expected_traceability_markers) + "\n")
+        broken_traceability = root / TRACEABILITY_PATH
+        duplicate_traceability_marker = "- validator entrypoint: `make -C zigux phase14-validate`\n"
+        broken_traceability.write_text(
+            broken_traceability.read_text(encoding="utf-8").replace(
+                duplicate_traceability_marker,
+                duplicate_traceability_marker + duplicate_traceability_marker,
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-core-boundary-traceability.md: - validator entrypoint: `make -C zigux phase14-validate` (expected 1, found 2)" in error
+            for error in errors
+        ):
+            print("self-test expected traceability duplicate-count failure", file=sys.stderr)
+            return 1
+        write_text(root / TRACEABILITY_PATH, "\n".join(expected_traceability_markers) + "\n")
         broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken_manifest["lane_key"] = "P14-L99"
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
@@ -604,7 +621,7 @@ def run_self_test() -> int:
         if "phase14 docs-root smoke summary checker forced failure" not in errors:
             print("self-test expected docs-root checker subprocess failure", file=sys.stderr)
             return 1
-        broken_checker.write_text(
+        broken_checker.writeText(
             "#!/usr/bin/env python3\n"
             f"\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\n"
             "print('phase14 docs-root smoke summary checker stdout-only failure')\n"
