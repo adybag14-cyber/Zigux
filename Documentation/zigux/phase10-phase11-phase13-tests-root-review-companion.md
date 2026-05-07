@@ -43,9 +43,12 @@ Keep the shared build-backed virtio packet explicit:
   * `zigux/tests/phase10_virtio_mmio_manifest.json`
   * `zigux/tests/phase10_virtio_mmio_survey.zig`
   * `zigux/Makefile`
+  * `zig build test --build-file zigux/tests/phase10_build.zig`
+  * `make -C zigux phase10-test`
+  * `make -C zigux phase10`
 Tests-root reviewer prompt:
 
-  * Do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, the Phase 10 core, ring, input, and MMIO slice or survey notes, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_closure_manifest.json`, the shipped focused Phase 10 replays, the four shipped survey manifests, the four shipped survey gates, and `zigux/Makefile` still describe the same bounded build-backed virtio lab packet instead of implying a larger validator stack that is not on `master`?
+  * Do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, the Phase 10 core, ring, input, and MMIO slice or survey notes, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_closure_manifest.json`, the shipped focused Phase 10 replays, the four shipped survey manifests, the four shipped survey gates, `zigux/Makefile`, `zig build test --build-file zigux/tests/phase10_build.zig`, `make -C zigux phase10-test`, and `make -C zigux phase10` still describe the same bounded build-backed virtio lab packet instead of implying a larger validator stack that is not on `master`?
 ## Phase 11 tests-root packet
 
 Keep the current shared-versus-dedicated simple-driver packet explicit:
