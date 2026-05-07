@@ -113,8 +113,8 @@ This keeps later closure-note work small while preserving the explicit split bet
 
 - `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`
 - `samples/zigux/README.md` already carries the bitmap-only top-bit companion reminder plus the older command and environment control boundaries, so later shared-loader follow-through should leave those pilot-local cues there instead of flattening them back into the loader packet
-- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries
-- the next same-lane follow-through should reopen only if one of the shared reminder surfaces drifts, or if the shared loader lane picks up a new bounded validation surface that needs to be named across the packet
+- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, but `scripts/zigux/check-phase9-build-only-surface.py` still treats the freeze-map anchor prompt there as presence-only rather than exact-counted reviewer evidence
+- the next same-lane follow-through is still the checker-local freeze-map prompt exact-count hardening in `scripts/zigux/check-phase9-build-only-surface.py`; after that lands, reopen only if one of the shared reminder surfaces drifts, or if the shared loader lane picks up a new bounded validation surface that needs to be named across the packet
 
 ## Recommended next-step order
 
