@@ -57,6 +57,7 @@ The current bounded helper covers:
 - explicit `perf_buffer__buffer(buf_idx)` slot lookup classification
 - return shaping for valid buffer windows, invalid indices, and missing buffers while preserving the caller-provided mmap size
 - ready-buffer processing attempts cannot exceed observed ready events
+- ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch
 - non-ready wait observations cannot claim record processing
 - reject impossible post-wait buffer state combinations
 
@@ -71,6 +72,7 @@ The current tests check:
 - buffer-fd slot lookups and errno-shaped invalid-index or missing-fd returns
 - buffer-window slot lookups and return shaping for valid buffer windows, invalid indices, and missing buffers
 - impossible processing paths that overrun the observed ready-event budget
+- the narrower counted-ready-buffer guard trips before any broader observed-ready-event mismatch
 - impossible post-wait buffer state combinations that must stay rejected
 
 ## Non-goals
