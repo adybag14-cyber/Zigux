@@ -118,13 +118,15 @@
         "test \"memparse saturates signed overflow instead of trapping\"",
         "test \"memparse keeps signed values and their trailing rest aligned\"",
         "test \"memparse consumes suffix after saturation\"",
+        "test \"memparse applies suffixes before signed clamping\"",
         "test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\""
       ],
       "memparse_review_anchors": [
         "test \"memparse keeps original rest when sign is not followed by digits\"",
         "test \"memparse saturates signed overflow instead of trapping\"",
         "test \"memparse keeps signed values and their trailing rest aligned\"",
-        "test \"memparse consumes suffix after saturation\""
+        "test \"memparse consumes suffix after saturation\"",
+        "test \"memparse applies suffixes before signed clamping\""
       ],
       "prefix_suffix_review_anchors": [
         "test \"strHasPrefix honors C-string boundaries\"",
