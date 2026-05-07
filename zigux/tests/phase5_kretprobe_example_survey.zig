@@ -53,7 +53,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -68,6 +68,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     var saw_duration_check = false;
     var saw_budget_check = false;
     var saw_ownership_check = false;
+    var saw_lifecycle_guard_check = false;
     var saw_exit_check = false;
 
     for (manifest.review_prompts) |prompt| {
@@ -137,6 +138,14 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "cold, initialized, armed, replay_complete, and exited") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "entry-timestamp state") != null);
         }
+        if (std.mem.eql(u8, check.id, "lifecycle-guard-replay")) {
+            saw_lifecycle_guard_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runLifecycleGuardReplay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "pre-init") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "double-init") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "post-init") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "initialized post-init state") != null);
+        }
         if (std.mem.eql(u8, check.id, "post-exit-rejection")) {
             saw_exit_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "after exit") != null);
@@ -159,6 +168,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_duration_check);
     try std.testing.expect(saw_budget_check);
     try std.testing.expect(saw_ownership_check);
+    try std.testing.expect(saw_lifecycle_guard_check);
     try std.testing.expect(saw_exit_check);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "register_kretprobe parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "unregister_kretprobe parity"));
