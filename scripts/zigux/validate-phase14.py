@@ -553,6 +553,36 @@ def run_self_test() -> int:
             print("self-test expected manifest surface failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken_manifest["surfaces"] = [
+            surface
+            for surface in broken_manifest["surfaces"]
+            if surface.get("path") != "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
+        ]
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
+        errors = check(root)
+        if not any(
+            "manifest surface drift for scripts/zigux/check-phase14-rollback-threshold-sequencing.py" in error
+            for error in errors
+        ):
+            print("self-test expected rollback-threshold manifest surface failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken_manifest["surfaces"] = [
+            surface
+            for surface in broken_manifest["surfaces"]
+            if surface.get("path") != "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
+        ]
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
+        errors = check(root)
+        if not any(
+            "manifest surface drift for scripts/zigux/check-phase14-release-boundary-exact-counts.py" in error
+            for error in errors
+        ):
+            print("self-test expected release-boundary manifest surface failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken_docs_root = root / "Documentation/zigux/README.md"
         broken_docs_root.write_text(
             broken_docs_root.read_text(encoding="utf-8").replace("make -C zigux phase14-validate\n", "", 1),
