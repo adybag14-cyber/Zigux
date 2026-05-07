@@ -9,16 +9,14 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path(__file__).resolve().parent
+
+CORE_MANIFEST_PATH = "zigux/tests/phase10_virtio_core_manifest.json"
+RING_MANIFEST_PATH = "zigux/tests/phase10_virtio_ring_manifest.json"
+INPUT_MANIFEST_PATH = "zigux/tests/phase10_virtio_input_manifest.json"
 MMIO_MANIFEST_PATH = "zigux/tests/phase10_virtio_mmio_manifest.json"
 CLOSURE_MANIFEST_PATH = "zigux/tests/phase10_closure_manifest.json"
 FREEZE_BOUNDARY_CHECK = "python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py"
-EXPECTED_MMIO_EVIDENCE = [
-    "drivers/virtio/virtio_mmio.zig",
-    "zigux/tests/phase10_virtio_mmio.zig",
-    MMIO_MANIFEST_PATH,
-    "Documentation/zigux/phase10-virtio-mmio-slice.md",
-    "Documentation/zigux/phase10-virtio-mmio-survey.md",
-]
+
 EXPECTED_SHARED_FIELDS = [
     "freeze_map",
     "freeze_boundary_status",
@@ -29,13 +27,127 @@ EXPECTED_SHARED_FIELDS = [
     "architecture_council_reopen_required",
     "architecture_council_reopen_attached",
 ]
+
 EXPECTED_ROADMAP_DESTINATIONS = [
     "drivers/virtio/*.zig",
     "zigux/kernel/",
     "zigux/helpers/",
 ]
-EXPECTED_MMIO_BLOCKER = "phase10-mmio-lifecycle-and-irq-paths"
-EXPECTED_EXACT_CHECK_TAIL = [
+
+EXPECTED_COMPONENTS = {
+    "core": {
+        "manifest_path": CORE_MANIFEST_PATH,
+        "lane_key": "P10-L01",
+        "surveyed_commit": "75f8336c4305beed127d7abfae37d3999b7cc57c",
+        "blocked_gap": "phase10-core-probe-remove-lifecycle",
+        "landed_helper_key": "landed_core_helper_evidence",
+        "landed_helper_evidence": [
+            "phase10-config-generation-summary-helper",
+            "phase10-config-delivery-disposition-helper",
+            "phase10-config-driver-toggle-guard-helper",
+        ],
+    },
+    "ring": {
+        "manifest_path": RING_MANIFEST_PATH,
+        "lane_key": "P10-L07",
+        "surveyed_commit": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
+        "landed_helper_key": "landed_ring_helper_evidence",
+        "landed_helper_evidence": [
+            "phase10-virtqueue-shape-helper",
+            "phase10-used-buffer-polling-helper",
+            "phase10-callback-disable-helper",
+            "phase10-callback-enable-helper",
+            "phase10-callback-enable-prepare-helper",
+            "phase10-callback-delay-helper",
+            "phase10-notify-prepare-helper",
+            "phase10-queue-reset-guard-helper",
+            "phase10-queue-reset-helper",
+            "phase10-broken-queue-recovery-helper",
+        ],
+    },
+    "input": {
+        "manifest_path": INPUT_MANIFEST_PATH,
+        "lane_key": "P10-L13",
+        "surveyed_commit": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
+        "blocked_gap": "phase10-virtio-input-registration-lifecycle",
+        "ready_followup": "phase10-virtio-input-registration-lifecycle",
+        "landed_helper_key": "landed_input_helper_evidence",
+        "landed_helper_evidence": [
+            "phase10-virtio-input-capability-setup-helper",
+            "phase10-virtio-input-multitouch-slot-helper",
+            "phase10-virtio-input-teardown-observation-helper",
+            "phase10-virtio-input-registration-preflight-helper",
+            "phase10-virtio-input-queue-callback-preflight-helper",
+            "phase10-virtio-input-probe-preflight-helper",
+        ],
+    },
+    "mmio": {
+        "manifest_path": MMIO_MANIFEST_PATH,
+        "lane_key": "P10-L10",
+        "surveyed_commit": "84f90e23ad1c28ae345905d5293a8c5395f37d43",
+        "blocked_gap": "phase10-mmio-lifecycle-and-irq-paths",
+        "ready_followup": "phase10-mmio-lifecycle-and-irq-paths",
+        "landed_helper_key": "landed_mmio_helper_evidence",
+        "landed_helper_evidence": [
+            "phase10-mmio-register-window-helper",
+            "phase10-mmio-queue-size-helper",
+            "phase10-mmio-feature-word-selector-helper",
+            "phase10-mmio-config-window-helper",
+            "phase10-mmio-config-write-plan-helper",
+            "phase10-mmio-transport-identity-helper",
+            "phase10-mmio-probe-preflight-helper",
+            "phase10-mmio-config-write-disposition-helper",
+            "phase10-mmio-selected-queue-readiness-helper",
+        ],
+    },
+}
+
+EXPECTED_RING_WRAPPER_EVIDENCE = [
+    "drivers/virtio/virtio_ring.zig",
+    "zigux/tests/phase10_virtio_ring.zig",
+    RING_MANIFEST_PATH,
+    "Documentation/zigux/phase10-virtio-ring-survey.md",
+]
+
+EXPECTED_MMIO_WRAPPER_EVIDENCE = [
+    "drivers/virtio/virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio.zig",
+    MMIO_MANIFEST_PATH,
+    "Documentation/zigux/phase10-virtio-mmio-slice.md",
+    "Documentation/zigux/phase10-virtio-mmio-survey.md",
+]
+
+EXPECTED_LAB_VALIDATION_EVIDENCE = [
+    "zigux/tests/phase10_build.zig",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
+    "drivers/virtio/virtio_ring_verify.zig",
+    "drivers/virtio/virtio_input_verify.zig",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio_survey.zig",
+    "scripts/zigux/check-phase10-core-packet.py",
+    "scripts/zigux/check-phase10-ring-packet.py",
+    "scripts/zigux/check-phase10-input-packet.py",
+    "scripts/zigux/check-phase10-mmio-packet.py",
+    "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
+]
+
+EXPECTED_DUAL_IMPL_EVIDENCE = [
+    "Documentation/zigux/phase10-closure-evidence.md",
+    CORE_MANIFEST_PATH,
+    RING_MANIFEST_PATH,
+    INPUT_MANIFEST_PATH,
+    MMIO_MANIFEST_PATH,
+]
+
+EXPECTED_EXACT_CHECKS = [
+    "python3 scripts/zigux/check-phase10-core-packet.py",
+    "python3 scripts/zigux/check-phase10-ring-packet.py",
+    "python3 scripts/zigux/check-phase10-input-packet.py",
+    "python3 scripts/zigux/check-phase10-mmio-packet.py",
     FREEZE_BOUNDARY_CHECK,
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "make -C zigux phase10-test",
@@ -51,79 +163,124 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files: list[str] = []
     missing_markers: list[str] = []
 
-    for rel_path in (MMIO_MANIFEST_PATH, CLOSURE_MANIFEST_PATH):
+    required_paths = [CLOSURE_MANIFEST_PATH] + [component["manifest_path"] for component in EXPECTED_COMPONENTS.values()]
+    for rel_path in required_paths:
         if not (root / rel_path).exists():
             missing_files.append(rel_path)
     if missing_files:
         return missing_files, missing_markers
 
-    mmio_manifest = read_json(root, MMIO_MANIFEST_PATH)
     closure_manifest = read_json(root, CLOSURE_MANIFEST_PATH)
+    manifests = {
+        name: read_json(root, component["manifest_path"])
+        for name, component in EXPECTED_COMPONENTS.items()
+    }
 
-    if mmio_manifest.get("roadmap_destinations") != EXPECTED_ROADMAP_DESTINATIONS:
-        missing_markers.append("mmio_manifest:roadmap_destinations")
+    for manifest in manifests.values():
+        if manifest.get("roadmap_destinations") != EXPECTED_ROADMAP_DESTINATIONS:
+            missing_markers.append(f"{manifest['lane_key']}:roadmap_destinations")
+        for key in EXPECTED_SHARED_FIELDS:
+            if closure_manifest.get(key) != manifest.get(key):
+                missing_markers.append(f"shared_field:{key}:{manifest['lane_key']}")
+
     if closure_manifest.get("allowed_roadmap_destinations") != EXPECTED_ROADMAP_DESTINATIONS:
         missing_markers.append("closure_manifest:allowed_roadmap_destinations")
-
-    for key in EXPECTED_SHARED_FIELDS:
-        if closure_manifest.get(key) != mmio_manifest.get(key):
-            missing_markers.append(f"shared_field:{key}")
 
     scoreboard = closure_manifest.get("roadmap_parity_scoreboard")
     if not isinstance(scoreboard, dict):
         missing_markers.append("closure_manifest:roadmap_parity_scoreboard")
     else:
+        ring_wrappers = scoreboard.get("virtqueue_wrappers")
+        if not isinstance(ring_wrappers, dict):
+            missing_markers.append("closure_manifest:virtqueue_wrappers")
+        else:
+            if ring_wrappers.get("status") != "starter_landed":
+                missing_markers.append("closure_manifest:virtqueue_wrappers.status")
+            if ring_wrappers.get("evidence") != EXPECTED_RING_WRAPPER_EVIDENCE:
+                missing_markers.append("closure_manifest:virtqueue_wrappers.evidence")
+
         mmio_wrappers = scoreboard.get("mmio_wrappers")
         if not isinstance(mmio_wrappers, dict):
             missing_markers.append("closure_manifest:mmio_wrappers")
         else:
             if mmio_wrappers.get("status") != "starter_landed":
                 missing_markers.append("closure_manifest:mmio_wrappers.status")
-            if mmio_wrappers.get("evidence") != EXPECTED_MMIO_EVIDENCE:
+            if mmio_wrappers.get("evidence") != EXPECTED_MMIO_WRAPPER_EVIDENCE:
                 missing_markers.append("closure_manifest:mmio_wrappers.evidence")
-
-        dual_impl = scoreboard.get("dual_implementations_for_risky_areas")
-        if not isinstance(dual_impl, dict):
-            missing_markers.append("closure_manifest:dual_implementations_for_risky_areas")
-        else:
-            if dual_impl.get("status") != mmio_manifest.get("risky_transport_posture"):
-                missing_markers.append("closure_manifest:dual_implementations_for_risky_areas.status")
-            evidence = dual_impl.get("evidence")
-            if not isinstance(evidence, list) or MMIO_MANIFEST_PATH not in evidence:
-                missing_markers.append("closure_manifest:dual_implementations_for_risky_areas.evidence")
 
         lab_validation = scoreboard.get("lab_only_driver_validation")
         if not isinstance(lab_validation, dict):
             missing_markers.append("closure_manifest:lab_only_driver_validation")
         else:
-            evidence = lab_validation.get("evidence")
-            if not isinstance(evidence, list) or FREEZE_BOUNDARY_CHECK not in evidence:
+            if lab_validation.get("status") != "starter_landed":
+                missing_markers.append("closure_manifest:lab_only_driver_validation.status")
+            if lab_validation.get("evidence") != EXPECTED_LAB_VALIDATION_EVIDENCE:
                 missing_markers.append("closure_manifest:lab_only_driver_validation.evidence")
+
+        dual_impl = scoreboard.get("dual_implementations_for_risky_areas")
+        if not isinstance(dual_impl, dict):
+            missing_markers.append("closure_manifest:dual_implementations_for_risky_areas")
+        else:
+            if dual_impl.get("status") != manifests["mmio"].get("risky_transport_posture"):
+                missing_markers.append("closure_manifest:dual_implementations_for_risky_areas.status")
+            if dual_impl.get("evidence") != EXPECTED_DUAL_IMPL_EVIDENCE:
+                missing_markers.append("closure_manifest:dual_implementations_for_risky_areas.evidence")
 
     survey_provenance = closure_manifest.get("survey_provenance")
     if not isinstance(survey_provenance, dict):
         missing_markers.append("closure_manifest:survey_provenance")
     else:
         lane_keys = survey_provenance.get("lane_keys")
-        if not isinstance(lane_keys, dict) or lane_keys.get("mmio") != mmio_manifest.get("lane_key"):
-            missing_markers.append("closure_manifest:survey_provenance.lane_keys.mmio")
+        if not isinstance(lane_keys, dict):
+            missing_markers.append("closure_manifest:survey_provenance.lane_keys")
+        else:
+            for name, component in EXPECTED_COMPONENTS.items():
+                if lane_keys.get(name) != manifests[name].get("lane_key"):
+                    missing_markers.append(f"closure_manifest:survey_provenance.lane_keys.{name}")
+                if lane_keys.get(name) != component["lane_key"]:
+                    missing_markers.append(f"closure_manifest:survey_provenance.expected_lane_key.{name}")
+
         surveyed_commits = survey_provenance.get("surveyed_commits")
-        if not isinstance(surveyed_commits, dict) or surveyed_commits.get("mmio") != mmio_manifest.get("surveyed_commit"):
-            missing_markers.append("closure_manifest:survey_provenance.surveyed_commits.mmio")
+        if not isinstance(surveyed_commits, dict):
+            missing_markers.append("closure_manifest:survey_provenance.surveyed_commits")
+        else:
+            for name, component in EXPECTED_COMPONENTS.items():
+                if surveyed_commits.get(name) != manifests[name].get("surveyed_commit"):
+                    missing_markers.append(f"closure_manifest:survey_provenance.surveyed_commits.{name}")
+                if surveyed_commits.get(name) != component["surveyed_commit"]:
+                    missing_markers.append(f"closure_manifest:survey_provenance.expected_surveyed_commit.{name}")
 
     blocked_transport_gaps = closure_manifest.get("blocked_transport_gaps")
-    if not isinstance(blocked_transport_gaps, dict) or blocked_transport_gaps.get(MMIO_MANIFEST_PATH) != EXPECTED_MMIO_BLOCKER:
-        missing_markers.append("closure_manifest:blocked_transport_gaps.mmio")
+    if not isinstance(blocked_transport_gaps, dict):
+        missing_markers.append("closure_manifest:blocked_transport_gaps")
+    else:
+        for name, component in EXPECTED_COMPONENTS.items():
+            blocker = component.get("blocked_gap")
+            if blocker and blocked_transport_gaps.get(component["manifest_path"]) != blocker:
+                missing_markers.append(f"closure_manifest:blocked_transport_gaps.{name}")
 
     ready_transport_followups = closure_manifest.get("ready_transport_followups")
-    if not isinstance(ready_transport_followups, dict) or ready_transport_followups.get(MMIO_MANIFEST_PATH) != EXPECTED_MMIO_BLOCKER:
-        missing_markers.append("closure_manifest:ready_transport_followups.mmio")
+    if not isinstance(ready_transport_followups, dict):
+        missing_markers.append("closure_manifest:ready_transport_followups")
+    else:
+        for name, component in EXPECTED_COMPONENTS.items():
+            followup = component.get("ready_followup")
+            if followup and ready_transport_followups.get(component["manifest_path"]) != followup:
+                missing_markers.append(f"closure_manifest:ready_transport_followups.{name}")
+
+    for component in EXPECTED_COMPONENTS.values():
+        landed = closure_manifest.get(component["landed_helper_key"])
+        if not isinstance(landed, dict):
+            missing_markers.append(f"closure_manifest:{component['landed_helper_key']}")
+            continue
+        if landed.get(component["manifest_path"]) != component["landed_helper_evidence"]:
+            missing_markers.append(f"closure_manifest:{component['landed_helper_key']}.{component['manifest_path']}")
 
     exact_checks = closure_manifest.get("exact_checks")
     if not isinstance(exact_checks, list):
         missing_markers.append("closure_manifest:exact_checks")
     else:
-        for marker in EXPECTED_EXACT_CHECK_TAIL:
+        for marker in EXPECTED_EXACT_CHECKS:
             if marker not in exact_checks:
                 missing_markers.append(f"closure_manifest:exact_checks:{marker}")
         if exact_checks.count(FREEZE_BOUNDARY_CHECK) != 1:
@@ -137,12 +294,12 @@ def write_json(target: Path, payload: dict) -> None:
     target.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def baseline_manifests() -> tuple[dict, dict]:
-    mmio_manifest = {
-        "lane_key": "P10-L10",
+def baseline_manifest(lane_key: str, surveyed_commit: str, anchor: str) -> dict:
+    return {
+        "lane_key": lane_key,
         "phase": "Phase 10",
-        "surveyed_commit": "84f90e23ad1c28ae345905d5293a8c5395f37d43",
-        "anchor": "drivers/virtio/virtio_mmio.c",
+        "surveyed_commit": surveyed_commit,
+        "anchor": anchor,
         "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
         "freeze_map": "Documentation/zigux/freeze-map.md",
         "freeze_boundary_status": "aligned",
@@ -163,46 +320,80 @@ def baseline_manifests() -> tuple[dict, dict]:
         "architecture_council_reopen_required": True,
         "architecture_council_reopen_attached": False,
     }
+
+
+def baseline_manifests() -> tuple[dict[str, dict], dict]:
+    manifests = {
+        "core": baseline_manifest("P10-L01", "75f8336c4305beed127d7abfae37d3999b7cc57c", "drivers/virtio/virtio.c"),
+        "ring": baseline_manifest("P10-L07", "e42103fc02f544e1bd23a5ec2e5b584734f5af7d", "drivers/virtio/virtio_ring.c"),
+        "input": baseline_manifest("P10-L13", "7361ac51374149a96b7a7a2c6ea3c995d8cc1231", "drivers/virtio/virtio_input.c"),
+        "mmio": baseline_manifest("P10-L10", "84f90e23ad1c28ae345905d5293a8c5395f37d43", "drivers/virtio/virtio_mmio.c"),
+    }
     closure_manifest = {
-        "freeze_map": mmio_manifest["freeze_map"],
-        "freeze_boundary_status": mmio_manifest["freeze_boundary_status"],
-        "freeze_status_change_claimed": mmio_manifest["freeze_status_change_claimed"],
-        "risky_transport_posture": mmio_manifest["risky_transport_posture"],
+        "freeze_map": manifests["mmio"]["freeze_map"],
+        "freeze_boundary_status": manifests["mmio"]["freeze_boundary_status"],
+        "freeze_status_change_claimed": manifests["mmio"]["freeze_status_change_claimed"],
+        "risky_transport_posture": manifests["mmio"]["risky_transport_posture"],
         "allowed_roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
-        "allowed_evidence_kinds": mmio_manifest["allowed_evidence_kinds"],
-        "architecture_council_reopen_required": mmio_manifest["architecture_council_reopen_required"],
-        "architecture_council_reopen_attached": mmio_manifest["architecture_council_reopen_attached"],
-        "forbidden_transport_claims": mmio_manifest["forbidden_transport_claims"],
+        "allowed_evidence_kinds": manifests["mmio"]["allowed_evidence_kinds"],
+        "architecture_council_reopen_required": manifests["mmio"]["architecture_council_reopen_required"],
+        "architecture_council_reopen_attached": manifests["mmio"]["architecture_council_reopen_attached"],
+        "forbidden_transport_claims": manifests["mmio"]["forbidden_transport_claims"],
         "roadmap_parity_scoreboard": {
+            "virtqueue_wrappers": {
+                "status": "starter_landed",
+                "evidence": EXPECTED_RING_WRAPPER_EVIDENCE,
+            },
             "mmio_wrappers": {
                 "status": "starter_landed",
-                "evidence": EXPECTED_MMIO_EVIDENCE,
+                "evidence": EXPECTED_MMIO_WRAPPER_EVIDENCE,
             },
             "lab_only_driver_validation": {
                 "status": "starter_landed",
-                "evidence": [FREEZE_BOUNDARY_CHECK],
+                "evidence": EXPECTED_LAB_VALIDATION_EVIDENCE,
             },
             "dual_implementations_for_risky_areas": {
-                "status": mmio_manifest["risky_transport_posture"],
-                "evidence": [MMIO_MANIFEST_PATH],
+                "status": manifests["mmio"]["risky_transport_posture"],
+                "evidence": EXPECTED_DUAL_IMPL_EVIDENCE,
             },
         },
         "survey_provenance": {
-            "lane_keys": {"mmio": mmio_manifest["lane_key"]},
-            "surveyed_commits": {"mmio": mmio_manifest["surveyed_commit"]},
+            "source": "manifest_derived",
+            "lane_keys": {name: manifest["lane_key"] for name, manifest in manifests.items()},
+            "surveyed_commits": {name: manifest["surveyed_commit"] for name, manifest in manifests.items()},
         },
-        "blocked_transport_gaps": {MMIO_MANIFEST_PATH: EXPECTED_MMIO_BLOCKER},
-        "ready_transport_followups": {MMIO_MANIFEST_PATH: EXPECTED_MMIO_BLOCKER},
-        "exact_checks": EXPECTED_EXACT_CHECK_TAIL,
+        "ready_transport_followups": {
+            INPUT_MANIFEST_PATH: EXPECTED_COMPONENTS["input"]["ready_followup"],
+            MMIO_MANIFEST_PATH: EXPECTED_COMPONENTS["mmio"]["ready_followup"],
+        },
+        "blocked_transport_gaps": {
+            CORE_MANIFEST_PATH: EXPECTED_COMPONENTS["core"]["blocked_gap"],
+            INPUT_MANIFEST_PATH: EXPECTED_COMPONENTS["input"]["blocked_gap"],
+            MMIO_MANIFEST_PATH: EXPECTED_COMPONENTS["mmio"]["blocked_gap"],
+        },
+        "landed_core_helper_evidence": {
+            CORE_MANIFEST_PATH: EXPECTED_COMPONENTS["core"]["landed_helper_evidence"],
+        },
+        "landed_ring_helper_evidence": {
+            RING_MANIFEST_PATH: EXPECTED_COMPONENTS["ring"]["landed_helper_evidence"],
+        },
+        "landed_input_helper_evidence": {
+            INPUT_MANIFEST_PATH: EXPECTED_COMPONENTS["input"]["landed_helper_evidence"],
+        },
+        "landed_mmio_helper_evidence": {
+            MMIO_MANIFEST_PATH: EXPECTED_COMPONENTS["mmio"]["landed_helper_evidence"],
+        },
+        "exact_checks": EXPECTED_EXACT_CHECKS,
     }
-    return mmio_manifest, closure_manifest
+    return manifests, closure_manifest
 
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_mmio_freeze_boundary_") as tmp_dir:
         tmp_root = Path(tmp_dir)
-        mmio_manifest, closure_manifest = baseline_manifests()
-        write_json(tmp_root / MMIO_MANIFEST_PATH, mmio_manifest)
+        manifests, closure_manifest = baseline_manifests()
+        for name, component in EXPECTED_COMPONENTS.items():
+            write_json(tmp_root / component["manifest_path"], manifests[name])
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
 
         missing_files, missing_markers = validate(tmp_root)
@@ -217,48 +408,68 @@ def run_self_test() -> int:
         drifted["freeze_boundary_status"] = "drifted"
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
         _, missing_markers = validate(tmp_root)
-        if "shared_field:freeze_boundary_status" not in missing_markers:
+        if "shared_field:freeze_boundary_status:P10-L01" not in missing_markers:
             raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_freeze_status_marker_missing")
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
 
         drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
-        drifted["survey_provenance"]["lane_keys"]["mmio"] = "P10-L18"
+        drifted["survey_provenance"]["lane_keys"]["core"] = "P10-L18"
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
         _, missing_markers = validate(tmp_root)
-        if "closure_manifest:survey_provenance.lane_keys.mmio" not in missing_markers:
-            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_lane_key_marker_missing")
+        if "closure_manifest:survey_provenance.lane_keys.core" not in missing_markers:
+            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_core_lane_key_marker_missing")
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
 
         drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
-        drifted["exact_checks"] = ["zig build test --build-file zigux/tests/phase10_build.zig --summary all"]
+        drifted["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            "zigux/tests/phase10_build.zig"
+        ]
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
         _, missing_markers = validate(tmp_root)
-        if f"closure_manifest:exact_checks:{FREEZE_BOUNDARY_CHECK}" not in missing_markers:
-            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_exact_check_marker_missing")
+        if "closure_manifest:lab_only_driver_validation.evidence" not in missing_markers:
+            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_lab_validation_marker_missing")
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
 
         drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
-        drifted["roadmap_parity_scoreboard"]["mmio_wrappers"]["evidence"] = ["drivers/virtio/virtio_mmio.zig"]
+        drifted["landed_ring_helper_evidence"][RING_MANIFEST_PATH] = ["phase10-virtqueue-shape-helper"]
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
         _, missing_markers = validate(tmp_root)
-        if "closure_manifest:mmio_wrappers.evidence" not in missing_markers:
-            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_mmio_evidence_marker_missing")
+        if f"closure_manifest:landed_ring_helper_evidence.{RING_MANIFEST_PATH}" not in missing_markers:
+            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_ring_helper_marker_missing")
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
 
         drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
-        drifted["blocked_transport_gaps"][MMIO_MANIFEST_PATH] = "phase10-mmio-queue-reset-helper"
+        drifted["blocked_transport_gaps"][CORE_MANIFEST_PATH] = "phase10-core-ready-now"
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
         _, missing_markers = validate(tmp_root)
-        if "closure_manifest:blocked_transport_gaps.mmio" not in missing_markers:
+        if "closure_manifest:blocked_transport_gaps.core" not in missing_markers:
             raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_blocked_gap_marker_missing")
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
+
+        drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
+        drifted["ready_transport_followups"][MMIO_MANIFEST_PATH] = "phase10-mmio-ready-now"
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
+        _, missing_markers = validate(tmp_root)
+        if "closure_manifest:ready_transport_followups.mmio" not in missing_markers:
+            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_ready_followup_marker_missing")
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
+
+        drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
+        drifted["exact_checks"] = ["python3 scripts/zigux/check-phase10-core-packet.py"]
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
+        _, missing_markers = validate(tmp_root)
+        if "closure_manifest:exact_checks:python3 scripts/zigux/check-phase10-ring-packet.py" not in missing_markers:
+            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_exact_check_marker_missing")
 
     print("PHASE10_MMIO_FREEZE_BOUNDARY=pass")
-    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate Phase 10 MMIO freeze-boundary parity inside the shared closure packet.")
+    parser = argparse.ArgumentParser(
+        description="Validate shared Phase 10 closure-manifest parity against the shipped core, ring, input, and MMIO manifests."
+    )
     parser.add_argument("--self-test", action="store_true", help="Run synthetic drift checks against temporary manifests.")
     args = parser.parse_args()
 
@@ -283,7 +494,7 @@ def main() -> int:
         return 1
 
     print("PHASE10_MMIO_FREEZE_BOUNDARY=pass")
-    print("PHASE10_MMIO_FREEZE_BOUNDARY_REQUIRED_FILE_COUNT=2")
+    print("PHASE10_MMIO_FREEZE_BOUNDARY_REQUIRED_FILE_COUNT=5")
     return 0
 
 
