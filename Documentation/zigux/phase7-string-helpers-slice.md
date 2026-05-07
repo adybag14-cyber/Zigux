@@ -25,7 +25,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 
 - are runtime-adjacent without entering allocator-heavy or device-heavy paths
 - benefit from explicit pointer and termination handling
-- can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
+- started as a small runtime-safe leaf batch and now keeps its landed formatting, escaping, and allocator-backed helpers reviewable through the same bounded Zig gates instead of widening into broader ownership families
 - keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, Linux-style size rendering cues, one count-prefixed integer-array starter, one copied-user-buffer integer-array wrapper, one duplicated-replacement helper, and one quotable-log duplication helper
 - keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the dedicated `zigux/tests/phase7_string_helpers_survey.zig` survey gate, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`
 
@@ -54,7 +54,7 @@ The Phase 5 roadmap keeps approved reference idioms under four sample anchors in
 
 ## Current parity surface
 
-The current starter slice covers:
+The current bounded slice covers:
 
 - `skip_spaces()`
 - `strim()`
