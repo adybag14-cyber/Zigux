@@ -35,4 +35,4 @@ Phase 7 is already parked as a shared validator-first helper bundle, but the mak
 
 ## Next bounded step
 
-Fresh repo inspection still shows the broad docs-root Phase 7 summary in `Documentation/zigux/README.md` omitting `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, even though the parked scripts-root packet and `scripts/zigux/validate-phase7.py` already require that checker and this note. If a safe full-file publication path is available, prefer a one-file docs-root truthfulness repair before touching helper code, fixtures, or any wider Phase 7 surface.
+Fresh repo inspection shows the broad docs-root Phase 7 summary in `Documentation/zigux/README.md` already names `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, so that older follow-through is now complete. If another same-lane truthfulness repair is needed, prefer the smaller tests-root follow-through: make `zigux/tests/README.md` carry this alignment note and checker explicitly when it summarizes the parked Phase 7 validator-first packet, rather than reopening helper code, fixtures, or any wider Phase 7 surface.
