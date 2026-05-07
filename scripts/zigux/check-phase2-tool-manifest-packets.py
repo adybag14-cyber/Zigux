@@ -16,6 +16,8 @@ PHASE2_BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bo
 DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 DOCS_REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
+TESTS_README = ROOT / "zigux" / "tests" / "README.md"
+VALIDATE_PHASE2 = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 
@@ -62,6 +64,15 @@ REQUIRED_SCRIPTS_README_LINES = [
     "- `check-phase2-tool-manifest-packets.py`",
     "- `check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed `fixdep`, `genksyms`, and `kconfig` packet manifests so the shared Phase 2 tool inventory, self-test route, and live gate wiring stay explicit before the direct Zig replays run.",
 ]
+REQUIRED_TESTS_README_MARKERS = [
+    "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
+    "`zigux/tests/fixtures/phase2_tool_manifest.json`",
+]
+REQUIRED_VALIDATE_PHASE2_MARKERS = [
+    'root / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",',
+    '[sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"), "--self-test"],',
+    '[sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py")],',
+]
 REQUIRED_REVIEW_MARKERS = [
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
@@ -91,6 +102,8 @@ def required_files_for(root: Path) -> list[Path]:
         root / DOCS_ROOT_README.relative_to(ROOT),
         root / DOCS_REVIEW_CHECKLIST.relative_to(ROOT),
         root / SCRIPTS_README.relative_to(ROOT),
+        root / TESTS_README.relative_to(ROOT),
+        root / VALIDATE_PHASE2.relative_to(ROOT),
         root / MAKEFILE.relative_to(ROOT),
         root / WORKFLOW.relative_to(ROOT),
     ]
@@ -222,6 +235,16 @@ def validate_root(root: Path) -> list[str]:
         )
     )
 
+    tests_readme_text = (root / TESTS_README.relative_to(ROOT)).read_text(encoding="utf-8")
+    for marker in REQUIRED_TESTS_README_MARKERS:
+        if marker not in tests_readme_text:
+            issues.append(f"tests_readme_marker:{marker}")
+
+    validate_phase2_text = (root / VALIDATE_PHASE2.relative_to(ROOT)).read_text(encoding="utf-8")
+    for marker in REQUIRED_VALIDATE_PHASE2_MARKERS:
+        if marker not in validate_phase2_text:
+            issues.append(f"validate_phase2_marker:{marker}")
+
     review_checklist_text = (root / DOCS_REVIEW_CHECKLIST.relative_to(ROOT)).read_text(
         encoding="utf-8"
     )
@@ -284,6 +307,8 @@ def build_self_test_root(root: Path) -> None:
     write_text(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
     write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REQUIRED_REVIEW_MARKERS) + "\n")
     write_text(root / "scripts/zigux/README.md", "\n".join(REQUIRED_SCRIPTS_README_LINES) + "\n")
+    write_text(root / "zigux/tests/README.md", "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n")
+    write_text(root / "scripts/zigux/validate-phase2.py", "\n".join(REQUIRED_VALIDATE_PHASE2_MARKERS) + "\n")
     write_text(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_LINES) + "\n")
     write_text(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(REQUIRED_WORKFLOW_LINES) + "\n")
 
@@ -438,6 +463,20 @@ def run_self_test() -> int:
         assert f"scripts_readme_line:{REQUIRED_SCRIPTS_README_LINES[1]}:count=2:expected=1" in issues
 
         build_self_test_root(root)
+        tests_readme_path = root / "zigux/tests/README.md"
+        tests_readme_text = tests_readme_path.read_text(encoding="utf-8").replace(REQUIRED_TESTS_README_MARKERS[0] + "\n", "", 1)
+        write_text(tests_readme_path, tests_readme_text)
+        issues = validate_root(root)
+        assert f"tests_readme_marker:{REQUIRED_TESTS_README_MARKERS[0]}" in issues
+
+        build_self_test_root(root)
+        validate_phase2_path = root / "scripts/zigux/validate-phase2.py"
+        validate_phase2_text = validate_phase2_path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATE_PHASE2_MARKERS[1] + "\n", "", 1)
+        write_text(validate_phase2_path, validate_phase2_text)
+        issues = validate_root(root)
+        assert f"validate_phase2_marker:{REQUIRED_VALIDATE_PHASE2_MARKERS[1]}" in issues
+
+        build_self_test_root(root)
         review_path = root / "Documentation/zigux/review-checklist.md"
         review_text = review_path.read_text(encoding="utf-8").replace(REQUIRED_REVIEW_MARKERS[0] + "\n", "", 1)
         write_text(review_path, review_text)
@@ -466,21 +505,21 @@ def run_self_test() -> int:
         assert f"makefile_line:{REQUIRED_MAKEFILE_LINES[0]}:count=2:expected=1" in issues
 
         build_self_test_root(root)
-        workflow_path = root / ".github" / "workflows" / "zigux-bootstrap.yml"
+        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
         workflow_text = workflow_path.read_text(encoding="utf-8").replace(REQUIRED_WORKFLOW_LINES[1] + "\n", "", 1)
         write_text(workflow_path, workflow_text)
         issues = validate_root(root)
         assert f"workflow_line:{REQUIRED_WORKFLOW_LINES[1]}:count=0:expected=1" in issues
 
         build_self_test_root(root)
-        workflow_path = root / ".github" / "workflows" / "zigux-bootstrap.yml"
+        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
         workflow_text = workflow_path.read_text(encoding="utf-8") + REQUIRED_WORKFLOW_LINES[1] + "\n"
         write_text(workflow_path, workflow_text)
         issues = validate_root(root)
         assert f"workflow_line:{REQUIRED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
 
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=27")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
