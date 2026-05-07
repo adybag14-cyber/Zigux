@@ -57,6 +57,7 @@ REQUIRED_SURFACES = {
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py": RELEASE_BOUNDARY_CHECKER_MARKER,
     "zigux/tests/README.md": "keep the current Phase 14 smoke packet reviewable",
     "zigux/tests/phase14_build.zig": "phase14-smoke",
+    "zigux/Makefile": "phase14: phase14-validate phase14-smoke phase14-test",
     "zigux/tests/phase14_workqueue_bridge.zig": "phase14 workqueue bridge manifest records the boundary-map foothold and remaining gap",
     "zigux/tests/phase14_skbuff_bridge.zig": "phase14 skbuff bridge manifest records the boundary-map foothold and frozen ownership gap",
     "zigux/tests/phase14_workqueue_bridge_manifest.json": "phase14-workqueue-live-execution-blocker",
@@ -463,6 +464,7 @@ def run_self_test() -> int:
             "PHASE14_COMPILE_ARTIFACT_COUNT=5",
             "PHASE14_FOCUSED_SHARD_COUNT=1",
             "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
+            "kernel/rcu/tree_bridge.zig",
         ]
         matrix_lines.extend(compile_matrix_note_row(*row) for row in COMPILE_MATRIX_ROWS)
         write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
@@ -596,6 +598,18 @@ def run_self_test() -> int:
         errors = check(root)
         if not any("manifest surface drift for scripts/zigux/check-phase14-docs-root-smoke-summary.py" in error for error in errors):
             print("self-test expected manifest surface failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken_manifest["surfaces"] = [
+            surface
+            for surface in broken_manifest["surfaces"]
+            if surface.get("path") != "zigux/Makefile"
+        ]
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
+        errors = check(root)
+        if not any("manifest surface drift for zigux/Makefile" in error for error in errors):
+            print("self-test expected makefile manifest surface failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken_docs_root = root / "Documentation/zigux/README.md"
