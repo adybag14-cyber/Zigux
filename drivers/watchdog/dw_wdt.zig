@@ -35,6 +35,11 @@ pub const RegistrationScaffoldState = enum {
     import_running_state_then_register,
 };
 
+pub const TimerClockPath = enum {
+    dedicated_tclk,
+    shared_clk_fallback,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -152,6 +157,33 @@ pub const PlatformHandoffSummary = struct {
     pretimeout_sec: u32,
     imported_running_state: bool,
     needs_timeout_programming: bool,
+};
+
+pub const RegistrationOrderSummary = struct {
+    anchor: []const u8,
+    registration_call: []const u8,
+    drvdata_anchor: []const u8,
+    timer_clock_path: TimerClockPath,
+    apb_clock_optional: bool,
+    apb_clock_present: bool,
+    reset_control_available: bool,
+    irq_registration_ready: bool,
+    drvdata_ready: bool,
+    timeout_origin: ProbeTimeoutOrigin,
+    timeout_programmed_before_register: bool,
+    imported_running_state_before_register: bool,
+    watchdog_info_supports_pretimeout: bool,
+    nowayout: bool,
+    restart_priority: i32,
+    stop_on_reboot: bool,
+    register_device_requested: bool,
+    reset_deassert_precedes_timeout_init: bool,
+    timeout_init_precedes_drvdata: bool,
+    drvdata_precedes_restart_priority: bool,
+    restart_priority_precedes_stop_on_reboot: bool,
+    stop_on_reboot_precedes_register_device: bool,
+    blocked_on_live_platform_registration: bool,
+    blocked_on_live_mmio: bool,
 };
 
 pub const RemoveSummary = struct {
@@ -387,6 +419,49 @@ pub const DwWdtLab = struct {
             .pretimeout_sec = registration.pretimeout_sec,
             .imported_running_state = registration.imported_running_state,
             .needs_timeout_programming = registration.needs_timeout_programming,
+        };
+    }
+
+    pub fn registrationOrderSummary(
+        self: *Self,
+        options: ProbeOptions,
+        has_pretimeout_irq: bool,
+        irq_registration_ready: bool,
+        drvdata_ready: bool,
+        uses_dedicated_tclk: bool,
+        has_pclk: bool,
+    ) !RegistrationOrderSummary {
+        const handoff = try self.platformHandoffSummary(
+            options,
+            has_pretimeout_irq,
+            irq_registration_ready,
+            drvdata_ready,
+        );
+        return .{
+            .anchor = descriptor().anchor,
+            .registration_call = handoff.registration_call,
+            .drvdata_anchor = handoff.drvdata_anchor,
+            .timer_clock_path = if (uses_dedicated_tclk) .dedicated_tclk else .shared_clk_fallback,
+            .apb_clock_optional = true,
+            .apb_clock_present = has_pclk,
+            .reset_control_available = handoff.reset_control_available,
+            .irq_registration_ready = handoff.irq_registration_ready,
+            .drvdata_ready = handoff.drvdata_ready,
+            .timeout_origin = handoff.timeout_origin,
+            .timeout_programmed_before_register = handoff.needs_timeout_programming,
+            .imported_running_state_before_register = handoff.imported_running_state,
+            .watchdog_info_supports_pretimeout = handoff.pretimeout_sec != 0,
+            .nowayout = handoff.nowayout,
+            .restart_priority = handoff.restart_priority,
+            .stop_on_reboot = handoff.stop_on_reboot,
+            .register_device_requested = handoff.registration_ready,
+            .reset_deassert_precedes_timeout_init = handoff.reset_control_available,
+            .timeout_init_precedes_drvdata = true,
+            .drvdata_precedes_restart_priority = true,
+            .restart_priority_precedes_stop_on_reboot = true,
+            .stop_on_reboot_precedes_register_device = true,
+            .blocked_on_live_platform_registration = true,
+            .blocked_on_live_mmio = true,
         };
     }
 
@@ -697,6 +772,78 @@ test "platform handoff keeps the same drvdata anchor when irq or drvdata are sti
     try std.testing.expectEqual(TopSource.custom, handoff.top_source);
     try std.testing.expectEqual(@as(u32, 12), handoff.timeout_sec);
     try std.testing.expectEqual(@as(u32, 0), handoff.pretimeout_sec);
+}
+
+test "registration order summary keeps timeout programming and policy ordering explicit before registration" {
+    var watchdog = try DwWdtLab.initCustomTops(1_000, false, [_]u32{
+        20_000, 4_000,  8_000,  12_000,
+        16_000, 24_000, 28_000, 32_000,
+        36_000, 40_000, 44_000, 48_000,
+        52_000, 56_000, 60_000, 64_000,
+    });
+
+    const summary = try watchdog.registrationOrderSummary(.{
+        .nowayout = true,
+        .requested_timeout_sec = 11,
+        .stop_on_reboot = true,
+    }, true, false, true, false, false);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", summary.anchor);
+    try std.testing.expectEqualStrings("watchdog_register_device", summary.registration_call);
+    try std.testing.expectEqualStrings("platform_set_drvdata", summary.drvdata_anchor);
+    try std.testing.expectEqual(TimerClockPath.shared_clk_fallback, summary.timer_clock_path);
+    try std.testing.expect(summary.apb_clock_optional);
+    try std.testing.expect(!summary.apb_clock_present);
+    try std.testing.expect(!summary.reset_control_available);
+    try std.testing.expect(!summary.irq_registration_ready);
+    try std.testing.expect(summary.drvdata_ready);
+    try std.testing.expectEqual(ProbeTimeoutOrigin.default_selection, summary.timeout_origin);
+    try std.testing.expect(summary.timeout_programmed_before_register);
+    try std.testing.expect(!summary.imported_running_state_before_register);
+    try std.testing.expect(!summary.watchdog_info_supports_pretimeout);
+    try std.testing.expectEqual(default_restart_priority, summary.restart_priority);
+    try std.testing.expect(summary.stop_on_reboot);
+    try std.testing.expect(summary.register_device_requested);
+    try std.testing.expect(!summary.reset_deassert_precedes_timeout_init);
+    try std.testing.expect(summary.timeout_init_precedes_drvdata);
+    try std.testing.expect(summary.drvdata_precedes_restart_priority);
+    try std.testing.expect(summary.restart_priority_precedes_stop_on_reboot);
+    try std.testing.expect(summary.stop_on_reboot_precedes_register_device);
+    try std.testing.expect(summary.blocked_on_live_platform_registration);
+    try std.testing.expect(summary.blocked_on_live_mmio);
+}
+
+test "registration order summary keeps imported running state and pretimeout readiness explicit" {
+    var watchdog = try DwWdtLab.initFixedTops(65_536, true);
+    _ = watchdog.loadRegisters(.{
+        .control = control_reg_wdt_en_mask | control_reg_resp_mode_mask,
+        .timeout_range = 0x33,
+        .current_count = 2 * 65_536,
+    });
+
+    const summary = try watchdog.registrationOrderSummary(.{
+        .nowayout = false,
+        .stop_on_reboot = true,
+    }, true, true, true, true, true);
+
+    try std.testing.expectEqual(TimerClockPath.dedicated_tclk, summary.timer_clock_path);
+    try std.testing.expect(summary.apb_clock_optional);
+    try std.testing.expect(summary.apb_clock_present);
+    try std.testing.expect(summary.reset_control_available);
+    try std.testing.expect(summary.irq_registration_ready);
+    try std.testing.expect(summary.drvdata_ready);
+    try std.testing.expectEqual(ProbeTimeoutOrigin.imported_running_state, summary.timeout_origin);
+    try std.testing.expect(!summary.timeout_programmed_before_register);
+    try std.testing.expect(summary.imported_running_state_before_register);
+    try std.testing.expect(summary.watchdog_info_supports_pretimeout);
+    try std.testing.expect(!summary.nowayout);
+    try std.testing.expect(summary.stop_on_reboot);
+    try std.testing.expect(summary.register_device_requested);
+    try std.testing.expect(summary.reset_deassert_precedes_timeout_init);
+    try std.testing.expect(summary.timeout_init_precedes_drvdata);
+    try std.testing.expect(summary.drvdata_precedes_restart_priority);
+    try std.testing.expect(summary.restart_priority_precedes_stop_on_reboot);
+    try std.testing.expect(summary.stop_on_reboot_precedes_register_device);
 }
 
 test "remove with reset control quiesces hardware and clears pending irq state" {
