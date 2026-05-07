@@ -5,7 +5,7 @@ This note records the current shared contributor replay surface for the shipped 
 ## Status
 
 - `PHASE11_SHARED_REPLAY_STATUS=starter_packet_reviewable`
-- scope: keep the current watchdog, shared header parity, and `hvc_console` starter tranche reviewable through one shared replay route while teardown and failure-mode parity stay explicit and host-backed integration remains out of scope
+- scope: keep the current watchdog, shared header parity, and `hvc_console` starter tranche reviewable through one shared replay route while teardown and failure-mode parity stay explicit, the shared closure checkpoint stays recorded, and host-backed integration remains out of scope
 
 ## Current Shared Review Surface On `master`
 
@@ -14,6 +14,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `zigux/tests/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
+- `Documentation/zigux/phase11-closure-note.md`
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
@@ -86,6 +87,10 @@ The parked driver-lane ownership map also stays explicit beside that replay rout
 
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 
+The shared closure checkpoint now also stays explicit beside that replay route:
+
+- `Documentation/zigux/phase11-closure-note.md`
+
 The dedicated archival HVC evidence still stays explicit beside that shared route:
 
 - `zigux/tests/phase11_hvc_console_manifest.json`
@@ -105,7 +110,7 @@ The focused shared header-boundary evidence also stays explicit beside that shar
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 
-`Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` keep that same shared-versus-dedicated replay split explicit, while `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff, missing-reference failure mode, and teardown-gating replay reviewable without implying live tty teardown or host-backed cleanup, `drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet, `Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, and remove ownership split explicit in one driver-local note, and `zigux/tests/phase11_hvc_console_manifest.json` keeps the archival HVC landing checkpoint named alongside the survey note and validation matrix.
+`Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` keep that same shared-versus-dedicated replay split explicit, while `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff, missing-reference failure mode, and teardown-gating replay reviewable without implying live tty teardown or host-backed cleanup, `drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet, `Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, and remove ownership split explicit in one driver-local note, `zigux/tests/phase11_hvc_console_manifest.json` keeps the archival HVC landing checkpoint named alongside the survey note and validation matrix, and `Documentation/zigux/phase11-closure-note.md` now keeps the parked shared simple-driver packet summarized in one bounded closure note so later runs do not have to reconstruct that shared closure state from the replay contract alone.
 
 ## What This Contract Does Not Claim
 
@@ -117,4 +122,4 @@ The focused shared header-boundary evidence also stays explicit beside that shar
 
 ## Follow-Through Rule
 
-Future Phase 11 follow-through should stay inside the next smallest hardware-validation matrix, focused replay, teardown-parity note, failure-mode note, registration-facing handoff note, driver-lane sequencing sync, or shared review-surface sync across the gpio, bcm2835, dw, header-boundary, and HVC packet rather than widening into new driver behavior or broader validator assets before those files actually land.
+Future Phase 11 follow-through should stay inside the next smallest hardware-validation matrix, focused replay, teardown-parity note, failure-mode note, registration-facing handoff note, driver-lane sequencing sync, shared closure-note sync, or shared review-surface sync across the gpio, bcm2835, dw, header-boundary, and HVC packet rather than widening into new driver behavior or broader validator assets before those files actually land.
