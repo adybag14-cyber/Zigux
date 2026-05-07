@@ -139,6 +139,12 @@ pub fn makeNonrelativePath(allocator: std.mem.Allocator, cwd: []const u8, path: 
     return std.fmt.allocPrint(allocator, "{s}/{s}", .{ cwd, path });
 }
 
+fn sameLocationFromStatx(cwd_statx: std.os.linux.Statx, pwd_statx: std.os.linux.Statx) bool {
+    return cwd_statx.ino == pwd_statx.ino and
+        cwd_statx.dev_major == pwd_statx.dev_major and
+        cwd_statx.dev_minor == pwd_statx.dev_minor;
+}
+
 pub fn sameLocation(cwd: []const u8, pwd: []const u8) bool {
     if (cwd.len == 0 or pwd.len == 0) {
         return false;
@@ -167,10 +173,7 @@ pub fn sameLocation(cwd: []const u8, pwd: []const u8) bool {
         return false;
     }
 
-    return cwd_statx.mnt_id == pwd_statx.mnt_id and
-        cwd_statx.ino == pwd_statx.ino and
-        cwd_statx.dev_major == pwd_statx.dev_major and
-        cwd_statx.dev_minor == pwd_statx.dev_minor;
+    return sameLocationFromStatx(cwd_statx, pwd_statx);
 }
 
 pub fn choosePwdCwd(cwd: []const u8, pwd: ?[]const u8, same_location: bool) []const u8 {
@@ -440,7 +443,7 @@ pub fn planDeferredExeclCall(
     cwd: []const u8,
     cmd: []const u8,
     argv_tail: []const ?[]const u8,
-) (CollectExeclArgsError || std.mem.Allocator.Error)!DeferredExecPlan {
+) (CollectExeclArgsError || std.mem.Allocator.Error || error{MissingCurrentWorkingDirectory})!DeferredExecPlan {
     return planDeferredCall(
         allocator,
         env,
@@ -966,6 +969,22 @@ test "choosePwdCwd prefers PWD only when the caller proves it matches cwd" {
         "/repo",
         choosePwdCwd("/repo", "/other", false),
     );
+}
+
+test "sameLocationFromStatx mirrors the C helper by ignoring mount-id drift" {
+    var cwd_statx = std.mem.zeroes(std.os.linux.Statx);
+    cwd_statx.ino = 17;
+    cwd_statx.dev_major = 8;
+    cwd_statx.dev_minor = 1;
+    cwd_statx.mnt_id = 100;
+
+    var pwd_statx = cwd_statx;
+    pwd_statx.mnt_id = 200;
+
+    try std.testing.expect(sameLocationFromStatx(cwd_statx, pwd_statx));
+
+    pwd_statx.dev_minor = 2;
+    try std.testing.expect(!sameLocationFromStatx(cwd_statx, pwd_statx));
 }
 
 test "sameLocation and choosePwdCwdFromFilesystem honor logical PWD aliases" {
