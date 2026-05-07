@@ -626,6 +626,11 @@ test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix
         },
     };
 
+    var saw_plain_g1 = false;
+    var saw_ascii_g2 = false;
+    var saw_ascii_g4 = false;
+    var saw_ascii_g8 = false;
+
     try std.testing.expectEqual(expected.len, perf_cases.len);
 
     for (expected, 0..) |want, idx| {
@@ -642,10 +647,62 @@ test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix
 
     for (perf_cases, 0..) |case, idx| {
         try std.testing.expect(case.expected_text.current().len > 0);
+        try std.testing.expect(case.reps > 0);
+        try std.testing.expect(case.max_slowdown_pct > 0);
+        try std.testing.expect(case.len > 0);
+        try std.testing.expect(case.len <= case.rowsize);
+        try std.testing.expectEqual(case.rowsize, normalizedRowsize(case.rowsize));
+        try std.testing.expectEqual(case.groupsize, normalizedGroupsizeForLen(case.len, case.groupsize));
+
+        if (std.mem.eql(u8, case.label, "16B-plain-g1")) {
+            try std.testing.expectEqual(@as(usize, 16), case.len);
+            try std.testing.expectEqual(@as(usize, 16), case.rowsize);
+            try std.testing.expectEqual(@as(usize, 1), case.groupsize);
+            try std.testing.expectEqual(false, case.ascii);
+            try std.testing.expectEqual(@as(usize, 40_000), case.reps);
+            try std.testing.expectEqual(@as(u16, 175), case.max_slowdown_pct);
+            try std.testing.expect(!saw_plain_g1);
+            saw_plain_g1 = true;
+        } else if (std.mem.eql(u8, case.label, "32B-ascii-g2")) {
+            try std.testing.expectEqual(@as(usize, 32), case.len);
+            try std.testing.expectEqual(@as(usize, 32), case.rowsize);
+            try std.testing.expectEqual(@as(usize, 2), case.groupsize);
+            try std.testing.expectEqual(true, case.ascii);
+            try std.testing.expectEqual(@as(usize, 10_000), case.reps);
+            try std.testing.expectEqual(@as(u16, 550), case.max_slowdown_pct);
+            try std.testing.expect(!saw_ascii_g2);
+            saw_ascii_g2 = true;
+        } else if (std.mem.eql(u8, case.label, "16B-ascii-g4")) {
+            try std.testing.expectEqual(@as(usize, 16), case.len);
+            try std.testing.expectEqual(@as(usize, 16), case.rowsize);
+            try std.testing.expectEqual(@as(usize, 4), case.groupsize);
+            try std.testing.expectEqual(true, case.ascii);
+            try std.testing.expectEqual(@as(usize, 20_000), case.reps);
+            try std.testing.expectEqual(@as(u16, 550), case.max_slowdown_pct);
+            try std.testing.expect(!saw_ascii_g4);
+            saw_ascii_g4 = true;
+        } else if (std.mem.eql(u8, case.label, "16B-ascii-g8")) {
+            try std.testing.expectEqual(@as(usize, 16), case.len);
+            try std.testing.expectEqual(@as(usize, 16), case.rowsize);
+            try std.testing.expectEqual(@as(usize, 8), case.groupsize);
+            try std.testing.expectEqual(true, case.ascii);
+            try std.testing.expectEqual(@as(usize, 20_000), case.reps);
+            try std.testing.expectEqual(@as(u16, 600), case.max_slowdown_pct);
+            try std.testing.expect(!saw_ascii_g8);
+            saw_ascii_g8 = true;
+        } else {
+            return error.TestUnexpectedResult;
+        }
+
         for (perf_cases[idx + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, case.label, other.label));
         }
     }
+
+    try std.testing.expect(saw_plain_g1);
+    try std.testing.expect(saw_ascii_g2);
+    try std.testing.expect(saw_ascii_g4);
+    try std.testing.expect(saw_ascii_g8);
 }
 
 test "phase 6 hexdump perf fixture packet avoids fallback formatting drift" {
