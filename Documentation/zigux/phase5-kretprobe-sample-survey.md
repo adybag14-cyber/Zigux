@@ -67,7 +67,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 - `ownershipSummary()` keeps `cold`, `initialized`, `armed`, `replay_complete`, and `exited` snapshots explicit with active-instance and entry-timestamp state
 - `runLifecycleGuardReplay()` keeps pre-init rejection, double-init rejection, and post-init retarget rejection explicit without implying runtime registration parity
 - `runRecoveryReplay()` keeps direct retargeting, exit rejection while armed, invalid timestamp recovery, and the recovered duration `60 ns` explicit until `retHandler()` clears the tracked instance
-- after `exit()` the sample rejects later summary or handler calls, with `runRecoveryReplay()` keeping that post-exit packet explicit too
+- after `exit()` the sample rejects later `recordMissedInstance()` or handler calls, while `ownershipSummary()` keeps the exited snapshot reviewable and `runRecoveryReplay()` keeps that post-exit packet explicit too
 
 ## Latest verification snapshot
 
