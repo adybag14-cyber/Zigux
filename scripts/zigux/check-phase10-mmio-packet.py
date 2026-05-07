@@ -417,7 +417,7 @@ def run_self_test() -> int:
 
         makefile_path = tmp_root / "zigux/Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.writeText(
+        makefile_path.write_text(
             original_makefile.replace(
                 "scripts/zigux/check-phase10-mmio-packet.py --self-test",
                 "scripts/zigux/check-phase10-mmio-drift.py --self-test",
