@@ -253,6 +253,8 @@ That means `test "rbtree inserts and traverses in sorted order"`, `test "rbtree 
 
 - `PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal and detached-node replay stay explicit so duplicate-search and cached-root behavior keep direct review anchors without implying a broader duplicate-search fixture packet than current master ships`
 
+The committed shared fixture in `zigux/tests/fixtures/phase1_helpers.json` already carries `find_found_key`, `find_missing`, `find_first_serial`, `next_match_serials`, and `next_match_terminal_null` for `tools/lib/rbtree.zig`, but `zigux/tests/phase1_helpers.zig` does not consume those fields yet. Treat those duplicate-search keys as audit-only context for now: the direct helper-local duplicate-search anchors `test "rbtree findAdd keeps the first duplicate and inserts new keys"` and `test "rbtree nextMatch walks the duplicate range in order"` remain the owning proof until the shared Phase 1 replay starts reading those committed fixture fields directly.
+
 ## String Review Rule
 
 For `tools/lib/string.zig`, reviewers must keep the current bounded host-side string surface explicit through:
