@@ -28,6 +28,7 @@ const Fixture = struct {
         next_zero: usize,
         first_and: usize,
         next_and: usize,
+        last: usize,
         inclusive_boundary_next: usize,
         inclusive_boundary_zero: usize,
         inclusive_boundary_and: usize,
@@ -40,6 +41,8 @@ const Fixture = struct {
         tail_zero_clamped_next: usize,
         tail_and_clamped_first: usize,
         tail_and_clamped_next: usize,
+        tail_clamped_last: usize,
+        tail_clamped_empty_last: usize,
     },
     bitmap: struct {
         weight: usize,
@@ -215,6 +218,7 @@ test "phase 1 helper ports match committed parity fixture" {
     const find_rhs = [_]find_bit.Word{ @as(find_bit.Word, 1) << 9, @as(find_bit.Word, 1) << 2 };
     try std.testing.expectEqual(fixture.find_bit.first_and, find_bit.findFirstAndBit(&find_lhs, &find_rhs, fixture.find_bit.bits_per_long * 2));
     try std.testing.expectEqual(fixture.find_bit.next_and, find_bit.findNextAndBit(&find_lhs, &find_rhs, fixture.find_bit.bits_per_long * 2, 10));
+    try std.testing.expectEqual(fixture.find_bit.last, find_bit.findLastBit(&find_map, fixture.find_bit.bits_per_long * 3));
 
     const inclusive_boundary = fixture.find_bit.bits_per_long - 1;
     const inclusive_set_map = [_]find_bit.Word{
@@ -296,8 +300,10 @@ test "phase 1 helper ports match committed parity fixture" {
     var find_tail_window = [_]find_bit.Word{ 0, (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 9) };
     try std.testing.expectEqual(fixture.find_bit.bits_per_long + 3, find_bit.findFirstBit(&find_tail_window, find_tail_nbits));
     try std.testing.expectEqual(find_tail_nbits, find_bit.findNextBit(&find_tail_window, find_tail_nbits, fixture.find_bit.bits_per_long + 4));
+    try std.testing.expectEqual(fixture.find_bit.tail_clamped_last, find_bit.findLastBit(&find_tail_window, find_tail_nbits));
     find_tail_window[1] &= ~(@as(find_bit.Word, 1) << 3);
     try std.testing.expectEqual(find_tail_nbits, find_bit.findFirstBit(&find_tail_window, find_tail_nbits));
+    try std.testing.expectEqual(fixture.find_bit.tail_clamped_empty_last, find_bit.findLastBit(&find_tail_window, find_tail_nbits));
 
     var find_tail_zero_window = find_tail_full;
     find_tail_zero_window[1] &= ~(@as(find_bit.Word, 1) << 2);
