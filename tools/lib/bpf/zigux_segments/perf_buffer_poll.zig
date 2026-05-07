@@ -92,6 +92,22 @@ pub const BufferWindowResult = struct {
     window: ?BufferWindow,
 };
 
+pub const SignaledBufferIndexLookup = union(enum) {
+    buffer_index: usize,
+    signal_ordinal_out_of_range,
+};
+
+pub const SignaledBufferIndexDisposition = enum {
+    buffer_index,
+    signal_ordinal_out_of_range,
+};
+
+pub const SignaledBufferIndexResult = struct {
+    disposition: SignaledBufferIndexDisposition,
+    return_value: i32,
+    buffer_index: ?usize,
+};
+
 pub const PollSummary = struct {
     wait_class: WaitClass,
     outcome: PollOutcome,
@@ -140,6 +156,10 @@ pub const PollError = error{
 
 fn hasAnyBufferState(summary: ReadyBufferSummary) bool {
     return summary.ready_count != 0 or summary.first_error != null;
+}
+
+fn bufferHasSignal(buffer: BufferObservation) bool {
+    return buffer.ready or buffer.error_code != null;
 }
 
 pub fn classifyObservedWaitResult(wait_result: i32) WaitObservation {
@@ -290,6 +310,47 @@ pub fn resolveBufferWindowResultFromSlots(
     mmap_size: usize,
 ) BufferWindowResult {
     return resolveBufferWindowResult(lookupBufferWindow(buffers, buffer_index, mmap_size));
+}
+
+pub fn lookupSignaledBufferIndex(
+    buffers: []const BufferObservation,
+    signal_ordinal: usize,
+) SignaledBufferIndexLookup {
+    var seen_signals: usize = 0;
+
+    for (buffers, 0..) |buffer, index| {
+        if (!bufferHasSignal(buffer)) continue;
+        if (seen_signals == signal_ordinal) {
+            return .{ .buffer_index = index };
+        }
+        seen_signals += 1;
+    }
+
+    return .signal_ordinal_out_of_range;
+}
+
+pub fn resolveSignaledBufferIndexResult(
+    lookup: SignaledBufferIndexLookup,
+) SignaledBufferIndexResult {
+    return switch (lookup) {
+        .buffer_index => |index| .{
+            .disposition = .buffer_index,
+            .return_value = 0,
+            .buffer_index = index,
+        },
+        .signal_ordinal_out_of_range => .{
+            .disposition = .signal_ordinal_out_of_range,
+            .return_value = -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+            .buffer_index = null,
+        },
+    };
+}
+
+pub fn resolveSignaledBufferIndexResultFromSlots(
+    buffers: []const BufferObservation,
+    signal_ordinal: usize,
+) SignaledBufferIndexResult {
+    return resolveSignaledBufferIndexResult(lookupSignaledBufferIndex(buffers, signal_ordinal));
 }
 
 pub fn summarizePoll(
@@ -620,6 +681,58 @@ test "resolveBufferWindowResult keeps perf_buffer__buffer return shaping explici
     try std.testing.expectEqual(@as(?BufferWindow, null), invalid.window);
 }
 
+test "lookupSignaledBufferIndex keeps perf_buffer__poll signaled-slot iteration explicit" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{ .error_code = -32 },
+        .{ .ready = true, .error_code = -11 },
+        .{},
+    };
+
+    try std.testing.expectEqualDeep(
+        SignaledBufferIndexLookup{ .buffer_index = 1 },
+        lookupSignaledBufferIndex(&buffers, 0),
+    );
+    try std.testing.expectEqualDeep(
+        SignaledBufferIndexLookup{ .buffer_index = 2 },
+        lookupSignaledBufferIndex(&buffers, 1),
+    );
+    try std.testing.expectEqualDeep(
+        SignaledBufferIndexLookup{ .buffer_index = 3 },
+        lookupSignaledBufferIndex(&buffers, 2),
+    );
+    try std.testing.expectEqualDeep(
+        SignaledBufferIndexLookup.signal_ordinal_out_of_range,
+        lookupSignaledBufferIndex(&buffers, 3),
+    );
+}
+
+test "resolveSignaledBufferIndexResult keeps signaled-slot return shaping explicit" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{ .error_code = -32 },
+        .{ .ready = true, .error_code = -11 },
+    };
+
+    const success = resolveSignaledBufferIndexResultFromSlots(&buffers, 2);
+    try std.testing.expectEqual(SignaledBufferIndexDisposition.buffer_index, success.disposition);
+    try std.testing.expectEqual(@as(i32, 0), success.return_value);
+    try std.testing.expectEqual(@as(?usize, 3), success.buffer_index);
+
+    const invalid = resolveSignaledBufferIndexResultFromSlots(&buffers, 4);
+    try std.testing.expectEqual(
+        SignaledBufferIndexDisposition.signal_ordinal_out_of_range,
+        invalid.disposition,
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        invalid.return_value,
+    );
+    try std.testing.expectEqual(@as(?usize, null), invalid.buffer_index);
+}
+
 test "summarizePoll keeps bounded ready observations compact and reviewable" {
     const buffers = [_]BufferObservation{
         .{ .ready = true },
@@ -776,20 +889,19 @@ test "summarizePollExecutionFromWaitResult keeps raw wait-result normalization c
 }
 
 test "resolvePollExecutionResult keeps perf_buffer__poll return-path choices explicit" {
-    const successful_execution = try summarizePollExecution(12, .{ .ready_events = 3 }, &.{
+    const successful_execution = try summarizePollExecution(12, .{ .ready_events = 2 }, &.{
         .{ .ready = true },
         .{ .ready = true },
         .{ .error_code = -32 },
     }, &.{
         .{ .records_processed = 4 },
         .{ .records_processed = 2 },
-        .{ .records_processed = 1 },
     });
     const successful_result = try resolvePollExecutionResult(successful_execution);
     try std.testing.expectEqual(PollReturnDisposition.ready_count, successful_result.disposition);
-    try std.testing.expectEqual(@as(i32, 3), successful_result.return_value);
+    try std.testing.expectEqual(@as(i32, 2), successful_result.return_value);
 
-    const failed_execution = try summarizePollExecution(12, .{ .ready_events = 3 }, &.{
+    const failed_execution = try summarizePollExecution(12, .{ .ready_events = 2 }, &.{
         .{ .ready = true },
         .{ .ready = true },
         .{ .error_code = -32 },
@@ -803,19 +915,18 @@ test "resolvePollExecutionResult keeps perf_buffer__poll return-path choices exp
 }
 
 test "summarizePollExecutionResultFromWaitResult keeps ready-count versus first-processing-failure return rules explicit" {
-    const successful_result = try summarizePollExecutionResultFromWaitResult(12, 3, &.{
+    const successful_result = try summarizePollExecutionResultFromWaitResult(12, 2, &.{
         .{ .ready = true },
         .{ .ready = true },
         .{ .error_code = -32 },
     }, &.{
         .{ .records_processed = 4 },
         .{ .records_processed = 2 },
-        .{ .records_processed = 1 },
     });
     try std.testing.expectEqual(PollReturnDisposition.ready_count, successful_result.disposition);
-    try std.testing.expectEqual(@as(i32, 3), successful_result.return_value);
+    try std.testing.expectEqual(@as(i32, 2), successful_result.return_value);
 
-    const failed_result = try summarizePollExecutionResultFromWaitResult(12, 3, &.{
+    const failed_result = try summarizePollExecutionResultFromWaitResult(12, 2, &.{
         .{ .ready = true },
         .{ .ready = true },
         .{ .error_code = -32 },
