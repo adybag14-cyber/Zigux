@@ -1,5 +1,5 @@
 {
   "stdout": "",
-  "stderr": "option '--du' is ambiguous\n",
+  "stderr": "option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n",
   "exit_code": 1
 }
