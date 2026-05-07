@@ -307,6 +307,9 @@ EXPECTED_REVIEW_ANCHORS = {
         "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
         "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
         "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers"',
+        "tail_word_next_set_anchor": 'test "tail-word next set scans skip earlier in-range matches before clamping"',
+        "tail_word_next_zero_and_anchor": 'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
+        "tail_word_start_mask_review_summary": "helper-local tail-word next-scan anchors stay explicit because the shared Phase 1 replay locks tail-clamped results but does not isolate same-tail-word starts that must skip earlier in-range matches before clamping",
         "tail_clamp_fixture_keys": [
             "tail_clamped_first",
             "tail_clamped_next",
