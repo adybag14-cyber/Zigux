@@ -337,6 +337,8 @@ REQUIRED_MARKERS = {
         "phase 8 file-path handle bridge helper keeps planning-only reopen attempts explicit",
         "phase 8 file-path handle bridge helper keeps planning-only token preparation explicit",
         "mapReuseObservationFromFdinfo",
+        "resolveReusePinnedMapAttempt",
+        "planTokenPreparation",
     ],
     "zigux/tests/phase8_file_path_handle_bridge_only_build.zig": [
         "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
@@ -731,11 +733,32 @@ def run_self_test() -> None:
             "zigux/tests/phase8_file_path_handle_bridge.zig: mapReuseObservationFromFdinfo",
         ),
         (
+            "phase8_bridge_test_reopen_plan_replay",
+            "zigux/tests/phase8_file_path_handle_bridge.zig",
+            "phase 8 file-path handle bridge helper keeps planning-only reopen attempts explicit",
+            "phase 8 file-path handle bridge helper keeps reopen attempts compact",
+            "zigux/tests/phase8_file_path_handle_bridge.zig: phase 8 file-path handle bridge helper keeps planning-only reopen attempts explicit",
+        ),
+        (
             "phase8_bridge_test_token_preparation",
             "zigux/tests/phase8_file_path_handle_bridge.zig",
             "phase 8 file-path handle bridge helper keeps planning-only token preparation explicit",
             "phase 8 file-path handle bridge helper keeps token preparation compact",
             "zigux/tests/phase8_file_path_handle_bridge.zig: phase 8 file-path handle bridge helper keeps planning-only token preparation explicit",
+        ),
+        (
+            "phase8_bridge_test_reopen_helper_call",
+            "zigux/tests/phase8_file_path_handle_bridge.zig",
+            "resolveReusePinnedMapAttempt",
+            "resolvePinnedMapAttempt",
+            "zigux/tests/phase8_file_path_handle_bridge.zig: resolveReusePinnedMapAttempt",
+        ),
+        (
+            "phase8_bridge_test_token_helper_call",
+            "zigux/tests/phase8_file_path_handle_bridge.zig",
+            "planTokenPreparation",
+            "planTokenFlow",
+            "zigux/tests/phase8_file_path_handle_bridge.zig: planTokenPreparation",
         ),
         (
             "phase8_perf_buffer_poll_test_counted_ready_guard",
