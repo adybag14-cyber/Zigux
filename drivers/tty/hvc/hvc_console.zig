@@ -193,6 +193,34 @@ pub const NotifierHandoffSnapshot = struct {
     remove_handoff_still_required: bool,
 };
 
+pub const KhvcdPollingContractRequest = struct {
+    close: CloseRequest = .{},
+    notifier_add_pending: bool = false,
+    notifier_hangup_pending: bool = false,
+    read_poll_pending: bool = false,
+    write_poll_pending: bool = false,
+};
+
+pub const KhvcdPollingContractSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    final_close_wait_required: bool,
+    clears_port_initialized_on_final_close: bool,
+    keeps_console_binding: bool,
+    tty_registration_pending: bool,
+    notifier_add_pending: bool,
+    notifier_hangup_pending: bool,
+    notifier_driven_wakeup_pending: bool,
+    read_poll_pending: bool,
+    write_poll_pending: bool,
+    poll_driven_wakeup_pending: bool,
+    khvcd_polling_pending: bool,
+    bounded_reschedule_pending: bool,
+    teardown_host_io_pending: bool,
+};
+
 pub const WriteSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -220,7 +248,7 @@ pub const HvcConsoleLab = struct {
             .anchor = "drivers/tty/hvc/hvc_console.c",
             .provides_simple_driver_starter = true,
             .touches_tty_registration = true,
-            .touches_polling_kthread = false,
+            .touches_polling_kthread = true,
             .touches_live_hypervisor_io = false,
         };
     }
@@ -409,7 +437,7 @@ pub const HvcConsoleLab = struct {
 
         return .{
             .anchor = descriptor().anchor,
-            .slot_index = self.slot_index,
+            .slot_index = slot.slot_index,
             .vtermno = self.vtermno,
             .adapter_present = slot.adapter_present,
             .console_index_matches_boot_console = request.console_index_matches_boot_console,
@@ -454,6 +482,40 @@ pub const HvcConsoleLab = struct {
             .khvcd_worker_execution_deferred = true,
             .host_io_deferred = true,
             .remove_handoff_still_required = true,
+        };
+    }
+
+    pub fn summarizeKhvcdPollingContract(
+        self: *const Self,
+        request: KhvcdPollingContractRequest,
+    ) !KhvcdPollingContractSnapshot {
+        const close = try self.summarizeCloseBoundary(request.close);
+        const notifier_driven_wakeup_pending =
+            request.notifier_add_pending or request.notifier_hangup_pending;
+        const poll_driven_wakeup_pending =
+            request.read_poll_pending or request.write_poll_pending;
+        const khvcd_polling_pending =
+            notifier_driven_wakeup_pending or poll_driven_wakeup_pending;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = close.slot_index,
+            .vtermno = close.vtermno,
+            .adapter_present = close.adapter_present,
+            .final_close_wait_required = close.close_wait_required,
+            .clears_port_initialized_on_final_close = close.clears_port_initialized,
+            .keeps_console_binding = close.keeps_console_binding,
+            .tty_registration_pending = close.tty_registration_pending,
+            .notifier_add_pending = request.notifier_add_pending,
+            .notifier_hangup_pending = request.notifier_hangup_pending,
+            .notifier_driven_wakeup_pending = notifier_driven_wakeup_pending,
+            .read_poll_pending = request.read_poll_pending,
+            .write_poll_pending = request.write_poll_pending,
+            .poll_driven_wakeup_pending = poll_driven_wakeup_pending,
+            .khvcd_polling_pending = khvcd_polling_pending,
+            .bounded_reschedule_pending = khvcd_polling_pending,
+            .teardown_host_io_pending = request.notifier_hangup_pending or
+                poll_driven_wakeup_pending,
         };
     }
 
