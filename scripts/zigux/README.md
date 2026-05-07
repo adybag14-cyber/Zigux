@@ -52,6 +52,7 @@ Current bootstrap helpers
 - `check-phase10-input-packet.py`
 - `check-phase10-mmio-packet.py`
 - `check-phase11-shared-replay-contract.py`
+- `check-phase11-bcm2835-wdt-packet.py`
 - `check-phase11-header-boundary-packet.py`
 - `check-phase11-hvc-survey-packet.py`
 - `check-build-only-phase12-surface.py`
