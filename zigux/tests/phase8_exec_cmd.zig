@@ -89,6 +89,22 @@ test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary e
     try std.testing.expect(std.mem.indexOf(u8, slice, "stops before any ownership of `execl_cmd()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "direct varargs launch path") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "`kernel/workqueue.c` in the later Phase 14 boundary-study tranche") != null);
+
+    const helper_test_index = std.mem.indexOf(u8, slice, "zig test tools/lib/subcmd/exec-cmd.zig");
+    const validate_index = std.mem.indexOf(u8, slice, "make -C zigux phase8-validate");
+    const focused_replay_index = std.mem.indexOf(u8, slice, "zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all");
+    const focused_make_index = std.mem.indexOf(u8, slice, "make -C zigux phase8-exec-cmd-test");
+    const shared_build_index = std.mem.indexOf(u8, slice, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
+
+    try std.testing.expect(helper_test_index != null);
+    try std.testing.expect(validate_index != null);
+    try std.testing.expect(focused_replay_index != null);
+    try std.testing.expect(focused_make_index != null);
+    try std.testing.expect(shared_build_index != null);
+    try std.testing.expect(helper_test_index.? < validate_index.?);
+    try std.testing.expect(validate_index.? < focused_replay_index.?);
+    try std.testing.expect(focused_replay_index.? < focused_make_index.?);
+    try std.testing.expect(focused_make_index.? < shared_build_index.?);
 }
 
 test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {
