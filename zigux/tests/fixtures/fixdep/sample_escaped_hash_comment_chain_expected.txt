@@ -1,0 +1,11 @@
+savedcmd_sample_escaped_hash_comment_chain.o := clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_escaped_hash_comment_chain.o
+
+source_sample_escaped_hash_comment_chain.o := zigux/tests/fixtures/fixdep/sample.rmeta
+
+deps_sample_escaped_hash_comment_chain.o := \
+  zigux/tests/fixtures/fixdep/dir#crate.rmeta \
+  zigux/tests/fixtures/fixdep/later.rmeta \
+
+sample_escaped_hash_comment_chain.o: $(deps_sample_escaped_hash_comment_chain.o)
+
+$(deps_sample_escaped_hash_comment_chain.o):
