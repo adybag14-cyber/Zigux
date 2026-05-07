@@ -113,6 +113,7 @@ TESTS_README_MARKERS = [
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
@@ -167,6 +168,7 @@ EXACT_COUNT_CHECKS = {
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2": 1,
         "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+        "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1,
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
         "scripts/zigux/check-genksyms-crc-diff.py": 1,
         "zig test scripts/zigux/genksyms_crc.zig": 1,
@@ -662,6 +664,31 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in TESTS_README_MARKERS
+                if marker != "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "tests_readme:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(TESTS_README_MARKERS)
+            + "\nscripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "tests_readme:exact_count:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(
+                marker
+                for marker in TESTS_README_MARKERS
                 if marker != "scripts/zigux/check-phase2-kconfig-selftest-alignment.py"
             )
             + "\n",
@@ -732,7 +759,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=61")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=63")
     return 0
 
 
