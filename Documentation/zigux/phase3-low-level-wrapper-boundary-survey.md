@@ -26,7 +26,7 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b`
 - `PHASE3_ABI_EXPECTED_BLOB_SHA=891be039615b878e10fda94788bc896ef12aac7b`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=4cdf556d8b2cf2182bf7dbc625e7e062d9d367c2`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=4c7061fbfdca102794ad62f9840587fe357e104c`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=6654b8f34e274469c0808dbe12122cd40e6d1d41`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
