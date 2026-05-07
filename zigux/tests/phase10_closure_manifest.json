@@ -173,15 +173,14 @@
     ]
   },
   "focused_harness_replays": {
-    "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
-      "phase10 ring drained-reset reuse replay"
+    "zigux/tests/phase10_virtio_core_reset_queue.zig": [
+      "phase10 core reset-queue replay"
     ],
-    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": [
-      "phase10 input multitouch-ready preflight replay"
+    "zigux/tests/phase10_virtio_driver_id.zig": [
+      "phase10 driver-id review path replay"
     ],
-    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": [
-      "phase10 mmio multi-queue isolation replay",
-      "phase10 mmio reset clears legacy and modern queue address plans after queue selection changes"
+    "zigux/tests/phase10_virtio_input_status_drain.zig": [
+      "phase10 input status-drain replay"
     ]
   },
   "blocked_transport_gaps": {
@@ -242,15 +241,15 @@
   ],
   "tests": [
     "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
     "zigux/tests/phase10_virtio_core_survey.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
     "zigux/tests/phase10_virtio_ring.zig",
-    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_input.zig",
-    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
-    "zigux/tests/phase10_virtio_mmio.zig",
-    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
+    "zigux/tests/phase10_virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig"
   ],
   "exact_checks": [
