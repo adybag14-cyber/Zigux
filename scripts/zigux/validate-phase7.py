@@ -117,6 +117,21 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase7-string-helpers-slice.md",
         "lib/string_helpers.zig",
         "zigux/tests/phase7_build.zig",
+        "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;",
+        "Documentation/zigux/phase7-cmdline-slice.md",
+        "zigux/tests/phase7_cmdline.zig",
+        "zigux/tests/phase7_cmdline_survey.zig",
+        "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;",
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "zigux/tests/phase7_argv_split.zig",
+        "zigux/tests/phase7_argv_split_survey.zig",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
+        "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;",
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        "lib/rbtree.zig",
+        "zigux/tests/phase7_rbtree.zig",
+        "zigux/tests/phase7_rbtree_survey.zig",
+        "scripts/zigux/check-phase7-rbtree-parity.py",
     ],
     "scripts/zigux/README.md": [
         "scripts/zigux/check-phase7-make-wrapper.py",
@@ -302,6 +317,11 @@ EXACT_COUNT_MARKERS = {
     "samples/zigux/README.md": [
         ("current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;", 1),
         ("treat any new `samples/zigux/*string*.zig` file as review-blocking", 1),
+        ("current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;", 1),
+        ("current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;", 1),
+        ("scripts/zigux/check-phase7-argv-split-packet.py", 1),
+        ("current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;", 1),
+        ("scripts/zigux/check-phase7-rbtree-parity.py", 1),
     ],
     "scripts/zigux/README.md": [
         ("scripts/zigux/check-phase7-make-wrapper.py", 1),
@@ -428,8 +448,10 @@ FIXTURE_OVERRIDES = {
     + "\n",
 }
 
+
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
+
 
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
@@ -446,11 +468,13 @@ def collect_missing_markers(root: Path) -> list[str]:
                 missing.append(f"{rel}: {marker}:expected={expected_count}:actual={actual_count}")
     return missing
 
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, []
     return [], collect_missing_markers(root)
+
 
 def write_fixture_root(tmp_root: Path) -> None:
     fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
@@ -472,15 +496,18 @@ def write_fixture_root(tmp_root: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(fixture_text.get(rel, "// fixture\n"), encoding="utf-8")
 
+
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_markers == [], case
     assert missing_files == [rel], case
 
+
 def expect_missing_marker(case: str, tmp_root: Path, expected: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
     assert expected in missing_markers, case
+
 
 def remove_first_marker(text: str, marker: str) -> str:
     lines = text.splitlines(keepends=True)
@@ -494,6 +521,7 @@ def remove_first_marker(text: str, marker: str) -> str:
     assert updated != text
     return updated
 
+
 def duplicate_first_marker(text: str, marker: str) -> str:
     lines = text.splitlines(keepends=True)
     for index, line in enumerate(lines):
@@ -506,9 +534,11 @@ def duplicate_first_marker(text: str, marker: str) -> str:
     assert updated != text
     return updated
 
+
 def mutate_file(path: Path, transform: callable) -> None:
     original = path.read_text(encoding="utf-8")
     path.write_text(transform(original), encoding="utf-8")
+
 
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_") as tmp_dir_str:
@@ -551,6 +581,7 @@ def run_self_test() -> None:
     case_count = missing_file_case_count + missing_marker_case_count + exact_count_case_count
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
     print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the current shared Phase 7 helper packet.")
