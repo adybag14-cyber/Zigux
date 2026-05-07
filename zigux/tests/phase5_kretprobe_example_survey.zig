@@ -366,7 +366,6 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "Documentation/zigux/phase9-runtime-bitmap-survey.md",
         "samples/zigux/runtime_bitmap.zig",
         "samples/zigux/runtime_bitmap_loader.zig",
-        "samples/zigux/runtime_bitmap_top_bit_build.zig",
         "samples/zigux/runtime_bitmap_top_bit_contract.zig",
         "zigux/kernel/runtime_loader.zig",
         "zigux/kernel/runtime_loader_contract.zig",
