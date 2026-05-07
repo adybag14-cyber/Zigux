@@ -813,6 +813,42 @@ test "parseIntArrayUser fails closed on short buffers and empty copied input" {
     try std.testing.expectError(error.NoEntry, parseIntArrayUser(std.testing.allocator, "none", 4));
 }
 
+test "kasprintfStrarray returns sequential owned strings with a trailing null pointer" {
+    var names = try kasprintfStrarray(std.testing.allocator, "cpu", 3);
+    defer names.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 3), names.names.len);
+    try std.testing.expectEqualStrings("cpu-0", names.names[0]);
+    try std.testing.expectEqualStrings("cpu-1", names.names[1]);
+    try std.testing.expectEqualStrings("cpu-2", names.names[2]);
+    try std.testing.expectEqualStrings("cpu-0", std.mem.span(names.cArray()[0].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), names.cArray()[3]);
+}
+
+test "kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe" {
+    var prefixed = try kasprintfStrarray(std.testing.allocator, "tty\x00ignored", 2);
+    try std.testing.expectEqualStrings("tty-0", prefixed.names[0]);
+    try std.testing.expectEqualStrings("tty-1", prefixed.names[1]);
+    kfreeStrarray(std.testing.allocator, &prefixed);
+    try std.testing.expectEqual(@as(usize, 0), prefixed.names.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), prefixed.cArray()[0]);
+    kfreeStrarray(std.testing.allocator, &prefixed);
+
+    var empty = try kasprintfStrarray(std.testing.allocator, "cpu", 0);
+    try std.testing.expectEqual(@as(usize, 0), empty.names.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), empty.cArray()[0]);
+    kfreeStrarray(std.testing.allocator, &empty);
+    kfreeStrarray(std.testing.allocator, &empty);
+}
+
+test "kasprintfStrarray frees intermediate allocations when setup fails" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKasprintfStrarrayWithFailingAllocator,
+        .{ "cpu", @as(usize, 3) },
+    );
+}
+
 test "stringUnescape applies Linux-style escape classes deterministically" {
     var out = [_]u8{0} ** 64;
 
