@@ -4,6 +4,10 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectCount(haystack: []const u8, needle: []const u8, expected: usize) !void {
+    try std.testing.expectEqual(expected, std.mem.count(u8, haystack, needle));
+}
+
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
@@ -106,6 +110,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(slice_note, "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`");
     try expectContains(slice_note, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
     try expectContains(slice_note, "python3 scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectCount(slice_note, "null-terminated pointer-vector access through `cArgv()`", 1);
+    try expectCount(slice_note, "zigux/tests/phase7_argv_split_manifest.json", 1);
 
     try expectContains(build_file, "\"phase7_argv_split.zig\"");
     try expectContains(build_file, "\"phase7_argv_split_survey.zig\"");
