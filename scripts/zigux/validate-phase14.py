@@ -291,7 +291,7 @@ def check_compile_matrix(root: Path) -> list[str]:
         errors.append("phase14 smoke note focused compile-shard count drifted from the current one-shard packet")
     if smoke_note_text.count("coverage `full_bundle_only`") != 4:
         errors.append("phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet")
-    if build_text.count("b.addTest(.{") != 5:
+    if build_text.count("b.addTest(.") != 5:
         errors.append("phase14 build bundle no longer declares the current five compile artifacts")
     if build_text.count("b.addRunArtifact(") != 5:
         errors.append("phase14 build bundle no longer wires the current five compile-artifact runs")
@@ -428,12 +428,12 @@ def run_self_test() -> int:
                 ],
             },
             "zigux/tests/phase14_skbuff_bridge_manifest.json": {
-                "lane_key": "P14-L11",
+                "lane_key": "P14-L12",
                 "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
                 "gaps": [{"id": "phase14-skbuff-live-ownership-blocker", "status": "blocked_on_stay_in_c_evidence"}],
             },
             "zigux/tests/phase14_rcu_tree_manifest.json": {
-                "lane_key": "P14-L16",
+                "lane_key": "P14-L13",
                 "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312",
                 "gaps": [{"id": "phase14-rcu-tree-bridge-blocker", "status": "blocked_on_stay_in_c_evidence"}],
             },
@@ -477,7 +477,7 @@ def run_self_test() -> int:
             "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
         ]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
-            build_lines.append("b.addTest(.{")
+            build_lines.append("b.addTest(.")
             build_lines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
