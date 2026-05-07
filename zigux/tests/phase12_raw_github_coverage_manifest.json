@@ -1,0 +1,68 @@
+{
+  "lane_key": "P12-L08",
+  "phase": "Phase 12",
+  "surveyed_ref": "master",
+  "inspected_via": "GitHub connector read on 2026-05-07",
+  "shared_release_paths": [
+    "Documentation/zigux/phase12-release-sequencing.md",
+    "Documentation/zigux/phase12-release-closure-checklist.md",
+    "Documentation/zigux/phase12-release-coordination-matrix.md",
+    "Documentation/zigux/phase12-complex-driver-lane-sequencing.md",
+    "Documentation/zigux/phase12-raw-github-coverage-survey.md",
+    "zigux/tests/README.md",
+    "zigux/tests/phase12_build.zig",
+    "zigux/Makefile"
+  ],
+  "smoke_surface_paths": [
+    "zigux/tests/phase12_nvme_pci.zig",
+    "drivers/nvme/host/pci_verify.zig",
+    "zigux/tests/phase12_virtio_net.zig",
+    "zigux/tests/phase12_virtio_net_syntax_lab.zig",
+    "zigux/tests/phase12_virtio_scsi.zig",
+    "zigux/tests/phase12_virtio_scsi_syntax_lab.zig"
+  ],
+  "commit_pinned_artifacts": [
+    {
+      "anchor": "nvme_pci",
+      "note_path": "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+      "public_tree_paths": [
+        "Documentation/zigux/phase12-nvme-pci-slice.md",
+        "Documentation/zigux/phase12-nvme-pci-survey.md",
+        "zigux/tests/phase12_nvme_pci_manifest.json",
+        "zigux/tests/phase12_nvme_pci_survey.zig"
+      ]
+    },
+    {
+      "anchor": "virtio_scsi",
+      "note_path": "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+      "public_tree_paths": [
+        "Documentation/zigux/phase12-virtio-scsi-slice.md",
+        "Documentation/zigux/phase12-virtio-scsi-survey.md",
+        "zigux/tests/phase12_virtio_scsi_manifest.json",
+        "zigux/tests/phase12_virtio_scsi_survey.zig"
+      ]
+    }
+  ],
+  "shared_tree_only_anchors": [
+    {
+      "anchor": "virtio_net",
+      "note_path": "Documentation/zigux/phase12-virtio-net-survey.md",
+      "public_tree_paths": [
+        "zigux/tests/phase12_virtio_net_manifest.json",
+        "zigux/tests/phase12_virtio_net_survey.zig",
+        "zigux/tests/phase12_virtio_net.zig",
+        "zigux/tests/phase12_virtio_net_syntax_lab.zig"
+      ]
+    },
+    {
+      "anchor": "libbpf",
+      "note_path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
+      "public_tree_paths": [
+        "zigux/tests/phase12_libbpf_manifest.json",
+        "zigux/tests/phase12_libbpf_segments.zig",
+        "zigux/tests/phase12_libbpf_reviewability.zig",
+        "tools/lib/bpf/zigux_segments/manifest.json"
+      ]
+    }
+  ]
+}
