@@ -11,6 +11,7 @@
     "the manifest prompts keep sample-owned runPreRegistrationBoundaryReplay() explicit so the initialized-but-not-registered zero-active-attributes and no-show-or-store boundary stays executable before registerAttributes() opens the sample",
     "the manifest prompts keep sample-owned runRegisteredBoundaryReplay() and runTeardownReplay() explicit so the already-registered duplicate-registration plus replay-restart rejection and the registered teardown reset-and-rejection packet stay executable instead of implied",
     "the manifest prompts keep ownershipSummary() and sample-owned runOwnershipReplay() explicit across cold, initialized, registered, and exited instead of leaving the lifecycle packet implicit",
+    "the manifest prompts keep the init/register/exit counter progression explicit inside ownershipSummary() and runOwnershipReplay() so reviewers can see the bounded lifecycle move from 0/0/0 through 1/0/0 and 1/1/0 to 1/1/1",
     "the manifest prompts keep the unnamed attribute group shape and post-exit show/store rejection boundary explicit instead of implying sysfs registration",
     "the manifest prompts keep initialized-only exit reporting abandoned_before_registration and registered exit reporting tore_down_registered_attributes",
     "sample-behavior changes update the manifest-backed registration and lifecycle contract, including runPreRegistrationBoundaryReplay(), runRegisteredBoundaryReplay(), runTeardownReplay(), and runOwnershipReplay(), instead of leaving reviewers to infer it from code alone",
@@ -41,6 +42,11 @@
       "id": "ownership-summary",
       "kind": "ownership_lifetime",
       "expected": "ownershipSummary() and runOwnershipReplay() report the cold, initialized, registered, and exited stages with active attribute counts 0, 0, 3, and 0"
+    },
+    {
+      "id": "ownership-counters",
+      "kind": "ownership_lifetime",
+      "expected": "runOwnershipReplay() keeps the init/register/exit counter progression explicit as 0/0/0, 1/0/0, 1/1/0, and 1/1/1 across the cold, initialized, registered, and exited snapshots"
     },
     {
       "id": "initialized-exit-disposition",
