@@ -161,11 +161,12 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_helper_present);
-    try std.testing.expect(manifest.gaps.len >= 6);
+    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var saw_helper = false;
     var saw_survey_gate = false;
+    var saw_parity_checker = false;
     var saw_parity_fixture = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -188,6 +189,12 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase7_rbtree_survey.zig", gap.zigux_destination);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-rbtree-parity-checker")) {
+            saw_parity_checker = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("scripts/zigux/check-phase7-rbtree-parity.py", gap.zigux_destination);
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-parity-fixture-layer")) {
@@ -276,5 +283,6 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expectEqual(manifest.gaps.len, starter_landed_count);
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(saw_parity_checker);
     try std.testing.expect(saw_parity_fixture);
 }
