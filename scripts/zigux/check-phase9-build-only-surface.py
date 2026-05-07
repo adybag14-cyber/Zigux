@@ -128,6 +128,11 @@ REQUIRED_SAMPLES_README_MARKERS = [
     "review the shipped Phase 9 runtime pilot family through `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, the focused `phase9-runtime-loader-shared-tests` step, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `.github/workflows/zigux-bootstrap.yml`, and `make -C zigux phase9`; keep those shared loader-handoff surfaces explicit instead of implying a dedicated `validate-phase9.py` route, a missing shared checker, or a cleared runtime-substrate handoff on current `master`",
 ]
 
+REQUIRED_SAMPLES_README_EXACT_COUNTS = {
+    REQUIRED_SAMPLES_README_MARKERS[1]: 1,
+    REQUIRED_SAMPLES_README_MARKERS[2]: 1,
+}
+
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "`scripts/zigux/check-phase9-build-only-surface.py`",
     "the shipped build-only surface checker",
@@ -365,6 +370,7 @@ def validate(root: Path) -> list[str]:
     ensure_exact_counts(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_EXACT_COUNTS)
     ensure_exact_counts(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPT_README_EXACT_COUNTS)
     ensure_exact_counts(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_EXACT_COUNTS)
+    ensure_exact_counts(failures, "samples_readme", samples_readme, REQUIRED_SAMPLES_README_EXACT_COUNTS)
     ensure_exact_counts(failures, "review_checklist", review_checklist, REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS)
     ensure_exact_counts(failures, "phase9_build", phase9_build, REQUIRED_PHASE9_BUILD_EXACT_COUNTS)
 
@@ -535,6 +541,19 @@ def run_self_test() -> int:
         samples_readme_path = root / SAMPLES_README_PATH
         samples_readme = samples_readme_path.read_text(encoding="utf-8")
         samples_readme_path.write_text(
+            samples_readme + REQUIRED_SAMPLES_README_MARKERS[1] + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"samples_readme_exact_count:{REQUIRED_SAMPLES_README_MARKERS[1]}:expected=1:actual=2",
+            "duplicate_samples_root_bitmap_top_bit_boundary",
+        )
+
+        write_fixture_tree(root)
+        samples_readme_path = root / SAMPLES_README_PATH
+        samples_readme = samples_readme_path.read_text(encoding="utf-8")
+        samples_readme_path.write_text(
             samples_readme.replace(
                 "keep the older command and environment control boundary explicit too: `tools/lib/subcmd/exec-cmd.zig` still owns the deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` tooling cues, while `tools/lib/subcmd/help.zig` still owns the `LINES` and `COLUMNS` terminal-formatting cues; the Phase 9 loader packet remains a metadata-only handoff and should not be read as shipped runtime command or environment activation control on current `master`",
                 "keep the older boundary explicit too: `tools/lib/subcmd/help.zig` still owns terminal-formatting cues",
@@ -546,6 +565,19 @@ def run_self_test() -> int:
             root,
             f"samples_readme:{REQUIRED_SAMPLES_README_MARKERS[2]}",
             "missing_samples_root_command_environment_boundary",
+        )
+
+        write_fixture_tree(root)
+        samples_readme_path = root / SAMPLES_README_PATH
+        samples_readme = samples_readme_path.read_text(encoding="utf-8")
+        samples_readme_path.write_text(
+            samples_readme + REQUIRED_SAMPLES_README_MARKERS[2] + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"samples_readme_exact_count:{REQUIRED_SAMPLES_README_MARKERS[2]}:expected=1:actual=2",
+            "duplicate_samples_root_command_environment_boundary",
         )
 
         write_fixture_tree(root)
@@ -757,7 +789,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=28")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
