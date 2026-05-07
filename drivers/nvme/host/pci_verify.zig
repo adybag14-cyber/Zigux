@@ -168,6 +168,78 @@ test "nvme pci recovery replay renegotiates stale reservations against a reduced
     try testing.expectEqual(@as(u16, 4), next.queue_id);
 }
 
+test "nvme pci recovery replay keeps combined stale metadata and queue reservations visible until both are refreshed" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    const reservation = try lab.reserveIoQueues(8, 6);
+    const metadata = try lab.planPrpMetadata(4096 * 515, 0);
+    try testing.expect(metadata.requires_descriptor_rebuild_after_reset);
+    try testing.expectEqual(@as(u32, 8192), metadata.metadata_dma_bytes);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    const stale = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = metadata.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_descriptor_dma_bytes = metadata.metadata_dma_bytes,
+        .cached_requires_descriptor_rebuild = metadata.requires_descriptor_rebuild_after_reset,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    });
+    try testing.expect(stale.cached_prp_metadata_stale);
+    try testing.expect(stale.descriptor_rebuild_required);
+    try testing.expectEqual(@as(u32, 8192), stale.descriptor_rebuild_dma_bytes);
+    try testing.expect(stale.cached_queue_reservation_stale);
+    try testing.expect(stale.queue_reservation_replay_required);
+    try testing.expectEqual(@as(usize, 6), stale.reserved_io_queues_to_renegotiate);
+    try testing.expect(stale.admin_queue_must_be_replanned);
+    try testing.expect(stale.io_queues_must_be_rebuilt);
+    try testing.expectEqual(@as(usize, 6), stale.io_queues_dropped_by_reset);
+    try testing.expectEqual(@as(u16, 1), stale.next_io_queue_id);
+    try testing.expectEqual(@as(u16, 48), stale.last_admin_queue_depth);
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    const refreshed_metadata = try lab.planPrpMetadata(4096 * 515, 0);
+    const replay = try lab.replayReservedIoQueues(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try testing.expectEqual(@as(usize, 3), replay.reserved_io_queues);
+    try testing.expectEqual(@as(u16, 1), replay.first_queue_id);
+    try testing.expectEqual(@as(u16, 3), replay.last_queue_id);
+    try testing.expectEqual(@as(u32, 1), replay.reset_generation);
+
+    const refreshed = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = refreshed_metadata.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = false,
+        .cached_descriptor_dma_bytes = refreshed_metadata.metadata_dma_bytes,
+        .cached_requires_descriptor_rebuild = refreshed_metadata.requires_descriptor_rebuild_after_reset,
+        .cached_queue_reservation_generation = replay.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = replay.reserved_io_queues,
+    });
+    try testing.expect(!refreshed.cached_prp_metadata_stale);
+    try testing.expect(!refreshed.descriptor_rebuild_required);
+    try testing.expectEqual(@as(u32, 0), refreshed.descriptor_rebuild_dma_bytes);
+    try testing.expect(!refreshed.cached_queue_reservation_stale);
+    try testing.expect(!refreshed.queue_reservation_replay_required);
+    try testing.expectEqual(@as(usize, 0), refreshed.reserved_io_queues_to_renegotiate);
+    try testing.expect(!refreshed.admin_queue_must_be_replanned);
+    try testing.expect(refreshed.io_queues_must_be_rebuilt);
+    try testing.expectEqual(@as(usize, 6), refreshed.io_queues_dropped_by_reset);
+    try testing.expectEqual(@as(u16, 4), refreshed.next_io_queue_id);
+    try testing.expectEqual(@as(u16, 48), refreshed.last_admin_queue_depth);
+    try testing.expectEqual(@as(u32, 1), refreshed.reset_generation);
+}
+
 test "nvme pci recovery replay carries multi-page PRP descriptor DMA through reset" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     _ = try lab.planAdminQueue(32, 64, false);
