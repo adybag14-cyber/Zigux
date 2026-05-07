@@ -203,7 +203,7 @@
       "sub16_vectors": 2,
       "kunit_random_prefix_vectors": 6,
       "c_parity_self_test_cases": 12,
-      "c_parity_cases": 30
+      "c_parity_cases": 39
     },
     "hexdump": {
       "parity_vectors": 10,
