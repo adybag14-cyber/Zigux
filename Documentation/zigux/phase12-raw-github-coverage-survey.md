@@ -10,7 +10,7 @@ It is a fallback-read overview, not a closure claim, not a validator-first route
 
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=raw-github-coverage-survey`
-- scope: shared fallback-read coverage for the shipped `nvme_pci`, `virtio_net`, `virtio_scsi`, and libbpf Phase 12 packet plus the PMO closure companion and shared replay surfaces that travel with the active release-order packet
+- scope: shared fallback-read coverage for the shipped `nvme_pci`, `virtio_net`, `virtio_scsi`, and libbpf Phase 12 packet plus the compact release-coordination matrix, PMO closure companion, and shared replay surfaces that travel with the active release-order packet
 - commit-pinned fallback artifacts: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - shared-tree-only anchors: `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md`
 
@@ -40,6 +40,8 @@ The shipped Phase 12 packet on `master` still keeps the same four-step smoke-fir
 4. `make -C zigux phase12`
 
 Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether those same shipped surfaces are close enough to describe the active Phase 12 tranche as release-closed.
+
+`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this shared fallback overview, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this survey into a second sequencing document.
 
 `zigux/tests/README.md` and `Documentation/zigux/phase12-release-sequencing.md` should keep this shared fallback overview visible beside that same PMO companion so the two-artifact-plus-two-anchor split does not disappear from the shared release packet while the narrower driver-local fallback notes stay unchanged.
 
