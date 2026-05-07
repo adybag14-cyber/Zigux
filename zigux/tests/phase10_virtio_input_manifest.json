@@ -82,6 +82,13 @@
       "why_now": "The live repo now has a dedicated wrapper-facing verifier replay that keeps queue-callback and registration-preflight blocker ordering reviewable beside the helper-local tests and focused status-drain replay without widening into transport-backed queue callbacks or registration lifecycle work."
     },
     {
+      "id": "phase10-virtio-input-queue-callback-preflight-replay",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+      "why_now": "The live repo now has a dedicated queue-callback-preflight replay that keeps the bounded blocker ordering explicit beside the helper-facing tests, wrapper-facing verify replay, and focused status-drain replay instead of leaving that input-lane evidence implicit inside broader packet summaries."
+    },
+    {
       "id": "phase10-virtio-input-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
