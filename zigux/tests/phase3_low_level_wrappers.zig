@@ -56,18 +56,18 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     const base = narrow.addressOf(&bytes[0]);
     const unaligned_halfword: *align(1) const u16 = @ptrCast(&bytes[1]);
     const unaligned_word: *align(1) const u32 = @ptrCast(&bytes[3]);
-    const byte_desc = mmio.range(base, 12, 1);
-    const halfword_desc = mmio.range(base, 12, 2);
-    const desc = mmio.range(base, 12, 4);
+    const byte_desc = mmio.range(base, 8, 1);
+    const halfword_desc = mmio.range(base, 8, 2);
+    const desc = mmio.range(base, 8, 4);
 
     try std.testing.expectEqual(base, byte_desc.base_addr);
-    try std.testing.expectEqual(@as(u32, 12), byte_desc.length);
+    try std.testing.expectEqual(@as(u32, 8), byte_desc.length);
     try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);
     try std.testing.expectEqual(base, halfword_desc.base_addr);
-    try std.testing.expectEqual(@as(u32, 12), halfword_desc.length);
+    try std.testing.expectEqual(@as(u32, 8), halfword_desc.length);
     try std.testing.expectEqual(@as(u32, 2), halfword_desc.stride);
     try std.testing.expectEqual(base, desc.base_addr);
-    try std.testing.expectEqual(@as(u32, 12), desc.length);
+    try std.testing.expectEqual(@as(u32, 8), desc.length);
     try std.testing.expectEqual(@as(u32, 4), desc.stride);
 
     mmio.write8(base, 0, 0x5a);
