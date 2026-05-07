@@ -46,7 +46,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - runtime task ownership or event-loop substrate parity remains blocked behind that shared runtime-loader surface
 - polling-backed wake or dispatch behavior remains blocked behind the same shared runtime-loader surface
 - dedicated Phase 9 sample, module, and diff tests that now assert those sample-local lifecycle proofs as well as the registration and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate
-- dedicated Phase 9 loader, survey note, survey, and manifest coverage plus the focused `phase9-runtime-trace-events-tests` build step wired into the shared `zigux/tests/phase9_build.zig` gate and `make -C zigux phase9`, while the separate shared loader lane keeps the shared runtime-loader facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` shard reviewable for this pilot
+- dedicated Phase 9 loader, survey note, survey, and manifest coverage plus the focused `phase9-runtime-trace-events-tests` build step wired into the shared `zigux/tests/phase9_build.zig` gate, the focused `make -C zigux phase9-runtime-trace-events-test` route, and `make -C zigux phase9`, while the separate shared loader lane keeps the shared runtime-loader facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` shard reviewable for this pilot
 - a manifest-backed ownership packet that now names the survey note, module-slice note, starter sample, loader scaffold, dedicated survey gate, and the focused `phase9-runtime-trace-events-tests` step together so this bounded packet stays reviewable without widening into shared runtime-loader ownership or runtime implementation
 
 ## Roadmap gap vs current pilot
@@ -74,16 +74,19 @@ This slice does not yet claim:
 1. run the focused trace-events lane step
 - `zig build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig`
 
-2. run the focused shared runtime-loader shard
+2. run the focused trace-events lane convenience target
+- `make -C zigux phase9-runtime-trace-events-test`
+
+3. run the focused shared runtime-loader shard
 - `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
 
-3. run the focused shared runtime-loader convenience target
+4. run the focused shared runtime-loader convenience target
 - `make -C zigux phase9-runtime-loader-shared-tests`
 
-4. run the dedicated Phase 9 build
+5. run the dedicated Phase 9 build
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-5. run the convenience target
+6. run the convenience target
 - `make -C zigux phase9`
 
 ## Next bounded step
