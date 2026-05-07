@@ -212,6 +212,7 @@ EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES = [
     "helper_self_test_repeat",
     "cli_missing_required_args",
     "cli_missing_actual_operand",
+    "cli_invalid_mode",
     "text_pass",
     "text_pass_repeat",
     "text_mismatch",
@@ -557,31 +558,27 @@ def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
     return missing
 
 
-def _write(root: Path, relative_path: str, content: str) -> None:
-    target = root / relative_path
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(content, encoding="utf-8")
+def _write(path_root: Path, relative_path: str, content: str) -> None:
+    path = path_root / relative_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
 
 
 def _write_contract_checker_fixture(
     path: Path,
     *,
     include_pass: bool = True,
+    base_case_count: str | None,
+    base_cases: list[str] | None,
+    repeat_case_count: str | None,
+    repeat_cases: list[str] | None,
+    case_count: str | None,
+    cases: list[str] | None,
     include_self_test_pass: bool = True,
-    base_case_count: str | None = None,
-    base_cases: list[str] | None = None,
-    repeat_case_count: str | None = None,
-    repeat_cases: list[str] | None = None,
-    case_count: str | None = None,
-    cases: list[str] | None = None,
-    self_test_case_count: str | None = None,
-    self_test_cases: list[str] | None = None,
+    self_test_case_count: str | None,
+    self_test_cases: list[str] | None,
 ) -> None:
-    lines = []
-    lines.append("#!/usr/bin/env python3")
-    lines.append("import sys")
-    lines.append("")
-    lines.append("if '--self-test' in sys.argv:")
+    lines = ["#!/usr/bin/env python3", "import sys", "if '--self-test' in sys.argv:"]
     if include_self_test_pass:
         lines.append("    print('ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass')")
     if self_test_case_count is not None:
@@ -595,17 +592,20 @@ def _write_contract_checker_fixture(
             + "')"
         )
     lines.append("    raise SystemExit(0)")
-    lines.append("")
     if include_pass:
         lines.append("print('ARTIFACT_DIFF_CONTRACT=pass')")
     if base_case_count is not None:
-        lines.append(f"print('ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT={base_case_count}')")
+        lines.append(
+            f"print('ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT={base_case_count}')"
+        )
     if base_cases is not None:
         lines.append(
             "print('ARTIFACT_DIFF_CONTRACT_BASE_CASES=" + ",".join(base_cases) + "')"
         )
     if repeat_case_count is not None:
-        lines.append(f"print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={repeat_case_count}')")
+        lines.append(
+            f"print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={repeat_case_count}')"
+        )
     if repeat_cases is not None:
         lines.append(
             "print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=" + ",".join(repeat_cases) + "')"
@@ -614,10 +614,9 @@ def _write_contract_checker_fixture(
         lines.append(f"print('ARTIFACT_DIFF_CONTRACT_CASE_COUNT={case_count}')")
     if cases is not None:
         lines.append("print('ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(cases) + "')")
-    lines.append("")
+    lines.append("raise SystemExit(0)")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    path.chmod(0o755)
 
 
 def _write_phase4_gate_evidence_checker_fixture(
@@ -625,15 +624,10 @@ def _write_phase4_gate_evidence_checker_fixture(
     *,
     include_pass: bool = True,
     include_self_test_pass: bool = True,
-    target_count: str = str(EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT),
-    self_test_case_count: str | None = None,
-    self_test_cases: list[str] | None = None,
+    self_test_case_count: str | None,
+    self_test_cases: list[str] | None,
 ) -> None:
-    lines = []
-    lines.append("#!/usr/bin/env python3")
-    lines.append("import sys")
-    lines.append("")
-    lines.append("if '--self-test' in sys.argv:")
+    lines = ["#!/usr/bin/env python3", "import sys", "if '--self-test' in sys.argv:"]
     if include_self_test_pass:
         lines.append("    print('PHASE4_GATE_EVIDENCE_SELF_TEST=pass')")
     if self_test_case_count is not None:
@@ -642,207 +636,58 @@ def _write_phase4_gate_evidence_checker_fixture(
         )
     if self_test_cases is not None:
         lines.append(
-            "    print('PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(self_test_cases) + "')"
+            "    print('PHASE4_GATE_EVIDENCE_SELF_TEST_CASES="
+            + ",".join(self_test_cases)
+            + "')"
         )
     lines.append("    raise SystemExit(0)")
-    lines.append("")
     if include_pass:
         lines.append("print('PHASE4_GATE_EVIDENCE_CHECK=pass')")
-    lines.append(f"print('PHASE4_GATE_EVIDENCE_TARGET_COUNT={target_count}')")
-    lines.append("")
+        lines.append(
+            f"print('PHASE4_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT}')"
+        )
+    lines.append("raise SystemExit(0)")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    path.chmod(0o755)
 
 
 def _write_phase4_runtime_atomic64_packet_fixture(root: Path) -> None:
-    manifest = {
-        "lane_key": "P4-L04",
-        "phase": "Phase 4",
-        "roadmap_target_path": "zigux/tests/atomic64_diff.zig",
-        "roadmap_atomic64_diff_present": True,
-        "roadmap_atomic64_wrapper_targets_runtime_diff": True,
-        "live_gate_path": "zigux/tests/runtime_atomic64_diff.zig",
-        "live_gate_blob_sha": _git_blob_sha1((root / "zigux/tests/runtime_atomic64_diff.zig").read_bytes()),
-        "live_gate_line_count": 204,
-        "runtime_replay_path": "zigux/tests/runtime_atomic64_diff.zig",
-        "runtime_replay_blob_sha": _git_blob_sha1(
-            (root / "zigux/tests/runtime_atomic64_diff.zig").read_bytes()
-        ),
-        "runtime_replay_line_count": 204,
-        "phase4_build_present": True,
-        "phase4_build_uses_atomic64_wrapper": True,
-        "phase4_build_blob_sha": _git_blob_sha1((root / "zigux/tests/phase4_build.zig").read_bytes()),
-        "phase4_validator_atomic64_diff_present": True,
-        "phase4_validator_runtime_atomic64_diff_present": True,
-        "phase4_validator_blob_sha": _git_blob_sha1((root / "scripts/zigux/validate-phase4.py").read_bytes()),
-        "phase9_build_present": True,
-        "phase9_build_blob_sha": _git_blob_sha1((root / "zigux/tests/phase9_build.zig").read_bytes()),
-        "phase4_validation_matrix_atomic64_diff_note_present": True,
-        "phase4_validation_matrix_runtime_atomic64_note_present": True,
-        "phase4_validation_matrix_blob_sha": _git_blob_sha1(
-            (root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes()
-        ),
-        "phase4_review_checklist_blob_sha": _git_blob_sha1(
-            (root / "Documentation/zigux/review-checklist.md").read_bytes()
-        ),
-        "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
-        "roadmap_gap_summary": "the roadmap target zigux/tests/atomic64_diff.zig is present as the Phase 4 wrapper, zigux/tests/phase4_build.zig still runs through it, zigux/tests/runtime_atomic64_diff.zig remains the single bounded replay body that the Phase 9 runtime packet reuses directly, and the current Phase 4 reviewer packet now keeps the wrapper-backed matrix, exact-readback note, and manifest-backed survey pair aligned while the broader sample and perf-baseline follow-ups stay intentionally open",
-        "reversible_delivery_evidence": "keep zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, zigux/tests/phase4_build.zig, scripts/zigux/validate-phase4.py, Documentation/zigux/review-checklist.md, and Documentation/zigux/phase4-validation-matrix.md aligned so the roadmap-named wrapper, the shared runtime replay body, the shared Phase 4 entrypoint, the validator-first bootstrap replay, the shared reviewer checklist, and the rollback-owner matrix stay measurable and reversible on the current head",
-        "ready_next": "keep zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, zigux/tests/phase4_build.zig, zigux/tests/phase4_runtime_atomic64_diff_survey.zig, scripts/zigux/validate-phase4.py, Documentation/zigux/review-checklist.md, and Documentation/zigux/phase4-validation-matrix.md aligned so the current wrapper-first rollback surface, shared runtime replay body, and reviewer checklist remain reviewable while the broader sample follow-ups, perf-baseline packet, and shared Phase 9 handoff stay unchanged until a later bounded Phase 4 step",
+    survey_path = root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig"
+    manifest_path = root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json"
+    expected_map = {
+        field: _git_blob_sha1((root / relative_path).read_bytes())
+        for field, relative_path in PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS.items()
     }
-    _write(
-        root,
-        "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
-        json.dumps(manifest, indent=2) + "\n",
-    )
-    _write(
-        root,
-        "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
-        "\n".join(
-            [
-                "const std = @import(\"std\");",
-                "",
-                "const Manifest = struct {",
-                "    lane_key: []const u8,",
-                "    phase: []const u8,",
-                "    roadmap_target_path: []const u8,",
-                "    roadmap_atomic64_diff_present: bool,",
-                "    roadmap_atomic64_wrapper_targets_runtime_diff: bool,",
-                "    live_gate_path: []const u8,",
-                "    live_gate_blob_sha: []const u8,",
-                "    live_gate_line_count: usize,",
-                "    runtime_replay_path: []const u8,",
-                "    runtime_replay_blob_sha: []const u8,",
-                "    runtime_replay_line_count: usize,",
-                "    phase4_build_present: bool,",
-                "    phase4_build_uses_atomic64_wrapper: bool,",
-                "    phase4_build_blob_sha: []const u8,",
-                "    phase4_validator_atomic64_diff_present: bool,",
-                "    phase4_validator_runtime_atomic64_diff_present: bool,",
-                "    phase4_validator_blob_sha: []const u8,",
-                "    phase9_build_present: bool,",
-                "    phase9_build_blob_sha: []const u8,",
-                "    phase4_validation_matrix_atomic64_diff_note_present: bool,",
-                "    phase4_validation_matrix_runtime_atomic64_note_present: bool,",
-                "    phase4_validation_matrix_blob_sha: []const u8,",
-                "    phase4_review_checklist_blob_sha: []const u8,",
-                "    threshold_posture: []const u8,",
-                "    roadmap_gap_summary: []const u8,",
-                "    reversible_delivery_evidence: []const u8,",
-                "    ready_next: []const u8,",
-                "};",
-                "",
-                "test \"phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift explicit\" {",
-                "    const parsed = try std.json.parseFromSlice(",
-                "        Manifest,",
-                "        std.testing.allocator,",
-                "        @embedFile(\"phase4_runtime_atomic64_diff_manifest.json\"),",
-                "        .{},",
-                "    );",
-                "    defer parsed.deinit();",
-                "",
-                "    const manifest = parsed.value;",
-                "",
-                "    try std.testing.expectEqualStrings(\"P4-L04\", manifest.lane_key);",
-                "    try std.testing.expectEqualStrings(\"Phase 4\", manifest.phase);",
-                "    try std.testing.expectEqualStrings(\"zigux/tests/atomic64_diff.zig\", manifest.roadmap_target_path);",
-                "    try std.testing.expect(manifest.roadmap_atomic64_diff_present);",
-                "    try std.testing.expect(manifest.roadmap_atomic64_wrapper_targets_runtime_diff);",
-                "",
-                "    try std.testing.expectEqualStrings(\"zigux/tests/runtime_atomic64_diff.zig\", manifest.live_gate_path);",
-                "    try std.testing.expectEqualStrings(\""
-                + manifest["live_gate_blob_sha"]
-                + "\", manifest.live_gate_blob_sha);",
-                "    try std.testing.expectEqual(@as(usize, 204), manifest.live_gate_line_count);",
-                "",
-                "    try std.testing.expectEqualStrings(\"zigux/tests/runtime_atomic64_diff.zig\", manifest.runtime_replay_path);",
-                "    try std.testing.expectEqualStrings(\""
-                + manifest["runtime_replay_blob_sha"]
-                + "\", manifest.runtime_replay_blob_sha);",
-                "    try std.testing.expectEqual(@as(usize, 204), manifest.runtime_replay_line_count);",
-                "",
-                "    try std.testing.expect(manifest.phase4_build_present);",
-                "    try std.testing.expect(manifest.phase4_build_uses_atomic64_wrapper);",
-                "    try std.testing.expectEqualStrings(\""
-                + manifest["phase4_build_blob_sha"]
-                + "\", manifest.phase4_build_blob_sha);",
-                "",
-                "    try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);",
-                "    try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);",
-                "    try std.testing.expectEqualStrings(\""
-                + manifest["phase4_validator_blob_sha"]
-                + "\", manifest.phase4_validator_blob_sha);",
-                "",
-                "    try std.testing.expect(manifest.phase9_build_present);",
-                "    try std.testing.expectEqualStrings(\""
-                + manifest["phase9_build_blob_sha"]
-                + "\", manifest.phase9_build_blob_sha);",
-                "",
-                "    try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);",
-                "    try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);",
-                "    try std.testing.expectEqualStrings(\""
-                + manifest["phase4_validation_matrix_blob_sha"]
-                + "\", manifest.phase4_validation_matrix_blob_sha);",
-                "    try std.testing.expectEqualStrings(\""
-                + manifest["phase4_review_checklist_blob_sha"]
-                + "\", manifest.phase4_review_checklist_blob_sha);",
-                "    try std.testing.expectEqualStrings(",
-                "        \"threshold_pending_until_runtime_atomic64_scope_widens\",",
-                "        manifest.threshold_posture,",
-                "    );",
-                "",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, \"zigux/tests/atomic64_diff.zig\") != null);",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, \"zigux/tests/phase4_build.zig\") != null);",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, \"zigux/tests/runtime_atomic64_diff.zig\") != null);",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, \"single bounded replay body\") != null);",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, \"Phase 9\") != null);",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, \"Phase 4 reviewer packet\") != null);",
-                "",
-                "    try std.testing.expect(",
-                "        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, \"zigux/tests/atomic64_diff.zig\") != null,",
-                "    );",
-                "    try std.testing.expect(",
-                "        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, \"zigux/tests/runtime_atomic64_diff.zig\") != null,",
-                "    );",
-                "    try std.testing.expect(",
-                "        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, \"zigux/tests/phase4_build.zig\") != null,",
-                "    );",
-                "    try std.testing.expect(",
-                "        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, \"scripts/zigux/validate-phase4.py\") != null,",
-                "    );",
-                "    try std.testing.expect(",
-                "        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, \"Documentation/zigux/review-checklist.md\") != null,",
-                "    );",
-                "    try std.testing.expect(",
-                "        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, \"Documentation/zigux/phase4-validation-matrix.md\") != null,",
-                "    );",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, \"validator-first bootstrap replay\") != null);",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, \"shared reviewer checklist\") != null);",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, \"rollback-owner matrix\") != null);",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, \"measurable and reversible\") != null);",
-                "",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, \"zigux/tests/atomic64_diff.zig\") != null);",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, \"zigux/tests/runtime_atomic64_diff.zig\") != null);",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, \"zigux/tests/phase4_build.zig\") != null);",
-                "    try std.testing.expect(",
-                "        std.mem.indexOf(u8, manifest.ready_next, \"zigux/tests/phase4_runtime_atomic64_diff_survey.zig\") != null,",
-                "    );",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, \"scripts/zigux/validate-phase4.py\") != null);",
-                "    try std.testing.expect(",
-                "        std.mem.indexOf(u8, manifest.ready_next, \"Documentation/zigux/review-checklist.md\") != null,",
-                "    );",
-                "    try std.testing.expect(",
-                "        std.mem.indexOf(u8, manifest.ready_next, \"Documentation/zigux/phase4-validation-matrix.md\") != null,",
-                "    );",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, \"wrapper-first rollback surface\") != null);",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, \"reviewer checklist remain reviewable\") != null);",
-                "    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, \"Phase 9 handoff\") != null);",
-                "}",
-                "",
-            ]
-        ),
-    )
+    manifest = {
+        **expected_map,
+        "roadmap_atomic64_diff_present": True,
+        "wrapper_atomic64_diff_present": True,
+        "runtime_atomic64_diff_present": True,
+        "shared_matrix_present": True,
+        "shared_validator_present": True,
+        "shared_phase9_build_present": True,
+        "reversible_delivery_evidence": [
+            "zigux/tests/atomic64_diff.zig",
+            "zigux/tests/runtime_atomic64_diff.zig",
+            "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+            "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+            "Documentation/zigux/phase4-validation-matrix.md",
+            "scripts/zigux/validate-phase4.py",
+            "Documentation/zigux/review-checklist.md",
+            "zigux/tests/phase9_build.zig",
+        ],
+    }
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    survey_lines = [
+        f'const phase4_build_blob_sha = "{expected_map["phase4_build_blob_sha"]}";',
+        f'const phase4_validator_blob_sha = "{expected_map["phase4_validator_blob_sha"]}";',
+        f'const phase4_validation_matrix_blob_sha = "{expected_map["phase4_validation_matrix_blob_sha"]}";',
+        f'const phase4_review_checklist_blob_sha = "{expected_map["phase4_review_checklist_blob_sha"]}";',
+        f'const phase9_build_blob_sha = "{expected_map["phase9_build_blob_sha"]}";',
+        "",
+    ]
+    survey_path.write_text("\n".join(survey_lines), encoding="utf-8")
 
 
 def _write_phase4_fixture_docs(root: Path) -> None:
@@ -872,31 +717,21 @@ def _write_phase4_fixture_docs(root: Path) -> None:
         "Documentation/zigux/phase4-gate-evidence.md",
         "\n".join(
             [
-                "# Phase 4 Gate Evidence",
-                "",
-                "## Status",
-                "- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`",
-                "- `PHASE4_VALIDATOR_BLOB_SHA=dummy-validator`",
-                "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` stays in the packet.",
-                "- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` stays in the packet.",
-                "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14`",
-                "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES="
-                + _expected_case_line(EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES)
-                + "`",
-                "- `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
-                "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
-                "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
-                "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16`",
-                "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14`",
-                "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`",
-                "- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`",
-                "",
                 "## Exact Readback Evidence",
-                "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` stays in the packet.",
-                "- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` stays in the packet.",
-                "",
-                "## Current Conclusion",
-                "- hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
+                "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions",
+                "PHASE4_VALIDATOR_BLOB_SHA=placeholder",
+                "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+                "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+                "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14",
+                "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift,missing_exact_readback_heading,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift,phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift,gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift,shared_validator_reruns_gate_evidence_self_test_drift,shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift,missing_note_file",
+                "PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true",
+                "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true",
+                "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true",
+                "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16",
+                "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14",
+                "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false",
+                "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false",
+                "hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
                 "",
             ]
         ),
@@ -906,8 +741,6 @@ def _write_phase4_fixture_docs(root: Path) -> None:
         "Documentation/zigux/phase4-validation-matrix.md",
         "\n".join(
             [
-                "# Phase 4 Validation Matrix",
-                "",
                 "atomic64_diff.zig",
                 "runtime_atomic64_diff.zig",
                 "phase4_runtime_atomic64_diff_manifest.json",
