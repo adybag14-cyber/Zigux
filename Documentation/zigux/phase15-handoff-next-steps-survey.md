@@ -9,6 +9,7 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 - `PHASE15_SLICE=phase-handoff-and-next-bound-synthesis`
 - reviewed handoff provenance refreshed against current `master` readback on 2026-05-07 after compare-to-master showed the earlier exact-head comparison to the parity scorecard was stale while the shared deep-core blocker posture stayed the same
 - the paired current `Documentation/zigux/phase15-parity-scorecard.md` packet still carries an older provenance marker, so this dedicated handoff note now treats current-master readback plus the shared blocker posture as the cross-packet truthfulness check instead of claiming exact-head parity
+- the handoff manifest and focused Zig guard now machine-check `blocker_posture_agreement_over_exact_head_parity` as the active fallback mode until the paired scorecard provenance marker catches up
 
 ## Roadmap Versus Ledger
 
