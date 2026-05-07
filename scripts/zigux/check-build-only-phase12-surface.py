@@ -68,6 +68,7 @@ REQUIRED_FILE_MARKERS = {
     ],
     PHASE12_CLOSURE_CHECKLIST_PATH: [
         "Phase 12 Release Closure Checklist",
+        "shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "scripts/zigux/check-build-only-phase12-surface.py",
         "Documentation/zigux/phase12-raw-github-coverage-survey.md",
         "two commit-pinned artifacts plus two shared-tree-only anchors",
