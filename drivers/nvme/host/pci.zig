@@ -299,6 +299,21 @@ pub const NvmePciQueueLab = struct {
         };
     }
 
+    pub fn replayReservedIoQueues(
+        self: *Self,
+        request: RecoveryReplayRequest,
+        controller_io_queue_limit: usize,
+    ) !IoQueueReservationSummary {
+        if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
+        if (!request.had_io_queue_reservation or request.cached_reserved_io_queues == 0) {
+            return error.NoQueueReservationToReplay;
+        }
+        if (request.cached_queue_reservation_generation == self.reset_generation) {
+            return error.QueueReservationAlreadyCurrent;
+        }
+        return self.reserveIoQueues(request.cached_reserved_io_queues, controller_io_queue_limit);
+    }
+
     pub fn planPrpBufferShape(
         self: *const Self,
         total_transfer_bytes: u32,
