@@ -16,9 +16,9 @@ It is a coordination artifact, not a closure claim.
 
 ## Why this note exists
 
-The live docs-root Phase 8 summary already shows that the old command-help-symbol starter packet is no longer the whole tranche. Current `master` carries parked `exec-cmd`, `help`, and `kallsyms` slices beside a still-active libbpf helper family and its shared survey packet.
+The live docs-root Phase 8 summary already shows that the old command-help-symbol starter packet is no longer the whole tranche. Current `master` carries parked `exec-cmd`, `help`, and `kallsyms` slices beside a libbpf helper family whose landed survey, docs-root summary, and lane memory now treat the packet as parked unless another same-lane gap appears.
 
-This note turns that current evidence into one bounded lane map so nearby scheduled tooling runs do not reopen parked slices just because they are easier to touch than the active libbpf packet.
+This note turns that current evidence into one bounded lane map so nearby scheduled tooling runs do not reopen parked slices just because they are easier to touch than the parked libbpf review packet.
 
 ## Lane map
 
@@ -68,9 +68,9 @@ The next honest symbol reopen should stay helper-local, such as one fresh symbol
 ### 3. Libbpf helper lane: the current active Phase 8 implementation surface
 Use this lane for bounded work inside the current `tools/lib/bpf/zigux_segments/` helper family and its paired tests and surveys.
 
-The helper-family packet is currently parked after the landed file-path bridge, perf-buffer poll, and shared tests-root reminder updates. Reopen it only when a smaller same-lane libbpf helper, validator, checker, survey, README, or wording gap is visible again.
+This heading stays stable for shared validator continuity, but the live helper-family packet itself is currently parked after the landed file-path bridge, perf-buffer poll, and shared tests-root reminder updates. Reopen it only when a smaller same-lane libbpf helper, validator, checker, survey, README, or wording gap is visible again.
 
-Current active packet:
+Current parked review packet:
 - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
 - `Documentation/zigux/phase8-bpf-type-names-slice.md`
 - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
@@ -127,6 +127,6 @@ That split matches the live docs-root Phase 8 summary and prevents scheduled too
 
 ## Next bounded step
 
-Before reopening another tooling helper lane, refresh the shared tests-root reminder so it keeps the active libbpf shard routes explicit beside the parked `exec-cmd`, `help`, and `kallsyms` packet. After that, the next implementation-facing Phase 8 follow-up should come from one bounded libbpf helper or bridge step rather than another starter-slice wording pass.
+Before reopening another tooling helper lane, refresh the shared tests-root reminder so it keeps the parked libbpf shard routes explicit beside the parked `exec-cmd`, `help`, and `kallsyms` packet. After that, the next implementation-facing Phase 8 follow-up should come from one bounded libbpf helper or bridge step rather than another starter-slice wording pass.
 
 That shared tests-root reminder is now refreshed on `master`, so the honest default is to leave this lane parked unless another one-file same-lane helper-local, validator, checker, survey, README, or wording drift appears inside the shared libbpf packet.
