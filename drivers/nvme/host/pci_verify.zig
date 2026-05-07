@@ -168,6 +168,103 @@ test "nvme pci recovery replay renegotiates stale reservations against a reduced
     try testing.expectEqual(@as(u16, 4), next.queue_id);
 }
 
+test "nvme pci recovery reservation replay preflight stays non-mutating and controller-capped" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(8, 6);
+    try testing.expectEqual(@as(usize, 6), reservation.reserved_io_queues);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    try testing.expectError(error.AdminQueueReplayRequired, lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3));
+
+    _ = try lab.planAdminQueue(32, 64, false);
+    const preflight = try lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", preflight.anchor);
+    try testing.expectEqual(nvme_pci.RecoveryState.running, preflight.state);
+    try testing.expectEqual(@as(u32, 1), preflight.reset_generation);
+    try testing.expectEqual(@as(usize, 6), preflight.requested_reserved_io_queues);
+    try testing.expectEqual(@as(usize, 3), preflight.controller_io_queue_limit);
+    try testing.expectEqual(@as(usize, 64), preflight.planner_remaining_io_slots);
+    try testing.expectEqual(@as(usize, 3), preflight.replayable_reserved_io_queues);
+    try testing.expectEqual(@as(u16, 1), preflight.first_queue_id);
+    try testing.expectEqual(@as(u16, 3), preflight.last_queue_id);
+    try testing.expect(preflight.controller_limited);
+    try testing.expect(!preflight.planner_limited);
+    try testing.expect(!preflight.queue_planning_blocked);
+    try testing.expect(!preflight.queues_frozen);
+    try testing.expect(preflight.cached_queue_reservation_stale);
+    try testing.expect(!preflight.admin_queue_must_be_replanned);
+
+    const recovery = lab.recoverySummary();
+    try testing.expectEqual(@as(usize, 0), recovery.planned_io_queues);
+
+    const replay = try lab.replayReservedIoQueues(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try testing.expectEqual(preflight.replayable_reserved_io_queues, replay.reserved_io_queues);
+    try testing.expectEqual(preflight.first_queue_id, replay.first_queue_id);
+    try testing.expectEqual(preflight.last_queue_id, replay.last_queue_id);
+
+    const next = try lab.planIoQueue(8, 64, false);
+    try testing.expectEqual(@as(u16, 4), next.queue_id);
+}
+
+test "nvme pci recovery reservation replay preflight rejects frozen, missing, and current reservations" {
+    var frozen_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try frozen_lab.planAdminQueue(32, 64, false);
+    const frozen = try frozen_lab.reserveIoQueues(4, 4);
+    _ = frozen_lab.beginReset();
+    try testing.expectError(error.QueuePlanningBlockedByReset, frozen_lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = frozen.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = frozen.reserved_io_queues,
+    }, 4));
+
+    var missing_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try missing_lab.planAdminQueue(32, 64, false);
+    try testing.expectError(error.NoQueueReservationToReplay, missing_lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+    }, 4));
+
+    var current_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try current_lab.planAdminQueue(32, 64, false);
+    const current = try current_lab.reserveIoQueues(4, 4);
+    try testing.expectError(error.QueueReservationAlreadyCurrent, current_lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = current.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = current.reserved_io_queues,
+    }, 4));
+}
+
 test "nvme pci recovery replay keeps combined stale metadata and queue reservations visible until both are refreshed" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     _ = try lab.planAdminQueue(48, 64, false);
