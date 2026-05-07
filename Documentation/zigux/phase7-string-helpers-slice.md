@@ -85,7 +85,7 @@ The current tests check:
 - Linux-style `n = -1` string table scans that stop at the first NULL entry
 - in-place replacement behavior that stops at the first NUL
 - first-NUL-bounded duplicated replacement that returns an owned escaped-for-callers copy without mutating bytes beyond the exported C-string prefix
-- one allocator-backed quotable duplication proof that hex-escapes control bytes, quotes, and backslashes for log-safe callers while preserving null-input and first-NUL bounds
+- one allocator-backed quotable duplication proof that hex-escapes control bytes, quotes, and backslashes for log-safe callers while preserving null-input, first-NUL bounds, and allocation-failure cleanup
 - truncation, exact-fit, and padding behavior for fixed-size destinations
 - bounded termination checks that only scan the requested byte window
 - bounded ASCII case conversion that stops at the first NUL
