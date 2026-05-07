@@ -13,6 +13,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
+  - `zigux/tests/phase15_parity_scorecard.json`
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-indefinite-c-policy.md`
   - `zigux/tests/phase15_freeze_map_manifest.json`
@@ -24,7 +25,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 
 The roadmap's Phase 15 work is about governance, not another burst of deep-core implementation. The live repo now carries much more than the original freeze-map starter: the parity scorecard, Architecture Council review-process note, retained stay-in-C closeout rule, reopen-trigger catalog, and indefinite-C policy note are all already landed.
 
-That makes the original freeze-map governance slice slightly stale. Its focused note and manifest still stopped at a partial owner inventory even though the current parity scorecard now carries the authoritative per-anchor rollback owner, evidence-archive path, benchmark-notes status, replay command, and latest blocker disposition fields that the root freeze-map policy already requires.
+That makes the original freeze-map governance slice slightly stale. Its focused note and manifest still stopped at a partial owner inventory even though the current parity scorecard note and its machine-checkable `zigux/tests/phase15_parity_scorecard.json` manifest now carry the authoritative per-anchor rollback owner, evidence-archive path, benchmark-notes status, replay command, and latest blocker disposition fields that the root freeze-map policy already requires.
 
 The honest bounded step is therefore maintenance, not expansion: refresh the freeze-map-specific lane record so it matches current repo reality, align its anchor inventory with the scorecard-backed reporting fields that already govern retained stay-in-C review packets, and keep the current blocker posture explicit while the central policy note carries the same closeout and reopen rules as the later governance artifacts.
 
@@ -67,7 +68,7 @@ The current lane state is:
 - landed `phase15-stale-provenance-cleanup`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight: Zigux now has a reviewable and runnable governance rule for the freeze map that matches the current stay-in-C policy family, the parity-scorecard lane-owner and rollback-owner records, and the per-anchor evidence-archive reporting posture already expected by the broader Phase 15 packet. The lane also no longer presents a stale pinned-head provenance hash as if it were current repo evidence. What remains blocked is any deep-core status change, not the governance scaffolding itself.
+This keeps the lane tight: Zigux now has a reviewable and runnable governance rule for the freeze map that matches the current stay-in-C policy family, the parity-scorecard lane-owner and rollback-owner records, the machine-checkable scorecard manifest, and the per-anchor evidence-archive reporting posture already expected by the broader Phase 15 packet. The lane also no longer presents a stale pinned-head provenance hash as if it were current repo evidence. What remains blocked is any deep-core status change, not the governance scaffolding itself.
 
 ## Non-goals
 
