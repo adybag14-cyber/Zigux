@@ -38,6 +38,7 @@ REQUIRED_FILE_MARKERS = {
     DOCS_README_PATH: [
         "Phase 12 notes",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`Documentation/zigux/phase12-release-coordination-matrix.md`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`make -C zigux phase12-smoke`",
@@ -214,6 +215,7 @@ def write_fixture_tree(root: Path) -> None:
         """# Zigux Documentation
 Phase 12 notes
 - `Documentation/zigux/phase12-release-closure-checklist.md`
+- `Documentation/zigux/phase12-release-coordination-matrix.md`
 - `zigux/tests/phase12_virtio_net_syntax_lab.zig`
 - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - `make -C zigux phase12-smoke`
@@ -412,6 +414,24 @@ def run_self_test() -> int:
             for failure in failures:
                 print(failure)
             return 1
+
+        docs_readme_path = root / DOCS_README_PATH
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        broken_docs_readme = original_docs_readme.replace(
+            "- `Documentation/zigux/phase12-release-coordination-matrix.md`\n",
+            "",
+            1,
+        )
+        docs_readme_path.write_text(broken_docs_readme, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{DOCS_README_PATH}:`Documentation/zigux/phase12-release-coordination-matrix.md`"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("docs-readme-coordination-matrix-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
 
         checklist_path = root / REVIEW_CHECKLIST_PATH
         original_checklist = checklist_path.read_text(encoding="utf-8")
