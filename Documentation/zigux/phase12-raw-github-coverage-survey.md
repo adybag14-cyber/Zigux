@@ -43,7 +43,7 @@ Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO compan
 
 `Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this shared fallback overview, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this survey into a second sequencing document.
 
-`zigux/tests/README.md` and `Documentation/zigux/phase12-release-sequencing.md` should keep this shared fallback overview visible beside that same PMO companion so the two-artifact-plus-two-anchor split does not disappear from the shared release packet while the narrower driver-local fallback notes stay unchanged.
+`zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase12-release-sequencing.md` should keep this shared fallback overview visible beside that same PMO companion so the two-artifact-plus-two-anchor split does not disappear from the shared release packet while the narrower driver-local fallback notes stay unchanged.
 
 `Documentation/zigux/phase12-release-sequencing.md` and `Documentation/zigux/phase12-release-coordination-matrix.md` should stay aligned on that same split so the compact coordination view remains reviewable without pretending the tests-root packet already owns the matrix reminder directly.
 
