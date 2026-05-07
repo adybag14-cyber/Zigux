@@ -5,12 +5,13 @@
   "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
   "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
   "harness": "zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c",
-  "case_count": 16,
+  "case_count": 17,
   "cases": [
     "minimal",
     "debug_reference_types",
     "long_options",
     "abbreviated_long_options",
+    "ambiguous_long_option",
     "quiet_overrides_warning",
     "explicit_option_terminator",
     "positional_passthrough",
@@ -34,6 +35,7 @@
     "positional_passthrough_expected.json"
   ],
   "process_packet": [
+    "ambiguous_long_option_expected.json",
     "help_expected.json",
     "version_expected.json",
     "abbreviated_version_expected.json",
@@ -44,6 +46,7 @@
     "missing_long_dump_types_argument_expected.json"
   ],
   "normalized_stderr_packet": [
+    "ambiguous_long_option_expected.json",
     "invalid_option_expected.json",
     "missing_reference_argument_expected.json",
     "unsupported_long_option_expected.json",
