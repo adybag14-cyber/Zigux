@@ -122,7 +122,8 @@ test "phase11 bcm2835_wdt survey manifest, shared contract, and validation matri
     try std.testing.expect(std.mem.indexOf(u8, contract_doc, "`Documentation/zigux/phase11-bcm2835-wdt-survey.md`") != null);
     try std.testing.expect(std.mem.indexOf(u8, contract_doc, "`zigux/tests/phase11_bcm2835_wdt_manifest.json`") != null);
     try std.testing.expect(std.mem.indexOf(u8, contract_doc, "`zigux/tests/phase11_bcm2835_wdt_survey.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, contract_doc, "The active bcm2835 hardware-validation packet also stays explicit beside that shared route:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contract_doc, "The active watchdog validation packets also stay explicit beside that shared route:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contract_doc, "- bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, expected_commit_pin) != null);
