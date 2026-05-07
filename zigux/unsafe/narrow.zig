@@ -42,20 +42,40 @@ pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeT
     };
 }
 
+pub fn scopeFromByte(unsafe_scope: u8) ?UnsafeScopeTag {
+    return scopeFromInteropPolicyBytes(unsafe_scope, 0);
+}
+
 pub fn recognizesInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return scopeFromInteropPolicyBytes(unsafe_scope, reserved) != null;
+}
+
+pub fn recognizesByte(unsafe_scope: u8) bool {
+    return recognizesInteropPolicyBytes(unsafe_scope, 0);
 }
 
 pub fn permitsNoUnsafePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return scopeFromInteropPolicyBytes(unsafe_scope, reserved) == .none;
 }
 
+pub fn permitsNoUnsafeByte(unsafe_scope: u8) bool {
+    return permitsNoUnsafePolicyBytes(unsafe_scope, 0);
+}
+
 pub fn permitsVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return scopeFromInteropPolicyBytes(unsafe_scope, reserved) == .volatile_mmio;
 }
 
+pub fn permitsVolatileMmioByte(unsafe_scope: u8) bool {
+    return permitsVolatileMmioPolicyBytes(unsafe_scope, 0);
+}
+
 pub fn permitsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return scopeFromInteropPolicyBytes(unsafe_scope, reserved) == .raw_pointer_bridge;
+}
+
+pub fn permitsRawPointerBridgeByte(unsafe_scope: u8) bool {
+    return permitsRawPointerBridgePolicyBytes(unsafe_scope, 0);
 }
 
 test "phase3 narrow unsafe wrappers stay bounded" {
@@ -85,9 +105,19 @@ test "phase3 narrow unsafe wrappers stay bounded" {
 }
 
 test "phase3 narrow unsafe scope bytes stay explicit" {
+    try std.testing.expectEqual(@as(?UnsafeScopeTag, .none), scopeFromByte(0));
+    try std.testing.expectEqual(@as(?UnsafeScopeTag, .volatile_mmio), scopeFromByte(1));
+    try std.testing.expectEqual(@as(?UnsafeScopeTag, .raw_pointer_bridge), scopeFromByte(2));
+    try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromByte(9));
+
     try std.testing.expectEqual(@as(?UnsafeScopeTag, .none), scopeFromInteropPolicyBytes(0, 0));
     try std.testing.expectEqual(@as(?UnsafeScopeTag, .volatile_mmio), scopeFromInteropPolicyBytes(1, 0));
     try std.testing.expectEqual(@as(?UnsafeScopeTag, .raw_pointer_bridge), scopeFromInteropPolicyBytes(2, 0));
+
+    try std.testing.expect(recognizesByte(0));
+    try std.testing.expect(recognizesByte(1));
+    try std.testing.expect(recognizesByte(2));
+    try std.testing.expect(!recognizesByte(9));
 
     try std.testing.expect(recognizesInteropPolicyBytes(0, 0));
     try std.testing.expect(recognizesInteropPolicyBytes(1, 0));
@@ -95,16 +125,31 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expect(!recognizesInteropPolicyBytes(9, 0));
     try std.testing.expect(!recognizesInteropPolicyBytes(1, 1));
 
+    try std.testing.expect(permitsNoUnsafeByte(0));
+    try std.testing.expect(!permitsNoUnsafeByte(1));
+    try std.testing.expect(!permitsNoUnsafeByte(2));
+    try std.testing.expect(!permitsNoUnsafeByte(9));
+
     try std.testing.expect(permitsNoUnsafePolicyBytes(0, 0));
     try std.testing.expect(!permitsNoUnsafePolicyBytes(1, 0));
     try std.testing.expect(!permitsNoUnsafePolicyBytes(2, 0));
     try std.testing.expect(!permitsNoUnsafePolicyBytes(9, 0));
     try std.testing.expect(!permitsNoUnsafePolicyBytes(0, 1));
 
+    try std.testing.expect(!permitsVolatileMmioByte(0));
+    try std.testing.expect(permitsVolatileMmioByte(1));
+    try std.testing.expect(!permitsVolatileMmioByte(2));
+    try std.testing.expect(!permitsVolatileMmioByte(9));
+
     try std.testing.expect(!permitsVolatileMmioPolicyBytes(0, 0));
     try std.testing.expect(permitsVolatileMmioPolicyBytes(1, 0));
     try std.testing.expect(!permitsVolatileMmioPolicyBytes(2, 0));
     try std.testing.expect(!permitsVolatileMmioPolicyBytes(9, 0));
+
+    try std.testing.expect(!permitsRawPointerBridgeByte(0));
+    try std.testing.expect(!permitsRawPointerBridgeByte(1));
+    try std.testing.expect(permitsRawPointerBridgeByte(2));
+    try std.testing.expect(!permitsRawPointerBridgeByte(9));
 
     try std.testing.expect(!permitsRawPointerBridgePolicyBytes(0, 0));
     try std.testing.expect(!permitsRawPointerBridgePolicyBytes(1, 0));
