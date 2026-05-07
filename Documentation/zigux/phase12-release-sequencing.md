@@ -34,6 +34,10 @@ It is a release-coordination artifact, not a closure claim.
 4. Run the Linux-style entrypoint last.
    - `make -C zigux phase12`
    - This should remain the summary replay route rather than the only place release coordination is inferred.
+5. If the local runtime does not provide `zig` on `PATH`, keep the same smoke-first order and rerun the shipped Make routes with an attached toolchain override instead of inventing a new Phase 12 entrypoint.
+   - `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
+   - `make -C zigux phase12 ZIG=<attached-zig-path>`
+   - This is an environment override for the existing replay packet, not a validator-first or `phase12-validate` route.
 
 ## Owner map
 - `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` is the driver-only anti-overlap companion for `virtio_net`, `nvme_pci`, and `virtio_scsi`.
