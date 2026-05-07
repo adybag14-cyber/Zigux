@@ -28,12 +28,15 @@ REQUIRED_MANIFEST_FILES = (
     "zigux/bindings/dev_t.zig",
     "zigux/helpers/layout_assert.zig",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
 )
 REQUIRED_DOC_MARKERS = (
     "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
+    "python3 scripts/zigux/survey-phase3-abi-constant-parity.py",
+    "python3 scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
 )
 REQUIRED_BINDINGS_DOC_MARKERS = (
     "include/zigux/dev_t.h",
@@ -204,6 +207,8 @@ def run_self_test() -> int:
                 [
                     "- `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
                     "- `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test`",
+                    "- `python3 scripts/zigux/survey-phase3-abi-constant-parity.py`",
+                    "- `python3 scripts/zigux/survey-phase3-abi-constant-parity.py --self-test`",
                     "- `include/zigux/dev_t.h`",
                     "- `include/linux/zigux.h`",
                     "- `zigux/bindings/abi.zig`",
@@ -327,6 +332,8 @@ def run_self_test() -> int:
             f"{doc}:missing_doc_marker:{marker}"
             for marker in (
                 "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
+                "python3 scripts/zigux/survey-phase3-abi-constant-parity.py",
+                "python3 scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
                 *REQUIRED_BINDINGS_DOC_MARKERS,
                 *REQUIRED_EXPORT_UAPI_DOC_MARKERS,
             )
