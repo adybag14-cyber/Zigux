@@ -101,6 +101,7 @@ This keeps the survey useful after the first starter, selftest-hook surface, mod
 
 3. run the focused shared runtime-loader replay
 - `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
+- `make -C zigux phase9-runtime-loader-shared-tests`
 
 4. run the convenience target
 - `make -C zigux phase9`
