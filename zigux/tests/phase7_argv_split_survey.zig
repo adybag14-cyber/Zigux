@@ -167,14 +167,18 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
 
     try expectContains(docs_root, "Documentation/zigux/phase7-argv-split-slice.md");
     try expectContains(docs_root, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample");
+    try expectContains(docs_root, "lib/argv_split.zig");
     try expectContains(docs_root, "zigux/tests/phase7_argv_split_survey.zig");
+    try expectContains(docs_root, "zigux/tests/phase7_argv_split_manifest.json");
     try expectContains(docs_root, "scripts/zigux/check-phase7-argv-split-packet.py");
     try expectContains(docs_root, "zigux/tests/phase7_build.zig");
 
     try expectContains(samples_root, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;");
     try expectContains(samples_root, "Documentation/zigux/phase7-argv-split-slice.md");
+    try expectContains(samples_root, "lib/argv_split.zig");
     try expectContains(samples_root, "zigux/tests/phase7_argv_split.zig");
     try expectContains(samples_root, "zigux/tests/phase7_argv_split_survey.zig");
+    try expectContains(samples_root, "zigux/tests/phase7_argv_split_manifest.json");
     try expectContains(samples_root, "scripts/zigux/check-phase7-argv-split-packet.py");
     try expectContains(samples_root, "zigux/tests/phase7_build.zig");
 
