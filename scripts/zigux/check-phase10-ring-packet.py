@@ -51,9 +51,11 @@ EXPECTED_HELPER_MARKERS = [
 ]
 
 EXPECTED_VERIFY_TEST_MARKERS = [
-    'test "virtio ring packed event-index summary rejects unsupported queues and reports queue-local poll pressure" {',
+    'test "virtio ring packed event-index summary stays queue-local and reports when polling can wait" {',
     "try testing.expectError(error.QueueLayoutDoesNotSupportPackedEventIndex, lab.packedEventIndexSummary(1));",
     "try testing.expectError(error.QueueDoesNotUseEventIndex, lab.packedEventIndexSummary(2));",
+    "try testing.expectEqual(@as(u16, 3), summary.event_index_window);",
+    "try testing.expect(!summary.should_poll);",
     "try testing.expectEqual(@as(u16, 1), summary.event_index_window);",
     "try testing.expect(summary.should_poll);",
 ]
@@ -169,9 +171,11 @@ pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueRes
 pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary { _ = self; _ = queue_index; }
 pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary { _ = self; _ = queue_index; }
 """,
-    "drivers/virtio/virtio_ring_verify.zig": """test \"virtio ring packed event-index summary rejects unsupported queues and reports queue-local poll pressure\" {
+    "drivers/virtio/virtio_ring_verify.zig": """test \"virtio ring packed event-index summary stays queue-local and reports when polling can wait\" {
     try testing.expectError(error.QueueLayoutDoesNotSupportPackedEventIndex, lab.packedEventIndexSummary(1));
     try testing.expectError(error.QueueDoesNotUseEventIndex, lab.packedEventIndexSummary(2));
+    try testing.expectEqual(@as(u16, 3), summary.event_index_window);
+    try testing.expect(!summary.should_poll);
     try testing.expectEqual(@as(u16, 1), summary.event_index_window);
     try testing.expect(summary.should_poll);
 }
@@ -417,7 +421,6 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_lane_key_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
-        manifest_path.writeText = None
         manifest_path.write_text(
             original_manifest.replace('\"freeze_boundary_status\": \"aligned\"', '\"freeze_boundary_status\": \"drifted\"', 1),
             encoding="utf-8",
@@ -499,14 +502,14 @@ def run_self_test() -> int:
         original_verify = verify_path.read_text(encoding="utf-8")
         verify_path.write_text(
             original_verify.replace(
-                'test \"virtio ring packed event-index summary rejects unsupported queues and reports queue-local poll pressure\" {',
+                'test \"virtio ring packed event-index summary stays queue-local and reports when polling can wait\" {',
                 'test \"virtio ring packed event-index drift\" {',
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'verify:test \"virtio ring packed event-index summary rejects unsupported queues and reports queue-local poll pressure\" {' not in missing_markers:
+        if 'verify:test \"virtio ring packed event-index summary stays queue-local and reports when polling can wait\" {' not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_verify_test_marker_missing")
         verify_path.write_text(original_verify, encoding="utf-8")
 
