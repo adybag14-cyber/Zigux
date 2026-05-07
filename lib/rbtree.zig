@@ -241,7 +241,7 @@ pub fn add(node: *Node, root: *Root, less: LessFn) void {
     insertColor(node, root);
 }
 
-pub fn addCached(node: *Node, root: *RootCached, less: LessFn) void {
+pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
     var link = &root.root.node;
     var parent: ?*Node = null;
     var leftmost = true;
@@ -258,6 +258,7 @@ pub fn addCached(node: *Node, root: *RootCached, less: LessFn) void {
 
     linkNode(node, parent, link);
     insertColorCached(node, root, leftmost);
+    return if (leftmost) node else null;
 }
 
 fn linkLinkedNode(node: *NodeLinked, parent: ?*Node, link: *?*Node) void {
@@ -496,11 +497,14 @@ pub fn erase(node: *Node, root: *Root) void {
     }
 }
 
-pub fn eraseCached(node: *Node, root: *RootCached) void {
+pub fn eraseCached(node: *Node, root: *RootCached) ?*Node {
+    var leftmost: ?*Node = null;
     if (root.leftmost == node) {
-        root.leftmost = next(node);
+        leftmost = next(node);
+        root.leftmost = leftmost;
     }
     erase(node, &root.root);
+    return leftmost;
 }
 
 pub fn eraseLinked(node: *NodeLinked, root: *RootLinked) bool {
@@ -740,21 +744,21 @@ test "rbtree cached helpers keep the leftmost pointer aligned" {
     var replacement = Entry{ .key = 5 };
     var root = RootCached.init();
 
-    for (&entries) |*entry| {
-        addCached(&entry.node, &root, less);
-    }
-
+    try std.testing.expectEqual(@as(?*Node, &entries[0].node), addCached(&entries[0].node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &entries[1].node), addCached(&entries[1].node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, null), addCached(&entries[2].node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, null), addCached(&entries[3].node, &root, less));
     try std.testing.expectEqual(@as(?*Node, &entries[1].node), firstCached(&root));
 
     replaceNodeCached(&entries[1].node, &replacement.node, &root);
     try std.testing.expectEqual(@as(?*Node, &replacement.node), firstCached(&root));
     try std.testing.expectEqual(@as(?*Node, &replacement.node), first(&root.root));
 
-    eraseCached(&replacement.node, &root);
+    try std.testing.expectEqual(@as(?*Node, &entries[0].node), eraseCached(&replacement.node, &root));
     try std.testing.expectEqual(@as(?*Node, &entries[0].node), firstCached(&root));
     try std.testing.expectEqual(@as(?*Node, &entries[0].node), first(&root.root));
 
-    eraseCached(&entries[3].node, &root);
+    try std.testing.expectEqual(@as(?*Node, null), eraseCached(&entries[3].node, &root));
     try std.testing.expectEqual(@as(?*Node, &entries[0].node), firstCached(&root));
     try std.testing.expectEqual(@as(?*Node, &entries[0].node), first(&root.root));
 }
