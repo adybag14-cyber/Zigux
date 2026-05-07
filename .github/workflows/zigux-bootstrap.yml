@@ -343,6 +343,41 @@ jobs:
         run: make -C zigux phase15-test
 
   phase2-cross:
+    if: >
+      github.event_name != 'push' ||
+      contains(join(github.event.commits.*.added, ' '), '.github/workflows/zigux-bootstrap.yml') ||
+      contains(join(github.event.commits.*.modified, ' '), '.github/workflows/zigux-bootstrap.yml') ||
+      contains(join(github.event.commits.*.removed, ' '), '.github/workflows/zigux-bootstrap.yml') ||
+      contains(join(github.event.commits.*.added, ' '), 'scripts/zigux/install-zig.py') ||
+      contains(join(github.event.commits.*.modified, ' '), 'scripts/zigux/install-zig.py') ||
+      contains(join(github.event.commits.*.removed, ' '), 'scripts/zigux/install-zig.py') ||
+      contains(join(github.event.commits.*.added, ' '), 'scripts/zigux/check-phase2-cross.py') ||
+      contains(join(github.event.commits.*.modified, ' '), 'scripts/zigux/check-phase2-cross.py') ||
+      contains(join(github.event.commits.*.removed, ' '), 'scripts/zigux/check-phase2-cross.py') ||
+      contains(join(github.event.commits.*.added, ' '), 'scripts/zigux/fixdep.zig') ||
+      contains(join(github.event.commits.*.modified, ' '), 'scripts/zigux/fixdep.zig') ||
+      contains(join(github.event.commits.*.removed, ' '), 'scripts/zigux/fixdep.zig') ||
+      contains(join(github.event.commits.*.added, ' '), 'scripts/zigux/genksyms.zig') ||
+      contains(join(github.event.commits.*.modified, ' '), 'scripts/zigux/genksyms.zig') ||
+      contains(join(github.event.commits.*.removed, ' '), 'scripts/zigux/genksyms.zig') ||
+      contains(join(github.event.commits.*.added, ' '), 'scripts/zigux/genksyms_crc.zig') ||
+      contains(join(github.event.commits.*.modified, ' '), 'scripts/zigux/genksyms_crc.zig') ||
+      contains(join(github.event.commits.*.removed, ' '), 'scripts/zigux/genksyms_crc.zig') ||
+      contains(join(github.event.commits.*.added, ' '), 'scripts/zigux/mk_elfconfig.zig') ||
+      contains(join(github.event.commits.*.modified, ' '), 'scripts/zigux/mk_elfconfig.zig') ||
+      contains(join(github.event.commits.*.removed, ' '), 'scripts/zigux/mk_elfconfig.zig') ||
+      contains(join(github.event.commits.*.added, ' '), 'scripts/zigux/kconfig/conf_bridge.zig') ||
+      contains(join(github.event.commits.*.modified, ' '), 'scripts/zigux/kconfig/conf_bridge.zig') ||
+      contains(join(github.event.commits.*.removed, ' '), 'scripts/zigux/kconfig/conf_bridge.zig') ||
+      contains(join(github.event.commits.*.added, ' '), 'scripts/zigux/kconfig/confdata_bridge.zig') ||
+      contains(join(github.event.commits.*.modified, ' '), 'scripts/zigux/kconfig/confdata_bridge.zig') ||
+      contains(join(github.event.commits.*.removed, ' '), 'scripts/zigux/kconfig/confdata_bridge.zig') ||
+      contains(join(github.event.commits.*.added, ' '), 'zigux/tests/fixtures/phase2_tool_manifest.json') ||
+      contains(join(github.event.commits.*.modified, ' '), 'zigux/tests/fixtures/phase2_tool_manifest.json') ||
+      contains(join(github.event.commits.*.removed, ' '), 'zigux/tests/fixtures/phase2_tool_manifest.json') ||
+      contains(join(github.event.commits.*.added, ' '), 'zigux/tests/fixtures/phase2_cross_targets.json') ||
+      contains(join(github.event.commits.*.modified, ' '), 'zigux/tests/fixtures/phase2_cross_targets.json') ||
+      contains(join(github.event.commits.*.removed, ' '), 'zigux/tests/fixtures/phase2_cross_targets.json')
     needs: bootstrap
     runs-on: ubuntu-latest
     strategy:
