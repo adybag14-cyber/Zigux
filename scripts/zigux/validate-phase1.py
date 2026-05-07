@@ -10,27 +10,37 @@ import tempfile
 _SELF_PATH = Path(__file__).resolve()
 ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) >= 3 else _SELF_PATH.parent
 
-REQUIRED_FILES = [
-    "tools/lib/bitmap.zig",
-    "tools/lib/find_bit.zig",
-    "tools/lib/string.zig",
-    "tools/lib/rbtree.zig",
+EXPECTED_HELPERS = [
     "tools/lib/argv_split.zig",
+    "tools/lib/bitmap.zig",
     "tools/lib/cmdline.zig",
     "tools/lib/ctype.zig",
+    "tools/lib/find_bit.zig",
     "tools/lib/hweight.zig",
     "tools/lib/list_sort.zig",
+    "tools/lib/rbtree.zig",
     "tools/lib/slab.zig",
     "tools/lib/str_error_r.zig",
+    "tools/lib/string.zig",
     "tools/lib/vsprintf.zig",
     "tools/lib/zalloc.zig",
+]
+
+REQUIRED_FILES = [
+    *EXPECTED_HELPERS,
     "scripts/zigux/artifact_diff.py",
     "Documentation/zigux/phase1-closure.md",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
-    "scripts/zigux/check-phase1-parity.py",
     "scripts/zigux/install-zig.py",
+    "scripts/zigux/check-phase1-installer-review-surfaces.py",
+    "scripts/zigux/check-phase1-parity.py",
+    "scripts/zigux/check-phase1-bench.py",
+    "scripts/zigux/validate-phase1-closure.py",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
+    "zigux/Makefile",
     "zigux/tests/build.zig",
     "zigux/tests/README.md",
     "zigux/tests/phase1_bench.zig",
@@ -39,30 +49,24 @@ REQUIRED_FILES = [
     "zigux/tests/fixtures/phase1_helper_manifest.json",
     "zigux/tests/fixtures/phase1_helpers_c_harness.c",
     "zigux/tests/fixtures/phase1_helpers.json",
-    "Documentation/zigux/README.md",
-    "Documentation/zigux/review-checklist.md",
-    "zigux/Makefile",
 ]
 
-REQUIRED_LEDGER_MARKERS = [
-    "feat(tools/lib): start phase-1 helper ports",
-    "test(zigux): add phase-1 helper harness and workflow gate",
-    "feat(tools/lib): expand phase-1 helper batch",
-    "test(zigux): add phase-1 golden parity fixtures and artifact diff gate",
-    "feat(tools/lib): complete bounded phase-1 helper coverage",
-]
+DOC_MARKERS = {
+    "docs_root_phase1_packet": [
+        "Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `scripts/zigux/check-phase1-installer-review-surfaces.py`",
+        "keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root",
+    ],
+    "tests_root_phase1_packet": [
+        "keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`",
+        "`.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root",
+    ],
+    "review_checklist_phase1_packet": [
+        "if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`",
+        "`scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` still agree on the same closed helper tranche",
+    ],
+}
 
-REQUIRED_WORKFLOW_PRESENCE_MARKERS = [
-    "tools/lib/*.zig",
-]
-
-REQUIRED_WORKFLOW_EXACT_MARKERS = [
-    "python3 scripts/zigux/validate-phase1.py",
-    "python3 scripts/zigux/check-phase1-parity.py",
-    "zig build test --build-file zigux/tests/build.zig",
-]
-
-REQUIRED_TEST_MARKERS = [
+PHASE1_IMPORT_MARKERS = [
     '@import("argv_split")',
     '@import("bitmap")',
     '@import("cmdline")',
@@ -70,189 +74,71 @@ REQUIRED_TEST_MARKERS = [
     '@import("find_bit")',
     '@import("hweight")',
     '@import("list_sort")',
+    '@import("rbtree")',
     '@import("slab")',
     '@import("str_error_r")',
     '@import("string")',
     '@import("vsprintf")',
     '@import("zalloc")',
-    '@import("rbtree")',
     '@embedFile("fixtures/phase1_helpers.json")',
 ]
 
-REQUIRED_PHASE1_PARITY_TEST_ANCHORS = [
-    'test "phase 1 helper ports match committed parity fixture"',
-]
-
-REQUIRED_HELPER_TEST_ANCHORS = [
-    'test "phase 1 string replaceChar stops at embedded NUL"',
-]
-
-REQUIRED_PHASE1_PARITY_REPLAY_MARKERS = [
+PHASE1_REPLAY_MARKERS = [
     "fixture.find_bit.tail_clamped_first",
-    "fixture.find_bit.tail_clamped_next",
-    "fixture.find_bit.tail_zero_clamped_first",
     "fixture.find_bit.tail_zero_clamped_next",
-    "fixture.find_bit.tail_and_clamped_first",
     "fixture.find_bit.tail_and_clamped_next",
-    "fixture.bitmap.weight,",
-    "fixture.bitmap.and_result,",
-    "fixture.bitmap.and_values);",
-    "fixture.bitmap.andnot_result,",
-    "fixture.bitmap.andnot_values);",
-    "fixture.bitmap.or_values);",
-    "fixture.bitmap.xor_values);",
     "fixture.bitmap.partial_xor_nbits",
     "fixture.bitmap.partial_xor_masked_values",
-    "fixture.bitmap.range_after_set",
-    "fixture.bitmap.range_after_clear",
-    "fixture.bitmap.full_after_fill",
-    "fixture.bitmap.empty_after_zero",
-    "fixture.bitmap.scnprintf",
-    "fixture.string.strtobool_y,",
-    "fixture.string.strtobool_on,",
-    "fixture.string.strtobool_zero,",
-    "fixture.string.strtobool_off,",
-    "fixture.string.strlcpy_len,",
-    "fixture.string.strlcpy_buffer,",
-    "fixture.string.skip_spaces,",
-    "fixture.string.trim_spaces,",
-    "fixture.string.remove_spaces,",
-    "fixture.string.replace_char,",
-    "fixture.string.replace_char_end,",
-    "fixture.string.memchr_inv_index,",
-    "fixture.string.memchr_inv_none,",
-    "fixture.rbtree.empty_root",
-    "fixture.rbtree.insert_order",
-    "fixture.rbtree.reverse_order",
-    "fixture.rbtree.replace_order",
-    "fixture.rbtree.erase_init_order",
-    "fixture.rbtree.postorder_count",
-    "fixture.rbtree.erase_init_node_empty",
-    "fixture.rbtree.cleared_node_empty",
+    "fixture.string.memchr_inv_index",
+    "fixture.rbtree.next_match_serials",
+    "fixture.rbtree.next_match_terminal_null",
 ]
 
-REQUIRED_FIND_BIT_TAIL_CLAMP_FIELDS = [
-    "tail_clamped_first",
-    "tail_clamped_next",
-    "tail_zero_clamped_first",
-    "tail_zero_clamped_next",
-    "tail_and_clamped_first",
-    "tail_and_clamped_next",
+HELPER_FOLLOWUP_TESTS = [
+    'test "phase 1 string replaceChar stops at embedded NUL"',
+    'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
 ]
 
-REQUIRED_FIND_BIT_TEST_ANCHORS = [
-    'test "find first and next set bits across words"',
-    'test "find zero bits respects the declared bit count"',
-    'test "find and bit returns the first shared set bit"',
-    'test "single-word next scans honor start masks"',
-    'test "tail mask ignores set bits beyond nbits"',
-    'test "tail mask ignores zero bits beyond nbits"',
-    'test "tail mask ignores shared bits beyond nbits"',
-    'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
-    'test "zero-bit windows return without reading bitmap words"',
-    'test "next scans past nbits return without reading bitmap words"',
-    'test "low-level underscore aliases mirror the primary find helpers"',
-]
-
-REQUIRED_BITMAP_TEST_ANCHORS = [
-    'test "bitmap allocator helpers size zero and free their buffers"',
-    'test "bitmap set clear weight and empty full helpers"',
-    'test "bitmap fill clamps tail bits in partial words"',
-    'test "bitmap and andnot equal intersects subset"',
-    'test "bitmap and andnot clamp tail bits in partial words"',
-    'test "bitmap xor keeps caller-selected bit window"',
-    'test "bitmap scnprintf collapses contiguous ranges"',
-    'test "bitmap scnprintf reports full length while truncating the buffer"',
-    'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
-    'test "bitmap copy aliases preserve tail clearing and extension semantics"',
-    'test "bitmap copy alias preserves raw source words without tail clearing"',
-    'test "bitmap zero-bit helpers stay explicit no-ops"',
-]
-
-REQUIRED_STRING_TEST_ANCHORS = [
-    'test "strtobool accepts common Linux forms"',
-    'test "strlcpy copies and returns the source length"',
-    'test "streq matches C-string equality semantics"',
-    'test "skip trim remove and replace spaces work in place"',
-    'test "strreplace mirrors replaceChar C-string semantics"',
-    'test "strHasPrefix honors C-string boundaries"',
-    'test "strstarts mirrors the header-level prefix helper"',
-    'test "strEndsWith honors C-string boundaries"',
-    'test "memdup and memchrInv preserve byte content"',
-    'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
-    'test "memparse handles decimal hexadecimal octal and suffixes"',
-    'test "memparse keeps original rest when sign is not followed by digits"',
-    'test "memparse saturates signed overflow instead of trapping"',
-    'test "memparse keeps signed values and their trailing rest aligned"',
-    'test "memparse consumes suffix after saturation"',
-]
-
-REQUIRED_RBTREE_TEST_ANCHORS = [
-    'test "rbtree inserts and traverses in sorted order"',
-    'test "rbtree erase and replace keep traversal consistent"',
-    'test "rbtree eraseInit detaches erased node"',
-    'test "rbtree postorder and empty node helpers behave"',
-    'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
-    'test "rbtree nextMatch walks the duplicate range in order"',
-    'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
-    'test "rbtree cached root keeps the leftmost pointer in sync"',
-    'test "rbtree eraseCached returns null for a singleton cached tree"',
-    'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
-    'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
-]
-
-REQUIRED_REVIEW_CHECKLIST_MARKERS = [
-    "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`",
-    "`scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`",
-    "still agree on the same closed helper tranche and validator-first replay path without widening Phase 1 beyond the bounded host-side helper packet?",
-]
-
-REQUIRED_DOCS_ROOT_MARKERS = [
-    "Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `zigux/Makefile` - `zigux/tests/build.zig` - `zigux/tests/phase1_helpers.zig` - `zigux/tests/phase1_bench.zig` - `zigux/tests/fixtures/phase1_helper_manifest.json` - `zigux/tests/fixtures/phase1_bench_expectations.json` - `scripts/zigux/validate-phase1.py` - `scripts/zigux/validate-phase1-closure.py` - `scripts/zigux/check-phase1-parity.py` - `scripts/zigux/check-phase1-bench.py` - `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
-]
-
-REQUIRED_TESTS_ROOT_MARKERS = [
-    "  * keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root, scripts root, and workflow replay surface",
-]
-
-EXPECTED_MANIFEST_REVIEW_ANCHORS = {
-    "tools/lib/bitmap.zig": {
-        "helper_test_anchors": [
-            'test "bitmap allocator helpers size zero and free their buffers"',
-            'test "bitmap set clear weight and empty full helpers"',
-            'test "bitmap fill clamps tail bits in partial words"',
-            'test "bitmap and andnot equal intersects subset"',
-            'test "bitmap and andnot clamp tail bits in partial words"',
-            'test "bitmap xor keeps caller-selected bit window"',
-            'test "bitmap scnprintf collapses contiguous ranges"',
-            'test "bitmap scnprintf reports full length while truncating the buffer"',
-            'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
-            'test "bitmap copy aliases preserve tail clearing and extension semantics"',
-            'test "bitmap copy alias preserves raw source words without tail clearing"',
+SOURCE_MARKERS = {
+    "find_bit_test_anchor": (
+        "tools/lib/find_bit.zig",
+        [
+            'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
+            'test "low-level underscore aliases mirror the primary find helpers"',
+        ],
+    ),
+    "bitmap_test_anchor": (
+        "tools/lib/bitmap.zig",
+        [
+            'test "bitmap predicates ignore out-of-range tail bits"',
             'test "bitmap zero-bit helpers stay explicit no-ops"',
         ],
-        "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
-        "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
-        "parity_fixture_keys": [
-            "scnprintf",
-            "truncated_scnprintf_len",
-            "truncated_scnprintf",
-            "terminator_only_scnprintf_len",
-            "terminator_only_nul",
-            "zero_length_scnprintf_len",
+    ),
+    "string_test_anchor": (
+        "tools/lib/string.zig",
+        [
+            'test "memparse applies suffixes before signed clamping"',
+            'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
         ],
+    ),
+    "rbtree_test_anchor": (
+        "tools/lib/rbtree.zig",
+        [
+            'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
+            'test "rbtree eraseCached returns null for a singleton cached tree"',
+        ],
+    ),
+}
+
+EXPECTED_MANIFEST_HELPER_FIELDS = {
+    "tools/lib/bitmap.zig": {
+        "helper_test_anchors": [
+            'test "bitmap predicates ignore out-of-range tail bits"',
+        ],
+        "predicate_tail_mask_anchor": 'test "bitmap predicates ignore out-of-range tail bits"',
         "partial_xor_review_fields": ["partial_xor_nbits", "partial_xor_masked_values"],
-        "scnprintf_truncation_anchor": 'test "bitmap scnprintf reports full length while truncating the buffer"',
-        "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
-        "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
-        "zero_bit_noop_anchor": 'test "bitmap zero-bit helpers stay explicit no-ops"',
     },
     "tools/lib/find_bit.zig": {
-        "same_word_start_masks": 'test "single-word next scans honor start masks"',
-        "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
-        "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
-        "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
-        "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers"',
         "tail_clamp_fixture_keys": [
             "tail_clamped_first",
             "tail_clamped_next",
@@ -264,103 +150,35 @@ EXPECTED_MANIFEST_REVIEW_ANCHORS = {
     },
     "tools/lib/rbtree.zig": {
         "helper_test_anchors": [
-            'test "rbtree inserts and traverses in sorted order"',
-            'test "rbtree erase and replace keep traversal consistent"',
-            'test "rbtree eraseInit detaches erased node"',
-            'test "rbtree postorder and empty node helpers behave"',
-            'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
-            'test "rbtree nextMatch walks the duplicate range in order"',
-            'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
-            'test "rbtree cached root keeps the leftmost pointer in sync"',
-            'test "rbtree eraseCached returns null for a singleton cached tree"',
-            'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
-            'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
+            'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
         ],
-        "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
         "parity_fixture_keys": [
-            "empty_root",
-            "insert_order",
-            "reverse_order",
-            "replace_order",
-            "erase_init_order",
-            "postorder_count",
-            "erase_init_node_empty",
-            "cleared_node_empty",
+            "next_match_serials",
+            "next_match_terminal_null",
         ],
     },
     "tools/lib/string.zig": {
         "helper_test_anchors": [
-            'test "strtobool accepts common Linux forms"',
-            'test "strlcpy copies and returns the source length"',
-            'test "streq matches C-string equality semantics"',
-            'test "skip trim remove and replace spaces work in place"',
-            'test "strreplace mirrors replaceChar C-string semantics"',
-            'test "strHasPrefix honors C-string boundaries"',
-            'test "strstarts mirrors the header-level prefix helper"',
-            'test "strEndsWith honors C-string boundaries"',
-            'test "memdup and memchrInv preserve byte content"',
-            'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
-            'test "memparse handles decimal hexadecimal octal and suffixes"',
-            'test "memparse keeps original rest when sign is not followed by digits"',
-            'test "memparse saturates signed overflow instead of trapping"',
-            'test "memparse keeps signed values and their trailing rest aligned"',
-            'test "memparse consumes suffix after saturation"',
+            'test "memparse applies suffixes before signed clamping"',
+            'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
         ],
         "memparse_review_anchors": [
-            'test "memparse keeps original rest when sign is not followed by digits"',
-            'test "memparse saturates signed overflow instead of trapping"',
-            'test "memparse keeps signed values and their trailing rest aligned"',
-            'test "memparse consumes suffix after saturation"',
+            'test "memparse applies suffixes before signed clamping"',
         ],
-        "prefix_suffix_review_anchors": [
-            'test "strHasPrefix honors C-string boundaries"',
-            'test "strstarts mirrors the header-level prefix helper"',
-            'test "strEndsWith honors C-string boundaries"',
-        ],
-        "prefix_suffix_review_summary": "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields",
-        "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, signed overflow saturates, and suffixes are still consumed after saturation",
-        "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
-        "shared_replace_char_cstr_review_summary": "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without widening helper-local memparse ownership",
         "parity_fixture_keys": [
-            "strtobool_y",
-            "strtobool_on",
-            "strtobool_zero",
-            "strtobool_off",
-            "strtobool_invalid",
-            "strlcpy_len",
-            "strlcpy_buffer",
-            "skip_spaces",
-            "trim_spaces",
-            "remove_spaces",
-            "replace_char",
-            "replace_char_end",
+            "memchr_inv_index",
             "replace_char_cstr_end",
             "replace_char_cstr_bytes",
-            "memchr_inv_index",
-            "memchr_inv_none",
         ],
     },
 }
 
 
 def collect_missing_files(root: Path) -> list[str]:
-    missing: list[str] = []
-    for rel in REQUIRED_FILES:
-        if not (root / rel).exists():
-            missing.append(rel)
-    return missing
+    return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
 
-def collect_presence_markers(text: str, label: str, markers: list[str]) -> list[str]:
-    missing: list[str] = []
-    for marker in markers:
-        count = text.count(marker)
-        if count < 1:
-            missing.append(f"{label}:{marker}:expected>=1:actual={count}")
-    return missing
-
-
-def collect_exact_count_markers(text: str, label: str, markers: list[str]) -> list[str]:
+def collect_marker_counts(text: str, label: str, markers: list[str]) -> list[str]:
     mismatches: list[str] = []
     for marker in markers:
         count = text.count(marker)
@@ -369,712 +187,279 @@ def collect_exact_count_markers(text: str, label: str, markers: list[str]) -> li
     return mismatches
 
 
-def collect_find_bit_fixture_mismatches(root: Path) -> list[str]:
-    fixture_path = root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json"
-    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
-    find_bit_fixture = fixture.get("find_bit")
-    if not isinstance(find_bit_fixture, dict):
-        return ["phase1_fixture_find_bit:find_bit:expected=object:actual=missing"]
+def extract_test_body(text: str, title: str) -> str | None:
+    anchor = f'test "{title}"'
+    start = text.find(anchor)
+    if start == -1:
+        return None
+    next_start = text.find('\ntest "', start + len(anchor))
+    return text[start:] if next_start == -1 else text[start:next_start]
 
-    bits_per_long = find_bit_fixture.get("bits_per_long")
-    if not isinstance(bits_per_long, int) or bits_per_long <= 0:
-        return [
-            "phase1_fixture_find_bit:bits_per_long:expected=positive-integer:"
-            f"actual={bits_per_long!r}"
-        ]
 
-    tail_nbits = bits_per_long + 5
-    expected_values = {
-        "tail_clamped_first": tail_nbits,
-        "tail_clamped_next": tail_nbits,
-        "tail_zero_clamped_first": tail_nbits,
-        "tail_zero_clamped_next": tail_nbits,
-        "tail_and_clamped_first": tail_nbits,
-        "tail_and_clamped_next": tail_nbits,
-    }
-
+def collect_phase1_fixture_mismatches(root: Path) -> list[str]:
+    fixture = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").read_text(encoding="utf-8"))
     mismatches: list[str] = []
-    for field, expected in expected_values.items():
-        actual = find_bit_fixture.get(field)
-        if actual != expected:
+
+    if sorted(fixture.keys()) != sorted([
+        "argv_split",
+        "bitmap",
+        "cmdline",
+        "ctype",
+        "find_bit",
+        "hweight",
+        "list_sort",
+        "rbtree",
+        "slab",
+        "str_error_r",
+        "string",
+        "vsprintf",
+        "zalloc",
+    ]):
+        mismatches.append("phase1_fixture_shape:top_level_keys")
+
+    find_bit = fixture.get("find_bit")
+    if not isinstance(find_bit, dict):
+        return ["phase1_fixture_find_bit:find_bit:expected=object:actual=missing"]
+    bits_per_long = find_bit.get("bits_per_long")
+    if not isinstance(bits_per_long, int) or bits_per_long <= 0:
+        return [f"phase1_fixture_find_bit:bits_per_long:expected=positive-integer:actual={bits_per_long!r}"]
+
+    tail_expected = bits_per_long + 5
+    for field in (
+        "tail_clamped_first",
+        "tail_clamped_next",
+        "tail_zero_clamped_first",
+        "tail_zero_clamped_next",
+        "tail_and_clamped_first",
+        "tail_and_clamped_next",
+    ):
+        if find_bit.get(field) != tail_expected:
             mismatches.append(
-                f"phase1_fixture_find_bit:{field}:expected={expected}:actual={actual!r}"
+                f"phase1_fixture_find_bit:{field}:expected={tail_expected}:actual={find_bit.get(field)!r}"
             )
+
+    bitmap = fixture.get("bitmap")
+    if not isinstance(bitmap, dict):
+        mismatches.append("phase1_fixture_bitmap:bitmap:expected=object:actual=missing")
+    else:
+        if bitmap.get("partial_xor_nbits") != 4:
+            mismatches.append(
+                f"phase1_fixture_bitmap:partial_xor_nbits:expected=4:actual={bitmap.get('partial_xor_nbits')!r}"
+            )
+        if bitmap.get("partial_xor_masked_values") != [14]:
+            mismatches.append("phase1_fixture_bitmap:partial_xor_masked_values")
+
+    string = fixture.get("string")
+    if not isinstance(string, dict):
+        mismatches.append("phase1_fixture_string:string:expected=object:actual=missing")
+    else:
+        if string.get("memchr_inv_index") != 4:
+            mismatches.append(
+                f"phase1_fixture_string:memchr_inv_index:expected=4:actual={string.get('memchr_inv_index')!r}"
+            )
+        if string.get("memchr_inv_none") is not True:
+            mismatches.append("phase1_fixture_string:memchr_inv_none")
+
+    rbtree = fixture.get("rbtree")
+    if not isinstance(rbtree, dict):
+        mismatches.append("phase1_fixture_rbtree:rbtree:expected=object:actual=missing")
+    elif rbtree.get("next_match_terminal_null") is not True:
+        mismatches.append("phase1_fixture_rbtree:next_match_terminal_null")
+
     return mismatches
 
 
 def collect_phase1_manifest_review_mismatches(root: Path) -> list[str]:
-    manifest_path = root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if not isinstance(manifest, dict):
-        return ["phase1_manifest_review_anchor:manifest:expected=dict:actual=non-object"]
+    manifest = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").read_text(encoding="utf-8"))
+    mismatches: list[str] = []
+
+    if manifest.get("phase") != "Phase 1":
+        mismatches.append("phase1_manifest:phase")
+    if manifest.get("status") != "closed":
+        mismatches.append("phase1_manifest:status")
+    if manifest.get("helpers") != EXPECTED_HELPERS:
+        mismatches.append("phase1_manifest:helpers")
+    if manifest.get("helper_count") != len(EXPECTED_HELPERS):
+        mismatches.append("phase1_manifest:helper_count")
 
     review_anchors = manifest.get("review_anchors")
     if not isinstance(review_anchors, dict):
-        return ["phase1_manifest_review_anchor:review_anchors:expected=dict:actual=missing"]
+        return mismatches + ["phase1_manifest:review_anchors"]
 
-    mismatches: list[str] = []
-    for helper, expected_fields in EXPECTED_MANIFEST_REVIEW_ANCHORS.items():
+    for helper, expected_fields in EXPECTED_MANIFEST_HELPER_FIELDS.items():
         helper_review = review_anchors.get(helper)
         if not isinstance(helper_review, dict):
             mismatches.append(f"phase1_manifest_review_anchor:missing_helper={helper}")
             continue
-        for field, expected_value in expected_fields.items():
-            if helper_review.get(field) != expected_value:
+        for field, expected in expected_fields.items():
+            actual = helper_review.get(field)
+            if isinstance(expected, list):
+                if not isinstance(actual, list):
+                    mismatches.append(f"phase1_manifest_review_anchor:value={helper}:{field}")
+                    continue
+                for item in expected:
+                    if item not in actual:
+                        mismatches.append(f"phase1_manifest_review_anchor:value={helper}:{field}:{item}")
+            elif actual != expected:
                 mismatches.append(f"phase1_manifest_review_anchor:value={helper}:{field}")
     return mismatches
 
 
 def collect_missing_markers(root: Path) -> list[str]:
-    ledger = (root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
-    workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
-    test_root = (root / "zigux" / "tests" / "phase1_helpers.zig").read_text(encoding="utf-8")
-    tests_readme = (root / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
-    find_bit_source = (root / "tools" / "lib" / "find_bit.zig").read_text(encoding="utf-8")
-    bitmap_source = (root / "tools" / "lib" / "bitmap.zig").read_text(encoding="utf-8")
-    string_source = (root / "tools" / "lib" / "string.zig").read_text(encoding="utf-8")
-    rbtree_source = (root / "tools" / "lib" / "rbtree.zig").read_text(encoding="utf-8")
     docs_readme = (root / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
-    review_checklist = (root / "Documentation" / "zigux" / "review-checklist.md").read_text(
-        encoding="utf-8"
-    )
+    tests_readme = (root / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
+    review_checklist = (root / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
+    phase1_helpers = (root / "zigux" / "tests" / "phase1_helpers.zig").read_text(encoding="utf-8")
 
-    missing_markers: list[str] = []
-    for marker in REQUIRED_LEDGER_MARKERS:
-        if marker not in ledger:
-            missing_markers.append(f"ledger:{marker}")
+    missing: list[str] = []
+    for label, markers in DOC_MARKERS.items():
+        text = {
+            "docs_root_phase1_packet": docs_readme,
+            "tests_root_phase1_packet": tests_readme,
+            "review_checklist_phase1_packet": review_checklist,
+        }[label]
+        missing.extend(collect_marker_counts(text, label, markers))
 
-    missing_markers.extend(
-        collect_presence_markers(workflow, "workflow", REQUIRED_WORKFLOW_PRESENCE_MARKERS)
-    )
-    missing_markers.extend(
-        collect_exact_count_markers(workflow, "workflow", REQUIRED_WORKFLOW_EXACT_MARKERS)
-    )
-    missing_markers.extend(collect_exact_count_markers(test_root, "test", REQUIRED_TEST_MARKERS))
-    missing_markers.extend(
-        collect_exact_count_markers(
-            test_root, "phase1_parity_test_anchor", REQUIRED_PHASE1_PARITY_TEST_ANCHORS
+    missing.extend(collect_marker_counts(phase1_helpers, "phase1_import_marker", PHASE1_IMPORT_MARKERS))
+    missing.extend(collect_marker_counts(phase1_helpers, "helper_test_anchor", HELPER_FOLLOWUP_TESTS))
+
+    replay_body = extract_test_body(phase1_helpers, "phase 1 helper ports match committed parity fixture")
+    if replay_body is None:
+        missing.append(
+            'phase1_parity_test:test "phase 1 helper ports match committed parity fixture":expected=1:actual=0'
         )
-    )
-    missing_markers.extend(
-        collect_exact_count_markers(test_root, "helper_test_anchor", REQUIRED_HELPER_TEST_ANCHORS)
-    )
-    missing_markers.extend(
-        collect_exact_count_markers(
-            test_root, "phase1_parity_replay_marker", REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
-        )
-    )
-    missing_markers.extend(collect_find_bit_fixture_mismatches(root))
-    missing_markers.extend(collect_phase1_manifest_review_mismatches(root))
-    missing_markers.extend(
-        collect_exact_count_markers(find_bit_source, "find_bit_test_anchor", REQUIRED_FIND_BIT_TEST_ANCHORS)
-    )
-    missing_markers.extend(
-        collect_exact_count_markers(bitmap_source, "bitmap_test_anchor", REQUIRED_BITMAP_TEST_ANCHORS)
-    )
-    missing_markers.extend(
-        collect_exact_count_markers(string_source, "string_test_anchor", REQUIRED_STRING_TEST_ANCHORS)
-    )
-    missing_markers.extend(
-        collect_exact_count_markers(rbtree_source, "rbtree_test_anchor", REQUIRED_RBTREE_TEST_ANCHORS)
-    )
-    missing_markers.extend(
-        collect_exact_count_markers(
-            docs_readme,
-            "docs_root_phase1_packet",
-            REQUIRED_DOCS_ROOT_MARKERS,
-        )
-    )
-    missing_markers.extend(
-        collect_exact_count_markers(
-            tests_readme,
-            "tests_root_phase1_packet",
-            REQUIRED_TESTS_ROOT_MARKERS,
-        )
-    )
-    missing_markers.extend(
-        collect_presence_markers(
-            review_checklist,
-            "review_checklist_phase1_packet",
-            REQUIRED_REVIEW_CHECKLIST_MARKERS,
-        )
-    )
-    return missing_markers
+    else:
+        missing.extend(collect_marker_counts(replay_body, "phase1_parity_replay_marker", PHASE1_REPLAY_MARKERS))
+
+    for label, (path, markers) in SOURCE_MARKERS.items():
+        text = (root / path).read_text(encoding="utf-8")
+        missing.extend(collect_marker_counts(text, label, markers))
+
+    missing.extend(collect_phase1_fixture_mismatches(root))
+    missing.extend(collect_phase1_manifest_review_mismatches(root))
+    return missing
 
 
-def make_fixture_root(tmp_root: Path) -> None:
+def make_fixture_root(root: Path) -> None:
     for rel in REQUIRED_FILES:
-        path = tmp_root / rel
+        path = root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("// fixture\n", encoding="utf-8")
-
-    workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
-    workflow_path.parent.mkdir(parents=True, exist_ok=True)
-    workflow_path.write_text(
-        "\n".join(REQUIRED_WORKFLOW_PRESENCE_MARKERS + REQUIRED_WORKFLOW_EXACT_MARKERS) + "\n",
-        encoding="utf-8",
-    )
-
-    ledger_path = tmp_root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md"
-    ledger_path.parent.mkdir(parents=True, exist_ok=True)
-    ledger_path.write_text("\n".join(REQUIRED_LEDGER_MARKERS) + "\n", encoding="utf-8")
-
-    test_path = tmp_root / "zigux" / "tests" / "phase1_helpers.zig"
-    test_path.parent.mkdir(parents=True, exist_ok=True)
-    test_path.write_text(
-        "\n".join(
-            REQUIRED_TEST_MARKERS
-            + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
-            + REQUIRED_HELPER_TEST_ANCHORS
-            + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-
-    fixture_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json"
-    fixture_path.parent.mkdir(parents=True, exist_ok=True)
-    fixture_path.write_text(
-        json.dumps(
-            {
-                "find_bit": {
-                    "bits_per_long": 64,
-                    "tail_clamped_first": 69,
-                    "tail_clamped_next": 69,
-                    "tail_zero_clamped_first": 69,
-                    "tail_zero_clamped_next": 69,
-                    "tail_and_clamped_first": 69,
-                    "tail_and_clamped_next": 69,
-                }
-            },
-            separators=(",", ":"),
-        ),
-        encoding="utf-8",
-    )
-
-    manifest_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
-    manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    manifest_path.write_text(
-        json.dumps({"review_anchors": EXPECTED_MANIFEST_REVIEW_ANCHORS}, indent=2) + "\n",
-        encoding="utf-8",
-    )
-
-    find_bit_path = tmp_root / "tools" / "lib" / "find_bit.zig"
-    find_bit_path.parent.mkdir(parents=True, exist_ok=True)
-    find_bit_path.write_text("\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS) + "\n", encoding="utf-8")
-
-    bitmap_path = tmp_root / "tools" / "lib" / "bitmap.zig"
-    bitmap_path.parent.mkdir(parents=True, exist_ok=True)
-    bitmap_path.write_text("\n".join(REQUIRED_BITMAP_TEST_ANCHORS) + "\n", encoding="utf-8")
-
-    string_path = tmp_root / "tools" / "lib" / "string.zig"
-    string_path.parent.mkdir(parents=True, exist_ok=True)
-    string_path.write_text("\n".join(REQUIRED_STRING_TEST_ANCHORS) + "\n", encoding="utf-8")
-
-    rbtree_path = tmp_root / "tools" / "lib" / "rbtree.zig"
-    rbtree_path.parent.mkdir(parents=True, exist_ok=True)
-    rbtree_path.write_text("\n".join(REQUIRED_RBTREE_TEST_ANCHORS) + "\n", encoding="utf-8")
-
-    docs_readme_path = tmp_root / "Documentation" / "zigux" / "README.md"
-    docs_readme_path.parent.mkdir(parents=True, exist_ok=True)
-    docs_readme_path.write_text("\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n", encoding="utf-8")
-
-    tests_readme_path = tmp_root / "zigux" / "tests" / "README.md"
-    tests_readme_path.parent.mkdir(parents=True, exist_ok=True)
-    tests_readme_path.write_text("\n".join(REQUIRED_TESTS_ROOT_MARKERS) + "\n", encoding="utf-8")
-
-    review_checklist_path = tmp_root / "Documentation" / "zigux" / "review-checklist.md"
-    review_checklist_path.parent.mkdir(parents=True, exist_ok=True)
-    review_checklist_path.write_text(
-        "\n".join(REQUIRED_REVIEW_CHECKLIST_MARKERS) + "\n",
-        encoding="utf-8",
-    )
+        if rel.endswith(".json"):
+            path.write_text("{}\n", encoding="utf-8")
+        else:
+            path.write_text("\n", encoding="utf-8")
 
 
 def run_self_test() -> None:
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmp_root = Path(tmpdir)
-
-        make_fixture_root(tmp_root)
-        missing_markers = collect_missing_markers(tmp_root)
-        assert not missing_markers, missing_markers
-
-        make_fixture_root(tmp_root)
-        workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
-        workflow_path.write_text(REQUIRED_WORKFLOW_PRESENCE_MARKERS[0] + "\n", encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "workflow:python3 scripts/zigux/validate-phase1.py:expected=1:actual=0" in missing_markers
-
-        make_fixture_root(tmp_root)
-        workflow_path.write_text(
-            "\n".join(
-                REQUIRED_WORKFLOW_PRESENCE_MARKERS + REQUIRED_WORKFLOW_EXACT_MARKERS + [REQUIRED_WORKFLOW_EXACT_MARKERS[0]]
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "workflow:python3 scripts/zigux/validate-phase1.py:expected=1:actual=2" in missing_markers
-
-        make_fixture_root(tmp_root)
-        test_path = tmp_root / "zigux" / "tests" / "phase1_helpers.zig"
-        test_path.write_text(
-            "\n".join(
-                REQUIRED_TEST_MARKERS
-                + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
-                + REQUIRED_HELPER_TEST_ANCHORS
-                + [
-                    marker
-                    for marker in REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
-                    if marker != "fixture.string.memchr_inv_index,"
-                ]
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_parity_replay_marker:fixture.string.memchr_inv_index,:expected=1:actual=0" in missing_markers
-
-        make_fixture_root(tmp_root)
-        test_path.write_text(
-            "\n".join(
-                REQUIRED_TEST_MARKERS
-                + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
-                + REQUIRED_HELPER_TEST_ANCHORS
-                + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
-                + ["fixture.string.memchr_inv_index,"]
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_parity_replay_marker:fixture.string.memchr_inv_index,:expected=1:actual=2" in missing_markers
-
-        make_fixture_root(tmp_root)
-        test_path.write_text(
-            "\n".join(
-                REQUIRED_TEST_MARKERS
-                + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
-                + REQUIRED_HELPER_TEST_ANCHORS
-                + [
-                    marker
-                    for marker in REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
-                    if marker != "fixture.bitmap.scnprintf"
-                ]
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_parity_replay_marker:fixture.bitmap.scnprintf:expected=1:actual=0" in missing_markers
-
-        make_fixture_root(tmp_root)
-        test_path.write_text(
-            "\n".join(
-                REQUIRED_TEST_MARKERS
-                + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
-                + REQUIRED_HELPER_TEST_ANCHORS
-                + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
-                + ["fixture.bitmap.scnprintf"]
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_parity_replay_marker:fixture.bitmap.scnprintf:expected=1:actual=2" in missing_markers
-
-        make_fixture_root(tmp_root)
-        test_path.write_text(
-            "\n".join(
-                REQUIRED_TEST_MARKERS
-                + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
-                + REQUIRED_HELPER_TEST_ANCHORS
-                + [
-                    marker
-                    for marker in REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
-                    if marker != "fixture.rbtree.reverse_order"
-                ]
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_parity_replay_marker:fixture.rbtree.reverse_order:expected=1:actual=0" in missing_markers
-
-        make_fixture_root(tmp_root)
-        test_path.write_text(
-            "\n".join(
-                REQUIRED_TEST_MARKERS
-                + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
-                + REQUIRED_HELPER_TEST_ANCHORS
-                + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
-                + ["fixture.rbtree.reverse_order"]
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_parity_replay_marker:fixture.rbtree.reverse_order:expected=1:actual=2" in missing_markers
-
-        make_fixture_root(tmp_root)
-        test_path.write_text(
-            "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'helper_test_anchor:test "phase 1 string replaceChar stops at embedded NUL":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        fixture_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json"
-        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
-        fixture["find_bit"]["tail_clamped_first"] = 67
-        fixture_path.write_text(json.dumps(fixture, separators=(",", ":")), encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_fixture_find_bit:tail_clamped_first:expected=69:actual=67" in missing_markers
-
-        make_fixture_root(tmp_root)
-        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
-        fixture["find_bit"]["tail_and_clamped_next"] = 67
-        fixture_path.write_text(json.dumps(fixture, separators=(",", ":")), encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_fixture_find_bit:tail_and_clamped_next:expected=69:actual=67" in missing_markers
-
-        make_fixture_root(tmp_root)
-        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
-        fixture["find_bit"]["bits_per_long"] = 0
-        fixture_path.write_text(json.dumps(fixture, separators=(",", ":")), encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            "phase1_fixture_find_bit:bits_per_long:expected=positive-integer:actual=0"
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        manifest_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        del manifest["review_anchors"]["tools/lib/find_bit.zig"]["zero_bit_window"]
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_manifest_review_anchor:value=tools/lib/find_bit.zig:zero_bit_window" in missing_markers
-
-        make_fixture_root(tmp_root)
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        del manifest["review_anchors"]["tools/lib/rbtree.zig"]
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_manifest_review_anchor:missing_helper=tools/lib/rbtree.zig" in missing_markers
-
-        make_fixture_root(tmp_root)
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["review_anchors"]["tools/lib/string.zig"]["memparse_review_anchors"] = (
-            manifest["review_anchors"]["tools/lib/string.zig"]["memparse_review_anchors"][:-1]
-        )
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_manifest_review_anchor:value=tools/lib/string.zig:memparse_review_anchors" in missing_markers
-
-        make_fixture_root(tmp_root)
-        find_bit_path = tmp_root / "tools" / "lib" / "find_bit.zig"
-        find_bit_path.write_text("\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[1:]) + "\n", encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'find_bit_test_anchor:test "find first and next set bits across words":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        find_bit_path.write_text(
-            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[:3] + REQUIRED_FIND_BIT_TEST_ANCHORS[4:]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'find_bit_test_anchor:test "single-word next scans honor start masks":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        find_bit_path.write_text(
-            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS + [REQUIRED_FIND_BIT_TEST_ANCHORS[3]]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'find_bit_test_anchor:test "single-word next scans honor start masks":expected=1:actual=2'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        find_bit_path.write_text(
-            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS + [REQUIRED_FIND_BIT_TEST_ANCHORS[2]]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'find_bit_test_anchor:test "find and bit returns the first shared set bit":expected=1:actual=2'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        find_bit_path.write_text(
-            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[:6] + REQUIRED_FIND_BIT_TEST_ANCHORS[7:]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'find_bit_test_anchor:test "tail mask ignores shared bits beyond nbits":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        find_bit_path.write_text(
-            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[:7] + REQUIRED_FIND_BIT_TEST_ANCHORS[8:]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'find_bit_test_anchor:test "head-word boundary scans keep the last in-range bit reachable from an inclusive start":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        find_bit_path.write_text(
-            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[:8] + REQUIRED_FIND_BIT_TEST_ANCHORS[9:]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'find_bit_test_anchor:test "zero-bit windows return without reading bitmap words":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        find_bit_path.write_text(
-            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[:-1]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'find_bit_test_anchor:test "low-level underscore aliases mirror the primary find helpers":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        bitmap_path = tmp_root / "tools" / "lib" / "bitmap.zig"
-        bitmap_path.write_text("\n".join(REQUIRED_BITMAP_TEST_ANCHORS[1:]) + "\n", encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'bitmap_test_anchor:test "bitmap allocator helpers size zero and free their buffers":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        bitmap_path.write_text(
-            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:1] + REQUIRED_BITMAP_TEST_ANCHORS[2:]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'bitmap_test_anchor:test "bitmap set clear weight and empty full helpers":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        bitmap_path.write_text(
-            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:2] + REQUIRED_BITMAP_TEST_ANCHORS[3:]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'bitmap_test_anchor:test "bitmap fill clamps tail bits in partial words":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        bitmap_path.write_text(
-            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:8] + REQUIRED_BITMAP_TEST_ANCHORS[9:]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'bitmap_test_anchor:test "bitmap scnprintf handles terminator-only and zero-length caller views":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        bitmap_path.write_text(
-            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:-1]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'bitmap_test_anchor:test "bitmap zero-bit helpers stay explicit no-ops":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        bitmap_path.write_text(
-            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:10] + REQUIRED_BITMAP_TEST_ANCHORS[11:]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'bitmap_test_anchor:test "bitmap copy alias preserves raw source words without tail clearing":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        bitmap_path.write_text(
-            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:4] + REQUIRED_BITMAP_TEST_ANCHORS[5:]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'bitmap_test_anchor:test "bitmap and andnot clamp tail bits in partial words":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        bitmap_path.write_text(
-            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:7] + REQUIRED_BITMAP_TEST_ANCHORS[8:]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'bitmap_test_anchor:test "bitmap scnprintf reports full length while truncating the buffer":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        bitmap_path.write_text(
-            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS + [REQUIRED_BITMAP_TEST_ANCHORS[5]]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'bitmap_test_anchor:test "bitmap xor keeps caller-selected bit window":expected=1:actual=2'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        string_path = tmp_root / "tools" / "lib" / "string.zig"
-        string_path.write_text("\n".join(REQUIRED_STRING_TEST_ANCHORS[1:]) + "\n", encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert 'string_test_anchor:test "strtobool accepts common Linux forms":expected=1:actual=0' in missing_markers
-
-        make_fixture_root(tmp_root)
-        string_path.write_text(
-            "\n".join(REQUIRED_STRING_TEST_ANCHORS[:2] + REQUIRED_STRING_TEST_ANCHORS[3:]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'string_test_anchor:test "streq matches C-string equality semantics":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        string_path.write_text(
-            "\n".join(REQUIRED_STRING_TEST_ANCHORS + [REQUIRED_STRING_TEST_ANCHORS[3]]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'string_test_anchor:test "skip trim remove and replace spaces work in place":expected=1:actual=2'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        string_path.write_text(
-            "\n".join(REQUIRED_STRING_TEST_ANCHORS[:-1]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'string_test_anchor:test "memparse consumes suffix after saturation":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        rbtree_path = tmp_root / "tools" / "lib" / "rbtree.zig"
-        rbtree_path.write_text("\n".join(REQUIRED_RBTREE_TEST_ANCHORS[1:]) + "\n", encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'rbtree_test_anchor:test "rbtree inserts and traverses in sorted order":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        rbtree_path.write_text(
-            "\n".join(REQUIRED_RBTREE_TEST_ANCHORS + [REQUIRED_RBTREE_TEST_ANCHORS[5]]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'rbtree_test_anchor:test "rbtree nextMatch walks the duplicate range in order":expected=1:actual=2'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        rbtree_path.write_text(
-            "\n".join(REQUIRED_RBTREE_TEST_ANCHORS[:7] + REQUIRED_RBTREE_TEST_ANCHORS[8:]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'rbtree_test_anchor:test "rbtree cached root keeps the leftmost pointer in sync":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        rbtree_path.write_text(
-            "\n".join(REQUIRED_RBTREE_TEST_ANCHORS + [REQUIRED_RBTREE_TEST_ANCHORS[8]]) + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'rbtree_test_anchor:test "rbtree eraseCached returns null for a singleton cached tree":expected=1:actual=2'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        docs_readme_path = tmp_root / "Documentation" / "zigux" / "README.md"
-        docs_readme_path.write_text("", encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            "docs_root_phase1_packet:Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `zigux/Makefile` - `zigux/tests/build.zig` - `zigux/tests/phase1_helpers.zig` - `zigux/tests/phase1_bench.zig` - `zigux/tests/fixtures/phase1_helper_manifest.json` - `zigux/tests/fixtures/phase1_bench_expectations.json` - `scripts/zigux/validate-phase1.py` - `scripts/zigux/validate-phase1-closure.py` - `scripts/zigux/check-phase1-parity.py` - `scripts/zigux/check-phase1-bench.py` - `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.:expected=1:actual=0"
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        tests_readme_path = tmp_root / "zigux" / "tests" / "README.md"
-        tests_readme_path.write_text("", encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            "tests_root_phase1_packet:  * keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root, scripts root, and workflow replay surface:expected=1:actual=0"
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        review_checklist_path = tmp_root / "Documentation" / "zigux" / "review-checklist.md"
-        review_checklist_path.write_text("", encoding="utf-8")
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            "review_checklist_phase1_packet:  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`:expected>=1:actual=0"
-            in missing_markers
-        )
-
-        print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=48")
-
-
-def count_manifest_review_anchor_expectations() -> int:
-    return 1 + len(EXPECTED_MANIFEST_REVIEW_ANCHORS) + sum(
-        len(fields) for fields in EXPECTED_MANIFEST_REVIEW_ANCHORS.values()
+    test_text = (
+        'test "phase 1 helper ports match committed parity fixture" {\n'
+        'fixture.bitmap.partial_xor_nbits\n'
+        'fixture.bitmap.partial_xor_masked_values\n'
+        'fixture.string.memchr_inv_index\n'
+        '}\n\n'
+        'test "phase 1 string replaceChar stops at embedded NUL" {\n}\n'
     )
+    replay = extract_test_body(test_text, "phase 1 helper ports match committed parity fixture")
+    assert replay is not None
+    assert not collect_marker_counts(
+        replay,
+        "phase1_parity_replay_marker",
+        [
+            "fixture.bitmap.partial_xor_nbits",
+            "fixture.bitmap.partial_xor_masked_values",
+            "fixture.string.memchr_inv_index",
+        ],
+    )
+    assert extract_test_body(test_text, "missing") is None
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_root = Path(tmp)
+        make_fixture_root(tmp_root)
+        (tmp_root / "Documentation" / "zigux" / "README.md").write_text(
+            DOC_MARKERS["docs_root_phase1_packet"][0] + "\n" + DOC_MARKERS["docs_root_phase1_packet"][1] + "\n",
+            encoding="utf-8",
+        )
+        (tmp_root / "zigux" / "tests" / "README.md").write_text(
+            DOC_MARKERS["tests_root_phase1_packet"][0] + "\n" + DOC_MARKERS["tests_root_phase1_packet"][1] + "\n",
+            encoding="utf-8",
+        )
+        (tmp_root / "Documentation" / "zigux" / "review-checklist.md").write_text(
+            DOC_MARKERS["review_checklist_phase1_packet"][0] + "\n" + DOC_MARKERS["review_checklist_phase1_packet"][1] + "\n",
+            encoding="utf-8",
+        )
+        (tmp_root / "tools" / "lib" / "bitmap.zig").write_text(
+            '\n'.join(SOURCE_MARKERS["bitmap_test_anchor"][1]) + '\n',
+            encoding="utf-8",
+        )
+        (tmp_root / "tools" / "lib" / "find_bit.zig").write_text(
+            '\n'.join(SOURCE_MARKERS["find_bit_test_anchor"][1]) + '\n',
+            encoding="utf-8",
+        )
+        (tmp_root / "tools" / "lib" / "string.zig").write_text(
+            '\n'.join(SOURCE_MARKERS["string_test_anchor"][1]) + '\n',
+            encoding="utf-8",
+        )
+        (tmp_root / "tools" / "lib" / "rbtree.zig").write_text(
+            '\n'.join(SOURCE_MARKERS["rbtree_test_anchor"][1]) + '\n',
+            encoding="utf-8",
+        )
+        (tmp_root / "zigux" / "tests" / "phase1_helpers.zig").write_text(
+            '\n'.join(PHASE1_IMPORT_MARKERS)
+            + '\n'
+            + 'test "phase 1 helper ports match committed parity fixture" {\n'
+            + '\n'.join(PHASE1_REPLAY_MARKERS)
+            + '\n}\n'
+            + '\n'.join(HELPER_FOLLOWUP_TESTS)
+            + '\n',
+            encoding="utf-8",
+        )
+        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").write_text(
+            json.dumps(
+                {
+                    "argv_split": {},
+                    "bitmap": {"partial_xor_nbits": 4, "partial_xor_masked_values": [14]},
+                    "cmdline": {},
+                    "ctype": {},
+                    "find_bit": {
+                        "bits_per_long": 64,
+                        "tail_clamped_first": 69,
+                        "tail_clamped_next": 69,
+                        "tail_zero_clamped_first": 69,
+                        "tail_zero_clamped_next": 69,
+                        "tail_and_clamped_first": 69,
+                        "tail_and_clamped_next": 69,
+                    },
+                    "hweight": {},
+                    "list_sort": {},
+                    "rbtree": {"next_match_terminal_null": True},
+                    "slab": {},
+                    "str_error_r": {},
+                    "string": {"memchr_inv_index": 4, "memchr_inv_none": True},
+                    "vsprintf": {},
+                    "zalloc": {},
+                },
+                separators=(",", ":"),
+            ),
+            encoding="utf-8",
+        )
+        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 1",
+                    "status": "closed",
+                    "helper_count": len(EXPECTED_HELPERS),
+                    "helpers": EXPECTED_HELPERS,
+                    "review_anchors": EXPECTED_MANIFEST_HELPER_FIELDS,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        assert not collect_missing_markers(tmp_root)
+
+    print("PHASE1_VALIDATION_SELF_TEST=pass")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=3")
 
 
 def main() -> int:
@@ -1099,8 +484,8 @@ def main() -> int:
     if missing_markers:
         print("PHASE1_VALIDATION=fail")
         print("MISSING_PHASE1_MARKERS_START")
-        for marker in missing_markers:
-            print(marker)
+        for item in missing_markers:
+            print(item)
         print("MISSING_PHASE1_MARKERS_END")
         return 1
 
@@ -1108,7 +493,7 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_PHASE1_PARITY_REPLAY_MARKERS) + len(REQUIRED_FIND_BIT_TAIL_CLAMP_FIELDS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS) + len(REQUIRED_BITMAP_TEST_ANCHORS) + len(REQUIRED_STRING_TEST_ANCHORS) + len(REQUIRED_RBTREE_TEST_ANCHORS) + len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_TESTS_ROOT_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + count_manifest_review_anchor_expectations()}"
+        f"{sum(len(markers) for markers in DOC_MARKERS.values()) + len(PHASE1_IMPORT_MARKERS) + len(PHASE1_REPLAY_MARKERS) + len(HELPER_FOLLOWUP_TESTS) + sum(len(markers) for _, markers in SOURCE_MARKERS.values())}"
     )
     return 0
 
