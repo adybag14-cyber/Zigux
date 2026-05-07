@@ -520,6 +520,22 @@ test "nextArg keeps empty whitespace-separated values and unterminated quoted va
     try std.testing.expectEqualStrings("", cStringPrefix(parsed_unterminated_quote.rest));
 }
 
+test "nextArg keeps param, value, and rest borrowed from the caller buffer" {
+    var buffer = [_]u8{ 'r', 'o', 'o', 't', '=', '"', '/', 'd', 'e', 'v', '/', 's', 'd', 'a', '1', '"', ' ', 'r', 'o', 0 };
+    const parsed = nextArg(&buffer);
+
+    try std.testing.expectEqualStrings("root", parsed.param);
+    try std.testing.expectEqualStrings("/dev/sda1", parsed.value.?);
+    try std.testing.expectEqualStrings("ro", cStringPrefix(parsed.rest));
+
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[0])), @as(usize, @intFromPtr(parsed.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[6])), @as(usize, @intFromPtr(parsed.value.?.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[17])), @as(usize, @intFromPtr(parsed.rest.ptr)));
+    try std.testing.expectEqual(@as(u8, 0), buffer[4]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[15]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[16]);
+}
+
 test "nextArg trims mixed trailing whitespace from rest and leaves whitespace-only tails empty" {
     var mixed_ws = [_]u8{ 'r', 'o', 'o', 't', '=', '/', 'd', 'e', 'v', '/', 's', 'd', 'a', '1', ' ', '\t', '\n', 'r', 'o', 0 };
     const parsed_mixed_ws = nextArg(&mixed_ws);
