@@ -19,13 +19,13 @@ CONFDATA_PACKET_PATH = "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.js
 
 REQUIRED_CHECKER_MARKERS = (
     "REQUIRED_CONFDATA_CASES = [",
-    "EXPECTED_SELF_TEST_CASE_COUNT = 12",
+    "EXPECTED_SELF_TEST_CASE_COUNT = 14",
     'print("KCONFIG_BRIDGE_SELF_TEST=pass")',
     'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")',
 )
 REQUIRED_CHECKER_EXACT_COUNTS = {
     "REQUIRED_CONFDATA_CASES = [": 1,
-    "EXPECTED_SELF_TEST_CASE_COUNT = 12": 1,
+    "EXPECTED_SELF_TEST_CASE_COUNT = 14": 1,
     'print("KCONFIG_BRIDGE_SELF_TEST=pass")': 1,
     'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")': 1,
 }
@@ -205,7 +205,7 @@ def build_self_test_root(root: Path) -> None:
                 "REQUIRED_CONFDATA_CASES = [",
                 "    'sample',",
                 "]",
-                "EXPECTED_SELF_TEST_CASE_COUNT = 12",
+                "EXPECTED_SELF_TEST_CASE_COUNT = 14",
                 'print("KCONFIG_BRIDGE_SELF_TEST=pass")',
                 'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")',
                 "",
