@@ -440,6 +440,10 @@ pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
     var written: usize = 0;
     var first = true;
     var current = find_bit.findFirstBit(bitmap, nbits);
+    if (current == nbits) {
+        return 0;
+    }
+
     var range_bottom = current;
 
     while (current < nbits) {
@@ -473,6 +477,15 @@ pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
 
 pub fn bitmap_scnprintf(bitmap_words: []const Word, nbits: usize, buffer: []u8) usize {
     return scnprintf(bitmap_words, nbits, buffer);
+}
+
+test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap" {
+    var map = [_]Word{0};
+    var buffer = [_]u8{ 0xaa, 0xbb, 0xcc };
+
+    const len = scnprintf(&map, 32, &buffer);
+    try std.testing.expectEqual(@as(usize, 0), len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xbb, 0xcc }, &buffer);
 }
 
 test "bitmap allocator helpers size zero and free their buffers" {
@@ -701,7 +714,7 @@ test "bitmap zero-bit helpers stay explicit no-ops" {
     var buffer = [_]u8{0xaa};
     const rendered = scnprintf(&[_]Word{}, 0, &buffer);
     try std.testing.expectEqual(@as(usize, 0), rendered);
-    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
+    try std.testing.expectEqual(@as(u8, 0xaa), buffer[0]);
 }
 
 test "bitmap Linux-style aliases mirror the primary helper surface" {
