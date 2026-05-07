@@ -181,7 +181,7 @@ test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery 
     try std.testing.expectEqual(@as(u16, 1), second_ownership.poll_queues);
     try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), second_ownership.event_buffer_count);
     try std.testing.expect(second_ownership.event_queue_reserved_during_freeze);
-    try std.testing.expect(second_ownership.event_buffers_stayOnEventQueue);
+    try std.testing.expect(second_ownership.event_buffers_stay_on_event_queue);
     try std.testing.expect(second_ownership.request_queues_cannot_borrow_event_buffers);
     try std.testing.expect(second_ownership.requires_restore_rearm_before_reuse);
 
