@@ -16,6 +16,7 @@ EXPORT_SHIM_REL = "zigux/kernel/export_shim.zig"
 UAPI_VERSION_REL = "zigux/uapi/version.zig"
 LINUX_HEADER_REL = "include/linux/zigux.h"
 ABI_HEADER_REL = "include/zigux/abi.h"
+EXPORT_UAPI_LAYOUT_REL = "zigux/tests/phase3_export_uapi_layout.zig"
 
 REQUIRED_FILES = (
     SURVEY_REL,
@@ -25,6 +26,7 @@ REQUIRED_FILES = (
     UAPI_VERSION_REL,
     LINUX_HEADER_REL,
     ABI_HEADER_REL,
+    EXPORT_UAPI_LAYOUT_REL,
     WORKFLOW_REL,
 )
 
@@ -99,6 +101,15 @@ REQUIRED_MARKERS = {
         "#define ZIGUX_STATUS_FLAG_ERROR 1U",
         "struct zigux_boundary_header {",
         "struct zigux_export_status {",
+    ),
+    EXPORT_UAPI_LAYOUT_REL: (
+        'const export_shim = @import("export_shim");',
+        'const uapi_version = @import("uapi_version");',
+        'test "phase3 export shim and uapi keep canonical boundary layout" {',
+        "const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 16, 0x55);",
+        "try std.testing.expectEqual(header, uapi_header);",
+        "try std.testing.expect(export_shim.headerCompatibility(version_mismatch) == null);",
+        "try std.testing.expect(uapi_version.compatibility(version_mismatch) == null);",
     ),
 }
 
@@ -337,6 +348,32 @@ def run_self_test() -> int:
             "",
         )
     )
+    export_uapi_layout_text = "\n".join(
+        (
+            'const std = @import("std");',
+            'const abi = @import("abi_bindings");',
+            'const export_shim = @import("export_shim");',
+            'const uapi_version = @import("uapi_version");',
+            "",
+            'test "phase3 export shim and uapi keep canonical boundary layout" {',
+            '    const header = export_shim.header(0x55);',
+            '    const uapi_header = uapi_version.boundaryHeader(0x55);',
+            '    const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 16, 0x55);',
+            '    const version_mismatch = export_shim.versionedHeader(',
+            '        export_shim.header_size,',
+            '        export_shim.abi_version + 1,',
+            '        0x55,',
+            '    );',
+            "",
+            '    try std.testing.expectEqual(header, uapi_header);',
+            '    try std.testing.expect(export_shim.headerCompatibility(version_mismatch) == null);',
+            '    try std.testing.expect(uapi_version.compatibility(version_mismatch) == null);',
+            '    _ = abi;',
+            '    _ = future_compatible;',
+            '}',
+            "",
+        )
+    )
 
     def baseline_survey(root: Path) -> str:
         return "\n".join(
@@ -407,6 +444,7 @@ def run_self_test() -> int:
         _write(root / UAPI_VERSION_REL, uapi_version_text)
         _write(root / LINUX_HEADER_REL, linux_header_text)
         _write(root / ABI_HEADER_REL, abi_header_text)
+        _write(root / EXPORT_UAPI_LAYOUT_REL, export_uapi_layout_text)
         _write(
             root / WORKFLOW_REL,
             "\n".join(
@@ -464,6 +502,18 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:survey_path_guard_failed:{issues}")
         _write(root / SURVEY_REL, baseline_survey(root))
 
+        _write(
+            root / EXPORT_UAPI_LAYOUT_REL,
+            export_uapi_layout_text.replace('const export_shim = @import("export_shim");\n', "", 1),
+        )
+        issues = validate(root)
+        expected = [
+            'missing_marker:zigux/tests/phase3_export_uapi_layout.zig:const export_shim = @import("export_shim");'
+        ]
+        if issues != expected:
+            raise SystemExit(f"phase3-export-uapi-self-test:replay_marker_guard_failed:{issues}")
+        _write(root / EXPORT_UAPI_LAYOUT_REL, export_uapi_layout_text)
+
         workflow_path = root / WORKFLOW_REL
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -482,7 +532,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:workflow_guard_failed:{issues}")
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
@@ -506,7 +556,7 @@ def main() -> int:
         return 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY=pass")
-    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=8")
+    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=9")
     return 0
 
 
