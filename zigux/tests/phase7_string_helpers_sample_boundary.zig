@@ -12,7 +12,6 @@ const expected_runtime_samples = [_][]const u8{
     "runtime_atomic64_loader.zig",
     "runtime_bitmap.zig",
     "runtime_bitmap_loader.zig",
-    "runtime_bitmap_top_bit_build.zig",
     "runtime_bitmap_top_bit_contract.zig",
     "runtime_kretprobe.zig",
     "runtime_kretprobe_loader.zig",
@@ -129,7 +128,6 @@ test "phase 7 sample root notes keep the exact parked no-sample boundaries expli
     try expectContains(readme, "zigux/tests/phase7_rbtree.zig");
     try expectContains(readme, "zigux/tests/phase7_rbtree_survey.zig");
     try expectContains(readme, "scripts/zigux/check-phase7-rbtree-parity.py");
-    try expectContains(readme, "samples/zigux/runtime_bitmap_top_bit_build.zig");
     try expectContains(readme, "samples/zigux/runtime_bitmap_top_bit_contract.zig");
 
     try expectOccurrenceCount(readme, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;", 1);
