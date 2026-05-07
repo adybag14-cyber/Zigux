@@ -42,6 +42,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
   - `PHASE3_ABI_REPLAY_SCOPE=shared dump plus focused low-level wrapper replay`
   - the live `phase3_abi` packet now exercises the curated boundary header and export status root, bitmap and cpumask views, list and hlist views, err_ptr and xarray summaries, the current ida and minor-allocation/dev-region planning ladder, and the currently shipped chrdev notify/ack delivery-budget guard families through the shared dump and layout harness
   - the focused syntax gate now fail-closes on fused top-level C header declarations in `include/zigux/abi.h` plus fused top-level `;pub const` declarations in `zigux/bindings/abi.zig` or `zigux/bindings/dev_t.zig` until the authoritative header and curated bindings body are split back into parse-clean lines
+  - the current shared ABI packet also keeps the focused baseline constant-parity survey explicit across `include/zigux/abi.h`, `zigux/bindings/abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json` through `scripts/zigux/survey-phase3-abi-constant-parity.py`
 
 ## Why this slice exists
 
@@ -76,7 +77,11 @@ It is a small substrate that makes future ports measurable:
 - `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py`
 - `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test`
 
-5. rerun the validator-support packet and its review-surface guard without duplicating the default route
+5. rerun the shared baseline constant-parity survey so the authoritative C header, curated Zig bindings, dump replay, C harness, and committed expected fixture keep naming the same rooted ABI values
+- `python3 scripts/zigux/survey-phase3-abi-constant-parity.py`
+- `python3 scripts/zigux/survey-phase3-abi-constant-parity.py --self-test`
+
+6. rerun the validator-support packet and its review-surface guard without duplicating the default route
 - `python3 scripts/zigux/validate_phase3_selftest.py`
 - `python3 scripts/zigux/check-phase3-selftest-surface.py --self-test`
 - `python3 scripts/zigux/check-phase3-selftest-surface.py`
@@ -112,7 +117,7 @@ The current Phase 3 low-level wrapper packet is still intentionally small, but i
 - `zigux/helpers/barrier.zig` now exposes `acquire`, `release`, `full`, and `acquireRelease()` through local compile-review scaffolding rather than a module-global fence word.
 - `zigux/helpers/mmio.zig` now exposes `range`, direct `read8` and `write8`, direct `read16` and `write16`, and direct `read32` and `write32`.
 - `zigux/tests/phase3_low_level_wrappers.zig` now directly replays the shipped helper surface, including signed `fetchAdd` and `fetchSub`, signed `fetchMin` and `fetchMax`, monotonic strong `compareExchange()`, `acq_rel` strong `compareExchange()` mismatch handling, non-`seq_cst` atomic ordering coverage, plus byte, 16-bit, and 32-bit MMIO access.
-- the shared ABI packet still carries the wider compile, layout, and dump proof.
+- the shared ABI packet still carries the wider compile, layout, dump proof.
 
 ## Interop rules
 
