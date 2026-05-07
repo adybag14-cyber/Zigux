@@ -137,9 +137,11 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-driver-id-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-lab-validation-evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-dual-implementation-bridge") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-probe-remove-lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "true lab driver") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dual implementations for risky transport-facing paths") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/") != null);
@@ -154,6 +156,7 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "check-phase10-core-packet.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "lab-only driver validation") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "true lab driver") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "dual implementations for risky transport-facing paths") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10_virtio_core_survey_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-core-survey-tests") != null);
@@ -165,6 +168,7 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
     var saw_survey_gate = false;
     var saw_survey_note = false;
     var saw_lab_validation_evidence = false;
+    var saw_dual_impl_bridge = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -204,6 +208,13 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lab-only driver validation evidence") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-core-dual-implementation-bridge")) {
+            saw_dual_impl_bridge = true;
+            try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dual implementations for risky transport-facing paths") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-core-probe-remove-lifecycle")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
@@ -217,10 +228,11 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
     }
 
     try std.testing.expect(starter_landed_count >= 15);
-    try std.testing.expect(blocked_count >= 1);
+    try std.testing.expect(blocked_count >= 2);
     try std.testing.expect(saw_driver_id_helper);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_lab_validation_evidence);
+    try std.testing.expect(saw_dual_impl_bridge);
     try std.testing.expect(saw_blocker);
 }
