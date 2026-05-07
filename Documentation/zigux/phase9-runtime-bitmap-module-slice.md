@@ -11,7 +11,6 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
-  - `samples/zigux/runtime_bitmap_top_bit_build.zig`
   - `samples/zigux/runtime_bitmap_top_bit_contract.zig`
   - `zigux/tests/runtime_bitmap_module.zig`
   - `zigux/tests/runtime_bitmap_diff.zig`
@@ -31,7 +30,7 @@ The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot anch
 
 The live repo already had an atomic64 starter under the same Phase 9 review path, but it still had no matching bitmap pilot. This slice now records the smallest honest bitmap follow-on packet: a sample-backed lifecycle scaffold, its sample-side loader handoff, the focused highest-valid-bit companion replay, and the dedicated survey and test gates that keep the current sample contract reviewable without claiming loadable-module parity or broad bitmap API coverage.
 
-This runtime bitmap pair also stays outside the four approved Phase 5 reference samples: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_{build,contract}.zig` remain the separate Phase 9 runtime bitmap family rooted in `lib/test_bitmap.c`, not a fifth Phase 5 sample-root idiom under `samples/zigux/`.
+This runtime bitmap pair also stays outside the four approved Phase 5 reference samples: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` remain the separate Phase 9 runtime bitmap family rooted in `lib/test_bitmap.c`, not a fifth Phase 5 sample-root idiom under `samples/zigux/`.
 The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchors limited to `bytestream_fifo.zig`, `kobject_example.zig`, `kretprobe_example.zig`, and `trace_events_sample.zig`, while listing the runtime bitmap pair plus the focused top-bit companion replay only under the separate Phase 9 runtime pilot family.
 
 ## Landed starter surface
