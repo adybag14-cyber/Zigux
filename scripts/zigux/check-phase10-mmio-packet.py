@@ -49,7 +49,7 @@ EXPECTED_HELPER_MARKERS = [
 ]
 
 EXPECTED_TEST_MARKERS = [
-    'test "phase10 virtio mmio exposes a transport identity summary before lifecycle work" {',
+    'test "phase10 virtio mmio summarizes transport identity before lifecycle work" {',
     'test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {',
 ]
 
@@ -167,7 +167,7 @@ pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self
 """,
     "drivers/virtio/virtio_ring_verify.zig": 'test "virtio ring verify fixture" {}\n',
     "drivers/virtio/virtio_input_verify.zig": 'test "virtio input verify fixture" {}\n',
-    "zigux/tests/phase10_virtio_mmio.zig": """test "phase10 virtio mmio exposes a transport identity summary before lifecycle work" {}
+    "zigux/tests/phase10_virtio_mmio.zig": """test "phase10 virtio mmio summarizes transport identity before lifecycle work" {}
 test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {}
 """,
     "zigux/tests/phase10_virtio_mmio_survey.zig": """test "phase10 virtio mmio survey manifest records the landed identity-backed packet" {
@@ -417,7 +417,7 @@ def run_self_test() -> int:
 
         makefile_path = tmp_root / "zigux/Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
+        makefile_path.writeText(
             original_makefile.replace(
                 "scripts/zigux/check-phase10-mmio-packet.py --self-test",
                 "scripts/zigux/check-phase10-mmio-drift.py --self-test",
@@ -447,14 +447,14 @@ def run_self_test() -> int:
         original_test = test_path.read_text(encoding="utf-8")
         test_path.write_text(
             original_test.replace(
-                'test "phase10 virtio mmio exposes a transport identity summary before lifecycle work" {',
+                'test "phase10 virtio mmio summarizes transport identity before lifecycle work" {',
                 'test "phase10 virtio mmio identity drift before lifecycle work" {',
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'tests:test "phase10 virtio mmio exposes a transport identity summary before lifecycle work" {' not in missing_markers:
+        if 'tests:test "phase10 virtio mmio summarizes transport identity before lifecycle work" {' not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_identity_test_marker_missing")
         test_path.write_text(original_test, encoding="utf-8")
 
