@@ -153,7 +153,7 @@ Current Phase 3 use
 
 Current Phase 4 use
 - `scripts/zigux/artifact_diff.py` stays the shared host-side comparison helper behind the committed artifact-check packets.
-- `scripts/zigux/check-artifact-diff-contract.py` reruns the bounded text, JSON, SHA-256, missing-path, invalid-mode, and repeat-run cases so the helper's outward contract stays deterministic before the broader Phase 4 validator and Zig gates run.
+- `scripts/zigux/check-artifact-diff-contract.py` reruns the bounded CLI missing-required-args, missing-actual-operand, and invalid-mode parser failures plus the text, JSON, SHA-256, missing-path, malformed-input, and repeat-run cases so the helper's outward contract stays deterministic before the broader Phase 4 validator and Zig gates run.
 - `scripts/zigux/check-phase4-gate-evidence.py` together with `Documentation/zigux/phase4-gate-evidence.md` keeps the dedicated exact-readback companion packet explicit beside the broader validator-backed rollback surface without turning this note into the full ownership record.
 - `zigux/tests/atomic64_diff.zig` keeps the roadmap-named Phase 4 atomic64 entrypoint explicit as the thin wrapper over the shared runtime-backed replay.
 - `zigux/tests/runtime_atomic64_diff.zig` currently carries the single live bounded atomic64 rollback-readiness replay body that the Phase 4 wrapper and the Phase 9 starter both reuse.
