@@ -58,4 +58,4 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
 
 Leave this note parked unless fresh repo inspection shows that the shared Phase 12 docs, review-checklist, scripts-root summary, tests-root summary, fallback-overview, compact release-coordination matrix, or review surfaces are blurring `virtio_net`, `nvme_pci`, and `virtio_scsi` back together.
 
-If the lane reopens, keep the next step inside the smallest docs-root, review-checklist, scripts-root, tests-root, fallback-overview, compact-matrix, or checker wording repair that restores those three driver-local ownership boundaries without reopening PMO closure drift control or the separate libbpf helper packet.
+If the lane reopens, keep the next step inside the smallest docs-root, review-checklist, scripts-root, tests-root, fallback-overview, or compact-matrix wording repair that restores those three driver-local ownership boundaries without reopening PMO closure drift control, replaying the now-landed build-only checker self-test hardening, or the separate libbpf helper packet.
