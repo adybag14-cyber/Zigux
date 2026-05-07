@@ -570,6 +570,35 @@ test "searchIndex matches linear equality probes across bounded ascending and de
     }
 }
 
+test "typed helpers short-circuit empty input without invoking comparators" {
+    const empty = [_]i32{};
+    var mutable_empty = [_]i32{};
+
+    compare_call_count = 0;
+    try std.testing.expectEqual(@as(?usize, null), searchIndex(i32, i32, &@as(i32, 5), empty[0..], compareIntCounted));
+    try std.testing.expectEqual(@as(usize, 0), compare_call_count);
+
+    compare_call_count = 0;
+    try std.testing.expect(search(i32, i32, &@as(i32, 5), empty[0..], compareIntCounted) == null);
+    try std.testing.expectEqual(@as(usize, 0), compare_call_count);
+
+    compare_call_count = 0;
+    try std.testing.expect(searchMutable(i32, i32, &@as(i32, 5), mutable_empty[0..], compareIntCounted) == null);
+    try std.testing.expectEqual(@as(usize, 0), compare_call_count);
+
+    compare_call_count = 0;
+    try std.testing.expectEqual(@as(?usize, null), searchIndex(i32, i32, &@as(i32, 5), empty[0..], compareIntDescendingCounted));
+    try std.testing.expectEqual(@as(usize, 0), compare_call_count);
+
+    compare_call_count = 0;
+    try std.testing.expect(search(i32, i32, &@as(i32, 5), empty[0..], compareIntDescendingCounted) == null);
+    try std.testing.expectEqual(@as(usize, 0), compare_call_count);
+
+    compare_call_count = 0;
+    try std.testing.expect(searchMutable(i32, i32, &@as(i32, 5), mutable_empty[0..], compareIntDescendingCounted) == null);
+    try std.testing.expectEqual(@as(usize, 0), compare_call_count);
+}
+
 test "raw helpers short-circuit empty input and accept c abi comparator pointers" {
     const empty = [_]i32{};
 
