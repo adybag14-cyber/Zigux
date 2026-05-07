@@ -1,0 +1,12 @@
+savedcmd_sample_escaped_space.o := clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_escaped_space.o
+
+source_sample_escaped_space.o := zigux/tests/fixtures/fixdep/sample.c
+
+deps_sample_escaped_space.o := \
+    $(wildcard include/config/ZIGUX_SOURCE) \
+    $(wildcard include/config/ZIGUX_DRIVER) \
+  zigux/tests/fixtures/fixdep/dep\ name.rmeta \
+
+sample_escaped_space.o: $(deps_sample_escaped_space.o)
+
+$(deps_sample_escaped_space.o):
