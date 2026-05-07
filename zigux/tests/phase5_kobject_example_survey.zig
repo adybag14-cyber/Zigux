@@ -52,8 +52,8 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 9), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -61,12 +61,14 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     var saw_pre_registration_prompt = false;
     var saw_registered_teardown_prompt = false;
     var saw_ownership_summary_prompt = false;
+    var saw_counter_progression_prompt = false;
     var saw_exit_prompt = false;
     var saw_group_boundary_prompt = false;
     var saw_directory = false;
     var saw_pre_registration = false;
     var saw_registered_boundary = false;
     var saw_ownership_summary = false;
+    var saw_ownership_counters = false;
     var saw_initialized_exit = false;
     var saw_dispatch = false;
     var saw_exit = false;
@@ -93,6 +95,12 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "cold, initialized, registered, and exited") != null)
         {
             saw_ownership_summary_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "init/register/exit counter progression") != null and
+            std.mem.indexOf(u8, prompt, "0/0/0") != null and
+            std.mem.indexOf(u8, prompt, "1/1/1") != null)
+        {
+            saw_counter_progression_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "abandoned_before_registration") != null and
             std.mem.indexOf(u8, prompt, "tore_down_registered_attributes") != null)
@@ -135,6 +143,12 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "cold, initialized, registered, and exited") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "0, 0, 3, and 0") != null);
         }
+        if (std.mem.eql(u8, check.id, "ownership-counters")) {
+            saw_ownership_counters = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runOwnershipReplay()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "0/0/0") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "1/1/1") != null);
+        }
         if (std.mem.eql(u8, check.id, "initialized-exit-disposition")) {
             saw_initialized_exit = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "abandoned_before_registration") != null);
@@ -162,12 +176,14 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_pre_registration_prompt);
     try std.testing.expect(saw_registered_teardown_prompt);
     try std.testing.expect(saw_ownership_summary_prompt);
+    try std.testing.expect(saw_counter_progression_prompt);
     try std.testing.expect(saw_exit_prompt);
     try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_directory);
     try std.testing.expect(saw_pre_registration);
     try std.testing.expect(saw_registered_boundary);
     try std.testing.expect(saw_ownership_summary);
+    try std.testing.expect(saw_ownership_counters);
     try std.testing.expect(saw_initialized_exit);
     try std.testing.expect(saw_dispatch);
     try std.testing.expect(saw_exit);
