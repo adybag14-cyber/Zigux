@@ -119,9 +119,9 @@ Keep explicit
 - `formattedMessage()`, the selected-string plus `iter=%d` replay, and the public `runPayloadBoundaryReplay()` formatting cue
 - vararg-payload and relative-location markers in the public replay summary
 - the exact `checked_focus` order
-- the public `runCallbackBoundaryReplay()` helper plus the explicit callback-path replay and balanced register-then-unregister callback flow
+- the public `runCallbackBoundaryReplay()` helper plus the explicit callback-path replay, balanced register-then-unregister callback flow, restored registration balance, and the bounded `init()` -> replay helpers -> `exit()` ownership path
 - `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection
-- post-exit replay rejection
+- post-exit replay and callback-registration rejection so the sample stays a bounded ownership-and-lifetime example instead of only a tracing example
 
 Keep out of scope
 - `CREATE_TRACE_POINTS` parity
