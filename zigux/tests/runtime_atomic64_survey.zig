@@ -315,6 +315,7 @@ test "phase 9 runtime atomic64 survey source-checks the direct sample evidence p
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader bridges the shared request lifecycle without widening atomic64 claims\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader keeps shared release failures from desynchronizing loader state\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader surfaces shared request drift before any live atomic64 claim\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader surfaces prepared shared selftest-hook drift before any live atomic64 claim\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader rejects shared selftest-hook drift before any live atomic64 claim\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader rejects shared-load-plan snapshot drift\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "initialized_shared_plan.provides_selftest_hook = false;") != null);
