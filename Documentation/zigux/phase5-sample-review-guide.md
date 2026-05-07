@@ -119,7 +119,7 @@ Keep explicit
 - `formattedMessage()`, the selected-string plus `iter=%d` replay, and the public `runPayloadBoundaryReplay()` formatting cue
 - vararg-payload and relative-location markers in the public replay summary
 - the exact `checked_focus` order
-- the public `runCallbackBoundaryReplay()` helper plus balanced register-then-unregister callback flow
+- the public `runCallbackBoundaryReplay()` helper plus the explicit callback-path replay and balanced register-then-unregister callback flow
 - `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection
 - post-exit replay rejection
 
