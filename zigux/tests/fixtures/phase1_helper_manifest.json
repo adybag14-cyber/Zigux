@@ -25,6 +25,7 @@
         "test \"bitmap fill clamps tail bits in partial words\"",
         "test \"bitmap and andnot equal intersects subset\"",
         "test \"bitmap and andnot clamp tail bits in partial words\"",
+        "test \"bitmap predicates ignore out-of-range tail bits\"",
         "test \"bitmap xor keeps caller-selected bit window\"",
         "test \"bitmap scnprintf collapses contiguous ranges\"",
         "test \"bitmap scnprintf reports full length while truncating the buffer\"",
@@ -34,6 +35,7 @@
         "test \"bitmap zero-bit helpers stay explicit no-ops\""
       ],
       "first_word_boundary_anchor": "test \"bitmap range helpers honor exact first-word boundaries\"",
+      "predicate_tail_mask_anchor": "test \"bitmap predicates ignore out-of-range tail bits\"",
       "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
       "parity_fixture_keys": [
         "scnprintf",
