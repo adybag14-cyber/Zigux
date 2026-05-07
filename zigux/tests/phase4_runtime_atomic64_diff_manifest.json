@@ -1,5 +1,5 @@
 {
-  "lane_key": "P4-L04",
+  "lane_key": "P4-L02",
   "phase": "Phase 4",
   "roadmap_target_path": "zigux/tests/atomic64_diff.zig",
   "roadmap_atomic64_diff_present": true,
