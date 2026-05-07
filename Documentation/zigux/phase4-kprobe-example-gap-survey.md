@@ -27,7 +27,7 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/kpr
 - `samples/kprobes/kprobe_example.c` is present on `master` and still plants a bounded `kprobe` around `kernel_clone`
 - the live replay path remains `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`
 - `samples/zigux/kprobe_example.zig` is still absent on current `master`
-- the shared Phase 4 matrix now has one manifest-backed gap packet for this anchor instead of leaving the kprobe follow-through as matrix prose alone
+- the dedicated parked gap packet already spans this note, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig`, so the kprobe follow-through is no longer matrix prose alone even while it stays outside the shared gate-evidence packet
 
 ## Non-Goals
 
@@ -37,4 +37,4 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/kpr
 
 ## Next Bounded Step
 
-Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet about this same survey note, manifest, and replay command once the adjacent packet has been read back and accepted as the truthful current boundary.
+Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet about this same survey note, manifest, and replay command once the adjacent packet has been reread and accepted as the truthful current boundary.
