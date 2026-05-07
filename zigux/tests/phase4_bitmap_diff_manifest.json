@@ -4,7 +4,7 @@
   "roadmap_target_path": "zigux/tests/bitmap_diff.zig",
   "roadmap_bitmap_diff_present": true,
   "live_gate_path": "zigux/tests/bitmap_diff.zig",
-  "live_gate_blob_sha": "bb495012d8e15f1e44c343223376d7c2b9b66f49",
+  "live_gate_blob_sha": "825823b724a96c6d4fcca97071ddad8202686587",
   "helper_replay_path": "zigux/tests/phase4_bitmap_live_helper_replay.zig",
   "helper_replay_blob_sha": "24418ad890696a59b95276fe8dec7eaeecf25172",
   "phase4_build_present": true,
