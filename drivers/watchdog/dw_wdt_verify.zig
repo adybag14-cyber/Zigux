@@ -222,6 +222,36 @@ test "dw_wdt verify keeps idle remove-time reset path from fabricating stale hea
     try std.testing.expect(!idle_remove.remove_leaves_hardware_running);
 }
 
+test "dw_wdt verify keeps idle stop outcomes explicit across reset-controlled and non-stoppable hardware" {
+    var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    const idle_unstoppable = unstoppable.stop();
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", idle_unstoppable.anchor);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.reset, idle_unstoppable.response_mode);
+    try std.testing.expectEqual(@as(u32, 32), idle_unstoppable.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 0), idle_unstoppable.pretimeout_sec);
+    try std.testing.expect(!idle_unstoppable.running);
+    try std.testing.expect(!idle_unstoppable.hardware_running);
+    try std.testing.expectEqual(@as(u32, 0), idle_unstoppable.time_left_sec);
+    try std.testing.expectEqual(@as(u32, 0), idle_unstoppable.registers.current_count);
+    try std.testing.expect(!idle_unstoppable.interrupt_pending);
+    try std.testing.expectError(error.WatchdogNotRunning, unstoppable.ping());
+
+    var stoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    _ = stoppable.setCurrentCount(3 * 65_536);
+    _ = stoppable.setInterruptPending(true);
+    const idle_stoppable = stoppable.stop();
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", idle_stoppable.anchor);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.reset, idle_stoppable.response_mode);
+    try std.testing.expectEqual(@as(u32, 32), idle_stoppable.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 0), idle_stoppable.pretimeout_sec);
+    try std.testing.expect(!idle_stoppable.running);
+    try std.testing.expect(!idle_stoppable.hardware_running);
+    try std.testing.expectEqual(@as(u32, 0), idle_stoppable.time_left_sec);
+    try std.testing.expectEqual(@as(u32, 0), idle_stoppable.registers.current_count);
+    try std.testing.expect(!idle_stoppable.interrupt_pending);
+    try std.testing.expectError(error.WatchdogNotRunning, stoppable.ping());
+}
+
 test "dw_wdt verify keeps idle teardown from fabricating a stop path or continued heartbeat" {
     var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     const idle_unstoppable = try unstoppable.teardownSummary();
@@ -297,8 +327,8 @@ test "dw_wdt verify keeps irq-mode teardown summaries aligned with stop failure 
     _ = try stoppable.setResponseMode(.irq);
     _ = try stoppable.setTimeout(9);
     _ = try stoppable.start();
-    _ = stoppable.setCurrentCount(3 * 65_536);
-    _ = stoppable.setInterruptPending(true);
+    _ = try stoppable.setCurrentCount(3 * 65_536);
+    _ = try stoppable.setInterruptPending(true);
 
     const stoppable_teardown = try stoppable.teardownSummary();
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", stoppable_teardown.anchor);
