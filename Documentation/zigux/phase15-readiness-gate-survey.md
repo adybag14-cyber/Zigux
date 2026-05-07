@@ -5,7 +5,7 @@ This document records the bounded Phase 15 governance lane for checking whether 
 ## Status
 
 - `PHASE15_STATUS=maintenance_mode_ready`
-- `PHASE15_LANE_KEY=P15-L01`
+- `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_SLICE=phase15-readiness-gate-current-blocker-inventory`
 - survey provenance refreshed against current `master` via the GitHub connector on May 6, 2026
 - the shared replay surface is green on current `master` once this dedicated readiness note, its manifest, the focused `zigux/tests/phase15_readiness_gate.zig` guard, and the shipped `phase15-validate` checker stack are present together
