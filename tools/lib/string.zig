@@ -431,6 +431,20 @@ test "memchrInv keeps long-buffer first-dirty-byte results stable" {
     try std.testing.expectEqual(@as(?usize, null), memchrInv(&clean, 'a'));
 }
 
+test "memchrInv follows the earliest dirty byte as long buffers change" {
+    var moving_dirty = [_]u8{'a'} ** 160;
+
+    moving_dirty[64] = 'X';
+    moving_dirty[96] = 'Y';
+    try std.testing.expectEqual(@as(?usize, 64), memchrInv(&moving_dirty, 'a'));
+
+    moving_dirty[64] = 'a';
+    try std.testing.expectEqual(@as(?usize, 96), memchrInv(&moving_dirty, 'a'));
+
+    moving_dirty[96] = 'a';
+    try std.testing.expectEqual(@as(?usize, null), memchrInv(&moving_dirty, 'a'));
+}
+
 test "memparse handles decimal hexadecimal octal and suffixes" {
     const decimal = memparse("64K rest");
     try std.testing.expectEqual(@as(u64, 64 << 10), decimal.value);
@@ -463,6 +477,16 @@ test "memparse saturates signed overflow instead of trapping" {
     const negative = memparse("-9223372036854775809");
     try std.testing.expectEqual(@as(u64, 0x8000000000000000), negative.value);
     try std.testing.expectEqualStrings("", negative.rest);
+}
+
+test "memparse keeps signed values and their trailing rest aligned" {
+    const negative = memparse("-17 tail");
+    try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -17))), negative.value);
+    try std.testing.expectEqualStrings(" tail", negative.rest);
+
+    const positive = memparse("+42done");
+    try std.testing.expectEqual(@as(u64, 42), positive.value);
+    try std.testing.expectEqualStrings("done", positive.rest);
 }
 
 test "memparse consumes suffix after saturation" {
