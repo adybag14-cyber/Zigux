@@ -278,7 +278,7 @@ def check_compile_matrix(root: Path) -> list[str]:
         errors.append("phase14 smoke note focused compile-shard count drifted from the current one-shard packet")
     if smoke_note_text.count("coverage `full_bundle_only`") != 4:
         errors.append("phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet")
-    if build_text.count("b.addTest(.") != 5:
+    if build_text.count("b.addTest(.{") != 5:
         errors.append("phase14 build bundle no longer declares the current five compile artifacts")
     if build_text.count("b.addRunArtifact(") != 5:
         errors.append("phase14 build bundle no longer wires the current five compile-artifact runs")
@@ -462,7 +462,7 @@ def run_self_test() -> int:
             'test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);',
         ]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
-            build_lines.append("b.addTest(.")
+            build_lines.append("b.addTest(.{")
             build_lines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
