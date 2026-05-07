@@ -436,6 +436,9 @@ def main_validation(root: Path) -> list[str]:
         "confdata bridge keeps explicit n assignments as tristate values",
         "confdata bridge recognizes uppercase tristate assignments",
         "confdata bridge ignores non-CONFIG lines like upstream confdata",
+        "PHASE2_FIXDEP_CASE_COUNT=5",
+        "PHASE2_FIXDEP_CASES=sample,sample_escaped_space,sample_multi_target,sample_comment_only,sample_missing_dep",
+        "PHASE2_FIXDEP_STDOUT_PACKET=sample_expected.txt,sample_escaped_space_expected.txt,sample_multi_target_expected.txt,sample_comment_only_expected.txt,sample_missing_dep_expected.txt",
     ]
     required_closure_markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
     required_closure_markers.extend(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
