@@ -96,7 +96,7 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expectEqualStrings("phase14_shared_smoke_packet", manifest.packet_name);
     try std.testing.expectEqualStrings("study_only_shared_smoke_packet", manifest.focus);
     try std.testing.expectEqual(@as(usize, 6), manifest.commands.len);
-    try std.testing.expectEqual(@as(usize, 27), manifest.surfaces.len);
+    try std.testing.expectEqual(@as(usize, 28), manifest.surfaces.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.blocked_anchors.len);
     try std.testing.expectEqualStrings("make -C zigux phase14-validate", manifest.commands[0]);
     try std.testing.expectEqualStrings("make -C zigux phase14-smoke", manifest.commands[1]);
@@ -123,6 +123,7 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expect(hasSurfacePath(manifest.surfaces, ".github/workflows/zigux-bootstrap.yml"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "kernel/workqueue_bridge.zig"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "net/core/skbuff_bridge.zig"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "kernel/rcu/tree_bridge.zig"));
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.blocked_anchors[0]);
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.blocked_anchors[3]);
     try std.testing.expect(containsMarker(manifest.rollback_owner, "freeze-map anchors"));
@@ -165,6 +166,7 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_COMPILE_ARTIFACT_COUNT=5"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FOCUSED_SHARD_COUNT=1"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4"));
+    try std.testing.expect(containsMarker(smoke_note_text, "kernel/rcu/tree_bridge.zig"));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, smoke_note_text, "coverage `focused_and_full_bundle`"));
     try std.testing.expectEqual(@as(usize, 4), std.mem.count(u8, smoke_note_text, "coverage `full_bundle_only`"));
 
