@@ -92,7 +92,9 @@ HANDOFF_CHECKER_MARKERS = (
 
 REVIEW_CHECKLIST_MARKERS = (
     "if the change touches the shared Phase 15 governance packet",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "make -C zigux phase15-validate",
     "make -C zigux phase15",
     "no-approval-yet posture",
 )
@@ -341,7 +343,7 @@ def _baseline_review_checklist() -> str:
     return "\n".join(
         (
             "# Checklist",
-            "- if the change touches the shared Phase 15 governance packet, do `scripts/zigux/check-phase15-review-process-handoff.py`, `make -C zigux phase15`, and the no-approval-yet posture still agree?",
+            "- if the change touches the shared Phase 15 governance packet, do `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `make -C zigux phase15-validate`, `make -C zigux phase15`, and the no-approval-yet posture still agree?",
             "",
         )
     )
@@ -599,6 +601,36 @@ def run_self_test() -> int:
             validate(root),
             [f"review_checklist:missing:{checklist_marker}"],
             "missing_review_checklist_marker_guard_failed",
+        )
+        _write(root / REVIEW_CHECKLIST_REL, baseline_checklist)
+        case_count += 1
+
+        checklist_alignment_marker = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
+        _write(
+            root / REVIEW_CHECKLIST_REL,
+            baseline_checklist.replace(
+                checklist_alignment_marker,
+                "scripts/zigux/check-phase15-scripts-readme-alignment.missing",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [f"review_checklist:missing:{checklist_alignment_marker}"],
+            "missing_review_checklist_alignment_checker_marker_guard_failed",
+        )
+        _write(root / REVIEW_CHECKLIST_REL, baseline_checklist)
+        case_count += 1
+
+        checklist_validate_marker = "make -C zigux phase15-validate"
+        _write(
+            root / REVIEW_CHECKLIST_REL,
+            baseline_checklist.replace(checklist_validate_marker, "make -C zigux phase15-review", 1),
+        )
+        _assert_only(
+            validate(root),
+            [f"review_checklist:missing:{checklist_validate_marker}"],
+            "missing_review_checklist_validate_route_guard_failed",
         )
         _write(root / REVIEW_CHECKLIST_REL, baseline_checklist)
         case_count += 1
