@@ -20,7 +20,7 @@
   "phase9_build_blob_sha": "ca1c72f01108e57b4fc118aeed6b5a33a5ce54ea",
   "phase4_validation_matrix_atomic64_diff_note_present": true,
   "phase4_validation_matrix_runtime_atomic64_note_present": true,
-  "phase4_validation_matrix_blob_sha": "6cc107b5a8934172e70a6d539183684913eda7b6",
+  "phase4_validation_matrix_blob_sha": "f14c9826dfb5b9271b0dd085edec23a36209a4ff",
   "phase4_review_checklist_blob_sha": "e1def97f99abd39d47b9b2fd35ea8c833b4d13c3",
   "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
   "roadmap_gap_summary": "the roadmap target zigux/tests/atomic64_diff.zig is present as the Phase 4 wrapper, zigux/tests/phase4_build.zig still runs through it, zigux/tests/runtime_atomic64_diff.zig remains the single bounded replay body that the Phase 9 runtime packet reuses directly, and current repo readback now shows the exact-readback packet, validation matrix, and reviewer checklist pin already aligned on master, so the next bounded same-lane step is to keep that Phase 4 reviewer packet truthful while the broader sample and perf-baseline follow-ups stay intentionally open",
