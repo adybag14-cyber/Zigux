@@ -45,5 +45,14 @@
     "expected_stdout": "sample_missing_dep_expected.txt",
     "expected_stderr": "sample_missing_dep_expected.stderr.txt",
     "expected_exit_code": 2
+  },
+  {
+    "name": "sample_escaped_hash_comment_chain",
+    "depfile": "sample_escaped_hash_comment_chain.d",
+    "target": "sample_escaped_hash_comment_chain.o",
+    "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_escaped_hash_comment_chain.o",
+    "expected": "sample_escaped_hash_comment_chain_expected.txt",
+    "expected_stdout": "sample_escaped_hash_comment_chain_expected.txt",
+    "expected_exit_code": 0
   }
 ]
