@@ -34,8 +34,10 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "map_extra");
     try expectContains(note, "bounded reuse-pinned-map attempt planning");
     try expectContains(note, "helper-only reused-map compatibility packet");
+    try expectContains(note, "planning-only token-preparation gate");
     try expectContains(note, "broader bridge follow-through queued");
     try expectContains(note, "planning-only reopen-attempt disposition");
+    try expectContains(note, "planTokenPreparation()");
     try expectContains(note, "no direct procfs reads");
     try expectContains(note, "no `fopen()` or `fgets()` parity");
     try expectContains(note, "no `bpf_map_get_info_by_fd()` fallback control flow");
@@ -61,6 +63,7 @@ test "phase 8 userspace-kernel bridge boundary survey keeps queued bridge work e
     try expectContains(survey, "resolveReusePinnedMapAttempt()");
     try expectContains(survey, "planning-only gate");
     try expectContains(survey, "non-empty pinned path plus compatible fdinfo-derived map info");
+    try expectContains(survey, "non-empty token path plus a ready reused-map bridge plan");
     try expectContains(survey, "token materialization or capability handoff");
     try expectContains(survey, "map reopen or bpffs compatibility closure");
     try expectContains(survey, "fd close or ownership semantics");
@@ -222,4 +225,60 @@ test "phase 8 file-path handle bridge helper keeps planning-only reopen attempts
     try std.testing.expectEqualStrings("process_pinned_map", plan.resolved_name.?.value);
     try std.testing.expectEqualStrings("/sys/fs/bpf/stats", plan.pinned_path.?);
     try std.testing.expect(plan.should_attempt_reopen);
+}
+
+test "phase 8 file-path handle bridge helper keeps planning-only token preparation explicit" {
+    const expected = file_path_handle_bridge.MapReuseExpectation{
+        .name = "process_pinned_map",
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20,
+        .map_extra = 7,
+    };
+
+    const blocked_bridge_plan = file_path_handle_bridge.resolveReusePinnedMapAttempt(
+        "/sys/fs/bpf/stats",
+        expected,
+        null,
+    );
+    const blocked = file_path_handle_bridge.planTokenPreparation(
+        " /sys/fs/bpf/token ",
+        blocked_bridge_plan,
+    );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationDisposition.bridge_plan_not_ready,
+        blocked.disposition,
+    );
+    try std.testing.expectEqualStrings("/sys/fs/bpf/token", blocked.token_path.?);
+    try std.testing.expect(!blocked.should_attempt_token_open);
+
+    const ready_bridge_plan = file_path_handle_bridge.resolveReusePinnedMapAttempt(
+        "/sys/fs/bpf/stats",
+        expected,
+        .{
+            .name = "process_pinned_",
+            .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+            .key_size = 4,
+            .value_size = 8,
+            .max_entries = 64,
+            .map_flags = 0x20 | file_path_handle_bridge.bpf_f_rdonly_prog,
+            .map_extra = 7,
+        },
+    );
+    const ready = file_path_handle_bridge.planTokenPreparation(
+        " /sys/fs/bpf/token ",
+        ready_bridge_plan,
+    );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationDisposition.ready_for_token_open_attempt,
+        ready.disposition,
+    );
+    try std.testing.expectEqualStrings("/sys/fs/bpf/token", ready.token_path.?);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapAttemptDisposition.ready_for_reopen_attempt,
+        ready.bridge_plan.disposition,
+    );
+    try std.testing.expect(ready.should_attempt_token_open);
 }
