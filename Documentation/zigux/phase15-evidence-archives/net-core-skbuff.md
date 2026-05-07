@@ -14,6 +14,7 @@ This template reserves the Architecture Council packet path named by the Phase 1
 - decision record ID: `pending_no_architecture_council_request`
 - evidence archive path: `Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md`
 - parity scorecard link or blocker record: `Documentation/zigux/phase15-parity-scorecard.md`
+- indefinite-C policy link or non-applicability note: `Documentation/zigux/phase15-indefinite-c-policy.md`
 
 ## Ownership
 
