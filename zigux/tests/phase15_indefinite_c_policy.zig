@@ -66,13 +66,15 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     try std.testing.expectEqualStrings("7b5519444e8f73f84c68dc3e63580fcaef06ffb6", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.supporting_artifacts.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.supporting_artifacts.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.indefinite_c_requirements.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.anchors[0]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.supporting_artifacts[3]);
     try std.testing.expectEqualStrings("Documentation/zigux/README.md", manifest.supporting_artifacts[5]);
+    try std.testing.expectEqualStrings("zigux/tests/phase15_indefinite_c_blocker_evidence.zig", manifest.supporting_artifacts[6]);
+    try std.testing.expectEqualStrings("zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig", manifest.supporting_artifacts[7]);
 
     var saw_source_of_truth = false;
     var saw_recordkeeping = false;
@@ -143,6 +145,9 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
     try expectContains(io_instance.io(), "Documentation/zigux/phase15-indefinite-c-policy.md", &.{
         "PHASE15_LANE_KEY=P15-L16",
         "survey provenance refreshed against verified `master` head `7b5519444e8f73f84c68dc3e63580fcaef06ffb6`",
+        "the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build",
+        "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
+        "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
         "## When the indefinite-C policy applies",
         "## Required recorded fields",
         "## Allowed work after an indefinite-C outcome",
@@ -311,6 +316,8 @@ test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
             saw_sync_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reopen-trigger catalog") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blocker-evidence replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lane-owner-alignment replay") != null);
         } else if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
