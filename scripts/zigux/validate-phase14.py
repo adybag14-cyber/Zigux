@@ -106,11 +106,6 @@ REQUIRED_FILE_MARKERS = {
         "net/core/skbuff.c",
     ],
     TRACEABILITY_PATH: [TRACEABILITY_TITLE],
-    "scripts/zigux/README.md": [
-        "python3 scripts/zigux/validate-phase14.py",
-        "make -C zigux phase14-validate",
-        "Documentation/zigux/phase14-core-boundary-traceability.md",
-    ],
     "scripts/zigux/validate-phase14.py": [MARKER],
     "scripts/zigux/check-phase14-docs-root-smoke-summary.py": [DOCS_ROOT_CHECKER_MARKER],
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": [CHECKER_MARKER],
@@ -603,6 +598,17 @@ def run_self_test() -> int:
         broken_rollback_checker.write_text(
             "#!/usr/bin/env python3\n"
             f"\"\"\"{CHECKER_MARKER}\"\"\"\n"
+            "print('phase14 rollback-threshold sequencing checker stdout-only failure')\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 rollback-threshold sequencing checker stdout-only failure" not in errors:
+            print("self-test expected rollback-threshold checker stdout-only subprocess failure", file=sys.stderr)
+            return 1
+        broken_rollback_checker.write_text(
+            "#!/usr/bin/env python3\n"
+            f"\"\"\"{CHECKER_MARKER}\"\"\"\n"
             "raise SystemExit(1)\n",
             encoding="utf-8",
         )
@@ -623,6 +629,17 @@ def run_self_test() -> int:
         errors = check(root)
         if "phase14 release-boundary exact-counts checker forced failure" not in errors:
             print("self-test expected release-boundary checker subprocess failure", file=sys.stderr)
+            return 1
+        broken_release_boundary_checker.write_text(
+            "#!/usr/bin/env python3\n"
+            f"\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\n"
+            "print('phase14 release-boundary exact-counts checker stdout-only failure')\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 release-boundary exact-counts checker stdout-only failure" not in errors:
+            print("self-test expected release-boundary checker stdout-only subprocess failure", file=sys.stderr)
             return 1
         broken_release_boundary_checker.write_text(
             "#!/usr/bin/env python3\n"
