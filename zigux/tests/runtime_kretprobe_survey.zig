@@ -169,6 +169,8 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(survey_doc, "first loadable Zigux runtime modules");
     try expectContains(survey_doc, "starter_landed_without_loadable_runtime_substrate");
     try expectContains(survey_doc, "loadable Phase 9 runtime kretprobe pilot module parity");
+    try expectContains(survey_doc, "make -C zigux phase9-runtime-loader-shared-tests");
+    try expectContains(survey_doc, "make -C zigux phase9-runtime-kretprobe-test");
     try expectContains(survey_doc, "make -C zigux phase9");
 
     try expectContains(module_slice_doc, "PHASE9_SLICE=runtime-kretprobe-module-starter");
@@ -195,6 +197,8 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(phase9_build_source, "phase9-runtime-loader-facade-tests");
     try expectContains(phase9_build_source, "phase9-runtime-loader-allocator-init-flow-tests");
 
+    try expectContains(makefile_source, "phase9-runtime-loader-shared-tests:");
+    try expectContains(makefile_source, "phase9-runtime-kretprobe-test:");
     try expectContains(makefile_source, "phase9-test:");
     try expectContains(makefile_source, "phase9: phase9-test");
 
