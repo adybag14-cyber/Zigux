@@ -259,6 +259,10 @@ pub fn str_has_prefix(str: []const u8, prefix: []const u8) bool {
     return strHasPrefix(str, prefix);
 }
 
+pub fn strstarts(str: []const u8, prefix: []const u8) bool {
+    return strHasPrefix(str, prefix);
+}
+
 pub fn strEndsWith(str: []const u8, suffix: []const u8) bool {
     const suffix_len = cStringLen(suffix);
     const str_len = cStringLen(str);
@@ -334,6 +338,17 @@ test "strHasPrefix honors C-string boundaries" {
     const cstr = [_]u8{ 'a', 'b', 0, 'x' };
     const embedded_prefix = [_]u8{ 'a', 'b', 0, 'y' };
     try std.testing.expect(strHasPrefix(&cstr, &embedded_prefix));
+}
+
+test "strstarts mirrors the header-level prefix helper" {
+    try std.testing.expect(strstarts("prefix", "pre"));
+    try std.testing.expect(strstarts("prefix", "prefix"));
+    try std.testing.expect(!strstarts("prefix", "suffix"));
+    try std.testing.expect(!strstarts("pre", "prefix"));
+
+    const cstr = [_]u8{ 'a', 'b', 0, 'x' };
+    const prefix = [_]u8{ 'a', 'b', 0, 'y' };
+    try std.testing.expect(strstarts(&cstr, &prefix));
 }
 
 test "strEndsWith honors C-string boundaries" {
