@@ -32,7 +32,9 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/fixdep.zig",
+    "scripts/zigux/genksyms.zig",
     "scripts/zigux/genksyms_crc.zig",
+    "scripts/zigux/mk_elfconfig.zig",
     "scripts/zigux/kconfig/conf_bridge.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig",
     "zigux/Makefile",
@@ -140,7 +142,11 @@ TESTS_README_MARKERS = [
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "zig test scripts/zigux/fixdep.zig",
+    "zig test scripts/zigux/genksyms.zig",
     "zig test scripts/zigux/genksyms_crc.zig",
+    "zig test scripts/zigux/kconfig/conf_bridge.zig",
+    "zig test scripts/zigux/kconfig/confdata_bridge.zig",
+    "zig test scripts/zigux/mk_elfconfig.zig",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
     "x86_64-linux",
@@ -202,7 +208,11 @@ EXACT_COUNT_CHECKS = {
         "scripts/zigux/check-genksyms-crc-diff.py": 1,
         "zigux/tests/fixtures/phase2_tool_manifest.json": 1,
         "zig test scripts/zigux/fixdep.zig": 1,
+        "zig test scripts/zigux/genksyms.zig": 1,
         "zig test scripts/zigux/genksyms_crc.zig": 1,
+        "zig test scripts/zigux/kconfig/conf_bridge.zig": 1,
+        "zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
+        "zig test scripts/zigux/mk_elfconfig.zig": 1,
     },
     "zigux/Makefile": {
         "check-phase2-tests-readme-alignment.py": 1,
@@ -336,7 +346,7 @@ def run_self_test() -> int:
             assert f"missing_file:{rel_path}" in issues
             case_count += 1
 
-    assert case_count == 89
+    assert case_count == 97
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
