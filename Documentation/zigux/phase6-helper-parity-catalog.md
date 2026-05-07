@@ -11,7 +11,7 @@ This catalog records the current shared review surface for the bounded Phase 6 l
   - `lib/bsearch.c`
   - `lib/checksum.c`
   - `lib/hexdump.c`
-- verification note: this catalog was refreshed by direct readback of the current `master` Phase 6 slice notes, shared docs indexes, perf survey, build entrypoint, Makefile routes, and helper parity manifest on `2026-05-07`, with inspected head `911470d`
+- verification note: this catalog was refreshed by direct readback of the current `master` Phase 6 slice notes, shared docs indexes, perf survey, build entrypoint, Makefile routes, helper parity manifest, and the shared owner map on `2026-05-07`, with inspected head `edc1367`
 
 ## Why this catalog exists
 
@@ -21,12 +21,15 @@ The four Phase 6 slice notes remain the right place for helper-local detail, but
 
 - docs root: `Documentation/zigux/README.md`
 - reviewer checklist: `Documentation/zigux/review-checklist.md`
+- owner map: `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md`
 - scripts index: `scripts/zigux/README.md`
 - tests index: `zigux/tests/README.md`
 - perf posture note: `Documentation/zigux/phase6-perf-gate-survey.md`
 - shared build route: `zigux/tests/phase6_build.zig`
 - Linux-style replay routes: `zigux/Makefile`
 - shared packet manifest: `zigux/tests/phase6_helper_parity_manifest.json`
+
+Use `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` before reopening any shared Phase 6 surface: packet-wide route and ownership repairs belong to the shared sequencing lane, but helper-row edits inside the shared catalog, perf survey, or manifest still route back to the owning helper lane.
 
 ## Current Helper Rows
 
@@ -80,4 +83,4 @@ The four Phase 6 slice notes remain the right place for helper-local detail, but
 
 ## Next Bounded Step
 
-Reopen this catalog only when one of the four roadmap anchors gains, loses, or materially changes a reviewable helper-evidence row on `master`, or when the shared `phase6` or `phase6-perf` routes change enough that this summary would stop being exact.
+Reopen this catalog only when one of the four roadmap anchors gains, loses, or materially changes a reviewable helper-evidence row on `master`, or when the shared `phase6` or `phase6-perf` routes change enough that this summary would stop being exact. When the drift is packet-wide, repair it through `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md`; when the drift changes only one helper row, route the follow-up back to that helper-owned lane instead.
