@@ -62,7 +62,7 @@
       "status": "starter_landed",
       "kind": "runtime_substrate_scaffold",
       "zigux_destination": "samples/zigux/runtime_bitmap_loader.zig",
-      "why_now": "A tiny sample-side loader scaffold makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, handoff-stage checks, and a no-substrate release path without pretending a real module loader already exists."
+      "why_now": "A tiny sample-side loader scaffold now makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, the shared `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` bridge, initialized-stage shared-request snapshots that stay stable across later selftest activity, prepared selftest-hook and shared-plan drift guards, and a no-substrate release path without pretending a real module loader already exists."
     },
     {
       "id": "runtime-bitmap-top-bit-boundary",
