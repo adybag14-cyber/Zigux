@@ -71,6 +71,8 @@ REQUIRED_FILE_MARKERS = {
         "Documentation/zigux/phase12-raw-github-coverage-survey.md",
         "two commit-pinned artifacts plus two shared-tree-only anchors",
         "now explicitly pins `Documentation/zigux/phase12-release-closure-checklist.md` inside its fail-closed marker set",
+        "`Documentation/zigux/freeze-map.md` keeps `net/core/skbuff.c` frozen in C and keeps `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c` in boundary-study-only status",
+        "must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`",
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "the smallest same-lane follow-through is now shared-surface drift control",
@@ -341,7 +343,7 @@ def main() -> int:
         print("PHASE12_BUILD_ONLY_SURFACE_FAILURES_END")
         return 1
 
-    print("PHASE12_BUILD_ONLY_SURFACE=pass")
+    print(f"PHASE12_BUILD_ONLY_SURFACE=pass")
     print(f"PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT={sum(len(v) for v in REQUIRED_FILE_MARKERS.values())}")
     return 0
 
