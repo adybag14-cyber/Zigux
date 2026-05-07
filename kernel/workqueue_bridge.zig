@@ -39,6 +39,7 @@ pub const AuditGuard = enum {
     unbound_pwq_refcnt_retry,
     timer_expiry_handoff,
     delayed_requeue_state_window,
+    flush_drain_color_window,
     last_pool_lock_handoff,
     callback_execution_outside_pool_lock,
     idle_sleep_transition,
@@ -95,10 +96,10 @@ const boundary_areas = [_]BoundaryArea{
     },
     .{
         .id = "flush-and-cancel",
-        .summary = "Capture flush and cancellation coordination as boundary-map checkpoints before any completion or draining behavior is wrapped.",
-        .ownership = .boundary_map_only,
-        .anchor_symbols = &[_][]const u8{ "__flush_workqueue", "cancel_work_sync" },
-        .rationale = "Flush and cancel are caller-facing synchronization surfaces, but their correctness depends on active-color accounting, pool state, and worker progress that should stay under the existing C implementation for now.",
+        .summary = "Keep flush, drain, and cancellation coordination explicitly in C even though the caller-facing boundary is mapped for review.",
+        .ownership = .stay_in_c,
+        .anchor_symbols = &[_][]const u8{ "__flush_workqueue", "drain_workqueue", "cancel_work_sync" },
+        .rationale = "Flush and cancel are caller-facing synchronization surfaces, but __flush_workqueue() and drain_workqueue() still coordinate active-color progression, chained flushers, and in-flight pwq state that must remain under the existing C implementation for now.",
     },
     .{
         .id = "worker-pool-concurrency",
@@ -187,6 +188,15 @@ const audit_checkpoints = [_]AuditCheckpoint{
         .guard = .delayed_requeue_state_window,
         .observed_fields = &[_][]const u8{ "dwork->timer", "dwork->cpu", "dwork->wq", "work->data" },
         .blocked_by = "mod_delayed_work_on() may steal pending state, decide whether the timer can be modified in place, preserve or retarget CPU affinity, or fall through to immediate queueing, so Zigux should record that requeue gate rather than claim ownership of delayed-work rearm semantics.",
+        .ownership = .stay_in_c,
+    },
+    .{
+        .id = "flush-drain-color-ownership",
+        .anchor_symbol = "__flush_workqueue/drain_workqueue",
+        .summary = "Record that flush and drain ownership still belongs to C while active-color progression and in-flight work coordination remain coupled.",
+        .guard = .flush_drain_color_window,
+        .observed_fields = &[_][]const u8{ "wq->work_color", "wq->flush_color", "wq->first_flusher", "pwq->nr_in_flight" },
+        .blocked_by = "__flush_workqueue() and drain_workqueue() coordinate work_color, flush_color, first_flusher, and pwq->nr_in_flight while chained flushers and cancel paths wait on the same draining contract, so Zigux should record the active-color seam instead of claiming a wrapper around flush completion.",
         .ownership = .stay_in_c,
     },
     .{
@@ -293,7 +303,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Leave this lane in blocked maintenance; hotplug-driven worker migration and flush-drain ownership stay in C even after the delayed_work_timer_fn() handoff and the mod_delayed_work_on() stay-in-C requeue decision.";
+        return "Leave this lane in blocked maintenance; hotplug-driven worker migration and scheduler-visible worker-state behavior stay in C even after the flush-drain active-color governance note and the delayed-work requeue decision.";
     }
 };
 
@@ -317,9 +327,9 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expectEqualStrings("kernel/workqueue.c", map.anchor);
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 7), map.areas.len);
-    try std.testing.expectEqual(@as(usize, 3), WorkqueueBridgeLab.stayInCDecisionCount());
+    try std.testing.expectEqual(@as(usize, 4), WorkqueueBridgeLab.stayInCDecisionCount());
     try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "blocked maintenance") != null);
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "mod_delayed_work_on()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "flush-drain active-color governance note") != null);
 
     try std.testing.expectEqualStrings("submission-routing", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .boundary_map_only);
@@ -342,6 +352,12 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expect(std.mem.indexOf(u8, map.areas[3].summary, "wrapper") != null);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "descriptive rather than wrapper-shaped") != null);
 
+    try std.testing.expectEqualStrings("flush-and-cancel", map.areas[4].id);
+    try std.testing.expect(map.areas[4].ownership == .stay_in_c);
+    try std.testing.expectEqualStrings("__flush_workqueue", map.areas[4].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("drain_workqueue", map.areas[4].anchor_symbols[1]);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[4].rationale, "active-color progression") != null);
+
     try std.testing.expectEqualStrings("worker-pool-concurrency", map.areas[5].id);
     try std.testing.expect(map.areas[5].ownership == .stay_in_c);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[5].rationale, "forward-progress") != null);
@@ -357,12 +373,12 @@ test "workqueue bridge concurrency audit stays review-only" {
 
     try std.testing.expectEqualStrings("kernel/workqueue.c", audit.anchor);
     try std.testing.expectEqualStrings("boundary_map_only", audit.posture);
-    try std.testing.expectEqual(@as(usize, 13), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 14), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 6), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 13), WorkqueueBridgeLab.auditCheckpointCount());
+    try std.testing.expectEqual(@as(usize, 14), WorkqueueBridgeLab.auditCheckpointCount());
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "blocked maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "hotplug-driven worker migration") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "stay-in-C requeue decision") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "scheduler-visible worker-state behavior") != null);
 
     try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .pool_lock_released_and_reacquired);
@@ -404,24 +420,30 @@ test "workqueue bridge concurrency audit stays review-only" {
     try std.testing.expectEqualStrings("dwork->cpu", audit.checkpoints[7].observed_fields[1]);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[7].blocked_by, "immediate queueing") != null);
 
-    try std.testing.expectEqualStrings("last-pool-reentrancy-handoff", audit.checkpoints[8].id);
-    try std.testing.expect(audit.checkpoints[8].guard == .last_pool_lock_handoff);
-    try std.testing.expectEqualStrings("pwq->refcnt", audit.checkpoints[8].observed_fields[2]);
+    try std.testing.expectEqualStrings("flush-drain-color-ownership", audit.checkpoints[8].id);
+    try std.testing.expect(audit.checkpoints[8].guard == .flush_drain_color_window);
+    try std.testing.expectEqualStrings("wq->work_color", audit.checkpoints[8].observed_fields[0]);
+    try std.testing.expectEqualStrings("wq->flush_color", audit.checkpoints[8].observed_fields[1]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "first_flusher") != null);
 
-    try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[9].id);
-    try std.testing.expect(audit.checkpoints[9].guard == .callback_execution_outside_pool_lock);
-    try std.testing.expectEqualStrings("pwq->nr_in_flight", audit.checkpoints[9].observed_fields[3]);
+    try std.testing.expectEqualStrings("last-pool-reentrancy-handoff", audit.checkpoints[9].id);
+    try std.testing.expect(audit.checkpoints[9].guard == .last_pool_lock_handoff);
+    try std.testing.expectEqualStrings("pwq->refcnt", audit.checkpoints[9].observed_fields[2]);
 
-    try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[10].id);
-    try std.testing.expect(audit.checkpoints[10].guard == .idle_sleep_transition);
-    try std.testing.expectEqualStrings("pool->lock", audit.checkpoints[10].observed_fields[2]);
+    try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[10].id);
+    try std.testing.expect(audit.checkpoints[10].guard == .callback_execution_outside_pool_lock);
+    try std.testing.expectEqualStrings("pwq->nr_in_flight", audit.checkpoints[10].observed_fields[3]);
 
-    try std.testing.expectEqualStrings("scheduler-running-hooks", audit.checkpoints[11].id);
-    try std.testing.expect(audit.checkpoints[11].guard == .scheduler_callback_under_pool_lock);
-    try std.testing.expectEqualStrings("pool->nr_running", audit.checkpoints[11].observed_fields[1]);
+    try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[11].id);
+    try std.testing.expect(audit.checkpoints[11].guard == .idle_sleep_transition);
+    try std.testing.expectEqualStrings("pool->lock", audit.checkpoints[11].observed_fields[2]);
 
-    try std.testing.expectEqualStrings("rescuer-mayday-handoff", audit.checkpoints[12].id);
-    try std.testing.expect(audit.checkpoints[12].guard == .mayday_lock_then_pool_lock);
-    try std.testing.expectEqualStrings("pwq->mayday_cursor", audit.checkpoints[12].observed_fields[2]);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "kicks regular workers") != null);
+    try std.testing.expectEqualStrings("scheduler-running-hooks", audit.checkpoints[12].id);
+    try std.testing.expect(audit.checkpoints[12].guard == .scheduler_callback_under_pool_lock);
+    try std.testing.expectEqualStrings("pool->nr_running", audit.checkpoints[12].observed_fields[1]);
+
+    try std.testing.expectEqualStrings("rescuer-mayday-handoff", audit.checkpoints[13].id);
+    try std.testing.expect(audit.checkpoints[13].guard == .mayday_lock_then_pool_lock);
+    try std.testing.expectEqualStrings("pwq->mayday_cursor", audit.checkpoints[13].observed_fields[2]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[13].blocked_by, "kicks regular workers") != null);
 }
