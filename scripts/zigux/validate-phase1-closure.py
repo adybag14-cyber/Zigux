@@ -695,6 +695,7 @@ def run_self_test() -> None:
             REQUIRED_CLOSURE_MARKERS[14],
             REQUIRED_CLOSURE_MARKERS[17],
             REQUIRED_CLOSURE_MARKERS[19],
+            REQUIRED_CLOSURE_MARKERS[23],
         ]:
             closure_path.write_text(closure_text.replace(marker + "\n", "", 1), encoding="utf-8")
             missing = collect_missing_markers(tmp_root)
@@ -728,6 +729,13 @@ def run_self_test() -> None:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = collect_missing_markers(tmp_root)
         assert "manifest:missing_review_anchor_field=tools/lib/find_bit.zig:underscore_alias_anchor" in missing
+        make_fixture_root(tmp_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        del manifest["review_anchors"]["tools/lib/string.zig"]["shared_replace_char_cstr_review_summary"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "manifest:missing_review_anchor_field=tools/lib/string.zig:shared_replace_char_cstr_review_summary" in missing
         make_fixture_root(tmp_root)
 
         bench_path = tmp_root / "zigux/tests/fixtures/phase1_bench_expectations.json"
@@ -764,7 +772,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [".github/workflows/zigux-bootstrap.yml"]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=14")
 
 
 def main() -> int:
