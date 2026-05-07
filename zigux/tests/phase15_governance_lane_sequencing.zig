@@ -14,6 +14,10 @@ test "phase 15 governance sequencing note keeps the owner split explicit" {
 
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "PHASE15_SEQUENCE=governance-lane-anti-overlap") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "P15-Y06") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Documentation/zigux/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "scripts/zigux/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Documentation/zigux/review-checklist.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "zigux/tests/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Documentation/zigux/phase15-readiness-gate-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Documentation/zigux/phase15-freeze-map-governance.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Documentation/zigux/phase15-architecture-council-review-process.md") != null);
