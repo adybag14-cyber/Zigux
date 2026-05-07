@@ -43,27 +43,33 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 The current base64 helper surface exercised by this slice covers:
 
+- `paddedChars`
 - `chars`
 - `bytes`
+- `maxDecodedBytes`
 - `encode`
 - `decode`
 - `Variant.std`
 - `Variant.urlsafe`
 - `Variant.imap`
 - per-variant reverse lookup maps that mirror the kernel helper's decode classification shape for std, URL-safe, and IMAP inputs
+- helper-local canonical tail validation for padded and unpadded std, URL-safe, and IMAP decode paths
 
-The current tests check:
+The current landed helper and replay tests check:
 
 - standard RFC 4648 encode vectors with and without padding
 - standard RFC 4648 decode vectors with and without padding
 - fixture-backed decode-length parity through `bytes` across the full committed valid std, URL-safe, and IMAP decode corpus
 - variant alphabet parity for URL-safe and IMAP output
 - variant decode parity for URL-safe and IMAP inputs
-- output-length accounting through `chars`
+- output-length accounting through `paddedChars`, `chars`, and `maxDecodedBytes`
+- exact-fit encode and decode buffers across std, URL-safe, and IMAP inputs
 - destination-bounds failures before partial writes during both encode and decode
 - shared kernel-derived encode, decode, variant, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - invalid-input rejection through both `bytes` and `decode` for malformed, embedded-NUL, and variant-mismatched decode inputs
+- decode success keeps caller bytes past the returned payload untouched, and invalid-input rejection keeps destination bytes untouched
 - exhaustive canonical tail acceptance for padded and unpadded std, URL-safe, and IMAP decode paths
+- exhaustive one-byte and two-byte roundtrip coverage across std, URL-safe, and IMAP variants with and without padding
 - dedicated encode and decode perf sanity across std and URL-safe paths with and without padding through `zigux/tests/phase6_base64_perf.zig`
 
 ## Non-goals
