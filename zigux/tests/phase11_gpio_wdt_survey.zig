@@ -257,7 +257,7 @@ test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zig test zigux/tests/phase11_gpio_wdt_survey.zig") != null);
 }
 
-test "phase11 gpio_wdt module-slice note stays wired into the review packet" {
+test "phase11 gpio_wdt module and slice notes stay wired into the review packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -268,6 +268,14 @@ test "phase11 gpio_wdt module-slice note stays wired into the review packet" {
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(module_slice);
+
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-gpio-wdt-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
 
     const validation_matrix = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -283,6 +291,14 @@ test "phase11 gpio_wdt module-slice note stays wired into the review packet" {
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "registerDeviceCallSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "platform-driver registration") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "teardown and failure-mode parity") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "descriptorPreflightSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "timeoutPropertyCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "registerDeviceCallSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase11_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "teardown and failure-mode parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "hardware validation coverage") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "keep the landed descriptor, timeout-property, handoff, and register-device request summaries traceable") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "Documentation/zigux/phase11-gpio-wdt-module-slice.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "review-packet lane") != null);
