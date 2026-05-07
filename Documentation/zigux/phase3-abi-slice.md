@@ -117,7 +117,7 @@ The current Phase 3 low-level wrapper packet is still intentionally small, but i
 
 - `include/zigux/abi.h` is the authoritative C-facing layout surface for this slice.
 - `zigux/bindings/abi.zig` must mirror it with `extern struct` layout, not approximate it.
-- `include/zigux/dev_t.h` and `zigux/bindings/dev_t.zig` stay curated beside the ABI root so `dev_t` encode, decode, and range policy remains reviewable at the same boundary.
+- `include/zigux/dev_t.h` and `zigux/bindings/dev_t.zig` stay curated beside the ABI root so `dev_t` encode, decode, range policy, and last-in-range parity remain reviewable at the same boundary.
 - new boundary structs require committed fixture updates under `zigux/tests/fixtures/phase3_abi/`.
 - export shims must return explicit status codes instead of hidden failure behavior.
 - future bindings generators are allowed later, but this slice stays curated and reviewable.
