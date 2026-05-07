@@ -30,15 +30,29 @@ test "phase 5 kretprobe sample replays the bounded skip, return, and summary pat
     try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
 }
 
-test "phase 5 kretprobe sample keeps symbol retargeting and handler boundaries explicit" {
+test "phase 5 kretprobe sample keeps sample-owned retarget replay explicit" {
+    var module = sample.KretprobeExampleSample{};
+    const replay = try module.runRetargetReplay("do_sys_openat2");
+
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", replay.anchor);
+    try std.testing.expectEqualStrings(sample.KretprobeExampleSample.default_symbol_name, replay.symbol_before_retarget);
+    try std.testing.expectEqualStrings("do_sys_openat2", replay.symbol_after_retarget);
+    try std.testing.expectEqual(sample.SampleStage.cold, replay.stage_before_retarget);
+    try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_after_init);
+    try std.testing.expect(replay.empty_symbol_rejected);
+    try std.testing.expect(replay.post_init_retarget_rejected);
+    try std.testing.expectEqual(@as(usize, 1), replay.init_runs);
+    try std.testing.expectEqualStrings("do_sys_openat2", module.symbol_name);
+    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
+}
+
+test "phase 5 kretprobe sample keeps handler boundaries explicit" {
     var module = sample.KretprobeExampleSample{};
 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 100));
     try std.testing.expectError(error.InvalidSymbolName, module.retargetSymbol(""));
 
-    try module.retargetSymbol("do_sys_openat2");
     try module.init();
-    try std.testing.expectEqualStrings("do_sys_openat2", module.symbol_name);
     try std.testing.expectEqual(@as(usize, @sizeOf(i64)), module.privateDataSizeBytes());
     try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), module.maxactiveBudget());
     try std.testing.expect(!(try module.entryHandler(false, 11)));
