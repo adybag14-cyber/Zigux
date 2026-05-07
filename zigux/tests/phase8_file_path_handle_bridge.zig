@@ -147,6 +147,40 @@ test "phase 8 file-path handle bridge helper keeps malformed fdinfo values expli
     );
 }
 
+test "phase 8 file-path handle bridge helper keeps fdinfo observations reusable for planning-only compatibility" {
+    try std.testing.expectEqual(
+        @as(?file_path_handle_bridge.MapReuseObservation, null),
+        file_path_handle_bridge.mapReuseObservationFromFdinfo("stats", .{
+            .map_type = 5,
+            .key_size = 8,
+        }),
+    );
+
+    const expected = file_path_handle_bridge.MapReuseExpectation{
+        .name = "stats_map",
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20,
+        .map_extra = 7,
+    };
+    const observation = file_path_handle_bridge.mapReuseObservationFromFdinfo("stats_map", .{
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | file_path_handle_bridge.bpf_f_rdonly_prog,
+        .map_extra = 7,
+    }).?;
+    const compatibility = file_path_handle_bridge.summarizeMapReuseCompatibility(expected, observation);
+
+    try std.testing.expectEqualStrings("stats_map", observation.name);
+    try std.testing.expectEqual(file_path_handle_bridge.MapReuseCompatibility.compatible, compatibility.outcome);
+    try std.testing.expectEqual(@as(u32, 0x20), compatibility.normalized_observed_map_flags);
+    try std.testing.expect(file_path_handle_bridge.isMapReuseCompatible(expected, observation));
+}
+
 test "phase 8 file-path handle bridge helper keeps planning-only reopen attempts explicit" {
     const expected = file_path_handle_bridge.MapReuseExpectation{
         .name = "process_pinned_map",
