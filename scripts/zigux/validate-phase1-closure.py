@@ -310,6 +310,8 @@ EXPECTED_REVIEW_ANCHORS = {
             "tail_zero_clamped_next",
             "tail_and_clamped_first",
             "tail_and_clamped_next",
+            "tail_clamped_last",
+            "tail_clamped_empty_last",
         ],
     },
     "tools/lib/rbtree.zig": {
@@ -738,6 +740,13 @@ def run_self_test() -> None:
         make_fixture_root(tmp_root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_clamp_fixture_keys"].remove("tail_clamped_last")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "manifest:review_anchor_value=tools/lib/find_bit.zig:tail_clamp_fixture_keys" in missing
+        make_fixture_root(tmp_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         helper_test_anchors = manifest["review_anchors"]["tools/lib/string.zig"]["helper_test_anchors"]
         helper_test_anchors.remove('test "memparse applies suffixes before signed clamping"')
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -790,7 +799,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [".github/workflows/zigux-bootstrap.yml"]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=17")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=18")
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 1 closure packet.")
