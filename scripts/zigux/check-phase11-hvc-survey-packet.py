@@ -16,6 +16,7 @@ TEARDOWN_NOTE_PATH = "Documentation/zigux/phase11-hvc-console-teardown-note.md"
 VALIDATION_MATRIX_PATH = "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
 VERIFY_REPLAY_PATH = "drivers/tty/hvc/hvc_console_verify.zig"
 CLEANUP_REPLAY_PATH = "zigux/tests/phase11_hvc_cleanup.zig"
+MANIFEST_PATH = "zigux/tests/phase11_hvc_console_manifest.json"
 BUILD_PATH = "zigux/tests/phase11_build.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
@@ -45,6 +46,7 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`drivers/tty/hvc/hvc_console_verify.zig`",
     "`zigux/tests/phase11_hvc_cleanup.zig`",
+    "`zigux/tests/phase11_hvc_console_manifest.json`",
     "cleanup-prerequisite failure replays in `drivers/tty/hvc/hvc_console_verify.zig`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`zigux/Makefile`",
@@ -70,7 +72,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 14
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -91,6 +93,7 @@ def validate(root: Path) -> list[str]:
         VALIDATION_MATRIX_PATH,
         VERIFY_REPLAY_PATH,
         CLEANUP_REPLAY_PATH,
+        MANIFEST_PATH,
         BUILD_PATH,
         MAKEFILE_PATH,
         WORKFLOW_PATH,
@@ -168,6 +171,7 @@ The live archival packet now belongs to lane `P11-L16`.
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `drivers/tty/hvc/hvc_console_verify.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
+- `zigux/tests/phase11_hvc_console_manifest.json`
 - keeps the compile-local final-close, hung-up cleanup, and cleanup-prerequisite failure replays in `drivers/tty/hvc/hvc_console_verify.zig` explicit inside the shared packet
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `zigux/Makefile`
@@ -188,6 +192,15 @@ test \"synthetic hvc verify replay\" {
         """const std = @import(\"std\");
 test \"synthetic hvc cleanup replay\" {
     try std.testing.expect(true);
+}
+""",
+    )
+    write_text(
+        root / MANIFEST_PATH,
+        """{
+  \"phase\": \"phase11\",
+  \"lane\": \"hvc_console\",
+  \"kind\": \"archival-checkpoint\"
 }
 """,
     )
@@ -312,6 +325,12 @@ def run_self_test() -> int:
             expect_failure(
                 root,
                 VALIDATION_MATRIX_PATH,
+                "`zigux/tests/phase11_hvc_console_manifest.json`",
+                "validation_matrix:`zigux/tests/phase11_hvc_console_manifest.json`",
+            )
+            expect_failure(
+                root,
+                VALIDATION_MATRIX_PATH,
                 "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
                 "validation_matrix:`scripts/zigux/check-phase11-hvc-survey-packet.py`",
             )
@@ -323,6 +342,7 @@ def run_self_test() -> int:
             )
             expect_missing_file(root, VERIFY_REPLAY_PATH)
             expect_missing_file(root, CLEANUP_REPLAY_PATH)
+            expect_missing_file(root, MANIFEST_PATH)
         except AssertionError as exc:
             print(str(exc), file=sys.stderr)
             return 1
