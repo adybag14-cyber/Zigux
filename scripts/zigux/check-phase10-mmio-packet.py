@@ -55,6 +55,7 @@ EXPECTED_SLICE_MARKERS = [
     "one bounded config-write disposition summary",
     "one bounded probe-preflight summary",
     "one bounded selected-queue readiness summary",
+    "zig test zigux/tests/phase10_virtio_mmio.zig",
     "zig test zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 
@@ -70,6 +71,7 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "consumes that identity snapshot",
     "selected-queue readiness summary",
     "queue-ready-for-handoff posture",
+    "zig test zigux/tests/phase10_virtio_mmio.zig",
 ]
 
 EXPECTED_GAPS = {
@@ -133,6 +135,7 @@ test \"phase10 virtio mmio summarizes selected-queue readiness before queue hand
 - one bounded config-write disposition summary
 - one bounded probe-preflight summary
 - one bounded selected-queue readiness summary
+- `zig test zigux/tests/phase10_virtio_mmio.zig`
 - `zig test zigux/tests/phase10_virtio_mmio_survey.zig`
 """,
     "Documentation/zigux/phase10-virtio-mmio-survey.md": """- `PHASE10_STATUS=parked`
@@ -146,6 +149,7 @@ test \"phase10 virtio mmio summarizes selected-queue readiness before queue hand
 - consumes that identity snapshot
 - selected-queue readiness summary
 - queue-ready-for-handoff posture
+- `zig test zigux/tests/phase10_virtio_mmio.zig`
 """,
     "zigux/tests/phase10_virtio_mmio_manifest.json": json.dumps(
         {
@@ -306,6 +310,7 @@ def run_self_test() -> int:
 
         helper_path = tmp_root / "drivers/virtio/virtio_mmio.zig"
         original_helper = helper_path.read_text(encoding="utf-8")
+        helper_path.writeText = None
         helper_path.write_text(
             original_helper.replace("pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {", "pub fn transportIdentityDrift(self: *const Self) TransportIdentitySummary {", 1),
             encoding="utf-8",
@@ -357,6 +362,19 @@ def run_self_test() -> int:
         original_slice = slice_path.read_text(encoding="utf-8")
         slice_path.write_text(
             original_slice.replace(
+                "zig test zigux/tests/phase10_virtio_mmio.zig",
+                "zig test zigux/tests/phase10_virtio_mmio_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "slice:zig test zigux/tests/phase10_virtio_mmio.zig" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_slice_direct_replay_marker_missing")
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
+            original_slice.replace(
                 "zig test zigux/tests/phase10_virtio_mmio_survey.zig",
                 "zig test zigux/tests/phase10_virtio_mmio_drift.zig",
                 1,
@@ -367,6 +385,19 @@ def run_self_test() -> int:
         if "slice:zig test zigux/tests/phase10_virtio_mmio_survey.zig" not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_slice_survey_gate_marker_missing")
         slice_path.write_text(original_slice, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "zig test zigux/tests/phase10_virtio_mmio.zig",
+                "zig test zigux/tests/phase10_virtio_mmio_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:zig test zigux/tests/phase10_virtio_mmio.zig" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_survey_direct_replay_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
 
         test_path.write_text(
             original_test.replace(
@@ -381,7 +412,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_selected_queue_test_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
