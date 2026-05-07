@@ -11,7 +11,7 @@ It is a fallback-read map, not a closure claim and not a validator-first route.
 - `PHASE12_STATUS=active`
 - `PHASE12_LANE_KEY=P12-L05`
 - `PHASE12_SLICE=nvme-pci-raw-github-fallback-map`
-- scope: public tree and raw URL coverage for the shipped `nvme_pci` starter, direct verify shard, survey, build wiring, manifest, shared replay surfaces, the PMO closure companion, and the compact release coordination matrix that now travel with the active release-order packet
+- scope: public tree and raw URL coverage for the shipped `nvme_pci` starter, direct verify shard, survey, build wiring, manifest, shared replay surfaces, the driver-only anti-overlap companion, the shared fallback overview, the PMO closure companion, and the compact release coordination matrix that now travel with the active release-order packet
 - active owner lane: `P12-L05`
 
 ## Tree views
@@ -20,6 +20,8 @@ It is a fallback-read map, not a closure claim and not a validator-first route.
 - direct verify shard: `https://github.com/adybag14-cyber/Zigux/blob/master/drivers/nvme/host/pci_verify.zig`
 - slice note: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-nvme-pci-slice.md`
 - survey note: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-nvme-pci-survey.md`
+- driver-only anti-overlap companion: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
+- shared fallback overview: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - PMO closure companion: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-closure-checklist.md`
 - compact release coordination matrix: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-coordination-matrix.md`
 - shared tests index: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/README.md`
@@ -37,6 +39,8 @@ It is a fallback-read map, not a closure claim and not a validator-first route.
 - direct verify shard: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/nvme/host/pci_verify.zig`
 - slice note: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-nvme-pci-slice.md`
 - survey note: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-nvme-pci-survey.md`
+- driver-only anti-overlap companion: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
+- shared fallback overview: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - PMO closure companion: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-closure-checklist.md`
 - compact release coordination matrix: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-coordination-matrix.md`
 - shared tests index: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/README.md`
@@ -60,6 +64,10 @@ The shipped Phase 12 packet on `master` still keeps the shared smoke-first repla
 4. `make -C zigux phase12`
 
 Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether those same shipped surfaces are close enough to describe the active Phase 12 tranche as release-closed.
+
+`Documentation/zigux/phase12-complex-driver-lane-sequencing.md` should stay visible beside this fallback map and the compact release coordination matrix so the `nvme_pci` packet stays separate from `virtio_scsi` and `virtio_net` even while all three lanes share the same four-step replay order.
+
+`Documentation/zigux/phase12-raw-github-coverage-survey.md` should stay visible beside this fallback map so the two commit-pinned artifacts plus two shared-tree-only anchors split remains reviewable without turning this driver-local note into a broader fallback-ownership summary.
 
 `Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback map, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback map into a second sequencing document.
 
