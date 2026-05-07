@@ -217,6 +217,11 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 hexdump covers normalization and empty-buffer edge cases"',
     ],
     "zigux/tests/phase6_hexdump_perf.zig": [
+        'const fixtures = @import("phase6_hexdump_vectors");',
+        'for (fixtures.perf_cases) |case| {',
+        'const expected = fixtures.prepareExpectedLine(',
+        'try std.testing.expectEqual(fixtures.expectedLength(case.len, case.rowsize, case.groupsize, case.ascii), required);',
+        'try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(helper_line[0..], 0));',
         'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_CASE_COUNT={d}\n", .{fixtures.perf_cases.len});',
         'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_SLOWDOWN_PCT={d}\n", .{ case.label, slowdown_pct });',
         'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_THRESHOLD_PCT={d}\n", .{ case.label, case.max_slowdown_pct });',
@@ -440,6 +445,18 @@ def run_self_test() -> None:
             "Documentation/zigux/phase6-hexdump-slice.md",
             "helper, fixture, dedicated perf gate, and external parity slices landed; parked unless a new `hexdump.c` parity issue appears",
             "helper, fixture, and dedicated perf gate slices landed; parked unless a new `hexdump.c` parity issue appears",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_hexdump_perf.zig",
+            'const fixtures = @import("phase6_hexdump_vectors");',
+            'const fixtures = @import("phase6_hexdump_inline_cases");',
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_hexdump_perf.zig",
+            'for (fixtures.perf_cases) |case| {',
+            'for (inline_perf_cases) |case| {',
         )
         assert_failure(
             root,
