@@ -85,6 +85,9 @@ DEVRES_TEST_MARKERS = [
     "try std.testing.expectEqual(@as(?devres.ErrorStage, .pretty_name), failure.resource_stage);",
 ]
 
+MANIFEST_EXPECTED_LANE_KEY = "P13-L05"
+MANIFEST_EXPECTED_SURVEYED_COMMIT = "10369315cba5d146a7c6c4c6480ef9d279dc490f"
+
 MANIFEST_SUMMARY_KEYS = [
     "preexisting_phase13_devres_test_present",
     "preexisting_phase13_devres_reviewability_present",
@@ -117,6 +120,11 @@ def validate_manifest(text: str) -> list[str]:
         return [f"phase13-devres-manifest:json:{exc.msg}"]
 
     issues: list[str] = []
+    if manifest.get("lane_key") != MANIFEST_EXPECTED_LANE_KEY:
+        issues.append("phase13-devres-manifest-lane-key")
+    if manifest.get("surveyed_commit") != MANIFEST_EXPECTED_SURVEYED_COMMIT:
+        issues.append("phase13-devres-manifest-surveyed-commit")
+
     summary = manifest.get("survey_summary", {})
     for key in MANIFEST_SUMMARY_KEYS:
         if summary.get(key) is not True:
@@ -173,6 +181,8 @@ def seed_fixture_tree(root: Path) -> None:
         "scripts/zigux/validate-phase13-release.py": "\n".join(RELEASE_MARKERS) + "\n",
         "zigux/tests/phase13_devres_manifest.json": json.dumps(
             {
+                "lane_key": MANIFEST_EXPECTED_LANE_KEY,
+                "surveyed_commit": MANIFEST_EXPECTED_SURVEYED_COMMIT,
                 "survey_summary": {key: True for key in MANIFEST_SUMMARY_KEYS},
                 "gaps": [
                     {"id": gap_id, "status": status}
@@ -281,6 +291,8 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                "phase13-devres-manifest-lane-key",
+                "phase13-devres-manifest-surveyed-commit",
                 "phase13-devres-manifest-summary:preexisting_phase13_devres_test_present",
                 "phase13-devres-manifest-summary:preexisting_phase13_devres_reviewability_present",
                 "phase13-devres-manifest-summary:preexisting_phase13_devres_survey_present",
@@ -288,6 +300,33 @@ def run_self_test() -> int:
                 "phase13-devres-manifest-gap:phase13-devres-live-scatterlist-ownership",
             ],
             "manifest_guard_failed",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
+        write_text(
+            root / "zigux/tests/phase13_devres_manifest.json",
+            json.dumps(
+                {
+                    "lane_key": "P13-L11",
+                    "surveyed_commit": "7a4454d0474106972cad7e164b79293bd54a40c6",
+                    "survey_summary": {key: True for key in MANIFEST_SUMMARY_KEYS},
+                    "gaps": [
+                        {"id": gap_id, "status": status}
+                        for gap_id, status in MANIFEST_GAP_STATUSES.items()
+                    ],
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "phase13-devres-manifest-lane-key",
+                "phase13-devres-manifest-surveyed-commit",
+            ],
+            "manifest_metadata_guard_failed",
         )
         seed_fixture_tree(root)
         case_count += 1
