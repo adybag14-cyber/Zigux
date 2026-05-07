@@ -476,7 +476,7 @@ def run_self_test() -> int:
         ]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
             build_lines.append("b.addTest(.{")
-            buildLines.append("b.addRunArtifact(")
+            build_lines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
