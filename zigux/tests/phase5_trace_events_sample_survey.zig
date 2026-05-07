@@ -64,7 +64,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try expectContains(manifest.validation_entrypoint, "phase5_build.zig");
-    try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
@@ -86,6 +86,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     var saw_payload_prompt = false;
     var saw_public_payload_prompt = false;
     var saw_callback_prompt = false;
+    var saw_callback_boundary_prompt = false;
     var saw_contract_prompt = false;
     var saw_non_goal_prompt = false;
     var saw_descriptor_check = false;
@@ -118,6 +119,12 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "kthread") != null)
         {
             saw_callback_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "checked_focus") != null and
+            std.mem.indexOf(u8, prompt, "OutstandingRegistration") != null and
+            std.mem.indexOf(u8, prompt, "post-exit replay rejection") != null)
+        {
+            saw_callback_boundary_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "manifest-backed replay contract") != null and
             std.mem.indexOf(u8, prompt, "infer the new boundary from code alone") != null)
@@ -191,6 +198,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_payload_prompt);
     try std.testing.expect(saw_public_payload_prompt);
     try std.testing.expect(saw_callback_prompt);
+    try std.testing.expect(saw_callback_boundary_prompt);
     try std.testing.expect(saw_contract_prompt);
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_descriptor_check);
