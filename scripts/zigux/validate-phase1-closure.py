@@ -158,7 +158,7 @@ REQUIRED_CLOSURE_MARKERS = [
     ),
     (
         "closure_rbtree_review_packet_count",
-        "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while cached-root behavior keeps direct review anchors without implying a broader cached-root fixture packet than current master ships",
+        "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while cached-root replacement, detach, and reseed behavior keeps direct review anchors without implying a broader shared cached-root fixture packet than current master ships",
         1,
     ),
     (
@@ -314,6 +314,7 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "rbtree nextMatch walks the duplicate range in order"',
             'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
             'test "rbtree cached root keeps the leftmost pointer in sync"',
+            'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
             'test "rbtree eraseCached returns null for a singleton cached tree"',
             'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
             'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
