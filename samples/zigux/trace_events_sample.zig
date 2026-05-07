@@ -62,6 +62,20 @@ pub const PayloadBoundarySummary = struct {
     relative_location_path_checked: bool,
 };
 
+pub const ConditionalBoundarySummary = struct {
+    stage_before_iteration: SampleStage,
+    stage_after_iteration: SampleStage,
+    main_count: i32,
+    formatted_message: []const u8,
+    selected_string: []const u8,
+    bitmask_word: usize,
+    main_thread_event_calls: usize,
+    total_event_calls_after_replay: usize,
+    conditional_paths_checked: bool,
+    vararg_payload_path_checked: bool,
+    relative_location_path_checked: bool,
+};
+
 pub const CallbackBoundarySummary = struct {
     stage_before_callback: SampleStage,
     stage_after_callback: SampleStage,
@@ -269,6 +283,27 @@ pub const TraceEventsReferenceSample = struct {
         };
     }
 
+    pub fn runConditionalBoundaryReplay(self: *Self, count: i32) !ConditionalBoundarySummary {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+
+        const events_before = self.total_event_calls;
+        try self.replayMainIteration(count);
+
+        return .{
+            .stage_before_iteration = .initialized,
+            .stage_after_iteration = self.stage(),
+            .main_count = self.last_main_count,
+            .formatted_message = self.formattedMessage(),
+            .selected_string = self.selected_string,
+            .bitmask_word = self.bitmask_word,
+            .main_thread_event_calls = self.total_event_calls - events_before,
+            .total_event_calls_after_replay = self.total_event_calls,
+            .conditional_paths_checked = self.saw_conditional_path,
+            .vararg_payload_path_checked = self.saw_vararg_payload,
+            .relative_location_path_checked = self.saw_rel_loc_payload,
+        };
+    }
+
     pub fn runCallbackBoundaryReplay(self: *Self, count: i32) !CallbackBoundarySummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
         if (self.registration_depth != 0) return error.OutstandingRegistration;
@@ -353,6 +388,27 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(SampleFocus.ownership_and_lifetime, replay.checked_focus[5]);
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
     try std.testing.expectEqual(@as(usize, 1), sample.replay_runs);
+}
+
+test "trace-events sample keeps the conditional-event boundary explicit" {
+    var module = TraceEventsReferenceSample{};
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runConditionalBoundaryReplay(0));
+    try module.init();
+
+    const conditional_boundary = try module.runConditionalBoundaryReplay(0);
+    try std.testing.expectEqual(SampleStage.initialized, conditional_boundary.stage_before_iteration);
+    try std.testing.expectEqual(SampleStage.initialized, conditional_boundary.stage_after_iteration);
+    try std.testing.expectEqual(@as(i32, 0), conditional_boundary.main_count);
+    try std.testing.expectEqualStrings("iter=0", conditional_boundary.formatted_message);
+    try std.testing.expectEqualStrings("Mother Goose", conditional_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 0xdeadbeef), conditional_boundary.bitmask_word);
+    try std.testing.expectEqual(TraceEventsReferenceSample.event_family_count, conditional_boundary.main_thread_event_calls);
+    try std.testing.expectEqual(TraceEventsReferenceSample.event_family_count, conditional_boundary.total_event_calls_after_replay);
+    try std.testing.expect(conditional_boundary.conditional_paths_checked);
+    try std.testing.expect(conditional_boundary.vararg_payload_path_checked);
+    try std.testing.expect(conditional_boundary.relative_location_path_checked);
+    try std.testing.expectEqual(SampleStage.initialized, module.stage());
 }
 
 test "trace-events sample keeps payload and callback boundaries explicit" {
