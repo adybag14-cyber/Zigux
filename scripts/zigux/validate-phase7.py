@@ -17,6 +17,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase7-cmdline-slice.md",
     "Documentation/zigux/phase7-argv-split-slice.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
     "samples/zigux/README.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase7.py",
@@ -114,6 +115,16 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "zig build test --build-file zigux/tests/phase7_build.zig",
         "this slice does not carry an open parity-fixture follow-up",
+    ],
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
+        "PHASE7_LANE_KEY=P7-Y05",
+        "`scripts/zigux/check-phase7-make-wrapper.py`",
+        "`scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
+        "`scripts/zigux/validate-phase7.py`",
+        "`zigux/Makefile`",
+        "`.github/workflows/zigux-bootstrap.yml`",
+        "`make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface",
+        "this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`",
     ],
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;",
@@ -344,6 +355,12 @@ EXACT_COUNT_MARKERS = {
         ("exact bare-option matching for comma-delimited flags, including leading and doubled-comma empty-option acceptance plus trailing-comma rejection", 1),
         ("caller-owned buffer discipline for `next_arg()`: `nextArg()` writes NUL sentinels into the supplied mutable buffer and returns borrowed `param`, `value`, and `rest` slices into that same storage", 1),
     ],
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
+        ("PHASE7_LANE_KEY=P7-Y05", 1),
+        ("`scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`", 1),
+        ("`scripts/zigux/validate-phase7.py`", 1),
+        ("`make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface", 1),
+    ],
     "samples/zigux/README.md": [
         ("current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;", 1),
         ("treat any new `samples/zigux/*string*.zig` file as review-blocking", 1),
@@ -449,10 +466,9 @@ EXACT_COUNT_MARKERS = {
         ("phase 7 nextArg matches serialized edge fixtures", 1),
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
-        ("PHASE7_LANE_KEY=P7-Y07", 1),
-        ("phase 7 argvSplit matches focused parity fixtures", 1),
-        ("phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space", 1),
-        ("phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable", 1),
+        ("Documentation/zigux/phase7-argv-split-slice.md", 1),
+        ("zigux/tests/phase7_argv_split_manifest.json", 1),
+        ("PHASE7_LANE_KEY=", 1),
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         (
