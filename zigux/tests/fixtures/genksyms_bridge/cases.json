@@ -43,6 +43,11 @@
       "expected": "positional_passthrough_expected.json"
     },
     {
+      "name": "lone_dash_passthrough",
+      "argv": ["-", "-d"],
+      "expected": "lone_dash_passthrough_expected.json"
+    },
+    {
       "name": "help",
       "argv": ["--help"],
       "mode": "process_json",
