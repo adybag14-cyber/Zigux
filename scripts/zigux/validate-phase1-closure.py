@@ -137,8 +137,23 @@ REQUIRED_CLOSURE_MARKERS = [
         1,
     ),
     (
+        "closure_bitmap_scnprintf_tiny_buffer_review_count",
+        "PHASE1_BITMAP_SCNPRINTF_TINY_BUFFER_REVIEW=helper-local bitmap.scnprintf tiny-buffer proof stays explicit through the direct bitmap test anchor plus the shared Phase 1 parity fixture and replay so terminator-only caller buffers stay NUL-terminated and zero-length caller views return without writing hidden bytes",
+        1,
+    ),
+    (
         "closure_bitmap_copy_alias_review_count",
         "PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias proof stays explicit through the direct bitmap test anchor so bitmap_copy_clear_tail and bitmap_copy_and_extend preserve tail masking and zero-filled extension semantics",
+        1,
+    ),
+    (
+        "closure_bitmap_raw_copy_alias_review_count",
+        "PHASE1_BITMAP_RAW_COPY_ALIAS_REVIEW=helper-local raw bitmap_copy alias proof stays explicit through the direct bitmap test anchor so copy and bitmap_copy preserve unmasked source words instead of silently adopting tail-clearing semantics",
+        1,
+    ),
+    (
+        "closure_bitmap_zero_bit_noop_review_count",
+        "PHASE1_BITMAP_ZERO_BIT_NOOP_REVIEW=helper-local bitmap zero-bit no-op proof stays explicit through the direct bitmap test anchor so zero-bit windows keep mutating helpers, boolean queries, and the rendered empty-window path from touching caller-visible storage or writing hidden bytes",
         1,
     ),
     (
@@ -252,14 +267,27 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "bitmap scnprintf reports full length while truncating the buffer"',
             'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
             'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+            'test "bitmap copy alias preserves raw source words without tail clearing"',
+            'test "bitmap zero-bit helpers stay explicit no-ops"',
         ],
         "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
+        "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
+        "parity_fixture_keys": [
+            "scnprintf",
+            "truncated_scnprintf_len",
+            "truncated_scnprintf",
+            "terminator_only_scnprintf_len",
+            "terminator_only_nul",
+            "zero_length_scnprintf_len",
+        ],
         "partial_xor_review_fields": [
             "partial_xor_nbits",
             "partial_xor_masked_values",
         ],
         "scnprintf_truncation_anchor": 'test "bitmap scnprintf reports full length while truncating the buffer"',
         "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+        "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
+        "zero_bit_noop_anchor": 'test "bitmap zero-bit helpers stay explicit no-ops"',
     },
     "tools/lib/find_bit.zig": {
         "same_word_start_masks": 'test "single-word next scans honor start masks"',
