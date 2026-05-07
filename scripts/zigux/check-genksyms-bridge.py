@@ -56,27 +56,129 @@ def load_cases(fixture_dir: Path) -> dict[str, object]:
     return json.loads((fixture_dir / 'cases.json').read_text(encoding='utf-8'))
 
 
-def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
-    fixture_dir = root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
-    cases = load_cases(fixture_dir)
-    issues: list[tuple[str, str]] = []
+def load_manifest(fixture_dir: Path) -> dict[str, object]:
+    payload = json.loads((fixture_dir / 'manifest.json').read_text(encoding='utf-8'))
+    if not isinstance(payload, dict):
+        raise ValueError('genksyms bridge manifest must be a JSON object')
+    return payload
 
+
+def dedup_append(items: list[str], value: str) -> None:
+    if value not in items:
+        items.append(value)
+
+
+def collect_expected_packets(
+    cases_payload: dict[str, object],
+    *,
+    fixture_dir: Path,
+) -> tuple[list[str], list[str], list[str], list[str], list[str], list[tuple[str, str]]]:
+    issues: list[tuple[str, str]] = []
     supported_modes = {'stdout_json', 'process_json'}
     seen_names: set[str] = set()
-    for case in cases['cases']:
+    case_names: list[str] = []
+    stdout_packet: list[str] = []
+    process_packet: list[str] = []
+    normalized_stderr_packet: list[str] = []
+    action_abbrev_cases: list[str] = []
+
+    for case in cases_payload['cases']:
         name = case['name']
         if name in seen_names:
             issues.append(('DUPLICATE_GENKSYMS_BRIDGE_CASE_NAMES', name))
         else:
             seen_names.add(name)
+            case_names.append(name)
 
         mode = case.get('mode', 'stdout_json')
         if mode not in supported_modes:
             issues.append(('UNSUPPORTED_GENKSYMS_BRIDGE_CASE_MODES', f'{name}:{mode}'))
+            continue
 
         expected = case.get('expected')
         if expected and not (fixture_dir / expected).exists():
             issues.append(('MISSING_GENKSYMS_BRIDGE_EXPECTED_PATHS', f'{name}:{expected}'))
+            continue
+        if not expected:
+            continue
+
+        if mode == 'stdout_json':
+            dedup_append(stdout_packet, expected)
+        else:
+            dedup_append(process_packet, expected)
+            if case.get('normalize_stderr', False):
+                dedup_append(normalized_stderr_packet, expected)
+            if name.startswith('abbreviated_'):
+                action_abbrev_cases.append(name)
+
+    return (
+        case_names,
+        stdout_packet,
+        process_packet,
+        normalized_stderr_packet,
+        action_abbrev_cases,
+        issues,
+    )
+
+
+def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
+    fixture_dir = root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
+    cases_payload = load_cases(fixture_dir)
+    (
+        case_names,
+        stdout_packet,
+        process_packet,
+        normalized_stderr_packet,
+        action_abbrev_cases,
+        issues,
+    ) = collect_expected_packets(cases_payload, fixture_dir=fixture_dir)
+
+    manifest_path = fixture_dir / 'manifest.json'
+    if not manifest_path.exists():
+        issues.append(('MISSING_GENKSYMS_BRIDGE_MANIFEST_PATHS', 'manifest.json'))
+        return issues
+
+    try:
+        manifest = load_manifest(fixture_dir)
+    except (json.JSONDecodeError, ValueError) as exc:
+        issues.append(('INVALID_GENKSYMS_BRIDGE_MANIFEST', str(exc)))
+        return issues
+
+    expected_scalars = {
+        'tool': 'scripts/zigux/genksyms.zig',
+        'status': 'closed',
+        'mode': 'wrapper-first bridge',
+        'fixture_root': 'zigux/tests/fixtures/genksyms_bridge',
+        'fixture_case_source': 'zigux/tests/fixtures/genksyms_bridge/cases.json',
+        'harness': 'zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c',
+        'case_count': len(case_names),
+    }
+    for field, expected in expected_scalars.items():
+        actual = manifest.get(field)
+        if actual != expected:
+            issues.append(
+                (
+                    'GENKSYMS_BRIDGE_MANIFEST_DRIFT',
+                    f'{field}:expected={expected!r}:actual={actual!r}',
+                )
+            )
+
+    expected_lists = {
+        'cases': case_names,
+        'stdout_packet': stdout_packet,
+        'process_packet': process_packet,
+        'normalized_stderr_packet': normalized_stderr_packet,
+        'action_abbrev_cases': action_abbrev_cases,
+    }
+    for field, expected in expected_lists.items():
+        actual = manifest.get(field)
+        if actual != expected:
+            issues.append(
+                (
+                    'GENKSYMS_BRIDGE_MANIFEST_DRIFT',
+                    f'{field}:expected={expected!r}:actual={actual!r}',
+                )
+            )
 
     return issues
 
@@ -222,6 +324,12 @@ def build_self_test_root(root: Path) -> None:
                         'normalize_stderr': True,
                         'expected': 'invalid_short_opt_expected.json',
                     },
+                    {
+                        'name': 'abbreviated_help',
+                        'argv': ['--hel'],
+                        'mode': 'process_json',
+                        'expected': 'help_expected.json',
+                    },
                 ]
             },
             indent=2,
@@ -230,6 +338,28 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'minimal_expected.json', '{}\n')
     write_text(root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'invalid_short_opt_expected.json', '{}\n')
+    write_text(root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'help_expected.json', '{}\n')
+    write_text(
+        root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'manifest.json',
+        json.dumps(
+            {
+                'tool': 'scripts/zigux/genksyms.zig',
+                'status': 'closed',
+                'mode': 'wrapper-first bridge',
+                'fixture_root': 'zigux/tests/fixtures/genksyms_bridge',
+                'fixture_case_source': 'zigux/tests/fixtures/genksyms_bridge/cases.json',
+                'harness': 'zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c',
+                'case_count': 3,
+                'cases': ['minimal', 'invalid_short_opt', 'abbreviated_help'],
+                'stdout_packet': ['minimal_expected.json'],
+                'process_packet': ['invalid_short_opt_expected.json', 'help_expected.json'],
+                'normalized_stderr_packet': ['invalid_short_opt_expected.json'],
+                'action_abbrev_cases': ['abbreviated_help'],
+            },
+            indent=2,
+        )
+        + '\n',
+    )
 
 
 def run_self_test() -> int:
@@ -252,12 +382,14 @@ def run_self_test() -> int:
         write_text(cases_path, json.dumps(payload, indent=2) + '\n')
         issues = collect_manifest_issues(root)
         assert ('DUPLICATE_GENKSYMS_BRIDGE_CASE_NAMES', 'minimal') in issues
+        assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'cases:' in value for block, value in issues)
 
         build_self_test_root(root)
         missing_path = root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'invalid_short_opt_expected.json'
         missing_path.unlink()
         issues = collect_manifest_issues(root)
         assert ('MISSING_GENKSYMS_BRIDGE_EXPECTED_PATHS', 'invalid_short_opt:invalid_short_opt_expected.json') in issues
+        assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'process_packet:' in value for block, value in issues)
 
         assert normalize_cli_stderr("genksyms: option '--reference' requires an argument\n") == "option '--reference' requires an argument\n"
         assert normalize_cli_stderr("genksyms: option '--help' doesn't allow an argument\n") == "option '--help' doesn't allow an argument\n"
