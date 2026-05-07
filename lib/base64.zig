@@ -50,6 +50,16 @@ pub fn bytes(src: []const u8, padding: bool, variant: Variant) DecodeError!usize
     return decodedLength(src, padding, variant);
 }
 
+pub fn maxDecodedBytes(nchars: usize) usize {
+    const full_quartets = (nchars / 4) * 3;
+    return full_quartets + switch (nchars % 4) {
+        0, 1 => @as(usize, 0),
+        2 => @as(usize, 1),
+        3 => @as(usize, 2),
+        else => unreachable,
+    };
+}
+
 pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) EncodeError!usize {
     const needed = chars(src.len, padding);
     if (dst.len < needed) {
@@ -401,6 +411,32 @@ test "bytes matches canonical padded and unpadded decode sizes" {
     try std.testing.expectEqual(@as(usize, 13), try bytes("SGVsbG8sIHdvcmxkIQ", false, .std));
     try std.testing.expectEqual(@as(usize, 5), try bytes("APv_f4A", false, .urlsafe));
     try std.testing.expectEqual(@as(usize, 5), try bytes("APv,f4A=", true, .imap));
+}
+
+test "maxDecodedBytes returns the tight decoded upper bound from encoded length" {
+    const cases = [_]struct {
+        nchars: usize,
+        want: usize,
+    }{
+        .{ .nchars = 0, .want = 0 },
+        .{ .nchars = 1, .want = 0 },
+        .{ .nchars = 2, .want = 1 },
+        .{ .nchars = 3, .want = 2 },
+        .{ .nchars = 4, .want = 3 },
+        .{ .nchars = 5, .want = 3 },
+        .{ .nchars = 6, .want = 4 },
+        .{ .nchars = 7, .want = 5 },
+        .{ .nchars = 8, .want = 6 },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.want, maxDecodedBytes(case.nchars));
+    }
+
+    for (0..16) |nbytes| {
+        try std.testing.expect(maxDecodedBytes(chars(nbytes, true)) >= nbytes);
+        try std.testing.expect(maxDecodedBytes(chars(nbytes, false)) >= nbytes);
+    }
 }
 
 test "bytes rejects malformed input and non-canonical tails" {
