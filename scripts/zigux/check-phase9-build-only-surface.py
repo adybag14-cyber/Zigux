@@ -94,9 +94,9 @@ REQUIRED_SCRIPT_README_MARKERS = [
 
 REQUIRED_TESTS_README_MARKERS = [
     "keep the bounded Phase 9 runtime-loader packet wired through `Documentation/zigux/README.md`, "
-    "`scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, "
-    "`scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, "
-    "`zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, "
+    "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `scripts/zigux/README.md`, "
+    "`Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-build-only-surface.py`, "
+    "`zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/Makefile`, ".github/workflows/zigux-bootstrap.yml", "
     "`make -C zigux phase9`, the four survey entrypoints `zigux/tests/runtime_atomic64_survey.zig`, "
     "`zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_trace_events_survey.zig`, and "
     "`zigux/tests/runtime_kretprobe_survey.zig`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, "
@@ -427,6 +427,23 @@ def run_self_test() -> int:
         expect_failure(root, f"docs_readme:{PHASE9_NON_OWNER_BOUNDARY_MARKER}", "missing_docs_non_owner_boundary_marker")
 
         write_fixture_tree(root)
+        tests_readme_path = root / TESTS_README_PATH
+        tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            tests_readme.replace(
+                "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, ",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"tests_readme:{REQUIRED_TESTS_README_MARKERS[0]}",
+            "missing_tests_root_lane_sequencing_note",
+        )
+
+        write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
@@ -635,7 +652,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=22")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
