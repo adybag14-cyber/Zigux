@@ -448,6 +448,116 @@ pub const perf_cases = [_]PerfCase{
     },
 };
 
+test "phase 6 hexdump curated parity packet stays bounded to the documented matrix" {
+    const expected = [_]struct {
+        name: []const u8,
+        len: usize,
+        rowsize: usize,
+        groupsize: usize,
+        ascii: bool,
+        expected_length: usize,
+    }{
+        .{ .name = "plain rowsize-16 group-1", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 47 },
+        .{ .name = "ascii rowsize-16 group-1", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 65 },
+        .{ .name = "plain rowsize-16 group-2", .len = 16, .rowsize = 16, .groupsize = 2, .ascii = false, .expected_length = 39 },
+        .{ .name = "ascii rowsize-16 group-2", .len = 16, .rowsize = 16, .groupsize = 2, .ascii = true, .expected_length = 57 },
+        .{ .name = "ascii rowsize-16 group-4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .expected_length = 53 },
+        .{ .name = "ascii rowsize-16 group-8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .expected_length = 51 },
+        .{ .name = "ascii rowsize-32 group-2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .expected_length = 113 },
+        .{ .name = "normalized rowsize and groupsize fallback", .len = 12, .rowsize = 99, .groupsize = 3, .ascii = true, .expected_length = 61 },
+        .{ .name = "normalized uneven group fallback", .len = 9, .rowsize = 32, .groupsize = 4, .ascii = false, .expected_length = 26 },
+        .{ .name = "plain rowsize-16 group-8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = false, .expected_length = 33 },
+    };
+
+    try std.testing.expectEqual(expected.len, parity_cases.len);
+
+    for (expected, 0..) |want, idx| {
+        const actual = parity_cases[idx];
+        try std.testing.expectEqualStrings(want.name, actual.name);
+        try std.testing.expectEqual(want.len, actual.len);
+        try std.testing.expectEqual(want.rowsize, actual.rowsize);
+        try std.testing.expectEqual(want.groupsize, actual.groupsize);
+        try std.testing.expectEqual(want.ascii, actual.ascii);
+        try std.testing.expectEqual(want.expected_length, actual.expected_length);
+    }
+
+    for (parity_cases, 0..) |case, idx| {
+        try std.testing.expect(case.expected_text.current().len > 0);
+        for (parity_cases[idx + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, case.name, other.name));
+        }
+    }
+}
+
+test "phase 6 hexdump curated overflow packet stays bounded to the documented matrix" {
+    const expected = [_]struct {
+        name: []const u8,
+        buflen: usize,
+        len: usize,
+        rowsize: usize,
+        groupsize: usize,
+        ascii: bool,
+        expected_length: usize,
+    }{
+        .{ .name = "zero-sized caller buffer reports required ascii length", .buflen = 0, .len = 16, .rowsize = 7, .groupsize = 3, .ascii = true, .expected_length = 65 },
+        .{ .name = "short ascii buffer truncates but stays NUL terminated", .buflen = 8, .len = 4, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 53 },
+        .{ .name = "grouped plain buffer truncates deterministically", .buflen = 20, .len = 16, .rowsize = 16, .groupsize = 2, .ascii = false, .expected_length = 39 },
+        .{ .name = "normalized ascii buffer truncates after fallback formatting", .buflen = 12, .len = 15, .rowsize = 16, .groupsize = 8, .ascii = true, .expected_length = 64 },
+    };
+
+    try std.testing.expectEqual(expected.len, overflow_cases.len);
+
+    for (expected, 0..) |want, idx| {
+        const actual = overflow_cases[idx];
+        try std.testing.expectEqualStrings(want.name, actual.name);
+        try std.testing.expectEqual(want.buflen, actual.buflen);
+        try std.testing.expectEqual(want.len, actual.len);
+        try std.testing.expectEqual(want.rowsize, actual.rowsize);
+        try std.testing.expectEqual(want.groupsize, actual.groupsize);
+        try std.testing.expectEqual(want.ascii, actual.ascii);
+        try std.testing.expectEqual(want.expected_length, actual.expected_length);
+    }
+
+    for (overflow_cases, 0..) |case, idx| {
+        try std.testing.expect(case.expected_length >= case.buflen);
+        for (overflow_cases[idx + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, case.name, other.name));
+        }
+    }
+}
+
+test "phase 6 hexdump curated length packet stays bounded to the documented matrix" {
+    const expected = [_]LengthCase{
+        .{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },
+        .{ .name = "plain rowsize-16 group-1 line length", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 47 },
+        .{ .name = "ascii rowsize-16 group-1 line length", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 65 },
+        .{ .name = "ascii rowsize-16 group-2 line length", .len = 16, .rowsize = 16, .groupsize = 2, .ascii = true, .expected_length = 57 },
+        .{ .name = "ascii rowsize-16 group-4 line length", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .expected_length = 53 },
+        .{ .name = "ascii rowsize-32 group-1 line length", .len = 32, .rowsize = 32, .groupsize = 1, .ascii = true, .expected_length = 129 },
+        .{ .name = "plain rowsize-16 group-8 line length", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = false, .expected_length = 33 },
+        .{ .name = "normalized rowsize and groupsize fallback line length", .len = 16, .rowsize = 7, .groupsize = 3, .ascii = true, .expected_length = 65 },
+        .{ .name = "uneven group fallback line length", .len = 9, .rowsize = 32, .groupsize = 4, .ascii = false, .expected_length = 26 },
+    };
+
+    try std.testing.expectEqual(expected.len, length_cases.len);
+
+    for (expected, 0..) |want, idx| {
+        const actual = length_cases[idx];
+        try std.testing.expectEqualStrings(want.name, actual.name);
+        try std.testing.expectEqual(want.len, actual.len);
+        try std.testing.expectEqual(want.rowsize, actual.rowsize);
+        try std.testing.expectEqual(want.groupsize, actual.groupsize);
+        try std.testing.expectEqual(want.ascii, actual.ascii);
+        try std.testing.expectEqual(want.expected_length, actual.expected_length);
+    }
+
+    for (length_cases, 0..) |case, idx| {
+        try std.testing.expectEqual(expectedLength(case.len, case.rowsize, case.groupsize, case.ascii), case.expected_length);
+        for (length_cases[idx + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, case.name, other.name));
+        }
+    }
+}
 
 test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix" {
     const expected = [_]PerfCase{
