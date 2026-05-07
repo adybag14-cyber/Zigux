@@ -18,6 +18,7 @@ ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 C_HARNESS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'genksyms_bridge_c_harness.c'
 ZIG_TOOL = ROOT / 'scripts' / 'zigux' / 'genksyms.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
+SELF_TEST_CASE_COUNT = 6
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -392,9 +393,12 @@ def run_self_test() -> int:
         assert ('MISSING_GENKSYMS_BRIDGE_EXPECTED_PATHS', 'invalid_short_opt:invalid_short_opt_expected.json') in issues
         assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'process_packet:' in value for block, value in issues)
 
+        # Keep the count aligned to grouped stderr-normalization contract coverage.
         assert normalize_cli_stderr("genksyms: option '--reference' requires an argument\n") == "option '--reference' requires an argument\n"
         assert normalize_cli_stderr("genksyms: option '--help' doesn't allow an argument\n") == "option '--help' doesn't allow an argument\n"
         assert normalize_cli_stderr("genksyms: option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n") == "option '--du' is ambiguous\n"
+
+        # Keep the count aligned to grouped success-marker contract coverage.
         assert success_lines(refresh=False)[:2] == [
             'GENKSYMS_BRIDGE_DIFF=pass',
             'GENKSYMS_BRIDGE_DETERMINISM=pass',
@@ -403,7 +407,7 @@ def run_self_test() -> int:
         assert 'GENKSYMS_BRIDGE_DETERMINISM=pass' not in success_lines(refresh=True)
 
     print('GENKSYMS_BRIDGE_SELF_TEST=pass')
-    print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=7')
+    print(f'GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}')
     return 0
 
 
