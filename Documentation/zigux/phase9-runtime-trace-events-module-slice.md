@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
-- `PHASE9_SURVEYED_COMMIT=e59df689d080aa11773adda87f00c2d650caade8`
+- `PHASE9_SURVEYED_COMMIT=ccd5361c3b193d26587c6396f029fc335c783c6e`
 - scope: lifecycle starter, bounded event-emission and registration behavior, a tiny payload-oriented diff gate, a loader-handoff scaffold, the focused `phase9-runtime-trace-events-tests` build step, the dedicated lane-sequencing owner map, and lane-local survey-note plus manifest closure while the shared runtime-loader lane keeps the reusable facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` shard adjacent but separately owned
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
@@ -38,7 +38,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - bounded main-thread and function-thread event emission counters for the sample's primary tracepoint families
 - explicit registration-balance checks for the function-callback path
-- direct sample-local lifecycle proofs for post-selftest replay-summary continuity, initialized-stage failed-exit rollback before selftest, and selftest-ready failed-exit rollback until registration is balanced
+- direct sample-local lifecycle proofs for post-selftest replay-summary continuity, initialized-stage failed-exit rollback before selftest, selftest-ready failed-exit rollback until registration is balanced, and selftest rejection while callback registration is already outstanding
 - concrete main-thread payload literals for the current bounded `foo_bar`, template, conditional, template-print, and relative-location replay path, including the exported `iter=%d` format template
 - concrete function-callback payload labels for the current bounded replay path
 - a bounded `runtime_trace_events_loader` scaffold that names the planned entry and exit hooks, the `tracepoint_probe_register` and `tracepoint_probe_unregister` metadata-only labels, the current event-family summary, the prepared and initialized-stage snapshots that stay explicit even if the sample mutates again before runtime handoff, the shared-request bridge through the existing runtime-loader contract, the no-substrate release path, and the idle-registration-snapshot requirement while the shared runtime-loader surface remains unavailable
