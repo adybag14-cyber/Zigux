@@ -117,6 +117,10 @@ REQUIRED_TESTS_README_MARKERS = [
     "that does not exist on `master`",
 ]
 
+REQUIRED_TESTS_README_EXACT_COUNTS = {
+    REQUIRED_TESTS_README_MARKERS[0]: 1,
+}
+
 REQUIRED_SAMPLES_README_MARKERS = [
     "Separate Phase 9 runtime pilot family",
     "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map for the `runtime_loader` lane versus the four pilot-family packets, so the focused `phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local instead of drifting into shared loader evidence",
@@ -360,6 +364,7 @@ def validate(root: Path) -> list[str]:
 
     ensure_exact_counts(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_EXACT_COUNTS)
     ensure_exact_counts(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPT_README_EXACT_COUNTS)
+    ensure_exact_counts(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_EXACT_COUNTS)
     ensure_exact_counts(failures, "review_checklist", review_checklist, REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS)
     ensure_exact_counts(failures, "phase9_build", phase9_build, REQUIRED_PHASE9_BUILD_EXACT_COUNTS)
 
@@ -494,6 +499,19 @@ def run_self_test() -> int:
             root,
             f"tests_readme:{REQUIRED_TESTS_README_MARKERS[0]}",
             "missing_tests_root_lane_sequencing_note",
+        )
+
+        write_fixture_tree(root)
+        tests_readme_path = root / TESTS_README_PATH
+        tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            tests_readme + REQUIRED_TESTS_README_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"tests_readme_exact_count:{REQUIRED_TESTS_README_MARKERS[0]}:expected=1:actual=2",
+            "duplicate_tests_root_lane_sequencing_note",
         )
 
         write_fixture_tree(root)
@@ -739,7 +757,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=27")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
