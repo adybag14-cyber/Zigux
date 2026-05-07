@@ -11,7 +11,7 @@ This document records the bounded shared closure packet for the active Phase 10 
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
-- scope: one shared closure note for the shipped virtio core, ring, input, and MMIO lab slices plus their current manifest-backed checker, build, and Linux-style replay routes
+- scope: one shared closure note for the shipped virtio core, ring, input, and MMIO lab slices plus their current manifest-backed checker, 11-file tests-root build packet, four driver-local verifier replays, and Linux-style replay routes
 
 ## Why this note exists
 
@@ -36,9 +36,13 @@ This note closes that truthfulness gap at the shared closure layer so reviewers 
 The shared Phase 10 closure packet currently stays inside:
 
 - `drivers/virtio/virtio.zig`
+- `drivers/virtio/virtio_verify.zig`
 - `drivers/virtio/virtio_ring.zig`
+- `drivers/virtio/virtio_ring_verify.zig`
 - `drivers/virtio/virtio_input.zig`
+- `drivers/virtio/virtio_input_verify.zig`
 - `drivers/virtio/virtio_mmio.zig`
+- `drivers/virtio/virtio_mmio_verify.zig`
 - `Documentation/zigux/phase10-virtio-core-slice.md`
 - `Documentation/zigux/phase10-virtio-core-survey.md`
 - `Documentation/zigux/phase10-virtio-ring-slice.md`
@@ -54,9 +58,16 @@ The shared Phase 10 closure packet currently stays inside:
 - `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
 - `zigux/tests/phase10_build.zig`
+- `zigux/tests/phase10_virtio_core.zig`
 - `zigux/tests/phase10_virtio_core_reset_queue.zig`
+- `zigux/tests/phase10_virtio_core_survey.zig`
 - `zigux/tests/phase10_virtio_driver_id.zig`
+- `zigux/tests/phase10_virtio_ring.zig`
+- `zigux/tests/phase10_virtio_ring_survey.zig`
+- `zigux/tests/phase10_virtio_input.zig`
 - `zigux/tests/phase10_virtio_input_status_drain.zig`
+- `zigux/tests/phase10_virtio_input_survey.zig`
+- `zigux/tests/phase10_virtio_mmio.zig`
 - `zigux/tests/phase10_virtio_mmio_survey.zig`
 - `scripts/zigux/check-phase10-core-packet.py`
 - `scripts/zigux/check-phase10-ring-packet.py`
