@@ -93,7 +93,9 @@ REQUIRED_CURRENT_REPO_HANDOFF_MARKERS = (
     "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
+    "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_readiness_gate.zig",
     "zigux/tests/phase15_build.zig",
 )
@@ -194,7 +196,9 @@ REQUIRED_TESTS_README_MARKERS = (
     "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
+    "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_readiness_gate.zig",
     "zigux/Makefile",
     "make -C zigux phase15-validate",
@@ -455,6 +459,36 @@ def run_self_test() -> int:
         case_count += 1
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"]["current_repo_handoff"].replace(
+            "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
+            "zigux/tests/phase15_indefinite_c_blocker_notes.zig",
+            1,
+        )
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(
+            root,
+            ["manifest_handoff:zigux/tests/phase15_indefinite_c_blocker_evidence.zig"],
+            "missing_current_repo_handoff_blocker_evidence_marker",
+        )
+        write_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"]["current_repo_handoff"].replace(
+            "zigux/tests/phase15_governance_lane_sequencing.zig",
+            "zigux/tests/phase15_governance_lane_notes.zig",
+            1,
+        )
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(
+            root,
+            ["manifest_handoff:zigux/tests/phase15_governance_lane_sequencing.zig"],
+            "missing_current_repo_handoff_governance_lane_marker",
+        )
+        write_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["handoff_evidence"]["current_bounded_lane"] = manifest["handoff_evidence"]["current_bounded_lane"].replace("scripts-root validator path", "scripts validator path", 1)
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_only(root, ["manifest_lane:scripts-root validator path"], "missing_current_bounded_lane_marker")
@@ -495,6 +529,40 @@ def run_self_test() -> int:
             "missing_script_readme_readiness_note_marker",
         )
         script_readme_path.write_text(original_script_readme, encoding="utf-8")
+        case_count += 1
+
+        tests_readme_path = root / TESTS_README_PATH
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
+                "zigux/tests/phase15_indefinite_c_blocker_notes.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["tests_readme:zigux/tests/phase15_indefinite_c_blocker_evidence.zig"],
+            "missing_tests_readme_blocker_evidence_marker",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+        case_count += 1
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "zigux/tests/phase15_governance_lane_sequencing.zig",
+                "zigux/tests/phase15_governance_lane_notes.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["tests_readme:zigux/tests/phase15_governance_lane_sequencing.zig"],
+            "missing_tests_readme_governance_lane_marker",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
         case_count += 1
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
