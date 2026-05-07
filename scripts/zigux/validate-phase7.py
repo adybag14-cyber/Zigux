@@ -21,6 +21,7 @@ REQUIRED_FILES = [
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/check-phase7-make-wrapper.py",
+    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "scripts/zigux/check-phase7-build-wiring.py",
@@ -137,6 +138,7 @@ REQUIRED_MARKERS = {
     ],
     "scripts/zigux/README.md": [
         "scripts/zigux/check-phase7-make-wrapper.py",
+        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "scripts/zigux/check-phase7-build-wiring.py",
@@ -157,6 +159,11 @@ REQUIRED_MARKERS = {
         "--self-test",
         "PHASE7_MAKE_WRAPPER_SELF_TEST=pass",
     ],
+    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py": [
+        "--self-test",
+        "PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_SELF_TEST=pass",
+        "PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass",
+    ],
     "scripts/zigux/check-phase7-argv-split-packet.py": [
         "--self-test",
         "PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass",
@@ -174,6 +181,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/README.md",
         "scripts/zigux/validate-phase7.py",
         "scripts/zigux/check-phase7-make-wrapper.py",
+        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "scripts/zigux/check-phase7-build-wiring.py",
@@ -203,6 +211,8 @@ REQUIRED_MARKERS = {
         "scripts/zigux/validate-phase7.py",
         "scripts/zigux/check-phase7-make-wrapper.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
+        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -335,6 +345,7 @@ EXACT_COUNT_MARKERS = {
     ],
     "scripts/zigux/README.md": [
         ("scripts/zigux/check-phase7-make-wrapper.py", 1),
+        ("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py", 1),
         ("scripts/zigux/check-phase7-argv-split-packet.py", 1),
         ("scripts/zigux/check-phase7-rbtree-parity.py", 1),
         ("scripts/zigux/check-phase7-build-wiring.py", 1),
@@ -346,6 +357,8 @@ EXACT_COUNT_MARKERS = {
         ("\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n", 1),
         ("\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test\n", 1),
         ("\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py\n", 1),
+        ("\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test\n", 1),
+        ("\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py\n", 1),
         ("\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py --self-test\n", 1),
         ("\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py\n", 1),
         ("\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py --self-test\n", 1),
@@ -470,6 +483,10 @@ FIXTURE_OVERRIDES = {
     "lib/rbtree.zig": "// fixture\n",
     "scripts/zigux/check-phase7-build-wiring.py": "\n".join(
         REQUIRED_MARKERS["scripts/zigux/check-phase7-build-wiring.py"]
+    )
+    + "\n",
+    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py": "\n".join(
+        REQUIRED_MARKERS["scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py"]
     )
     + "\n",
 }
