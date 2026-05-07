@@ -135,4 +135,6 @@ This survey slice does not yet claim:
 - object-model parity for `bpf_object`, `bpf_map`, or `bpf_program`
 
 ## Next bounded step
-Treat the current starter packet as substantively landed for now: keep the shared `make -C zigux phase8-validate` gate honest, leave the bounded fdinfo-plus-reuse-planning bridge helper and its adjacent boundary survey parked as reviewable landed surface, and reopen only when the deferred `file-path-and-handle-bridge` resource boundary around direct procfs-read, bpffs-open, token-creation, reopen-flow, and fd-ownership semantics can be reviewed as one tighter packet ahead of the still-blocked object-model and loader-facing work.
+Treat the current starter packet as substantively landed for now: keep the shared `make -C zigux phase8-validate` gate honest, leave the bounded fdinfo-plus-reuse-planning bridge helper and its adjacent boundary survey parked as reviewable landed surface, and reopen first for the next smaller same-lane validator, checker, survey, README, or wording drift that appears inside the parked libbpf packet.
+
+If no smaller review-surface drift is visible, the next helper-local reopen should still be the deferred `file-path-and-handle-bridge` resource boundary around direct procfs-read, bpffs-open, token-creation, reopen-flow, and fd-ownership semantics, reviewed as one tighter packet ahead of the still-blocked object-model and loader-facing work.
