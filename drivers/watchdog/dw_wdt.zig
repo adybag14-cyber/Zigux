@@ -374,7 +374,15 @@ pub const DwWdtLab = struct {
 
     pub fn teardownSummary(self: *Self) !TeardownSummary {
         const running_before_teardown = self.isEnabled();
-        const runtime = if (running_before_teardown) self.stop() else self.runtimeSnapshot();
+        const runtime = if (running_before_teardown)
+            self.stop()
+        else blk: {
+            self.registers.current_count = 0;
+            self.registers.restart = 0;
+            self.registers.interrupt_status = 0;
+            self.hardware_running = false;
+            break :blk self.runtimeSnapshot();
+        };
         return .{
             .anchor = descriptor().anchor,
             .can_stop = self.has_reset_control,
@@ -487,6 +495,11 @@ pub const DwWdtLab = struct {
             self.hardware_running = false;
         } else if (self.isEnabled()) {
             self.hardware_running = true;
+        } else {
+            self.registers.current_count = 0;
+            self.registers.restart = 0;
+            self.registers.interrupt_status = 0;
+            self.hardware_running = false;
         }
 
         const after = self.runtimeSnapshot();
@@ -658,8 +671,33 @@ test "remove without reset control leaves active hardware running after unregist
     try std.testing.expect(summary.remove_leaves_hardware_running);
 }
 
+test "idle remove without reset control clears stale bookkeeping once hardware is already stopped" {
+    var lab = try DwWdtLab.initFixedTops(65_536, false);
+    _ = lab.setCurrentCount(5 * 65_536);
+    _ = lab.setInterruptPending(true);
+
+    const summary = lab.removeSummary();
+    try std.testing.expect(summary.debugfs_clear_requested);
+    try std.testing.expect(summary.unregister_device_requested);
+    try std.testing.expect(!summary.reset_control_available);
+    try std.testing.expect(!summary.reset_assert_requested);
+    try std.testing.expect(!summary.hardware_running_before_remove);
+    try std.testing.expect(!summary.hardware_running_after_remove);
+    try std.testing.expect(!summary.running_after_remove);
+    try std.testing.expect(!summary.interrupt_pending_after_remove);
+    try std.testing.expect(!summary.remove_leaves_hardware_running);
+
+    const runtime = lab.runtimeSnapshot();
+    try std.testing.expectEqual(@as(u32, 0), runtime.registers.current_count);
+    try std.testing.expectEqual(@as(u32, 0), runtime.registers.restart);
+    try std.testing.expect(!runtime.interrupt_pending);
+    try std.testing.expectError(error.WatchdogNotRunning, lab.ping());
+}
+
 test "teardown summary records idle no-op plus active stop-backed outcomes" {
     var unstoppable = try DwWdtLab.initFixedTops(65_536, false);
+    _ = unstoppable.setCurrentCount(5 * 65_536);
+    _ = unstoppable.setInterruptPending(true);
     const idle_unstoppable_teardown = try unstoppable.teardownSummary();
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", idle_unstoppable_teardown.anchor);
     try std.testing.expect(!idle_unstoppable_teardown.can_stop);
@@ -672,6 +710,10 @@ test "teardown summary records idle no-op plus active stop-backed outcomes" {
     try std.testing.expect(idle_unstoppable_teardown.interrupt_cleared);
     try std.testing.expect(!idle_unstoppable_teardown.running_after_teardown);
     try std.testing.expect(!idle_unstoppable_teardown.hardware_running_after_teardown);
+    const idle_unstoppable_runtime = unstoppable.runtimeSnapshot();
+    try std.testing.expectEqual(@as(u32, 0), idle_unstoppable_runtime.registers.current_count);
+    try std.testing.expectEqual(@as(u32, 0), idle_unstoppable_runtime.registers.restart);
+    try std.testing.expect(!idle_unstoppable_runtime.interrupt_pending);
 
     _ = try unstoppable.start();
     const unstoppable_teardown = try unstoppable.teardownSummary();
@@ -688,6 +730,8 @@ test "teardown summary records idle no-op plus active stop-backed outcomes" {
     try std.testing.expect(unstoppable_teardown.hardware_running_after_teardown);
 
     var stoppable = try DwWdtLab.initFixedTops(65_536, true);
+    _ = stoppable.setCurrentCount(3 * 65_536);
+    _ = stoppable.setInterruptPending(true);
     const idle_stoppable_teardown = try stoppable.teardownSummary();
     try std.testing.expect(idle_stoppable_teardown.can_stop);
     try std.testing.expect(!idle_stoppable_teardown.running_before_teardown);
@@ -699,6 +743,10 @@ test "teardown summary records idle no-op plus active stop-backed outcomes" {
     try std.testing.expect(idle_stoppable_teardown.interrupt_cleared);
     try std.testing.expect(!idle_stoppable_teardown.running_after_teardown);
     try std.testing.expect(!idle_stoppable_teardown.hardware_running_after_teardown);
+    const idle_stoppable_runtime = stoppable.runtimeSnapshot();
+    try std.testing.expectEqual(@as(u32, 0), idle_stoppable_runtime.registers.current_count);
+    try std.testing.expectEqual(@as(u32, 0), idle_stoppable_runtime.registers.restart);
+    try std.testing.expect(!idle_stoppable_runtime.interrupt_pending);
 
     _ = try stoppable.start();
     const stoppable_teardown = try stoppable.teardownSummary();
