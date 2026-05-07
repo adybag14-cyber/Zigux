@@ -3,6 +3,7 @@ const checksum = @import("checksum");
 const fixtures = @import("fixtures/phase6_checksum_vectors.zig");
 
 const Io = std.Io;
+const bench_sample_count: usize = 3;
 
 const BenchResult = struct {
     elapsed_ns: u64,
@@ -64,6 +65,12 @@ fn slowdownPct(helper_ns: u64, reference_ns: u64) u64 {
     return @intCast((@as(u128, helper_ns - reference_ns) * 100) / @as(u128, reference_ns));
 }
 
+fn medianNs(samples: []u64) u64 {
+    std.debug.assert(samples.len == bench_sample_count);
+    std.mem.sort(u64, samples, {}, std.sort.asc(u64));
+    return samples[samples.len / 2];
+}
+
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     var stdout_buffer: [4096]u8 = undefined;
@@ -79,20 +86,35 @@ pub fn main(init: std.process.Init) !void {
             return error.ChecksumPerfBaselineMismatch;
         }
 
-        const helper_result = try runHelperBench(case.bytes, case.iterations);
-        const reference_result = try runReferenceBench(case.bytes, case.iterations);
-        const slowdown_pct = slowdownPct(helper_result.elapsed_ns, reference_result.elapsed_ns);
+        var helper_elapsed_samples: [bench_sample_count]u64 = undefined;
+        var reference_elapsed_samples: [bench_sample_count]u64 = undefined;
+        var helper_checksum_accumulator: u64 = 0;
+
+        for (0..bench_sample_count) |sample_index| {
+            const helper_result = try runHelperBench(case.bytes, case.iterations);
+            const reference_result = try runReferenceBench(case.bytes, case.iterations);
+
+            helper_elapsed_samples[sample_index] = helper_result.elapsed_ns;
+            reference_elapsed_samples[sample_index] = reference_result.elapsed_ns;
+
+            if (helper_result.checksum_accumulator != reference_result.checksum_accumulator) {
+                return error.ChecksumPerfChecksumMismatch;
+            }
+
+            helper_checksum_accumulator = helper_result.checksum_accumulator;
+        }
+
+        const helper_median_ns = medianNs(helper_elapsed_samples[0..]);
+        const reference_median_ns = medianNs(reference_elapsed_samples[0..]);
+        const slowdown_pct = slowdownPct(helper_median_ns, reference_median_ns);
 
         try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_ITERATIONS={d}\n", .{ case.label, case.iterations });
-        try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_HELPER_NS={d}\n", .{ case.label, helper_result.elapsed_ns });
-        try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_REFERENCE_NS={d}\n", .{ case.label, reference_result.elapsed_ns });
+        try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_HELPER_NS={d}\n", .{ case.label, helper_median_ns });
+        try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_REFERENCE_NS={d}\n", .{ case.label, reference_median_ns });
         try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_SLOWDOWN_PCT={d}\n", .{ case.label, slowdown_pct });
         try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\n", .{ case.label, case.max_slowdown_pct });
-        try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_CHECKSUM={d}\n", .{ case.label, helper_result.checksum_accumulator });
+        try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_CHECKSUM={d}\n", .{ case.label, helper_checksum_accumulator });
 
-        if (helper_result.checksum_accumulator != reference_result.checksum_accumulator) {
-            return error.ChecksumPerfChecksumMismatch;
-        }
         if (slowdown_pct > case.max_slowdown_pct) {
             failed = true;
             try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}=fail\n", .{case.label});
