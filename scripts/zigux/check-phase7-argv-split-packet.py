@@ -70,6 +70,18 @@ REQUIRED_MARKERS = {
     ],
 }
 
+EXACT_COUNT_MARKERS = {
+    "zigux/tests/phase7_argv_split_survey.zig": [
+        ("Documentation/zigux/phase7-argv-split-slice.md", 1),
+        ("zigux/tests/phase7_argv_split_manifest.json", 1),
+        ("PHASE7_LANE_KEY=", 1),
+    ],
+    "zigux/tests/phase7_argv_split_manifest.json": [
+        ('\"id\": \"phase7-argv-split-packet-checker\"', 1),
+        ('\"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\"', 1),
+    ],
+}
+
 
 def collect_missing_files(root: Path) -> list[str]:
     missing: list[str] = []
@@ -86,6 +98,12 @@ def collect_missing_markers(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
+    for rel, marker_counts in EXACT_COUNT_MARKERS.items():
+        text = (root / rel).read_text(encoding="utf-8")
+        for marker, expected_count in marker_counts:
+            actual_count = text.count(marker)
+            if actual_count != expected_count:
+                missing.append(f"{rel}: {marker}:expected={expected_count}:actual={actual_count}")
     return missing
 
 
@@ -109,6 +127,13 @@ def write_fixture_root(tmp_root: Path) -> None:
         "lib/argv_split.zig": "// fixture\n",
     }
 
+    for rel, marker_counts in EXACT_COUNT_MARKERS.items():
+        text = fixture_text.get(rel, "")
+        for marker, _expected_count in marker_counts:
+            if marker not in text:
+                text += marker + "\n"
+        fixture_text[rel] = text
+
     for rel in REQUIRED_FILES:
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -125,6 +150,30 @@ def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
     assert missing_markers == [marker], case
+
+
+def remove_first_marker(text: str, marker: str) -> str:
+    lines = text.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        if marker in line:
+            updated = "".join(lines[:index] + lines[index + 1 :])
+            assert updated != text
+            return updated
+    updated = text.replace(marker, "", 1)
+    assert updated != text
+    return updated
+
+
+def duplicate_first_marker(text: str, marker: str) -> str:
+    lines = text.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        if marker in line:
+            updated = "".join(lines[: index + 1] + [line] + lines[index + 1 :])
+            assert updated != text
+            return updated
+    updated = text.replace(marker, f"{marker}\n{marker}", 1)
+    assert updated != text
+    return updated
 
 
 def run_self_test() -> None:
@@ -220,7 +269,7 @@ def run_self_test() -> None:
         survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
-            original_survey.replace("zigux/tests/phase7_argv_split_manifest.json", "", 1),
+            remove_first_marker(original_survey, "zigux/tests/phase7_argv_split_manifest.json"),
             encoding="utf-8",
         )
         expect_missing_marker(
@@ -232,13 +281,37 @@ def run_self_test() -> None:
         survey_path.write_text(original_survey, encoding="utf-8")
 
         survey_path.write_text(
-            original_survey.replace("PHASE7_LANE_KEY=", "", 1),
+            remove_first_marker(original_survey, "PHASE7_LANE_KEY="),
             encoding="utf-8",
         )
         expect_missing_marker(
             "argv_split_survey_lane_key_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split_survey.zig: PHASE7_LANE_KEY=",
+        )
+        case_count += 1
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            duplicate_first_marker(original_survey, "zigux/tests/phase7_argv_split_manifest.json"),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_survey_manifest_duplicate_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_survey.zig: zigux/tests/phase7_argv_split_manifest.json:expected=1:actual=2",
+        )
+        case_count += 1
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            duplicate_first_marker(original_survey, "PHASE7_LANE_KEY="),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_survey_lane_key_duplicate_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_survey.zig: PHASE7_LANE_KEY=:expected=1:actual=2",
         )
         case_count += 1
         survey_path.write_text(original_survey, encoding="utf-8")
@@ -318,6 +391,33 @@ def run_self_test() -> None:
             "argv_split_manifest_checker_destination_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split_manifest.json: \"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\"",
+        )
+        case_count += 1
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            duplicate_first_marker(original_manifest, '"id": "phase7-argv-split-packet-checker"'),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_manifest_checker_id_duplicate_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_manifest.json: \"id\": \"phase7-argv-split-packet-checker\":expected=1:actual=2",
+        )
+        case_count += 1
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            duplicate_first_marker(
+                original_manifest,
+                '"zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py"',
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_manifest_checker_destination_duplicate_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_manifest.json: \"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\":expected=1:actual=2",
         )
         case_count += 1
 
