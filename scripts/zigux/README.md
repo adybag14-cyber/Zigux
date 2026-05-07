@@ -19,6 +19,7 @@ Current bootstrap helpers
 - `validate-phase1-closure.py`
 - `validate-phase2.py`
 - `validate-phase2-closure.py`
+- `check-phase2-tool-manifest-packets.py`
 - `validate-phase3.py`
 - `validate_phase3_selftest.py`
 - `check-phase3-selftest-surface.py`
@@ -29,6 +30,7 @@ Current bootstrap helpers
 - `validate-phase3-low-level-wrapper-survey.py`
 - `validate-phase3-export-uapi-survey.py`
 - `validate-phase3-abi-bindings-syntax.py`
+- `survey-phase3-abi-constant-parity.py`
 - `artifact_diff.py`
 - `check-artifact-diff-contract.py`
 - `validate-phase4.py`
@@ -93,6 +95,7 @@ Phase 2 flow
 - `check-phase2-genksyms-bridge-selftest-alignment.py --self-test` and `check-phase2-genksyms-bridge-selftest-alignment.py` keep `check-genksyms-bridge.py`, `.github/workflows/zigux-bootstrap.yml`, and the direct `zig test scripts/zigux/genksyms.zig` replay aligned around the shipped self-test evidence for the bounded genksyms bridge lane.
 - `check-phase2-tests-readme-alignment.py` keeps `zigux/tests/README.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and the Linux-style `make -C zigux phase2-validate` plus `make -C zigux phase2` replay surface aligned around the same bounded toolchain packet.
 - `check-phase2-cross-selftest-alignment.py` keeps `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` aligned around the bounded three-target compile matrix.
+- `check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed `fixdep`, `genksyms`, and `kconfig` packet manifests so the shared Phase 2 tool inventory stays explicit before the direct Zig replays run.
 - `check-phase2-toolchain-pin-scope.py --self-test` and `check-phase2-toolchain-pin-scope.py` keep `scripts/zigux/zig-toolchain-policy.json`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, and this scripts index aligned around the current x86_64-linux bootstrap host target while the cross-target compile matrix stays a separate Phase 2 surface.
 - `check-fixdep-diff.py` compares the bounded `fixdep.zig` output against the committed fixture set, including `zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt`.
 - `check-genksyms-bridge.py` exercises the bounded `genksyms.zig` bridge parity lane.
@@ -106,11 +109,12 @@ Phase 3 flow
 - `validate-phase3.py` validates discovered Phase 3 slices, their required manifests, build steps, and doc markers, and can optionally audit the generated artifact-diff section and slug-sanity rules.
 - `validate_phase3_selftest.py` reruns the validator-local `--self-test` packet through one shared wrapper when contributors want a focused check on the Phase 3 validator support scripts themselves; `make -C zigux phase3-validate` already invokes those underlying self-tests directly, so the shared runner stays a manual or targeted safety check instead of duplicating the default validation route.
 - `check-phase3-selftest-surface.py` keeps `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase3-abi-slice.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `scripts/zigux/validate_phase3_selftest.py`, and `make -C zigux phase3-selftest` aligned around that manual-only support-script rerun, and `make -C zigux phase3-validate` now executes the checker so this shared review packet fails closed without turning `phase3-selftest` into a duplicate default replay route.
-- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `check-phase3-abi-dump-gate.py`, `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.
+- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `check-phase3-abi-dump-gate.py`, `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.
 - `validate-phase3-policy-unsafe-survey.py` keeps the Phase 3 policy-and-unsafe boundary survey aligned with the landed allocator-policy, panic-policy, MMIO, narrow-unsafe, ABI-test, ABI-dump, and `zigux/Makefile` validation packet.
 - `validate-phase3-low-level-wrapper-survey.py` keeps the focused low-level wrapper boundary survey aligned with the landed atomic, barrier, MMIO, focused wrapper replay, shared ABI packet, and blob-pinned survey evidence.
 - `validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `include/linux/zigux.h`, `include/zigux/abi.h`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and the workflow hooks that rerun that same survey surface.
 - `validate-phase3-abi-bindings-syntax.py` keeps the authoritative Phase 3 ABI header, the curated ABI and `dev_t` bindings, the Phase 3 ABI manifest, and the slice note free of fused top-level syntax drift while the dedicated export/UAPI survey stays an adjacent boundary packet.
+- `survey-phase3-abi-constant-parity.py` keeps the shipped ABI constant packet aligned across `include/zigux/abi.h`, `zigux/bindings/abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json`.
 - `phase3_catalog.py` discovers Phase 3 slices from the docs, dump entrypoints, and fixture manifests instead of maintaining one giant hard-coded inventory, and now carries per-slice metadata such as display descriptions, build-step overrides, and the current `PHASE3_INTEROP_GATE` mode recorded in each slice doc.
 - `phase3_catalog.py --self-test` exercises isolated slug discovery, manifest selection, and interop-gate classification across docs, dumps, and fixture candidates.
 - `phase3_catalog.py --legacy-wrapper-docs` lists the discovered slice docs that still point at legacy `check-phase3-*.py` compatibility wrappers.
