@@ -309,7 +309,7 @@ def validate_exact_workflow_runs(workflow_run_lines: list[str]) -> list[str]:
 
 
 def validate_root(root: Path) -> list[str]:
-    missing = [str(path.relative_to(root)) for path in required_files(ROOT) if not path.exists()]
+    missing = [str(path.relative_to(root)) for path in required_files(root) if not path.exists()]
     if missing:
         return [f"missing_file:{item}" for item in missing]
 
@@ -498,32 +498,6 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def build_script_readme_text() -> str:
-    helper_lines = [
-        "- `check-zig-toolchain.py`",
-        "- `install-zig.py`",
-        "- `check-fixdep-diff.py`",
-        "- `check-genksyms-bridge.py`",
-        "- `check-phase2-genksyms-bridge-selftest-alignment.py`",
-        "- `check-genksyms-crc-diff.py`",
-        "- `check-kconfig-bridge.py`",
-        "- `check-phase2-tests-readme-alignment.py`",
-        "- `check-phase2-cross-selftest-alignment.py`",
-        "- `check-phase2-toolchain-pin-scope.py`",
-        "- `check-phase2-cross.py`",
-        "- `check-mk-elfconfig-diff.py`",
-        "- `validate-phase2.py`",
-        "- `validate-phase2-closure.py`",
-        "- `fixdep.zig`",
-        "- `genksyms.zig`",
-        "- `genksyms_crc.zig`",
-        "- `kconfig/conf_bridge.zig`",
-        "- `kconfig/confdata_bridge.zig`",
-        "- `mk_elfconfig.zig`",
-    ]
-    return "\n".join(helper_lines) + "\n"
-
-
 def write_stub_guard(path: Path, *, self_test_marker: str, live_markers: list[str]) -> None:
     lines = [
         "#!/usr/bin/env python3",
@@ -556,6 +530,32 @@ def write_stub_guard(path: Path, *, self_test_marker: str, live_markers: list[st
         ]
     )
     write_text(path, "\n".join(lines))
+
+
+def build_script_readme_text() -> str:
+    helper_lines = [
+        "- `check-zig-toolchain.py`",
+        "- `install-zig.py`",
+        "- `check-fixdep-diff.py`",
+        "- `check-genksyms-bridge.py`",
+        "- `check-phase2-genksyms-bridge-selftest-alignment.py`",
+        "- `check-genksyms-crc-diff.py`",
+        "- `check-kconfig-bridge.py`",
+        "- `check-phase2-tests-readme-alignment.py`",
+        "- `check-phase2-cross-selftest-alignment.py`",
+        "- `check-phase2-toolchain-pin-scope.py`",
+        "- `check-phase2-cross.py`",
+        "- `check-mk-elfconfig-diff.py`",
+        "- `validate-phase2.py`",
+        "- `validate-phase2-closure.py`",
+        "- `fixdep.zig`",
+        "- `genksyms.zig`",
+        "- `genksyms_crc.zig`",
+        "- `kconfig/conf_bridge.zig`",
+        "- `kconfig/confdata_bridge.zig`",
+        "- `mk_elfconfig.zig`",
+    ]
+    return "\n".join(helper_lines) + "\n"
 
 
 def build_self_test_root(root: Path) -> None:
