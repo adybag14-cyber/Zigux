@@ -118,6 +118,19 @@ Only `samples/zigux/README.md` and `Documentation/zigux/review-checklist.md` sho
 
 This keeps later closure-note work small while preserving the explicit split between the shared loader lane, the bitmap-only top-bit replay, the samples-root and checklist-facing command and environment boundaries, the shipped checker self-test hook, and the four pilot-family packets.
 
+## Focused convenience targets
+
+When a shared Phase 9 closure note or reminder surface names the exact replay routes, keep the current `zigux/Makefile` convenience targets explicit instead of paraphrasing them:
+
+- shared loader lane: `make -C zigux phase9-runtime-loader-shared-tests`
+- atomic64 pilot lane: `make -C zigux phase9-runtime-atomic64-test`
+- bitmap pilot lane: `make -C zigux phase9-runtime-bitmap-top-bit-test`
+- trace-events pilot lane: `make -C zigux phase9-runtime-trace-events-test`
+- kretprobe pilot lane: `make -C zigux phase9-runtime-kretprobe-test`
+- bundled Phase 9 replay: `make -C zigux phase9`
+
+This shared note owns those exact convenience-target names for closure work; later docs-root, scripts-root, tests-root, samples-root, and checklist refreshes should point back here instead of inventing shorter aliases or flattening the focused lane routes into the bundled `phase9` replay.
+
 ## Current live follow-through state
 
 - `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`
