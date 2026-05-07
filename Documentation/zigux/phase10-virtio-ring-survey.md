@@ -9,7 +9,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 - lane: `P10-L07`
 - surveyed commit: `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
 - roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
-- scope: survey manifest, dedicated survey gate, the dedicated ring packet review guard, the shared Phase 10 core, input, and MMIO packet guards, the shared core, ring, input, and MMIO survey manifests, the shared tests-root review companion, the shared driver-lane sequencing note, the direct ring helper replay, the wrapper-facing ring verifier replay, shared Phase 10 build wiring, the shared reset-queue, driver-id, and input status-drain replays, the Linux-style replay route, and a lane-level note that records the current landed ring and adjacent MMIO footholds plus the remaining transport-facing gap against the roadmap
+- scope: survey manifest, dedicated survey gate, the dedicated ring packet review guard, the direct ring helper replay, the wrapper-facing ring verifier replay, shared Phase 10 build wiring, the shared reset-queue and driver-id replays, the Linux-style replay route, and one lane-level note that records the current queue-local virtqueue foothold plus the remaining roadmap lab-driver gap
 - product boundary:
   - `zigux/tests/phase10_virtio_ring_manifest.json`
   - `zigux/tests/phase10_virtio_ring_survey.zig`
@@ -24,18 +24,18 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 ## Why this slice exists
 
-The Phase 10 roadmap names `drivers/virtio/virtio_ring.c` as a primary anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
+The Phase 10 roadmap names `drivers/virtio/virtio_ring.c` as a primary anchor and asks Zigux to prove virtqueue wrappers before widening into transport-backed lifecycle work.
 
-The live repo already has a bounded `drivers/virtio/virtio.zig` core starter with queue callback bookkeeping, descriptor-shape metadata, and notification accounting. This survey started by making the missing ring-helper gap explicit, and it now records that the first `drivers/virtio/virtio_ring.zig` lab slice has landed plus small used-buffer polling, callback re-enable, delayed-callback pacing, broken-queue discipline, a queue-local reset helper, a reset-readiness preflight, and notify-prepare bookkeeping without pretending queue lifecycle parity is complete. The adjacent MMIO packet has also advanced beyond an older register-window-only foothold and now records bounded queue-size, feature-word, config-window, config-write-plan, config-write-disposition, and probe-preflight helpers as landed, alongside the shorter-restage stale-data replay proof.
+The live repo already has a bounded `drivers/virtio/virtio.zig` core starter plus the first `drivers/virtio/virtio_ring.zig` queue-local helper. This survey exists to answer the roadmap question honestly: the ring packet now has a real queue-local ring foothold with in-memory virtqueue evidence, but that lab-only helper does not yet cross the roadmap's lab-driver threshold.
 
 ## Survey findings
 
-- `drivers/virtio/virtio_ring.c` is present on `master` at 3940 lines and spans split rings, packed rings, descriptor state, DMA mapping helpers, callback toggling, notification bookkeeping, queue reset, resize, and break or unbreak handling.
-- the live repo already ships `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`.
-- the current Zigux VirtIO ring surface now includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing, broken-queue discipline that blocks fresh publish, kick, poll, and callback snapshots, a queue-local reset helper that clears queue bookkeeping while preserving shape metadata for reuse, a reset-readiness preflight, notify-prepare bookkeeping, and a wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay that rechecks reset-readiness plus delayed-callback pacing against that helper surface.
-- the live Phase 10 packet now also records the adjacent `drivers/virtio/virtio_mmio.zig` footholds as landed: a tiny register window, queue-size staging, one bounded feature-word selector and read window, one small config-word window rooted in staged MMIO config bytes, one bounded config-write-plan summary that keeps config mutations out of scope, one bounded config-write-disposition summary that reports the changed-byte mask and prepared window end offset without mutating config space, and one bounded probe-preflight summary for the earliest `virtio_mmio_probe()`-style checks. The dedicated MMIO replay also proves that a shorter restaged config window clears stale second-word data instead of leaving old bytes readable.
-- the live repo still does not model real descriptor tables, DMA helpers, interrupt callbacks, or transport-backed queue reset semantics.
-- this leaves only the riskier MMIO lifecycle, IRQ, queue-discovery, and reset follow-up blocked behind the already-landed queue-wrapper and MMIO footholds.
+- `drivers/virtio/virtio_ring.c` is present on `master` and still spans split rings, packed rings, descriptor state, DMA mapping helpers, callback toggling, notification bookkeeping, queue reset, resize, and break or unbreak handling.
+- the live repo already ships `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, and `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`.
+- the current Zigux VirtIO ring surface includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing, broken-queue discipline, queue-local reset bookkeeping, reset-readiness preflight, and notify-prepare bookkeeping.
+- the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay keeps reset-readiness blockers and delayed-callback pacing live beside the direct ring-helper replay.
+- the honest roadmap gap is no longer missing queue-local virtqueue evidence. The remaining blocked bridge is transport-backed queue discovery, IRQ acknowledgement, queue reset execution, and probe/remove lifecycle behavior needed to turn the queue-local helper into a true lab driver.
+- that blocked bridge is owned by the adjacent `P10-L10` MMIO packet. This ring survey may name that dependency, but it does not absorb MMIO helper growth or MMIO next-step selection.
 
 ## Recorded gaps
 
@@ -53,26 +53,20 @@ The survey manifest now records:
 - the landed `phase10-broken-queue-poll-guard`
 - the landed `phase10-queue-reset-helper`
 - the landed `phase10-queue-reset-readiness-helper`
-- the landed `phase10-mmio-register-window-helper`
-- the landed `phase10-mmio-queue-size-helper`
-- the landed `phase10-mmio-feature-word-selector-helper`
-- the landed `phase10-mmio-config-window-helper`
-- the landed `phase10-mmio-config-write-plan-helper`
-- the landed `phase10-mmio-config-write-disposition-helper`
-- the landed `phase10-mmio-probe-preflight-helper`
-- the still-blocked `phase10-mmio-lifecycle-and-irq-paths`
+- the landed `phase10-ring-verify-replay`
 - the landed `phase10-virtio-ring-slice-note`
+- the still-blocked `phase10-ring-lab-driver-bridge`
 
-This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback re-enable, delayed-callback pacing, notify-prepare bookkeeping, broken-queue discipline, the queue-local reset helper, the reset-readiness preflight, the wrapper-facing ring verifier replay, and the bounded MMIO register, queue-size, feature-word, config-window, config-write-plan, config-write-disposition, and probe-preflight helpers are all landed, with the shorter-restage stale-data replay keeping that adjacent MMIO packet honest, and the risky transport-facing lifecycle work is still intentionally blocked. That blocked MMIO lifecycle and IRQ follow-up remains owned by the adjacent `virtio_mmio` packet plus the dedicated `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py` guards, the four shipped survey manifests, the shared tests-root review companion, the shared driver-lane sequencing note, the shared `zigux/tests/phase10_build.zig` and `zigux/Makefile` replay surface that carries the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` replays, and the Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` routes, not by this queue-local ring survey note.
+This keeps the lane concrete without overstating progress. The queue-local wrapper foothold is real and reviewable today, and the remaining roadmap gap is the transport-backed lab-driver bridge rather than another missing ring-local helper.
 
 ## Freeze boundary
 
 - `Documentation/zigux/freeze-map.md` is the governing boundary note for this queue-local survey packet.
 - freeze-boundary owner: `P10-L10`
-- rollback owner: keep the dedicated `scripts/zigux/check-phase10-ring-packet.py` guard, the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay, the shared `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py` guards, the four shipped survey manifests, the shared tests-root review companion, the shared driver-lane sequencing note, the shared `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, and `zigux/Makefile` replay routes aligned, including `make -C zigux phase10-test` and `make -C zigux phase10`, before widening this queue-local note.
+- rollback owner: keep the dedicated `scripts/zigux/check-phase10-ring-packet.py` guard, the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay, the shared `zigux/tests/phase10_build.zig`, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig` and `zigux/tests/phase10_virtio_driver_id.zig` replays, the shared driver-lane sequencing note, and the Linux-style `make -C zigux phase10-test` plus `make -C zigux phase10` routes aligned before widening this queue-local note.
 - this ring survey stays inside `drivers/virtio/*.zig`; it does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain Phase 14 study-only anchors under the freeze map.
 - the Phase 15 freeze-in-C anchors `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c` also remain outside this lane; this survey does not claim scheduler, MM, RCU, or skbuff ownership, parity, or Architecture Council reopen authority.
-- the allowed evidence here is the ring survey note, its manifest, its focused survey gate, the dedicated `scripts/zigux/check-phase10-ring-packet.py` guard, the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay, the shared `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py` guards, the four shipped survey manifests, the shared tests-root review companion, the shared driver-lane sequencing note, the shared `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` replays, the Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` replay routes, and the roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`; this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.
+- the allowed evidence here is the ring survey note, its manifest, its focused survey gate, the dedicated `scripts/zigux/check-phase10-ring-packet.py` guard, the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay, the shared driver-lane sequencing note, the shared `zigux/tests/phase10_build.zig`, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig` and `zigux/tests/phase10_virtio_driver_id.zig` replays, the Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` replay routes, and the roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`; this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.
 
 ## Non-goals
 
@@ -81,7 +75,7 @@ This survey slice does not yet claim:
 - real split-ring or packed-ring descriptor parity
 - DMA mapping or unmapping wrappers
 - `virtqueue_add_*`, `virtqueue_get_buf`, or `vring_interrupt` lifecycle behavior
-- `virtio_mmio.c` transport glue beyond the already-landed bounded helper windows
+- transport-backed queue discovery, IRQ acknowledgement, queue reset execution, or probe/remove lifecycle behavior
 
 ## Gates
 
@@ -102,8 +96,8 @@ This survey slice does not yet claim:
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Taken together, these gates keep the bounded virtqueue-wrapper packet reviewable through the dedicated ring packet guard, the direct ring-helper replay, the dedicated ring-survey replay, the shared `zigux/tests/phase10_build.zig` route that carries the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay, the direct build replay, the shipped Phase 10 core, input, and MMIO packet guards behind `make -C zigux phase10-test`, and the Linux-style Phase 10 test entrypoints on `master`.
+Taken together, these gates keep the bounded virtqueue-wrapper packet reviewable through the dedicated ring packet guard, the direct ring-helper replay, the dedicated ring-survey replay, the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay carried by the shared build, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig` and `zigux/tests/phase10_virtio_driver_id.zig` replays, and the Linux-style Phase 10 test entrypoints on `master`.
 
 ## Next bounded step
 
-Keep the broader Phase 10 virtio lane parked unless fresh repo inspection shows the ring packet itself drifted. Inside this ring lane, the only honest next bounded step is one more wrapper-facing verifier follow-up in `drivers/virtio/virtio_ring_verify.zig` for broken-queue recovery or packed-ring event-index behavior if the live repo shows a truthfulness gap. Do not reopen MMIO, DMA, interrupt acknowledgement, queue discovery, reset execution, or probe/remove lifecycle work from this note.
+Keep the broader Phase 10 virtio lane parked unless fresh repo inspection shows the ring packet itself drifted. Inside this ring lane, the only honest next bounded step is one more wrapper-facing verifier follow-up in `drivers/virtio/virtio_ring_verify.zig` for broken-queue recovery or packed-ring event-index behavior if the live repo shows a truthfulness gap. Do not reopen MMIO helper growth, DMA, interrupt delivery, queue discovery, reset execution, or probe/remove lifecycle work from this note.
