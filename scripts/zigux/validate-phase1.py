@@ -151,6 +151,7 @@ REQUIRED_FIND_BIT_TEST_ANCHORS = [
     'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
     'test "zero-bit windows return without reading bitmap words"',
     'test "next scans past nbits return without reading bitmap words"',
+    'test "low-level underscore aliases mirror the primary find helpers"',
 ]
 
 REQUIRED_BITMAP_TEST_ANCHORS = [
@@ -164,6 +165,8 @@ REQUIRED_BITMAP_TEST_ANCHORS = [
     'test "bitmap scnprintf reports full length while truncating the buffer"',
     'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
     'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+    'test "bitmap copy alias preserves raw source words without tail clearing"',
+    'test "bitmap zero-bit helpers stay explicit no-ops"',
 ]
 
 REQUIRED_STRING_TEST_ANCHORS = [
@@ -171,12 +174,16 @@ REQUIRED_STRING_TEST_ANCHORS = [
     'test "strlcpy copies and returns the source length"',
     'test "streq matches C-string equality semantics"',
     'test "skip trim remove and replace spaces work in place"',
+    'test "strreplace mirrors replaceChar C-string semantics"',
     'test "strHasPrefix honors C-string boundaries"',
+    'test "strstarts mirrors the header-level prefix helper"',
+    'test "strEndsWith honors C-string boundaries"',
     'test "memdup and memchrInv preserve byte content"',
     'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
     'test "memparse handles decimal hexadecimal octal and suffixes"',
     'test "memparse keeps original rest when sign is not followed by digits"',
     'test "memparse saturates signed overflow instead of trapping"',
+    'test "memparse keeps signed values and their trailing rest aligned"',
     'test "memparse consumes suffix after saturation"',
 ]
 
@@ -187,8 +194,11 @@ REQUIRED_RBTREE_TEST_ANCHORS = [
     'test "rbtree postorder and empty node helpers behave"',
     'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
     'test "rbtree nextMatch walks the duplicate range in order"',
+    'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
     'test "rbtree cached root keeps the leftmost pointer in sync"',
     'test "rbtree eraseCached returns null for a singleton cached tree"',
+    'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
+    'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
 ]
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
@@ -218,16 +228,31 @@ EXPECTED_MANIFEST_REVIEW_ANCHORS = {
             'test "bitmap scnprintf reports full length while truncating the buffer"',
             'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
             'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+            'test "bitmap copy alias preserves raw source words without tail clearing"',
+            'test "bitmap zero-bit helpers stay explicit no-ops"',
+        ],
+        "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
+        "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
+        "parity_fixture_keys": [
+            "scnprintf",
+            "truncated_scnprintf_len",
+            "truncated_scnprintf",
+            "terminator_only_scnprintf_len",
+            "terminator_only_nul",
+            "zero_length_scnprintf_len",
         ],
         "partial_xor_review_fields": ["partial_xor_nbits", "partial_xor_masked_values"],
         "scnprintf_truncation_anchor": 'test "bitmap scnprintf reports full length while truncating the buffer"',
         "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+        "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
+        "zero_bit_noop_anchor": 'test "bitmap zero-bit helpers stay explicit no-ops"',
     },
     "tools/lib/find_bit.zig": {
         "same_word_start_masks": 'test "single-word next scans honor start masks"',
         "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
         "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
         "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
+        "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers"',
         "tail_clamp_fixture_keys": [
             "tail_clamped_first",
             "tail_clamped_next",
@@ -245,8 +270,11 @@ EXPECTED_MANIFEST_REVIEW_ANCHORS = {
             'test "rbtree postorder and empty node helpers behave"',
             'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
             'test "rbtree nextMatch walks the duplicate range in order"',
+            'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
             'test "rbtree cached root keeps the leftmost pointer in sync"',
             'test "rbtree eraseCached returns null for a singleton cached tree"',
+            'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
+            'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
         ],
         "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
         "parity_fixture_keys": [
@@ -266,22 +294,51 @@ EXPECTED_MANIFEST_REVIEW_ANCHORS = {
             'test "strlcpy copies and returns the source length"',
             'test "streq matches C-string equality semantics"',
             'test "skip trim remove and replace spaces work in place"',
+            'test "strreplace mirrors replaceChar C-string semantics"',
             'test "strHasPrefix honors C-string boundaries"',
+            'test "strstarts mirrors the header-level prefix helper"',
+            'test "strEndsWith honors C-string boundaries"',
             'test "memdup and memchrInv preserve byte content"',
             'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
             'test "memparse handles decimal hexadecimal octal and suffixes"',
             'test "memparse keeps original rest when sign is not followed by digits"',
             'test "memparse saturates signed overflow instead of trapping"',
+            'test "memparse keeps signed values and their trailing rest aligned"',
             'test "memparse consumes suffix after saturation"',
         ],
         "memparse_review_anchors": [
             'test "memparse keeps original rest when sign is not followed by digits"',
             'test "memparse saturates signed overflow instead of trapping"',
+            'test "memparse keeps signed values and their trailing rest aligned"',
             'test "memparse consumes suffix after saturation"',
         ],
-        "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed overflow saturates, and suffixes are still consumed after saturation",
+        "prefix_suffix_review_anchors": [
+            'test "strHasPrefix honors C-string boundaries"',
+            'test "strstarts mirrors the header-level prefix helper"',
+            'test "strEndsWith honors C-string boundaries"',
+        ],
+        "prefix_suffix_review_summary": "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields",
+        "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, signed overflow saturates, and suffixes are still consumed after saturation",
         "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
-        "parity_fixture_keys": ["replace_char", "replace_char_end", "memchr_inv_index", "memchr_inv_none"],
+        "shared_replace_char_cstr_review_summary": "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without widening helper-local memparse ownership",
+        "parity_fixture_keys": [
+            "strtobool_y",
+            "strtobool_on",
+            "strtobool_zero",
+            "strtobool_off",
+            "strtobool_invalid",
+            "strlcpy_len",
+            "strlcpy_buffer",
+            "skip_spaces",
+            "trim_spaces",
+            "remove_spaces",
+            "replace_char",
+            "replace_char_end",
+            "replace_char_cstr_end",
+            "replace_char_cstr_bytes",
+            "memchr_inv_index",
+            "memchr_inv_none",
+        ],
     },
 }
 
@@ -502,12 +559,29 @@ def make_fixture_root(tmp_root: Path) -> None:
         encoding="utf-8",
     )
 
+    find_bit_path = tmp_root / "tools" / "lib" / "find_bit.zig"
+    find_bit_path.parent.mkdir(parents=True, exist_ok=True)
+    find_bit_path.write_text("\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS) + "\n", encoding="utf-8")
+
+    bitmap_path = tmp_root / "tools" / "lib" / "bitmap.zig"
+    bitmap_path.parent.mkdir(parents=True, exist_ok=True)
+    bitmap_path.write_text("\n".join(REQUIRED_BITMAP_TEST_ANCHORS) + "\n", encoding="utf-8")
+
+    string_path = tmp_root / "tools" / "lib" / "string.zig"
+    string_path.parent.mkdir(parents=True, exist_ok=True)
+    string_path.write_text("\n".join(REQUIRED_STRING_TEST_ANCHORS) + "\n", encoding="utf-8")
+
+    rbtree_path = tmp_root / "tools" / "lib" / "rbtree.zig"
+    rbtree_path.parent.mkdir(parents=True, exist_ok=True)
+    rbtree_path.write_text("\n".join(REQUIRED_RBTREE_TEST_ANCHORS) + "\n", encoding="utf-8")
+
     docs_readme_path = tmp_root / "Documentation" / "zigux" / "README.md"
     docs_readme_path.parent.mkdir(parents=True, exist_ok=True)
-    docs_readme_path.write_text(
-        "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n",
-        encoding="utf-8",
-    )
+    docs_readme_path.write_text("\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n", encoding="utf-8")
+
+    tests_readme_path = tmp_root / "zigux" / "tests" / "README.md"
+    tests_readme_path.parent.mkdir(parents=True, exist_ok=True)
+    tests_readme_path.write_text("\n".join(REQUIRED_TESTS_ROOT_MARKERS) + "\n", encoding="utf-8")
 
     review_checklist_path = tmp_root / "Documentation" / "zigux" / "review-checklist.md"
     review_checklist_path.parent.mkdir(parents=True, exist_ok=True)
@@ -516,102 +590,34 @@ def make_fixture_root(tmp_root: Path) -> None:
         encoding="utf-8",
     )
 
-    tests_readme_path = tmp_root / "zigux" / "tests" / "README.md"
-    tests_readme_path.parent.mkdir(parents=True, exist_ok=True)
-    tests_readme_path.write_text(
-        "\n".join(REQUIRED_TESTS_ROOT_MARKERS) + "\n",
-        encoding="utf-8",
-    )
-
-    for rel, markers in [
-        ("tools/lib/find_bit.zig", REQUIRED_FIND_BIT_TEST_ANCHORS),
-        ("tools/lib/bitmap.zig", REQUIRED_BITMAP_TEST_ANCHORS),
-        ("tools/lib/string.zig", REQUIRED_STRING_TEST_ANCHORS),
-        ("tools/lib/rbtree.zig", REQUIRED_RBTREE_TEST_ANCHORS),
-    ]:
-        path = tmp_root / rel
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("\n".join(markers) + "\n", encoding="utf-8")
-
 
 def run_self_test() -> None:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase1_validator_") as tmp_dir_str:
-        tmp_root = Path(tmp_dir_str)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_root = Path(tmpdir)
 
         make_fixture_root(tmp_root)
+        missing_markers = collect_missing_markers(tmp_root)
+        assert not missing_markers, missing_markers
 
+        make_fixture_root(tmp_root)
         workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
-        workflow_path.write_text(
-            "\n".join(REQUIRED_WORKFLOW_PRESENCE_MARKERS + REQUIRED_WORKFLOW_EXACT_MARKERS[:-2]) + "\n",
-            encoding="utf-8",
-        )
+        workflow_path.write_text(REQUIRED_WORKFLOW_PRESENCE_MARKERS[0] + "\n", encoding="utf-8")
         missing_markers = collect_missing_markers(tmp_root)
-        assert "workflow:python3 scripts/zigux/check-phase1-parity.py:expected=1:actual=0" in missing_markers
-        assert "workflow:zig build test --build-file zigux/tests/build.zig:expected=1:actual=0" in missing_markers
+        assert "workflow:python3 scripts/zigux/validate-phase1.py:expected=1:actual=0" in missing_markers
 
         make_fixture_root(tmp_root)
         workflow_path.write_text(
             "\n".join(
-                REQUIRED_WORKFLOW_PRESENCE_MARKERS
-                + REQUIRED_WORKFLOW_EXACT_MARKERS
-                + REQUIRED_WORKFLOW_PRESENCE_MARKERS
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        assert collect_missing_markers(tmp_root) == []
-
-        make_fixture_root(tmp_root)
-        workflow_path.write_text(
-            "\n".join(
-                REQUIRED_WORKFLOW_PRESENCE_MARKERS
-                + REQUIRED_WORKFLOW_EXACT_MARKERS
-                + [REQUIRED_WORKFLOW_EXACT_MARKERS[1]]
+                REQUIRED_WORKFLOW_PRESENCE_MARKERS + REQUIRED_WORKFLOW_EXACT_MARKERS + [REQUIRED_WORKFLOW_EXACT_MARKERS[0]]
             )
             + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
-        assert "workflow:python3 scripts/zigux/check-phase1-parity.py:expected=1:actual=2" in missing_markers
+        assert "workflow:python3 scripts/zigux/validate-phase1.py:expected=1:actual=2" in missing_markers
 
         make_fixture_root(tmp_root)
         test_path = tmp_root / "zigux" / "tests" / "phase1_helpers.zig"
-        test_path.write_text(
-            "\n".join(
-                REQUIRED_TEST_MARKERS
-                + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
-                + REQUIRED_HELPER_TEST_ANCHORS
-                + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
-                + [REQUIRED_TEST_MARKERS[4]]
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert 'test:@import("find_bit"):expected=1:actual=2' in missing_markers
-
-        make_fixture_root(tmp_root)
-        test_path.write_text(
-            "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_HELPER_TEST_ANCHORS + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS)
-            + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            'phase1_parity_test_anchor:test "phase 1 helper ports match committed parity fixture":expected=1:actual=0'
-            in missing_markers
-        )
-
-        make_fixture_root(tmp_root)
-        test_path.write_text(
-            "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_PHASE1_PARITY_TEST_ANCHORS + REQUIRED_HELPER_TEST_ANCHORS)
-            + "\n",
-            encoding="utf-8",
-        )
-        missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_parity_replay_marker:fixture.find_bit.tail_clamped_first:expected=1:actual=0" in missing_markers
-
-        make_fixture_root(tmp_root)
         test_path.write_text(
             "\n".join(
                 REQUIRED_TEST_MARKERS
@@ -852,7 +858,7 @@ def run_self_test() -> None:
         )
         missing_markers = collect_missing_markers(tmp_root)
         assert (
-            'find_bit_test_anchor:test "next scans past nbits return without reading bitmap words":expected=1:actual=0'
+            'find_bit_test_anchor:test "low-level underscore aliases mirror the primary find helpers":expected=1:actual=0'
             in missing_markers
         )
 
@@ -905,7 +911,18 @@ def run_self_test() -> None:
         )
         missing_markers = collect_missing_markers(tmp_root)
         assert (
-            'bitmap_test_anchor:test "bitmap copy aliases preserve tail clearing and extension semantics":expected=1:actual=0'
+            'bitmap_test_anchor:test "bitmap zero-bit helpers stay explicit no-ops":expected=1:actual=0'
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
+        bitmap_path.write_text(
+            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:10] + REQUIRED_BITMAP_TEST_ANCHORS[11:]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'bitmap_test_anchor:test "bitmap copy alias preserves raw source words without tail clearing":expected=1:actual=0'
             in missing_markers
         )
 
@@ -1003,7 +1020,7 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         rbtree_path.write_text(
-            "\n".join(REQUIRED_RBTREE_TEST_ANCHORS[:6] + REQUIRED_RBTREE_TEST_ANCHORS[7:]) + "\n",
+            "\n".join(REQUIRED_RBTREE_TEST_ANCHORS[:7] + REQUIRED_RBTREE_TEST_ANCHORS[8:]) + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
@@ -1014,7 +1031,7 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         rbtree_path.write_text(
-            "\n".join(REQUIRED_RBTREE_TEST_ANCHORS + [REQUIRED_RBTREE_TEST_ANCHORS[7]]) + "\n",
+            "\n".join(REQUIRED_RBTREE_TEST_ANCHORS + [REQUIRED_RBTREE_TEST_ANCHORS[8]]) + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
