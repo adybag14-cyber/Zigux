@@ -111,7 +111,7 @@ Own:
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
 - the shared build-wire touch in `zigux/tests/phase15_build.zig`
 
-This lane may also touch one shared summary surface such as `Documentation/zigux/README.md`, `zigux/tests/README.md`, or `Documentation/zigux/review-checklist.md`, but only when that summary is blurring the current owner split.
+This lane may also touch one shared summary surface such as `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, or `Documentation/zigux/review-checklist.md`, but only when that summary is blurring the current owner split.
 
 Do not use this lane to change any deep-core blocker disposition, any Architecture Council approval posture, or any packet-local evidence field that belongs to one of the owning lanes above.
 
