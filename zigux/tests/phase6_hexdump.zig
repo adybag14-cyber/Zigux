@@ -98,6 +98,7 @@ test "phase 6 hexdump serialized linux-derived vectors stay in sync" {
 }
 
 test "phase 6 hexdump serialized overflow vectors stay in sync" {
+    try std.testing.expectEqual(@as(usize, 4), fixtures.overflow_cases.len);
     for (fixtures.overflow_cases) |case| {
         try assertFixtureOverflowCase(case);
     }
