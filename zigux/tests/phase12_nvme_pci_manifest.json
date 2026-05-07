@@ -21,6 +21,7 @@
     "preexisting_phase12_virtio_scsi_survey_present": true,
     "preexisting_phase12_virtio_scsi_starter_present": true,
     "nvme_pci_zig_present": true,
+    "nvme_pci_verify_shard_present": true,
     "nvme_pci_test_present": true,
     "nvme_pci_slice_note_present": true,
     "nvme_pci_survey_gate_present": true,
@@ -49,6 +50,13 @@
       "why_now": "The first bounded starter is now landed around a lab-only queue planner that validates queue geometry, computes DMA page demand, negotiates one checked queue-count reservation window, assigns monotonic queue identifiers, tracks doorbell offsets, and now also records PRP buffer-shape, PRP metadata, and recovery replay summaries without claiming live PCI behavior."
     },
     {
+      "id": "phase12-nvme-pci-verify-shard",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "drivers/nvme/host/pci_verify.zig",
+      "why_now": "The direct verify shard keeps the smoke-first Phase 12 packet honest around queue-count planning, reset-time replay pressure, descriptor rebuild demand, and stale reservation renegotiation without implying the broader survey gate is the only nvme PCI proof."
+    },
+    {
       "id": "phase12-nvme-pci-driver-tests",
       "status": "starter_landed",
       "kind": "validation",
@@ -60,7 +68,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-slice.md",
-      "why_now": "The slice note records what the landed queue planner, queue-count reservation helper, PRP buffer-shape helper, PRP metadata helper, and recovery replay helper cover so the survey can focus on the remaining roadmap gap instead of re-explaining the starter surface."
+      "why_now": "The slice note records what the landed queue planner, queue-count reservation helper, queue-reservation replay helper, PRP buffer-shape helper, PRP metadata helper, and recovery replay helper cover so the survey can focus on the remaining roadmap gap instead of re-explaining the starter surface."
     },
     {
       "id": "phase12-virtio-net-driver-starter",
@@ -88,7 +96,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
-      "why_now": "The lane needs an archival note that compares the current starter against the roadmap's segmented-rollout rule so future runs do not mistake the queue planner, queue-count reservation helper, PRP helpers, and recovery replay helper for a production PCI port."
+      "why_now": "The lane needs an archival note that compares the current starter against the roadmap's segmented-rollout rule so future runs do not mistake the queue planner, queue-count reservation helper, queue-reservation replay helper, PRP helpers, direct verify shard, and recovery replay helper for a production PCI port."
     },
     {
       "id": "phase12-nvme-pci-queue-count-reservation-helper",
@@ -96,6 +104,13 @@
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/nvme/host/pci.zig",
       "why_now": "The bounded nvme PCI packet now includes one queue-count reservation helper that can reserve a checked batch of queue identifiers after negotiating the controller cap against the starter's remaining planner window, without claiming live queue creation or blk-mq integration."
+    },
+    {
+      "id": "phase12-nvme-pci-queue-reservation-replay-helper",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/nvme/host/pci.zig",
+      "why_now": "The bounded nvme PCI packet now includes one queue-reservation replay helper that can renegotiate a stale reserved queue-id window after reset against the current controller cap once the admin queue has been replayed, without claiming live queue creation, blk-mq mapping, or transport recovery."
     },
     {
       "id": "phase12-nvme-pci-prp-shape-helper",
@@ -123,7 +138,7 @@
       "status": "blocked_on_dma_transport",
       "kind": "roadmap_gap",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
-      "why_now": "The roadmap's DMA-safe abstractions requirement is still blocked because Host Memory Buffer policy, real PRP or SGL DMA mapping, and live PCI queue creation still need a transport-safe substrate beyond the now-landed queue-planning, queue-count reservation, PRP buffer-shape, PRP metadata, and recovery replay helpers."
+      "why_now": "The roadmap's DMA-safe abstractions requirement is still blocked because Host Memory Buffer policy, real PRP or SGL DMA mapping, and live PCI queue creation still need a transport-safe substrate beyond the now-landed queue-planning, queue-count reservation, queue-reservation replay, PRP buffer-shape, PRP metadata, and recovery replay helpers."
     },
     {
       "id": "phase12-nvme-pci-throughput-and-recovery-gap",
