@@ -68,6 +68,8 @@ The next honest symbol reopen should stay helper-local, such as one fresh symbol
 ### 3. Libbpf helper lane: parked unless a tighter same-lane gap appears
 Use this lane for bounded work inside the current `tools/lib/bpf/zigux_segments/` helper family and its paired tests and surveys.
 
+Legacy validator continuity marker: `### 3. Libbpf helper lane: the current active Phase 8 implementation surface` still names this shared owner lane even though the helper-family packet itself is parked between bounded follow-ups.
+
 This heading stays stable for shared validator continuity, and the live helper-family packet itself is currently parked after the landed file-path bridge, perf-buffer poll, and shared tests-root reminder updates. Reopen it only when a smaller same-lane libbpf helper, validator, checker, survey, README, or wording gap is visible again.
 
 Current parked review packet:
@@ -127,6 +129,6 @@ That split matches the live docs-root Phase 8 summary and prevents scheduled too
 
 ## Next bounded step
 
-Before reopening another tooling helper lane, refresh the shared tests-root reminder so it keeps the parked libbpf shard routes explicit beside the parked `exec-cmd`, `help`, and `kallsyms` packet. After that, the next implementation-facing Phase 8 follow-up should come from one bounded libbpf helper or bridge step rather than another starter-slice wording pass.
+Before reopening another tooling helper lane, refresh the shared tests-root reminder so it keeps the parked libbpf shard routes explicit beside the parked `exec-cmd`, `help`, and `kallsyms` packet.
 
-That shared tests-root reminder is now refreshed on `master`, so the honest default is to leave this lane parked unless another one-file same-lane helper-local, validator, checker, survey, README, or wording drift appears inside the shared libbpf packet.
+That older immediate next step is now complete, and that shared tests-root reminder is now refreshed on `master`, so the honest default is to leave this lane parked unless another one-file same-lane helper-local, validator, checker, survey, README, or wording drift appears inside the shared libbpf packet.
