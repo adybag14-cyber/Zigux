@@ -1,1 +1,1 @@
-{"tool":"scripts/kconfig/conf","mode":"allmodconfig","argv":["scripts/kconfig/conf","--allmodconfig","Kconfig"],"env":{"ARCH":"arm","KCONFIG_CONFIG":"mod/.config","KCONFIG_ALLCONFIG":"1"}}
+{"tool":"scripts/kconfig/conf","mode":"allmodconfig","argv":["scripts/kconfig/conf","--allmodconfig","Kconfig"],"env":{"ARCH":"arm","KCONFIG_CONFIG":"mod/.config","KCONFIG_ALLCONFIG":""}}
