@@ -35,6 +35,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `zigux/tests/phase11_bcm2835_wdt_survey.zig`
 - `drivers/watchdog/bcm2835_wdt_verify.zig`
 - `zigux/tests/phase11_dw_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
 - `zigux/tests/phase11_dw_wdt_survey.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_manifest.json`
@@ -59,6 +60,7 @@ Inside that shared `phase11_build.zig` route, the watchdog, shared header-parity
 - `drivers/watchdog/bcm2835_wdt_verify.zig`
 - `zigux/tests/phase11_bcm2835_wdt_survey.zig`
 - `zigux/tests/phase11_dw_wdt.zig`
+- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
 - `drivers/watchdog/dw_wdt_verify.zig`
 - `zigux/tests/phase11_dw_wdt_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
@@ -70,7 +72,7 @@ The shipped gpio watchdog sub-packet inside that shared route stays explicit as 
 
 The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit as `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`.
 
-The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.
+The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.
 
 The shipped HVC starter sub-packet inside that shared route stays explicit as `phase11-hvc-console-tests`, `phase11-hvc-console-verify-tests`, and `phase11-hvc-cleanup-tests`, while the dedicated archival survey remains `phase11-hvc-console-survey-tests`.
 
@@ -78,7 +80,7 @@ The active watchdog validation packets also stay explicit beside that shared rou
 
 - gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`
 - bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`
-- DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and the shared `phase11-dw-wdt-verify-tests` replay artifact
+- DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and the shared `phase11-dw-wdt-registration-scaffold-tests` plus `phase11-dw-wdt-verify-tests` replay artifacts
 
 The parked driver-lane ownership map also stays explicit beside that replay route:
 
