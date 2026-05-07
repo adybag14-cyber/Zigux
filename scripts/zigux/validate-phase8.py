@@ -108,6 +108,8 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase8-file-path-handle-bridge-slice.md": [
         "\"/proc/%d/fdinfo/%d\" assembly plus bounded fdinfo text parsing",
+        "helper-only reused-map compatibility packet",
+        "planning-only reopen-attempt disposition",
         "zigux/tests/phase8_file_path_handle_bridge.zig",
         "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
         "no direct procfs reads",
@@ -137,6 +139,9 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase8-libbpf-segment-survey.md": [
         "perf-buffer-online-cpu-routing",
+        "helper-only reused-map name resolution",
+        "devmap-aware compatibility checks",
+        "planning-only reopen-attempt gating",
         "standalone timer or clockevent helper behavior",
         "make -C zigux phase8-libbpf-segments-test",
         "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
@@ -168,8 +173,10 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md": [
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
         "zigux/tests/phase8_file_path_handle_bridge.zig",
+        "mapReuseObservationFromFdinfo()",
         "planTokenPreparation()",
         "resolveReusePinnedMapAttempt()",
+        "non-empty pinned path plus compatible fdinfo-derived map info",
         "fd close or ownership semantics",
     ],
     "Documentation/zigux/review-checklist.md": [
@@ -313,10 +320,13 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase8_file_path_handle_bridge.zig": [
         "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explicit",
+        "phase 8 userspace-kernel bridge boundary survey keeps queued bridge work explicit",
         "phase 8 file-path handle bridge helper stays wired into its focused Phase 8 build shard",
         "phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard",
         "phase 8 file-path handle bridge helper keeps fdinfo map info parsing compact",
+        "phase 8 file-path handle bridge helper keeps fdinfo observations reusable for planning-only compatibility",
         "phase 8 file-path handle bridge helper keeps planning-only reopen attempts explicit",
+        "mapReuseObservationFromFdinfo",
     ],
     "zigux/tests/phase8_file_path_handle_bridge_only_build.zig": [
         "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
@@ -396,6 +406,9 @@ REQUIRED_MARKERS = {
         "pub fn buildProcFdinfoPath",
         "pub fn parseFdinfoMapInfo",
         "pub fn summarizeFdinfoMapInfo",
+        "pub fn mapReuseObservationFromFdinfo",
+        "pub fn summarizeMapReuseCompatibility",
+        "pub fn resolveReusePinnedMapAttempt",
         "map_flags",
         "/proc/{d}/fdinfo/{d}",
     ],
@@ -467,6 +480,17 @@ FIXTURE_OVERRIDES = {
 }
 
 
+def write_fixture_root(root: Path) -> None:
+    for rel in REQUIRED_FILES:
+        path = root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if rel in FIXTURE_OVERRIDES:
+            text = FIXTURE_OVERRIDES[rel]
+        else:
+            text = "\n".join(REQUIRED_MARKERS.get(rel, ["# fixture"])) + "\n"
+        path.write_text(text, encoding="utf-8")
+
+
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
@@ -523,44 +547,32 @@ def load_manifest_segments(root: Path) -> tuple[list[object] | None, list[str]]:
 
 
 def collect_manifest_errors(root: Path) -> list[str]:
-    segments, manifest_errors = load_manifest_segments(root)
-    if manifest_errors:
-        return manifest_errors
+    segments, errors = load_manifest_segments(root)
+    if errors:
+        return errors
+
     assert segments is not None
-
-    segment_status: dict[str, str] = {}
-    for index, segment in enumerate(segments):
-        if not isinstance(segment, dict):
-            manifest_errors.append(f"{MANIFEST_PATH}: segment_not_object:{index}")
-            continue
-
-        slug = segment.get("slug")
-        status = segment.get("status")
+    seen: dict[str, str] = {}
+    for item in segments:
+        if not isinstance(item, dict):
+            return [f"{MANIFEST_PATH}: segment_not_object"]
+        slug = item.get("slug")
+        status = item.get("status")
         if not isinstance(slug, str):
-            manifest_errors.append(f"{MANIFEST_PATH}: invalid_slug:{index}")
-            continue
+            return [f"{MANIFEST_PATH}: segment_missing_slug"]
         if not isinstance(status, str):
-            manifest_errors.append(f"{MANIFEST_PATH}: invalid_status:{slug}")
-            continue
-        if slug in segment_status:
-            manifest_errors.append(f"{MANIFEST_PATH}: duplicate_slug:{slug}")
-            continue
+            return [f"{MANIFEST_PATH}: segment_missing_status:{slug}"]
+        seen[slug] = status
 
-        segment_status[slug] = status
-
-    if manifest_errors:
-        return manifest_errors
-
-    for slug, expected_status in REQUIRED_SEGMENTS.items():
-        if slug not in segment_status:
+    manifest_errors: list[str] = []
+    for slug, status in REQUIRED_SEGMENTS.items():
+        observed = seen.get(slug)
+        if observed is None:
             manifest_errors.append(f"{MANIFEST_PATH}: missing_slug:{slug}")
-            continue
-        actual_status = segment_status[slug]
-        if actual_status != expected_status:
+        elif observed != status:
             manifest_errors.append(
-                f"{MANIFEST_PATH}: wrong_status:{slug}:{expected_status}:{actual_status}"
+                f"{MANIFEST_PATH}: wrong_status:{slug}:{status}:{observed}"
             )
-
     return manifest_errors
 
 
@@ -569,24 +581,9 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     if missing_files:
         return missing_files, [], []
 
-    missing_markers = collect_missing_markers(root)
-    if missing_markers:
-        return [], missing_markers, []
-
-    exact_section_errors = collect_exact_section_errors(root)
-    if exact_section_errors:
-        return [], exact_section_errors, []
-
-    return [], [], collect_manifest_errors(root)
-
-
-def write_fixture_root(tmp_root: Path) -> None:
-    fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
-    fixture_text.update(FIXTURE_OVERRIDES)
-    for rel in REQUIRED_FILES:
-        path = tmp_root / rel
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(fixture_text.get(rel, "// fixture\n"), encoding="utf-8")
+    marker_errors = collect_missing_markers(root)
+    marker_errors.extend(collect_exact_section_errors(root))
+    return [], marker_errors, collect_manifest_errors(root)
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -628,7 +625,10 @@ def run_self_test() -> None:
         ("missing_tests_readme", "zigux/tests/README.md"),
         ("missing_workflow", ".github/workflows/zigux-bootstrap.yml"),
         ("missing_phase8_build", "zigux/tests/phase8_build.zig"),
-        ("missing_tooling_lane_sequencing", "Documentation/zigux/phase8-tooling-lane-sequencing.md"),
+        (
+            "missing_tooling_lane_sequencing",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+        ),
         ("missing_exec_cmd_helper", "tools/lib/subcmd/exec-cmd.zig"),
         ("missing_help_helper", "tools/lib/subcmd/help.zig"),
         ("missing_kallsyms_helper", "tools/lib/symbol/kallsyms.zig"),
@@ -639,326 +639,74 @@ def run_self_test() -> None:
 
     marker_cases = [
         (
-            "exec_cmd_slice_marker",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
-            "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
-            "PHASE8_SLICE=exec-cmd-drift",
-            "Documentation/zigux/phase8-exec-cmd-slice.md: PHASE8_SLICE=exec-cmd-deferred-exec-packet",
+            "file_path_bridge_slice_reuse_packet",
+            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+            "helper-only reused-map compatibility packet",
+            "helper-only map packet",
+            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md: helper-only reused-map compatibility packet",
         ),
         (
-            "exec_cmd_slice_execl_boundary",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
-            "stops before any ownership of `execl_cmd()`",
-            "stops before any ownership of `execl_launch()`",
-            "Documentation/zigux/phase8-exec-cmd-slice.md: stops before any ownership of `execl_cmd()`",
+            "file_path_bridge_slice_reopen_disposition",
+            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+            "planning-only reopen-attempt disposition",
+            "planning-only reopen summary",
+            "Documentation/zigux/phase8-file-path-handle-bridge-slice.md: planning-only reopen-attempt disposition",
         ),
         (
-            "exec_cmd_slice_planner_packet",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
-            "integrated `planDeferredExecvCall()` plus `planDeferredExeclCall()` planner packet",
-            "integrated deferred planner packet",
-            "Documentation/zigux/phase8-exec-cmd-slice.md: integrated `planDeferredExecvCall()` plus `planDeferredExeclCall()` planner packet",
-        ),
-        (
-            "help_slice_make_wrapper",
-            "Documentation/zigux/phase8-help-slice.md",
-            "make -C zigux phase8-help-test",
-            "make -C zigux phase8-help",
-            "Documentation/zigux/phase8-help-slice.md: make -C zigux phase8-help-test",
-        ),
-        (
-            "help_slice_build_shard",
-            "Documentation/zigux/phase8-help-slice.md",
-            "zig build test --build-file zigux/tests/phase8_help_only_build.zig --summary all",
-            "zig build test --build-file zigux/tests/phase8_help_build.zig --summary all",
-            "Documentation/zigux/phase8-help-slice.md: zig build test --build-file zigux/tests/phase8_help_only_build.zig --summary all",
-        ),
-        (
-            "kallsyms_slice_make_wrapper",
-            "Documentation/zigux/phase8-kallsyms-slice.md",
-            "make -C zigux phase8-kallsyms-test",
-            "make -C zigux phase8-kallsyms",
-            "Documentation/zigux/phase8-kallsyms-slice.md: make -C zigux phase8-kallsyms-test",
-        ),
-        (
-            "kallsyms_slice_build_shard",
-            "Documentation/zigux/phase8-kallsyms-slice.md",
-            "zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all",
-            "zig build test --build-file zigux/tests/phase8_kallsyms_build.zig --summary all",
-            "Documentation/zigux/phase8-kallsyms-slice.md: zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all",
-        ),
-        (
-            "lane_sequencing_phase8_sequence",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
-            "PHASE8_SEQUENCE=tooling-lane-anti-overlap",
-            "PHASE8_SEQUENCE=tooling-lane-drift",
-            "Documentation/zigux/phase8-tooling-lane-sequencing.md: PHASE8_SEQUENCE=tooling-lane-anti-overlap",
-        ),
-        (
-            "review_checklist_exec_cmd_packet",
-            "Documentation/zigux/review-checklist.md",
-            "if the change touches the parked Phase 8 `exec-cmd` packet",
-            "if the change touches the parked Phase 8 `help` packet",
-            "Documentation/zigux/review-checklist.md: if the change touches the parked Phase 8 `exec-cmd` packet",
-        ),
-        (
-            "review_checklist_exec_cmd_workqueue_boundary",
-            "Documentation/zigux/review-checklist.md",
-            "`kernel/workqueue.c`",
-            "`kernel/sched/core.c`",
-            "Documentation/zigux/review-checklist.md: `kernel/workqueue.c`",
-        ),
-        (
-            "review_checklist_libbpf_packet",
-            "Documentation/zigux/review-checklist.md",
-            "if the change touches the shared active Phase 8 libbpf packet",
-            "if the change touches the shared active Phase 8 cpu-mask packet",
-            "Documentation/zigux/review-checklist.md: if the change touches the shared active Phase 8 libbpf packet",
-        ),
-        (
-            "review_checklist_phase8_file_path_route",
-            "Documentation/zigux/review-checklist.md",
-            "`make -C zigux phase8-file-path-handle-bridge-test`",
-            "`make -C zigux phase8-file-path-handle-bridge`",
-            "Documentation/zigux/review-checklist.md: `make -C zigux phase8-file-path-handle-bridge-test`",
-        ),
-        (
-            "scripts_readme_exec_cmd_checker",
-            "scripts/zigux/README.md",
-            "scripts/zigux/check-phase8-exec-cmd-packet.py",
-            "scripts/zigux/check-phase8-exec-cmd-gate.py",
-            "scripts/zigux/README.md: scripts/zigux/check-phase8-exec-cmd-packet.py",
-        ),
-        (
-            "scripts_readme_exec_cmd_make_route",
-            "scripts/zigux/README.md",
-            "make -C zigux phase8-exec-cmd-test",
-            "make -C zigux phase8-exec-test",
-            "scripts/zigux/README.md: make -C zigux phase8-exec-cmd-test",
-        ),
-        (
-            "tests_readme_phase8_file_path_route",
-            "zigux/tests/README.md",
-            "`make -C zigux phase8-file-path-handle-bridge-test`",
-            "`make -C zigux phase8-file-path-handle-bridge`",
-            "zigux/tests/README.md: `make -C zigux phase8-file-path-handle-bridge-test`",
-        ),
-        (
-            "workflow_phase8_validate_step",
-            ".github/workflows/zigux-bootstrap.yml",
-            "Validate Phase 8 tooling packet",
-            "Validate Phase 8 tooling bundle",
-            ".github/workflows/zigux-bootstrap.yml: Validate Phase 8 tooling packet",
-        ),
-        (
-            "workflow_phase8_validate_route",
-            ".github/workflows/zigux-bootstrap.yml",
-            "make -C zigux phase8-validate",
-            "make -C zigux phase8",
-            ".github/workflows/zigux-bootstrap.yml: make -C zigux phase8-validate",
-        ),
-        (
-            "workflow_phase8_focused_step",
-            ".github/workflows/zigux-bootstrap.yml",
-            "Run focused Phase 8 help and kallsyms tests",
-            "Run focused Phase 8 help tests",
-            ".github/workflows/zigux-bootstrap.yml: Run focused Phase 8 help and kallsyms tests",
-        ),
-        (
-            "workflow_phase8_focused_make_route",
-            ".github/workflows/zigux-bootstrap.yml",
-            "make -C zigux phase8-help-kallsyms-test",
-            "make -C zigux phase8-help-test",
-            ".github/workflows/zigux-bootstrap.yml: make -C zigux phase8-help-kallsyms-test",
-        ),
-        (
-            "workflow_phase8_focused_build",
-            ".github/workflows/zigux-bootstrap.yml",
-            "zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all",
-            "zig build test --build-file zigux/tests/phase8_help_only_build.zig --summary all",
-            ".github/workflows/zigux-bootstrap.yml: zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all",
-        ),
-        (
-            "workflow_phase8_shared_step",
-            ".github/workflows/zigux-bootstrap.yml",
-            "Run Phase 8 tooling tests",
-            "Run shared Phase 8 tooling tests",
-            ".github/workflows/zigux-bootstrap.yml: Run Phase 8 tooling tests",
-        ),
-        (
-            "workflow_phase8_shared_build",
-            ".github/workflows/zigux-bootstrap.yml",
-            "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
-            "zig build test --build-file zigux/tests/phase8_shared_build.zig --summary all",
-            ".github/workflows/zigux-bootstrap.yml: zig build test --build-file zigux/tests/phase8_build.zig --summary all",
-        ),
-        (
-            "makefile_exec_cmd_checker_self_test",
-            "zigux/Makefile",
-            "scripts/zigux/check-phase8-exec-cmd-packet.py --self-test",
-            "scripts/zigux/check-phase8-exec-cmd-gate.py --self-test",
-            "zigux/Makefile: scripts/zigux/check-phase8-exec-cmd-packet.py --self-test",
-        ),
-        (
-            "makefile_exec_cmd_target",
-            "zigux/Makefile",
-            "phase8-exec-cmd-test:",
-            "phase8-exec-test:",
-            "zigux/Makefile: phase8-exec-cmd-test:",
-        ),
-        (
-            "makefile_help_kallsyms_target",
-            "zigux/Makefile",
-            "phase8-help-kallsyms-test:",
-            "phase8-help-symbol-test:",
-            "zigux/Makefile: phase8-help-kallsyms-test:",
-        ),
-        (
-            "makefile_help_kallsyms_build",
-            "zigux/Makefile",
-            "$(ZIG) build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all",
-            "$(ZIG) build test --build-file zigux/tests/phase8_help_only_build.zig --summary all",
-            "zigux/Makefile: $(ZIG) build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all",
-        ),
-        (
-            "shared_build_exec_cmd_source",
-            "zigux/tests/phase8_build.zig",
-            "\"phase8_exec_cmd.zig\"",
-            "\"phase8_exec_cmd_drift.zig\"",
-            "zigux/tests/phase8_build.zig: \"phase8_exec_cmd.zig\"",
-        ),
-        (
-            "shared_build_exec_cmd_name",
-            "zigux/tests/phase8_build.zig",
-            "phase8-exec-cmd-tests",
-            "phase8-exec-tests",
-            "zigux/tests/phase8_build.zig: phase8-exec-cmd-tests",
-        ),
-        (
-            "focused_exec_cmd_test_route",
-            "zigux/tests/phase8_exec_cmd.zig",
-            "make -C zigux phase8-validate",
-            "make -C zigux phase8-test",
-            "zigux/tests/phase8_exec_cmd.zig: make -C zigux phase8-validate",
-        ),
-        (
-            "focused_exec_cmd_c_anchor_boundary",
-            "zigux/tests/phase8_exec_cmd.zig",
-            "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors",
-            "phase 8 exec-cmd deferred boundary note still matches the live helper packet",
-            "zigux/tests/phase8_exec_cmd.zig: phase 8 exec-cmd deferred boundary note still matches the live C helper anchors",
-        ),
-        (
-            "focused_exec_cmd_integrated_packet",
-            "zigux/tests/phase8_exec_cmd.zig",
-            "focused Phase 8 replay keeps the integrated deferred-exec packet reviewable",
-            "focused Phase 8 replay keeps the deferred-exec packet reviewable",
-            "zigux/tests/phase8_exec_cmd.zig: focused Phase 8 replay keeps the integrated deferred-exec packet reviewable",
-        ),
-        (
-            "help_test_combined_shard_marker",
-            "zigux/tests/phase8_help.zig",
-            "phase8_help_kallsyms_only_build.zig",
-            "phase8_help_symbol_only_build.zig",
-            "zigux/tests/phase8_help.zig: phase8_help_kallsyms_only_build.zig",
-        ),
-        (
-            "focused_exec_cmd_build_name",
-            "zigux/tests/phase8_exec_cmd_only_build.zig",
-            "phase8-exec-cmd-tests",
-            "phase8-exec-tests",
-            "zigux/tests/phase8_exec_cmd_only_build.zig: phase8-exec-cmd-tests",
-        ),
-        (
-            "help_kallsyms_build_step_name",
-            "zigux/tests/phase8_help_kallsyms_only_build.zig",
-            "Run focused Phase 8 help and kallsyms tests",
-            "Run focused Phase 8 help tests",
-            "zigux/tests/phase8_help_kallsyms_only_build.zig: Run focused Phase 8 help and kallsyms tests",
-        ),
-        (
-            "kallsyms_test_combined_shard_marker",
-            "zigux/tests/phase8_kallsyms.zig",
-            "phase8_help_kallsyms_only_build.zig",
-            "phase8_help_symbol_only_build.zig",
-            "zigux/tests/phase8_kallsyms.zig: phase8_help_kallsyms_only_build.zig",
-        ),
-        (
-            "helper_deferred_execv",
-            "tools/lib/subcmd/exec-cmd.zig",
-            "pub fn buildDeferredExecvCall",
-            "pub fn buildDeferredExecCall",
-            "tools/lib/subcmd/exec-cmd.zig: pub fn buildDeferredExecvCall",
-        ),
-        (
-            "helper_planned_execv",
-            "tools/lib/subcmd/exec-cmd.zig",
-            "pub fn planDeferredExecvCall",
-            "pub fn planDeferredExecCall",
-            "tools/lib/subcmd/exec-cmd.zig: pub fn planDeferredExecvCall",
-        ),
-        (
-            "helper_planned_execl",
-            "tools/lib/subcmd/exec-cmd.zig",
-            "pub fn planDeferredExeclCall",
-            "pub fn planDeferredExecLineCall",
-            "tools/lib/subcmd/exec-cmd.zig: pub fn planDeferredExeclCall",
-        ),
-        (
-            "survey_file_path_make_wrapper",
+            "libbpf_survey_reuse_name_resolution",
             "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "make -C zigux phase8-file-path-handle-bridge-test",
-            "make -C zigux phase8-file-path-handle-bridge",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-file-path-handle-bridge-test",
+            "helper-only reused-map name resolution",
+            "helper-only map name resolution",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: helper-only reused-map name resolution",
         ),
         (
-            "survey_file_path_build_shard",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all",
-            "zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_build.zig --summary all",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all",
+            "bridge_boundary_fdinfo_observation_handoff",
+            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+            "mapReuseObservationFromFdinfo()",
+            "mapReuseObservation()",
+            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md: mapReuseObservationFromFdinfo()",
         ),
         (
-            "survey_libbpf_wrapper_route",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "make -C zigux phase8-libbpf-segments-test",
-            "make -C zigux phase8-libbpf-survey-test",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-libbpf-segments-test",
+            "bridge_boundary_non_empty_path_gate",
+            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+            "non-empty pinned path plus compatible fdinfo-derived map info",
+            "compatible fdinfo-derived map info",
+            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md: non-empty pinned path plus compatible fdinfo-derived map info",
         ),
         (
-            "survey_libbpf_build_shard_route",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
-            "zig build test --build-file zigux/tests/phase8_libbpf_segments_build.zig --summary all",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
+            "phase8_bridge_test_observation_replay",
+            "zigux/tests/phase8_file_path_handle_bridge.zig",
+            "phase 8 file-path handle bridge helper keeps fdinfo observations reusable for planning-only compatibility",
+            "phase 8 file-path handle bridge helper keeps reuse observations explicit",
+            "zigux/tests/phase8_file_path_handle_bridge.zig: phase 8 file-path handle bridge helper keeps fdinfo observations reusable for planning-only compatibility",
         ),
         (
-            "survey_perf_buffer_poll_wrapper_route",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "make -C zigux phase8-perf-buffer-poll-test",
-            "make -C zigux phase8-perf-buffer-poll",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-perf-buffer-poll-test",
+            "phase8_bridge_test_helper_call",
+            "zigux/tests/phase8_file_path_handle_bridge.zig",
+            "mapReuseObservationFromFdinfo",
+            "mapReuseObservation",
+            "zigux/tests/phase8_file_path_handle_bridge.zig: mapReuseObservationFromFdinfo",
         ),
         (
-            "survey_perf_buffer_poll_build_shard_route",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
-            "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_build.zig --summary all",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+            "bridge_helper_observation_export",
+            "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+            "pub fn mapReuseObservationFromFdinfo",
+            "pub fn mapReuseObservation",
+            "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig: pub fn mapReuseObservationFromFdinfo",
         ),
         (
-            "survey_shared_phase8_wrapper_route",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "make -C zigux phase8-test",
-            "make -C zigux phase8-shared-test",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-test",
+            "bridge_helper_compat_summary_export",
+            "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+            "pub fn summarizeMapReuseCompatibility",
+            "pub fn summarizeReuseCompatibility",
+            "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig: pub fn summarizeMapReuseCompatibility",
         ),
         (
-            "survey_shared_phase8_build_shard_route",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md",
-            "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
-            "zig build test --build-file zigux/tests/phase8_shared_build.zig --summary all",
-            "Documentation/zigux/phase8-libbpf-segment-survey.md: zig build test --build-file zigux/tests/phase8_build.zig --summary all",
+            "bridge_helper_reopen_plan_export",
+            "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+            "pub fn resolveReusePinnedMapAttempt",
+            "pub fn resolvePinnedMapAttempt",
+            "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig: pub fn resolveReusePinnedMapAttempt",
         ),
         (
             "survey_exact_once_duplicate",
@@ -1084,7 +832,9 @@ def main() -> int:
 
     print("PHASE8_VALIDATION=pass")
     print(f"PHASE8_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE8_REQUIRED_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
+    print(
+        f"PHASE8_REQUIRED_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
     return 0
 
 
