@@ -8,6 +8,10 @@ test "phase3 export shim and uapi keep canonical boundary layout" {
     const uapi_header: uapi_version.Header = uapi_version.boundaryHeader(0x55);
     const future_compatible: export_shim.Header =
         export_shim.compatibleHeader(export_shim.header_size + 16, 0x55);
+    const undersized: export_shim.Header =
+        export_shim.compatibleHeader(export_shim.header_size - 1, 0x55);
+    const uapi_undersized: uapi_version.Header =
+        uapi_version.compatibleHeader(uapi_version.header_size - 1, 0x55);
     const version_mismatch: export_shim.Header = export_shim.versionedHeader(
         export_shim.header_size,
         export_shim.abi_version + 1,
@@ -40,6 +44,14 @@ test "phase3 export shim and uapi keep canonical boundary layout" {
     );
     try std.testing.expectEqual(header, export_shim.canonicalizeHeader(future_compatible).?);
     try std.testing.expectEqual(uapi_header, uapi_version.canonicalizeHeader(future_compatible).?);
+
+    try std.testing.expectEqual(undersized, uapi_undersized);
+    try std.testing.expect(export_shim.headerCompatibility(undersized) == null);
+    try std.testing.expect(uapi_version.compatibility(uapi_undersized) == null);
+    try std.testing.expect(!export_shim.isCompatibleHeader(undersized));
+    try std.testing.expect(!uapi_version.isCompatible(uapi_undersized));
+    try std.testing.expect(export_shim.canonicalizeHeader(undersized) == null);
+    try std.testing.expect(uapi_version.canonicalizeHeader(uapi_undersized) == null);
 
     try std.testing.expect(export_shim.headerCompatibility(version_mismatch) == null);
     try std.testing.expect(uapi_version.compatibility(version_mismatch) == null);
