@@ -91,10 +91,11 @@ Primary Phase 5 packet
 
 Keep explicit
 - pre-init retargeting
+- `runLifecycleGuardReplay()` plus the pre-init and post-init guard boundaries
 - the fixed `maxactiveBudget()` cue at `20`
-- timestamp-order rejection and recovery
+- `runRecoveryReplay()` plus outstanding-instance rejection
+- timestamp-order rejection and recovery plus post-exit handler rejection
 - the sample-owned lifecycle summary packet
-- post-exit handler rejection
 
 Keep out of scope
 - `register_kretprobe()` parity
