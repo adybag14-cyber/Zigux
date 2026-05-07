@@ -95,6 +95,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const libbpf_segment_verify_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/verify.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const bpf_type_names_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/type_names.zig"),
         .target = target,
@@ -157,6 +162,10 @@ pub fn build(b: *std.Build) void {
         .name = "phase8-libbpf-segment-tests",
         .root_module = libbpf_segments_root_module,
     });
+    const libbpf_segment_verify_tests = b.addTest(.{
+        .name = "phase8-libbpf-segment-verify-tests",
+        .root_module = libbpf_segment_verify_module,
+    });
     const bpf_type_names_tests = b.addTest(.{
         .name = "phase8-bpf-type-names-tests",
         .root_module = bpf_type_names_root_module,
@@ -177,6 +186,7 @@ pub fn build(b: *std.Build) void {
     const run_logging_tests = b.addRunArtifact(logging_tests);
     const run_pin_path_tests = b.addRunArtifact(pin_path_tests);
     const run_libbpf_segments_tests = b.addRunArtifact(libbpf_segments_tests);
+    const run_libbpf_segment_verify_tests = b.addRunArtifact(libbpf_segment_verify_tests);
     const run_bpf_type_names_tests = b.addRunArtifact(bpf_type_names_tests);
     const run_file_path_handle_bridge_tests = b.addRunArtifact(file_path_handle_bridge_tests);
     const run_perf_buffer_poll_tests = b.addRunArtifact(perf_buffer_poll_tests);
@@ -189,6 +199,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_logging_tests.step);
     test_step.dependOn(&run_pin_path_tests.step);
     test_step.dependOn(&run_libbpf_segments_tests.step);
+    test_step.dependOn(&run_libbpf_segment_verify_tests.step);
     test_step.dependOn(&run_bpf_type_names_tests.step);
     test_step.dependOn(&run_file_path_handle_bridge_tests.step);
     test_step.dependOn(&run_perf_buffer_poll_tests.step);
