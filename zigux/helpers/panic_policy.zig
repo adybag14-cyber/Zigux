@@ -7,13 +7,22 @@ pub const Action = enum {
     warn_and_return,
 };
 
-pub fn modeFromByte(mode: u8) ?abi.PanicMode {
+pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.PanicMode {
+    if (reserved != 0) return null;
     return switch (mode) {
         @intFromEnum(abi.PanicMode.abort) => .abort,
         @intFromEnum(abi.PanicMode.bug) => .bug,
         @intFromEnum(abi.PanicMode.warn) => .warn,
         else => null,
     };
+}
+
+pub fn modeFromByte(mode: u8) ?abi.PanicMode {
+    return modeFromInteropPolicyBytes(mode, 0);
+}
+
+pub fn recognizesInteropPolicyBytes(mode: u8, reserved: u8) bool {
+    return modeFromInteropPolicyBytes(mode, reserved) != null;
 }
 
 pub fn actionFor(mode: abi.PanicMode) Action {
@@ -24,16 +33,24 @@ pub fn actionFor(mode: abi.PanicMode) Action {
     };
 }
 
+pub fn actionForInteropPolicyBytes(mode: u8, reserved: u8) ?Action {
+    return actionFor(modeFromInteropPolicyBytes(mode, reserved) orelse return null);
+}
+
 pub fn actionForByte(mode: u8) ?Action {
-    return actionFor(modeFromByte(mode) orelse return null);
+    return actionForInteropPolicyBytes(mode, 0);
 }
 
 pub fn canReturn(mode: abi.PanicMode) bool {
     return actionFor(mode) == .warn_and_return;
 }
 
+pub fn canReturnInteropPolicyBytes(mode: u8, reserved: u8) bool {
+    return actionForInteropPolicyBytes(mode, reserved) == .warn_and_return;
+}
+
 pub fn canReturnByte(mode: u8) bool {
-    return actionForByte(mode) == .warn_and_return;
+    return canReturnInteropPolicyBytes(mode, 0);
 }
 
 test "phase3 panic policy stays explicit" {
@@ -42,10 +59,28 @@ test "phase3 panic policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.PanicMode, .warn), modeFromByte(2));
     try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromByte(9));
 
+    try std.testing.expectEqual(@as(?abi.PanicMode, .abort), modeFromInteropPolicyBytes(0, 0));
+    try std.testing.expectEqual(@as(?abi.PanicMode, .bug), modeFromInteropPolicyBytes(1, 0));
+    try std.testing.expectEqual(@as(?abi.PanicMode, .warn), modeFromInteropPolicyBytes(2, 0));
+    try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicyBytes(9, 0));
+    try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicyBytes(2, 1));
+
+    try std.testing.expect(recognizesInteropPolicyBytes(0, 0));
+    try std.testing.expect(recognizesInteropPolicyBytes(1, 0));
+    try std.testing.expect(recognizesInteropPolicyBytes(2, 0));
+    try std.testing.expect(!recognizesInteropPolicyBytes(9, 0));
+    try std.testing.expect(!recognizesInteropPolicyBytes(2, 1));
+
     try std.testing.expectEqual(@as(?Action, .abort_now), actionForByte(0));
     try std.testing.expectEqual(@as(?Action, .bug_check), actionForByte(1));
     try std.testing.expectEqual(@as(?Action, .warn_and_return), actionForByte(2));
     try std.testing.expectEqual(@as(?Action, null), actionForByte(9));
+
+    try std.testing.expectEqual(@as(?Action, .abort_now), actionForInteropPolicyBytes(0, 0));
+    try std.testing.expectEqual(@as(?Action, .bug_check), actionForInteropPolicyBytes(1, 0));
+    try std.testing.expectEqual(@as(?Action, .warn_and_return), actionForInteropPolicyBytes(2, 0));
+    try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicyBytes(9, 0));
+    try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicyBytes(2, 1));
 
     try std.testing.expect(!canReturn(.abort));
     try std.testing.expect(!canReturn(.bug));
@@ -54,4 +89,9 @@ test "phase3 panic policy stays explicit" {
     try std.testing.expect(!canReturnByte(1));
     try std.testing.expect(canReturnByte(2));
     try std.testing.expect(!canReturnByte(9));
+    try std.testing.expect(!canReturnInteropPolicyBytes(0, 0));
+    try std.testing.expect(!canReturnInteropPolicyBytes(1, 0));
+    try std.testing.expect(canReturnInteropPolicyBytes(2, 0));
+    try std.testing.expect(!canReturnInteropPolicyBytes(9, 0));
+    try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));
 }
