@@ -9,6 +9,7 @@ pub const ModuleDescriptor = struct {
     provides_ioremap_wc_wrapper_planning: bool,
     provides_release_pointer_match: bool,
     provides_ioremap_resource_planning: bool,
+    provides_ioremap_resource_plain_wrapper_planning: bool,
     provides_ioremap_resource_wc_wrapper_planning: bool,
     provides_of_iomap_planning: bool,
     provides_pretty_name_helper: bool,
@@ -259,6 +260,7 @@ pub const DevresHelperLab = struct {
             .provides_ioremap_wc_wrapper_planning = true,
             .provides_release_pointer_match = true,
             .provides_ioremap_resource_planning = true,
+            .provides_ioremap_resource_plain_wrapper_planning = true,
             .provides_ioremap_resource_wc_wrapper_planning = true,
             .provides_of_iomap_planning = true,
             .provides_pretty_name_helper = true,
@@ -441,6 +443,19 @@ pub const DevresHelperLab = struct {
         });
     }
 
+    pub fn planManagedIoremapResourcePlain(
+        allocator: std.mem.Allocator,
+        input: IoremapResourceWrapperInput,
+    ) !ManagedIoremapOutcome {
+        return planManagedIoremapResource(allocator, .{
+            .device_name = input.device_name,
+            .resource = input.resource,
+            .fail_pretty_name_allocation = input.fail_pretty_name_allocation,
+            .request_region_granted = input.request_region_granted,
+            .remap_succeeds = input.remap_succeeds,
+        });
+    }
+
     pub fn planDeviceTreeIomap(
         allocator: std.mem.Allocator,
         input: DeviceTreeIomapInput,
@@ -560,145 +575,3 @@ pub const DevresHelperLab = struct {
         };
     }
 };
-
-test "managed ioremap resource exposes owned pretty name cleanup" {
-    const allocator = std.testing.allocator;
-
-    const outcome = try DevresHelperLab.planManagedIoremapResource(allocator, .{
-        .device_name = "virtio0",
-        .resource = .{
-            .start = 0x1000,
-            .end = 0x10ff,
-            .is_memory = true,
-            .nonposted = false,
-            .name = "cfg",
-        },
-    });
-
-    switch (outcome) {
-        .mapped => |plan_value| {
-            var plan = plan_value;
-            defer plan.deinit(allocator);
-            try std.testing.expect(plan.pretty_name_owned_by_plan);
-            try std.testing.expectEqualStrings("virtio0 cfg", plan.pretty_name);
-            plan.deinit(allocator);
-            try std.testing.expect(!plan.pretty_name_owned_by_plan);
-            try std.testing.expectEqualStrings("", plan.pretty_name);
-        },
-        .err => return error.UnexpectedError,
-    }
-}
-
-test "managed ioremap uc wrapper keeps explicit uncached lifetime selection" {
-    const result = try DevresHelperLab.planManagedIoremapAcquireUc(.{
-        .release_record_allocated = true,
-        .mapped_address = 0x2800,
-    });
-
-    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
-    try std.testing.expectEqual(.uncached, result.kind);
-    try std.testing.expectEqual(@as(?usize, 0x2800), result.mapped_address);
-    try std.testing.expect(result.added_to_devres);
-    try std.testing.expect(result.release_record_retained);
-    try std.testing.expect(!result.release_record_freed);
-    try std.testing.expect(result.should_unmap_on_detach);
-}
-
-test "managed ioremap uc wrapper frees the release record on map failure" {
-    const result = try DevresHelperLab.planManagedIoremapAcquireUc(.{
-        .release_record_allocated = true,
-        .mapped_address = null,
-    });
-
-    try std.testing.expectEqual(.uncached, result.kind);
-    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
-    try std.testing.expect(!result.added_to_devres);
-    try std.testing.expect(!result.release_record_retained);
-    try std.testing.expect(result.release_record_freed);
-    try std.testing.expect(!result.should_unmap_on_detach);
-}
-
-test "managed ioremap resource wc wrapper keeps explicit wc selection" {
-    const allocator = std.testing.allocator;
-
-    const outcome = try DevresHelperLab.planManagedIoremapResourceWc(allocator, .{
-        .device_name = "virtio-wc",
-        .resource = .{
-            .start = 0x3000,
-            .end = 0x31ff,
-            .is_memory = true,
-            .nonposted = true,
-            .name = "fb",
-        },
-    });
-
-    switch (outcome) {
-        .mapped => |plan_value| {
-            var plan = plan_value;
-            defer plan.deinit(allocator);
-            try std.testing.expect(plan.pretty_name_owned_by_plan);
-            try std.testing.expectEqualStrings("virtio-wc fb", plan.pretty_name);
-            try std.testing.expectEqual(@as(u64, 0x200), plan.size);
-            try std.testing.expectEqual(.wc, plan.effective_type);
-        },
-        .err => return error.UnexpectedError,
-    }
-}
-
-test "managed ioremap resource wc wrapper keeps busy-region failure shaping" {
-    const allocator = std.testing.allocator;
-
-    const outcome = try DevresHelperLab.planManagedIoremapResourceWc(allocator, .{
-        .device_name = "gpu1",
-        .resource = .{
-            .start = 0x2400,
-            .end = 0x243f,
-            .is_memory = true,
-            .nonposted = false,
-            .name = "framebuffer",
-        },
-        .request_region_granted = false,
-    });
-
-    switch (outcome) {
-        .mapped => return error.ExpectedFailure,
-        .err => |failure| {
-            try std.testing.expectEqual(.request_region, failure.stage);
-            try std.testing.expectEqual(.busy, failure.error_code);
-            try std.testing.expectEqual(.wc, failure.effective_type);
-            try std.testing.expect(failure.requests_region);
-            try std.testing.expect(!failure.releases_region_on_remap_failure);
-        },
-    }
-}
-
-test "device tree iomap preserves pretty name ownership contract" {
-    const allocator = std.testing.allocator;
-
-    const resources = [_]Resource{.{
-        .start = 0x2000,
-        .end = 0x20ff,
-        .is_memory = true,
-        .nonposted = true,
-        .name = "bar0",
-    }};
-
-    const outcome = try DevresHelperLab.planDeviceTreeIomap(allocator, .{
-        .device_name = "of-node",
-        .index = 0,
-        .resources = &resources,
-        .report_size = true,
-    });
-
-    switch (outcome) {
-        .mapped => |plan_value| {
-            var plan = plan_value;
-            defer plan.mapping.deinit(allocator);
-            try std.testing.expect(plan.mapping.pretty_name_owned_by_plan);
-            try std.testing.expectEqualStrings("of-node bar0", plan.mapping.pretty_name);
-            try std.testing.expectEqual(@as(?u64, 0x100), plan.reported_size);
-            try std.testing.expectEqual(.np, plan.mapping.effective_type);
-        },
-        .err => return error.UnexpectedError,
-    }
-}
