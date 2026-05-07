@@ -290,6 +290,9 @@ jobs:
       - name: Run Phase 6 leaf helper tests
         run: zig build test --build-file zigux/tests/phase6_build.zig --summary all
 
+      - name: Run Phase 6 base64 perf gate
+        run: zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all
+
       - name: Run Phase 6 checksum perf gate
         run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all
 
