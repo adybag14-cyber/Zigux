@@ -52,18 +52,20 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_approved_idiom_prompt = false;
     var saw_pre_registration_prompt = false;
+    var saw_registered_teardown_prompt = false;
     var saw_ownership_summary_prompt = false;
     var saw_exit_prompt = false;
     var saw_group_boundary_prompt = false;
     var saw_directory = false;
     var saw_pre_registration = false;
+    var saw_registered_boundary = false;
     var saw_ownership_summary = false;
     var saw_initialized_exit = false;
     var saw_dispatch = false;
@@ -81,6 +83,11 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "initialized-but-not-registered") != null)
         {
             saw_pre_registration_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "runRegisteredBoundaryReplay()") != null and
+            std.mem.indexOf(u8, prompt, "runTeardownReplay()") != null)
+        {
+            saw_registered_teardown_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "ownershipSummary()") != null and
             std.mem.indexOf(u8, prompt, "cold, initialized, registered, and exited") != null)
@@ -114,6 +121,13 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "activeAttrCount") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidLifecycleTransition") != null);
         }
+        if (std.mem.eql(u8, check.id, "registered-boundary")) {
+            saw_registered_boundary = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runRegisteredBoundaryReplay()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "activeAttrCount") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "duplicate registerAttributes()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runAnchorReplay()") != null);
+        }
         if (std.mem.eql(u8, check.id, "ownership-summary")) {
             saw_ownership_summary = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "ownershipSummary()") != null);
@@ -131,8 +145,11 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "exit-boundary")) {
             saw_exit = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runTeardownReplay()") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "tore_down_registered_attributes") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "rejects later show or store calls") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "post-exit show/store") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "second-exit") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "anchor-replay") != null);
         }
 
         for (manifest.exact_checks[i + 1 ..]) |other| {
@@ -143,11 +160,13 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_approved_idiom_prompt);
     try std.testing.expect(saw_pre_registration_prompt);
+    try std.testing.expect(saw_registered_teardown_prompt);
     try std.testing.expect(saw_ownership_summary_prompt);
     try std.testing.expect(saw_exit_prompt);
     try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_directory);
     try std.testing.expect(saw_pre_registration);
+    try std.testing.expect(saw_registered_boundary);
     try std.testing.expect(saw_ownership_summary);
     try std.testing.expect(saw_initialized_exit);
     try std.testing.expect(saw_dispatch);
