@@ -464,9 +464,9 @@ test "confdata bridge ignores empty CONFIG symbol names" {
 
 test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
     const allocator = std.testing.allocator;
-    var summary = try parseConfig(allocator,
-        \\CONFIG_PATH="drivers\\"
-        \\
+    var summary = try parseConfig(
+        allocator,
+        "CONFIG_PATH=\"" ++ "drivers\\\\" ++ "\"\n",
     );
     defer deinitSummary(allocator, &summary);
 
