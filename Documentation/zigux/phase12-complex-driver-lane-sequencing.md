@@ -59,4 +59,6 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
 
 Leave this note parked unless fresh repo inspection shows that the shared Phase 12 docs, review-checklist, scripts-root summary, tests-root summary, fallback-overview, compact release-coordination matrix, shared libbpf anti-overlap companion, or review surfaces are blurring `virtio_net`, `nvme_pci`, and `virtio_scsi` back together.
 
-If the lane reopens, keep the next step inside the smallest docs-root, review-checklist, scripts-root, tests-root, fallback-overview, compact-matrix, or shared libbpf anti-overlap wording repair that restores those three driver-local ownership boundaries without reopening PMO closure drift control, replaying the now-landed build-only checker self-test hardening, or the separate libbpf helper packet.
+If the lane reopens, start by checking whether `zigux/tests/README.md` still omits the landed NVMe verify shard `drivers/nvme/host/pci_verify.zig` from the shared six-surface smoke packet even though the raw-coverage overview, compact release-coordination matrix, and review checklist already keep that smoke set explicit.
+
+If that tests-root gap is already closed, keep the next step inside the smallest docs-root, review-checklist, scripts-root, tests-root, fallback-overview, compact-matrix, or shared libbpf anti-overlap wording repair that restores those three driver-local ownership boundaries without reopening PMO closure drift control, replaying the now-landed build-only checker self-test hardening, or the separate libbpf helper packet.
