@@ -20,7 +20,7 @@ The live repo already has four distinct Phase 11 driver packets:
 - the `dw_wdt` packet around `drivers/watchdog/dw_wdt.zig`
 - the `hvc_console` packet around `drivers/tty/hvc/hvc_console.zig`
 
-Those packets now share `zigux/tests/phase11_build.zig`, the shared `make -C zigux phase11` route, the shared replay contract, and the adjacent header-boundary and teardown reminders. That shared review surface is useful, but it also makes it easier for nearby runs to borrow each other's packet scope or reopen the wrong driver note.
+Those packets now share `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `zigux/tests/phase11_build.zig`, the shared `make -C zigux phase11` route, and the workflow-backed replay contract, while the adjacent header-boundary and teardown reminders stay explicit beside them. That shared review surface is useful, but it also makes it easier for nearby runs to borrow each other's packet scope or reopen the wrong driver note.
 
 This note keeps the Phase 11 driver tranche honest by separating shared replay routes from per-lane ownership.
 
@@ -28,14 +28,19 @@ This note keeps the Phase 11 driver tranche honest by separating shared replay r
 
 Shared Phase 11 replay surface:
 
+- `Documentation/zigux/README.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `zigux/tests/phase11_build.zig`
 - `zigux/Makefile`
+- `.github/workflows/zigux-bootstrap.yml`
 - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - `make -C zigux phase11`
 
-These shared routes and the shared contract checker prove that the current bounded Phase 11 starter still replays together and still fails closed when the shared review packet drifts. They do not change which lane owns a driver helper, validation matrix, manifest, survey gate, or next bounded follow-up.
+These shared docs, workflow-backed routes, and the shared contract checker prove that the current bounded Phase 11 starter still replays together and still fails closed when the shared review packet drifts. They do not change which lane owns a driver helper, validation matrix, manifest, survey gate, or next bounded follow-up.
 
 The adjacent shared header-boundary packet also stays outside driver-lane ownership:
 
@@ -107,7 +112,7 @@ This lane may rely on the shared replay contract and may keep the bounded `hvc_c
 - If a Phase 11 run changes `drivers/watchdog/gpio_wdt.zig`, the GPIO manifest, the GPIO survey gate, the GPIO module or slice notes, or the GPIO validation matrix, that work belongs to the GPIO watchdog lane.
 - If a Phase 11 run changes `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, the DesignWare manifest, the DesignWare survey gate, or the DesignWare validation matrix, that work belongs to the DesignWare watchdog lane.
 - If a Phase 11 run changes `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, the HVC manifest, the HVC survey gate, or the HVC validation matrix, that work belongs to the HVC console lane.
-- If a Phase 11 run only changes the shared replay contract, the shared contract checker, the shared header-boundary packet, or `zigux/tests/phase11_build.zig`, it should reopen the smallest directly coupled shared packet first instead of quietly consuming one of the driver lanes.
+- If a Phase 11 run only changes `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, the shared replay contract, the shared contract checker, the shared header-boundary packet, the shared build wiring, or the workflow-backed replay route, it should reopen the smallest directly coupled shared packet first instead of quietly consuming one of the driver lanes.
 - Shared build or make replay drift should only reopen a driver lane when the break is actually rooted in that driver's helper, manifest, survey, or validation matrix.
 
 ## Next bounded step
