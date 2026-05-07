@@ -2,27 +2,28 @@ const std = @import("std");
 const abi = @import("abi_bindings");
 const uapi_version = @import("uapi_version");
 
+pub const Header = uapi_version.Header;
 pub const abi_version: u16 = uapi_version.abi_version;
 pub const header_size: u32 = uapi_version.header_size;
 pub const HeaderCompatibility = uapi_version.Compatibility;
 
-pub fn versionedHeader(size: u32, version: u16, flags: u16) abi.BoundaryHeader {
+pub fn versionedHeader(size: u32, version: u16, flags: u16) Header {
     return uapi_version.versionedHeader(size, version, flags);
 }
 
-pub fn canonicalHeader(flags: u16) abi.BoundaryHeader {
+pub fn canonicalHeader(flags: u16) Header {
     return uapi_version.canonicalHeader(flags);
 }
 
-pub fn boundaryHeader(flags: u16) abi.BoundaryHeader {
+pub fn boundaryHeader(flags: u16) Header {
     return uapi_version.boundaryHeader(flags);
 }
 
-pub fn compatibleHeader(size: u32, flags: u16) abi.BoundaryHeader {
+pub fn compatibleHeader(size: u32, flags: u16) Header {
     return uapi_version.compatibleHeader(size, flags);
 }
 
-pub fn header(flags: u16) abi.BoundaryHeader {
+pub fn header(flags: u16) Header {
     return canonicalHeader(flags);
 }
 
@@ -38,19 +39,19 @@ pub fn isCanonicalSize(size: u32) bool {
     return uapi_version.isCanonicalSize(size);
 }
 
-pub fn headerCompatibility(header_value: abi.BoundaryHeader) ?HeaderCompatibility {
+pub fn headerCompatibility(header_value: Header) ?HeaderCompatibility {
     return uapi_version.compatibility(header_value);
 }
 
-pub fn isCompatibleHeader(header_value: abi.BoundaryHeader) bool {
+pub fn isCompatibleHeader(header_value: Header) bool {
     return uapi_version.isCompatible(header_value);
 }
 
-pub fn isCanonicalHeader(header_value: abi.BoundaryHeader) bool {
+pub fn isCanonicalHeader(header_value: Header) bool {
     return uapi_version.isCanonical(header_value);
 }
 
-pub fn canonicalizeHeader(header_value: abi.BoundaryHeader) ?abi.BoundaryHeader {
+pub fn canonicalizeHeader(header_value: Header) ?Header {
     return uapi_version.canonicalizeHeader(header_value);
 }
 
