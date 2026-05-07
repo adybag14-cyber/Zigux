@@ -331,7 +331,7 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     try std.testing.expect(saw_notify_prepare_helper);
     try std.testing.expect(saw_broken_queue_poll_guard);
     try std.testing.expect(saw_queue_reset_helper);
-    try std.testing.expect(saw_queueResetReadinessHelper);
+    try std.testing.expect(saw_queue_reset_readiness_helper);
     try std.testing.expect(saw_mmio_register_landed);
     try std.testing.expect(saw_mmio_queue_size_helper);
     try std.testing.expect(saw_mmio_feature_word_helper);
