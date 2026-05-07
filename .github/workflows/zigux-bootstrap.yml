@@ -131,6 +131,9 @@ jobs:
       - name: Validate Phase 3 policy/unsafe survey
         run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py
 
+      - name: Check Phase 3 policy-byte guards
+        run: python3 scripts/zigux/check-phase3-policy-byte-guards.py
+
       - name: Validate Phase 3 export/UAPI survey
         run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py
 
@@ -163,6 +166,9 @@ jobs:
 
       - name: Self-test Phase 3 policy/unsafe survey
         run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test
+
+      - name: Self-test Phase 3 policy-byte guard checker
+        run: python3 scripts/zigux/check-phase3-policy-byte-guards.py --self-test
 
       - name: Self-test Phase 3 export/UAPI survey
         run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test
