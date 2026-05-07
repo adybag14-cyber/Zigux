@@ -167,3 +167,28 @@ test "nvme pci recovery replay renegotiates stale reservations against a reduced
     const next = try lab.planIoQueue(8, 64, false);
     try testing.expectEqual(@as(u16, 4), next.queue_id);
 }
+
+test "nvme pci recovery replay carries multi-page PRP descriptor DMA through reset" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const metadata = try lab.planPrpMetadata(4096 * 515, 0);
+    try testing.expectEqual(@as(u16, 2), metadata.prp_list_pages);
+    try testing.expectEqual(@as(u16, 1), metadata.prp_list_link_entries);
+    try testing.expectEqual(@as(u16, 2), metadata.last_prp_list_page_entries);
+    try testing.expectEqual(@as(u32, 8192), metadata.metadata_dma_bytes);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    const stale = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = metadata.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_descriptor_dma_bytes = metadata.metadata_dma_bytes,
+        .cached_requires_descriptor_rebuild = metadata.requires_descriptor_rebuild_after_reset,
+    });
+    try testing.expect(stale.cached_prp_metadata_stale);
+    try testing.expect(stale.descriptor_rebuild_required);
+    try testing.expectEqual(@as(u32, 8192), stale.descriptor_rebuild_dma_bytes);
+    try testing.expect(stale.admin_queue_must_be_replanned);
+}
