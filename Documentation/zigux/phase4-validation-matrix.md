@@ -85,6 +85,13 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
 - implementation note: `zigux/tests/bitmap_diff.zig` remains the roadmap-named synthetic rollback gate and now exact-pins the current range, prefix, copy, `find_nth_bit`, and checksum-backed `runThresholdReplay()` checkpoints from the shipped bounded replay, while `zigux/tests/phase4_bitmap_live_helper_replay.zig` keeps the shipped `tools/lib/bitmap.zig` and `tools/lib/find_bit.zig` semantics explicit on the same shared `phase4_build.zig` entrypoint without changing the rollback owner or widening this lane into direct helper implementation ownership
 - fallback path: keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses
 - perf threshold status: correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, prefix, copy, `find_nth_bit`, and checksum-pinned threshold-replay checkpoints
+- exact checks:
+  - `test_fill_set`: starter `bitmap_set(..., 0, 9)`, rounded `bitmap_fill(..., 35)` to one full word, exact-prefix plus cross-boundary `bitmap_set(..., 79, 19)`, rounded `bitmap_fill(..., 115)` to two full words, and full-width `bitmap_fill(..., 1024)` to the full surface
+  - `test_zero_clear`: starter `bitmap_clear(..., 0, 9)`, rounded `bitmap_zero(..., 35)` to one full word, exact-prefix plus cross-boundary `bitmap_clear(..., 79, 19)`, rounded `bitmap_zero(..., 115)` to two full words, and full-width `bitmap_zero(..., 1024)` to the empty surface
+  - `test_zero_nbits`: zero-length range edits, zero-length prefix edits, and zero-length copy all preserve the seeded destination state they start with
+  - `test_find_nth_bit`: starter population at `10, 20, 30, 40, 50, 60, 80, 123` under both `192`-bit and `191`-bit limits, plus the exact `exp1_find_nth_bits` enumeration under the bounded `960`-bit replay limit
+  - `test_copy`: exact `23`-bit replay from a cleared destination, `23`-bit stale-tail clearing in a seeded word, `23`-bit first-word tail clearing while later filled words stay intact, full-width `109`-bit replay to cleared and pre-filled destinations, partial-word tail clearing at `109` bits, and aligned `97`-bit replay before the filled tail resumes
+  - `runThresholdReplay()`: rejects zero iterations and exact-pins checksum `4641743358357118437` for one batch and `15640590978236698512` for four batches, with repeated runs holding `final_first_set=0`, `final_first_zero=109`, `final_weight=1005`, and `final_nth_seven=123`
 
 ### `zigux/tests/phase4_bitmap_live_helper_replay.zig`
 - anchor: `tools/lib/bitmap.zig` and `tools/lib/find_bit.zig`
