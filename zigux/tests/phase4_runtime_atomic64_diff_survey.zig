@@ -69,7 +69,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff and sibling blob pins explic
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
     try std.testing.expectEqualStrings("dc5908ec5b76290769b599db0085c67888e0e83a", manifest.phase4_validation_matrix_blob_sha);
-    try std.testing.expectEqualStrings("16296839db891c0f484df0fb6204a4bb5ce63426", manifest.phase4_review_checklist_blob_sha);
+    try std.testing.expectEqualStrings("d03407896d3241285c2b402fd5c6875433143f79", manifest.phase4_review_checklist_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
