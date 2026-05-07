@@ -92,7 +92,7 @@ REQUIRED_NARROW_UNSAFE_SNIPPETS = (
     "pub fn addressOf(ptr: anytype) usize {",
     "pub fn byteOffset(base: usize, offset: usize) usize {",
     'return std.math.add(usize, base, offset) catch @panic("phase3 narrow unsafe byte offset overflow");',
-    "pub fn pointerAt(comptime T: type, base: usize, offset: usize) *volatile T {",
+    "pub fn pointerAt(comptime T: type, base: usize, offset: usize) *align(1) volatile T {",
     "pub fn constSliceAt(comptime T: type, base: usize, len: usize) []const T {",
     "pub fn constPointerAt(comptime T: type, addr: usize) *const T {",
     "pub fn writeValueAt(comptime T: type, addr: usize, value: T) void {",
