@@ -16,6 +16,7 @@ This document records the shared boot/runtime loader gap that still separates th
   - `zigux/tests/runtime_loader_gap_manifest.json`
   - `zigux/tests/runtime_loader_gap_survey.zig`
   - `zigux/tests/runtime_trace_events_manifest.json`
+  - `scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`
   - `zigux/tests/phase9_build.zig`
   - `zigux/kernel/runtime_loader.zig`
   - `samples/zigux/runtime_atomic64_loader.zig`
@@ -56,6 +57,8 @@ The same checklist packet also needs to keep the freeze-map coupling explicit so
 
 The shared substrate plan is part of the same delivery packet now. `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` keeps the shared loader-stage vocabulary and the atomic64, bitmap, and kretprobe handoff alignment explicit so the shared request surface does not silently drift away from the sample-side loaders that already feed it.
 
+The runtime-loader packet also now carries a dedicated commit-alignment guard. `scripts/zigux/check-phase9-runtime-loader-commit-alignment.py` keeps the manifest, this survey note, and the substrate-plan note pinned to the same inspected commit and the same pinned-commit sentence before the broader Phase 9 validator or shared replay route can pass.
+
 ## Delivery ownership map
 
 The manifest-backed catalog for this slice now names which file owns each part of the current delivery packet:
@@ -66,6 +69,7 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `Documentation/zigux/freeze-map.md` owns the study-only `kernel/workqueue.c` boundary and the Architecture Council reopen rule for any status change tied to scheduler-facing runtime substrate work
 - `zigux/tests/runtime_loader_gap_manifest.json` owns the manifest-backed catalog and ownership map for the current delivery packet
 - `zigux/tests/runtime_loader_gap_survey.zig` owns the machine-checkable replay of the manifest, note, shared request surface, and without-substrate rollback posture
+- `scripts/zigux/check-phase9-runtime-loader-commit-alignment.py` owns the focused surveyed-commit and pinned-sentence alignment check for the manifest plus the two shared runtime-loader notes
 - `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle replay entrypoint
 - `zigux/kernel/runtime_loader.zig` owns the shared request contract plus allocator, command-name, and init or exit handoff fields
 - `samples/zigux/runtime_atomic64_loader.zig` owns the atomic64 loader-plan projection and without-substrate rollback path into the shared runtime request surface
@@ -133,18 +137,22 @@ It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`,
 ## Gates
 
 1. run the validator self-test first
+- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`
 - `python3 scripts/zigux/validate-phase9.py --self-test`
 
-2. run the release-discipline validator
+2. run the focused commit-alignment guard
+- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`
+
+3. run the release-discipline validator
 - `python3 scripts/zigux/validate-phase9.py`
 
-3. run the shared Phase 9 runtime survey bundle
+4. run the shared Phase 9 runtime survey bundle
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-4. run the focused loader-gap replay
+5. run the focused loader-gap replay
 - `make -C zigux phase9-loader-gap-survey`
 
-5. run the convenience targets
+6. run the convenience targets
 - `make -C zigux phase9-validate`
 - `make -C zigux phase9`
 
