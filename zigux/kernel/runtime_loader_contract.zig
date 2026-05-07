@@ -44,6 +44,47 @@ pub const LoadPlan = struct {
     init_flow: InitFlow,
 };
 
+fn matchesApprovedPilotFamily(
+    plan: LoadPlan,
+    module_name: []const u8,
+    anchor: []const u8,
+    entry_symbol: []const u8,
+    exit_symbol: []const u8,
+) bool {
+    return std.mem.eql(u8, plan.module_name, module_name) and
+        std.mem.eql(u8, plan.anchor, anchor) and
+        std.mem.eql(u8, plan.entry_symbol, entry_symbol) and
+        std.mem.eql(u8, plan.exit_symbol, exit_symbol);
+}
+
+pub fn keepsApprovedPilotFamilyContract(plan: LoadPlan) bool {
+    return matchesApprovedPilotFamily(
+        plan,
+        "runtime_atomic64",
+        "lib/atomic64_test.c",
+        "zigux_runtime_atomic64_init",
+        "zigux_runtime_atomic64_exit",
+    ) or matchesApprovedPilotFamily(
+        plan,
+        "runtime_bitmap",
+        "lib/test_bitmap.c",
+        "zigux_runtime_bitmap_init",
+        "zigux_runtime_bitmap_exit",
+    ) or matchesApprovedPilotFamily(
+        plan,
+        "runtime_trace_events",
+        "samples/trace_events/trace-events-sample.c",
+        "zigux_runtime_trace_events_init",
+        "zigux_runtime_trace_events_exit",
+    ) or matchesApprovedPilotFamily(
+        plan,
+        "runtime_kretprobe",
+        "samples/kprobes/kretprobe_example.c",
+        "zigux_runtime_kretprobe_init",
+        "zigux_runtime_kretprobe_exit",
+    );
+}
+
 pub const PreparedRequest = struct {
     state: RequestState = .prepared,
     plan: LoadPlan,
@@ -63,6 +104,7 @@ pub const PreparedRequest = struct {
 
 pub fn prepareRequest(plan: LoadPlan) !PreparedRequest {
     if (!plan.requires_runtime_substrate) return error.LoaderNotRequired;
+    if (!keepsApprovedPilotFamilyContract(plan)) return error.InvalidPilotFamilyContract;
     if (!keepsSelftestHookEvidenceConsistent(plan)) return error.InvalidSelftestHookEvidence;
     if (!plan.init_flow.readyForRuntimeLoad()) return error.InvalidInitFlow;
 
@@ -109,7 +151,7 @@ pub fn keepsSelftestHookEvidenceConsistent(plan: LoadPlan) bool {
     };
 }
 
-test "shared runtime loader contract keeps allocator, init flow, and selftest-hook evidence explicit across handoff variants" {
+test "shared runtime loader contract keeps allocator, init flow, approved pilot families, and selftest-hook evidence explicit across handoff variants" {
     const cases = [_]LoadPlan{
         .{
             .module_name = "runtime_atomic64",
@@ -176,6 +218,7 @@ test "shared runtime loader contract keeps allocator, init flow, and selftest-ho
     for (cases) |plan| {
         var request = try prepareRequest(plan);
         try std.testing.expectEqual(RequestState.prepared, request.state);
+        try std.testing.expect(keepsApprovedPilotFamilyContract(plan));
         try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, plan));
         try std.testing.expect(keepsAllocatorInitFlowConsistent(
             plan,
@@ -205,7 +248,7 @@ test "shared runtime loader contract keeps allocator, init flow, and selftest-ho
     }
 }
 
-test "shared runtime loader contract rejects impossible, stale, or selftest-hook-inconsistent handoff flows" {
+test "shared runtime loader contract rejects impossible, stale, unknown-family, or selftest-hook-inconsistent handoff flows" {
     const missing_init = LoadPlan{
         .module_name = "runtime_atomic64",
         .anchor = "lib/atomic64_test.c",
@@ -273,6 +316,42 @@ test "shared runtime loader contract rejects impossible, stale, or selftest-hook
         },
     };
     try std.testing.expectError(error.InvalidInitFlow, prepareRequest(exited_plan));
+
+    const mismatched_anchor = LoadPlan{
+        .module_name = "runtime_atomic64",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_atomic64_init",
+        .exit_symbol = "zigux_runtime_atomic64_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expect(!keepsApprovedPilotFamilyContract(mismatched_anchor));
+    try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(mismatched_anchor));
+
+    const unknown_family = LoadPlan{
+        .module_name = "runtime_spinlock",
+        .anchor = "kernel/locking/spinlock.c",
+        .entry_symbol = "zigux_runtime_spinlock_init",
+        .exit_symbol = "zigux_runtime_spinlock_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .kernel_heap,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expect(!keepsApprovedPilotFamilyContract(unknown_family));
+    try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(unknown_family));
 
     const mismatched_selftest = LoadPlan{
         .module_name = "runtime_kretprobe",
@@ -377,7 +456,7 @@ test "shared runtime loader contract rejects impossible, stale, or selftest-hook
     ));
 }
 
-test "shared runtime loader contract rejects request state or plan drift" {
+test "shared runtime loader contract rejects request state, approved-family, or plan drift" {
     const stable_plan = LoadPlan{
         .module_name = "runtime_bitmap",
         .anchor = "lib/test_bitmap.c",
@@ -395,6 +474,7 @@ test "shared runtime loader contract rejects request state or plan drift" {
     };
 
     const request = try prepareRequest(stable_plan);
+    try std.testing.expect(keepsApprovedPilotFamilyContract(stable_plan));
     try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, stable_plan));
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(
         request,
@@ -404,18 +484,22 @@ test "shared runtime loader contract rejects request state or plan drift" {
 
     var drifted_module = stable_plan;
     drifted_module.module_name = "runtime_bitmap_drift";
+    try std.testing.expect(!keepsApprovedPilotFamilyContract(drifted_module));
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_module));
 
     var drifted_anchor = stable_plan;
     drifted_anchor.anchor = "lib/test_bitmap_drift.c";
+    try std.testing.expect(!keepsApprovedPilotFamilyContract(drifted_anchor));
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_anchor));
 
     var drifted_entry_symbol = stable_plan;
     drifted_entry_symbol.entry_symbol = "zigux_runtime_bitmap_init_drift";
+    try std.testing.expect(!keepsApprovedPilotFamilyContract(drifted_entry_symbol));
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_entry_symbol));
 
     var drifted_exit_symbol = stable_plan;
     drifted_exit_symbol.exit_symbol = "zigux_runtime_bitmap_exit_drift";
+    try std.testing.expect(!keepsApprovedPilotFamilyContract(drifted_exit_symbol));
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_exit_symbol));
 
     var drifted_runtime_requirement = stable_plan;
