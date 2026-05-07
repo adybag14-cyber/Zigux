@@ -17,6 +17,7 @@ FILES = [
     "drivers/virtio/virtio_mmio.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "drivers/virtio/virtio_input_verify.zig",
+    "drivers/virtio/virtio_mmio_verify.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
@@ -26,10 +27,13 @@ FILES = [
 
 EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_mmio_module",
+    "../../drivers/virtio/virtio_mmio_verify.zig",
     "phase10_virtio_mmio_survey_module",
     '\"phase10-virtio-mmio-tests\"',
+    '\"phase10-virtio-mmio-verify-tests\"',
     '\"phase10-virtio-mmio-survey-tests\"',
     "run_phase10_virtio_mmio_tests.step",
+    "run_phase10_virtio_mmio_verify_tests.step",
     "run_phase10_virtio_mmio_survey_tests.step",
 ]
 
@@ -83,6 +87,10 @@ EXPECTED_SURVEY_TEST_MARKERS = [
     'try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_ring_verify.zig") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_input_verify.zig") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, slice_note, "selected-queue readiness summary") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, build_file, "../../drivers/virtio/virtio_mmio_verify.zig") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-mmio-verify-tests") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase10_virtio_mmio_verify_tests.step") != null);',
+    'try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_verify_present);',
     'try std.testing.expect(starter_landed_count >= 17);',
     "var saw_mmio_feature_negotiation = false;",
     "var saw_mmio_transport_identity = false;",
@@ -168,12 +176,16 @@ BASELINE_FIXTURE = {
 \tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig
 """,
     "zigux/tests/phase10_build.zig": """const phase10_virtio_mmio_module = b.createModule(.{});
+const phase10_virtio_mmio_verify_module = b.createModule(.{ .root_source_file = b.path("../../drivers/virtio/virtio_mmio_verify.zig") });
 const phase10_virtio_mmio_survey_module = b.createModule(.{});
 const phase10_virtio_mmio_tests = b.addTest(.{ .name = \"phase10-virtio-mmio-tests\" });
 const run_phase10_virtio_mmio_tests = b.addRunArtifact(phase10_virtio_mmio_tests);
+const phase10_virtio_mmio_verify_tests = b.addTest(.{ .name = \"phase10-virtio-mmio-verify-tests\" });
+const run_phase10_virtio_mmio_verify_tests = b.addRunArtifact(phase10_virtio_mmio_verify_tests);
 const phase10_virtio_mmio_survey_tests = b.addTest(.{ .name = \"phase10-virtio-mmio-survey-tests\" });
 const run_phase10_virtio_mmio_survey_tests = b.addRunArtifact(phase10_virtio_mmio_survey_tests);
 test_step.dependOn(&run_phase10_virtio_mmio_tests.step);
+test_step.dependOn(&run_phase10_virtio_mmio_verify_tests.step);
 test_step.dependOn(&run_phase10_virtio_mmio_survey_tests.step);
 """,
     "drivers/virtio/virtio_mmio.zig": """pub const ConfigWritePlanSummary = struct {};
@@ -190,6 +202,7 @@ pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self
 """,
     "drivers/virtio/virtio_ring_verify.zig": 'test "virtio ring verify fixture" {}\n',
     "drivers/virtio/virtio_input_verify.zig": 'test "virtio input verify fixture" {}\n',
+    "drivers/virtio/virtio_mmio_verify.zig": 'test "virtio mmio verify fixture" {}\n',
     "zigux/tests/phase10_virtio_mmio.zig": """test "phase10 virtio mmio plans a bounded config-word write without mutating config space" {}
 test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {}
 test "phase10 virtio mmio summarizes bounded feature negotiation before lifecycle work" {}
@@ -216,6 +229,10 @@ test "phase10 virtio mmio summarizes selected-queue readiness before queue hando
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_ring_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_input_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "selected-queue readiness summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "../../drivers/virtio/virtio_mmio_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-mmio-verify-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase10_virtio_mmio_verify_tests.step") != null);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_verify_present);
     try std.testing.expect(starter_landed_count >= 17);
     var saw_mmio_feature_negotiation = false;
     var saw_mmio_transport_identity = false;
@@ -276,6 +293,7 @@ test "phase10 virtio mmio summarizes selected-queue readiness before queue hando
                 "preexisting_virtio_input_survey_present": True,
                 "preexisting_virtio_mmio_zig_present": True,
                 "preexisting_virtio_mmio_test_present": True,
+                "preexisting_virtio_mmio_verify_present": True,
             },
             "gaps": [
                 {"id": "phase10-build-gate", "status": "starter_landed"},
@@ -384,6 +402,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:virtio_mmio_c_lines=829")
     if summary.get("preexisting_phase10_test_files") != 11:
         missing_markers.append("manifest:preexisting_phase10_test_files=11")
+    if summary.get("preexisting_virtio_mmio_verify_present") is not True:
+        missing_markers.append("manifest:preexisting_virtio_mmio_verify_present=true")
 
     gaps = manifest.get("gaps", [])
     if len(gaps) != len(EXPECTED_GAPS):
@@ -447,6 +467,13 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_ring_verify_file_missing")
         write_fixture(tmp_root, "drivers/virtio/virtio_ring_verify.zig", 'test "virtio ring verify fixture" {}\n')
 
+        mmio_verify_path = tmp_root / "drivers/virtio/virtio_mmio_verify.zig"
+        mmio_verify_path.unlink()
+        missing_files, _ = validate(tmp_root)
+        if "drivers/virtio/virtio_mmio_verify.zig" not in missing_files:
+            raise SystemExit("phase10-mmio-self-test:expected_mmio_verify_file_missing")
+        write_fixture(tmp_root, "drivers/virtio/virtio_mmio_verify.zig", 'test "virtio mmio verify fixture" {}\n')
+
         build_path = tmp_root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
@@ -456,6 +483,15 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if 'build:\"phase10-virtio-mmio-survey-tests\"' not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_build_survey_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
+        build_path.write_text(
+            original_build.replace('\"phase10-virtio-mmio-verify-tests\"', '\"phase10-virtio-mmio-verify-drift\"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'build:\"phase10-virtio-mmio-verify-tests\"' not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_build_verify_marker_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
         makefile_path = tmp_root / "zigux/Makefile"
@@ -537,6 +573,14 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:gap_status:phase10-mmio-transport-identity-helper=ready_next" not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_transport_identity_status_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        manifest["survey_summary"]["preexisting_virtio_mmio_verify_present"] = False
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        _, missing_markers = validate(tmp_root)
+        if "manifest:preexisting_virtio_mmio_verify_present=true" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_manifest_verify_summary_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         survey_path = tmp_root / "Documentation/zigux/phase10-virtio-mmio-survey.md"
@@ -664,7 +708,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_ring_helper_status_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=20")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
