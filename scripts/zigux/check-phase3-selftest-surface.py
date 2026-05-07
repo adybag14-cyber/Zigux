@@ -37,6 +37,8 @@ DOCS_ROOT_MARKERS = [
     "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/phase3_catalog.py --self-test",
@@ -50,6 +52,8 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-abi-dump-gate.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "make -C zigux phase3-selftest",
@@ -223,6 +227,8 @@ def run_self_test() -> int:
         assert "docs_root:scripts/zigux/check-phase3-selftest-surface.py" in issues
         assert "docs_root:scripts/zigux/check-phase3-readme-tooling-inventory.py" in issues
         assert "docs_root:scripts/zigux/check-phase3-catalog-selftest.py" in issues
+        assert "docs_root:scripts/zigux/validate-phase3-policy-unsafe-survey.py" in issues
+        assert "docs_root:scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in issues
         assert "docs_root:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
         assert "docs_root:scripts/zigux/validate-phase3-abi-bindings-syntax.py" in issues
         assert "docs_root:scripts/zigux/phase3_catalog.py --self-test" in issues
@@ -263,6 +269,8 @@ def run_self_test() -> int:
         assert "review_checklist:scripts/zigux/check-phase3-readme-tooling-inventory.py" in issues
         assert "review_checklist:scripts/zigux/check-phase3-abi-dump-gate.py" in issues
         assert "review_checklist:scripts/zigux/check-phase3-catalog-selftest.py" in issues
+        assert "review_checklist:scripts/zigux/validate-phase3-policy-unsafe-survey.py" in issues
+        assert "review_checklist:scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in issues
         assert "review_checklist:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
         assert "review_checklist:scripts/zigux/validate-phase3-abi-bindings-syntax.py" in issues
         assert "review_checklist:make -C zigux phase3-selftest" in issues
@@ -273,9 +281,9 @@ def run_self_test() -> int:
             "\n".join(
                 REVIEW_CHECKLIST_MARKERS[:2]
                  + [
-                     "the review packet keeps scripts/zigux/check-phase3-readme-tooling-inventory.py, scripts/zigux/check-phase3-abi-dump-gate.py, scripts/zigux/check-phase3-catalog-selftest.py, scripts/zigux/validate-phase3-export-uapi-survey.py, scripts/zigux/validate-phase3-abi-bindings-syntax.py, and make -C zigux phase3-selftest visible inside one longer checklist sentence"
+                     "the review packet keeps scripts/zigux/check-phase3-readme-tooling-inventory.py, scripts/zigux/check-phase3-abi-dump-gate.py, scripts/zigux/check-phase3-catalog-selftest.py, scripts/zigux/validate-phase3-policy-unsafe-survey.py, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, scripts/zigux/validate-phase3-export-uapi-survey.py, scripts/zigux/validate-phase3-abi-bindings-syntax.py, and make -C zigux phase3-selftest visible inside one longer checklist sentence"
                  ]
-                + REVIEW_CHECKLIST_MARKERS[8:]
+                + REVIEW_CHECKLIST_MARKERS[10:]
             )
             + "\n",
         )
@@ -284,7 +292,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[7]]) + "\n",
+            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[9]]) + "\n",
         )
         issues = validate_root(root)
         assert "duplicate_review_checklist_marker:2:make -C zigux phase3-selftest" in issues
