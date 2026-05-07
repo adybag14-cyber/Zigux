@@ -51,6 +51,7 @@
         "applyFdinfoMapInfoLine() numeric field decoding for map_type/key_size/value_size/max_entries/map_flags/map_extra",
         "parseFdinfoMapInfo() line-by-line fdinfo map metadata parsing",
         "summarizeFdinfoMapInfo() bounded completion reporting for the parsed map info packet",
+        "mapReuseObservationFromFdinfo() helper-only conversion from parsed fdinfo metadata into a reusable comparison observation",
         "resolveReusedMapName() object-name retention for truncated reused-map names",
         "normalizeObservedReuseMapFlags() devmap readonly-prog normalization for reuse comparison",
         "isMapReuseCompatible() helper-only reused-map compatibility comparison"
@@ -59,7 +60,7 @@
         "direct procfs reads and descriptor ownership flow",
         "token creation, bpffs reopen flow, and other fd-handle bridge side effects"
       ],
-      "why_now": "The shared file-path bridge destination now contains the fdinfo parsing foundation plus the helper-only reused-map compatibility packet, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor or reopen side effects."
+      "why_now": "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, and reused-map compatibility packet as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor or reopen side effects."
     }
   ],
   "segments": [
@@ -112,13 +113,13 @@
     {
       "id": "P8-L15-S05",
       "slug": "fdinfo-map-info-helpers",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() pathname and fdinfo text parsing"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The bounded procfs-path and fdinfo map-info helper packet is already materialized inside the shared bridge destination, but this tranche remains the next explicit promotable helper slice until Zigux records that capability separately from the heavier descriptor-ownership bridge work."
+      "why_now": "The bounded procfs-path, fdinfo text parsing, and helper-only map-observation packet is now separately recorded in the shared bridge destination, while direct procfs reads, descriptor ownership, and reopen side effects remain deferred to the heavier bridge tranche."
     },
     {
       "id": "P8-L15-S06",
