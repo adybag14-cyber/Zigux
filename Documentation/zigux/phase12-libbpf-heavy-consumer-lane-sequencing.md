@@ -11,7 +11,7 @@ It is a coordination artifact, not a closure claim.
 - focused smoke preflight entrypoint: `make -C zigux phase12-smoke`
 - shared build replay entrypoint: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 - Linux-style replay entrypoint: `make -C zigux phase12`
-- shipped shared coordination surfaces on `master`: `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
+- shipped shared coordination surfaces on `master`: `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
 
 ## Why this note exists
 
@@ -32,6 +32,7 @@ Use this lane only for shared reviewability surfaces that describe or gate the l
 Current shared packet:
 - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - `zigux/tests/phase12_libbpf_manifest.json`
+- `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
 - `zigux/tests/phase12_libbpf_segments.zig`
 - `zigux/tests/phase12_libbpf_reviewability.zig`
 - `tools/lib/bpf/zigux_segments/manifest.json`
@@ -115,7 +116,7 @@ Do not use this lane to land helper code, manifest churn, or new test logic.
 ## Current anti-overlap correction
 
 Today the strongest Phase 12 libbpf sequencing correction is simple:
-- shared reviewability owns the survey, manifest, reviewability gate, and shared build alignment for the current libbpf packet
+- shared reviewability owns the survey, manifest, deterministic snapshot fixture, reviewability gate, and shared build alignment for the current libbpf packet
 - the two helper-sized `ready_next` promotions stay smaller than the deferred bridge and queue-routing bucket
 - the deferred bridge and queue-routing bucket stays smaller than the blocked object-model, loader, and relocation wall
 - wording-only shared-summary repairs stay separate from helper logic and from the other Phase 12 driver lanes
