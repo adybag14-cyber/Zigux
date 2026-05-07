@@ -29,9 +29,9 @@ EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_mmio_module",
     "../../drivers/virtio/virtio_mmio_verify.zig",
     "phase10_virtio_mmio_survey_module",
-    '\"phase10-virtio-mmio-tests\"',
-    '\"phase10-virtio-mmio-verify-tests\"',
-    '\"phase10-virtio-mmio-survey-tests\"',
+    '"phase10-virtio-mmio-tests"',
+    '"phase10-virtio-mmio-verify-tests"',
+    '"phase10-virtio-mmio-survey-tests"',
     "run_phase10_virtio_mmio_tests.step",
     "run_phase10_virtio_mmio_verify_tests.step",
     "run_phase10_virtio_mmio_survey_tests.step",
@@ -56,6 +56,15 @@ EXPECTED_HELPER_MARKERS = [
     "pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {",
     "pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary {",
     "pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {",
+]
+
+EXPECTED_MMIO_VERIFY_MARKERS = [
+    'test "virtio mmio wrapper-facing probe preflight keeps bounded blockers visible" {',
+    'test "virtio mmio wrapper-facing config review stays scoped to the current generation" {',
+    'test "virtio mmio wrapper-facing queue handoff review stays selected-queue local" {',
+    "try std.testing.expect(!summary.ready_for_probe_handoff);",
+    "try std.testing.expectEqual(@as(u32, 1), disposition.config_generation);",
+    "try std.testing.expect(summary.queue_ready_for_handoff);",
 ]
 
 EXPECTED_TEST_MARKERS = [
@@ -178,11 +187,11 @@ BASELINE_FIXTURE = {
     "zigux/tests/phase10_build.zig": """const phase10_virtio_mmio_module = b.createModule(.{});
 const phase10_virtio_mmio_verify_module = b.createModule(.{ .root_source_file = b.path("../../drivers/virtio/virtio_mmio_verify.zig") });
 const phase10_virtio_mmio_survey_module = b.createModule(.{});
-const phase10_virtio_mmio_tests = b.addTest(.{ .name = \"phase10-virtio-mmio-tests\" });
+const phase10_virtio_mmio_tests = b.addTest(.{ .name = "phase10-virtio-mmio-tests" });
 const run_phase10_virtio_mmio_tests = b.addRunArtifact(phase10_virtio_mmio_tests);
-const phase10_virtio_mmio_verify_tests = b.addTest(.{ .name = \"phase10-virtio-mmio-verify-tests\" });
+const phase10_virtio_mmio_verify_tests = b.addTest(.{ .name = "phase10-virtio-mmio-verify-tests" });
 const run_phase10_virtio_mmio_verify_tests = b.addRunArtifact(phase10_virtio_mmio_verify_tests);
-const phase10_virtio_mmio_survey_tests = b.addTest(.{ .name = \"phase10-virtio-mmio-survey-tests\" });
+const phase10_virtio_mmio_survey_tests = b.addTest(.{ .name = "phase10-virtio-mmio-survey-tests" });
 const run_phase10_virtio_mmio_survey_tests = b.addRunArtifact(phase10_virtio_mmio_survey_tests);
 test_step.dependOn(&run_phase10_virtio_mmio_tests.step);
 test_step.dependOn(&run_phase10_virtio_mmio_verify_tests.step);
@@ -202,7 +211,16 @@ pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self
 """,
     "drivers/virtio/virtio_ring_verify.zig": 'test "virtio ring verify fixture" {}\n',
     "drivers/virtio/virtio_input_verify.zig": 'test "virtio input verify fixture" {}\n',
-    "drivers/virtio/virtio_mmio_verify.zig": 'test "virtio mmio verify fixture" {}\n',
+    "drivers/virtio/virtio_mmio_verify.zig": """test "virtio mmio wrapper-facing probe preflight keeps bounded blockers visible" {
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+}
+test "virtio mmio wrapper-facing config review stays scoped to the current generation" {
+    try std.testing.expectEqual(@as(u32, 1), disposition.config_generation);
+}
+test "virtio mmio wrapper-facing queue handoff review stays selected-queue local" {
+    try std.testing.expect(summary.queue_ready_for_handoff);
+}
+""",
     "zigux/tests/phase10_virtio_mmio.zig": """test "phase10 virtio mmio plans a bounded config-word write without mutating config space" {}
 test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {}
 test "phase10 virtio mmio summarizes bounded feature negotiation before lifecycle work" {}
@@ -349,6 +367,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         if marker not in helper_text:
             missing_markers.append(f"helper:{marker}")
 
+    mmio_verify_text = read_text(root, "drivers/virtio/virtio_mmio_verify.zig")
+    for marker in EXPECTED_MMIO_VERIFY_MARKERS:
+        if marker not in mmio_verify_text:
+            missing_markers.append(f"mmio_verify:{marker}")
+
     test_text = read_text(root, "zigux/tests/phase10_virtio_mmio.zig")
     for marker in EXPECTED_TEST_MARKERS:
         if marker not in test_text:
@@ -468,29 +491,64 @@ def run_self_test() -> int:
         write_fixture(tmp_root, "drivers/virtio/virtio_ring_verify.zig", 'test "virtio ring verify fixture" {}\n')
 
         mmio_verify_path = tmp_root / "drivers/virtio/virtio_mmio_verify.zig"
-        mmio_verify_path.unlink()
-        missing_files, _ = validate(tmp_root)
-        if "drivers/virtio/virtio_mmio_verify.zig" not in missing_files:
-            raise SystemExit("phase10-mmio-self-test:expected_mmio_verify_file_missing")
-        write_fixture(tmp_root, "drivers/virtio/virtio_mmio_verify.zig", 'test "virtio mmio verify fixture" {}\n')
+        original_mmio_verify = mmio_verify_path.read_text(encoding="utf-8")
+        mmio_verify_path.write_text(
+            original_mmio_verify.replace(
+                'test "virtio mmio wrapper-facing probe preflight keeps bounded blockers visible" {',
+                'test "virtio mmio wrapper-facing probe preflight drifted visible blockers" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'mmio_verify:test "virtio mmio wrapper-facing probe preflight keeps bounded blockers visible" {' not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_mmio_verify_probe_title_missing")
+        mmio_verify_path.write_text(original_mmio_verify, encoding="utf-8")
+
+        mmio_verify_path.write_text(
+            original_mmio_verify.replace(
+                "try std.testing.expectEqual(@as(u32, 1), disposition.config_generation);",
+                "try std.testing.expectEqual(@as(u32, 2), disposition.config_generation);",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "mmio_verify:try std.testing.expectEqual(@as(u32, 1), disposition.config_generation);" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_mmio_verify_config_marker_missing")
+        mmio_verify_path.write_text(original_mmio_verify, encoding="utf-8")
+
+        mmio_verify_path.write_text(
+            original_mmio_verify.replace(
+                'test "virtio mmio wrapper-facing queue handoff review stays selected-queue local" {',
+                'test "virtio mmio wrapper-facing queue handoff drift leaves selected queue implicit" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'mmio_verify:test "virtio mmio wrapper-facing queue handoff review stays selected-queue local" {' not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_mmio_verify_queue_title_missing")
+        mmio_verify_path.write_text(original_mmio_verify, encoding="utf-8")
 
         build_path = tmp_root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
-            original_build.replace('\"phase10-virtio-mmio-survey-tests\"', '\"phase10-virtio-mmio-survey-drift\"', 1),
+            original_build.replace('"phase10-virtio-mmio-survey-tests"', '"phase10-virtio-mmio-survey-drift"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'build:\"phase10-virtio-mmio-survey-tests\"' not in missing_markers:
+        if 'build:"phase10-virtio-mmio-survey-tests"' not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_build_survey_marker_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
+        build_path.writeText = None
         build_path.write_text(
-            original_build.replace('\"phase10-virtio-mmio-verify-tests\"', '\"phase10-virtio-mmio-verify-drift\"', 1),
+            original_build.replace('"phase10-virtio-mmio-verify-tests"', '"phase10-virtio-mmio-verify-drift"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'build:\"phase10-virtio-mmio-verify-tests\"' not in missing_markers:
+        if 'build:"phase10-virtio-mmio-verify-tests"' not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_build_verify_marker_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
@@ -708,7 +766,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_ring_helper_status_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
