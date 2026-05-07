@@ -386,13 +386,10 @@ REQUIRED_MARKERS = {
         "standalone timer or clockevent helper behavior",
     ],
     "zigux/tests/phase8_libbpf_segments_only_build.zig": [
+        "\"phase8_libbpf_segments.zig\"",
         "../../tools/lib/bpf/zigux_segments/verify.zig",
         "phase8-libbpf-segment-tests",
         "phase8-libbpf-segment-verify-tests",
-    ],
-    "zigux/tests/phase8_libbpf_segments_only_build.zig": [
-        "\"phase8_libbpf_segments.zig\"",
-        "phase8-libbpf-segment-tests",
     ],
     "zigux/tests/phase8_logging.zig": [
         "phase 8 logging segment keeps libbpf log-level parsing bounded and explicit",
