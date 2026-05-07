@@ -122,6 +122,7 @@ Keep explicit
 - the public `runCallbackBoundaryReplay()` helper plus the explicit callback-path replay, balanced register-then-unregister callback flow, restored registration balance, and the bounded `init()` -> replay helpers -> `exit()` ownership path
 - `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection
 - post-exit replay and callback-registration rejection so the sample stays a bounded ownership-and-lifetime example instead of only a tracing example
+- the docs-root, sample-root, scripts-root, and tests-root contributor surfaces in `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` should keep those same formatting, callback-boundary, ownership-lifetime, and Phase 5-versus-Phase 9 cues aligned instead of leaving the trace-events packet isolated to this note
 
 Keep out of scope
 - `CREATE_TRACE_POINTS` parity
