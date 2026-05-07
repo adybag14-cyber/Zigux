@@ -276,6 +276,7 @@ def run_self_test() -> int:
 
         manifest_path = tmp_root / "zigux/tests/phase10_virtio_core_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
+        surveyed_commit = json.loads(original_manifest)["surveyed_commit"]
         manifest_path.write_text(
             original_manifest.replace('"phase10-driver-id-helper"', '"phase10-driver-id-helper-drift"', 1),
             encoding="utf-8",
@@ -494,7 +495,11 @@ def run_self_test() -> int:
         survey_path.write_text(original_survey, encoding="utf-8")
 
         manifest_path.write_text(
-            original_manifest.replace('"surveyed_commit": "7a4454d0474106972cad7e164b79293bd54a40c6"', '"surveyed_commit": "master"', 1),
+            original_manifest.replace(
+                f'"surveyed_commit": "{surveyed_commit}"',
+                '"surveyed_commit": "master"',
+                1,
+            ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
@@ -503,7 +508,7 @@ def run_self_test() -> int:
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         survey_path.write_text(
-            original_survey.replace("7a4454d0474106972cad7e164b79293bd54a40c6", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1),
+            original_survey.replace(surveyed_commit, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
