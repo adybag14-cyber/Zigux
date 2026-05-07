@@ -68,6 +68,20 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(build_file, "\"phase7-cmdline-survey-tests\"");
     try expectContains(build_file, "run_cmdline_survey_tests.setCwd(b.path(\"../..\"));");
 
+    const helper_impl = try readRepoFile(allocator, "lib/cmdline.zig");
+    defer allocator.free(helper_impl);
+    try expectContains(helper_impl, "pub fn getOption");
+    try expectContains(helper_impl, "pub fn getOptions");
+    try expectContains(helper_impl, "pub fn memparse");
+    try expectContains(helper_impl, "pub fn parseOptionStr");
+    try expectContains(helper_impl, "pub fn nextArg");
+    try expectContains(helper_impl, "test \"getOption reports ranges, accepts leading plus, and consumes a standalone leading hyphen\"");
+    try expectContains(helper_impl, "test \"getOptions expands ranges, supports validation-only counting, and accepts leading plus\"");
+    try expectContains(helper_impl, "test \"memparse handles size suffixes, accepts leading plus, and reports where parsing stopped\"");
+    try expectContains(helper_impl, "test \"parseOptionStr only matches full comma-delimited options\"");
+    try expectContains(helper_impl, "test \"nextArg keeps embedded equals inside quoted values\"");
+    try expectContains(helper_impl, "test \"nextArg does not treat a leading equals sign as a value separator\"");
+
     const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
     defer allocator.free(tests_root);
     try expectContains(tests_root, "`scripts/zigux/validate-phase7.py`");
