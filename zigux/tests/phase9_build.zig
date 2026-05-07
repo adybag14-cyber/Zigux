@@ -302,13 +302,16 @@ pub fn build(b: *std.Build) void {
 
     const runtime_atomic64_tests_step = b.step(
         "phase9-runtime-atomic64-tests",
-        "Run the focused Phase 9 runtime atomic64 sample, module, loader, diff, and survey tests",
+        "Run the focused Phase 9 runtime atomic64 sample, module, loader, diff, survey, and shared runtime-loader tests",
     );
     runtime_atomic64_tests_step.dependOn(&run_runtime_atomic64_sample_tests.step);
     runtime_atomic64_tests_step.dependOn(&run_runtime_atomic64_module_tests.step);
     runtime_atomic64_tests_step.dependOn(&run_runtime_atomic64_loader_tests.step);
     runtime_atomic64_tests_step.dependOn(&run_runtime_atomic64_diff_tests.step);
     runtime_atomic64_tests_step.dependOn(&run_runtime_atomic64_survey_tests.step);
+    runtime_atomic64_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
+    runtime_atomic64_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
+    runtime_atomic64_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
 
     const runtime_bitmap_top_bit_tests_step = b.step(
         "phase9-runtime-bitmap-top-bit-tests",
