@@ -5,6 +5,10 @@ pub const event_queue_index: u16 = 1;
 pub const request_queue_base: u16 = 2;
 pub const event_buffer_count: u16 = 8;
 pub const min_request_queues: u16 = 1;
+pub const default_cdb_size: u32 = 32;
+pub const default_dma_boundary: u32 = std.math.maxInt(u32);
+pub const default_cmd_per_lun: u32 = 1;
+pub const default_max_sectors: u32 = 0xFFFF;
 
 pub const RequestQueueKind = enum {
     request,
@@ -20,6 +24,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_queue_family_planner: bool,
+    provides_host_shape_summary: bool,
     touches_live_dma: bool,
     touches_scsi_host: bool,
     touches_transport_reset: bool,
@@ -68,6 +73,36 @@ pub const ProbeConfigSnapshot = struct {
     respects_poll_queue_clamp: bool,
     preserves_probe_only_scope: bool,
     blocks_dma_submission: bool,
+};
+
+pub const HostShapeRequest = struct {
+    num_queues: u16,
+    requested_poll_queues: u16,
+    seg_max: u32,
+    cmd_per_lun: u32,
+    max_target: u32,
+    max_lun: u32,
+    max_sectors: u32,
+};
+
+pub const HostShapeSummary = struct {
+    anchor: []const u8,
+    request_queues: u16,
+    default_queues: u16,
+    poll_queues: u16,
+    sg_tablesize: u32,
+    cmd_per_lun: u32,
+    max_sectors: u32,
+    max_id: u32,
+    max_lun: u32,
+    max_cmd_len: u32,
+    nr_hw_queues: u16,
+    nr_maps: u16,
+    dma_boundary: u32,
+    uses_map_queues: bool,
+    uses_commit_rqs: bool,
+    uses_mq_poll: bool,
+    preserves_pre_registration_scope: bool,
 };
 
 pub const RecoverySummary = struct {
@@ -172,6 +207,7 @@ pub const VirtioScsiQueueLab = struct {
             .name = "virtio_scsi_queue_lab",
             .anchor = "drivers/scsi/virtio_scsi.c",
             .provides_queue_family_planner = true,
+            .provides_host_shape_summary = true,
             .touches_live_dma = false,
             .touches_scsi_host = false,
             .touches_transport_reset = true,
@@ -253,6 +289,39 @@ pub const VirtioScsiQueueLab = struct {
             .respects_poll_queue_clamp = layout.poll_queues <= layout.request_queues - 1,
             .preserves_probe_only_scope = true,
             .blocks_dma_submission = true,
+        };
+    }
+
+    pub fn captureHostShapeSummary(self: *Self, request: HostShapeRequest) !HostShapeSummary {
+        const probe = try self.probeConfigSnapshot(
+            request.num_queues,
+            request.requested_poll_queues,
+            request.seg_max,
+            request.cmd_per_lun,
+            request.max_target,
+            request.max_lun,
+            request.max_sectors,
+        );
+        const nr_maps: u16 = if (probe.poll_queues == 0) 1 else 3;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .request_queues = probe.num_queues,
+            .default_queues = probe.default_queues,
+            .poll_queues = probe.poll_queues,
+            .sg_tablesize = defaultIfZeroU32(request.seg_max, 1),
+            .cmd_per_lun = defaultIfZeroU32(request.cmd_per_lun, default_cmd_per_lun),
+            .max_sectors = defaultIfZeroU32(request.max_sectors, default_max_sectors),
+            .max_id = try checkedAddU32(request.max_target, 1),
+            .max_lun = try checkedAddU32(request.max_lun, 0x4001),
+            .max_cmd_len = default_cdb_size,
+            .nr_hw_queues = probe.num_queues,
+            .nr_maps = nr_maps,
+            .dma_boundary = default_dma_boundary,
+            .uses_map_queues = true,
+            .uses_commit_rqs = true,
+            .uses_mq_poll = probe.poll_queues != 0,
+            .preserves_pre_registration_scope = true,
         };
     }
 
@@ -413,7 +482,7 @@ pub const VirtioScsiQueueLab = struct {
             .blocks_request_queue_access_until_restore = true,
             .keeps_frozen_layout_for_restore = true,
             .clears_live_layout_after_restore = true,
-            .requires_replan_before_queue_reuse = true,
+            .requires_replanBeforeQueueReuse = true,
         };
     }
 
@@ -445,5 +514,14 @@ pub const VirtioScsiQueueLab = struct {
     fn checkedAddU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) + rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
+    }
+
+    fn checkedAddU32(lhs: u32, rhs: u32) !u32 {
+        const value = @as(u64, lhs) + rhs;
+        return std.math.cast(u32, value) orelse error.QueueCountOverflow;
+    }
+
+    fn defaultIfZeroU32(value: u32, fallback: u32) u32 {
+        return if (value == 0) fallback else value;
     }
 };
