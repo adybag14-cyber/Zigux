@@ -244,6 +244,9 @@ test "phase 9 runtime bitmap module slice keeps the loader-backed survey packet 
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/runtime_bitmap_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "provides_selftest_hook=true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "zig build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "make -C zigux phase9") != null);
 }
 
 test "phase 9 runtime bitmap survey source-checks the direct sample evidence packet" {
@@ -350,7 +353,9 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime bitmap loader keeps initialized-stage shared contract plans explicit\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime bitmap loader keeps initialized shared-request snapshots stable across later selftest activity\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime bitmap loader bridges the shared request lifecycle without widening bitmap claims\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime bitmap loader keeps shared release failures from desynchronizing loader state\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime bitmap loader surfaces shared request drift before any live bitmap claim\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime bitmap loader rejects shared selftest-hook drift before any live bitmap claim\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime bitmap loader rejects shared-load-plan snapshot drift\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "try module.clearRange(0, 1);") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "try module.setRange(9, 4);") != null);
@@ -360,4 +365,6 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "try std.testing.expectEqual(@as(u32, 4), pending_plan.summary.weight);") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-sample-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-top-bit-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-loader-shared-tests") != null);
 }
