@@ -92,6 +92,8 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "string_escape_mem()",
         "`kstrdup_quotable()` over the bounded quotable-log escape path",
+        "`kasprintf_strarray()` over the bounded sequential prefix-index ownership path",
+        "`kfree_strarray()` over the bounded repeated-teardown-safe release path",
         "zigux/tests/phase7_string_helpers_sample_boundary.zig",
         "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
         "no `samples/zigux/*string*` Phase 5 reference sample is expected here;",
@@ -230,6 +232,7 @@ REQUIRED_MARKERS = {
         "phase 7 kstrdupQuotable frees the owned copy when allocation fails",
         "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
         "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
+        "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe",
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "samples/zigux/string_helpers_sample.zig",
@@ -288,6 +291,9 @@ EXACT_COUNT_MARKERS = {
         ),
     ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
+        ("`kstrdup_quotable()` over the bounded quotable-log escape path", 1),
+        ("`kasprintf_strarray()` over the bounded sequential prefix-index ownership path", 1),
+        ("`kfree_strarray()` over the bounded repeated-teardown-safe release path", 1),
         (
             "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
             1,
@@ -344,6 +350,8 @@ EXACT_COUNT_MARKERS = {
         ("phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds", 1),
         ("phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned", 1),
         ("phase 7 kstrdupQuotable frees the owned copy when allocation fails", 1),
+        ("phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator", 1),
+        ("phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe", 1),
         (
             "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
             1,
