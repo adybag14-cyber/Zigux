@@ -59,7 +59,7 @@ REQUIRED_SNIPPETS = {
     "zigux/tests/phase6_helper_parity_manifest.json": [
         "\"phase\": \"Phase 6\",",
         "\"tranche\": \"leaf-helper-parity\",",
-        "\"surveyed_commit\": \"",
+        "\"surveyed_commit\": \"",",
         "\"id\": \"base64\"",
         "\"id\": \"bsearch\"",
         "\"id\": \"checksum\"",
@@ -262,6 +262,7 @@ REQUIRED_SNIPPETS = {
         "- name: Self-test Phase 6 shared-surface checker\n        run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
         "- name: Check Phase 6 shared surface\n        run: python3 scripts/zigux/check-phase6-shared-surface.py",
         "- name: Run Phase 6 leaf helper tests\n        run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
+        "- name: Run Phase 6 base64 perf gate\n        run: zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
         "- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
         "- name: Run Phase 6 hexdump perf gate\n        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
     ],
@@ -296,6 +297,7 @@ EXACT_COUNT_MARKERS = {
         "- name: Self-test Phase 6 shared-surface checker\n        run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
         "- name: Check Phase 6 shared surface\n        run: python3 scripts/zigux/check-phase6-shared-surface.py",
         "- name: Run Phase 6 leaf helper tests\n        run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
+        "- name: Run Phase 6 base64 perf gate\n        run: zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
         "- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
         "- name: Run Phase 6 hexdump perf gate\n        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
     ],
@@ -486,6 +488,12 @@ def run_self_test() -> None:
             "Documentation/zigux/phase6-perf-gate-survey.md",
             "`zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, `zigux/Makefile` still exposes `make -C zigux phase6-base64-perf`, and `.github/workflows/zigux-bootstrap.yml` now reruns that base64 perf gate as its own direct CI step, while the shared `phase6` target and aggregate `phase6-perf` route still do not",
             "`zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, but no shared replay surface reruns that base64 perf gate anywhere on current `master`",
+        )
+        assert_failure(
+            root,
+            ".github/workflows/zigux-bootstrap.yml",
+            "- name: Run Phase 6 base64 perf gate\n        run: zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+            "- name: Run Phase 6 base64 bench\n        run: zig build phase6-base64-bench --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
         )
         assert_failure(
             root,
