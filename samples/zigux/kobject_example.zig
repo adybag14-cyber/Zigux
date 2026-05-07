@@ -81,6 +81,8 @@ pub const RegisteredBoundarySummary = struct {
     active_attr_count: usize,
     rejected_duplicate_registration: bool,
     rejected_registered_anchor_replay: bool,
+    post_rejection_store_len: usize,
+    post_rejection_show: RenderedAttribute,
 };
 
 pub const AttributeValues = struct {
@@ -300,6 +302,8 @@ pub const KobjectExampleSample = struct {
         const stage_before_checks = self.stage();
         const rejected_duplicate_registration = rejectedLifecycleTransition(self.registerAttributes());
         const rejected_registered_anchor_replay = rejectedLifecycleTransition(self.runAnchorReplay());
+        const post_rejection_store_len = try self.storeValue("foo", "11\n");
+        const post_rejection_show = try self.showValue("foo");
 
         return .{
             .anchor = descriptor().anchor,
@@ -308,6 +312,8 @@ pub const KobjectExampleSample = struct {
             .active_attr_count = self.activeAttrCount(),
             .rejected_duplicate_registration = rejected_duplicate_registration,
             .rejected_registered_anchor_replay = rejected_registered_anchor_replay,
+            .post_rejection_store_len = post_rejection_store_len,
+            .post_rejection_show = post_rejection_show,
         };
     }
 
@@ -504,6 +510,9 @@ test "kobject sample keeps already-registered lifecycle boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 3), replay.active_attr_count);
     try std.testing.expect(replay.rejected_duplicate_registration);
     try std.testing.expect(replay.rejected_registered_anchor_replay);
+    try std.testing.expectEqual(@as(usize, 3), replay.post_rejection_store_len);
+    try std.testing.expectEqualStrings("foo", replay.post_rejection_show.attr_name);
+    try std.testing.expectEqualStrings("11\n", replay.post_rejection_show.text[0..replay.post_rejection_show.len]);
     try std.testing.expectEqual(SampleStage.registered, sample.stage());
 }
 
