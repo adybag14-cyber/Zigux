@@ -195,6 +195,20 @@ const ThresholdReplaySummary = struct {
     final_nth_seven: u32,
 };
 
+const BitmapDiffGovernance = struct {
+    owner: []const u8,
+    rollback_owner: []const u8,
+    fallback_anchor: []const u8,
+    threshold_posture: []const u8,
+};
+
+pub const bitmap_diff_governance = BitmapDiffGovernance{
+    .owner = "Shared Subsystems Pod",
+    .rollback_owner = "Shared Subsystems Pod",
+    .fallback_anchor = "lib/test_bitmap.c",
+    .threshold_posture = "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+};
+
 const exp1_find_nth_bits = [_]u32{
     0, 65, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141,
     142, 143, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221,
@@ -672,6 +686,48 @@ test "bitmap diff gate records exact bounded copy checks" {
     }
 }
 
+test "bitmap diff gate rejects an empty threshold replay batch" {
+    try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));
+}
+
+test "bitmap diff gate keeps a deterministic threshold replay batch ready for future perf baselines" {
+    const single = try runThresholdReplay(1);
+    const repeated = try runThresholdReplay(4);
+
+    try std.testing.expectEqual(@as(usize, 1), single.iterations);
+    try std.testing.expectEqual(@as(usize, 4), repeated.iterations);
+    try std.testing.expectEqual(@as(u32, 0), single.final_first_set);
+    try std.testing.expectEqual(@as(u32, 109), single.final_first_zero);
+    try std.testing.expectEqual(@as(u32, 1005), single.final_weight);
+    try std.testing.expectEqual(@as(u32, 123), single.final_nth_seven);
+    try std.testing.expectEqual(@as(u32, 0), repeated.final_first_set);
+    try std.testing.expectEqual(@as(u32, 109), repeated.final_first_zero);
+    try std.testing.expectEqual(@as(u32, 1005), repeated.final_weight);
+    try std.testing.expectEqual(@as(u32, 123), repeated.final_nth_seven);
+    try std.testing.expectEqual(@as(u64, 4641743358357118437), single.checksum);
+    try std.testing.expectEqual(@as(u64, 15640590978236698512), repeated.checksum);
+    try std.testing.expect(repeated.checksum != single.checksum);
+    try std.testing.expectEqualDeep(repeated, try runThresholdReplay(4));
+}
+
+test "bitmap diff gate keeps rollback governance explicit" {
+    try std.testing.expectEqualStrings("Shared Subsystems Pod", bitmap_diff_governance.owner);
+    try std.testing.expectEqualStrings("Shared Subsystems Pod", bitmap_diff_governance.rollback_owner);
+    try std.testing.expectEqualStrings("lib/test_bitmap.c", bitmap_diff_governance.fallback_anchor);
+    try std.testing.expectEqualStrings(
+        "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+        bitmap_diff_governance.threshold_posture,
+    );
+    try expectMarker(bitmap_diff_source, "pub const bitmap_diff_governance = BitmapDiffGovernance{");
+    try expectMarker(bitmap_diff_source, ".owner = \"Shared Subsystems Pod\",");
+    try expectMarker(bitmap_diff_source, ".rollback_owner = \"Shared Subsystems Pod\",");
+    try expectMarker(bitmap_diff_source, ".fallback_anchor = \"lib/test_bitmap.c\",");
+    try expectMarker(
+        bitmap_diff_source,
+        ".threshold_posture = \"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\",",
+    );
+}
+
 test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectSourceCaseGroupCardinality(
         "const cases = [_]DiffCase{",
@@ -680,7 +736,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     );
     try expectSourceCaseGroupCardinality(
         "const cases = [_]CopyCase{",
-        "test \"bitmap diff gate keeps a deterministic threshold replay batch ready for future perf baselines\"",
+        "test \"bitmap diff gate rejects an empty threshold replay batch\"",
         8,
     );
     try expectMarker(bitmap_diff_source, "const exp1_find_nth_bits = [_]u32{");
@@ -705,6 +761,11 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 109), repeated.final_first_zero);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 1005), repeated.final_weight);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 123), repeated.final_nth_seven);");
+    try expectMarker(bitmap_diff_source, "pub const bitmap_diff_governance = BitmapDiffGovernance{");
+    try expectMarker(bitmap_diff_source, ".owner = \"Shared Subsystems Pod\",");
+    try expectMarker(bitmap_diff_source, ".rollback_owner = \"Shared Subsystems Pod\",");
+    try expectMarker(bitmap_diff_source, ".fallback_anchor = \"lib/test_bitmap.c\",");
+    try expectMarker(bitmap_diff_source, ".threshold_posture = \"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\",");
     const replay_start = std.mem.indexOf(
         u8,
         bitmap_diff_source,
@@ -725,28 +786,4 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(replay_body, "try short_destination.copyFrom(&short_source, 23);");
     try expectMarker(replay_body, "const nth_seven = try nth_probe.findNthSet(nth_limit, 7);");
     try expectMarker(replay_body, "const nth_end = try nth_probe.findNthSet(nth_limit, 8);");
-}
-
-test "bitmap diff gate rejects an empty threshold replay batch" {
-    try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));
-}
-
-test "bitmap diff gate keeps a deterministic threshold replay batch ready for future perf baselines" {
-    const single = try runThresholdReplay(1);
-    const repeated = try runThresholdReplay(4);
-
-    try std.testing.expectEqual(@as(usize, 1), single.iterations);
-    try std.testing.expectEqual(@as(usize, 4), repeated.iterations);
-    try std.testing.expectEqual(@as(u32, 0), single.final_first_set);
-    try std.testing.expectEqual(@as(u32, 109), single.final_first_zero);
-    try std.testing.expectEqual(@as(u32, 1005), single.final_weight);
-    try std.testing.expectEqual(@as(u32, 123), single.final_nth_seven);
-    try std.testing.expectEqual(@as(u32, 0), repeated.final_first_set);
-    try std.testing.expectEqual(@as(u32, 109), repeated.final_first_zero);
-    try std.testing.expectEqual(@as(u32, 1005), repeated.final_weight);
-    try std.testing.expectEqual(@as(u32, 123), repeated.final_nth_seven);
-    try std.testing.expectEqual(@as(u64, 4641743358357118437), single.checksum);
-    try std.testing.expectEqual(@as(u64, 15640590978236698512), repeated.checksum);
-    try std.testing.expect(repeated.checksum != single.checksum);
-    try std.testing.expectEqualDeep(repeated, try runThresholdReplay(4));
 }
