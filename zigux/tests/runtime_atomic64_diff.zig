@@ -378,6 +378,7 @@ test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(7));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 17));
 }
 
 test "runtime atomic64 diff gate rejects an empty threshold replay batch" {
