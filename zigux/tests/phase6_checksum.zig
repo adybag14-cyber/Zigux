@@ -75,6 +75,15 @@ test "fixture-backed compute parity covers the current checksum vectors" {
     }
 }
 
+test "ipFastCsum keeps the IPv4 header path explicit in the phase 6 packet" {
+    const ipv4_case = fixtures.compute_cases[2];
+
+    try std.testing.expectEqualStrings("ipv4 header", ipv4_case.name);
+    try std.testing.expectEqual(@as(usize, 20), ipv4_case.bytes.len);
+    try std.testing.expectEqual(ipv4_case.expected_compute, checksum.ipFastCsum(ipv4_case.bytes));
+    try std.testing.expectEqual(checksum.compute(ipv4_case.bytes), checksum.ipFastCsum(ipv4_case.bytes));
+}
+
 test "partial sums compose across the fixture split matrix" {
     for (fixtures.composition_cases) |case| {
         const whole = checksum.partial(case.payload, 0);
