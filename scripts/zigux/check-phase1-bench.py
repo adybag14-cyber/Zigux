@@ -280,6 +280,7 @@ def run_self_test() -> None:
         },
     }
     full_expectations = load_full_expectations_for_self_test()
+    full_exact_checksums: dict[str, int] = full_expectations['exact_checksums']
 
     ok_output = '\n'.join([
         'PHASE1_BENCH=pass',
@@ -396,11 +397,11 @@ def run_self_test() -> None:
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=2260000',
         'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=620000',
         'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=15621472',
-        'PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM=11980001',
+        f"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM'] + 1}",
         'PHASE1_BENCH_STRING_CHECKSUM=240000',
         'PHASE1_BENCH_HWEIGHT_CHECKSUM=1600000',
         'PHASE1_BENCH_LIST_SORT_CHECKSUM=69300',
-        'PHASE1_BENCH_RBTREE_CHECKSUM=3380000',
+        f"PHASE1_BENCH_RBTREE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_RBTREE_CHECKSUM']}",
     ])
     rbtree_exact_checksum_mismatch_output = '\n'.join([
         'PHASE1_BENCH=pass',
@@ -415,11 +416,11 @@ def run_self_test() -> None:
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=2260000',
         'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=620000',
         'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=15621472',
-        'PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM=11980000',
+        f"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']}",
         'PHASE1_BENCH_STRING_CHECKSUM=240000',
         'PHASE1_BENCH_HWEIGHT_CHECKSUM=1600000',
         'PHASE1_BENCH_LIST_SORT_CHECKSUM=69300',
-        'PHASE1_BENCH_RBTREE_CHECKSUM=3380001',
+        f"PHASE1_BENCH_RBTREE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_RBTREE_CHECKSUM'] + 1}",
     ])
 
     kind, _ = validate_output(expectations, ok_output)
@@ -478,11 +479,19 @@ def run_self_test() -> None:
 
     kind, payload = validate_output(full_expectations, find_bit_edge_exact_checksum_mismatch_output)
     assert kind == 'exact_checksum_mismatch'
-    assert payload == ('PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM', 11980000, 11980001)
+    assert payload == (
+        'PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM',
+        full_exact_checksums['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM'],
+        full_exact_checksums['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM'] + 1,
+    )
 
     kind, payload = validate_output(full_expectations, rbtree_exact_checksum_mismatch_output)
     assert kind == 'exact_checksum_mismatch'
-    assert payload == ('PHASE1_BENCH_RBTREE_CHECKSUM', 3380000, 3380001)
+    assert payload == (
+        'PHASE1_BENCH_RBTREE_CHECKSUM',
+        full_exact_checksums['PHASE1_BENCH_RBTREE_CHECKSUM'],
+        full_exact_checksums['PHASE1_BENCH_RBTREE_CHECKSUM'] + 1,
+    )
 
     kind, _ = validate_expectations(full_expectations)
     assert kind == 'pass'
