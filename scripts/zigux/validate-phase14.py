@@ -512,6 +512,32 @@ def run_self_test() -> int:
             print("self-test expected dedicated smoke-shard failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
+        broken_build = root / "zigux/tests/phase14_build.zig"
+        broken_build.write_text(
+            broken_build.read_text(encoding="utf-8").replace(COMPILE_MATRIX_ROWS[0][0] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            f"missing compile-artifact label in zigux/tests/phase14_build.zig: {COMPILE_MATRIX_ROWS[0][0]}" in error
+            for error in errors
+        ):
+            print("self-test expected compile-artifact label failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
+        broken_build = root / "zigux/tests/phase14_build.zig"
+        broken_build.write_text(
+            broken_build.read_text(encoding="utf-8").replace(COMPILE_MATRIX_ROWS[0][1] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            f"missing compile-artifact root in zigux/tests/phase14_build.zig: {COMPILE_MATRIX_ROWS[0][1]}" in error
+            for error in errors
+        ):
+            print("self-test expected compile-artifact root failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         broken_traceability = root / TRACEABILITY_PATH
         broken_traceability.write_text(
             broken_traceability.read_text(encoding="utf-8").replace("- lane key: `P14-L08`\n", "", 1),
