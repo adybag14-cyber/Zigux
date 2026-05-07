@@ -408,6 +408,31 @@ test "hexdump grouped ascii path reports the same required length for exact and 
     try std.testing.expectEqual(@as(u8, 0), truncated[truncated.len - 1]);
 }
 
+test "hexdump one-byte caller buffers still report full length and stay NUL terminated" {
+    const input = [_]u8{ 0xbe, 0x32, 0xdb, 0x7b };
+    const cases = [_]struct {
+        rowsize: usize,
+        groupsize: usize,
+        ascii: bool,
+    }{
+        .{ .rowsize = 16, .groupsize = 1, .ascii = false },
+        .{ .rowsize = 16, .groupsize = 2, .ascii = true },
+        .{ .rowsize = 7, .groupsize = 3, .ascii = true },
+    };
+
+    for (cases) |case| {
+        var single = [_]u8{0xaa};
+        const required = hexDumpLineLength(input.len, case.rowsize, case.groupsize, case.ascii);
+        const written = hexDumpToBuffer(&input, case.rowsize, case.groupsize, single[0..], case.ascii);
+        try std.testing.expectEqual(required, written);
+        try std.testing.expectEqual(@as(u8, 0), single[0]);
+    }
+
+    var empty = [_]u8{0xaa};
+    try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(input[0..0], 16, 1, empty[0..], false));
+    try std.testing.expectEqual(@as(u8, 0), empty[0]);
+}
+
 test "hexdump grouped-8 ascii output stays exact at full buffer capacity" {
     const input = [_]u8{
         0xbe, 0x32, 0xdb, 0x7b,
