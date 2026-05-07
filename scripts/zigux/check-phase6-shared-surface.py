@@ -59,7 +59,7 @@ REQUIRED_SNIPPETS = {
     "zigux/tests/phase6_helper_parity_manifest.json": [
         "\"phase\": \"Phase 6\",",
         "\"tranche\": \"leaf-helper-parity\",",
-        "\"surveyed_commit\": \"",",
+        "\"surveyed_commit\": \"\",",
         "\"id\": \"base64\"",
         "\"id\": \"bsearch\"",
         "\"id\": \"checksum\"",
