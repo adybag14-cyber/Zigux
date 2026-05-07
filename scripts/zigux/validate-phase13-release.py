@@ -271,6 +271,18 @@ TESTS_REQUIRED_MARKERS = [
     "adjacent release-surface evidence rather than extra shared replay steps",
 ]
 
+TESTS_EXACT_COUNTS = {
+    "Documentation/zigux/phase13-notifier-list-survey.md": 2,
+    "zigux/tests/phase13_notifier_list_manifest.json": 2,
+    "zigux/bindings/notifier_abi.zig": 2,
+    "include/zigux/notifier_abi.h": 2,
+    "zigux/helpers/notifier_chain_view.zig": 2,
+    "scripts/zigux/check-phase13-landlock-ruleset-packet.py": 2,
+    "zigux/tests/phase13_landlock_syscalls_reviewability.zig": 2,
+    "the current seven-test shared-helper release packet": 2,
+    "adjacent release-surface evidence rather than extra shared replay steps": 1,
+}
+
 PHASE13_BUILD_EXACT_COUNTS = {
     " = b.addTest(.{": 7,
     "test_step.dependOn(&run_phase13_": 7,
@@ -382,6 +394,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(_collect_exact_count_issues(tests_review_companion, TESTS_REVIEW_COMPANION_EXACT_COUNTS, "tests-review-companion-exact"))
     issues.extend(_collect_missing_markers(scripts_readme, SCRIPTS_REQUIRED_MARKERS, "scripts-readme"))
     issues.extend(_collect_missing_markers(tests_readme, TESTS_REQUIRED_MARKERS, "tests-readme"))
+    issues.extend(_collect_exact_count_issues(tests_readme, TESTS_EXACT_COUNTS, "tests-readme-exact"))
     issues.extend(_collect_missing_markers(makefile, MAKE_REQUIRED_LINES, "makefile"))
     issues.extend(_collect_exact_count_issues(phase13_build, PHASE13_BUILD_EXACT_COUNTS, "phase13-build"))
     issues.extend(_collect_missing_markers(phase13_build, PHASE13_BUILD_REQUIRED_MARKERS, "phase13-build-marker"))
@@ -491,7 +504,7 @@ def _seed_fixture_tree(root: Path) -> None:
         _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
     )
     _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
-    _write(root / "zigux/tests/README.md", "\n".join(TESTS_REQUIRED_MARKERS) + "\n")
+    _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
     _write(root / "zigux/Makefile", _baseline_makefile())
     _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
 
@@ -617,10 +630,20 @@ def run_self_test() -> int:
         )
         _assert_only(
             validate(root),
-            ["tests-readme:scripts/zigux/check-phase13-landlock-ruleset-packet.py"],
+            [
+                "tests-readme:scripts/zigux/check-phase13-landlock-ruleset-packet.py",
+                "tests-readme-exact:Documentation/zigux/phase13-notifier-list-survey.md:expected=2:actual=1",
+                "tests-readme-exact:zigux/tests/phase13_notifier_list_manifest.json:expected=2:actual=1",
+                "tests-readme-exact:zigux/bindings/notifier_abi.zig:expected=2:actual=1",
+                "tests-readme-exact:include/zigux/notifier_abi.h:expected=2:actual=1",
+                "tests-readme-exact:zigux/helpers/notifier_chain_view.zig:expected=2:actual=1",
+                "tests-readme-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=2:actual=0",
+                "tests-readme-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=1",
+                "tests-readme-exact:the current seven-test shared-helper release packet:expected=2:actual=1",
+            ],
             "missing_tests_readme_landlock_checker_marker_failed",
         )
-        _write(root / "zigux/tests/README.md", "\n".join(TESTS_REQUIRED_MARKERS) + "\n")
+        _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
         case_count += 1
 
         tests_readme_path.write_text(
@@ -634,10 +657,62 @@ def run_self_test() -> int:
         )
         _assert_only(
             validate(root),
-            ["tests-readme:zigux/tests/phase13_landlock_syscalls_reviewability.zig"],
+            [
+                "tests-readme:zigux/tests/phase13_landlock_syscalls_reviewability.zig",
+                "tests-readme-exact:Documentation/zigux/phase13-notifier-list-survey.md:expected=2:actual=1",
+                "tests-readme-exact:zigux/tests/phase13_notifier_list_manifest.json:expected=2:actual=1",
+                "tests-readme-exact:zigux/bindings/notifier_abi.zig:expected=2:actual=1",
+                "tests-readme-exact:include/zigux/notifier_abi.h:expected=2:actual=1",
+                "tests-readme-exact:zigux/helpers/notifier_chain_view.zig:expected=2:actual=1",
+                "tests-readme-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=2:actual=1",
+                "tests-readme-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=0",
+                "tests-readme-exact:the current seven-test shared-helper release packet:expected=2:actual=1",
+            ],
             "missing_tests_readme_landlock_reviewability_marker_failed",
         )
-        _write(root / "zigux/tests/README.md", "\n".join(TESTS_REQUIRED_MARKERS) + "\n")
+        _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
+        case_count += 1
+
+        tests_readme_path.write_text(
+            _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS).replace(
+                "scripts/zigux/check-phase13-landlock-ruleset-packet.py\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["tests-readme-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=2:actual=1"],
+            "tests_readme_landlock_checker_exact_count_guard_failed",
+        )
+        _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
+        case_count += 1
+
+        tests_readme_path.write_text(
+            _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS).replace(
+                "zigux/tests/phase13_landlock_syscalls_reviewability.zig\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["tests-readme-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=1"],
+            "tests_readme_landlock_reviewability_exact_count_guard_failed",
+        )
+        _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
+        case_count += 1
+
+        tests_readme_path.write_text(
+            _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS).replace(
+                "Documentation/zigux/phase13-notifier-list-survey.md\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["tests-readme-exact:Documentation/zigux/phase13-notifier-list-survey.md:expected=2:actual=1"],
+            "tests_readme_notifier_survey_exact_count_guard_failed",
+        )
+        _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
         case_count += 1
 
         scripts_readme_path.write_text(
@@ -996,6 +1071,7 @@ def main() -> int:
         + len(TESTS_REVIEW_COMPANION_EXACT_COUNTS)
         + len(SCRIPTS_REQUIRED_MARKERS)
         + len(TESTS_REQUIRED_MARKERS)
+        + len(TESTS_EXACT_COUNTS)
         + len(MAKE_REQUIRED_LINES)
         + len(PHASE13_BUILD_EXACT_COUNTS)
         + len(PHASE13_BUILD_REQUIRED_MARKERS)
