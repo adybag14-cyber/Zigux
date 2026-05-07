@@ -119,6 +119,8 @@ The bounded fixdep closure packet currently keeps four committed artifact cases 
 - `PHASE2_FIXDEP_CASES=sample,sample_multi_target,sample_comment_only,sample_missing_dep`
 - `PHASE2_FIXDEP_STDOUT_PACKET=sample_expected.txt,sample_multi_target_expected.txt,sample_comment_only_expected.txt,sample_missing_dep_expected.txt`
 - `PHASE2_FIXDEP_STDERR_PACKET=sample_comment_only_expected.stderr.txt,sample_missing_dep_expected.stderr.txt`
+- `PHASE2_FIXDEP_PACKET=zigux/tests/fixtures/fixdep/manifest.json`
+- `PHASE2_FIXDEP_HELPER_LOCAL_ANCHOR_COUNT=4`
 - success coverage stays anchored by `sample_expected.txt` and `sample_multi_target_expected.txt`
 - bounded failure coverage stays anchored by the comment-only parse error and missing-dependency open error fixtures in `zigux/tests/fixtures/fixdep/`
 - helper-local anchors in `zig test scripts/zigux/fixdep.zig` now include `dep parsing returns NoTargets for comment-only depfiles`, `dep parsing skips bytes after the first embedded NUL`, `dependency file reads beyond the legacy one mebibyte ceiling`, and `output write failure uses C-style wording`
