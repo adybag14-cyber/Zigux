@@ -98,7 +98,7 @@ REQUIRED_CLOSURE_MARKERS = [
     ),
     (
         "closure_find_bit_inclusive_boundary_owner_count",
-        "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_OWNER=the direct helper-local inclusive-boundary test remains the owning proof until zigux/tests/phase1_helpers.zig consumes the committed inclusive_boundary_* fixture fields directly",
+        "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_OWNER=the shared Phase 1 replay now consumes the committed inclusive_boundary_* fixture fields directly, while the direct helper-local inclusive-boundary test remains a review-visible same-word anchor for that path",
         1,
     ),
     (
