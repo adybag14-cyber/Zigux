@@ -532,6 +532,7 @@ test "buildSearchPath rewrites relative entries against the working directory" {
         null,
     );
     defer std.testing.allocator.free(fallback);
+
     try std.testing.expectEqualStrings(
         "/opt/perf/bin:/usr/local/bin:/usr/bin:/bin",
         fallback,
@@ -891,6 +892,37 @@ test "setupPath preserves the rooted argv0 edge without injecting slash into PAT
         "/repo/tools/bin:/usr/bin:/bin",
         updated,
     );
+}
+
+test "setupPath drops a cleared argv0 path instead of reusing a stale PATH contribution" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try setArgv0Path(std.testing.allocator, &state, null);
+    try env.set("PATH", "/usr/bin:/bin");
+
+    const updated = try setupPath(std.testing.allocator, &env, state, config, "/repo");
+    defer std.testing.allocator.free(updated);
+
+    try std.testing.expectEqual(@as(?[]u8, null), state.argv0_path);
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/usr/bin:/bin",
+        updated,
+    );
+    try std.testing.expectEqualStrings(updated, env.get("PATH").?);
 }
 
 test "setupPath preserves the C helper's logical PWD alias when PATH entries are relative" {
