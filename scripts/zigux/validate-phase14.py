@@ -106,6 +106,11 @@ REQUIRED_FILE_MARKERS = {
         "net/core/skbuff.c",
     ],
     TRACEABILITY_PATH: [TRACEABILITY_TITLE],
+    "scripts/zigux/README.md": [
+        "python3 scripts/zigux/validate-phase14.py",
+        "make -C zigux phase14-validate",
+        "Documentation/zigux/phase14-core-boundary-traceability.md",
+    ],
     "scripts/zigux/validate-phase14.py": [MARKER],
     "scripts/zigux/check-phase14-docs-root-smoke-summary.py": [DOCS_ROOT_CHECKER_MARKER],
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": [CHECKER_MARKER],
@@ -574,6 +579,17 @@ def run_self_test() -> int:
         broken_checker.write_text(
             "#!/usr/bin/env python3\n"
             f"\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\n"
+            "print('phase14 docs-root smoke summary checker stdout-only failure')\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 docs-root smoke summary checker stdout-only failure" not in errors:
+            print("self-test expected docs-root checker stdout-only subprocess failure", file=sys.stderr)
+            return 1
+        broken_checker.write_text(
+            "#!/usr/bin/env python3\n"
+            f"\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\n"
             "raise SystemExit(1)\n",
             encoding="utf-8",
         )
@@ -652,6 +668,13 @@ def run_self_test() -> int:
             print("self-test expected release-boundary checker silent subprocess failure", file=sys.stderr)
             return 1
         write_text(root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py", f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
+        docs_root_checker = root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
+        docs_root_checker.unlink()
+        errors = check(root)
+        if "missing file: scripts/zigux/check-phase14-docs-root-smoke-summary.py" not in errors:
+            print("self-test expected docs-root checker missing-file failure", file=sys.stderr)
+            return 1
+        write_text(docs_root_checker, f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         rollback_checker = root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
         rollback_checker.unlink()
         errors = check(root)
