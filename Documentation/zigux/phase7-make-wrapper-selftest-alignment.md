@@ -25,6 +25,7 @@ Phase 7 is already parked as a shared validator-first helper bundle, but the mak
 - `scripts/zigux/check-phase7-make-wrapper.py --self-test` stays owned by `zigux/Makefile` rather than a direct workflow-only invocation
 - `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py` keeps `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around that centralized self-test path
 - `scripts/zigux/validate-phase7.py` keeps this shared governance note inside the parked Phase 7 validator-first packet
+- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` remain the shared reviewer-facing summaries that should name this alignment note when they describe the parked Phase 7 validator-first packet, so the make-wrapper self-test route does not disappear behind helper-local proofs alone
 - `make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface
 
 ## Non-goals
@@ -34,4 +35,4 @@ Phase 7 is already parked as a shared validator-first helper bundle, but the mak
 
 ## Next bounded step
 
-Leave this shared governance note parked unless fresh repo inspection finds one more real drift between `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `validate-phase7.py`, `zigux/Makefile`, or the Phase 7 workflow route.
+Leave this shared governance note parked unless fresh repo inspection finds one more real drift between `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `validate-phase7.py`, `zigux/Makefile`, the Phase 7 workflow route, or the shared docs-root, checklist, and tests-root Phase 7 summaries.
