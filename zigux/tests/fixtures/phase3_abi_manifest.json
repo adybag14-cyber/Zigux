@@ -2,7 +2,7 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "abi-substrate-skeleton",
-  "file_count": 32,
+  "file_count": 35,
   "files": [
     "include/zigux/abi.h",
     "include/zigux/dev_t.h",
@@ -34,7 +34,10 @@
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/check-phase3-policy-byte-guards.py",
     "Documentation/zigux/phase3-abi-slice.md",
-    "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
   ]
 }
