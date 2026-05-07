@@ -183,8 +183,10 @@ TESTS_README_PHASE3_MARKERS = (
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/check-phase3-policy-byte-guards.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "python3 scripts/zigux/validate_phase3_selftest.py",
     "make -C zigux phase3-selftest",
     "opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`",
@@ -394,8 +396,10 @@ def _baseline_tests_readme() -> str:
             "`scripts/zigux/check-phase3-catalog-selftest.py`, "
             "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, "
             "`scripts/zigux/validate-phase3-policy-unsafe-survey.py`, "
+            "`scripts/zigux/check-phase3-policy-byte-guards.py`, "
             "`scripts/zigux/validate-phase3-export-uapi-survey.py`, "
-            "`scripts/zigux/validate-phase3-abi-bindings-syntax.py`, `zigux/Makefile`, "
+            "`scripts/zigux/validate-phase3-abi-bindings-syntax.py`, "
+            "`scripts/zigux/survey-phase3-abi-constant-parity.py`, `zigux/Makefile`, "
             "`python3 scripts/zigux/validate_phase3_selftest.py`, and "
             "`make -C zigux phase3-selftest` should continue to keep the shared validator-support runner "
             "visible as an opt-in safety check that complements but does not duplicate "
@@ -523,6 +527,26 @@ def run_self_test() -> int:
         path.unlink()
         _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase13-notifier-packet.py"], "missing_phase13_notifier_packet_repo_file_guard_failed")
         _write(path, "# stub\n")
+        case_count += 1
+
+        tests_marker = "`scripts/zigux/check-phase3-policy-byte-guards.py`, "
+        _write(root / TESTS_README_REL, baseline_tests_readme.replace(tests_marker, "", 1))
+        _assert_only(
+            validate(root),
+            ["missing_tests_readme_phase3_marker:scripts/zigux/check-phase3-policy-byte-guards.py"],
+            "missing_phase3_policy_byte_guards_tests_readme_guard_failed",
+        )
+        _write(root / TESTS_README_REL, baseline_tests_readme)
+        case_count += 1
+
+        tests_marker = "`scripts/zigux/survey-phase3-abi-constant-parity.py`, "
+        _write(root / TESTS_README_REL, baseline_tests_readme.replace(tests_marker, "", 1))
+        _assert_only(
+            validate(root),
+            ["missing_tests_readme_phase3_marker:scripts/zigux/survey-phase3-abi-constant-parity.py"],
+            "missing_phase3_abi_constant_parity_tests_readme_guard_failed",
+        )
+        _write(root / TESTS_README_REL, baseline_tests_readme)
         case_count += 1
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
