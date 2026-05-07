@@ -57,7 +57,7 @@ MAKEFILE_REQUIRED_LINES = (
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
-    "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromByte`, `requiresExplicitCallerByte`, and `permitsGlobalFallbackByte` so ABI byte tags do not need to be re-decoded elsewhere in the packet.",
+    "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, and `permitsGlobalFallbackPolicyBytes` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
     "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.",
     "`zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, and `write32()` rather than widening into a larger policy substrate.",
 )
@@ -403,14 +403,14 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         missing_allocator_surface = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "- `zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromByte`, `requiresExplicitCallerByte`, and `permitsGlobalFallbackByte` so ABI byte tags do not need to be re-decoded elsewhere in the packet.\n",
+            "- `zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, and `permitsGlobalFallbackPolicyBytes` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.\n",
             "",
             1,
         )
         write_file(root / SURVEY_REL, missing_allocator_surface)
         issues = validate(root)
         assert (
-            "missing_survey_snippet:`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromByte`, `requiresExplicitCallerByte`, and `permitsGlobalFallbackByte` so ABI byte tags do not need to be re-decoded elsewhere in the packet."
+            "missing_survey_snippet:`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, and `permitsGlobalFallbackPolicyBytes` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet."
             in issues
         )
 
