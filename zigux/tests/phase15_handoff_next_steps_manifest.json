@@ -25,6 +25,9 @@
     "shared_ci_phase15_present": true,
     "dedicated_handoff_guard_present": true,
     "shared_build_handoff_replay_present": true,
+    "indefinite_c_blocker_evidence_replay_present": true,
+    "indefinite_c_lane_owner_alignment_replay_present": true,
+    "governance_lane_sequencing_replay_present": true,
     "lane_key_matches_phase15_lane_map": true,
     "paired_parity_scorecard_blocker_posture_matches": true,
     "deep_core_status_change_ready": false
