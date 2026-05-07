@@ -77,16 +77,19 @@ pub const Request = struct {
     config: []const u8,
     arch: []const u8,
     mode_arg: ?[]const u8 = null,
+    allconfig: ?[]const u8 = null,
     seed: ?[]const u8 = null,
     probability: ?[]const u8 = null,
 };
 
-const RandconfigTunables = struct {
+const BridgeOptions = struct {
+    allconfig: ?[]const u8 = null,
     seed: ?[]const u8 = null,
     probability: ?[]const u8 = null,
 };
 
-const ParseRandconfigTunablesError = error{
+const ParseBridgeOptionsError = error{
+    DuplicateAllConfig,
     DuplicateSeed,
     DuplicateProbability,
     UnexpectedArgument,
@@ -114,6 +117,13 @@ fn modeUsesAllConfigSentinel(mode: Mode) bool {
     };
 }
 
+fn modeAcceptsAllConfigOverride(mode: Mode) bool {
+    return switch (mode) {
+        .allnoconfig, .allyesconfig, .allmodconfig, .alldefconfig, .randconfig => true,
+        else => false,
+    };
+}
+
 fn writeHexLower(writer: anytype, value: u8) !void {
     const digits = "0123456789abcdef";
     try writer.writeByte(digits[value >> 4]);
@@ -137,30 +147,40 @@ fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     };
 }
 
-fn parseRandconfigTunables(args: []const []const u8) ParseRandconfigTunablesError!RandconfigTunables {
-    var tunables = RandconfigTunables{};
+fn parseBridgeOptions(mode: Mode, args: []const []const u8) ParseBridgeOptionsError!BridgeOptions {
+    var options = BridgeOptions{};
+    var saw_allconfig = false;
     var saw_seed = false;
     var saw_probability = false;
 
     for (args) |arg| {
+        if (std.mem.startsWith(u8, arg, "allconfig=")) {
+            if (!modeAcceptsAllConfigOverride(mode)) return error.UnexpectedArgument;
+            if (saw_allconfig) return error.DuplicateAllConfig;
+            saw_allconfig = true;
+            options.allconfig = arg["allconfig=".len..];
+            continue;
+        }
         if (std.mem.startsWith(u8, arg, "seed=")) {
+            if (mode != .randconfig) return error.UnexpectedArgument;
             if (saw_seed) return error.DuplicateSeed;
             saw_seed = true;
             const value = arg["seed=".len..];
-            tunables.seed = if (value.len == 0) null else value;
+            options.seed = if (value.len == 0) null else value;
             continue;
         }
         if (std.mem.startsWith(u8, arg, "probability=")) {
+            if (mode != .randconfig) return error.UnexpectedArgument;
             if (saw_probability) return error.DuplicateProbability;
             saw_probability = true;
             const value = arg["probability=".len..];
-            tunables.probability = if (value.len == 0) null else value;
+            options.probability = if (value.len == 0) null else value;
             continue;
         }
         return error.UnexpectedArgument;
     }
 
-    return tunables;
+    return options;
 }
 
 pub fn runConfBridge(writer: anytype, request: Request) !void {
@@ -181,7 +201,11 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("\",\"KCONFIG_CONFIG\":\"");
     try writeJsonEscaped(writer, request.config);
     try writer.writeAll("\"");
-    if (modeUsesAllConfigSentinel(request.mode)) {
+    if (request.allconfig) |allconfig| {
+        try writer.writeAll(",\"KCONFIG_ALLCONFIG\":\"");
+        try writeJsonEscaped(writer, allconfig);
+        try writer.writeAll("\"");
+    } else if (modeUsesAllConfigSentinel(request.mode)) {
         try writer.writeAll(",\"KCONFIG_ALLCONFIG\":\"1\"");
     }
     if (request.mode == .syncconfig) {
@@ -210,7 +234,7 @@ pub fn main(init: std.process.Init) !void {
     if (args.len < 5 or args.len > 8) {
         var stderr_buffer: [200]u8 = undefined;
         var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg] [seed=<value>] [probability=<value>]\n");
+        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg] [allconfig=<value>] [seed=<value>] [probability=<value>]\n");
         try stderr_writer.interface.flush();
         std.process.exit(1);
     }
@@ -238,27 +262,19 @@ pub fn main(init: std.process.Init) !void {
         break :blk value;
     };
 
-    var tunables = RandconfigTunables{};
-    if (mode == .randconfig) {
-        tunables = parseRandconfigTunables(args[next_index..]) catch |err| {
-            var stderr_buffer: [160]u8 = undefined;
-            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            const message = switch (err) {
-                error.DuplicateSeed => "Error: duplicate randconfig seed option\n",
-                error.DuplicateProbability => "Error: duplicate randconfig probability option\n",
-                error.UnexpectedArgument => "Error: randconfig only accepts seed=<value> or probability=<value>\n",
-            };
-            try stderr_writer.interface.writeAll(message);
-            try stderr_writer.interface.flush();
-            std.process.exit(1);
-        };
-    } else if (args.len != next_index) {
-        var stderr_buffer: [160]u8 = undefined;
+    const options = parseBridgeOptions(mode, args[next_index..]) catch |err| {
+        var stderr_buffer: [192]u8 = undefined;
         var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Error: unexpected mode argument\n");
+        const message = switch (err) {
+            error.DuplicateAllConfig => "Error: duplicate allconfig override option\n",
+            error.DuplicateSeed => "Error: duplicate randconfig seed option\n",
+            error.DuplicateProbability => "Error: duplicate randconfig probability option\n",
+            error.UnexpectedArgument => "Error: unexpected bridge option for mode\n",
+        };
+        try stderr_writer.interface.writeAll(message);
         try stderr_writer.interface.flush();
         std.process.exit(1);
-    }
+    };
 
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
@@ -268,8 +284,9 @@ pub fn main(init: std.process.Init) !void {
         .config = args[3],
         .arch = args[4],
         .mode_arg = mode_arg,
-        .seed = tunables.seed,
-        .probability = tunables.probability,
+        .allconfig = options.allconfig,
+        .seed = options.seed,
+        .probability = options.probability,
     });
     try stdout_writer.interface.flush();
 }
@@ -418,7 +435,7 @@ test "conf bridge emits alldefconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
 }
 
-test "conf bridge emits allmodconfig argv and env" {
+test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     const Capture = struct {
         list: std.ArrayList(u8),
         allocator: std.mem.Allocator,
@@ -448,13 +465,11 @@ test "conf bridge emits allmodconfig argv and env" {
         .kconfig = "Kconfig",
         .config = "mod/.config",
         .arch = "arm",
+        .allconfig = "",
     });
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"allmodconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--allmodconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"mod/.config\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"arm\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
 }
 
 test "conf bridge emits randconfig tunables when present" {
@@ -494,6 +509,44 @@ test "conf bridge emits randconfig tunables when present" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"randconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_PROBABILITY\":\"15:25\"") != null);
+}
+
+test "conf bridge emits explicit randconfig allconfig override when present" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 224), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .randconfig,
+        .kconfig = "Kconfig",
+        .config = "rand/.config",
+        .arch = "x86_64",
+        .allconfig = "allrandom.config",
+        .seed = "0xC0FFEE",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"allrandom.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
 }
 
 test "conf bridge emits yes2modconfig argv and env" {
@@ -639,22 +692,40 @@ test "conf bridge escapes low control bytes in JSON strings" {
     try std.testing.expectEqualStrings("\\u0001\\b\\f", capture.list.items);
 }
 
-test "randconfig tunables parser accepts seed and probability" {
-    const tunables = try parseRandconfigTunables(&.{ "seed=0xC0FFEE", "probability=15:25" });
-    try std.testing.expectEqualStrings("0xC0FFEE", tunables.seed.?);
-    try std.testing.expectEqualStrings("15:25", tunables.probability.?);
+test "bridge options parser accepts explicit allconfig override for allmodconfig" {
+    const options = try parseBridgeOptions(.allmodconfig, &.{"allconfig="});
+    try std.testing.expect(options.allconfig != null);
+    try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
+    try std.testing.expect(options.seed == null);
+    try std.testing.expect(options.probability == null);
 }
 
-test "randconfig tunables parser treats empty values as absent" {
-    const tunables = try parseRandconfigTunables(&.{ "seed=", "probability=" });
-    try std.testing.expect(tunables.seed == null);
-    try std.testing.expect(tunables.probability == null);
+test "bridge options parser accepts randconfig allconfig and tunables together" {
+    const options = try parseBridgeOptions(.randconfig, &.{ "allconfig=allrandom.config", "seed=0xC0FFEE", "probability=15:25" });
+    try std.testing.expectEqualStrings("allrandom.config", options.allconfig.?);
+    try std.testing.expectEqualStrings("0xC0FFEE", options.seed.?);
+    try std.testing.expectEqualStrings("15:25", options.probability.?);
 }
 
-test "randconfig tunables parser rejects duplicate seed" {
-    try std.testing.expectError(error.DuplicateSeed, parseRandconfigTunables(&.{ "seed=1", "seed=2" }));
+test "bridge options parser treats empty randconfig tunables as absent" {
+    const options = try parseBridgeOptions(.randconfig, &.{ "seed=", "probability=" });
+    try std.testing.expect(options.allconfig == null);
+    try std.testing.expect(options.seed == null);
+    try std.testing.expect(options.probability == null);
 }
 
-test "randconfig tunables parser rejects unexpected argument" {
-    try std.testing.expectError(error.UnexpectedArgument, parseRandconfigTunables(&.{"bogus"}));
+test "bridge options parser rejects duplicate allconfig override" {
+    try std.testing.expectError(error.DuplicateAllConfig, parseBridgeOptions(.randconfig, &.{ "allconfig=first", "allconfig=second" }));
+}
+
+test "bridge options parser rejects duplicate seed" {
+    try std.testing.expectError(error.DuplicateSeed, parseBridgeOptions(.randconfig, &.{ "seed=1", "seed=2" }));
+}
+
+test "bridge options parser rejects seed outside randconfig" {
+    try std.testing.expectError(error.UnexpectedArgument, parseBridgeOptions(.allmodconfig, &.{"seed=1"}));
+}
+
+test "bridge options parser rejects unexpected argument" {
+    try std.testing.expectError(error.UnexpectedArgument, parseBridgeOptions(.randconfig, &.{"bogus"}));
 }
