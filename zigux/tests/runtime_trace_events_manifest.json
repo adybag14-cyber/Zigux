@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L16",
   "phase": "Phase 9",
-  "surveyed_commit": "e59df689d080aa11773adda87f00c2d650caade8",
+  "surveyed_commit": "ccd5361c3b193d26587c6396f029fc335c783c6e",
   "anchor": "samples/trace_events/trace-events-sample.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -129,7 +129,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_trace_events_module.zig",
-      "why_now": "A dedicated Phase 9 test file keeps the starter sample reviewable and bounded around lifecycle transitions, event emission counts, and registration balance."
+      "why_now": "A dedicated Phase 9 test file keeps the starter sample reviewable and bounded around lifecycle transitions, event emission counts, registration balance, and the new selftest rejection path when callback registration is already outstanding."
     },
     {
       "id": "runtime-trace-events-diff-gate",
