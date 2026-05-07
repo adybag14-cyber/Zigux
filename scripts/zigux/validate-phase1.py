@@ -90,6 +90,9 @@ PHASE1_REPLAY_MARKERS = [
     "fixture.bitmap.partial_xor_nbits",
     "fixture.bitmap.partial_xor_masked_values",
     "fixture.string.memchr_inv_index",
+    "fixture.rbtree.find_found_key",
+    "fixture.rbtree.find_missing",
+    "fixture.rbtree.find_first_serial",
     "fixture.rbtree.next_match_serials",
     "fixture.rbtree.next_match_terminal_null",
 ]
@@ -124,6 +127,8 @@ SOURCE_MARKERS = {
     "rbtree_test_anchor": (
         "tools/lib/rbtree.zig",
         [
+            'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+            'test "rbtree nextMatch walks the duplicate range in order"',
             'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
             'test "rbtree eraseCached returns null for a singleton cached tree"',
         ],
@@ -150,9 +155,14 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
     },
     "tools/lib/rbtree.zig": {
         "helper_test_anchors": [
+            'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+            'test "rbtree nextMatch walks the duplicate range in order"',
             'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
         ],
         "parity_fixture_keys": [
+            "find_found_key",
+            "find_missing",
+            "find_first_serial",
             "next_match_serials",
             "next_match_terminal_null",
         ],
@@ -272,8 +282,12 @@ def collect_phase1_fixture_mismatches(root: Path) -> list[str]:
     rbtree = fixture.get("rbtree")
     if not isinstance(rbtree, dict):
         mismatches.append("phase1_fixture_rbtree:rbtree:expected=object:actual=missing")
-    elif rbtree.get("next_match_terminal_null") is not True:
-        mismatches.append("phase1_fixture_rbtree:next_match_terminal_null")
+    else:
+        for field in ("find_found_key", "find_missing", "find_first_serial", "next_match_serials"):
+            if field not in rbtree:
+                mismatches.append(f"phase1_fixture_rbtree:{field}:expected=present:actual=missing")
+        if rbtree.get("next_match_terminal_null") is not True:
+            mismatches.append("phase1_fixture_rbtree:next_match_terminal_null")
 
     return mismatches
 
@@ -366,6 +380,11 @@ def run_self_test() -> None:
         'bitmap.lastWordMask(fixture.bitmap.partial_xor_nbits)\n'
         'fixture.bitmap.partial_xor_masked_values\n'
         'fixture.string.memchr_inv_index\n'
+        'fixture.rbtree.find_found_key\n'
+        'fixture.rbtree.find_missing\n'
+        'fixture.rbtree.find_first_serial\n'
+        'fixture.rbtree.next_match_serials\n'
+        'fixture.rbtree.next_match_terminal_null\n'
         '}\n\n'
         'test "phase 1 string replaceChar stops at embedded NUL" {\n}\n'
     )
@@ -373,13 +392,18 @@ def run_self_test() -> None:
     assert replay is not None
     assert not collect_presence_markers(
         replay,
-        "phase1_parity_replay_marker",
-        [
-            "fixture.bitmap.partial_xor_nbits",
-            "fixture.bitmap.partial_xor_masked_values",
-            "fixture.string.memchr_inv_index",
-        ],
-    )
+            "phase1_parity_replay_marker",
+            [
+                "fixture.bitmap.partial_xor_nbits",
+                "fixture.bitmap.partial_xor_masked_values",
+                "fixture.string.memchr_inv_index",
+                "fixture.rbtree.find_found_key",
+                "fixture.rbtree.find_missing",
+                "fixture.rbtree.find_first_serial",
+                "fixture.rbtree.next_match_serials",
+                "fixture.rbtree.next_match_terminal_null",
+            ],
+        )
     assert extract_test_body(test_text, "missing") is None
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -409,7 +433,6 @@ def run_self_test() -> None:
             '\n'.join(SOURCE_MARKERS["string_test_anchor"][1]) + '\n',
             encoding="utf-8",
         )
-        (tmp_root / "tools" / "lib" / "rbtree.zig").writeText = None
         (tmp_root / "tools" / "lib" / "rbtree.zig").write_text(
             '\n'.join(SOURCE_MARKERS["rbtree_test_anchor"][1]) + '\n',
             encoding="utf-8",
@@ -442,7 +465,13 @@ def run_self_test() -> None:
                     },
                     "hweight": {},
                     "list_sort": {},
-                    "rbtree": {"next_match_terminal_null": True},
+                    "rbtree": {
+                        "find_found_key": 41,
+                        "find_missing": True,
+                        "find_first_serial": 3,
+                        "next_match_serials": [3, 4],
+                        "next_match_terminal_null": True,
+                    },
                     "slab": {},
                     "str_error_r": {},
                     "string": {"memchr_inv_index": 4, "memchr_inv_none": True},
