@@ -628,7 +628,12 @@ test "shared runtime loader contract keeps command, environment, registration-su
     try std.testing.expect(!@hasField(LoadPlan, "ring_buffer_consume"));
     try std.testing.expect(!@hasField(LoadPlan, "ring_buffer_map_get_reader"));
     try std.testing.expect(!@hasField(PreparedRequest, "command_name"));
+    try std.testing.expect(!@hasField(PreparedRequest, "argv_policy"));
     try std.testing.expect(!@hasField(PreparedRequest, "activation_env"));
+    try std.testing.expect(!@hasField(PreparedRequest, "exec_path_env"));
+    try std.testing.expect(!@hasField(PreparedRequest, "path_env"));
+    try std.testing.expect(!@hasField(PreparedRequest, "lines_env"));
+    try std.testing.expect(!@hasField(PreparedRequest, "columns_env"));
     try std.testing.expect(!@hasField(PreparedRequest, "register_api"));
     try std.testing.expect(!@hasField(PreparedRequest, "unregister_api"));
     try std.testing.expect(!@hasField(PreparedRequest, "symbol_name"));
