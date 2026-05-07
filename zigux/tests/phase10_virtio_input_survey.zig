@@ -116,6 +116,8 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-input-queue-callback-preflight-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-callback preflight summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-input-teardown-observation-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "teardown-observation summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper ownership stays with the already-landed shared Phase 10 packets") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_ring.zig") != null);
@@ -165,6 +167,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     var saw_preflight_helper = false;
     var saw_queue_callback_preflight_helper = false;
     var saw_status_drain_helper = false;
+    var saw_teardown_observation_helper = false;
     var saw_wrapper_ownership_note = false;
     var saw_blocker = false;
 
@@ -273,6 +276,15 @@ test "phase10 virtio input survey manifest records the live starter and remainin
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transport-backed callbacks") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-input-teardown-observation-helper")) {
+            saw_teardown_observation_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_input.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "identity preservation") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "capability-state cleanup") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove, freeze, or restore") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-virtio-input-wrapper-ownership-note")) {
             saw_wrapper_ownership_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -307,6 +319,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(saw_preflight_helper);
     try std.testing.expect(saw_queue_callback_preflight_helper);
     try std.testing.expect(saw_status_drain_helper);
+    try std.testing.expect(saw_teardown_observation_helper);
     try std.testing.expect(saw_wrapper_ownership_note);
     try std.testing.expect(saw_blocker);
 }
