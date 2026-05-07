@@ -15,6 +15,7 @@ DOC_REL = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
 ATOMIC_REL = "zigux/helpers/atomic.zig"
 BARRIER_REL = "zigux/helpers/barrier.zig"
 MMIO_REL = "zigux/helpers/mmio.zig"
+NARROW_REL = "zigux/unsafe/narrow.zig"
 LOW_LEVEL_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
 ABI_TEST_REL = "zigux/tests/phase3_abi.zig"
 ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
@@ -26,7 +27,7 @@ ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 5
 
 ABI_MANIFEST_REQUIRED_FILES = (
     "include/zigux/abi.h",
@@ -42,7 +43,7 @@ ABI_MANIFEST_REQUIRED_FILES = (
     BARRIER_REL,
     MMIO_REL,
     "zigux/kernel/export_shim.zig",
-    "zigux/unsafe/narrow.zig",
+    NARROW_REL,
     "zigux/uapi/version.zig",
     ABI_TEST_REL,
     ABI_DUMP_REL,
@@ -72,6 +73,7 @@ REQUIRED_DOC_MARKERS = (
     f"PHASE3_ATOMIC_PATH={ATOMIC_REL}",
     f"PHASE3_BARRIER_PATH={BARRIER_REL}",
     f"PHASE3_MMIO_PATH={MMIO_REL}",
+    f"PHASE3_NARROW_UNSAFE_PATH={NARROW_REL}",
     f"PHASE3_LOW_LEVEL_TEST_PATH={LOW_LEVEL_TEST_REL}",
     f"PHASE3_ABI_TEST_PATH={ABI_TEST_REL}",
     f"PHASE3_ABI_DUMP_PATH={ABI_DUMP_REL}",
@@ -82,6 +84,8 @@ REQUIRED_DOC_MARKERS = (
     "PHASE3_BARRIER_STATUS=local-sentinel-probe-only",
     "PHASE3_MMIO_SCOPE=range-read8-write8-read16-write16-read32-write32-read64-write64",
     "PHASE3_MMIO_STATUS=byte-16-bit-32-bit-and-64-bit-mmio-through-narrow-pointer-bridge",
+    "PHASE3_NARROW_UNSAFE_SCOPE=address-byte-offset-align1-pointer-slice-const-pointer-write-and-interop-policy-unsafe-scope-byte-decoders",
+    "PHASE3_NARROW_UNSAFE_STATUS=align1-raw-pointer-bridge-plus-explicit-unsafe-scope-byte-policy",
     "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay",
     "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
@@ -95,6 +99,7 @@ BLOB_MARKERS = (
     ("PHASE3_ATOMIC_BLOB_SHA", ATOMIC_REL),
     ("PHASE3_BARRIER_BLOB_SHA", BARRIER_REL),
     ("PHASE3_MMIO_BLOB_SHA", MMIO_REL),
+    ("PHASE3_NARROW_UNSAFE_BLOB_SHA", NARROW_REL),
     ("PHASE3_LOW_LEVEL_TEST_BLOB_SHA", LOW_LEVEL_TEST_REL),
     ("PHASE3_ABI_TEST_BLOB_SHA", ABI_TEST_REL),
     ("PHASE3_ABI_DUMP_BLOB_SHA", ABI_DUMP_REL),
@@ -130,6 +135,26 @@ TOKEN_CHECKS = {
         "pub fn read64",
         "pub fn write64",
         "narrow.pointerAt",
+    ),
+    NARROW_REL: (
+        "pub fn addressOf",
+        "pub fn byteOffset",
+        "pub fn pointerAt",
+        "*align(1) volatile T",
+        "pub fn constSliceAt",
+        "pub fn constPointerAt",
+        "pub fn writeValueAt",
+        "pub fn scopeFromInteropPolicyBytes",
+        "pub fn scopeFromInteropPolicy",
+        "pub fn scopeFromByte",
+        "pub fn recognizesInteropPolicyBytes",
+        "pub fn recognizesInteropPolicy",
+        "pub fn recognizesByte",
+        "pub fn permitsNoUnsafePolicyBytes",
+        "pub fn permitsVolatileMmioPolicyBytes",
+        "pub fn permitsRawPointerBridgePolicyBytes",
+        'test "phase3 narrow unsafe wrappers stay bounded"',
+        'test "phase3 narrow unsafe scope bytes stay explicit"',
     ),
     LOW_LEVEL_TEST_REL: (
         'test "phase3 low-level wrappers cover the shipped helper surface directly"',
@@ -256,6 +281,7 @@ def validate(root: Path) -> list[str]:
         ATOMIC_REL,
         BARRIER_REL,
         MMIO_REL,
+        NARROW_REL,
         LOW_LEVEL_TEST_REL,
         ABI_TEST_REL,
         ABI_DUMP_REL,
@@ -323,6 +349,9 @@ def build_self_test_doc(root: Path) -> str:
         f"PHASE3_MMIO_PATH={MMIO_REL}",
         "PHASE3_MMIO_SCOPE=range-read8-write8-read16-write16-read32-write32-read64-write64",
         "PHASE3_MMIO_STATUS=byte-16-bit-32-bit-and-64-bit-mmio-through-narrow-pointer-bridge",
+        f"PHASE3_NARROW_UNSAFE_PATH={NARROW_REL}",
+        "PHASE3_NARROW_UNSAFE_SCOPE=address-byte-offset-align1-pointer-slice-const-pointer-write-and-interop-policy-unsafe-scope-byte-decoders",
+        "PHASE3_NARROW_UNSAFE_STATUS=align1-raw-pointer-bridge-plus-explicit-unsafe-scope-byte-policy",
         f"PHASE3_LOW_LEVEL_TEST_PATH={LOW_LEVEL_TEST_REL}",
         "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay",
         "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
@@ -349,6 +378,7 @@ def build_valid_workspace(root: Path) -> None:
     write(root / ATOMIC_REL, "\n".join(TOKEN_CHECKS[ATOMIC_REL]) + "\n")
     write(root / BARRIER_REL, "\n".join(TOKEN_CHECKS[BARRIER_REL]) + "\n")
     write(root / MMIO_REL, "\n".join(TOKEN_CHECKS[MMIO_REL]) + "\n")
+    write(root / NARROW_REL, "\n".join(TOKEN_CHECKS[NARROW_REL]) + "\n")
     write(root / LOW_LEVEL_TEST_REL, "\n".join(TOKEN_CHECKS[LOW_LEVEL_TEST_REL]) + "\n")
     write(root / ABI_TEST_REL, "\n".join(TOKEN_CHECKS[ABI_TEST_REL]) + "\n")
     write(root / ABI_DUMP_REL, '"zigux_mmio_range" "zigux_interop_policy"\n')
@@ -400,6 +430,15 @@ def run_self_test() -> int:
         write(root / DOC_REL, stale_doc)
         issues = validate(root)
         assert any(issue.startswith("stale_blob_marker:PHASE3_ABI_MANIFEST_BLOB_SHA:") for issue in issues), issues
+
+        build_valid_workspace(root)
+        write(root / NARROW_REL, (root / NARROW_REL).read_text(encoding="utf-8").replace(
+            "pub fn scopeFromInteropPolicyBytes\n", "", 1
+        ))
+        issues = validate(root)
+        assert (
+            "missing_token:zigux/unsafe/narrow.zig:pub fn scopeFromInteropPolicyBytes" in issues
+        ), issues
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
