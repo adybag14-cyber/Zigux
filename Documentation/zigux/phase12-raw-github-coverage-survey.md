@@ -30,14 +30,14 @@ Those two notes remain truthful shared-tree-only anchors on `master`. They are r
 
 ## Shared replay reminder
 
-The shipped Phase 12 packet on `master` still keeps a direct smoke-preflight build route paired with the shared replay order below:
+The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order used by the PMO sequencing and closure companion notes.
 
-- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
 - current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 
-1. `make -C zigux phase12-smoke`
-2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-3. `make -C zigux phase12`
+1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+2. `make -C zigux phase12-smoke`
+3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+4. `make -C zigux phase12`
 
 Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether those same shipped surfaces are close enough to describe the active Phase 12 tranche as release-closed.
 
