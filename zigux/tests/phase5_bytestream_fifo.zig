@@ -65,9 +65,13 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
     try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..], replay.final_sequence[0..]);
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.available());
+    try std.testing.expect(!module.usesWrappedStorageWindow());
 
     try module.exit();
     try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.available());
+    try std.testing.expect(!module.usesWrappedStorageWindow());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
 }
 
@@ -104,6 +108,9 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     try std.testing.expectEqualSlices(u8, "lo", short_drain.remaining_drain[0..]);
     try std.testing.expectEqual(@as(usize, 0), short_drain.empty_follow_up_drain_count);
     try std.testing.expectEqual(@as(usize, 0), module.count());
+    try std.testing.expectEqual(sample.SampleStage.cold, module.stage());
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.available());
+    try std.testing.expect(!module.usesWrappedStorageWindow());
 }
 
 test "phase 5 bytestream fifo sample makes preview truncation and lifetime boundaries explicit" {
@@ -123,6 +130,11 @@ test "phase 5 bytestream fifo sample makes preview truncation and lifetime bound
     try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, preview_replay.preview_prefix[0..]);
     try std.testing.expectEqual(@as(usize, 10), preview_replay.queue_len_after_preview);
     try std.testing.expectEqual(@as(usize, 3), preview_replay.checked_focus.len);
+    try std.testing.expectEqual(sample.SampleFocus.wraparound_requeue, preview_replay.checked_focus[0]);
+    try std.testing.expectEqual(sample.SampleFocus.non_destructive_snapshot, preview_replay.checked_focus[1]);
+    try std.testing.expectEqual(sample.SampleFocus.preview_truncation, preview_replay.checked_focus[2]);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 10), module.available());
+    try std.testing.expect(!module.usesWrappedStorageWindow());
 
     _ = try module.runAnchorReplay();
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
@@ -132,12 +144,16 @@ test "phase 5 bytestream fifo sample makes preview truncation and lifetime bound
     try std.testing.expectEqual(@as(usize, 0), replay_lifecycle.exit_run_count);
     try std.testing.expectEqual(@as(usize, 0), replay_lifecycle.queue_len);
     try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, replay_lifecycle.storage_backing);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.available());
+    try std.testing.expect(!module.usesWrappedStorageWindow());
 
     try module.exit();
     try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.available());
+    try std.testing.expect(!module.usesWrappedStorageWindow());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runPreviewBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 }
