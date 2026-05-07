@@ -108,6 +108,9 @@ pub const PrpBufferShapeSummary = struct {
     tail_page_count: u16,
     uses_prp_list: bool,
     prp_list_entries: u16,
+    prp_list_pages: u16,
+    prp_list_link_entries: u16,
+    last_prp_list_page_entries: u16,
     prp_list_capacity: u16,
 };
 
@@ -120,6 +123,8 @@ pub const PrpMetadataPlanSummary = struct {
     command_data_prp_entries: u16,
     prp_list_covered_pages: u16,
     prp_list_pages: u16,
+    prp_list_link_entries: u16,
+    last_prp_list_page_entries: u16,
     metadata_dma_bytes: u32,
     total_dma_bytes: u32,
     requires_descriptor_rebuild_after_reset: bool,
@@ -346,8 +351,7 @@ pub const NvmePciQueueLab = struct {
         const prp_list_entries = if (uses_prp_list) tail_page_count - 1 else 0;
         const prp_list_capacity_u32 = self.page_size / @sizeOf(u64);
         const prp_list_capacity = std.math.cast(u16, prp_list_capacity_u32) orelse return error.PrpShapeOverflow;
-
-        if (prp_list_entries > prp_list_capacity) return error.PrpListTooLong;
+        const prp_list_layout = try planPrpListLayout(prp_list_entries, prp_list_capacity);
 
         return .{
             .anchor = descriptor().anchor,
@@ -359,6 +363,9 @@ pub const NvmePciQueueLab = struct {
             .tail_page_count = tail_page_count,
             .uses_prp_list = uses_prp_list,
             .prp_list_entries = prp_list_entries,
+            .prp_list_pages = prp_list_layout.pages,
+            .prp_list_link_entries = prp_list_layout.link_entries,
+            .last_prp_list_page_entries = prp_list_layout.last_page_entries,
             .prp_list_capacity = prp_list_capacity,
         };
     }
@@ -378,8 +385,7 @@ pub const NvmePciQueueLab = struct {
         else
             2;
         const prp_list_covered_pages: u16 = if (shape.uses_prp_list) shape.tail_page_count else 0;
-        const prp_list_pages: u16 = if (shape.uses_prp_list) 1 else 0;
-        const metadata_dma_bytes = try checkedMulU16ByU32(prp_list_pages, self.page_size);
+        const metadata_dma_bytes = try checkedMulU16ByU32(shape.prp_list_pages, self.page_size);
         const total_dma_bytes = try checkedAddU32(shape.rounded_span_bytes, metadata_dma_bytes);
         return .{
             .anchor = shape.anchor,
@@ -389,7 +395,9 @@ pub const NvmePciQueueLab = struct {
             .uses_prp_list = shape.uses_prp_list,
             .command_data_prp_entries = command_data_prp_entries,
             .prp_list_covered_pages = prp_list_covered_pages,
-            .prp_list_pages = prp_list_pages,
+            .prp_list_pages = shape.prp_list_pages,
+            .prp_list_link_entries = shape.prp_list_link_entries,
+            .last_prp_list_page_entries = shape.last_prp_list_page_entries,
             .metadata_dma_bytes = metadata_dma_bytes,
             .total_dma_bytes = total_dma_bytes,
             .requires_descriptor_rebuild_after_reset = shape.uses_prp_list,
@@ -520,6 +528,35 @@ pub const NvmePciQueueLab = struct {
         return sq_entry_bytes;
     }
 
+    fn planPrpListLayout(prp_list_entries: u16, prp_list_capacity: u16) !PrpListLayout {
+        if (prp_list_entries == 0) {
+            return .{
+                .pages = 0,
+                .link_entries = 0,
+                .last_page_entries = 0,
+            };
+        }
+        if (prp_list_capacity < 2) return error.PrpListTooLong;
+
+        var remaining_entries = @as(u32, prp_list_entries);
+        var pages: u32 = 0;
+        var link_entries: u32 = 0;
+
+        while (true) {
+            pages += 1;
+            if (remaining_entries <= prp_list_capacity) {
+                return .{
+                    .pages = std.math.cast(u16, pages) orelse return error.PrpShapeOverflow,
+                    .link_entries = std.math.cast(u16, link_entries) orelse return error.PrpShapeOverflow,
+                    .last_page_entries = std.math.cast(u16, remaining_entries) orelse return error.PrpShapeOverflow,
+                };
+            }
+
+            remaining_entries -= prp_list_capacity - 1;
+            link_entries += 1;
+        }
+    }
+
     fn checkedCastU16(value: usize) !u16 {
         return std.math.cast(u16, value) orelse error.QueueBytesOverflow;
     }
@@ -564,4 +601,10 @@ pub const NvmePciQueueLab = struct {
         const rounded = try checkedAddU32(value, addend);
         return rounded & ~addend;
     }
+};
+
+const PrpListLayout = struct {
+    pages: u16,
+    link_entries: u16,
+    last_page_entries: u16,
 };
