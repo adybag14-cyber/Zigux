@@ -5,7 +5,7 @@
   "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
   "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
   "harness": "zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c",
-  "case_count": 17,
+  "case_count": 18,
   "cases": [
     "minimal",
     "debug_reference_types",
@@ -23,7 +23,8 @@
     "missing_reference_argument",
     "unsupported_long_option",
     "missing_long_reference_argument",
-    "missing_long_dump_types_argument"
+    "missing_long_dump_types_argument",
+    "too_many_reference_files"
   ],
   "stdout_packet": [
     "minimal_expected.json",
@@ -43,7 +44,8 @@
     "missing_reference_argument_expected.json",
     "unsupported_long_option_expected.json",
     "missing_long_reference_argument_expected.json",
-    "missing_long_dump_types_argument_expected.json"
+    "missing_long_dump_types_argument_expected.json",
+    "too_many_reference_files_expected.json"
   ],
   "normalized_stderr_packet": [
     "ambiguous_long_option_expected.json",
@@ -51,7 +53,8 @@
     "missing_reference_argument_expected.json",
     "unsupported_long_option_expected.json",
     "missing_long_reference_argument_expected.json",
-    "missing_long_dump_types_argument_expected.json"
+    "missing_long_dump_types_argument_expected.json",
+    "too_many_reference_files_expected.json"
   ],
   "action_abbrev_cases": [
     "abbreviated_help",
@@ -67,6 +70,7 @@
     "genksyms bridge accepts explicit option terminator",
     "genksyms bridge reports invalid short option in getopt style",
     "genksyms bridge reports missing short option argument in getopt style",
+    "genksyms bridge rejects more than sixteen reference files like the C harness",
     "genksyms bridge renders normalized invocation plan",
     "genksyms bridge ignores positional args while still parsing later options"
   ]
