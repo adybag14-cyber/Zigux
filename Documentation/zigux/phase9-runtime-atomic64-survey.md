@@ -22,6 +22,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
   - `zigux/tests/phase9_build.zig`
   - `zigux/Makefile`
   - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
+  - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 
 ## Why this slice exists
 
