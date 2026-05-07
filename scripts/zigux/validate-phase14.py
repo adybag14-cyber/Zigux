@@ -497,7 +497,19 @@ def run_self_test() -> int:
         if not any("missing compile-matrix row" in error for error in errors):
             print("self-test expected compile-matrix row failure", file=sys.stderr)
             return 1
-        write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
+        broken_smoke_note.write_text(
+            broken_smoke_note.read_text(encoding="utf-8").replace(
+                "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4\n",
+                "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=3\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet" not in errors:
+            print("self-test expected full-bundle-only compile count failure", file=sys.stderr)
+            return 1
+        write_text(broken_smoke_note, "\n".join(matrix_lines) + "\n")
         broken_build = root / "zigux/tests/phase14_build.zig"
         broken_build.write_text(
             broken_build.read_text(encoding="utf-8").replace(
@@ -510,6 +522,14 @@ def run_self_test() -> int:
         errors = check(root)
         if not any("phase14 smoke shard stopped being dedicated" in error for error in errors):
             print("self-test expected dedicated smoke-shard failure", file=sys.stderr)
+            return 1
+        broken_build.write_text(
+            broken_build.read_text(encoding="utf-8").replace("b.addRunArtifact(\n", "", 1),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 build bundle no longer wires the current five compile-artifact runs" not in errors:
+            print("self-test expected build run-count failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         broken_traceability = root / TRACEABILITY_PATH
