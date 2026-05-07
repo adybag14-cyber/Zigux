@@ -83,6 +83,8 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(0));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(0));
 }
 
 test "runtime trace-events sample keeps registration balance explicit" {
