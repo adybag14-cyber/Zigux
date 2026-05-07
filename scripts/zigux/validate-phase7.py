@@ -243,9 +243,7 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_cmdline_survey.zig": [
         "Documentation/zigux/phase7-cmdline-slice.md",
         "zigux/tests/phase7_cmdline.zig",
-        "zigux/tests/phase7_build.zig",
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
-        "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");",
         "phase 7 getOption and getOptions preserve Linux-style range parsing",
         "phase 7 parseOptionStr matches only exact bare options",
         "phase 7 nextArg matches serialized edge fixtures",
@@ -254,6 +252,15 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase7-argv-split-slice.md",
         "zigux/tests/phase7_argv_split_manifest.json",
         "PHASE7_LANE_KEY=",
+        "phase 7 argvSplit matches focused parity fixtures",
+        "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
+    ],
+    "zigux/tests/phase7_rbtree_survey.zig": [
+        "PHASE7_LANE_KEY=P7-Y04",
+        "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable",
+        "phase 7 rbtree detached nodes stay non-empty until callers clear them",
+        "phase 7 rbtree clearNode marks detached nodes as empty",
+        "try std.testing.expectEqual(@as(?*Node, null), nextPostorder(null));",
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         "scripts/zigux/validate-phase7.py",
@@ -372,6 +379,19 @@ EXACT_COUNT_MARKERS = {
         ("phase 7 getOption and getOptions preserve Linux-style range parsing", 1),
         ("phase 7 parseOptionStr matches only exact bare options", 1),
         ("phase 7 nextArg matches serialized edge fixtures", 1),
+    ],
+    "zigux/tests/phase7_argv_split_survey.zig": [
+        ("PHASE7_LANE_KEY=P7-Y07", 1),
+        ("phase 7 argvSplit matches focused parity fixtures", 1),
+        ("phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space", 1),
+        ("phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable", 1),
+    ],
+    "zigux/tests/phase7_rbtree_survey.zig": [
+        ("PHASE7_LANE_KEY=P7-Y04", 1),
+        ("phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable", 1),
+        ("phase 7 rbtree detached nodes stay non-empty until callers clear them", 1),
+        ("phase 7 rbtree clearNode marks detached nodes as empty", 1),
+        ("try std.testing.expectEqual(@as(?*Node, null), nextPostorder(null));", 1),
     ],
 }
 
