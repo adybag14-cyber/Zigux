@@ -55,6 +55,94 @@ const BitwiseCase = struct {
     final: i64,
 };
 
+pub const ThresholdReplaySummary = struct {
+    iterations: usize,
+    checksum: u64,
+    final_counter: i64,
+    final_stage: sample.ModuleStage,
+    final_selftest_runs: usize,
+    final_exit_runs: usize,
+};
+
+fn mixThresholdChecksum(checksum: *u64, value: u64) void {
+    checksum.* = checksum.* *% 0x9e3779b185ebca87 +% value;
+}
+
+fn mixThresholdChecksumI64(checksum: *u64, value: i64) void {
+    mixThresholdChecksum(checksum, @bitCast(value));
+}
+
+fn mixThresholdChecksumBool(checksum: *u64, value: bool) void {
+    mixThresholdChecksum(checksum, @intFromBool(value));
+}
+
+fn mixThresholdChecksumUsize(checksum: *u64, value: usize) void {
+    mixThresholdChecksum(checksum, @intCast(value));
+}
+
+pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {
+    if (iterations == 0) return error.EmptyThresholdReplayBatch;
+
+    var checksum: u64 = 0;
+    var final_counter: i64 = 0;
+    var final_stage = sample.ModuleStage.cold;
+    var final_selftest_runs: usize = 0;
+    var final_exit_runs: usize = 0;
+
+    var iteration: usize = 0;
+    while (iteration < iterations) : (iteration += 1) {
+        const iteration_i64: i64 = @intCast(iteration);
+        var module = sample.RuntimeAtomic64Sample{};
+        const seed = 0x2aaa_3137_4001_500d + iteration_i64;
+        try module.init(seed);
+
+        const add_return = try module.addReturnCounter(0x1111_1111_2222_2222);
+        const swapped = try module.swapCounter(-0x2152_4110_2150_3502 + iteration_i64);
+        const compare = try module.compareSwapCounter(
+            -0x2152_4110_2150_3502 + iteration_i64,
+            -0x0531_5452_0ff2_0fff + iteration_i64,
+        );
+        const add_unless = try module.addUnlessCounter(3, std.math.minInt(i64));
+        const and_previous = try module.andCounter(0x00ff_00ff_00ff_00ff);
+        const or_previous = try module.orCounter(0x0100_0000_0000_0006);
+        const xor_previous = try module.xorCounter(0x0000_ff00_0000_00ff);
+        const summary = try module.runSelftest();
+        try module.exit();
+
+        mixThresholdChecksumI64(&checksum, seed);
+        mixThresholdChecksumI64(&checksum, add_return);
+        mixThresholdChecksumI64(&checksum, swapped);
+        mixThresholdChecksumI64(&checksum, compare.previous);
+        mixThresholdChecksumBool(&checksum, compare.stored);
+        mixThresholdChecksumI64(&checksum, add_unless.previous);
+        mixThresholdChecksumBool(&checksum, add_unless.changed);
+        mixThresholdChecksumI64(&checksum, and_previous);
+        mixThresholdChecksumI64(&checksum, or_previous);
+        mixThresholdChecksumI64(&checksum, xor_previous);
+        mixThresholdChecksumUsize(&checksum, summary.operation_families.len);
+        mixThresholdChecksumBool(&checksum, summary.checked_returning_paths);
+        mixThresholdChecksumBool(&checksum, summary.checked_bitwise_paths);
+        mixThresholdChecksumBool(&checksum, summary.checked_guard_paths);
+        mixThresholdChecksumI64(&checksum, module.snapshotCounter());
+        mixThresholdChecksumUsize(&checksum, module.selftest_runs);
+        mixThresholdChecksumUsize(&checksum, module.exit_runs);
+
+        final_counter = module.snapshotCounter();
+        final_stage = module.stage();
+        final_selftest_runs = module.selftest_runs;
+        final_exit_runs = module.exit_runs;
+    }
+
+    return .{
+        .iterations = iterations,
+        .checksum = checksum,
+        .final_counter = final_counter,
+        .final_stage = final_stage,
+        .final_selftest_runs = final_selftest_runs,
+        .final_exit_runs = final_exit_runs,
+    };
+}
+
 fn expectArithmeticCase(case: ArithmeticCase) !void {
     var module = sample.RuntimeAtomic64Sample{};
     try module.init(case.seed);
@@ -290,4 +378,28 @@ test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(7));
+}
+
+test "runtime atomic64 diff gate rejects an empty threshold replay batch" {
+    try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));
+}
+
+test "runtime atomic64 diff gate keeps a deterministic threshold replay batch ready for future perf baselines" {
+    const single = try runThresholdReplay(1);
+    const repeated = try runThresholdReplay(4);
+
+    try std.testing.expectEqual(@as(usize, 1), single.iterations);
+    try std.testing.expectEqual(@as(usize, 4), repeated.iterations);
+    try std.testing.expectEqual(sample.ModuleStage.exited, single.final_stage);
+    try std.testing.expectEqual(sample.ModuleStage.exited, repeated.final_stage);
+    try std.testing.expectEqual(@as(usize, 1), single.final_selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), repeated.final_selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), single.final_exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), repeated.final_exit_runs);
+    try std.testing.expectEqual(@as(i64, 130322557735600377), single.final_counter);
+    try std.testing.expectEqual(@as(i64, 130322557735600376), repeated.final_counter);
+    try std.testing.expectEqual(@as(u64, 3626254113632800175), single.checksum);
+    try std.testing.expectEqual(@as(u64, 9210681150676220922), repeated.checksum);
+    try std.testing.expectEqualDeep(repeated, try runThresholdReplay(4));
+    try std.testing.expect(repeated.checksum != single.checksum);
 }
