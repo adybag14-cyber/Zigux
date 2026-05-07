@@ -12,6 +12,7 @@ This matrix keeps the active Phase 12 release-facing packet explicit beside the 
 - PMO closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`
 - shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
+- the `libbpf` survey remains parked shared-helper evidence inside this active release packet, so PMO notes must keep it explicit without implying a reopened helper-implementation lane
 - this compact matrix must not round queueing, throughput, rollback, or recovery wording up into deep-core delivery claims that cross the freeze-map boundary
 
 ## Lane Ownership
@@ -21,7 +22,7 @@ This matrix keeps the active Phase 12 release-facing packet explicit beside the 
 | `drivers/net/virtio_net.c` | Network Driver Lane | `Documentation/zigux/phase12-virtio-net-survey.md` |
 | `drivers/nvme/host/pci.c` | NVMe PCI Lane | `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` |
 | `drivers/scsi/virtio_scsi.c` | Virtio SCSI Lane | `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` |
-| `tools/lib/bpf/libbpf.c` | BPF Tooling Lane | `Documentation/zigux/phase12-libbpf-segment-survey.md` |
+| `tools/lib/bpf/libbpf.c` | BPF Tooling Lane | `Documentation/zigux/phase12-libbpf-segment-survey.md` (parked shared-helper survey) |
 
 ## Fallback Split
 
