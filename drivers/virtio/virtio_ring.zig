@@ -69,6 +69,19 @@ pub const DelayedCallbackSummary = struct {
     should_poll: bool,
 };
 
+pub const PackedEventIndexSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    callback_enabled: bool,
+    last_used_idx: u16,
+    last_polled_used_idx: u16,
+    outstanding_chain_count: u16,
+    pending_used_chain_count: u16,
+    event_index_window: u16,
+    event_index_target_idx: u16,
+    should_poll: bool,
+};
+
 pub const BrokenQueueSummary = struct {
     anchor: []const u8,
     queue_index: u16,
@@ -285,6 +298,31 @@ pub const VirtioRingLab = struct {
             .delayed_event_target_idx = slot.last_used_idx +% delay_budget_count,
             .pending_used_chain_count = pending_used_chain_count,
             .should_poll = pending_used_chain_count > delay_budget_count,
+        };
+    }
+
+    pub fn packedEventIndexSummary(self: *Self, queue_index: u16) !PackedEventIndexSummary {
+        const slot = try self.checkedQueueSlot(queue_index);
+        if (slot.broken) return error.QueueBroken;
+        if (slot.layout != .packed_ring) return error.QueueLayoutDoesNotSupportPackedEventIndex;
+        if (!slot.uses_event_idx) return error.QueueDoesNotUseEventIndex;
+
+        slot.callback_enabled = true;
+
+        const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
+        const event_index_window: u16 = if (slot.outstanding_chain_count == 0) 1 else slot.outstanding_chain_count;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .callback_enabled = slot.callback_enabled,
+            .last_used_idx = slot.last_used_idx,
+            .last_polled_used_idx = slot.last_polled_used_idx,
+            .outstanding_chain_count = slot.outstanding_chain_count,
+            .pending_used_chain_count = pending_used_chain_count,
+            .event_index_window = event_index_window,
+            .event_index_target_idx = slot.last_used_idx +% event_index_window,
+            .should_poll = pending_used_chain_count >= event_index_window,
         };
     }
 
