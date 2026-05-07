@@ -1,3 +1,5 @@
+const std = @import("std");
+
 pub const ComputeCase = struct {
     name: []const u8,
     bytes: []const u8,
@@ -248,3 +250,35 @@ pub const perf_cases = [_]PerfCase{
         .max_slowdown_pct = 150,
     },
 };
+
+test "phase 6 checksum perf fixture packet stays bounded to the documented matrix" {
+    const expected = [_]struct {
+        label: []const u8,
+        len: usize,
+        iterations: usize,
+        max_slowdown_pct: u64,
+    }{
+        .{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150 },
+        .{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150 },
+    };
+
+    try std.testing.expectEqual(expected.len, perf_cases.len);
+
+    for (expected, 0..) |want, idx| {
+        const actual = perf_cases[idx];
+        try std.testing.expectEqualStrings(want.label, actual.label);
+        try std.testing.expectEqual(want.len, actual.bytes.len);
+        try std.testing.expectEqual(want.iterations, actual.iterations);
+        try std.testing.expectEqual(want.max_slowdown_pct, actual.max_slowdown_pct);
+    }
+
+    for (perf_cases, 0..) |case, idx| {
+        try std.testing.expect(case.bytes.len > 0);
+        try std.testing.expect(case.iterations > 0);
+        try std.testing.expect(case.max_slowdown_pct > 0);
+
+        for (perf_cases[idx + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, case.label, other.label));
+        }
+    }
+}
