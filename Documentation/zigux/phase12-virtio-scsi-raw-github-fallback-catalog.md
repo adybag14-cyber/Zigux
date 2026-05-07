@@ -12,7 +12,7 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 - `PHASE12_SLICE=virtio-scsi-raw-github-fallback-catalog`
 - `active_survey_lane: P12-L13`
 - `historical_fallback_lane: P12-L09`
-- scope: public tree and raw URL coverage for the shipped `virtio_scsi` starter, survey, build wiring, manifest, shared replay surfaces, and the PMO closure companion that now travels with the active release-order packet
+- scope: public tree and raw URL coverage for the shipped `virtio_scsi` starter, direct syntax-lab smoke shard, survey, build wiring, manifest, shared replay surfaces, and the PMO closure companion that now travels with the active release-order packet
 
 ## Tree views
 
@@ -23,6 +23,7 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 - shared tests index: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/README.md`
 - shared build wiring: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_build.zig`
 - direct test gate: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_virtio_scsi.zig`
+- direct syntax-lab smoke shard: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - survey gate: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_virtio_scsi_survey.zig`
 - survey manifest: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_virtio_scsi_manifest.json`
 - scripts index: `https://github.com/adybag14-cyber/Zigux/blob/master/scripts/zigux/README.md`
@@ -38,6 +39,7 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 - shared tests index: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/README.md`
 - shared build wiring: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_build.zig`
 - direct test gate: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_virtio_scsi.zig`
+- direct syntax-lab smoke shard: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - survey gate: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_virtio_scsi_survey.zig`
 - survey manifest: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_virtio_scsi_manifest.json`
 - scripts index: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/scripts/zigux/README.md`
@@ -49,6 +51,7 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 The shipped Phase 12 packet on `master` still keeps a direct smoke-preflight build route paired with the shared replay order below:
 
 - direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+- current virtio_scsi smoke packet surfaces: `zigux/tests/phase12_virtio_scsi.zig` and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 
 1. `make -C zigux phase12-smoke`
 2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
