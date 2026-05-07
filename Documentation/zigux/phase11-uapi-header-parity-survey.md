@@ -15,6 +15,7 @@
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `drivers/tty/hvc/hvc_console.zig`
 - `drivers/tty/hvc/hvc_console.h`
 
@@ -31,6 +32,7 @@
 
 - shared replay path: `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - wider Phase 11 replay route: `make -C zigux phase11`
+- `Documentation/zigux/phase11-driver-lane-sequencing.md` keeps the parked owner-map split explicit so this shared header packet stays outside the bcm2835, GPIO, DesignWare, and HVC driver-local lanes even when those lanes cite the shared UAPI boundary.
 - the dedicated HVC note and validation matrix remain separate documentation because `zigux/tests/phase11_hvc_console_survey.zig` still reads the broader driver-local note packet and notifier-facing matrix, and that survey replay stays on the dedicated `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` step inside the same `phase11_build.zig` file on `master` rather than the shared `test` step
 
 ## Why This Stays Bounded
