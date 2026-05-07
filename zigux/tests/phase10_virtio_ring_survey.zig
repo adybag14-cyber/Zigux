@@ -38,6 +38,9 @@ const Manifest = struct {
     forbidden_transport_claims: []const []const u8,
     architecture_council_reopen_required: bool,
     architecture_council_reopen_attached: bool,
+    freeze_boundary_owner_lane: []const u8,
+    study_only_anchors: []const []const u8,
+    freeze_in_c_anchors: []const []const u8,
     survey_summary: SurveySummary,
     gaps: []const Gap,
 };
@@ -95,6 +98,15 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     try std.testing.expect(containsString(manifest.forbidden_transport_claims, "probe_remove_lifecycle"));
     try std.testing.expect(manifest.architecture_council_reopen_required);
     try std.testing.expect(!manifest.architecture_council_reopen_attached);
+    try std.testing.expectEqualStrings("P10-L10", manifest.freeze_boundary_owner_lane);
+    try std.testing.expectEqual(@as(usize, 2), manifest.study_only_anchors.len);
+    try std.testing.expect(containsString(manifest.study_only_anchors, "kernel/workqueue.c"));
+    try std.testing.expect(containsString(manifest.study_only_anchors, "kernel/trace/ring_buffer.c"));
+    try std.testing.expectEqual(@as(usize, 4), manifest.freeze_in_c_anchors.len);
+    try std.testing.expect(containsString(manifest.freeze_in_c_anchors, "kernel/sched/core.c"));
+    try std.testing.expect(containsString(manifest.freeze_in_c_anchors, "mm/page_alloc.c"));
+    try std.testing.expect(containsString(manifest.freeze_in_c_anchors, "kernel/rcu/tree.c"));
+    try std.testing.expect(containsString(manifest.freeze_in_c_anchors, "net/core/skbuff.c"));
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
@@ -124,6 +136,11 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`drivers/virtio/*.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/workqueue.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/trace/ring_buffer.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/sched/core.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`mm/page_alloc.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/rcu/tree.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`net/core/skbuff.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scheduler, MM, RCU, or skbuff ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "freeze-map status change") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Architecture Council reopen request") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "feature-word") != null);
@@ -314,7 +331,7 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     try std.testing.expect(saw_notify_prepare_helper);
     try std.testing.expect(saw_broken_queue_poll_guard);
     try std.testing.expect(saw_queue_reset_helper);
-    try std.testing.expect(saw_queue_reset_readiness_helper);
+    try std.testing.expect(saw_queueResetReadinessHelper);
     try std.testing.expect(saw_mmio_register_landed);
     try std.testing.expect(saw_mmio_queue_size_helper);
     try std.testing.expect(saw_mmio_feature_word_helper);
