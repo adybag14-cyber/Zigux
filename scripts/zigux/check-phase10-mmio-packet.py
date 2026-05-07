@@ -86,16 +86,21 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
 
 EXPECTED_GAPS = {
     "phase10-build-gate": "starter_landed",
+    "phase10-virtio-core-lab-starter": "starter_landed",
+    "phase10-virtio-ring-survey-gate": "starter_landed",
+    "phase10-virtio-ring-lab-helper": "starter_landed",
+    "phase10-virtio-ring-slice-note": "starter_landed",
     "phase10-virtio-mmio-survey-gate": "starter_landed",
     "phase10-virtio-mmio-survey-note": "starter_landed",
     "phase10-mmio-register-window-helper": "starter_landed",
     "phase10-mmio-queue-size-helper": "starter_landed",
+    "phase10-virtio-mmio-slice-note": "starter_landed",
     "phase10-mmio-feature-word-selector-helper": "starter_landed",
     "phase10-mmio-config-window-helper": "starter_landed",
     "phase10-mmio-config-write-plan-helper": "starter_landed",
     "phase10-mmio-transport-identity-helper": "starter_landed",
-    "phase10-mmio-config-write-disposition-helper": "starter_landed",
     "phase10-mmio-probe-preflight-helper": "starter_landed",
+    "phase10-mmio-config-write-disposition-helper": "starter_landed",
     "phase10-mmio-selected-queue-readiness-helper": "starter_landed",
     "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
 }
@@ -203,16 +208,21 @@ test "phase10 virtio mmio summarizes selected-queue readiness before queue hando
             },
             "gaps": [
                 {"id": "phase10-build-gate", "status": "starter_landed"},
+                {"id": "phase10-virtio-core-lab-starter", "status": "starter_landed"},
+                {"id": "phase10-virtio-ring-survey-gate", "status": "starter_landed"},
+                {"id": "phase10-virtio-ring-lab-helper", "status": "starter_landed"},
+                {"id": "phase10-virtio-ring-slice-note", "status": "starter_landed"},
                 {"id": "phase10-virtio-mmio-survey-gate", "status": "starter_landed"},
                 {"id": "phase10-virtio-mmio-survey-note", "status": "starter_landed"},
                 {"id": "phase10-mmio-register-window-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-queue-size-helper", "status": "starter_landed"},
+                {"id": "phase10-virtio-mmio-slice-note", "status": "starter_landed"},
                 {"id": "phase10-mmio-feature-word-selector-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-config-window-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-config-write-plan-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-transport-identity-helper", "status": "starter_landed"},
-                {"id": "phase10-mmio-config-write-disposition-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-probe-preflight-helper", "status": "starter_landed"},
+                {"id": "phase10-mmio-config-write-disposition-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-selected-queue-readiness-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-lifecycle-and-irq-paths", "status": "blocked_on_risky_transport"},
             ],
@@ -294,8 +304,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:preexisting_phase10_test_files=11")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 13:
-        missing_markers.append("manifest:gaps")
+    if len(gaps) != len(EXPECTED_GAPS):
+        missing_markers.append(f"manifest:gaps={len(gaps)}")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     for gap_id, status in EXPECTED_GAPS.items():
         gap = gap_index.get(gap_id)
@@ -461,9 +471,19 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if 'tests:test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {' not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_selected_queue_test_marker_missing")
+        test_path.write_text(original_test, encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        for gap in manifest.get("gaps", []):
+            if gap.get("id") == "phase10-virtio-ring-lab-helper":
+                gap["status"] = "ready_next"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        _, missing_markers = validate(tmp_root)
+        if "manifest:gap_status:phase10-virtio-ring-lab-helper=ready_next" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_ring_helper_status_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
