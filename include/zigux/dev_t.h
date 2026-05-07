@@ -51,6 +51,8 @@ static inline bool zigux_dev_range_fits(zigux_u32 first_minor, zigux_u32 count)
 static inline bool zigux_dev_last_in_range(zigux_u32 major, zigux_u32 first_minor,
 					   zigux_u32 count, zigux_u32 *last_dev)
 {
+	if (!last_dev)
+		return false;
 	if (!zigux_dev_major_valid(major))
 		return false;
 	if (!zigux_dev_range_fits(first_minor, count))
