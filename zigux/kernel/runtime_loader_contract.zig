@@ -519,6 +519,69 @@ test "shared runtime loader contract rejects request state, approved-family, or 
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_init_flow));
 }
 
+test "shared runtime loader contract keeps initialized-stage kretprobe requests stable across later selftest activity" {
+    const initialized_plan = LoadPlan{
+        .module_name = "runtime_kretprobe",
+        .anchor = "samples/kprobes/kretprobe_example.c",
+        .entry_symbol = "zigux_runtime_kretprobe_init",
+        .exit_symbol = "zigux_runtime_kretprobe_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .kernel_heap,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+
+    var request = try prepareRequest(initialized_plan);
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(keepsApprovedPilotFamilyContract(initialized_plan));
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, initialized_plan));
+    try std.testing.expect(keepsSelftestHookEvidenceConsistent(initialized_plan));
+
+    var live_selftested_plan = initialized_plan;
+    live_selftested_plan.init_flow.handoff_stage = .selftest_complete;
+    live_selftested_plan.init_flow.selftest_runs = 1;
+    try std.testing.expect(keepsSelftestHookEvidenceConsistent(live_selftested_plan));
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(
+        request,
+        .prepared,
+        live_selftested_plan,
+    ));
+
+    const pending_plan = try request.requestRuntimeLoad();
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        request,
+        .waiting_on_runtime_substrate,
+        initialized_plan,
+    ));
+    try std.testing.expectEqualStrings(initialized_plan.module_name, pending_plan.module_name);
+    try std.testing.expectEqualStrings(initialized_plan.anchor, pending_plan.anchor);
+    try std.testing.expectEqualStrings(initialized_plan.entry_symbol, pending_plan.entry_symbol);
+    try std.testing.expectEqualStrings(initialized_plan.exit_symbol, pending_plan.exit_symbol);
+    try std.testing.expect(pending_plan.provides_selftest_hook);
+    try std.testing.expectEqual(HandoffStage.initialized, pending_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.init_flow.selftest_runs);
+    try std.testing.expect(keepsAllocatorInitFlowConsistent(
+        pending_plan,
+        .kernel_heap,
+        initialized_plan.init_flow,
+    ));
+    try std.testing.expect(keepsSelftestHookEvidenceConsistent(pending_plan));
+
+    try request.releaseWithoutSubstrate();
+    try std.testing.expectEqual(RequestState.released_without_substrate, request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        request,
+        .released_without_substrate,
+        initialized_plan,
+    ));
+}
+
 test "shared runtime loader contract keeps command, environment, registration-summary, depmod-facing, and study-only core-boundary control surfaces outside the request contract" {
     try std.testing.expect(!@hasField(LoadPlan, "command_name"));
     try std.testing.expect(!@hasField(LoadPlan, "argv_policy"));
