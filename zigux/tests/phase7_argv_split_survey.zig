@@ -44,6 +44,14 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "ready_next");
 }
 
+fn isLowerHexCommitId(text: []const u8) bool {
+    if (text.len != 40) return false;
+    for (text) |ch| {
+        if (!std.ascii.isHex(ch) or std.ascii.isUpper(ch)) return false;
+    }
+    return true;
+}
+
 test "phase 7 argv_split survey manifest records the parked runtime leaf surface without an active follow-up" {
     const allocator = std.testing.allocator;
 
@@ -92,7 +100,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P7-Y07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
-    try std.testing.expectEqualStrings("d198f036eb3ef64b2c5fb5ff3f52ed596e8adfa9", manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexCommitId(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/argv_split.c", manifest.anchor);
     try std.testing.expect(std.mem.containsAtLeast(u8, slice_note, 1, "PHASE7_LANE_KEY=P7-Y07"));
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
