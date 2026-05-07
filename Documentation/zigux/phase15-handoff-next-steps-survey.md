@@ -7,8 +7,8 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_STATUS=maintenance_mode_ready`
 - `PHASE15_SLICE=phase-handoff-and-next-bound-synthesis`
-- reviewed handoff provenance refreshed against verified `master` head `39cdd038909f9834a8702070a697a0bf2111cb66` observed on May 6, 2026
-- the paired current `Documentation/zigux/phase15-parity-scorecard.md` packet cites the same verified head, so this dedicated handoff note no longer carries a cross-packet provenance gap
+- reviewed handoff provenance refreshed against current `master` readback on 2026-05-07 after compare-to-master showed the earlier exact-head comparison to the parity scorecard was stale while the shared deep-core blocker posture stayed the same
+- the paired current `Documentation/zigux/phase15-parity-scorecard.md` packet still carries an older provenance marker, so this dedicated handoff note now treats current-master readback plus the shared blocker posture as the cross-packet truthfulness check instead of claiming exact-head parity
 
 ## Roadmap Versus Ledger
 
@@ -30,7 +30,7 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 - the current handoff summary no longer leaves the validator-first route implicit when describing the parked governance packet
 - the current handoff summary now keeps the parked governance owner-map, indefinite-C policy, and blocker-evidence replays explicit beside the validator-first route instead of leaving them implicit in adjacent notes and tests-root guidance
 - this packet's lane identity is refreshed to `P15-L08` so the dedicated handoff note matches the active Phase 15 handoff maintenance lane again
-- the parity scorecard, readiness packet, indefinite-C policy, docs root, review checklist, scripts-root validator-first route, shared build replay, workflow, and this handoff packet now agree that the remaining blocked work is only the deep-core status-change evidence
+- the parity scorecard, readiness packet, indefinite-C policy, docs root, review checklist, scripts-root validator-first route, shared build replay, workflow, and this handoff packet still agree that the remaining blocked work is only the deep-core status-change evidence, even though the handoff packet now treats blocker-posture agreement instead of exact-head parity as the bounded cross-packet truthfulness signal
 
 ## Open Handoff Gaps
 
