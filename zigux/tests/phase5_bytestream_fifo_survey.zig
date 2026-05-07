@@ -514,7 +514,8 @@ test "phase 5 bytestream fifo survey note records the latest verification snapsh
         "0.17.0-dev.87+9b177a7d2",
         "zig test samples/zigux/bytestream_fifo.zig",
         "passed `5/5` sample self-checks",
-        "passed `5/5` build steps and `8/8` tests",
+        "shared `zig build test --build-file zigux/tests/phase5_build.zig --summary all` route for the bytestream packet",
+        "without relying on a brittle aggregate build-step or test count",
         "len_after_initial_fill = 15",
         "first_out = \\\"hello\\\"",
         "second_out = {0, 1}",
@@ -537,4 +538,6 @@ test "phase 5 bytestream fifo survey note records the latest verification snapsh
     for (required_markers) |needle| {
         try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
     }
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "passed `5/5` build steps and `8/8` tests") == null);
 }
