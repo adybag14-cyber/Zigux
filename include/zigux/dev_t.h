@@ -3,12 +3,23 @@
 
 #include <zigux/abi.h>
 
-#ifdef __KERNEL__
-#include <linux/zigux.h>
-#else
+#ifndef __KERNEL__
 #include <stdbool.h>
+#endif
 
+#if defined(ZIGUX_DEV_MINOR_BITS)
+#if ZIGUX_DEV_MINOR_BITS != 20U
+#error "ZIGUX_DEV_MINOR_BITS drifted from the canonical zigux dev_t boundary"
+#endif
+#else
 #define ZIGUX_DEV_MINOR_BITS 20U
+#endif
+
+#if defined(ZIGUX_DEV_MINOR_MASK)
+#if ZIGUX_DEV_MINOR_MASK != ((1U << 20U) - 1U)
+#error "ZIGUX_DEV_MINOR_MASK drifted from the canonical zigux dev_t boundary"
+#endif
+#else
 #define ZIGUX_DEV_MINOR_MASK ((1U << ZIGUX_DEV_MINOR_BITS) - 1U)
 #endif
 
