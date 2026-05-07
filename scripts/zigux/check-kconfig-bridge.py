@@ -41,7 +41,7 @@ REQUIRED_CONF_CASE_MODES = [
     "savedefconfig",
     "listnewconfig",
 ]
-EXPECTED_SELF_TEST_CASE_COUNT = 11
+EXPECTED_SELF_TEST_CASE_COUNT = 12
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -103,6 +103,9 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     bridge_modes = ordered_conf_modes(conf_bridge)
     bridge_mode_set = set(bridge_modes)
     manifest_modes = {case["mode"] for case in conf_cases}
+    for mode in REQUIRED_CONF_CASE_MODES:
+        if mode not in manifest_modes:
+            issues.append(("MISSING_REQUIRED_CONF_CASE_MODES", mode))
     for mode in sorted(manifest_modes - bridge_mode_set):
         issues.append(("UNSUPPORTED_CONF_CASE_MODES", mode))
 
@@ -359,6 +362,14 @@ def run_self_test() -> int:
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert ("UNSUPPORTED_CONF_CASE_MODES", "oldconfig") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"].pop()
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert ("MISSING_REQUIRED_CONF_CASE_MODES", "listnewconfig") in issues
         checks_run += 1
 
         build_self_test_root(root)
