@@ -141,6 +141,31 @@ test "phase 6 hexdump uppercase nibble helpers stay aligned with byte packing" {
     try std.testing.expectError(hexdump.HexError.DestinationTooSmall, hexdump.hexBytePackUpper(tiny[0..], 0xbe));
 }
 
+test "phase 6 hexdump nibble helpers stay aligned across the full byte range" {
+    var lower: [2]u8 = undefined;
+    var upper: [2]u8 = undefined;
+    var decoded: [1]u8 = undefined;
+
+    for (0..256) |value| {
+        const byte: u8 = @intCast(value);
+
+        const lower_rest = try hexdump.hexBytePack(lower[0..], byte);
+        const upper_rest = try hexdump.hexBytePackUpper(upper[0..], byte);
+
+        try std.testing.expectEqual(@as(usize, 0), lower_rest.len);
+        try std.testing.expectEqual(@as(usize, 0), upper_rest.len);
+        try std.testing.expectEqual(hexdump.hexAscHi(byte), lower[0]);
+        try std.testing.expectEqual(hexdump.hexAscLo(byte), lower[1]);
+        try std.testing.expectEqual(hexdump.hexAscUpperHi(byte), upper[0]);
+        try std.testing.expectEqual(hexdump.hexAscUpperLo(byte), upper[1]);
+
+        try hexdump.hex2bin(decoded[0..], lower[0..]);
+        try std.testing.expectEqual(byte, decoded[0]);
+        try hexdump.hex2bin(decoded[0..], upper[0..]);
+        try std.testing.expectEqual(byte, decoded[0]);
+    }
+}
+
 test "phase 6 hexdump parity matrix matches kernel fixture preparation" {
     const rowsizes = [_]usize{ 16, 32 };
     const groupsizes = [_]usize{ 1, 2, 4, 8 };
