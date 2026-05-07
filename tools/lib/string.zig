@@ -55,6 +55,10 @@ pub fn skipSpaces(str: []const u8) []const u8 {
     return str[idx..];
 }
 
+pub fn skip_spaces(str: []const u8) []const u8 {
+    return skipSpaces(str);
+}
+
 pub fn strEq(lhs: []const u8, rhs: []const u8) bool {
     const lhs_len = cStringLen(lhs);
     const rhs_len = cStringLen(rhs);
@@ -89,6 +93,10 @@ pub fn trimSpaces(buf: []u8) []u8 {
     }
 
     return buf[start..end];
+}
+
+pub fn strim(buf: []u8) []u8 {
+    return trimSpaces(buf);
 }
 
 pub fn removeSpaces(buf: []u8) []u8 {
@@ -313,13 +321,21 @@ test "streq matches C-string equality semantics" {
 
 test "skip trim remove and replace spaces work in place" {
     try std.testing.expectEqualStrings("hello", skipSpaces("   hello"));
+    try std.testing.expectEqualStrings("hello", skip_spaces("   hello"));
 
     var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
     try std.testing.expectEqualStrings("hi", trimSpaces(&trim_buf));
 
+    var strim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
+    try std.testing.expectEqualStrings("hi", strim(&strim_buf));
+
     var trim_cstr_buf = [_]u8{ ' ', 'h', 'i', ' ', '\n', 0, 'x', 'y' };
     try std.testing.expectEqualStrings("hi", trimSpaces(&trim_cstr_buf));
     try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'h', 'i', 0, '\n', 0, 'x', 'y' }, &trim_cstr_buf);
+
+    var strim_cstr_buf = [_]u8{ ' ', 'h', 'i', ' ', '\n', 0, 'x', 'y' };
+    try std.testing.expectEqualStrings("hi", strim(&strim_cstr_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'h', 'i', 0, '\n', 0, 'x', 'y' }, &strim_cstr_buf);
 
     var remove_buf = [_]u8{ 'a', ' ', 'b', ' ', 'c' };
     try std.testing.expectEqualStrings("abc", removeSpaces(&remove_buf));
