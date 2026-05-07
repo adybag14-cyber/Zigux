@@ -41,7 +41,7 @@ The current packet is productively landed, but the remaining bridge-facing work 
 - `planTokenPreparation()` remains outside the shipped helper packet because token construction would widen the slice from stable text parsing into capability and ownership setup
 - direct procfs reads, bpffs opens, `bpf_obj_get()` reopen flow, and fd close or ownership semantics remain intentionally outside the current packet
 - token materialization or capability handoff and map reopen or bpffs compatibility closure still remain queued follow-through beyond the current planning-only gate
-- the deferred `perf-buffer-online-cpu-routing` packet still remains outside the current helper-first bridge surface because it combines `/sys/devices/system/cpu/online` reads, cached `/sys/devices/system/cpu/possible` counts via `libbpf_num_possible_cpus()`, online CPU filtering, per-CPU perf-event-array map updates, per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, `PERF_EVENT_IOC_ENABLE` enablement, epoll-backed perf FD registration, and poll-loop ownership beyond the already-landed bounded `perf_buffer__poll(timeout_ms)` helper packet
+- the deferred `perf-buffer-online-cpu-routing` packet still remains outside the current helper-first bridge surface because it combines `/sys/devices/system/cpu/online` reads, cached `/sys/devices/system/cpu/possible` counts via `libbpf_num_possible_cpus()`, online CPU filtering, per-CPU perf-event-array map updates, per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, `PERF_EVENT_IOC_ENABLE` enablement, epoll-backed perf FD registration, timeout-driven poll waits, and poll-loop ownership beyond the already-landed bounded `perf_buffer__poll(timeout_ms)` helper packet
 - the current helper-first bridge note should stay adjacent to the libbpf segment survey until the queued bridge packet can be reviewed as one tighter step
 
 ## Review gates
@@ -79,6 +79,7 @@ This survey does not claim:
 - descriptor duplication, transfer, or close ownership rules
 - `/sys/devices/system/cpu/online` reads or cached `/sys/devices/system/cpu/possible` counts via `libbpf_num_possible_cpus()`
 - online CPU filtering, per-CPU perf-event-array map updates, per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, `PERF_EVENT_IOC_ENABLE` enablement, or epoll-backed perf FD registration
+- timeout-driven poll waits beyond the bounded `perf_buffer__poll(timeout_ms)` helper packet
 - poll-loop ownership beyond the bounded `perf_buffer__poll(timeout_ms)` helper packet
 - standalone timer or clockevent helper behavior
 
