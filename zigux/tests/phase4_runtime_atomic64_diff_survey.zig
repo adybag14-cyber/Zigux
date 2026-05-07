@@ -61,15 +61,15 @@ test "phase 4 atomic64 survey keeps wrapper handoff and sibling blob pins explic
 
     try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
-    try std.testing.expectEqualStrings("f552b17b663ca92db07db954bccf26585c5ca93b", manifest.phase4_validator_blob_sha);
+    try std.testing.expectEqualStrings("3552a161d1ad358c70d01a535f44755941ec597d", manifest.phase4_validator_blob_sha);
 
     try std.testing.expect(manifest.phase9_build_present);
     try std.testing.expectEqualStrings("ca1c72f01108e57b4fc118aeed6b5a33a5ce54ea", manifest.phase9_build_blob_sha);
 
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("dc5908ec5b76290769b599db0085c67888e0e83a", manifest.phase4_validation_matrix_blob_sha);
-    try std.testing.expectEqualStrings("d03407896d3241285c2b402fd5c6875433143f79", manifest.phase4_review_checklist_blob_sha);
+    try std.testing.expectEqualStrings("30304290488109cc9b9fb3c7f82538f3da8ddf93", manifest.phase4_validation_matrix_blob_sha);
+    try std.testing.expectEqualStrings("abf7e36770e6ceb26385f73c72614bb19b5d7ef7", manifest.phase4_review_checklist_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
