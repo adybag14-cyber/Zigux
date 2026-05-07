@@ -19,6 +19,7 @@ NVME_FALLBACK_MAP_PATH = "Documentation/zigux/phase12-nvme-pci-raw-github-fallba
 VIRTIO_SCSI_FALLBACK_PATH = "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
 VIRTIO_NET_SURVEY_PATH = "Documentation/zigux/phase12-virtio-net-survey.md"
 LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
+PHASE12_COORDINATION_MATRIX_PATH = "Documentation/zigux/phase12-release-coordination-matrix.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
@@ -84,6 +85,18 @@ REQUIRED_FILE_MARKERS = {
         "Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion",
+    ],
+    PHASE12_COORDINATION_MATRIX_PATH: [
+        "Phase 12 Release Coordination Matrix",
+        "release-order authority: `Documentation/zigux/phase12-release-sequencing.md`",
+        "PMO closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`",
+        "shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+        "driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
+        "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2",
+        "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
+        "PHASE12_SHARED_SMOKE_SURFACE_COUNT=6",
+        "build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml`",
+        "there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` packet, no focused libbpf-only replay route, no raw-coverage packet guard, no cross-build replay packet, and no `make -C zigux phase12-validate` target on `master`",
     ],
     NVME_FALLBACK_MAP_PATH: [
         "PMO closure companion",
@@ -266,6 +279,21 @@ Phase 12 notes
 - Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion
 - The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`
 - `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion
+""",
+    )
+    write(
+        root,
+        PHASE12_COORDINATION_MATRIX_PATH,
+        """# Phase 12 Release Coordination Matrix
+- release-order authority: `Documentation/zigux/phase12-release-sequencing.md`
+- PMO closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`
+- shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
+- driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
+- PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2
+- PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2
+- PHASE12_SHARED_SMOKE_SURFACE_COUNT=6
+- build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml`
+- there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` packet, no focused libbpf-only replay route, no raw-coverage packet guard, no cross-build replay packet, and no `make -C zigux phase12-validate` target on `master`
 """,
     )
     write(
@@ -598,6 +626,43 @@ def run_self_test() -> int:
                 print(failure)
             return 1
         raw_coverage_path.write_text(original_raw_coverage, encoding="utf-8")
+
+        coordination_matrix_path = root / PHASE12_COORDINATION_MATRIX_PATH
+        original_coordination_matrix = coordination_matrix_path.read_text(encoding="utf-8")
+        broken_coordination_matrix = original_coordination_matrix.replace(
+            "- build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml`\n",
+            "",
+            1,
+        )
+        coordination_matrix_path.write_text(broken_coordination_matrix, encoding="utf-8")
+        failures = validate(root)
+        expected = (
+            f"{PHASE12_COORDINATION_MATRIX_PATH}:"
+            "build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml`"
+        )
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("coordination-matrix-build-only-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        coordination_matrix_path.write_text(original_coordination_matrix, encoding="utf-8")
+
+        broken_coordination_matrix = original_coordination_matrix.replace(
+            "- PHASE12_SHARED_SMOKE_SURFACE_COUNT=6\n",
+            "",
+            1,
+        )
+        coordination_matrix_path.write_text(broken_coordination_matrix, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{PHASE12_COORDINATION_MATRIX_PATH}:PHASE12_SHARED_SMOKE_SURFACE_COUNT=6"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("coordination-matrix-smoke-count-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        coordination_matrix_path.write_text(original_coordination_matrix, encoding="utf-8")
 
         nvme_fallback_path = root / NVME_FALLBACK_MAP_PATH
         original_nvme_fallback = nvme_fallback_path.read_text(encoding="utf-8")
