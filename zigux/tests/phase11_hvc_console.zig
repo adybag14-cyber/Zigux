@@ -7,7 +7,7 @@ test "phase11 hvc_console exposes the bounded descriptor and slot validation" {
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_simple_driver_starter);
     try std.testing.expect(descriptor.touches_tty_registration);
-    try std.testing.expect(!descriptor.touches_polling_kthread);
+    try std.testing.expect(descriptor.touches_polling_kthread);
     try std.testing.expect(!descriptor.touches_live_hypervisor_io);
 
     try std.testing.expectError(error.InvalidConsoleSlot, hvc_console.HvcConsoleLab.init(16));
@@ -398,6 +398,60 @@ test "phase11 hvc console keeps notifier unregister timing false for targetless 
 
     _ = console.teardown();
     try std.testing.expectError(error.ConsoleUnavailable, console.summarizeNotifierHandoff(.{}));
+}
+
+test "phase11 hvc console keeps khvcd polling wakeups and teardown pressure reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(5);
+    _ = console.instantiate(0x55);
+
+    const active_poll = try console.summarizeKhvcdPollingContract(.{
+        .close = .{
+            .port_initialized = true,
+            .open_count_before_close = 1,
+        },
+        .notifier_add_pending = true,
+        .notifier_hangup_pending = true,
+        .read_poll_pending = true,
+        .write_poll_pending = true,
+    });
+    try std.testing.expectEqual(@as(usize, 5), active_poll.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x55), active_poll.vtermno);
+    try std.testing.expect(active_poll.adapter_present);
+    try std.testing.expect(active_poll.final_close_wait_required);
+    try std.testing.expect(active_poll.clears_port_initialized_on_final_close);
+    try std.testing.expect(active_poll.keeps_console_binding);
+    try std.testing.expect(active_poll.tty_registration_pending);
+    try std.testing.expect(active_poll.notifier_add_pending);
+    try std.testing.expect(active_poll.notifier_hangup_pending);
+    try std.testing.expect(active_poll.notifier_driven_wakeup_pending);
+    try std.testing.expect(active_poll.read_poll_pending);
+    try std.testing.expect(active_poll.write_poll_pending);
+    try std.testing.expect(active_poll.poll_driven_wakeup_pending);
+    try std.testing.expect(active_poll.khvcd_polling_pending);
+    try std.testing.expect(active_poll.bounded_reschedule_pending);
+    try std.testing.expect(active_poll.teardown_host_io_pending);
+
+    const notifier_only = try console.summarizeKhvcdPollingContract(.{
+        .close = .{
+            .port_initialized = false,
+            .open_count_before_close = 2,
+        },
+        .notifier_add_pending = true,
+    });
+    try std.testing.expect(!notifier_only.final_close_wait_required);
+    try std.testing.expect(!notifier_only.clears_port_initialized_on_final_close);
+    try std.testing.expect(notifier_only.notifier_add_pending);
+    try std.testing.expect(!notifier_only.notifier_hangup_pending);
+    try std.testing.expect(notifier_only.notifier_driven_wakeup_pending);
+    try std.testing.expect(!notifier_only.read_poll_pending);
+    try std.testing.expect(!notifier_only.write_poll_pending);
+    try std.testing.expect(!notifier_only.poll_driven_wakeup_pending);
+    try std.testing.expect(notifier_only.khvcd_polling_pending);
+    try std.testing.expect(notifier_only.bounded_reschedule_pending);
+    try std.testing.expect(!notifier_only.teardown_host_io_pending);
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeKhvcdPollingContract(.{}));
 }
 
 test "phase11 hvc_console adds carriage returns and keeps final flush intent on successful writes" {
