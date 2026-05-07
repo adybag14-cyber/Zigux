@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import tempfile
 
@@ -12,6 +13,9 @@ CHECKER = Path("scripts/zigux/check-kconfig-bridge.py")
 VALIDATOR = Path("scripts/zigux/validate-phase2.py")
 MAKEFILE = Path("zigux/Makefile")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
+CLOSURE = Path("Documentation/zigux/phase2-closure.md")
+TOOL_MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
+CONFDATA_PACKET_PATH = "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"
 
 REQUIRED_CHECKER_MARKERS = (
     "REQUIRED_CONFDATA_CASES = [",
@@ -56,7 +60,15 @@ REQUIRED_WORKFLOW_LINES = (
     "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 30
+REQUIRED_CLOSURE_MARKERS = (
+    f"`PHASE2_KCONFIG_BRIDGE_CONFDATA_PACKET={CONFDATA_PACKET_PATH}`",
+    "`kconfig_confdata_bridge_packet`",
+)
+REQUIRED_CLOSURE_EXACT_COUNTS = {
+    f"`PHASE2_KCONFIG_BRIDGE_CONFDATA_PACKET={CONFDATA_PACKET_PATH}`": 1,
+    "`kconfig_confdata_bridge_packet`": 1,
+}
+EXPECTED_SELF_TEST_CASE_COUNT = 36
 
 
 def read_text(path: Path) -> str:
@@ -80,6 +92,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     validator_text = read_text(root / VALIDATOR)
     makefile_text = read_text(root / MAKEFILE)
     workflow_text = read_text(root / WORKFLOW)
+    closure_text = read_text(root / CLOSURE)
+    tool_manifest = json.loads(read_text(root / TOOL_MANIFEST))
 
     for marker in REQUIRED_CHECKER_MARKERS:
         if marker not in checker_text:
@@ -120,6 +134,28 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_HOOKS", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
+
+    for marker in REQUIRED_CLOSURE_MARKERS:
+        if marker not in closure_text:
+            issues.append(("MISSING_CLOSURE_MARKERS", marker))
+
+    for marker, expected_count in REQUIRED_CLOSURE_EXACT_COUNTS.items():
+        count = closure_text.count(marker)
+        if count != expected_count:
+            issues.append(
+                (
+                    "DUPLICATE_CLOSURE_MARKERS",
+                    f"{marker}:count={count}:expected={expected_count}",
+                )
+            )
+
+    if tool_manifest.get("kconfig_confdata_bridge_packet") != CONFDATA_PACKET_PATH:
+        issues.append(
+            (
+                "INVALID_TOOL_MANIFEST_PACKET",
+                f"kconfig_confdata_bridge_packet={tool_manifest.get('kconfig_confdata_bridge_packet')!r}",
+            )
+        )
 
     return issues
 
@@ -227,6 +263,30 @@ def build_self_test_root(root: Path) -> None:
                 "",
             )
         ),
+    )
+    write_text(
+        root / CLOSURE,
+        "\n".join(
+            (
+                "## Kconfig Confdata Bridge Closure Packet",
+                f"- `PHASE2_KCONFIG_BRIDGE_CONFDATA_PACKET={CONFDATA_PACKET_PATH}`",
+                "- the shared Phase 2 tool manifest points at that same tool-local packet through `kconfig_confdata_bridge_packet`",
+                "",
+            )
+        ),
+    )
+    write_text(
+        root / TOOL_MANIFEST,
+        json.dumps(
+            {
+                "phase": "Phase 2",
+                "status": "closed",
+                "tool_count": 6,
+                "kconfig_confdata_bridge_packet": CONFDATA_PACKET_PATH,
+            },
+            indent=2,
+        )
+        + "\n",
     )
 
 
@@ -611,6 +671,81 @@ def run_self_test() -> int:
         assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[5]}:count=2") in issues
         cases += 1
 
+        build_self_test_root(root)
+        path = root / CLOSURE
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(REQUIRED_CLOSURE_MARKERS[0], "", 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_CLOSURE_MARKERS", REQUIRED_CLOSURE_MARKERS[0]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CLOSURE
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(REQUIRED_CLOSURE_MARKERS[1], "", 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_CLOSURE_MARKERS", REQUIRED_CLOSURE_MARKERS[1]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CLOSURE
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                REQUIRED_CLOSURE_MARKERS[0],
+                REQUIRED_CLOSURE_MARKERS[0] + "\n" + REQUIRED_CLOSURE_MARKERS[0],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "DUPLICATE_CLOSURE_MARKERS",
+            f"{REQUIRED_CLOSURE_MARKERS[0]}:count=2:expected=1",
+        ) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CLOSURE
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                REQUIRED_CLOSURE_MARKERS[1],
+                REQUIRED_CLOSURE_MARKERS[1] + "\n" + REQUIRED_CLOSURE_MARKERS[1],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "DUPLICATE_CLOSURE_MARKERS",
+            f"{REQUIRED_CLOSURE_MARKERS[1]}:count=2:expected=1",
+        ) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / TOOL_MANIFEST
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload.pop("kconfig_confdata_bridge_packet")
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_TOOL_MANIFEST_PACKET", "kconfig_confdata_bridge_packet=None") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / TOOL_MANIFEST
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["kconfig_confdata_bridge_packet"] = "zigux/tests/fixtures/kconfig_bridge/other_manifest.json"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert (
+            "INVALID_TOOL_MANIFEST_PACKET",
+            "kconfig_confdata_bridge_packet='zigux/tests/fixtures/kconfig_bridge/other_manifest.json'",
+        ) in issues
+        cases += 1
+
     assert cases == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT={cases}")
@@ -637,6 +772,7 @@ def main() -> int:
     print(f"PHASE2_KCONFIG_ALIGNMENT_VALIDATOR_MARKER_COUNT={len(REQUIRED_VALIDATOR_MARKERS)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_CLOSURE_MARKER_COUNT={len(REQUIRED_CLOSURE_MARKERS)}")
     return 0
 
 
