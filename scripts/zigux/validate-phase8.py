@@ -63,7 +63,7 @@ REQUIRED_SEGMENTS = {
     "pin-path-helpers": "starter_landed",
     "cpu-mask-parsing": "starter_landed",
     "type-name-helpers": "starter_landed",
-    "fdinfo-map-info-helpers": "ready_next",
+    "fdinfo-map-info-helpers": "starter_landed",
     "map-reuse-compatibility": "starter_landed",
     "file-path-and-handle-bridge": "deferred_high_risk",
     "perf-buffer-online-cpu-routing": "deferred_high_risk",
