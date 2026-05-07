@@ -127,6 +127,11 @@ REQUIRED_CLOSURE_MARKERS = [
         1,
     ),
     (
+        "closure_bitmap_predicate_tail_mask_review_count",
+        "PHASE1_BITMAP_PREDICATE_TAIL_MASK_REVIEW=helper-local bitmap predicate tail-mask proof stays explicit through the direct bitmap test anchor so equal, intersects, and subset ignore out-of-range tail bits instead of treating tail noise as live data",
+        1,
+    ),
+    (
         "closure_bitmap_first_word_boundary_review_count",
         "PHASE1_BITMAP_FIRST_WORD_BOUNDARY_REVIEW=helper-local bitmap first-word boundary proof stays explicit through the direct bitmap test anchor so setRange and clearRange preserve exact first-word masks when a range ends on the first-word boundary",
         1,
@@ -262,6 +267,7 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "bitmap fill clamps tail bits in partial words"',
             'test "bitmap and andnot equal intersects subset"',
             'test "bitmap and andnot clamp tail bits in partial words"',
+            'test "bitmap predicates ignore out-of-range tail bits"',
             'test "bitmap xor keeps caller-selected bit window"',
             'test "bitmap scnprintf collapses contiguous ranges"',
             'test "bitmap scnprintf reports full length while truncating the buffer"',
@@ -271,6 +277,7 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "bitmap zero-bit helpers stay explicit no-ops"',
         ],
         "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
+        "predicate_tail_mask_anchor": 'test "bitmap predicates ignore out-of-range tail bits"',
         "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
         "parity_fixture_keys": [
             "scnprintf",
