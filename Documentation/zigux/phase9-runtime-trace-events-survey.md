@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-survey`
-- `PHASE9_SURVEYED_COMMIT=e59df689d080aa11773adda87f00c2d650caade8`
+- `PHASE9_SURVEYED_COMMIT=ccd5361c3b193d26587c6396f029fc335c783c6e`
 - scope: survey manifest, starter sample, dedicated module and survey gates, the bounded loader-handoff scaffold plus shared-request bridge and initialized-stage snapshot stability proof, the focused `phase9-runtime-trace-events-tests` build step, the lane-level review notes, and explicit adjacency to the separate shared runtime-loader lane that owns the facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` step
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
@@ -37,6 +37,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - the current bounded starter now exports a stable `RuntimeTraceEventsSummary`, and the focused diff gate uses that summary to keep the concrete main-thread payload literals, function-callback payload labels, and selftest totals machine-checkable without reaching back into raw payload-only state.
 - the starter now also carries direct sample-local lifecycle proofs for post-selftest replay-summary continuity, initialized-stage failed-exit rollback before selftest, and selftest-ready failed-exit rollback until registration is balanced, so rollback evidence stays reviewable where the runtime sample lives instead of only through the dedicated module test file.
 - the current bounded starter still advertises `requires_runtime_substrate=true` and `provides_selftest_hook=true`, so the roadmap's selftest-hook requirement stays explicit in the sample descriptor while the pilot remains an in-memory starter.
+- the starter now also fail-closes `runSelftest()` when callback registration is already outstanding, and it keeps the pre-selftest summary stable until that registration depth drains back to zero.
 - the current loader scaffold now records explicit `tracepoint_probe_register` and `tracepoint_probe_unregister` metadata-only labels, the prepared handoff-stage summary, and prepared and initialized-stage snapshots that stay stable even if later sample replay or selftest activity mutates local counters before runtime handoff.
 - the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet, and the trace-events starter consumes that shared request lifecycle through `prepareSharedRequest`, `requestSharedRuntimeLoad`, `releaseSharedWithoutSubstrate`, and a focused shared-plan drift check before any live registration claim, including an initialized-stage request snapshot that remains explicit if the sample runs its selftest after prepare.
 - the same loader packet also fail-closes shared selftest-hook drift in both the prepared shared-request path and the direct initialized and selftest-complete shared-plan path before any live registration claim, so `provides_selftest_hook` evidence stays explicit alongside the broader shared-plan drift proof.
