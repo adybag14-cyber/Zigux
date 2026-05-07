@@ -19,6 +19,32 @@
     "preexisting_phase12_survey_note_present": true,
     "preexisting_virtio_net_zig_present": true
   },
+  "roadmap_gap_check": {
+    "dma_safe_abstractions": {
+      "required_by_roadmap": true,
+      "status": "blocked",
+      "current_surface": "drivers/net/virtio_net.zig still stops at probe snapshot, queue resume, receive refill, transmit recycle, and mergeable-buffer-length planning only.",
+      "blocked_by": "The active packet stays below live DMA-safe buffer ownership, page_pool wiring, refill loops, and transport-backed data-path setup."
+    },
+    "queueing_correctness": {
+      "required_by_roadmap": true,
+      "status": "bounded_starter_only",
+      "current_surface": "The landed packet records queue-pair counts, fallback reasons, control-virtqueue presence, and recovery ordering across the frozen snapshot.",
+      "blocked_by": "No live virtqueue submission, completion, interrupt, or NAPI-backed queue correctness claim is shipped in the current virtio_net lane."
+    },
+    "throughput_and_recovery_parity": {
+      "required_by_roadmap": true,
+      "status": "bounded_starter_only",
+      "current_surface": "The current packet keeps mergeable-buffer sizing, reset-versus-renegotiation intent, and control-vq or RSS restore ordering reviewable.",
+      "blocked_by": "There is still no throughput evidence, runtime recovery replay, or parity measurement for the live data path."
+    },
+    "segmented_rollout": {
+      "required_by_roadmap": true,
+      "status": "review_boundary_landed",
+      "current_surface": "The survey, manifest, and focused tests keep the landed probe, queue-recovery, receive-refill, transmit-recycle, and mergeable-buffer-length packet explicit.",
+      "blocked_by": "The rollout boundary intentionally keeps the lane below live page_pool DMA, XDP or XSK execution, control-virtqueue commands, RSS table programming, ethtool hooks, and net_device lifecycle work."
+    }
+  },
   "gaps": [
     {
       "id": "phase12-build-gate",
