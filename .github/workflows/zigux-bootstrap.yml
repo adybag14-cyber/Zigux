@@ -131,6 +131,9 @@ jobs:
       - name: Validate Phase 3 low-level wrapper survey
         run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py
 
+      - name: Check Phase 3 ABI interop packet
+        run: python3 scripts/zigux/check-phase3-abi.py
+
       - name: Validate Phase 4 diff gates
         run: python3 scripts/zigux/validate-phase4.py
 
