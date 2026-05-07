@@ -16,7 +16,7 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
   - `zigux/Makefile`
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact.
-- rollback owner and reversible-delivery drill: this shared survey packet rolls back by restoring the last truthful libbpf-survey wording in this note and then rerunning `python3 scripts/zigux/check-build-only-phase12-surface.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` so the shared build-only Phase 12 contract stays reversible without inventing a dedicated libbpf-only replay route that current `master` does not ship.
+- rollback owner and reversible-delivery drill: this shared survey packet rolls back by restoring the last truthful libbpf-survey wording in this note and then rerunning `python3 scripts/zigux/check-build-only-phase12-surface.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` so the shared build-only Phase 12 contract stays reversible without inventing a dedicated libbpf-only replay route that current `master` does not ship. If `zig` is absent from `PATH`, keep that same smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing a libbpf-only fallback entrypoint.
 
 ## Why this slice exists
 The roadmap now places `tools/lib/bpf/libbpf.c` in Phase 12, alongside the other high-risk production-facing consumers, because the file is both large and semantically dense even though it lives under `tools/`.
@@ -88,6 +88,10 @@ This survey slice does not claim:
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 5. run the Linux-style entrypoint last
 - `make -C zigux phase12`
+6. If the local runtime does not provide `zig` on `PATH`, keep the same smoke-first order and rerun the shipped Make routes with an attached toolchain override instead of inventing a new libbpf-specific or Phase 12 entrypoint.
+- `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
+- `make -C zigux phase12 ZIG=<attached-zig-path>`
+- This is an environment override for the existing replay packet, not a validator-first, libbpf-only, or `phase12-validate` route.
 
 Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether this shared-tree libbpf survey packet is close enough to describe the active Phase 12 tranche as release-closed.
 
