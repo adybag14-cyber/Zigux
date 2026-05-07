@@ -56,7 +56,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff_survey);
 
-    try std.testing.expectEqualStrings("8c6f95f3ebacdfba3bf2a25ed3ed15df030bdfaa", manifest.live_gate_blob_sha);
+    try std.testing.expectEqualStrings("bb495012d8e15f1e44c343223376d7c2b9b66f49", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("24418ad890696a59b95276fe8dec7eaeecf25172", manifest.helper_replay_blob_sha);
     try std.testing.expectEqualStrings("3164f1e56835ae0f0511d890f150dc374b45d1f4", manifest.phase4_build_blob_sha);
 
