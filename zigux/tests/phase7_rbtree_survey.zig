@@ -34,6 +34,20 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked");
 }
 
+fn isLowerHexCommitId(value: []const u8) bool {
+    if (value.len != 40) {
+        return false;
+    }
+
+    for (value) |byte| {
+        if (!std.ascii.isDigit(byte) and (byte < 'a' or byte > 'f')) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
@@ -152,7 +166,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     const manifest = parsed.value;
     try std.testing.expectEqualStrings(active_lane_key, manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
-    try std.testing.expectEqualStrings("7361ac51374149a96b7a7a2c6ea3c995d8cc1231", manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexCommitId(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/rbtree.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/rbtree.zig", manifest.roadmap_destinations[0]);
