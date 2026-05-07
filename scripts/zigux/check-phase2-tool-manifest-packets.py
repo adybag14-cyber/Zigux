@@ -26,6 +26,15 @@ EXPECTED_PACKET_TOOL_FIELDS = {
     "kconfig_confdata_bridge_packet": "scripts/zigux/kconfig/confdata_bridge.zig",
 }
 
+EXPECTED_TOOLS = [
+    "scripts/zigux/fixdep.zig",
+    "scripts/zigux/genksyms.zig",
+    "scripts/zigux/genksyms_crc.zig",
+    "scripts/zigux/mk_elfconfig.zig",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
+]
+EXPECTED_TOOL_COUNT = len(EXPECTED_TOOLS)
 EXPECTED_PACKET_STATUS = "closed"
 
 
@@ -51,6 +60,15 @@ def validate_root(root: Path) -> list[str]:
     manifest = load_json_object(root / PHASE2_TOOL_MANIFEST.relative_to(ROOT), label="phase2_tool_manifest")
     issues: list[str] = []
     seen_paths: set[str] = set()
+
+    if manifest.get("tool_count") != EXPECTED_TOOL_COUNT:
+        issues.append(
+            f"manifest_tool_count:value={manifest.get('tool_count')!r}:expected={EXPECTED_TOOL_COUNT}"
+        )
+
+    tools = manifest.get("tools")
+    if tools != EXPECTED_TOOLS:
+        issues.append(f"manifest_tools:value={tools!r}:expected={EXPECTED_TOOLS!r}")
 
     for field_name, expected_path in EXPECTED_PACKET_FIELDS.items():
         value = manifest.get(field_name)
@@ -99,15 +117,8 @@ def build_self_test_root(root: Path) -> None:
         {
             "phase": "Phase 2",
             "status": "closed",
-            "tool_count": 6,
-            "tools": [
-                "scripts/zigux/fixdep.zig",
-                "scripts/zigux/genksyms.zig",
-                "scripts/zigux/genksyms_crc.zig",
-                "scripts/zigux/mk_elfconfig.zig",
-                "scripts/zigux/kconfig/conf_bridge.zig",
-                "scripts/zigux/kconfig/confdata_bridge.zig",
-            ],
+            "tool_count": EXPECTED_TOOL_COUNT,
+            "tools": EXPECTED_TOOLS,
             **EXPECTED_PACKET_FIELDS,
         },
     )
@@ -158,6 +169,27 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         manifest = load_json_object(manifest_path, label="phase2_tool_manifest")
+        manifest["tool_count"] = EXPECTED_TOOL_COUNT - 1
+        write_json(manifest_path, manifest)
+        issues = validate_root(root)
+        assert f"manifest_tool_count:value={EXPECTED_TOOL_COUNT - 1}:expected={EXPECTED_TOOL_COUNT}" in issues
+
+        build_self_test_root(root)
+        manifest = load_json_object(manifest_path, label="phase2_tool_manifest")
+        manifest["tools"] = EXPECTED_TOOLS[:-1]
+        write_json(manifest_path, manifest)
+        issues = validate_root(root)
+        assert f"manifest_tools:value={EXPECTED_TOOLS[:-1]!r}:expected={EXPECTED_TOOLS!r}" in issues
+
+        build_self_test_root(root)
+        manifest = load_json_object(manifest_path, label="phase2_tool_manifest")
+        manifest["tools"] = list(reversed(EXPECTED_TOOLS))
+        write_json(manifest_path, manifest)
+        issues = validate_root(root)
+        assert f"manifest_tools:value={list(reversed(EXPECTED_TOOLS))!r}:expected={EXPECTED_TOOLS!r}" in issues
+
+        build_self_test_root(root)
+        manifest = load_json_object(manifest_path, label="phase2_tool_manifest")
         manifest["kconfig_confdata_bridge_packet"] = EXPECTED_PACKET_FIELDS["kconfig_conf_bridge_packet"]
         write_json(manifest_path, manifest)
         issues = validate_root(root)
@@ -199,7 +231,7 @@ def run_self_test() -> int:
         assert "missing_file:zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json" in issues
 
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=6")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
