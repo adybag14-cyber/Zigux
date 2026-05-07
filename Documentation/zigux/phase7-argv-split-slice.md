@@ -31,6 +31,7 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 - first-NUL C-string bounds on both counting and splitting
 - an explicit result object that owns the copied token buffer
 - deterministic Zig-only validation without quote or shell expansion behavior
+- stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 
@@ -62,8 +63,11 @@ The Phase 5 roadmap keeps approved reference idioms under four sample anchors in
 
 The current landed slice covers:
 
-- `count_argc()`
-- `argv_split()`
+- `countArgc()`
+- `argvSplit()`
+- `argvSplitWithArgc()`
+- `cArgv()`
+- `argvFree()` plus `deinit()`
 
 The current tests check:
 
