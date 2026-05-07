@@ -171,6 +171,29 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
     return ('pass', expectations)
 
 
+def clone_expectations(expectations: dict[str, object]) -> dict[str, object]:
+    iterations = expectations.get('iterations')
+    checksums = expectations.get('checksums')
+    exact_checksums = expectations.get('exact_checksums')
+    assert isinstance(iterations, dict)
+    assert isinstance(checksums, list)
+    assert isinstance(exact_checksums, dict)
+    return {
+        'status': expectations['status'],
+        'iterations': dict(iterations),
+        'checksums': list(checksums),
+        'exact_checksums': dict(exact_checksums),
+    }
+
+
+def load_full_expectations_for_self_test() -> dict[str, object]:
+    expectations = load_expectations(EXPECTATIONS)
+    kind, payload = validate_expectations(expectations)
+    assert kind == 'pass', (kind, payload)
+    assert isinstance(expectations, dict)
+    return clone_expectations(expectations)
+
+
 def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, object]:
     parsed, counts = parse_output(stdout)
     exact_checksums: dict[str, int] = expectations['exact_checksums']
@@ -256,18 +279,7 @@ def run_self_test() -> None:
             'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM': 11,
         },
     }
-    full_expectations = {
-        'status': 'pass',
-        'iterations': dict(EXPECTED_ITERATIONS),
-        'checksums': list(EXPECTED_CHECKSUMS),
-        'exact_checksums': {
-            'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM': 2260000,
-            'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM': 620000,
-            'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM': 15621472,
-            'PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM': 11980000,
-            'PHASE1_BENCH_RBTREE_CHECKSUM': 1308000,
-        },
-    }
+    full_expectations = load_full_expectations_for_self_test()
 
     ok_output = '\n'.join([
         'PHASE1_BENCH=pass',
@@ -371,6 +383,25 @@ def run_self_test() -> None:
         'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
         'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=12',
     ])
+    find_bit_edge_exact_checksum_mismatch_output = '\n'.join([
+        'PHASE1_BENCH=pass',
+        'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
+        'PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS=20000',
+        'PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000',
+        'PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000',
+        'PHASE1_BENCH_STRING_ITERATIONS=40000',
+        'PHASE1_BENCH_HWEIGHT_ITERATIONS=100000',
+        'PHASE1_BENCH_LIST_SORT_ITERATIONS=1000',
+        'PHASE1_BENCH_RBTREE_ITERATIONS=4000',
+        'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=2260000',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=620000',
+        'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=15621472',
+        'PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM=11980001',
+        'PHASE1_BENCH_STRING_CHECKSUM=240000',
+        'PHASE1_BENCH_HWEIGHT_CHECKSUM=1600000',
+        'PHASE1_BENCH_LIST_SORT_CHECKSUM=69300',
+        'PHASE1_BENCH_RBTREE_CHECKSUM=3380000',
+    ])
     rbtree_exact_checksum_mismatch_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
@@ -388,7 +419,7 @@ def run_self_test() -> None:
         'PHASE1_BENCH_STRING_CHECKSUM=240000',
         'PHASE1_BENCH_HWEIGHT_CHECKSUM=1600000',
         'PHASE1_BENCH_LIST_SORT_CHECKSUM=69300',
-        'PHASE1_BENCH_RBTREE_CHECKSUM=1308001',
+        'PHASE1_BENCH_RBTREE_CHECKSUM=3380001',
     ])
 
     kind, _ = validate_output(expectations, ok_output)
@@ -445,9 +476,13 @@ def run_self_test() -> None:
     assert kind == 'exact_checksum_mismatch'
     assert payload == ('PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM', 11, 12)
 
+    kind, payload = validate_output(full_expectations, find_bit_edge_exact_checksum_mismatch_output)
+    assert kind == 'exact_checksum_mismatch'
+    assert payload == ('PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM', 11980000, 11980001)
+
     kind, payload = validate_output(full_expectations, rbtree_exact_checksum_mismatch_output)
     assert kind == 'exact_checksum_mismatch'
-    assert payload == ('PHASE1_BENCH_RBTREE_CHECKSUM', 1308000, 1308001)
+    assert payload == ('PHASE1_BENCH_RBTREE_CHECKSUM', 3380000, 3380001)
 
     kind, _ = validate_expectations(full_expectations)
     assert kind == 'pass'
@@ -544,6 +579,12 @@ def run_self_test() -> None:
         'PHASE1_BENCH_RBTREE_CHECKSUM',
     ]
 
+    missing_find_bit_edge_exact_checksum_expectations = clone_expectations(full_expectations)
+    del missing_find_bit_edge_exact_checksum_expectations['exact_checksums']['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']
+    kind, payload = validate_expectations(missing_find_bit_edge_exact_checksum_expectations)
+    assert kind == 'expectations_missing_exact_checksums'
+    assert payload == ['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']
+
     unexpected_exact_checksum_expectations = {
         'status': 'pass',
         'iterations': dict(EXPECTED_ITERATIONS),
@@ -553,7 +594,7 @@ def run_self_test() -> None:
             'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM': 620000,
             'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM': 15621472,
             'PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM': 11980000,
-            'PHASE1_BENCH_RBTREE_CHECKSUM': 1308000,
+            'PHASE1_BENCH_RBTREE_CHECKSUM': 3380000,
             'PHASE1_BENCH_STRING_CHECKSUM': 1,
         },
     }
@@ -570,7 +611,7 @@ def run_self_test() -> None:
             'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM': 620000,
             'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM': 15621472,
             'PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM': 11980000,
-            'PHASE1_BENCH_RBTREE_CHECKSUM': 1308000,
+            'PHASE1_BENCH_RBTREE_CHECKSUM': 3380000,
         },
     }
     kind, payload = validate_expectations(exact_checksum_not_listed_expectations)
@@ -586,7 +627,7 @@ def run_self_test() -> None:
             'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM': 620000,
             'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM': 15621472,
             'PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM': 11980000,
-            'PHASE1_BENCH_RBTREE_CHECKSUM': 1308000,
+            'PHASE1_BENCH_RBTREE_CHECKSUM': 3380000,
         },
     }
     kind, payload = validate_expectations(nonpositive_exact_checksum_expectations)
@@ -594,21 +635,21 @@ def run_self_test() -> None:
     assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM', 0)
 
     duplicate_root_key_expectations = load_expectations_text(
-        '{"status":"pass","status":"fail","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"],"exact_checksums":{"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM":2260000,"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM":620000,"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM":15621472,"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM":11980000,"PHASE1_BENCH_RBTREE_CHECKSUM":1308000}}'
+        '{"status":"pass","status":"fail","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"],"exact_checksums":{"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM":2260000,"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM":620000,"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM":15621472,"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM":11980000,"PHASE1_BENCH_RBTREE_CHECKSUM":3380000}}'
     )
     kind, payload = validate_expectations(duplicate_root_key_expectations)
     assert kind == 'expectations_duplicate_keys'
     assert payload == ['status']
 
     duplicate_iteration_key_expectations = load_expectations_text(
-        '{"status":"pass","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20001,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"],"exact_checksums":{"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM":2260000,"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM":620000,"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM":15621472,"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM":11980000,"PHASE1_BENCH_RBTREE_CHECKSUM":1308000}}'
+        '{"status":"pass","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20001,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"],"exact_checksums":{"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM":2260000,"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM":620000,"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM":15621472,"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM":11980000,"PHASE1_BENCH_RBTREE_CHECKSUM":3380000}}'
     )
     kind, payload = validate_expectations(duplicate_iteration_key_expectations)
     assert kind == 'expectations_duplicate_iteration_keys'
     assert payload == ['PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS']
 
     duplicate_exact_checksum_key_expectations = load_expectations_text(
-        '{"status":"pass","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"],"exact_checksums":{"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM":2260000,"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM":2260001,"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM":620000,"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM":15621472,"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM":11980000,"PHASE1_BENCH_RBTREE_CHECKSUM":1308000}}'
+        '{"status":"pass","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"],"exact_checksums":{"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM":2260000,"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM":2260001,"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM":620000,"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM":15621472,"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM":11980000,"PHASE1_BENCH_RBTREE_CHECKSUM":3380000}}'
     )
     kind, payload = validate_expectations(duplicate_exact_checksum_key_expectations)
     assert kind == 'expectations_duplicate_exact_checksum_keys'
@@ -623,7 +664,7 @@ def run_self_test() -> None:
             'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM': 620000,
             'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM': 15621472,
             'PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM': 11980000,
-            'PHASE1_BENCH_RBTREE_CHECKSUM': 1308000,
+            'PHASE1_BENCH_RBTREE_CHECKSUM': 3380000,
         },
     }
     kind, payload = validate_expectations(exact_checksum_wrong_type_expectations)
@@ -631,7 +672,7 @@ def run_self_test() -> None:
     assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM', 'str')
 
     print('PHASE1_BENCH_CHECK_SELF_TEST=pass')
-    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=31')
+    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=33')
 
 
 def main() -> int:
