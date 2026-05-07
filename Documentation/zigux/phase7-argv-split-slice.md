@@ -42,7 +42,7 @@ The Phase 5 roadmap keeps approved reference idioms under four sample anchors in
 - `zig test lib/argv_split.zig`
 
 2. run the shared Phase 7 helper gate
-- `zig build test --build-file zigux/tests/phase7_build.zig`
+- `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
 3. run the dedicated Phase 7 survey gate
 - `zig test zigux/tests/phase7_argv_split_survey.zig`
