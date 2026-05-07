@@ -1,0 +1,59 @@
+{
+  "tool": "scripts/zigux/kconfig/confdata_bridge.zig",
+  "status": "closed",
+  "mode": "bounded config bridge",
+  "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
+  "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
+  "case_count": 10,
+  "cases": [
+    "sample",
+    "escaped_strings",
+    "escaped_control_sequences",
+    "trailing_escaped_backslash",
+    "sample_crlf",
+    "explicit_n_tristate",
+    "final_trailing_carriage_return",
+    "final_unterminated_unset_comment",
+    "uppercase_tristate",
+    "non_config_lines"
+  ],
+  "input_packet": [
+    "sample.config",
+    "escaped_strings.config",
+    "escaped_control_sequences.config",
+    "trailing_escaped_backslash.config",
+    "sample_crlf.config",
+    "explicit_n_tristate.config",
+    "final_trailing_carriage_return.config",
+    "final_unterminated_unset_comment.config",
+    "uppercase_tristate.config",
+    "non_config_lines.config"
+  ],
+  "expected_packet": [
+    "sample_expected.json",
+    "escaped_strings_expected.json",
+    "escaped_control_sequences_expected.json",
+    "trailing_escaped_backslash_expected.json",
+    "sample_crlf_expected.json",
+    "explicit_n_tristate_expected.json",
+    "final_trailing_carriage_return_expected.json",
+    "final_unterminated_unset_comment_expected.json",
+    "uppercase_tristate_expected.json",
+    "non_config_lines_expected.json"
+  ],
+  "helper_local_anchors": [
+    "confdata bridge parses bounded config states",
+    "confdata bridge emits bounded json output",
+    "confdata bridge decodes escaped quoted strings",
+    "confdata bridge decodes escaped control sequences in quoted strings",
+    "confdata bridge escapes low control bytes in json output",
+    "confdata bridge accepts CRLF config lines",
+    "confdata bridge preserves trailing carriage return on final unterminated value line",
+    "confdata bridge ignores unterminated unset comment with trailing carriage return",
+    "confdata bridge keeps explicit n assignments as tristate values",
+    "confdata bridge recognizes uppercase tristate assignments",
+    "confdata bridge ignores non-CONFIG lines like upstream confdata",
+    "confdata bridge ignores empty CONFIG symbol names",
+    "confdata bridge keeps trailing escaped backslashes in quoted strings"
+  ]
+}
