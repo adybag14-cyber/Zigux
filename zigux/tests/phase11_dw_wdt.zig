@@ -299,6 +299,41 @@ test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stop
     try std.testing.expect(!runtime.hardware_running);
 }
 
+test "phase11 dw_wdt non-stoppable teardown preserves reset-mode heartbeat and follow-up ping semantics" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    _ = try watchdog.start();
+    _ = watchdog.setCurrentCount(5 * 65_536);
+
+    const teardown = try watchdog.teardownSummary();
+    try std.testing.expect(!teardown.can_stop);
+    try std.testing.expect(teardown.running_before_teardown);
+    try std.testing.expectEqual(@as(u32, 32), teardown.timeout_sec);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.reset, teardown.response_mode);
+    try std.testing.expectEqual(dw_wdt.TeardownOutcome.continued_heartbeat, teardown.outcome);
+    try std.testing.expect(teardown.stop_invoked);
+    try std.testing.expect(!teardown.enable_bit_cleared);
+    try std.testing.expect(teardown.interrupt_cleared);
+    try std.testing.expect(teardown.running_after_teardown);
+    try std.testing.expect(teardown.hardware_running_after_teardown);
+
+    var runtime = watchdog.runtimeSnapshot();
+    try std.testing.expect(runtime.running);
+    try std.testing.expect(runtime.hardware_running);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.reset, runtime.response_mode);
+    try std.testing.expectEqual(@as(u32, 32), runtime.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 0), runtime.pretimeout_sec);
+    try std.testing.expectEqual(@as(u32, 5), runtime.time_left_sec);
+    try std.testing.expectEqual(@as(u32, 5 * 65_536), runtime.registers.current_count);
+    try std.testing.expect(!runtime.interrupt_pending);
+
+    runtime = try watchdog.ping();
+    try std.testing.expect(runtime.running);
+    try std.testing.expect(runtime.hardware_running);
+    try std.testing.expectEqual(dw_wdt.counter_restart_kick_value, runtime.registers.restart);
+    try std.testing.expectEqual(@as(u32, 5 * 65_536), runtime.registers.current_count);
+    try std.testing.expect(!runtime.interrupt_pending);
+}
+
 test "phase11 dw_wdt reset-controlled stop clears irq-mode bookkeeping after staged interrupt state" {
     var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
     _ = try watchdog.setResponseMode(.irq);
