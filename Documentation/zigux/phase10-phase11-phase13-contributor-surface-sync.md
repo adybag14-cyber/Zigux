@@ -14,6 +14,8 @@ Update these surfaces together when they describe the same active contributor pa
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-release-notes-survey.md`
+- `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-packet.py`
@@ -29,7 +31,7 @@ Also refresh the packet-local docs-root or scripts-root note when the wording ch
 
 1. Start from the packet-local source of truth.
 2. Refresh `Documentation/zigux/README.md` so the exact checker stack, replay route, and evidence names stay visible from the top-level product index.
-3. Refresh `Documentation/zigux/phase13-contributor-workflow-guide.md` and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` when the change sharpens the shared validator-first replay route, the owner-map split, or the broader shipped adjacent release-surface evidence for Phase 13 contributors, including the notifier survey and checker route.
+3. Refresh `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` when the change sharpens the shared validator-first replay route, the owner-map split, or the broader shipped adjacent release-surface evidence for Phase 13 contributors, including the release-notes note, the roadmap-traceability note, and the notifier survey plus checker route.
 4. Refresh the compact tests-root companion so the same packet stays reviewable in the short form.
 5. Refresh `scripts/zigux/README.md` when the wording change affects the scripts-root validator-first replay summary, checker inventory, or Linux-style command wording.
 6. Refresh `Documentation/zigux/review-checklist.md` if the change alters a shared reviewer prompt or release-discipline question.
