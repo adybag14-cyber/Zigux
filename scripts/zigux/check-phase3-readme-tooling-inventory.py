@@ -518,6 +518,8 @@ def run_self_test() -> int:
             ("check-phase1-installer-review-surfaces.py", "missing_phase1_installer_review_surfaces_repo_file_guard_failed"),
             ("artifact_diff.py", "missing_artifact_diff_repo_file_guard_failed"),
             ("check-artifact-diff-contract.py", "missing_artifact_diff_contract_repo_file_guard_failed"),
+            ("validate-phase4.py", "missing_phase4_validator_repo_file_guard_failed"),
+            ("check-phase4-gate-evidence.py", "missing_phase4_gate_evidence_repo_file_guard_failed"),
             ("validate-phase2.py", "missing_phase2_validator_repo_file_guard_failed"),
             ("validate-phase2-closure.py", "missing_phase2_closure_validator_repo_file_guard_failed"),
             ("validate-phase3.py", "missing_phase3_validator_repo_file_guard_failed"),
