@@ -48,4 +48,18 @@ static inline bool zigux_dev_range_fits(zigux_u32 first_minor, zigux_u32 count)
 	return count - 1U <= ZIGUX_DEV_MINOR_MASK - first_minor;
 }
 
+static inline bool zigux_dev_last_in_range(zigux_u32 major, zigux_u32 first_minor,
+					   zigux_u32 count, zigux_u32 *last_dev)
+{
+	if (!zigux_dev_major_valid(major))
+		return false;
+	if (!zigux_dev_range_fits(first_minor, count))
+		return false;
+	if (count == 0)
+		*last_dev = zigux_dev_encode(major, first_minor);
+	else
+		*last_dev = zigux_dev_encode(major, first_minor + count - 1U);
+	return true;
+}
+
 #endif
