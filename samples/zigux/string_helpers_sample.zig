@@ -37,6 +37,7 @@ pub const ReplaySummary = struct {
     compact_size_text: RenderedText,
     unescaped_text: RenderedText,
     escaped_text: RenderedText,
+    selected_escape_text: RenderedText,
     appended_escape_text: RenderedText,
     checked_focus: []const SampleFocus,
 };
@@ -105,6 +106,14 @@ pub const StringHelpersSample = struct {
             null,
         );
 
+        var selected_escape_text = RenderedText{};
+        selected_escape_text.len = string_helpers.stringEscapeMem(
+            "A\n\tZ",
+            &selected_escape_text.bytes,
+            string_helpers.ESCAPE_SPACE,
+            "\n",
+        );
+
         var appended_escape_text = RenderedText{};
         appended_escape_text.len = string_helpers.stringEscapeMem(
             "A\nZ",
@@ -125,6 +134,7 @@ pub const StringHelpersSample = struct {
             .compact_size_text = compact_size_text,
             .unescaped_text = unescaped_text,
             .escaped_text = escaped_text,
+            .selected_escape_text = selected_escape_text,
             .appended_escape_text = appended_escape_text,
             .checked_focus = &.{
                 .newline_tolerant_matching,
@@ -168,6 +178,7 @@ test "string helper sample replay keeps the existing helper surface reviewable" 
     try std.testing.expectEqual(@as(usize, 6), replay.compact_size_text.len);
     try std.testing.expectEqualSlices(u8, "line\n", replay.unescaped_text.bytes[0..replay.unescaped_text.len]);
     try std.testing.expectEqualSlices(u8, "\\x0a", replay.escaped_text.bytes[0..replay.escaped_text.len]);
+    try std.testing.expectEqualSlices(u8, "A\\n\tZ", replay.selected_escape_text.bytes[0..replay.selected_escape_text.len]);
     try std.testing.expectEqualSlices(u8, "A\\x0aZ", replay.appended_escape_text.bytes[0..replay.appended_escape_text.len]);
     try std.testing.expectEqual(@as(usize, 4), replay.checked_focus.len);
 }
