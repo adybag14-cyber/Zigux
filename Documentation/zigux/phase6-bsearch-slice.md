@@ -13,6 +13,7 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
   - `zigux/tests/phase6_bsearch.zig`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
+- evidence note: direct readback on `2026-05-07` inspected current `master` head `affdebd460c9c33ce939c7535cdb929352648e93`, `lib/bsearch.c` blob `bf86aa66f2b275798ae850e321a1a459d1a6bfab`, `lib/bsearch.zig` blob `8e3302545725094e5ff13ffe81858efd7c1e71d4`, and `zigux/tests/phase6_bsearch.zig` blob `9853d7c45443b4830cba8338c07a532f5680b52d`
 
 ## Why this slice exists
 
@@ -48,6 +49,10 @@ The current bsearch helper surface exercised by this slice covers:
 - `bsearchIndex`
 - `bsearch`
 - `bsearchMutable`
+- `Comparator`
+- `CComparator`
+- `RawComparator`
+- `CRawComparator`
 
 The current tests check:
 
@@ -78,4 +83,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Keep the next Phase 6 follow-up inside the existing bsearch helper-local packet. Reopen this slice only if fresh repo inspection finds a concrete new `bsearch.c` parity, comparison-budget, or packet-alignment drift inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, or the shared bundled gates that already cover this parked helper.
+Keep the next Phase 6 follow-up inside the existing bsearch helper-local packet. Reopen this slice only if fresh repo inspection finds a concrete new `bsearch.c` parity, comparator-alias, comparison-budget, or packet-alignment drift inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, or the shared bundled gates that already cover this parked helper.
