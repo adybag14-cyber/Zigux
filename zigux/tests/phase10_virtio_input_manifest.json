@@ -75,6 +75,13 @@
       "why_now": "Dedicated Phase 10 tests already keep the starter helper honest around capped string copies, queue planning, ready gating, reset behavior, and MSC_TIMESTAMP suppression."
     },
     {
+      "id": "phase10-virtio-input-verify-replay",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "drivers/virtio/virtio_input_verify.zig",
+      "why_now": "The live repo now has a dedicated wrapper-facing verifier replay that keeps queue-callback and registration-preflight blocker ordering reviewable beside the helper-local tests and focused status-drain replay without widening into transport-backed queue callbacks or registration lifecycle work."
+    },
+    {
       "id": "phase10-virtio-input-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
