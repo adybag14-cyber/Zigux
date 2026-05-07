@@ -14,6 +14,23 @@
     "preexisting_phase9_build_present": true,
     "preexisting_runtime_trace_events_doc_present": true
   },
+  "lifecycle_boundary_summary": {
+    "pre_execution_handoff_only": true,
+    "requires_idle_registration_snapshot": true,
+    "metadata_only_registration_labels": [
+      "tracepoint_probe_register",
+      "tracepoint_probe_unregister"
+    ],
+    "shared_request_surface": "zigux/kernel/runtime_loader.zig",
+    "live_registration_parity": "blocked_on_runtime_substrate"
+  },
+  "roadmap_gap_summary": {
+    "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
+    "landed_pilot_state": "starter_landed_without_loadable_runtime_substrate",
+    "missing_capability": "shared runtime substrate that can turn the bounded tracepoint_probe_register and tracepoint_probe_unregister handoff plan into a real loadable module path",
+    "blocked_deliverable": "loadable Phase 9 runtime trace-events pilot module parity",
+    "next_gate": "keep the sample, survey, and module slice explicit until the shared runtime loader substrate can consume the handoff plan"
+  },
   "delivery_evidence_catalog": [
     {
       "id": "trace-events-survey-note",
@@ -133,7 +150,7 @@
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "A real loadable module entry point, thread creation parity, and tracepoint registration lifecycle still depend on shared runtime substrate pieces that the repo has not started yet."
+      "why_now": "The roadmap's loadable runtime pilot module step still depends on a shared runtime substrate that can turn the bounded tracepoint_probe_register and tracepoint_probe_unregister handoff plan into a real loadable module path."
     }
   ]
 }
