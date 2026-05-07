@@ -9,6 +9,77 @@ const BenchResult = struct {
     accumulator: u64,
 };
 
+fn validatePerfMatrix() !void {
+    const expected = [_]struct {
+        label: []const u8,
+        len: usize,
+        rowsize: usize,
+        groupsize: usize,
+        ascii: bool,
+        reps: usize,
+        max_slowdown_pct: u16,
+    }{
+        .{ .label = "16B-plain-g1", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },
+        .{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 550 },
+        .{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },
+        .{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },
+    };
+
+    var saw_plain_g1 = false;
+    var saw_ascii_g2 = false;
+    var saw_ascii_g4 = false;
+    var saw_ascii_g8 = false;
+
+    if (fixtures.perf_cases.len != expected.len) return error.HexdumpPerfMatrixMismatch;
+
+    for (expected, 0..) |want, idx| {
+        const actual = fixtures.perf_cases[idx];
+        if (!std.mem.eql(u8, want.label, actual.label)) return error.HexdumpPerfMatrixMismatch;
+        if (want.len != actual.len) return error.HexdumpPerfMatrixMismatch;
+        if (want.rowsize != actual.rowsize) return error.HexdumpPerfMatrixMismatch;
+        if (want.groupsize != actual.groupsize) return error.HexdumpPerfMatrixMismatch;
+        if (want.ascii != actual.ascii) return error.HexdumpPerfMatrixMismatch;
+        if (want.reps != actual.reps) return error.HexdumpPerfMatrixMismatch;
+        if (want.max_slowdown_pct != actual.max_slowdown_pct) return error.HexdumpPerfMatrixMismatch;
+    }
+
+    for (fixtures.perf_cases, 0..) |case, idx| {
+        if (case.expected_text.current().len == 0) return error.HexdumpPerfMatrixMismatch;
+        if (case.reps == 0 or case.max_slowdown_pct == 0 or case.len == 0) {
+            return error.HexdumpPerfMatrixMismatch;
+        }
+        if (case.len > case.rowsize) return error.HexdumpPerfMatrixMismatch;
+        if (case.rowsize != fixtures.normalizedRowsize(case.rowsize)) return error.HexdumpPerfMatrixMismatch;
+        if (case.groupsize != fixtures.normalizedGroupsizeForLen(case.len, case.groupsize)) {
+            return error.HexdumpPerfMatrixMismatch;
+        }
+
+        if (std.mem.eql(u8, case.label, "16B-plain-g1")) {
+            if (saw_plain_g1) return error.HexdumpPerfMatrixMismatch;
+            saw_plain_g1 = true;
+        } else if (std.mem.eql(u8, case.label, "32B-ascii-g2")) {
+            if (saw_ascii_g2) return error.HexdumpPerfMatrixMismatch;
+            saw_ascii_g2 = true;
+        } else if (std.mem.eql(u8, case.label, "16B-ascii-g4")) {
+            if (saw_ascii_g4) return error.HexdumpPerfMatrixMismatch;
+            saw_ascii_g4 = true;
+        } else if (std.mem.eql(u8, case.label, "16B-ascii-g8")) {
+            if (saw_ascii_g8) return error.HexdumpPerfMatrixMismatch;
+            saw_ascii_g8 = true;
+        } else {
+            return error.HexdumpPerfMatrixMismatch;
+        }
+
+        for (fixtures.perf_cases[idx + 1 ..]) |other| {
+            if (std.mem.eql(u8, case.label, other.label)) return error.HexdumpPerfMatrixMismatch;
+        }
+    }
+
+    if (!saw_plain_g1 or !saw_ascii_g2 or !saw_ascii_g4 or !saw_ascii_g8) {
+        return error.HexdumpPerfMatrixMismatch;
+    }
+}
+
 fn monotonicNs() !u64 {
     var timespec: std.posix.timespec = undefined;
     switch (std.posix.errno(std.posix.system.clock_gettime(std.posix.CLOCK.MONOTONIC, &timespec))) {
@@ -74,6 +145,8 @@ fn slowdownPct(helper_ns: u64, reference_ns: u64) u64 {
 }
 
 pub fn main(init: std.process.Init) !void {
+    try validatePerfMatrix();
+
     const io = init.io;
     var stdout_buffer: [4096]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
@@ -129,4 +202,8 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.flush();
 
     if (failed) return error.HexdumpPerfRegression;
+}
+
+test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {
+    try validatePerfMatrix();
 }
