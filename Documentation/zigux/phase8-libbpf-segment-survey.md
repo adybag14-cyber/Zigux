@@ -77,7 +77,7 @@ The current starter implementation stays deliberately bounded:
 - the type-name helper keeps out-of-range values explicit with `null` instead of widening into section parsing, object loading, or feature probing
 - `file_path_handle_bridge.zig` now ports the bounded `"/proc/%d/fdinfo/%d"` assembly plus compact fdinfo map-info parsing, reused-map name resolution, devmap-aware compatibility checks, and planning-only reopen-attempt summaries without claiming direct procfs reads, `bpf_obj_get()` reopen flow, token creation, or fd ownership semantics
 - the bounded file-path bridge keeps helper-only reuse planning explicit for callers while leaving bpffs opens, descriptor duplication, close-on-replacement behavior, and pinned-object reopen flow outside the current Zig slice
-- `perf_buffer_poll.zig` keeps `perf_buffer__poll(timeout_ms)` wait-result classification, ready-buffer bookkeeping, and ordered process-record summaries reviewable without claiming live epoll wiring or per-CPU setup
+- `perf_buffer_poll.zig` keeps `perf_buffer__poll(timeout_ms)` wait-result classification, ready-buffer bookkeeping, explicit `perf_buffer__buffer_fd(buf_idx)` and `perf_buffer__buffer(buf_idx)` slot lookup plus errno-shaped return shaping, and ordered process-record summaries reviewable without claiming live epoll wiring or per-CPU setup
 - the broader `perf-buffer-online-cpu-routing` setup remains deferred around per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, and `PERF_EVENT_IOC_ENABLE` enablement
 - the current packet does not claim online-CPU filtering, epoll registration, timer semantics, or broader interrupt-routing behavior beyond those explicit setup-side anchors
 
@@ -99,6 +99,8 @@ The current tests check:
 - representative late enum ordinals such as `trace_fsession` still resolve to the expected stable names
 - bounded `/proc//fdinfo/` path assembly, compact fdinfo map-info parsing, helper-only reused-map compatibility checks, and planning-only reopen outcomes stay explicit without widening into direct procfs reads or pinned-object reopen flow
 - bounded perf-buffer wait summaries keep ready-count, first-error, processed-record totals, and first-processing-failure selection compact and explicit
+- bounded perf-buffer buffer-fd slot lookups keep valid descriptors plus invalid-index and missing-buffer-fd errno returns explicit
+- bounded perf-buffer buffer-window lookups keep valid buffer windows, invalid indices, and missing-buffer errno returns explicit while preserving the caller-provided mmap size
 - ready-buffer processing attempts cannot exceed observed ready events
 
 ## Gates
