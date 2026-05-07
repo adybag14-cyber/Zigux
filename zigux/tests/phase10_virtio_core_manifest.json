@@ -8,6 +8,24 @@
     "zigux/kernel/",
     "zigux/helpers/"
   ],
+  "freeze_map": "Documentation/zigux/freeze-map.md",
+  "freeze_boundary_status": "aligned",
+  "freeze_status_change_claimed": false,
+  "risky_transport_posture": "blocked_on_risky_transport",
+  "allowed_evidence_kinds": [
+    "driver_local_lab_slices",
+    "survey_manifests",
+    "shared_validation_gates"
+  ],
+  "forbidden_transport_claims": [
+    "queue_setup_reset_paths",
+    "irq_parity",
+    "dma_paths",
+    "input_registration_lifecycle",
+    "probe_remove_lifecycle"
+  ],
+  "architecture_council_reopen_required": true,
+  "architecture_council_reopen_attached": false,
   "survey_summary": {
     "virtio_c_lines": 730,
     "preexisting_phase10_test_files": 9,
@@ -133,7 +151,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-core-survey.md",
-      "why_now": "The dedicated checker, the dedicated survey gate, the shared build replay, and the Linux-style Phase 10 routes now keep the bounded core packet reviewable as the roadmap's lab-only driver validation evidence."
+      "why_now": "The dedicated checker, the dedicated survey gate, the shared build replay, and the shared Linux-style Phase 10 routes now keep the bounded core packet reviewable as the roadmap's lab-only driver validation evidence."
     },
     {
       "id": "phase10-core-probe-remove-lifecycle",
