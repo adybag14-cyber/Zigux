@@ -96,6 +96,7 @@ Keep this packet parked unless a future same-lane step can add another equally b
 
 The broader shipped Phase 13 release surface also includes adjacent evidence that stays outside the shared replay count:
 
+  * `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
   * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
   * `Documentation/zigux/phase13-release-notes-survey.md`
   * `Documentation/zigux/phase13-roadmap-traceability.md`
@@ -107,6 +108,8 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `zigux/helpers/notifier_chain_view.zig`
 
 The direct `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard stays in that adjacent release-evidence set for the same reason already recorded in the syscall lane section and the release-notes packet: it is shipped focused direct evidence on current `master`, but it does not expand the shared replay beyond the seven build-backed tests.
+
+`Documentation/zigux/phase13-shared-helper-lane-sequencing.md` stays in that same adjacent evidence set as the owner-map note for the active `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` helper families. It keeps the shared validator-first route and adjacent notifier evidence from collapsing into one ownerless packet, but it does not add an eighth replay step or change which helper lane owns which backlog.
 
 These files keep the shipped release surface reviewable, but they do not change the fact that the active shared replay remains the seven-test helper packet.
 
@@ -120,4 +123,5 @@ The honest current roadmap read is:
   * `devres` remains bounded to helper-first MMIO-adjacent planning
   * `landlock ruleset` remains bounded to helper-first ruleset planning with live-tree state still explicitly blocked
   * `landlock syscalls` remains bounded to helper-first syscall planning with the release-side handoff now explicitly shipped and the packet otherwise parked
+  * `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` remains the owner-map companion for the active helper tranche rather than a replay-count expansion
   * release-facing docs must keep the shared replay count and the adjacent-evidence split exact so contributors do not mistake missing docs or implied replay expansion for product progress
