@@ -42,7 +42,7 @@
     {
       "id": "preview-truncation-boundary",
       "kind": "queue_snapshot",
-      "expected": "runPreviewBoundaryReplay proves a truncated preview stays non-destructive: snapshotInto still begins with [2,3,4,5], previewInto copies [2,3,4,5,6,7,8,9], reports 10 visible bytes, and leaves the queued data intact"
+      "expected": "runPreviewBoundaryReplay proves a truncated preview stays non-destructive while leaving the sample in the initialized lifetime state: stage_before_replay and stage_after_replay stay initialized, snapshotInto still begins with [2,3,4,5], previewInto copies [2,3,4,5,6,7,8,9], reports 10 visible bytes, leaves the queued data intact, and keeps queue_len_after_preview at 10"
     },
     {
       "id": "remaining-capacity",
