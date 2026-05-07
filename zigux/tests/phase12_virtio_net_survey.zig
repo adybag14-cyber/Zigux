@@ -95,6 +95,8 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "segmented rollout boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime-data-path boundary remains blocked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-net-segmented-rollout-boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "public fallback posture: shared-tree-only anchor") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase12-complex-driver-lane-sequencing.md") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
