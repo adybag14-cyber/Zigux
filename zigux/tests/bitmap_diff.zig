@@ -103,7 +103,8 @@ const BitmapHarness = struct {
     }
 
     fn fillPrefix(self: *Self, nbits: u32) !void {
-        try self.setRange(0, try roundedPrefixLen(nbits));
+        try validateRange(0, nbits);
+        try self.setRange(0, nbits);
     }
 
     fn zeroPrefix(self: *Self, nbits: u32) !void {
@@ -210,7 +211,7 @@ pub const bitmap_diff_governance = BitmapDiffGovernance{
 };
 
 const exp1_find_nth_bits = [_]u32{
-    0,   65,  128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141,
+    0, 65, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141,
     142, 143, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221,
     222, 223, 256, 258, 260, 262, 264, 266, 268, 270, 272, 274, 276, 278, 280, 282,
     284, 286, 321, 323, 325, 327, 329, 331, 333, 335, 337, 339, 341, 343, 345, 347,
@@ -427,15 +428,15 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .must_be_clear = &.{ 9, 10, BitmapHarness.bitmap_nbits - 1 },
         },
         .{
-            .name = "test_fill_set bitmap_fill rounds the 35-bit prefix up to one word",
+            .name = "test_fill_set bitmap_fill keeps the exact 35-bit prefix",
             .init_bits = &.{},
             .set_ranges = &.{.{ .start = 0, .len = 9 }},
             .clear_ranges = &.{},
             .fill_prefixes = &.{35},
             .zero_prefixes = &.{},
-            .expected_summary = .{ .first_set = 0, .first_zero = 64, .weight = 64 },
-            .must_be_set = &.{ 8, 34, 63 },
-            .must_be_clear = &.{ 64, 127, BitmapHarness.bitmap_nbits - 1 },
+            .expected_summary = .{ .first_set = 0, .first_zero = 35, .weight = 35 },
+            .must_be_set = &.{ 8, 34 },
+            .must_be_clear = &.{ 35, 63, 127, BitmapHarness.bitmap_nbits - 1 },
         },
         .{
             .name = "test_fill_set cross-boundary extension after exact prefix",
@@ -449,15 +450,15 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .must_be_clear = &.{ 64, 78, 98 },
         },
         .{
-            .name = "test_fill_set bitmap_fill rounds the 115-bit prefix up to two words",
+            .name = "test_fill_set bitmap_fill keeps the exact 115-bit prefix",
             .init_bits = &.{},
             .set_ranges = &.{ .{ .start = 0, .len = 64 }, .{ .start = 79, .len = 19 } },
             .clear_ranges = &.{},
             .fill_prefixes = &.{115},
             .zero_prefixes = &.{},
-            .expected_summary = .{ .first_set = 0, .first_zero = 128, .weight = 128 },
-            .must_be_set = &.{ 97, 114, 127 },
-            .must_be_clear = &.{ 128, BitmapHarness.bitmap_nbits - 1 },
+            .expected_summary = .{ .first_set = 0, .first_zero = 115, .weight = 115 },
+            .must_be_set = &.{ 97, 114 },
+            .must_be_clear = &.{ 115, 127, BitmapHarness.bitmap_nbits - 1 },
         },
         .{
             .name = "test_fill_set bitmap_fill reaches the full 1024-bit extent",
@@ -732,8 +733,8 @@ test "bitmap diff gate keeps a deterministic threshold replay batch ready for fu
     try std.testing.expectEqual(@as(u32, 109), repeated.final_first_zero);
     try std.testing.expectEqual(@as(u32, 1005), repeated.final_weight);
     try std.testing.expectEqual(@as(u32, 123), repeated.final_nth_seven);
-    try std.testing.expectEqual(@as(u64, 4641743358357118437), single.checksum);
-    try std.testing.expectEqual(@as(u64, 15640590978236698512), repeated.checksum);
+    try std.testing.expectEqual(@as(u64, 5216946504564592253), single.checksum);
+    try std.testing.expectEqual(@as(u64, 7942141539243507472), repeated.checksum);
     try std.testing.expect(repeated.checksum != single.checksum);
     try std.testing.expectEqualDeep(repeated, try runThresholdReplay(4));
 }
@@ -769,8 +770,8 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     );
     try expectMarker(bitmap_diff_source, "const exp1_find_nth_bits = [_]u32{");
     try expectMarker(bitmap_diff_source, "test_fill_set empty starter stays empty across short and full extents");
-    try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill rounds the 35-bit prefix up to one word");
-    try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill rounds the 115-bit prefix up to two words");
+    try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 35-bit prefix");
+    try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 115-bit prefix");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill reaches the full 1024-bit extent");
     try expectMarker(bitmap_diff_source, "test_zero_clear bitmap_zero rounds the 35-bit prefix up to one word");
     try expectMarker(bitmap_diff_source, "test_zero_clear bitmap_zero rounds the 115-bit prefix up to two words");
@@ -785,8 +786,8 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "bitmap diff gate replays exact bounded exp1 find_nth_bit enumeration");
     try expectMarker(bitmap_diff_source, "if (iterations == 0) return error.EmptyThresholdReplayBatch;");
     try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));");
-    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 4641743358357118437), single.checksum);");
-    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 15640590978236698512), repeated.checksum);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 5216946504564592253), single.checksum);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 7942141539243507472), repeated.checksum);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 0), repeated.final_first_set);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 109), repeated.final_first_zero);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 1005), repeated.final_weight);");
