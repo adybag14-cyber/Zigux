@@ -31,6 +31,7 @@ REQUIRED_HELPERS = (
     "check-phase3-abi-dump-gate.py",
     "check-phase3-catalog-selftest.py",
     "validate-phase3-policy-unsafe-survey.py",
+    "check-phase3-policy-byte-guards.py",
     "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase3-export-uapi-survey.py",
     "validate-phase3-abi-bindings-syntax.py",
@@ -97,6 +98,8 @@ PHASE3_VALIDATE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
@@ -153,7 +156,7 @@ PHASE15_VALIDATE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
 )
 REQUIRED_README_SNIPPETS = (
-    "- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `check-phase3-abi-dump-gate.py`, `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
+    "- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `check-phase3-abi-dump-gate.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-byte-guards.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
     "- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or aggregated `phase6-perf` target on `master`; the shipped dedicated perf replays are `make -C zigux phase6-checksum-perf` and `make -C zigux phase6-hexdump-perf`, which keep the checksum slowdown ceiling and the formatter-sensitive hexdump fixture packet wired into Linux-style entrypoints without overstating perf coverage for the rest of the Phase 6 helper packet.",
     "- the current shared Phase 7 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `samples/zigux/README.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_build.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
     "- `make -C zigux phase7-validate` keeps the shared Phase 7 validator plus the dedicated make-wrapper, argvSplit packet, rbtree parity, and build-wiring checkers wired through the Linux-style validation entrypoint.",
@@ -404,6 +407,8 @@ def _baseline_makefile() -> str:
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
@@ -534,6 +539,16 @@ def run_self_test() -> int:
         _assert_only(validate(root), ["unexpected_makefile_command_count:phase3-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test", "makefile_command_order_drift:phase3-validate"], "duplicate_phase3_abi_bindings_selftest_command_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
+        policy_byte_guards_live = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py\n"
+        _write(root / MAKEFILE_REL, baseline_makefile.replace(policy_byte_guards_live, "", 1))
+        _assert_only(validate(root), ["missing_makefile_command:phase3-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py", "makefile_command_order_drift:phase3-validate"], "missing_phase3_policy_byte_guards_live_command_guard_failed")
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+        policy_byte_guards_selftest = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py --self-test\n"
+        _write(root / MAKEFILE_REL, baseline_makefile.replace(policy_byte_guards_selftest, policy_byte_guards_selftest + policy_byte_guards_selftest, 1))
+        _assert_only(validate(root), ["unexpected_makefile_command_count:phase3-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-policy-byte-guards.py --self-test", "makefile_command_order_drift:phase3-validate"], "duplicate_phase3_policy_byte_guards_selftest_command_guard_failed")
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
         abi_dump_live = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py\n"
         _write(root / MAKEFILE_REL, baseline_makefile.replace(abi_dump_live, abi_dump_live + abi_dump_live, 1))
         _assert_only(validate(root), ["unexpected_makefile_command_count:phase3-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py", "makefile_command_order_drift:phase3-validate"], "duplicate_phase3_abi_dump_gate_live_command_guard_failed")
@@ -544,13 +559,13 @@ def run_self_test() -> int:
         _assert_only(validate(root), ["missing_makefile_command:phase3-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-catalog-selftest.py --self-test", "makefile_command_order_drift:phase3-validate"], "missing_phase3_catalog_selftest_command_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
-        for helper in ("check-phase3-abi-dump-gate.py", "check-phase3-catalog-selftest.py", "validate-phase3-export-uapi-survey.py", "validate-phase3-abi-bindings-syntax.py"):
+        for helper in ("check-phase3-abi-dump-gate.py", "check-phase3-catalog-selftest.py", "validate-phase3-policy-unsafe-survey.py", "check-phase3-policy-byte-guards.py", "validate-phase3-export-uapi-survey.py", "validate-phase3-abi-bindings-syntax.py"):
             marker = f"- `{helper}`\n"
             _write(root / README_REL, baseline_readme.replace(marker, "", 1))
             _assert_only(validate(root), [f"missing_readme_helper_entry:{helper}", "readme_helper_order_drift"], f"missing_{helper}_readme_guard_failed")
             _write(root / README_REL, baseline_readme)
             case_count += 1
-        for helper in ("check-phase3-abi-dump-gate.py", "check-phase3-catalog-selftest.py", "validate-phase3-export-uapi-survey.py", "validate-phase3-abi-bindings-syntax.py"):
+        for helper in ("check-phase3-abi-dump-gate.py", "check-phase3-catalog-selftest.py", "validate-phase3-policy-unsafe-survey.py", "check-phase3-policy-byte-guards.py", "validate-phase3-export-uapi-survey.py", "validate-phase3-abi-bindings-syntax.py"):
             path = root / "scripts" / "zigux" / helper
             path.unlink()
             _assert_only(validate(root), [f"missing_repo_file:scripts/zigux/{helper}"], f"missing_{helper}_repo_file_guard_failed")
