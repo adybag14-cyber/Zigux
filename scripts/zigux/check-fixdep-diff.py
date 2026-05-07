@@ -17,6 +17,7 @@ C_FIXDEP = ROOT / 'scripts' / 'basic' / 'fixdep.c'
 ZIG_FIXDEP = ROOT / 'scripts' / 'zigux' / 'fixdep.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep'
 CASES_PATH = FIXTURE_DIR / 'cases.json'
+MANIFEST_PATH = FIXTURE_DIR / 'manifest.json'
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -103,6 +104,57 @@ def load_cases(cases_path: Path, fixture_dir: Path) -> list[dict[str, object]]:
         validated.append(case)
 
     return validated
+
+
+def load_manifest(manifest_path: Path) -> dict[str, object]:
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+    if not isinstance(manifest, dict):
+        raise RuntimeError(f'{manifest_path} must contain a JSON object')
+    return manifest
+
+
+def validate_manifest_against_cases(
+    manifest: dict[str, object],
+    cases: list[dict[str, object]],
+    fixture_dir: Path,
+) -> None:
+    expected_case_names = [str(case['name']) for case in cases]
+    expected_stdout_packet = [str(case.get('expected_stdout', case['expected'])) for case in cases]
+    expected_stderr_packet: list[str] = []
+    for case in cases:
+        expected_stderr = case.get('expected_stderr')
+        if isinstance(expected_stderr, str) and expected_stderr not in expected_stderr_packet:
+            expected_stderr_packet.append(expected_stderr)
+
+    expected = {
+        'tool': 'scripts/zigux/fixdep.zig',
+        'status': 'closed',
+        'fixture_root': 'zigux/tests/fixtures/fixdep',
+        'case_count': len(cases),
+        'cases': expected_case_names,
+        'stdout_packet': expected_stdout_packet,
+        'stderr_packet': expected_stderr_packet,
+    }
+
+    for field, expected_value in expected.items():
+        actual_value = manifest.get(field)
+        if actual_value != expected_value:
+            raise RuntimeError(
+                f'fixdep manifest drift: {field} expected {expected_value!r}, got {actual_value!r}'
+            )
+
+    helper_local_anchors = manifest.get('helper_local_anchors')
+    if not isinstance(helper_local_anchors, list) or not helper_local_anchors:
+        raise RuntimeError('fixdep manifest drift: helper_local_anchors must be a non-empty list')
+    for index, anchor in enumerate(helper_local_anchors):
+        if not isinstance(anchor, str) or not anchor:
+            raise RuntimeError(
+                f'fixdep manifest drift: helper_local_anchors[{index}] must be a non-empty string'
+            )
+
+    for file_name in expected_stdout_packet + expected_stderr_packet:
+        if not (fixture_dir / file_name).is_file():
+            raise RuntimeError(f'fixdep manifest references missing fixture file: {fixture_dir / file_name}')
 
 
 def windows_to_wsl(path: Path) -> str:
@@ -194,7 +246,12 @@ def run_self_test() -> int:
         fixture_dir = tmp_dir / 'fixdep'
         fixture_dir.mkdir(parents=True, exist_ok=True)
 
-        for file_name in ('sample.d', 'sample_expected.txt', 'sample.stderr.txt'):
+        for file_name in (
+            'sample.d',
+            'sample_expected.txt',
+            'sample.stderr.txt',
+            'sample_comment_only_expected.txt',
+        ):
             (fixture_dir / file_name).write_text('fixture\n', encoding='utf-8')
 
         good_cases = [
@@ -210,7 +267,7 @@ def run_self_test() -> int:
                 'depfile': 'sample.d',
                 'target': 'sample_error.o',
                 'cmdline': 'clang -c sample_error.c -o sample_error.o',
-                'expected': 'sample_expected.txt',
+                'expected': 'sample_comment_only_expected.txt',
                 'expected_stderr': 'sample.stderr.txt',
                 'expected_exit_code': 2,
             },
@@ -221,6 +278,20 @@ def run_self_test() -> int:
         loaded_cases = load_cases(cases_path, fixture_dir)
         if len(loaded_cases) != 2:
             raise RuntimeError('self-test expected two validated cases')
+
+        good_manifest = {
+            'tool': 'scripts/zigux/fixdep.zig',
+            'status': 'closed',
+            'fixture_root': 'zigux/tests/fixtures/fixdep',
+            'case_count': 2,
+            'cases': ['sample', 'sample_error'],
+            'stdout_packet': ['sample_expected.txt', 'sample_comment_only_expected.txt'],
+            'stderr_packet': ['sample.stderr.txt'],
+            'helper_local_anchors': ['output write failure uses C-style wording'],
+        }
+        manifest_path = tmp_dir / 'manifest.json'
+        manifest_path.write_text(json.dumps(good_manifest), encoding='utf-8')
+        validate_manifest_against_cases(load_manifest(manifest_path), loaded_cases, fixture_dir)
 
         duplicate_cases = good_cases + [dict(good_cases[0])]
         duplicate_cases[-1]['target'] = 'dup.o'
@@ -233,6 +304,9 @@ def run_self_test() -> int:
         else:
             raise RuntimeError('self-test expected duplicate case name failure')
 
+        cases_path.write_text(json.dumps(good_cases), encoding='utf-8')
+        loaded_cases = load_cases(cases_path, fixture_dir)
+
         missing_fixture_cases = [dict(good_cases[0])]
         missing_fixture_cases[0]['expected'] = 'missing_expected.txt'
         cases_path.write_text(json.dumps(missing_fixture_cases), encoding='utf-8')
@@ -244,6 +318,7 @@ def run_self_test() -> int:
         else:
             raise RuntimeError('self-test expected missing fixture failure')
 
+        cases_path.write_text(json.dumps(good_cases), encoding='utf-8')
         bad_exit_code_cases = [dict(good_cases[0])]
         bad_exit_code_cases[0]['expected_exit_code'] = -1
         cases_path.write_text(json.dumps(bad_exit_code_cases), encoding='utf-8')
@@ -254,6 +329,31 @@ def run_self_test() -> int:
                 raise
         else:
             raise RuntimeError('self-test expected bad exit code failure')
+
+        cases_path.write_text(json.dumps(good_cases), encoding='utf-8')
+        loaded_cases = load_cases(cases_path, fixture_dir)
+
+        drifted_manifest = dict(good_manifest)
+        drifted_manifest['stderr_packet'] = []
+        manifest_path.write_text(json.dumps(drifted_manifest), encoding='utf-8')
+        try:
+            validate_manifest_against_cases(load_manifest(manifest_path), loaded_cases, fixture_dir)
+        except RuntimeError as exc:
+            if 'fixdep manifest drift: stderr_packet' not in str(exc):
+                raise
+        else:
+            raise RuntimeError('self-test expected manifest stderr drift failure')
+
+        drifted_manifest = dict(good_manifest)
+        drifted_manifest['helper_local_anchors'] = []
+        manifest_path.write_text(json.dumps(drifted_manifest), encoding='utf-8')
+        try:
+            validate_manifest_against_cases(load_manifest(manifest_path), loaded_cases, fixture_dir)
+        except RuntimeError as exc:
+            if 'helper_local_anchors must be a non-empty list' not in str(exc):
+                raise
+        else:
+            raise RuntimeError('self-test expected helper anchor drift failure')
 
     print('FIXDEP_DIFF_SELF_TEST=pass')
     print('FIXDEP_DIFF_SELF_TEST_CASE_COUNT=4')
@@ -272,6 +372,8 @@ def main() -> int:
         return run_self_test()
 
     cases = load_cases(CASES_PATH, FIXTURE_DIR)
+    manifest = load_manifest(MANIFEST_PATH)
+    validate_manifest_against_cases(manifest, cases, FIXTURE_DIR)
 
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
     zig = find_zig(args.zig)
