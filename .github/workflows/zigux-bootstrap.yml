@@ -89,6 +89,12 @@ jobs:
       - name: Validate Phase 2 fixdep files
         run: python3 scripts/zigux/validate-phase2.py
 
+      - name: Self-test Phase 2 tool-manifest packet checker
+        run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test
+
+      - name: Check Phase 2 tool-manifest packet
+        run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py
+
       - name: Self-test Phase 2 genksyms bridge alignment
         run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test
 
