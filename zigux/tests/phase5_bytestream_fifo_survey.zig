@@ -349,6 +349,12 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         "samples/kfifo/bytestream-example.c",
         "phase5-kfifo-sample-survey.md",
         "phase5_bytestream_fifo_survey.zig",
+        "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample",
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        "lib/rbtree.zig",
+        "zigux/tests/phase7_rbtree.zig",
+        "scripts/zigux/check-phase7-rbtree-parity.py",
+        "zigux/tests/phase7_build.zig",
     };
 
     for (samples_root_markers) |needle| {
