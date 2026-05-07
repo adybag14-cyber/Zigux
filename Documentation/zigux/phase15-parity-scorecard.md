@@ -5,11 +5,12 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 ## Status
 
 - `PHASE15_STATUS=freeze_in_c_governance`
-- `PHASE15_SLICE=parity-scorecard-stale-evidence-cleanup`
-- `PHASE15_LANE_KEY=P15-Y03`
-- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking, and one machine-checked aggregate metrics block for the active freeze-in-C anchors
-- survey provenance refreshed against verified `master` head `2359c03fa82626b7359467c9b8bc9d0b092de5aa`
-- required review-process record fields tracked in the manifest: `10`
+- `PHASE15_SLICE=parity-scorecard-review-field-coverage-sync`
+- `PHASE15_LANE_KEY=P15-L10`
+- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking, one machine-checked aggregate metrics block for the active freeze-in-C anchors, and one machine-checked mirror of the live Architecture Council review-packet and ownership-evidence field inventory
+- survey provenance refreshed against verified `master` head `4fc891b380cdd2991dff7676ade7f844df1b55fd`
+- required review-process review-packet fields tracked in the manifest: `19`
+- required review-process ownership-evidence fields tracked in the manifest: `14`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -24,7 +25,7 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 
 The roadmap says Phase 15 is about honest long-term governance for the final mixed-language steady state. The live repo already records the freeze set in `Documentation/zigux/freeze-map.md`, and it already has the bounded reporting step that says where each frozen anchor keeps its Architecture Council evidence packet, but those reserved paths still needed real template files.
 
-That gap matters because the current anchors are still large and deeply coupled: `kernel/sched/core.c` is 11,235 lines, `mm/page_alloc.c` is 7,795 lines, `kernel/rcu/tree.c` is 4,931 lines, `kernel/rcu/tree_plugin.h` is 1,369 lines, `kernel/rcu/tree_exp.h` is 1,118 lines, `kernel/rcu/tree_nocb.h` is 1,702 lines, `net/core/skbuff.c` is 7,476 lines, and `include/linux/skbuff.h` adds another 5,467 lines of shared metadata and inline rules. The repo also already carries Phase 14 blocker evidence for `kernel/rcu/tree.c` and `net/core/skbuff.c`, which makes reserved decision-record templates the next honest step instead of another implementation starter.
+That gap matters because the current anchors are still large and deeply coupled: `kernel/sched/core.c` is 11,235 lines, `mm/page_alloc.c` is 7,795 lines, `kernel/rcu/tree.c` is 4,931 lines, with `tree_plugin.h`, `tree_exp.h`, and `tree_nocb.h` still documenting tight sidecar coupling, and `net/core/skbuff.c` is 7,476 lines while `include/linux/skbuff.h` adds another 5,467 lines of shared metadata and inline rules. The repo also already carries Phase 14 blocker evidence for `kernel/rcu/tree.c` and `net/core/skbuff.c`, which makes reserved decision-record templates and truthful review-packet field reporting the next honest steps instead of another implementation starter.
 
 ## Roadmap Handoff Evidence
 
@@ -156,8 +157,10 @@ The machine-checked aggregate scorecard metrics currently record:
 - specialist lane-owned anchors: `2`
 - reserved decision-record templates: `4`
 - blocked status-change anchors: `4`
+- review-packet fields mirrored from the Architecture Council packet: `19`
+- ownership-evidence fields mirrored from the Architecture Council packet: `14`
 
-These metrics do not claim forward implementation progress. They keep the parked freeze set reviewable without forcing later runs to recompute anchor totals, ownership split, or template coverage by hand from the prose packet.
+These metrics do not claim forward implementation progress. They keep the parked freeze set reviewable without forcing later runs to recompute anchor totals, ownership split, template coverage, or review-packet field coverage by hand from the prose packet.
 
 ## Recorded Gaps
 
@@ -179,10 +182,11 @@ The current lane state is:
 - landed `phase15-reopen-trigger-catalog-followup`
 - landed `phase15-roadmap-handoff-evidence-followup`
 - landed `phase15-review-gate-benchmark-replay-field-sync`
+- landed `phase15-review-process-field-coverage-metrics`
 - landed `phase15-aggregate-scorecard-metrics`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, a machine-counted review-gate field list that keeps benchmark-note and replay-command reporting explicit, and one machine-checked aggregate metrics block that makes the parked freeze set easier to review, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
+This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, machine-counted review-packet and ownership-evidence field coverage metrics that keep rollback-threshold, parity-scorecard, indefinite-C policy, explicit non-goal, and rationale reporting visible beside the benchmark-note and replay-command cues, and one machine-checked aggregate metrics block that makes the parked freeze set easier to review, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
 
 ## Architecture Council Review Gate
 
@@ -271,4 +275,4 @@ This scorecard slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 15 governance lane in maintenance mode. The indefinite-C field-sync follow-up is already landed, so the next honest action is to wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice.
+Keep the Phase 15 governance lane in maintenance mode. The scorecard review-field sync is now landed, so the next honest action is to wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice.
