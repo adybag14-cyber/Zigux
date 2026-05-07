@@ -164,6 +164,15 @@ REQUIRED_SNIPPETS = {
         "for (fixtures.variant_decode_cases) |case| {",
         'test "phase 6 base64 variant decode parity keeps bytes and decode aligned with kernel mappings"',
     ],
+    "zigux/tests/phase6_base64_perf.zig": [
+        'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
+        'fn runHelperEncodeBench(case: fixtures.PerfCase, variant: base64.Variant) !BenchResult {',
+        'for (fixtures.perf_cases) |case| {',
+        'const variant = fixtureVariant(case.variant_name);',
+        'try stdout_writer.interface.print("PHASE6_BASE64_PERF_CASE_COUNT={d}\\n", .{fixtures.perf_cases.len});',
+        'try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_ENCODE_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_encode_slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_DECODE_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_decode_slowdown_pct });',
+    ],
     "zigux/tests/fixtures/phase6_base64_vectors.zig": [
         "pub const standard_cases = [_]EncodeCase{",
         "pub const variant_cases = [_]VariantCase{",
@@ -192,11 +201,11 @@ REQUIRED_SNIPPETS = {
     ],
     "zigux/tests/phase6_checksum_perf.zig": [
         'const fixtures = @import("fixtures/phase6_checksum_vectors.zig");',
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\n", .{fixtures.perf_cases.len});',
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_SLOWDOWN_PCT={d}\n", .{ case.label, slowdown_pct });',
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\n", .{ case.label, case.max_slowdown_pct });',
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_CHECKSUM={d}\n", .{ case.label, helper_result.checksum_accumulator });',
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF={s}\n", .{if (failed) "fail" else "pass"});',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n", .{fixtures.perf_cases.len});',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_SLOWDOWN_PCT={d}\\n", .{ case.label, slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_CHECKSUM={d}\\n", .{ case.label, helper_result.checksum_accumulator });',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
     ],
     "zigux/tests/fixtures/phase6_checksum_vectors.zig": [
         "pub const compute_cases = [_]ComputeCase{",
@@ -222,10 +231,10 @@ REQUIRED_SNIPPETS = {
         'const expected = fixtures.prepareExpectedLine(',
         'try std.testing.expectEqual(fixtures.expectedLength(case.len, case.rowsize, case.groupsize, case.ascii), required);',
         'try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(helper_line[0..], 0));',
-        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_CASE_COUNT={d}\n", .{fixtures.perf_cases.len});',
-        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_SLOWDOWN_PCT={d}\n", .{ case.label, slowdown_pct });',
-        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_THRESHOLD_PCT={d}\n", .{ case.label, case.max_slowdown_pct });',
-        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF={s}\n", .{if (failed) "fail" else "pass"});',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_CASE_COUNT={d}\\n", .{fixtures.perf_cases.len});',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_SLOWDOWN_PCT={d}\\n", .{ case.label, slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
     ],
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig": [
         "pub const perf_cases = [_]PerfCase{",
@@ -445,6 +454,18 @@ def run_self_test() -> None:
             "Documentation/zigux/phase6-hexdump-slice.md",
             "helper, fixture, dedicated perf gate, and external parity slices landed; parked unless a new `hexdump.c` parity issue appears",
             "helper, fixture, and dedicated perf gate slices landed; parked unless a new `hexdump.c` parity issue appears",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_base64_perf.zig",
+            'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
+            'const fixtures = @import("fixtures/phase6_base64_inline_perf.zig");',
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_base64_perf.zig",
+            'for (fixtures.perf_cases) |case| {',
+            'for (inline_perf_cases) |case| {',
         )
         assert_failure(
             root,
