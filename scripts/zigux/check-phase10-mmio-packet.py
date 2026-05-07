@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 FILES = [
     "scripts/zigux/check-phase10-mmio-packet.py",
+    "zigux/Makefile",
+    "zigux/tests/phase10_build.zig",
     "drivers/virtio/virtio_mmio.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "drivers/virtio/virtio_input_verify.zig",
@@ -20,6 +22,22 @@ FILES = [
     "zigux/tests/phase10_virtio_mmio_manifest.json",
     "Documentation/zigux/phase10-virtio-mmio-slice.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
+]
+
+EXPECTED_BUILD_MARKERS = [
+    "phase10_virtio_mmio_module",
+    "phase10_virtio_mmio_survey_module",
+    '"phase10-virtio-mmio-tests"',
+    '"phase10-virtio-mmio-survey-tests"',
+    "run_phase10_virtio_mmio_tests.step",
+    "run_phase10_virtio_mmio_survey_tests.step",
+]
+
+EXPECTED_MAKEFILE_MARKERS = [
+    "phase10-test:",
+    "scripts/zigux/check-phase10-mmio-packet.py --self-test",
+    "scripts/zigux/check-phase10-mmio-packet.py",
+    "$(ZIG) build test --build-file zigux/tests/phase10_build.zig",
 ]
 
 EXPECTED_HELPER_MARKERS = [
@@ -121,6 +139,26 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 
 BASELINE_FIXTURE = {
     "scripts/zigux/check-phase10-mmio-packet.py": "# synthetic fixture for self-test\n",
+    "zigux/Makefile": """phase10-test:
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-core-packet.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-core-packet.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-ring-packet.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-ring-packet.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-input-packet.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-input-packet.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py
+\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig
+""",
+    "zigux/tests/phase10_build.zig": """const phase10_virtio_mmio_module = b.createModule(.{});
+const phase10_virtio_mmio_survey_module = b.createModule(.{});
+const phase10_virtio_mmio_tests = b.addTest(.{ .name = \"phase10-virtio-mmio-tests\" });
+const run_phase10_virtio_mmio_tests = b.addRunArtifact(phase10_virtio_mmio_tests);
+const phase10_virtio_mmio_survey_tests = b.addTest(.{ .name = \"phase10-virtio-mmio-survey-tests\" });
+const run_phase10_virtio_mmio_survey_tests = b.addRunArtifact(phase10_virtio_mmio_survey_tests);
+test_step.dependOn(&run_phase10_virtio_mmio_tests.step);
+test_step.dependOn(&run_phase10_virtio_mmio_survey_tests.step);
+""",
     "drivers/virtio/virtio_mmio.zig": """pub const TransportIdentitySummary = struct {};
 pub const SelectedQueueReadinessSummary = struct {};
 pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary { _ = self; return .{}; }
@@ -244,6 +282,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     missing_markers: list[str] = []
 
+    build_text = read_text(root, "zigux/tests/phase10_build.zig")
+    for marker in EXPECTED_BUILD_MARKERS:
+        if marker not in build_text:
+            missing_markers.append(f"build:{marker}")
+
+    makefile_text = read_text(root, "zigux/Makefile")
+    for marker in EXPECTED_MAKEFILE_MARKERS:
+        if marker not in makefile_text:
+            missing_markers.append(f"makefile:{marker}")
+
     helper_text = read_text(root, "drivers/virtio/virtio_mmio.zig")
     for marker in EXPECTED_HELPER_MARKERS:
         if marker not in helper_text:
@@ -356,6 +404,45 @@ def run_self_test() -> int:
         if "drivers/virtio/virtio_ring_verify.zig" not in missing_files:
             raise SystemExit("phase10-mmio-self-test:expected_ring_verify_file_missing")
         write_fixture(tmp_root, "drivers/virtio/virtio_ring_verify.zig", 'test "virtio ring verify fixture" {}\n')
+
+        build_path = tmp_root / "zigux/tests/phase10_build.zig"
+        original_build = build_path.read_text(encoding="utf-8")
+        build_path.write_text(
+            original_build.replace('"phase10-virtio-mmio-survey-tests"', '"phase10-virtio-mmio-survey-drift"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'build:"phase10-virtio-mmio-survey-tests"' not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_build_survey_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
+        makefile_path = tmp_root / "zigux/Makefile"
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace(
+                "scripts/zigux/check-phase10-mmio-packet.py --self-test",
+                "scripts/zigux/check-phase10-mmio-drift.py --self-test",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "makefile:scripts/zigux/check-phase10-mmio-packet.py --self-test" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_makefile_selftest_marker_missing")
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "$(ZIG) build test --build-file zigux/tests/phase10_build.zig",
+                "$(ZIG) build test --build-file zigux/tests/phase10_build_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "makefile:$(ZIG) build test --build-file zigux/tests/phase10_build.zig" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_makefile_build_marker_missing")
+        makefile_path.write_text(original_makefile, encoding="utf-8")
 
         test_path = tmp_root / "zigux/tests/phase10_virtio_mmio.zig"
         original_test = test_path.read_text(encoding="utf-8")
@@ -483,7 +570,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_ring_helper_status_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
