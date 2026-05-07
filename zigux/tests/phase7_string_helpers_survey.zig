@@ -33,6 +33,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(slice_note, "one allocator-backed `kasprintf_strarray()` proof that returns sequential `prefix-index` owned strings together with a trailing null-pointer view for C-style callers");
     try expectContains(slice_note, "one `kfree_strarray()` proof that keeps first-NUL prefix handling, zero-count sentinel reuse, repeated teardown, and setup-failure cleanup safe");
     try expectContains(slice_note, "one allocator-backed quotable duplication proof that hex-escapes control bytes, quotes, and backslashes for log-safe callers while preserving null-input, first-NUL bounds, and allocation-failure cleanup");
+    try expectContains(slice_note, "in-place unescape behavior and bounded destination termination");
     try expectContains(slice_note, "exact-fit, terminator-only, and zero-capacity destination handling for `string_unescape()` so the helper's bounded write discipline stays reviewable");
     try expectContains(slice_note, "zero-capacity escape-destination accounting that still reports the full would-be escaped length without promising an appended terminator");
     try expectContains(slice_note, "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.");
@@ -117,6 +118,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_tests, "phase 7 parseIntArrayUser copies a bounded user buffer before parsing");
     try expectContains(helper_tests, "phase 7 parseIntArrayUser fails closed on short buffers and empty copied input");
     try expectContains(helper_tests, "phase 7 stringUnescape covers deterministic Linux escape fixtures");
+    try expectContains(helper_tests, "phase 7 stringUnescapeInplace reuses the core escape path without extra buffers");
     try expectContains(helper_tests, "phase 7 stringEscapeMem covers the bounded escape subset");
     try expectContains(helper_tests, "phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds");
     try expectContains(helper_tests, "phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned");
@@ -131,6 +133,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     defer allocator.free(helper_impl);
     try expectContains(helper_impl, "pub fn stringGetSize");
     try expectContains(helper_impl, "pub fn stringUnescape");
+    try expectContains(helper_impl, "pub fn stringUnescapeInplace");
     try expectContains(helper_impl, "pub fn stringEscapeMem");
     try expectContains(helper_impl, "pub fn kstrdupQuotable");
     try expectContains(helper_impl, "pub fn kasprintfStrarray");
@@ -144,6 +147,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_impl, "test \"stringGetSize handles zero block size and zero-length outputs safely\"");
     try expectContains(helper_impl, "test \"stringUnescape exact-fit destination still decodes an escape\"");
     try expectContains(helper_impl, "test \"stringUnescape keeps terminator-only and zero-capacity destinations bounded\"");
+    try expectContains(helper_impl, "test \"stringUnescapeInplace reuses the in-place core path without touching bytes after the first NUL\"");
     try expectContains(helper_impl, "test \"kstrdupQuotable frees the owned copy when allocation fails\"");
     try expectContains(helper_impl, "test \"kasprintfStrarray frees intermediate allocations when setup fails\"");
     try expectContains(helper_impl, "std.testing.checkAllAllocationFailures");
