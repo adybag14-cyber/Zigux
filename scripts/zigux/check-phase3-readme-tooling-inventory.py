@@ -56,6 +56,7 @@ REQUIRED_HELPERS = (
     "check-phase10-input-packet.py",
     "check-phase10-mmio-packet.py",
     "check-phase11-shared-replay-contract.py",
+    "check-phase11-bcm2835-wdt-packet.py",
     "check-phase11-header-boundary-packet.py",
     "check-phase11-hvc-survey-packet.py",
     "check-build-only-phase12-surface.py",
@@ -521,6 +522,16 @@ def run_self_test() -> int:
         _write(root / README_REL, baseline_readme)
         case_count += 1
 
+        marker = "- `check-phase11-bcm2835-wdt-packet.py`\n"
+        _write(root / README_REL, baseline_readme.replace(marker, "", 1))
+        _assert_only(
+            validate(root),
+            ["missing_readme_helper_entry:check-phase11-bcm2835-wdt-packet.py", "readme_helper_order_drift"],
+            "missing_phase11_bcm2835_wdt_packet_readme_guard_failed",
+        )
+        _write(root / README_REL, baseline_readme)
+        case_count += 1
+
         marker = "- `check-phase11-hvc-survey-packet.py`\n"
         _write(root / README_REL, baseline_readme.replace(marker, "", 1))
         _assert_only(
@@ -534,6 +545,16 @@ def run_self_test() -> int:
         path = root / "scripts" / "zigux" / "check-phase6-shared-surface.py"
         path.unlink()
         _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase6-shared-surface.py"], "missing_phase6_shared_surface_repo_file_guard_failed")
+        _write(path, "# stub\n")
+        case_count += 1
+
+        path = root / "scripts" / "zigux" / "check-phase11-bcm2835-wdt-packet.py"
+        path.unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase11-bcm2835-wdt-packet.py"],
+            "missing_phase11_bcm2835_wdt_packet_repo_file_guard_failed",
+        )
         _write(path, "# stub\n")
         case_count += 1
 
