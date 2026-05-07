@@ -61,6 +61,7 @@ EXPECTED_SURVEY_TEST_MARKERS = [
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
     "var saw_broken_queue_poll_guard = false;",
+    "var saw_queue_reset_helper = false;",
     "var saw_mmio_probe_preflight_helper = false;",
     "var saw_ring_slice_note = false;",
 ]
@@ -107,6 +108,7 @@ EXPECTED_SEQUENCING_MARKERS = [
 
 EXPECTED_GAPS = {
     "phase10-build-gate": "starter_landed",
+    "phase10-virtio-core-lab-starter": "starter_landed",
     "phase10-virtio-ring-survey-gate": "starter_landed",
     "phase10-virtio-ring-survey-note": "starter_landed",
     "phase10-virtqueue-shape-helper": "starter_landed",
@@ -115,7 +117,14 @@ EXPECTED_GAPS = {
     "phase10-callback-delay-helper": "starter_landed",
     "phase10-notify-prepare-helper": "starter_landed",
     "phase10-broken-queue-poll-guard": "starter_landed",
+    "phase10-queue-reset-helper": "starter_landed",
     "phase10-queue-reset-readiness-helper": "starter_landed",
+    "phase10-mmio-register-window-helper": "starter_landed",
+    "phase10-mmio-queue-size-helper": "starter_landed",
+    "phase10-mmio-feature-word-selector-helper": "starter_landed",
+    "phase10-mmio-config-window-helper": "starter_landed",
+    "phase10-mmio-config-write-plan-helper": "starter_landed",
+    "phase10-mmio-config-write-disposition-helper": "starter_landed",
     "phase10-mmio-probe-preflight-helper": "starter_landed",
     "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
     "phase10-virtio-ring-slice-note": "starter_landed",
@@ -171,6 +180,7 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     var saw_broken_queue_poll_guard = false;
+    var saw_queue_reset_helper = false;
     var saw_mmio_probe_preflight_helper = false;
     var saw_ring_slice_note = false;
 }
@@ -239,6 +249,7 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
             },
             "gaps": [
                 {"id": "phase10-build-gate", "status": "starter_landed"},
+                {"id": "phase10-virtio-core-lab-starter", "status": "starter_landed"},
                 {"id": "phase10-virtio-ring-survey-gate", "status": "starter_landed"},
                 {"id": "phase10-virtio-ring-survey-note", "status": "starter_landed"},
                 {"id": "phase10-virtqueue-shape-helper", "status": "starter_landed"},
@@ -247,7 +258,14 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
                 {"id": "phase10-callback-delay-helper", "status": "starter_landed"},
                 {"id": "phase10-notify-prepare-helper", "status": "starter_landed"},
                 {"id": "phase10-broken-queue-poll-guard", "status": "starter_landed"},
+                {"id": "phase10-queue-reset-helper", "status": "starter_landed"},
                 {"id": "phase10-queue-reset-readiness-helper", "status": "starter_landed"},
+                {"id": "phase10-mmio-register-window-helper", "status": "starter_landed"},
+                {"id": "phase10-mmio-queue-size-helper", "status": "starter_landed"},
+                {"id": "phase10-mmio-feature-word-selector-helper", "status": "starter_landed"},
+                {"id": "phase10-mmio-config-window-helper", "status": "starter_landed"},
+                {"id": "phase10-mmio-config-write-plan-helper", "status": "starter_landed"},
+                {"id": "phase10-mmio-config-write-disposition-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-probe-preflight-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-lifecycle-and-irq-paths", "status": "blocked_on_risky_transport"},
                 {"id": "phase10-virtio-ring-slice-note", "status": "starter_landed"},
@@ -365,8 +383,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"manifest:{key}")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 13:
-        missing_markers.append("manifest:gaps")
+    if len(gaps) != len(EXPECTED_GAPS):
+        missing_markers.append(f"manifest:gaps={len(gaps)}")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     for gap_id, status in EXPECTED_GAPS.items():
         gap = gap_index.get(gap_id)
@@ -417,6 +435,16 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:freeze_boundary_status=aligned" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_freeze_boundary_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        for gap in manifest.get("gaps", []):
+            if gap.get("id") == "phase10-queue-reset-helper":
+                gap["status"] = "ready_next"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        _, missing_markers = validate(tmp_root)
+        if "manifest:gap_status:phase10-queue-reset-helper=ready_next" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_queue_reset_helper_status_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         makefile_path = tmp_root / "zigux/Makefile"
@@ -583,8 +611,22 @@ def run_self_test() -> int:
         if "sequencing:scripts/zigux/check-phase10-ring-packet.py" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_sequencing_marker_missing")
 
+        survey_test_path = tmp_root / "zigux/tests/phase10_virtio_ring_survey.zig"
+        original_survey_test = survey_test_path.read_text(encoding="utf-8")
+        survey_test_path.write_text(
+            original_survey_test.replace(
+                "var saw_queue_reset_helper = false;",
+                "var saw_queue_reset_drift = false;",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_test:var saw_queue_reset_helper = false;" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_survey_test_queue_reset_marker_missing")
+
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
