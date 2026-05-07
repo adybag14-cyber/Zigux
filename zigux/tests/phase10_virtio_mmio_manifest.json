@@ -120,6 +120,13 @@
       "why_now": "The live helper now carries one bounded device-feature selector and read window so VM-friendly lab validation can replay feature-word reads without widening into interrupt acknowledgement, queue discovery, reset flows, or probe lifecycle work."
     },
     {
+      "id": "phase10-mmio-feature-negotiation-summary-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The same helper now condenses the selected device-feature word, the staged device-feature bits, and the staged driver-feature register value into one bounded feature-negotiation snapshot so early MMIO negotiation stays reviewable without widening into queue discovery, reset flows, or probe lifecycle behavior."
+    },
+    {
       "id": "phase10-mmio-config-window-helper",
       "status": "starter_landed",
       "kind": "transport_wrapper",
