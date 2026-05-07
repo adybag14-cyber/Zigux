@@ -24,6 +24,10 @@ test "phase 15 governance sequencing note keeps the owner split explicit" {
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Documentation/zigux/phase15-parity-scorecard.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Documentation/zigux/phase15-indefinite-c-policy.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "zigux/tests/phase15_handoff_next_steps_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "zigux/tests/phase15_indefinite_c_blocker_evidence.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "does not need to re-enumerate every Phase 15 owner-map, readiness, handoff-manifest, or blocker-evidence replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "keep shared summaries compact while packet-local replay inventories stay in the sequencing note") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "keep every Phase 15 governance run parked unless a named reopen trigger fires") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "do not consume packet-local backlog") != null);
