@@ -32,7 +32,7 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge parses bounded config states",
     "confdata bridge emits bounded json output",
     "confdata bridge decodes escaped quoted strings",
-    "confdata bridge decodes escaped control sequences in quoted strings",
+    "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
     "confdata bridge escapes low control bytes in json output",
     "confdata bridge accepts CRLF config lines",
     "confdata bridge preserves trailing carriage return on final unterminated value line",
@@ -56,7 +56,7 @@ REQUIRED_CONF_CASE_MODES = [
     "savedefconfig",
     "listnewconfig",
 ]
-EXPECTED_SELF_TEST_CASE_COUNT = 14
+EXPECTED_SELF_TEST_CASE_COUNT = 15
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -103,6 +103,14 @@ def ordered_conf_modes(conf_bridge_path: Path) -> list[str]:
     return modes
 
 
+def ordered_confdata_helper_anchors(confdata_bridge_path: Path) -> list[str]:
+    source = confdata_bridge_path.read_text(encoding="utf-8")
+    anchors = re.findall(r'^test "([^"]+)" \{$', source, re.M)
+    if not anchors:
+        raise SystemExit("failed to discover confdata bridge test anchors")
+    return anchors
+
+
 def expected_conf_case_order(conf_cases: list[dict[str, object]]) -> list[str]:
     manifest_mode_set = {str(case["mode"]) for case in conf_cases}
     return [mode for mode in REQUIRED_CONF_CASE_MODES if mode in manifest_mode_set]
@@ -110,12 +118,28 @@ def expected_conf_case_order(conf_cases: list[dict[str, object]]) -> list[str]:
 
 def collect_confdata_manifest_issues(
     fixture_dir: Path,
+    confdata_bridge_path: Path,
     confdata_cases: list[dict[str, object]],
 ) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     confdata_manifest = fixture_dir / "confdata_manifest.json"
     if not confdata_manifest.exists():
         return [("MISSING_CONFDATA_MANIFEST", confdata_manifest.name)]
+
+    source_helper_anchors = ordered_confdata_helper_anchors(confdata_bridge_path)
+    if source_helper_anchors != REQUIRED_CONFDATA_HELPER_ANCHORS:
+        issues.append(
+            (
+                "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL",
+                ",".join(source_helper_anchors),
+            )
+        )
+        issues.append(
+            (
+                "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED",
+                ",".join(REQUIRED_CONFDATA_HELPER_ANCHORS),
+            )
+        )
 
     manifest = json.loads(confdata_manifest.read_text(encoding="utf-8"))
     expected_case_names = [str(case["name"]) for case in confdata_cases]
@@ -175,6 +199,7 @@ def collect_confdata_manifest_issues(
 def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     fixture_dir = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge"
     conf_bridge = root / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
+    confdata_bridge = root / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
     cases = load_cases(fixture_dir)
     issues: list[tuple[str, str]] = []
 
@@ -234,7 +259,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
             if not (fixture_dir / rel_path).exists():
                 issues.append(("MISSING_CONFDATA_CASE_PATHS", f"{case['name']}:{field_name}:{rel_path}"))
 
-    issues.extend(collect_confdata_manifest_issues(fixture_dir, confdata_cases))
+    issues.extend(collect_confdata_manifest_issues(fixture_dir, confdata_bridge, confdata_cases))
     return issues
 
 
@@ -255,6 +280,17 @@ def emit_manifest_issues(issues: list[tuple[str, str]]) -> None:
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def render_confdata_bridge_self_test_source() -> str:
+    blocks = []
+    for anchor in REQUIRED_CONFDATA_HELPER_ANCHORS:
+        blocks.append(
+            f'test "{anchor}" {{\n'
+            "    try std.testing.expect(true);\n"
+            "}\n"
+        )
+    return 'const std = @import("std");\n\n' + "\n".join(blocks)
 
 
 def build_self_test_root(root: Path) -> None:
@@ -284,7 +320,7 @@ pub const Mode = enum {
     )
     write_text(
         root / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
-        'const std = @import("std");\n',
+        render_confdata_bridge_self_test_source(),
     )
     write_text(
         root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
@@ -524,6 +560,7 @@ def run_self_test() -> int:
         root = Path(tmp_dir_str)
         cases_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
         manifest_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json"
+        confdata_bridge_path = root / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
 
         build_self_test_root(root)
         assert collect_manifest_issues(root) == []
@@ -637,6 +674,19 @@ def run_self_test() -> int:
             "CONFDATA_CASE_ORDER_EXPECTED",
             ",".join(REQUIRED_CONFDATA_CASES),
         ) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        source = confdata_bridge_path.read_text(encoding="utf-8")
+        source = source.replace(
+            'test "confdata bridge emits bounded json output" {\n',
+            'test "confdata bridge emits reordered json output" {\n',
+            1,
+        )
+        write_text(confdata_bridge_path, source)
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
+        assert any(issue[0] == "CONFDATA_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
