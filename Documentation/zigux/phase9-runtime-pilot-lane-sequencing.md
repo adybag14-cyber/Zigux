@@ -113,13 +113,13 @@ This keeps later closure-note work small while preserving the explicit split bet
 
 - `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`
 - `samples/zigux/README.md` already carries the bitmap-only top-bit companion reminder plus the older command and environment control boundaries, so later shared-loader follow-through should leave those pilot-local cues there instead of flattening them back into the loader packet
-- `Documentation/zigux/review-checklist.md` still needs the next same-lane narrowing pass: it keeps the shared-loader split visible, but it currently overstates the bitmap-local top-bit companion by naming a non-existent `samples/zigux/runtime_bitmap_top_bit_build.zig` path instead of simply pointing back to this owner map and the shipped `phase9-runtime-bitmap-top-bit-tests` step
+- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig` and the rest of the shared packet
 - the next same-lane follow-through should reopen only if one of the shared reminder surfaces drifts, or if the shared loader lane picks up a new bounded validation surface that needs to be named across the packet
 
 ## Recommended next-step order
 
 1. shared loader lane: only when the change is about request-contract, allocator/init-flow, or build-only reviewability
-2. checklist narrowing pass: next if the goal is to remove the over-specific bitmap top-bit reminder from `Documentation/zigux/review-checklist.md` and point that reviewer prompt back to this owner map
+2. shared reminder refresh: only if one of the docs-root, scripts-root, tests-root, samples-root, or checklist surfaces drifts again
 3. bitmap lane: after that, only if the goal is to refine the already-landed top-bit or bitmap-specific replay packet
 4. atomic64, trace-events, or kretprobe lanes: only when the change stays inside that family’s sample, loader, module, diff, or survey evidence
 
