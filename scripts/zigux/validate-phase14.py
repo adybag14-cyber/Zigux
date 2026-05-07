@@ -271,9 +271,11 @@ def check_compile_matrix(root: Path) -> list[str]:
     if not smoke_note_path.exists():
         return [f"missing file: {smoke_note_path.relative_to(root).as_posix()}"]
     if not build_path.exists():
-        return [f"missing file: {build_path.relative_to(root).as_posix()}"]
+        return [f"missing file: {build_path.relative_to(root).as_posix()}]
     smoke_note_text = read_text(smoke_note_path)
     build_text = read_text(build_path)
+    if smoke_note_text.count("PHASE14_FOCUSED_SHARD_COUNT=1") != 1:
+        errors.append("phase14 smoke note focused compile-shard count marker drifted from the current one-shard packet")
     if smoke_note_text.count("coverage `focused_and_full_bundle`") != 1:
         errors.append("phase14 smoke note focused compile-shard count drifted from the current one-shard packet")
     if smoke_note_text.count("coverage `full_bundle_only`") != 4:
@@ -326,7 +328,7 @@ def run_checker(root: Path, rel_path: str, missing_message: str, failure_message
 def check(root: Path) -> list[str]:
     manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
     if not manifest_path.exists():
-        return [f"missing file: {manifest_path.as_posix()}"]
+        return [f"missing file: {manifest_path.as_posix()}]
     errors: list[str] = []
     errors.extend(
         run_checker(
@@ -355,7 +357,7 @@ def check(root: Path) -> list[str]:
     try:
         manifest = load_json_file(manifest_path)
     except json.JSONDecodeError as exc:
-        return [f"invalid json in {manifest_path.as_posix()}: {exc}"]
+        return [f"invalid json in {manifest_path.as_posix()}: {exc}]
     if manifest.get("lane_key") != EXPECTED_LANE_KEY:
         errors.append("phase14 shared smoke manifest lane_key drifted from the current shared-lane owner")
     if manifest.get("commands") != REQUIRED_COMMANDS:
@@ -495,6 +497,19 @@ def run_self_test() -> int:
         errors = check(root)
         if "phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet" not in errors:
             print("self-test expected full-bundle-only compile count failure", file=sys.stderr)
+            return 1
+        write_text(broken_smoke_note, "\n".join(matrix_lines) + "\n")
+        broken_smoke_note.write_text(
+            broken_smoke_note.read_text(encoding="utf-8").replace(
+                "PHASE14_FOCUSED_SHARD_COUNT=1\n",
+                "PHASE14_FOCUSED_SHARD_COUNT=2\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 smoke note focused compile-shard count marker drifted from the current one-shard packet" not in errors:
+            print("self-test expected focused compile-shard marker failure", file=sys.stderr)
             return 1
         write_text(broken_smoke_note, "\n".join(matrix_lines) + "\n")
         broken_build = root / "zigux/tests/phase14_build.zig"
