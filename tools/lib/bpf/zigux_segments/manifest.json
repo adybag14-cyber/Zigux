@@ -54,13 +54,15 @@
         "mapReuseObservationFromFdinfo() helper-only conversion from parsed fdinfo metadata into a reusable comparison observation",
         "resolveReusedMapName() object-name retention for truncated reused-map names",
         "normalizeObservedReuseMapFlags() devmap readonly-prog normalization for reuse comparison",
-        "isMapReuseCompatible() helper-only reused-map compatibility comparison"
+        "summarizeMapReuseCompatibility() mismatch reporting for helper-only reused-map compatibility checks",
+        "isMapReuseCompatible() helper-only reused-map compatibility comparison",
+        "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects"
       ],
       "queued_scope": [
         "direct procfs reads and descriptor ownership flow",
         "token creation, bpffs reopen flow, and other fd-handle bridge side effects"
       ],
-      "why_now": "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, and reused-map compatibility packet as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor or reopen side effects."
+      "why_now": "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, and pinned-map reuse planning packet as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor or reopen side effects."
     }
   ],
   "segments": [
@@ -130,7 +132,7 @@
         "tools/lib/bpf/libbpf.c: bpf_map__reuse_fd() name selection and bpf_object__reuse_map() compatibility checks"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The shared bridge packet now covers the reused-map name chooser and devmap-aware compatibility comparison without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."
+      "why_now": "The shared bridge packet now covers the reused-map name chooser, compatibility summaries, and helper-only pinned-map reuse planning without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."
     },
     {
       "id": "P8-L15-S07",
