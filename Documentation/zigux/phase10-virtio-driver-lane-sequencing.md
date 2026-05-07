@@ -44,7 +44,7 @@ Shared Phase 10 replay surface:
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-These shared docs, packet guards, routes, plus the shared closure manifest prove that the current bounded virtio packet still replays together. They do not change which lane owns a helper, verify replay, manifest, survey gate, or next bounded follow-up. When those shared summaries call out the current focused verify evidence, keep `drivers/virtio/virtio_ring_verify.zig` and `drivers/virtio/virtio_input_verify.zig` explicit as lane-owned replays instead of collapsing them into generic focused-test shorthand.
+These shared docs, packet guards, routes, plus the shared closure manifest prove that the current bounded virtio packet still replays together. They do not change which lane owns a helper, verify replay, manifest, survey gate, or next bounded follow-up. When those shared summaries call out the current focused replay evidence, keep `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` explicit as lane-owned replays instead of collapsing them into generic focused-test shorthand.
 
 ## Lane map
 
