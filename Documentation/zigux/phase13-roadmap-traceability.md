@@ -13,7 +13,7 @@ The active shipped anchors on current `master` are:
   * `security/landlock/ruleset.c` through `security/landlock/ruleset.zig`
   * `security/landlock/syscalls.c` through `security/landlock/syscalls.zig`
 
-The shared replay packet for those anchors is now the seven-test route wired by `zigux/tests/phase13_build.zig` and invoked through `make -C zigux phase13`.
+The shared replay packet for those anchors is now the eight-test route wired by `zigux/tests/phase13_build.zig` and invoked through `make -C zigux phase13`.
 
 That live replay route currently names:
 
@@ -21,6 +21,7 @@ That live replay route currently names:
   * `zigux/tests/phase13_devres.zig`
   * `zigux/tests/phase13_devres_reviewability.zig`
   * `zigux/tests/phase13_devres_dma_coherent.zig`
+  * `zigux/tests/phase13_devres_boundary_evidence.zig`
   * `zigux/tests/phase13_landlock_ruleset.zig`
   * `zigux/tests/phase13_landlock_syscalls.zig`
   * `zigux/tests/phase13_libfs_reviewability.zig`
@@ -52,9 +53,10 @@ Current `master` keeps that anchor reviewable through:
   * `zigux/tests/phase13_devres.zig`
   * `zigux/tests/phase13_devres_reviewability.zig`
   * `zigux/tests/phase13_devres_dma_coherent.zig`
+  * `zigux/tests/phase13_devres_boundary_evidence.zig`
   * `scripts/zigux/check-phase13-devres-packet.py`
 
-Inside that packet, the active shared replay now keeps `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_dma_coherent.zig` inside the seven-test helper route. The live `make -C zigux phase13-validate` route also reruns the shipped `scripts/zigux/check-phase13-devres-packet.py` beside the shared release validator, so the `devres` boundary note stays adjacent release evidence on current `master` without inflating the shared replay count beyond the build-backed route.
+Inside that packet, the active shared replay now keeps `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_boundary_evidence.zig` inside the eight-test helper route. The live `make -C zigux phase13-validate` route also reruns the shipped `scripts/zigux/check-phase13-devres-packet.py` beside the shared release validator, so the `devres` boundary note stays adjacent release evidence on current `master` without inflating the shared replay count beyond the build-backed route.
 
 That packet is truthful to the roadmap because it exposes only reviewable helper planning and explicit blocker posture. It does not overclaim live MMIO mappings, live device-tree walking, DMA-backed helpers, scatterlist ownership, or live arch memtype mutation.
 
@@ -70,7 +72,7 @@ Current `master` keeps that anchor reviewable through:
   * `zigux/tests/phase13_landlock_ruleset.zig`
   * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 
-Inside that packet, the active shared replay now keeps `zigux/tests/phase13_landlock_ruleset.zig` inside the same seven-test helper route while the dedicated packet checker stays adjacent lane evidence rather than an extra shared replay step. The live `make -C zigux phase13-validate` route now reruns `scripts/zigux/check-phase13-landlock-ruleset-packet.py` beside the shared release validator and the `devres` packet checker, so the roadmap note needs that checker named explicitly to keep the shipped helper boundary reviewable without overstating the replay count.
+Inside that packet, the active shared replay now keeps `zigux/tests/phase13_landlock_ruleset.zig` inside the same eight-test helper route while the dedicated packet checker stays adjacent lane evidence rather than an extra shared replay step. The live `make -C zigux phase13-validate` route now reruns `scripts/zigux/check-phase13-landlock-ruleset-packet.py` beside the shared release validator and the `devres` packet checker, so the roadmap note needs that checker named explicitly to keep the shipped helper boundary reviewable without overstating the replay count.
 
 That packet is truthful to the roadmap because it keeps the current ruleset foothold bounded to in-memory helper planning around `landlock_create_ruleset()`, access-mask unioning, per-layer mask initialization, `landlock_unmask_layers()` bit clearing, `insert_rule()` merge and search planning, no-match tree-link planning, and matched-rule replacement planning. It does not overclaim live rb-tree mutation, object references, hierarchy ownership, deferred frees, or live Landlock policy enforcement.
 
@@ -107,11 +109,11 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `include/zigux/notifier_abi.h`
   * `zigux/helpers/notifier_chain_view.zig`
 
-The direct `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard stays in that adjacent release-evidence set for the same reason already recorded in the syscall lane section and the release-notes packet: it is shipped focused direct evidence on current `master`, but it does not expand the shared replay beyond the seven build-backed tests.
+The direct `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard stays in that adjacent release-evidence set for the same reason already recorded in the syscall lane section and the release-notes packet: it is shipped focused direct evidence on current `master`, but it does not expand the shared replay beyond the eight build-backed tests.
 
-`Documentation/zigux/phase13-shared-helper-lane-sequencing.md` stays in that same adjacent evidence set as the owner-map note for the active `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` helper families. It keeps the shared validator-first route and adjacent notifier evidence from collapsing into one ownerless packet, but it does not add an eighth replay step or change which helper lane owns which backlog.
+`Documentation/zigux/phase13-shared-helper-lane-sequencing.md` stays in that same adjacent evidence set as the owner-map note for the active `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` helper families. It keeps the shared validator-first route and adjacent notifier evidence from collapsing into one ownerless packet, but it does not add a ninth replay step or change which helper lane owns which backlog.
 
-These files keep the shipped release surface reviewable, but they do not change the fact that the active shared replay remains the seven-test helper packet.
+These files keep the shipped release surface reviewable, but they do not change the fact that the active shared replay remains the eight-test helper packet.
 
 ## Current decision
 
