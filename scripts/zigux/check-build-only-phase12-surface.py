@@ -433,6 +433,22 @@ def run_self_test() -> int:
         checklist_path.write_text(original_checklist, encoding="utf-8")
 
         broken_checklist = original_checklist.replace(
+            "- `zigux/tests/phase12_virtio_net_syntax_lab.zig`\n",
+            "",
+            1,
+        )
+        checklist_path.write_text(broken_checklist, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{REVIEW_CHECKLIST_PATH}:`zigux/tests/phase12_virtio_net_syntax_lab.zig`"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("review-checklist-virtio-net-syntax-lab-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+
+        broken_checklist = original_checklist.replace(
             "- `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`\n",
             "",
             1,
@@ -675,6 +691,22 @@ def run_self_test() -> int:
         if expected not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("scripts-readme-net-syntax-lab-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        broken_scripts_readme = original_scripts_readme.replace(
+            "- `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`\n",
+            "",
+            1,
+        )
+        scripts_readme_path.write_text(broken_scripts_readme, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{SCRIPTS_README_PATH}:`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("scripts-readme-scsi-syntax-lab-marker-guard")
             for failure in failures:
                 print(failure)
             return 1
