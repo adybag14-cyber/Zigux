@@ -13,7 +13,7 @@ This document records the shared Phase 14 smoke lane that keeps the current stud
 - `PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py`
 - `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`
 - `PHASE14_SMOKE_ENTRYPOINT=make -C zigux phase14-smoke`
-- `PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig`
+- `PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 - `PHASE14_SMOKE_BUILD_ENTRYPOINT=zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
 - `PHASE14_COMBINED_ENTRYPOINT=make -C zigux phase14`
 - `PHASE14_ANCHOR_PACKET_COUNT=4`
@@ -70,7 +70,7 @@ Shared smoke commands:
 - `make -C zigux phase14-smoke`
 - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
 - `make -C zigux phase14-test`
-- `zig build test --build-file zigux/tests/phase14_build.zig`
+- `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 - `make -C zigux phase14`
 
 Attached-toolchain fallback examples:
@@ -143,7 +143,7 @@ This shared smoke slice does not claim:
    `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
 3. Run the shared full-bundle replay.
    `make -C zigux phase14-test`
-   `zig build test --build-file zigux/tests/phase14_build.zig`
+   `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 4. Run the convenience wrapper.
    `make -C zigux phase14`
 5. Use the attached-toolchain fallback only when `zig` is not already on `PATH`.
