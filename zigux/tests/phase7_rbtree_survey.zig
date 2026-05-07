@@ -66,6 +66,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     );
     defer std.testing.allocator.free(validate_phase7);
 
+    const helper_impl = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "lib/rbtree.zig",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(helper_impl);
+
     const helper_tests = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase7_rbtree.zig",
@@ -172,6 +180,18 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree_manifest.json\",");
     try expectContains(validate_phase7, "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test");
     try expectContains(validate_phase7, "python3 scripts/zigux/check-phase7-rbtree-parity.py");
+    try expectContains(helper_impl, "pub const NodeLinked");
+    try expectContains(helper_impl, "pub const RootLinked");
+    try expectContains(helper_impl, "pub fn addLinked");
+    try expectContains(helper_impl, "pub fn eraseLinked");
+    try expectContains(helper_impl, "pub fn eraseInit");
+    try expectContains(helper_impl, "pub fn replaceNodeCached");
+    try expectContains(helper_impl, "pub fn firstPostorder");
+    try expectContains(helper_impl, "pub fn nextPostorder");
+    try expectContains(helper_impl, "test \"rbtree linked helpers track leftmost and neighbour links\"");
+    try expectContains(helper_impl, "test \"rbtree eraseInit clears detached nodes after erase\"");
+    try expectContains(helper_impl, "test \"rbtree replaceNode keeps displaced nodes non-empty until cleared\"");
+    try expectContains(helper_impl, "test \"rbtree postorder and empty node helpers behave\"");
     try expectContains(helper_tests, "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable");
     try expectContains(helper_tests, "phase 7 rbtree detached nodes stay non-empty until callers clear them");
     try expectContains(helper_tests, "phase 7 rbtree clearNode marks detached nodes as empty");
