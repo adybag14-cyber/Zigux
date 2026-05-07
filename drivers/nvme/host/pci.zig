@@ -170,6 +170,7 @@ pub const NvmePciQueueLab = struct {
     planned_io_queues: usize = 0,
     reset_generation: u32 = 0,
     last_admin_queue_depth: u16 = min_queue_depth,
+    last_admin_queue_generation: u32 = 0,
     last_reset_io_queue_count: usize = 0,
 
     pub fn descriptor() ModuleDescriptor {
@@ -221,6 +222,7 @@ pub const NvmePciQueueLab = struct {
     ) !QueuePairPlanSummary {
         const summary = try self.planQueue(.admin, admin_queue_id, requested_depth, sq_entry_bytes, uses_cmb);
         self.last_admin_queue_depth = summary.queue_depth;
+        self.last_admin_queue_generation = summary.reset_generation;
         return summary;
     }
 
@@ -310,6 +312,9 @@ pub const NvmePciQueueLab = struct {
         }
         if (request.cached_queue_reservation_generation == self.reset_generation) {
             return error.QueueReservationAlreadyCurrent;
+        }
+        if (request.had_admin_queue_plan and self.last_admin_queue_generation != self.reset_generation) {
+            return error.AdminQueueReplayRequired;
         }
         return self.reserveIoQueues(request.cached_reserved_io_queues, controller_io_queue_limit);
     }
@@ -443,7 +448,7 @@ pub const NvmePciQueueLab = struct {
             .cached_queue_reservation_stale = cached_queue_reservation_stale,
             .queue_reservation_replay_required = reserved_io_queues_to_renegotiate != 0,
             .reserved_io_queues_to_renegotiate = reserved_io_queues_to_renegotiate,
-            .admin_queue_must_be_replanned = request.had_admin_queue_plan and self.reset_generation != 0,
+            .admin_queue_must_be_replanned = request.had_admin_queue_plan and self.last_admin_queue_generation != self.reset_generation,
             .io_queues_must_be_rebuilt = io_queues_dropped_by_reset != 0 and self.reset_generation != 0,
             .io_queues_dropped_by_reset = io_queues_dropped_by_reset,
             .next_io_queue_id = self.next_io_queue_id,
