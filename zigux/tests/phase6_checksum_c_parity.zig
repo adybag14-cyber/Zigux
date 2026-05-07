@@ -28,9 +28,15 @@ pub fn main(init: std.process.Init) !void {
     var stdout = std.Io.File.stdout().writer(io, &stdout_buffer);
     const writer = &stdout.interface;
 
-    for (fixtures.compute_cases) |case| {
+    for (fixtures.compute_cases, 0..) |case, idx| {
+        if (idx == 2) continue;
         try writer.print("compute\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.compute(case.bytes) });
     }
+
+    try writer.print(
+        "ip-fast-csum\tipv4 header\t0x{x:0>4}\n",
+        .{checksum.ipFastCsum(fixtures.compute_cases[2].bytes)},
+    );
 
     for (fixtures.seeded_cases) |case| {
         try writer.print("partial\t{s}\t0x{x:0>8}\n", .{ case.name, checksum.partial(case.bytes, case.seed) });
