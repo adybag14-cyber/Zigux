@@ -16,14 +16,15 @@ test "phase 5 bytestream fifo sample stays in the reference-sample lane" {
     try std.testing.expect(!descriptor.requires_runtime_substrate);
     try std.testing.expect(descriptor.provides_selfcheck);
     try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, descriptor.storage_backing);
-    try std.testing.expectEqual(@as(usize, 7), contract.focus.len);
+    try std.testing.expectEqual(@as(usize, 8), contract.focus.len);
     try std.testing.expectEqual(sample.SampleFocus.bounded_fifo_order, contract.focus[0]);
     try std.testing.expectEqual(sample.SampleFocus.wraparound_requeue, contract.focus[1]);
     try std.testing.expectEqual(sample.SampleFocus.peek_and_skip, contract.focus[2]);
     try std.testing.expectEqual(sample.SampleFocus.non_destructive_snapshot, contract.focus[3]);
     try std.testing.expectEqual(sample.SampleFocus.preview_truncation, contract.focus[4]);
-    try std.testing.expectEqual(sample.SampleFocus.reset_and_replay, contract.focus[5]);
-    try std.testing.expectEqual(sample.SampleFocus.ownership_and_lifetime, contract.focus[6]);
+    try std.testing.expectEqual(sample.SampleFocus.remaining_capacity, contract.focus[5]);
+    try std.testing.expectEqual(sample.SampleFocus.reset_and_replay, contract.focus[6]);
+    try std.testing.expectEqual(sample.SampleFocus.ownership_and_lifetime, contract.focus[7]);
     try std.testing.expectEqual(@as(usize, expected_non_goals.len), contract.non_goals.len);
     for (expected_non_goals, contract.non_goals) |expected, actual| {
         try std.testing.expectEqualStrings(expected, actual);
