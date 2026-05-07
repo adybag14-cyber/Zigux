@@ -69,7 +69,7 @@ The current tests check:
 - planning-only reopen-attempt classification for missing path, missing observation, incompatible name, incompatible map definition, and compatible ready-to-reopen outcomes
 - planning-only token-preparation classification for missing token path, bridge plan not ready, and ready-to-open-token outcomes
 - focused build wiring for the new Phase 8 helper packet
-- shared build wiring for the active stable-output Phase 8 tooling packet
+- shared build wiring for the parked stable-output Phase 8 tooling packet
 
 ## Non-goals
 
