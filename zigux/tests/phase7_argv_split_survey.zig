@@ -107,11 +107,15 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
 
     try expectContains(slice_note, "first-NUL C-string bounds on both counting and splitting");
     try expectContains(slice_note, "strict non-goal behavior where quote characters stay inside the returned tokens");
+    try expectContains(slice_note, "stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path");
     try expectContains(slice_note, "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`");
     try expectContains(slice_note, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
     try expectContains(slice_note, "python3 scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(slice_note, "- `argvSplitWithArgc()`");
+    try expectContains(slice_note, "- `cArgv()`");
+    try expectContains(slice_note, "- `argvFree()` plus `deinit()`");
     try expectCount(slice_note, "null-terminated pointer-vector access through `cArgv()`", 1);
-    try expectCount(slice_note, "zigux/tests/phase7_argv_split_manifest.json", 1);
+    try expectCount(slice_note, "zigux/tests/phase7_argv_split_manifest.json", 2);
 
     try expectContains(build_file, "\"phase7_argv_split.zig\"");
     try expectContains(build_file, "\"phase7_argv_split_survey.zig\"");
