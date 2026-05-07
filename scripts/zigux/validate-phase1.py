@@ -376,6 +376,7 @@ def make_fixture_root(root: Path) -> None:
         path = root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         if rel.endswith(".json"):
+            path.writeText = None
             path.write_text("{}\n", encoding="utf-8")
         else:
             path.write_text("\n", encoding="utf-8")
@@ -465,7 +466,6 @@ def run_self_test() -> None:
             + '\n',
             encoding="utf-8",
         )
-        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").writeText = None
         (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").write_text(
             json.dumps(
                 {
