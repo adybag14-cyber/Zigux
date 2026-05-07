@@ -82,14 +82,22 @@ This lane may talk about duplicate-search and cached-root helper-local anchors w
 - the string prefix and suffix review anchors
 - the string memparse review summaries
 
-This lane may cite the direct helper tests and the shared string replay, but it does not own same-file C-string semantics repairs once a concrete helper behavior bug is isolated.
+This lane may cite the direct helper tests and the shared string replay, but it does not own closure-validator schema follow-through or same-file C-string semantics repairs once a concrete helper behavior bug is isolated.
+
+`P1-Y09` string closure-validator governance lane owns validator recognition and schema follow-through for the current `tools/lib/string.zig` review packet:
+
+- `scripts/zigux/validate-phase1-closure.py`
+- the string section of `zigux/tests/fixtures/phase1_helper_manifest.json` only when a validator-recognized review-anchor or parity-key packet changes
+- the current string validator schema for prefix/suffix review metadata, memparse review summaries, and the shared `replaceChar()` C-string parity keys
+
+This lane may cite the closure note and manifest-side wording, but it does not own helper-local string semantics repairs or broader closure-wording-only refreshes when the validator schema itself is unchanged.
 
 `P1-L17` string helper-semantics lane owns direct bounded behavior fixes in `tools/lib/string.zig`:
 
 - `tools/lib/string.zig`
 - the directly coupled helper-local string tests that prove C-string boundary behavior such as embedded-NUL stop rules
 
-This lane may refresh an already-coupled direct test when a semantics fix lands, but it should not widen into the broader string manifest or closure packet unless that metadata truly drifts after the helper fix.
+This lane may refresh an already-coupled direct test when a semantics fix lands, but it should not widen into the broader string manifest, validator schema, or closure packet unless that metadata truly drifts after the helper fix.
 
 ## Anti-overlap rules
 
@@ -98,9 +106,10 @@ This lane may refresh an already-coupled direct test when a semantics fix lands,
 - If a Phase 1 run changes `Documentation/zigux/phase1-closure.md` or `zigux/tests/fixtures/phase1_helper_manifest.json` to keep `find_bit` helper-local ownership versus audit-only shared fields honest, that work belongs to `P1-Y04`.
 - If a Phase 1 run changes the rbtree section of `zigux/tests/fixtures/phase1_helper_manifest.json` or the matching closure-validator schema in `scripts/zigux/validate-phase1-closure.py`, that work belongs to `P1-X08`.
 - If a Phase 1 run changes string review-anchor naming or string review-summary wording in `zigux/tests/fixtures/phase1_helper_manifest.json` or `Documentation/zigux/phase1-closure.md`, that work belongs to `P1-L16`.
+- If a Phase 1 run changes the string section of `scripts/zigux/validate-phase1-closure.py` to recognize already-landed string review anchors or parity keys from `zigux/tests/fixtures/phase1_helper_manifest.json`, that work belongs to `P1-Y09`.
 - If a Phase 1 run changes `tools/lib/string.zig` to repair a bounded C-string behavior gap and updates only the directly coupled helper-local proof, that work belongs to `P1-L17`.
 - Shared Phase 1 build or make replay drift should reopen only the smallest directly coupled helper packet unless the break truly spans multiple helper families at once.
 
 ## Next bounded step
 
-Keep this sequencing note parked unless future repo drift blurs the ownership boundary between the Phase 1 bitmap, find_bit, rbtree, and string helper packets again. Any deeper helper, fixture, replay, manifest, or closure work should return to the owning helper lane instead of expanding this note.
+Keep this sequencing note parked unless future repo drift blurs the ownership boundary between the Phase 1 bitmap, find_bit, rbtree, and string helper packets again. Any deeper helper, fixture, replay, manifest, validator, or closure work should return to the owning helper lane instead of expanding this note.
