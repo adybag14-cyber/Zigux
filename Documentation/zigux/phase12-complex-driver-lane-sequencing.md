@@ -9,6 +9,7 @@ It is an anti-overlap companion for the current tranche, not a release-order not
 - complex-driver scope in this note: `virtio_net`, `nvme_pci`, and `virtio_scsi`
 - excluded from this note on purpose: the shared PMO release packet and the non-driver libbpf helper packet
 - shared replay routes that all three driver lanes may mention but do not own: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`
+- when `zig` is unavailable on `PATH`, those same shared replay routes may be rerun as `make -C zigux phase12-smoke ZIG=<attached-zig-path>` and `make -C zigux phase12 ZIG=<attached-zig-path>`; this note treats that as an environment override for the same shared packet rather than as driver-local ownership or a separate `phase12-validate` route
 - shared coordination surfaces that stay non-owner here: `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
 
 ## Why this note exists
