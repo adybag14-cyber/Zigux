@@ -52,14 +52,16 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_approved_idiom_prompt = false;
     var saw_manifest_prompt = false;
-    var saw_preview_prompt = false;
+    var saw_shared_surfaces_prompt = false;
+    var saw_contract_refresh_prompt = false;
+    var saw_scope_prompt = false;
     var saw_exact_sequence = false;
     var saw_capacity = false;
     var saw_helper_boundary = false;
@@ -81,8 +83,14 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         if (std.mem.indexOf(u8, prompt, "phase5_build.zig") != null) {
             saw_manifest_prompt = true;
         }
-        if (std.mem.indexOf(u8, prompt, "preview truncation boundary") != null) {
-            saw_preview_prompt = true;
+        if (std.mem.indexOf(u8, prompt, "shared docs-root, sample-root, scripts-root, and tests-root contributor packet") != null) {
+            saw_shared_surfaces_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "manifest-backed replay contract") != null) {
+            saw_contract_refresh_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "procfs, user-copy, locking, and runtime registration") != null) {
+            saw_scope_prompt = true;
         }
     }
 
@@ -144,7 +152,9 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_approved_idiom_prompt);
     try std.testing.expect(saw_manifest_prompt);
-    try std.testing.expect(saw_preview_prompt);
+    try std.testing.expect(saw_shared_surfaces_prompt);
+    try std.testing.expect(saw_contract_refresh_prompt);
+    try std.testing.expect(saw_scope_prompt);
     try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_helper_boundary);
