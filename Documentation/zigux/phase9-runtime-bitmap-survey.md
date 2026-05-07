@@ -12,7 +12,6 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
-  - `samples/zigux/runtime_bitmap_top_bit_build.zig`
   - `samples/zigux/runtime_bitmap_top_bit_contract.zig`
   - `zigux/tests/runtime_bitmap_manifest.json`
   - `zigux/tests/runtime_bitmap_survey.zig`
@@ -31,7 +30,7 @@ The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot-modu
 
 The live repo originally needed a survey-shaped review anchor that could record what the runtime bitmap lane had already shipped versus what still depends on a shared runtime substrate. This note stays in place after the bounded starter sample, module gate, diff gate, loader scaffold, shared runtime-loader contract replay, and focused top-bit companion gate landed, so the lane can keep comparing the current pilot-module surface against the roadmap without pretending that Zigux already has a real loadable bitmap module.
 
-This survey note is also not a Phase 5 sample-root approval: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_{build,contract}.zig` companion replay stay here as the separate Phase 9 runtime bitmap family rooted in `lib/test_bitmap.c`, not as a fifth approved Phase 5 reference idiom under `samples/zigux/`.
+This survey note is also not a Phase 5 sample-root approval: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` companion replay stay here as the separate Phase 9 runtime bitmap family rooted in `lib/test_bitmap.c`, not as a fifth approved Phase 5 reference idiom under `samples/zigux/`.
 The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchors limited to `bytestream_fifo.zig`, `kobject_example.zig`, `kretprobe_example.zig`, and `trace_events_sample.zig`, while listing the runtime bitmap pair plus the focused top-bit companion replay only under the separate Phase 9 runtime pilot family.
 
 ## Survey findings
