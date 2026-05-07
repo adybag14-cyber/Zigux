@@ -327,8 +327,8 @@ test "dw_wdt verify keeps irq-mode teardown summaries aligned with stop failure 
     _ = try stoppable.setResponseMode(.irq);
     _ = try stoppable.setTimeout(9);
     _ = try stoppable.start();
-    _ = try stoppable.setCurrentCount(3 * 65_536);
-    _ = try stoppable.setInterruptPending(true);
+    _ = stoppable.setCurrentCount(3 * 65_536);
+    _ = stoppable.setInterruptPending(true);
 
     const stoppable_teardown = try stoppable.teardownSummary();
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", stoppable_teardown.anchor);
