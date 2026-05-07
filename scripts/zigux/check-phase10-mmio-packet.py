@@ -372,7 +372,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_slice_direct_replay_marker_missing")
         slice_path.write_text(original_slice, encoding="utf-8")
 
-        slice_path.writeText(
+        slice_path.write_text(
             original_slice.replace(
                 "zig test zigux/tests/phase10_virtio_mmio_survey.zig",
                 "zig test zigux/tests/phase10_virtio_mmio_drift.zig",
