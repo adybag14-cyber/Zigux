@@ -4,18 +4,44 @@
   "surveyed_commit": "2359c03fa82626b7359467c9b8bc9d0b092de5aa",
   "review_process": {
     "decision_record_required": true,
-    "required_record_field_count": 10,
+    "required_record_field_count": 19,
     "required_record_fields": [
+      "linux anchor path",
+      "phase",
+      "current status bucket",
+      "requested decision bucket",
       "decision record ID",
-      "lane owner",
-      "validation gate set",
+      "owner",
       "rollback owner",
+      "validation gate summary",
       "evidence archive path",
+      "latest blocker disposition",
       "benchmark notes",
       "replay command",
-      "latest blocker disposition",
+      "rollback threshold",
       "retained discussion state",
-      "reopen triggers"
+      "reopen triggers",
+      "parity scorecard link or blocker record",
+      "indefinite-C policy link or non-applicability note",
+      "explicit non-goals",
+      "written rationale"
+    ],
+    "ownership_evidence_field_count": 14,
+    "ownership_evidence_fields": [
+      "phase",
+      "current status bucket",
+      "owner",
+      "rollback owner",
+      "validation gate summary",
+      "indefinite-C policy link or non-applicability note",
+      "evidence archive path",
+      "latest blocker disposition",
+      "benchmark notes",
+      "replay command",
+      "rollback threshold",
+      "retained discussion state",
+      "reopen triggers",
+      "parity scorecard link or blocker record"
     ],
     "reopen_trigger_catalog": [
       "narrower_followup_answers_blocker",
@@ -49,7 +75,9 @@
     "architecture_council_owned_anchor_count": 2,
     "specialist_lane_owned_anchor_count": 2,
     "reserved_decision_record_template_count": 4,
-    "blocked_status_change_anchor_count": 4
+    "blocked_status_change_anchor_count": 4,
+    "review_packet_field_count": 19,
+    "ownership_evidence_field_count": 14
   },
   "anchors": [
     {
@@ -314,11 +342,18 @@
       "why_now": "The scorecard now machine-counts benchmark notes and replay command as required review-gate fields so the manifest matches the note and checklist instead of leaving those reporting cues implicit."
     },
     {
+      "id": "phase15-review-process-field-coverage-metrics",
+      "status": "starter_landed",
+      "kind": "reporting",
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.json",
+      "why_now": "The live review-process packet now carries rollback-threshold, parity-scorecard, indefinite-C policy, explicit non-goal, and rationale requirements, so the scorecard now mirrors that full review-packet and ownership-evidence field coverage instead of keeping the older ten-field summary."
+    },
+    {
       "id": "phase15-aggregate-scorecard-metrics",
       "status": "starter_landed",
       "kind": "reporting",
       "zigux_destination": "zigux/tests/phase15_parity_scorecard.json",
-      "why_now": "The scorecard now publishes one machine-checked aggregate metrics block for anchor count, frozen-line footprint, carried-forward Phase 14 evidence, ownership split, reserved decision-record templates, and blocked status-change count so reviewers can understand the parked freeze set without recomputing totals from prose."
+      "why_now": "The scorecard now publishes one machine-checked aggregate metrics block for anchor count, frozen-line footprint, carried-forward Phase 14 evidence, ownership split, reserved decision-record templates, blocked status-change count, and mirrored review-packet field coverage so reviewers can understand the parked freeze set without recomputing totals from prose."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
