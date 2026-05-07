@@ -620,6 +620,22 @@ def run_self_test() -> int:
             print("self-test expected review-checklist marker failure", file=sys.stderr)
             return 1
         write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/review-checklist.md"]) + "\n")
+        broken_scripts_readme = root / "scripts/zigux/README.md"
+        broken_scripts_readme.write_text(
+            broken_scripts_readme.read_text(encoding="utf-8").replace(
+                "Documentation/zigux/phase14-core-boundary-traceability.md\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "missing marker in scripts/zigux/README.md: Documentation/zigux/phase14-core-boundary-traceability.md"
+            in error
+            for error in errors
+        ):
+            print("self-test expected scripts-root marker failure", file=sys.stderr)
+            return 1
+        write_text(root / "scripts/zigux/README.md", "\n".join(REQUIRED_FILE_MARKERS["scripts/zigux/README.md"]) + "\n")
         broken_checker = root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
         broken_checker.write_text(
             "#!/usr/bin/env python3\n"
