@@ -186,6 +186,10 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
+        "\"phase4_review_checklist_blob_sha\": \"e1def97f99abd39d47b9b2fd35ea8c833b4d13c3\"",
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_manifest_source,
         "\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"",
     );
     try expectMarker(phase4_runtime_atomic64_manifest_source, "single bounded replay body");
@@ -262,6 +266,12 @@ test "atomic64 diff wrapper keeps phase4 gate-evidence atomic64 packet pins curr
     );
     defer std.testing.allocator.free(phase4_runtime_atomic64_survey_source);
 
+    const review_checklist_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+    );
+    defer std.testing.allocator.free(review_checklist_source);
+
     try expectPhase4GateEvidenceBlobPin(
         phase4_gate_evidence_source,
         "PHASE4_ATOMIC64_DIFF_BLOB_SHA",
@@ -281,6 +291,11 @@ test "atomic64 diff wrapper keeps phase4 gate-evidence atomic64 packet pins curr
         phase4_gate_evidence_source,
         "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA",
         phase4_runtime_atomic64_survey_source,
+    );
+    try expectPhase4GateEvidenceBlobPin(
+        phase4_gate_evidence_source,
+        "PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA",
+        review_checklist_source,
     );
     try expectMarker(phase4_gate_evidence_source, "- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`");
 }
