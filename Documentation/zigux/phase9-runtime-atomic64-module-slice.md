@@ -42,6 +42,13 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 - the shared `zigux/kernel/runtime_loader.zig` facade stays a review-only Phase 9 handoff packet under the freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary, so the starter keeps the shared request path explicit without implying scheduler-facing substrate closure or a freeze-map status change
 - dedicated Phase 9 tests, the runtime atomic64 survey note and survey gate, the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade plus allocator/init-flow contract packet, and a `make -C zigux phase9` entry
 
+## Roadmap gap vs current pilot
+
+- the Phase 9 roadmap asks this family to grow into one of the first loadable Zigux runtime modules rather than stopping at sample-local evidence.
+- the landed starter therefore remains `starter_landed_without_loadable_runtime_substrate`.
+- the missing capability is a shared runtime substrate that can turn the bounded init, selftest, and exit handoff plan into a real loadable module path.
+- the blocked deliverable is loadable Phase 9 runtime atomic64 pilot module parity.
+
 ## Non-goals
 
 This slice does not yet claim:
