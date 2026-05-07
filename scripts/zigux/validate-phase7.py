@@ -165,6 +165,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/fixtures/phase7_rbtree.json",
         "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
         "make -C zigux phase7-validate",
+        "`make -C zigux phase7`",
         "there is no separate shared `check-phase7-build-inventory.py`",
     ],
     "scripts/zigux/check-phase7-make-wrapper.py": [
@@ -377,6 +378,7 @@ EXACT_COUNT_MARKERS = {
         ("scripts/zigux/check-phase7-rbtree-parity.py", 1),
         ("scripts/zigux/check-phase7-build-wiring.py", 1),
         ("make -C zigux phase7-validate", 1),
+        ("`make -C zigux phase7`", 1),
     ],
     "zigux/Makefile": [
         ("phase7-validate:\n", 1),
