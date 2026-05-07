@@ -90,6 +90,8 @@ pub const ConfigWriteDispositionSummary = struct {
     previous_value: u32,
     planned_value: u32,
     changed_byte_mask: u8,
+    has_changes: bool,
+    changed_byte_count: u8,
 };
 
 pub const TransportIdentitySummary = struct {
@@ -294,6 +296,7 @@ pub const VirtioMmioLab = struct {
 
     pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary {
         const plan = self.pending_config_write orelse return error.ConfigWritePlanUnavailable;
+        const changed_byte_mask = computeChangedByteMask(plan.previous_value, plan.planned_value);
         return .{
             .anchor = plan.anchor,
             .absolute_offset = plan.absolute_offset,
@@ -302,7 +305,9 @@ pub const VirtioMmioLab = struct {
             .config_generation = plan.config_generation,
             .previous_value = plan.previous_value,
             .planned_value = plan.planned_value,
-            .changed_byte_mask = computeChangedByteMask(plan.previous_value, plan.planned_value),
+            .changed_byte_mask = changed_byte_mask,
+            .has_changes = changed_byte_mask != 0,
+            .changed_byte_count = @intCast(@popCount(changed_byte_mask)),
         };
     }
 
@@ -575,10 +580,14 @@ test "phase10 virtio mmio summarizes config-write disposition without mutating c
     try std.testing.expectEqual(@as(u32, 0x90ab_cdef), disposition.previous_value);
     try std.testing.expectEqual(@as(u32, 0x90ab_1200), disposition.planned_value);
     try std.testing.expectEqual(@as(u8, 0b0011), disposition.changed_byte_mask);
+    try std.testing.expect(disposition.has_changes);
+    try std.testing.expectEqual(@as(u8, 2), disposition.changed_byte_count);
 
     _ = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0x90ab_cdef);
     const same_value = try device.configWriteDispositionSummary();
     try std.testing.expectEqual(@as(u8, 0), same_value.changed_byte_mask);
+    try std.testing.expect(!same_value.has_changes);
+    try std.testing.expectEqual(@as(u8, 0), same_value.changed_byte_count);
 
     const config_summary = try device.readConfigOffset(mmio_window_bytes + 4);
     try std.testing.expectEqual(@as(u32, 0x90ab_cdef), config_summary.value);
