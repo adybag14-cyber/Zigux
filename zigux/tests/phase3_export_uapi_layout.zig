@@ -4,10 +4,11 @@ const export_shim = @import("export_shim");
 const uapi_version = @import("uapi_version");
 
 test "phase3 export shim and uapi keep canonical boundary layout" {
-    const header = export_shim.header(0x55);
-    const uapi_header = uapi_version.boundaryHeader(0x55);
-    const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 16, 0x55);
-    const version_mismatch = export_shim.versionedHeader(
+    const header: export_shim.Header = export_shim.header(0x55);
+    const uapi_header: uapi_version.Header = uapi_version.boundaryHeader(0x55);
+    const future_compatible: export_shim.Header =
+        export_shim.compatibleHeader(export_shim.header_size + 16, 0x55);
+    const version_mismatch: export_shim.Header = export_shim.versionedHeader(
         export_shim.header_size,
         export_shim.abi_version + 1,
         0x55,
@@ -17,6 +18,7 @@ test "phase3 export shim and uapi keep canonical boundary layout" {
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(abi.BoundaryHeader, "size"));
     try std.testing.expectEqual(@as(usize, 4), @offsetOf(abi.BoundaryHeader, "abi_version"));
     try std.testing.expectEqual(@as(usize, 6), @offsetOf(abi.BoundaryHeader, "flags"));
+    try std.testing.expectEqual(@sizeOf(export_shim.Header), @sizeOf(uapi_version.Header));
 
     try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.ExportStatus));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(abi.ExportStatus, "code"));
