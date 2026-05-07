@@ -141,3 +141,36 @@ test "hvc_console verify keeps notifier prerequisite failures explicit" {
         .notifier_target_present = true,
     }));
 }
+
+test "hvc_console verify keeps sysrq notifier deferral false without dispatch" {
+    var console = try hvc_console.HvcConsoleLab.init(9);
+    _ = console.instantiate(0x91);
+
+    const detached_sysrq = try console.summarizeSysrqHandoff(.{
+        .console_index_matches_boot_console = false,
+        .sysrq_break_seen = true,
+        .notifier_target_present = true,
+    });
+    try std.testing.expect(!detached_sysrq.console_index_matches_boot_console);
+    try std.testing.expect(detached_sysrq.sysrq_break_seen);
+    try std.testing.expect(!detached_sysrq.sysrq_dispatch_requested);
+    try std.testing.expect(detached_sysrq.notifier_target_present);
+    try std.testing.expect(!detached_sysrq.notifier_callbacks_deferred);
+    try std.testing.expect(detached_sysrq.khvcd_worker_execution_deferred);
+    try std.testing.expect(detached_sysrq.host_io_deferred);
+    try std.testing.expect(detached_sysrq.remove_handoff_still_required);
+
+    const no_break_sysrq = try console.summarizeSysrqHandoff(.{
+        .console_index_matches_boot_console = true,
+        .sysrq_break_seen = false,
+        .notifier_target_present = true,
+    });
+    try std.testing.expect(no_break_sysrq.console_index_matches_boot_console);
+    try std.testing.expect(!no_break_sysrq.sysrq_break_seen);
+    try std.testing.expect(!no_break_sysrq.sysrq_dispatch_requested);
+    try std.testing.expect(no_break_sysrq.notifier_target_present);
+    try std.testing.expect(!no_break_sysrq.notifier_callbacks_deferred);
+    try std.testing.expect(no_break_sysrq.khvcd_worker_execution_deferred);
+    try std.testing.expect(no_break_sysrq.host_io_deferred);
+    try std.testing.expect(no_break_sysrq.remove_handoff_still_required);
+}
