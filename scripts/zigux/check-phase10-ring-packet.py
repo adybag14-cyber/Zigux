@@ -410,7 +410,6 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_lane_key_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
-        manifest_path.writeText = None
         manifest_path.write_text(
             original_manifest.replace('\"freeze_boundary_status\": \"aligned\"', '\"freeze_boundary_status\": \"drifted\"', 1),
             encoding="utf-8",
