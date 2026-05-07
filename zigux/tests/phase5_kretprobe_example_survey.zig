@@ -384,6 +384,17 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
     defer std.testing.allocator.free(review_guide);
 
     const review_guide_markers = [_][]const u8{
+        "### `kretprobe_example`",
+        "`Documentation/zigux/phase5-kretprobe-sample-survey.md`",
+        "`zigux/tests/phase5_kretprobe_example.zig`",
+        "`zigux/tests/phase5_kretprobe_example_manifest.json`",
+        "`zigux/tests/phase5_kretprobe_example_survey.zig`",
+        "pre-init retargeting",
+        "`runLifecycleGuardReplay()` plus the pre-init and post-init guard boundaries",
+        "the fixed `maxactiveBudget()` cue at `20`",
+        "`runRecoveryReplay()` plus outstanding-instance rejection",
+        "timestamp-order rejection and recovery plus post-exit handler rejection",
+        "the sample-owned lifecycle summary packet",
         "Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, or direct `*bitmap*` Phase 5 reference sample.",
         "tools/lib/bitmap.zig",
         "Documentation/zigux/phase1-closure.md",
