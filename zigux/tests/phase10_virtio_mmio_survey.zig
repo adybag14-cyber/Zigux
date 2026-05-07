@@ -123,6 +123,8 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-core-packet.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-ring-packet.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-input-packet.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_ring_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_input_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shorter restaged config window clears stale second-word data") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "plans one bounded config-word write") != null);
@@ -143,6 +145,8 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_STATUS=parked") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_ring_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_input_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-word write planning summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-write disposition summary") != null);
