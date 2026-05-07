@@ -59,6 +59,14 @@ pub const SelftestSummary = struct {
     checked_lifecycle_paths: bool,
 };
 
+pub const LifecycleSnapshot = struct {
+    stage: ModuleStage,
+    init_runs: usize,
+    selftest_runs: usize,
+    exit_runs: usize,
+    allows_mutation: bool,
+};
+
 pub const RuntimeBitmapSample = struct {
     const Self = @This();
 
@@ -87,15 +95,30 @@ pub const RuntimeBitmapSample = struct {
         };
     }
 
+    fn stageAllowsMutation(current_stage: ModuleStage) bool {
+        return switch (current_stage) {
+            .initialized, .selftest_complete => true,
+            else => false,
+        };
+    }
+
     pub fn stage(self: *const Self) ModuleStage {
         return self.stage_state;
     }
 
-    fn ensureMutable(self: *const Self) !void {
-        return switch (self.stage()) {
-            .initialized, .selftest_complete => {},
-            else => error.InvalidLifecycleTransition,
+    pub fn lifecycleSnapshot(self: *const Self) LifecycleSnapshot {
+        const current_stage = self.stage();
+        return .{
+            .stage = current_stage,
+            .init_runs = self.init_runs,
+            .selftest_runs = self.selftest_runs,
+            .exit_runs = self.exit_runs,
+            .allows_mutation = stageAllowsMutation(current_stage),
         };
+    }
+
+    fn ensureMutable(self: *const Self) !void {
+        if (!stageAllowsMutation(self.stage())) return error.InvalidLifecycleTransition;
     }
 
     fn validateRange(start: u32, len: u32) !void {
@@ -228,6 +251,41 @@ test "runtime bitmap sample review contract keeps bounded starter focus explicit
     }
 }
 
+test "runtime bitmap sample lifecycle snapshot keeps stage-owned counters explicit" {
+    var module = RuntimeBitmapSample{};
+
+    const cold = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.cold, cold.stage);
+    try std.testing.expectEqual(@as(usize, 0), cold.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold.exit_runs);
+    try std.testing.expect(!cold.allows_mutation);
+
+    try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 });
+    const initialized = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.initialized, initialized.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.exit_runs);
+    try std.testing.expect(initialized.allows_mutation);
+
+    _ = try module.runSelftest();
+    const selftested = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, selftested.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftested.exit_runs);
+    try std.testing.expect(selftested.allows_mutation);
+
+    try module.exit();
+    const exited = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, exited.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);
+    try std.testing.expect(!exited.allows_mutation);
+}
+
 test "runtime bitmap sample review contract stays aligned with the selftest packet" {
     var module = RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 });
@@ -301,8 +359,10 @@ test "runtime bitmap sample failed init leaves the sample cold and empty" {
     var module = RuntimeBitmapSample{};
 
     try std.testing.expectError(error.BitRangeOutOfBounds, module.initWithSetBits(&.{ 1, RuntimeBitmapSample.bitmap_nbits }));
-    try std.testing.expectEqual(ModuleStage.cold, module.stage());
-    try std.testing.expectEqual(@as(usize, 0), module.init_runs);
+    const failed_init = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.cold, failed_init.stage);
+    try std.testing.expectEqual(@as(usize, 0), failed_init.init_runs);
+    try std.testing.expect(!failed_init.allows_mutation);
 
     const summary = module.summary();
     try std.testing.expectEqual(@as(u32, RuntimeBitmapSample.bitmap_nbits), summary.first_set);
@@ -311,8 +371,10 @@ test "runtime bitmap sample failed init leaves the sample cold and empty" {
     try std.testing.expect(!module.isSet(1));
 
     try module.initWithSetBits(&.{1});
-    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    const initialized = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.initialized, initialized.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized.init_runs);
+    try std.testing.expect(initialized.allows_mutation);
     try std.testing.expect(module.isSet(1));
 }
 
@@ -357,8 +419,12 @@ test "runtime bitmap sample keeps exit-path summaries stable" {
     try initialized.exit();
 
     const after_initialized_exit = initialized.summary();
-    try std.testing.expectEqual(ModuleStage.exited, initialized.stage());
-    try std.testing.expectEqual(@as(usize, 1), initialized.exit_runs);
+    const initialized_snapshot = initialized.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, initialized_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.exit_runs);
+    try std.testing.expect(!initialized_snapshot.allows_mutation);
     try std.testing.expectEqual(before_initialized_exit.first_set, after_initialized_exit.first_set);
     try std.testing.expectEqual(before_initialized_exit.first_zero, after_initialized_exit.first_zero);
     try std.testing.expectEqual(before_initialized_exit.weight, after_initialized_exit.weight);
@@ -376,9 +442,12 @@ test "runtime bitmap sample keeps exit-path summaries stable" {
     try selftested.exit();
 
     const after_selftested_exit = selftested.summary();
-    try std.testing.expectEqual(ModuleStage.exited, selftested.stage());
-    try std.testing.expectEqual(@as(usize, 1), selftested.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 1), selftested.exit_runs);
+    const selftested_snapshot = selftested.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, selftested_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_snapshot.exit_runs);
+    try std.testing.expect(!selftested_snapshot.allows_mutation);
     try std.testing.expectEqual(before_selftested_exit.first_set, after_selftested_exit.first_set);
     try std.testing.expectEqual(before_selftested_exit.first_zero, after_selftested_exit.first_zero);
     try std.testing.expectEqual(before_selftested_exit.weight, after_selftested_exit.weight);
