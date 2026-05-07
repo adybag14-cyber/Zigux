@@ -315,4 +315,10 @@ test "phase12 libbpf survey note records the full landed helper set" {
     try std.testing.expect(std.mem.indexOf(u8, note, "make -C zigux phase12") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "deterministic tracked-helper snapshot fixture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "rolls back by restoring the last truthful libbpf-survey wording in this note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "If `zig` is absent from `PATH`, keep that same smoke-first order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "not a validator-first, libbpf-only, or `phase12-validate` route") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`Documentation/zigux/phase12-release-closure-checklist.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`Documentation/zigux/phase12-release-coordination-matrix.md`") != null);
 }
