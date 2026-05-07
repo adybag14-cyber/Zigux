@@ -40,6 +40,14 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch");
     try expectContains(note, "non-ready wait observations cannot claim record processing");
     try expectContains(note, "reject impossible post-wait buffer state combinations");
+    try expectContains(note, "make -C zigux phase8-validate");
+    try expectContains(note, "python3 scripts/zigux/validate-phase8.py --self-test");
+    try expectContains(note, "python3 scripts/zigux/validate-phase8.py");
+    try expectContains(note, "make -C zigux phase8-perf-buffer-poll-test");
+    try expectContains(note, "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all");
+    try expectContains(note, "make -C zigux phase8-test");
+    try expectContains(note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
+    try expectContains(note, "make -C zigux phase8");
     try expectContains(note, "no standalone timer helper");
     try expectContains(note, "no standalone clockevent helper");
 }
@@ -230,10 +238,11 @@ test "phase 8 perf-buffer poll helper keeps the final return-path choice explici
     const successful = try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(12, 3, &.{
         .{ .ready = true },
         .{ .ready = true },
-        .{ .error_code = -32 },
+        .{ .ready = true },
     }, &.{
         .{ .records_processed = 4 },
         .{ .records_processed = 2 },
+        .{ .records_processed = 1 },
     });
     try std.testing.expectEqual(perf_buffer_poll.PollReturnDisposition.ready_count, successful.disposition);
     try std.testing.expectEqual(@as(i32, 3), successful.return_value);
