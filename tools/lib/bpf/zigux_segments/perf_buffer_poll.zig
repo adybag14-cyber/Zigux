@@ -133,6 +133,7 @@ pub const PollError = error{
     FailedObservationHasBufferState,
     ReadyBufferProcessingExceedsReadyCount,
     ReadyBufferProcessingExceedsObservedEvents,
+    SuccessfulReadyWaitProcessedFewerBuffersThanObservedEvents,
     NonReadyWaitHasProcessedRecords,
     FailedWaitMissingError,
 };
@@ -389,6 +390,9 @@ pub fn summarizePollExecution(
             }
             if (process.attempted_count > poll.observed_ready_events) {
                 return PollError.ReadyBufferProcessingExceedsObservedEvents;
+            }
+            if (process.first_error == null and process.completed_count != poll.observed_ready_events) {
+                return PollError.SuccessfulReadyWaitProcessedFewerBuffersThanObservedEvents;
             }
         },
         .timeout, .interrupted, .failed => {
@@ -739,6 +743,18 @@ test "summarizePollExecution rejects process attempts beyond counted ready buffe
     );
 }
 
+test "summarizePollExecution rejects successful ready waits that process fewer buffers than epoll reported" {
+    try std.testing.expectError(
+        PollError.SuccessfulReadyWaitProcessedFewerBuffersThanObservedEvents,
+        summarizePollExecution(5, .{ .ready_events = 2 }, &.{
+            .{ .ready = true },
+            .{ .ready = true },
+        }, &.{
+            .{ .records_processed = 1 },
+        }),
+    );
+}
+
 test "summarizePollExecutionFromWaitResult keeps raw wait-result normalization coupled to execution bookkeeping" {
     const buffers = [_]BufferObservation{
         .{ .ready = true },
@@ -767,6 +783,7 @@ test "resolvePollExecutionResult keeps perf_buffer__poll return-path choices exp
     }, &.{
         .{ .records_processed = 4 },
         .{ .records_processed = 2 },
+        .{ .records_processed = 1 },
     });
     const successful_result = try resolvePollExecutionResult(successful_execution);
     try std.testing.expectEqual(PollReturnDisposition.ready_count, successful_result.disposition);
@@ -793,6 +810,7 @@ test "summarizePollExecutionResultFromWaitResult keeps ready-count versus first-
     }, &.{
         .{ .records_processed = 4 },
         .{ .records_processed = 2 },
+        .{ .records_processed = 1 },
     });
     try std.testing.expectEqual(PollReturnDisposition.ready_count, successful_result.disposition);
     try std.testing.expectEqual(@as(i32, 3), successful_result.return_value);
