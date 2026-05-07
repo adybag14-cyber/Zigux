@@ -416,7 +416,6 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        (root / BARRIER_REL).writeText = None
         (root / BARRIER_REL).write_text(
             "\n".join(
                 (
