@@ -7,7 +7,6 @@ import shutil
 import sys
 import tempfile
 
-
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
@@ -47,7 +46,6 @@ REQUIRED_CONTRACT_MARKERS = [
     "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`",
     "there is no broader multi-checker Phase 11 validator stack on `master`",
 ]
-
 REQUIRED_BCM2835_WDT_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
     "`zigux/tests/README.md`",
@@ -56,7 +54,6 @@ REQUIRED_BCM2835_WDT_MATRIX_MARKERS = [
     "`phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet",
     "keep `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from either the shipped shared replay route or the dedicated bcm2835 archival packet",
 ]
-
 REQUIRED_GPIO_WDT_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
     "`zigux/tests/README.md`",
@@ -64,7 +61,6 @@ REQUIRED_GPIO_WDT_MATRIX_MARKERS = [
     "`drivers/watchdog/gpio_wdt.zig`",
     "keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route or the focused shared header-boundary packet",
 ]
-
 REQUIRED_DW_WDT_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
     "`zigux/tests/README.md`",
@@ -73,7 +69,6 @@ REQUIRED_DW_WDT_MATRIX_MARKERS = [
     "`phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet",
     "keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route or the focused shared header-boundary packet",
 ]
-
 REQUIRED_HVC_CONSOLE_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
     "`zigux/tests/README.md`",
@@ -83,13 +78,11 @@ REQUIRED_HVC_CONSOLE_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned with this matrix whenever the shared-versus-dedicated HVC replay split changes so the dedicated `hvc_cleanup()` teardown replay and the compile-local `hvc_console_verify` replay stay explicit inside the wider Phase 11 packet, the focused shared header-boundary packet stays visible beside them, and the dedicated archival `phase11-hvc-survey` route keeps failing closed",
 ]
-
 REQUIRED_DOCS_README_MARKERS = [
     "Phase 11 notes",
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
     "`scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` now keep the shared-versus-dedicated Phase 11 packet honest: the shipped contract checker plus the focused header-boundary checker, the shared build-and-make packet, the dedicated `hvc_console` survey note and replay, the bounded `hvc_cleanup()` handoff, the focused shared header-boundary note and manifest-backed survey replay, and the four driver-local validation matrices all remain reviewable without implying a removed `validate-phase11.py`, a missing build inventory, or a broader validator stack than the shipped `check-phase11-shared-replay-contract.py` plus `check-phase11-header-boundary-packet.py` routes on `master`.",
 ]
-
 REQUIRED_SCRIPT_README_MARKERS = [
     "Phase 11 flow",
     "- the current shared Phase 11 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
@@ -97,37 +90,167 @@ REQUIRED_SCRIPT_README_MARKERS = [
     "`python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test` and `check-phase11-shared-replay-contract.py` keep the docs-root summary, scripts-root, replay-contract note, Makefile, and workflow contract fail-closed while preserving the dedicated archival survey split.",
     "there is no dedicated shared `validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, or `phase11-validate` target on `master`",
 ]
-
 REQUIRED_TESTS_README_MARKERS = [
     "keep the shared-versus-dedicated Phase 11 simple-driver packet explicit in the tests root too:",
     "`Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `zig build test --build-file zigux/tests/phase11_build.zig`, and `make -C zigux phase11` should continue to keep the shipped shared replay route, the focused shared header-boundary packet, the dedicated `hvc_console` archival survey note and replay, the bounded `hvc_cleanup()` teardown handoff, and the four driver-local validation matrices reviewable from the tests root without implying a removed `validate-phase11.py`, a shipped `zigux/tests/fixtures/phase11_build_inventory.json`, or a broader checker-script packet that does not exist on `master`",
 ]
-
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "* if the change touches the shared Phase 11 simple-driver packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `zig build test --build-file zigux/tests/phase11_build.zig`, and `make -C zigux phase11` still agree on the same shared-versus-dedicated replay split, the focused header-boundary note plus manifest-backed survey packet, the four driver-local validation matrices, the bounded `hvc_cleanup()` teardown handoff, and the dedicated archival `hvc_console` survey without implying a removed `validate-phase11.py`, missing build-inventory fixture, or a broader validator stack than the shipped `check-phase11-shared-replay-contract.py` plus `check-phase11-header-boundary-packet.py` routes on `master`?",
 ]
-
 REQUIRED_MAKEFILE_MARKERS = [
     "PHONY += phase11-contract phase11-test phase11-hvc-survey phase11",
     "phase11-contract:",
     "$(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py",
     "phase11: phase11-contract phase11-test phase11-hvc-survey",
 ]
-
 REQUIRED_WORKFLOW_MARKERS = [
     "Self-test Phase 11 shared replay contract checker",
     "python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
     "Run Phase 11 shared replay contract checker",
     "make -C zigux phase11-contract",
 ]
-
 FORBIDDEN_CONTRACT_MARKERS = [
     "there is no dedicated shared `validate-phase11.py` or `phase11-validate` packet on current `master`",
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 19
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 20
+
+TARGETS = [
+    (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
+    (BCM2835_WDT_MATRIX_PATH, REQUIRED_BCM2835_WDT_MATRIX_MARKERS, "bcm2835_wdt_matrix"),
+    (GPIO_WDT_MATRIX_PATH, REQUIRED_GPIO_WDT_MATRIX_MARKERS, "gpio_wdt_matrix"),
+    (DW_WDT_MATRIX_PATH, REQUIRED_DW_WDT_MATRIX_MARKERS, "dw_wdt_matrix"),
+    (HVC_CONSOLE_MATRIX_PATH, REQUIRED_HVC_CONSOLE_MATRIX_MARKERS, "hvc_console_matrix"),
+    (DOCS_README_PATH, REQUIRED_DOCS_README_MARKERS, "docs_readme"),
+    (SCRIPTS_README_PATH, REQUIRED_SCRIPT_README_MARKERS, "scripts_readme"),
+    (TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS, "tests_readme"),
+    (REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS, "review_checklist"),
+    (MAKEFILE_PATH, REQUIRED_MAKEFILE_MARKERS, "makefile"),
+    (WORKFLOW_PATH, REQUIRED_WORKFLOW_MARKERS, "workflow"),
+]
+
+SELF_TEST_CASES = [
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[10], REQUIRED_CONTRACT_MARKERS[10]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[7], REQUIRED_CONTRACT_MARKERS[7]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[11], REQUIRED_CONTRACT_MARKERS[11]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[1], REQUIRED_CONTRACT_MARKERS[1]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[5], REQUIRED_CONTRACT_MARKERS[5]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[15], REQUIRED_CONTRACT_MARKERS[15]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[16], REQUIRED_CONTRACT_MARKERS[16]),
+    (DOCS_README_PATH, "docs_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_DOCS_README_MARKERS[2]),
+    (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
+    (TESTS_README_PATH, "tests_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_TESTS_README_MARKERS[1]),
+    (REVIEW_CHECKLIST_PATH, "review_checklist", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
+    (MAKEFILE_PATH, "makefile", REQUIRED_MAKEFILE_MARKERS[2], REQUIRED_MAKEFILE_MARKERS[2]),
+    (WORKFLOW_PATH, "workflow", REQUIRED_WORKFLOW_MARKERS[1], REQUIRED_WORKFLOW_MARKERS[1]),
+    (GPIO_WDT_MATRIX_PATH, "gpio_wdt_matrix", REQUIRED_GPIO_WDT_MATRIX_MARKERS[3], REQUIRED_GPIO_WDT_MATRIX_MARKERS[3]),
+    (BCM2835_WDT_MATRIX_PATH, "bcm2835_wdt_matrix", REQUIRED_BCM2835_WDT_MATRIX_MARKERS[4], REQUIRED_BCM2835_WDT_MATRIX_MARKERS[4]),
+    (DW_WDT_MATRIX_PATH, "dw_wdt_matrix", REQUIRED_DW_WDT_MATRIX_MARKERS[4], REQUIRED_DW_WDT_MATRIX_MARKERS[4]),
+    (HVC_CONSOLE_MATRIX_PATH, "hvc_console_matrix", REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[3], REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[3]),
+    (HVC_CONSOLE_MATRIX_PATH, "hvc_console_matrix", REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[4], REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[4]),
+    (HVC_CONSOLE_MATRIX_PATH, "hvc_console_matrix", REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[5], REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[5]),
+    (HVC_CONSOLE_MATRIX_PATH, "hvc_console_matrix", "compile-local `hvc_console_verify` replay stay explicit inside the wider Phase 11 packet", REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[6]),
+]
+
+FIXTURE_CONTENT = {
+    PHASE11_CONTRACT_PATH: "\n".join(REQUIRED_CONTRACT_MARKERS) + "\n",
+    BCM2835_WDT_MATRIX_PATH: "\n".join(REQUIRED_BCM2835_WDT_MATRIX_MARKERS) + "\n",
+    GPIO_WDT_MATRIX_PATH: "\n".join(REQUIRED_GPIO_WDT_MATRIX_MARKERS) + "\n",
+    DW_WDT_MATRIX_PATH: "\n".join(REQUIRED_DW_WDT_MATRIX_MARKERS) + "\n",
+    HVC_CONSOLE_MATRIX_PATH: "\n".join(REQUIRED_HVC_CONSOLE_MATRIX_MARKERS) + "\n",
+    DOCS_README_PATH: "\n".join(REQUIRED_DOCS_README_MARKERS) + "\n",
+    SCRIPTS_README_PATH: "\n".join(REQUIRED_SCRIPT_README_MARKERS) + "\n",
+    TESTS_README_PATH: "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n",
+    REVIEW_CHECKLIST_PATH: "\n".join(REQUIRED_REVIEW_CHECKLIST_MARKERS) + "\n",
+    MAKEFILE_PATH: "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n",
+    WORKFLOW_PATH: "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n",
+}
 
 
-def read_text(root: Path) -> str:
+def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
+
+
+def validate(root: Path) -> list[str]:
+    failures: list[str] = []
+    for rel_path, markers, label in TARGETS:
+        path = root / rel_path
+        if not path.exists():
+            failures.append(f"missing_file:{rel_path}")
+            continue
+        text = read_text(root, rel_path)
+        for marker in markers:
+            if marker not in text:
+                failures.append(f"{label}:{marker}")
+    if failures:
+        return failures
+    phase11_contract = read_text(root, PHASE11_CONTRACT_PATH)
+    scripts_readme = read_text(root, SCRIPTS_README_PATH)
+    for marker in FORBIDDEN_CONTRACT_MARKERS:
+        if marker in phase11_contract or marker in scripts_readme:
+            failures.append(f"forbidden_marker:{marker}")
+    return failures
+
+
+def write(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def write_fixture_tree(root: Path) -> None:
+    if root.exists():
+        shutil.rmtree(root)
+    for rel_path, content in FIXTURE_CONTENT.items():
+        write(root / rel_path, content)
+
+
+def expect_failure(root: Path, rel_path: str, label: str, marker: str, expected_marker: str) -> None:
+    path = root / rel_path
+    original = path.read_text(encoding="utf-8")
+    path.write_text(original.replace(marker, "", 1), encoding="utf-8")
+    failures = validate(root)
+    expected_failure = f"{label}:{expected_marker}"
+    if expected_failure not in failures:
+        raise AssertionError(f"missing expected failure {expected_failure!r}; got {failures!r}")
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="phase11_contract_") as tmpdir:
+        root = Path(tmpdir)
+        write_fixture_tree(root)
+        failures = validate(root)
+        if failures:
+            for failure in failures:
+                print(failure, file=sys.stderr)
+            return 1
+        for rel_path, label, marker, expected_marker in SELF_TEST_CASES:
+            write_fixture_tree(root)
+            try:
+                expect_failure(root, rel_path, label, marker, expected_marker)
+            except AssertionError as exc:
+                print(exc, file=sys.stderr)
+                return 1
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELFTEST=pass")
+    print(f"PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT={PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Check the shipped Phase 11 shared replay contract.")
+    parser.add_argument("--self-test", action="store_true", help="exercise the checker against a synthetic fixture tree")
+    parser.add_argument("--root", type=Path, default=ROOT, help="repository root to validate")
+    args = parser.parse_args()
+    if args.self_test:
+        return run_self_test()
+    failures = validate(args.root)
+    if failures:
+        for failure in failures:
+            print(failure, file=sys.stderr)
+        return 1
+    print("PHASE11_SHARED_REPLAY_CONTRACT=pass")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
