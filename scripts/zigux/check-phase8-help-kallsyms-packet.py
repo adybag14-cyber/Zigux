@@ -18,6 +18,7 @@ REQUIRED_FILES = [
     "tools/lib/subcmd/help.zig",
     "tools/lib/symbol/kallsyms.zig",
     "zigux/Makefile",
+    "zigux/tests/README.md",
     "zigux/tests/phase8_help.zig",
     "zigux/tests/phase8_help_only_build.zig",
     "zigux/tests/phase8_help_kallsyms_only_build.zig",
@@ -47,7 +48,6 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-validate",
         "Run focused Phase 8 help and kallsyms tests",
         "make -C zigux phase8-help-kallsyms-test",
-        "zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all",
     ],
     "tools/lib/subcmd/help.zig": [
         "pub fn loadCommandListsFromSource",
@@ -70,6 +70,11 @@ REQUIRED_MARKERS = {
         "phase8-help-test:",
         "phase8-help-kallsyms-test:",
         "phase8-kallsyms-test:",
+    ],
+    "zigux/tests/README.md": [
+        "zigux/tests/phase8_help_kallsyms_only_build.zig",
+        "make -C zigux phase8-help-kallsyms-test",
+        "shared help-and-symbol replay",
     ],
     "zigux/tests/phase8_help.zig": [
         "phase 8 help slice note keeps helper-first output-stable tooling posture and non-goals explicit",
@@ -126,6 +131,7 @@ FIXTURE_OVERRIDES = {
     )
     + "\n",
     "zigux/Makefile": "\n".join(REQUIRED_MARKERS["zigux/Makefile"]) + "\n",
+    "zigux/tests/README.md": "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n",
     "zigux/tests/phase8_help.zig": "\n".join(
         REQUIRED_MARKERS["zigux/tests/phase8_help.zig"]
     )
@@ -207,6 +213,7 @@ def run_self_test() -> None:
         ("missing_help_helper", "tools/lib/subcmd/help.zig"),
         ("missing_kallsyms_helper", "tools/lib/symbol/kallsyms.zig"),
         ("missing_makefile", "zigux/Makefile"),
+        ("missing_tests_readme", "zigux/tests/README.md"),
         ("missing_combined_build", "zigux/tests/phase8_help_kallsyms_only_build.zig"),
     ]
 
@@ -273,6 +280,27 @@ def run_self_test() -> None:
             "scripts/zigux/check-phase8-help-kallsyms-packet.py --self-test",
             "scripts/zigux/check-phase8-help-kallsyms-surface.py --self-test",
             "zigux/Makefile: scripts/zigux/check-phase8-help-kallsyms-packet.py --self-test",
+        ),
+        (
+            "tests_readme_combined_build_anchor",
+            "zigux/tests/README.md",
+            "zigux/tests/phase8_help_kallsyms_only_build.zig",
+            "zigux/tests/phase8_help_symbol_only_build.zig",
+            "zigux/tests/README.md: zigux/tests/phase8_help_kallsyms_only_build.zig",
+        ),
+        (
+            "tests_readme_combined_make_route",
+            "zigux/tests/README.md",
+            "make -C zigux phase8-help-kallsyms-test",
+            "make -C zigux phase8-help-test",
+            "zigux/tests/README.md: make -C zigux phase8-help-kallsyms-test",
+        ),
+        (
+            "tests_readme_combined_phrase",
+            "zigux/tests/README.md",
+            "shared help-and-symbol replay",
+            "shared help replay",
+            "zigux/tests/README.md: shared help-and-symbol replay",
         ),
         (
             "combined_build_workflow_label",
