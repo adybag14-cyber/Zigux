@@ -38,6 +38,7 @@ SURVEY_EXACT_MARKERS = (
     f"`PHASE3_UAPI_VERSION_PATH={UAPI_VERSION_REL}`",
     f"`PHASE3_LINUX_HEADER_PATH={LINUX_HEADER_REL}`",
     f"`PHASE3_ABI_HEADER_PATH={ABI_HEADER_REL}`",
+    f"`PHASE3_EXPORT_UAPI_LAYOUT_PATH={EXPORT_UAPI_LAYOUT_REL}`",
 )
 
 SURVEY_BLOB_MARKERS = (
@@ -120,7 +121,7 @@ DOCS_ROOT_REQUIRED_MARKERS = (
 
 SCRIPTS_README_REQUIRED_MARKERS = (
     "`validate-phase3-export-uapi-survey.py`",
-    "`validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, the canonical ABI headers, and the workflow hooks that rerun that same survey surface.",
+    "`validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, the canonical ABI headers, and the workflow hooks that rerun that same survey surface.",
 )
 
 WORKFLOW_REQUIRED_MARKERS = (
@@ -395,13 +396,15 @@ def run_self_test() -> int:
                 f"- `PHASE3_LINUX_HEADER_BLOB_SHA={blob_sha(root / LINUX_HEADER_REL)}`",
                 f"- `PHASE3_ABI_HEADER_PATH={ABI_HEADER_REL}`",
                 f"- `PHASE3_ABI_HEADER_BLOB_SHA={blob_sha(root / ABI_HEADER_REL)}`",
+                f"- `PHASE3_EXPORT_UAPI_LAYOUT_PATH={EXPORT_UAPI_LAYOUT_REL}`",
                 "",
                 "## Live Boundary",
                 "",
-                "The blob markers above are the authoritative packet-local evidence for the currently shipped export shim, starter UAPI helper, Linux-facing aggregation header, and canonical ABI header in this connector-only run.",
+                "The blob markers above are the authoritative packet-local evidence for the currently shipped export shim, starter UAPI helper, Linux-facing aggregation header, canonical ABI header, and focused layout replay in this connector-only run.",
                 "",
                 "- `zigux/kernel/export_shim.zig` keeps the starter export boundary narrow by relaying the shared boundary-header helpers from `zigux/uapi/version.zig` and by normalizing explicit success or errno-style export status values.",
                 "- `zigux/uapi/version.zig` keeps the starter UAPI version contract reviewable through canonical versus future-compatible boundary-header helpers without widening into a broader UAPI packet.",
+                "- `zigux/tests/phase3_export_uapi_layout.zig` keeps the focused layout replay explicit by pinning canonical boundary-header size, field offsets, compatibility, and canonicalization behavior across the export shim and starter UAPI helper.",
                 "- `include/linux/zigux.h` remains the Linux-facing aggregation header for already-landed Phase 3 boundary helpers, including the explicit `zigux_status_ok()` and `zigux_status_err()` relay surface.",
                 "- `include/zigux/abi.h` remains the canonical ABI layout source of truth for `struct zigux_boundary_header`, `struct zigux_export_status`, and the shared version and status flags those starter helpers depend on.",
                 "",
@@ -435,7 +438,7 @@ def run_self_test() -> int:
                 (
                     "# scripts/zigux",
                     "- `validate-phase3-export-uapi-survey.py`",
-                    "- `validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, the canonical ABI headers, and the workflow hooks that rerun that same survey surface.",
+                    "- `validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, the canonical ABI headers, and the workflow hooks that rerun that same survey surface.",
                     "",
                 )
             ),
