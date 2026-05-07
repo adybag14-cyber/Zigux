@@ -27,6 +27,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
+- `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
 - `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-until-a-real-policy-or-unsafe-helper-expansion-lands`
 
@@ -53,8 +54,8 @@ The current tree still carries a real bounded policy-and-unsafe packet, but it i
 - `zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, and `permitsGlobalFallbackPolicyBytes` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.
 - `zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.
 - `zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, and `write32()` rather than widening into a larger policy substrate.
-- `scripts/zigux/check-phase3-policy-byte-guards.py` now gives the shared ABI check path a dedicated reserved-byte guard across the policy helpers and this survey note instead of leaving that contract implicit.
-- `zigux/tests/phase3_abi.zig` is the live shared Zig proof packet that imports these helpers today, and `zigux/tests/phase3_abi_dump.zig` keeps the ABI-side `InteropPolicy` and `MmioRange` layout and constant evidence visible on the shared dump path.
+- `scripts/zigux/check-phase3-policy-byte-guards.py` now gives the shared ABI check path a dedicated reserved-byte guard across the policy helpers, this survey note, and the explicit shared dump gate instead of leaving that contract implicit.
+- `zigux/tests/phase3_abi.zig` is the live shared Zig proof packet that imports these helpers today, and `zigux/tests/phase3_abi_dump.zig` plus the shared `zig build phase3-dump --build-file zigux/tests/build.zig` route keep the ABI-side `InteropPolicy` and `MmioRange` layout and constant evidence visible on the dump path.
 - `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat these helpers as part of the shared `abi` slice.
 
 The current tree still does not ship a dedicated `phase3_policy_unsafe` replay pair or a broader policy-and-unsafe helper family. This note should stay tied to the real shared ABI packet instead of claiming more than that.
