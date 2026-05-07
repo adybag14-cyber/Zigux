@@ -220,6 +220,52 @@ test "runtime bitmap loader keeps the prepared snapshot stable across later bitm
     try std.testing.expectEqual(runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits, pending_plan.summary.nbits);
 }
 
+test "runtime bitmap loader keeps the cached summary stable when a shared request is prepared before later bitmap mutation" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var loader = RuntimeBitmapLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    const prepared_plan = loader.cached_plan orelse unreachable;
+    try std.testing.expectEqual(@as(u32, 0), prepared_plan.summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), prepared_plan.summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 4), prepared_plan.summary.weight);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        shared_request.plan,
+    ));
+
+    try module.clearRange(0, 1);
+    try module.setRange(9, 4);
+
+    const live_summary = module.summary();
+    const pending_shared_plan = try loader.requestSharedRuntimeLoad(&shared_request);
+    const cached_pending_plan = loader.cached_plan orelse unreachable;
+
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expectEqual(@as(u32, 5), live_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), live_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 7), live_summary.weight);
+    try std.testing.expectEqual(@as(u32, 0), cached_pending_plan.summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), cached_pending_plan.summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 4), cached_pending_plan.summary.weight);
+    try std.testing.expectEqual(runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits, cached_pending_plan.summary.nbits);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, pending_shared_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 1), pending_shared_plan.init_flow.selftest_runs);
+    try std.testing.expect(pending_shared_plan.provides_selftest_hook);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_shared_plan,
+    ));
+}
+
 test "runtime bitmap loader emits the shared runtime-loader contract plan" {
     var module = runtime_bitmap_sample.RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, 64, 70 });
