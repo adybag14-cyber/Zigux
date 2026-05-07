@@ -45,6 +45,27 @@ test "phase 6 base64 module imports cleanly" {
     _ = base64;
 }
 
+test "phase 6 base64 paddedChars keeps the kernel-style padded sizing explicit" {
+    const cases = [_]struct {
+        len: usize,
+        expected: usize,
+    }{
+        .{ .len = 0, .expected = 0 },
+        .{ .len = 1, .expected = 4 },
+        .{ .len = 2, .expected = 4 },
+        .{ .len = 3, .expected = 4 },
+        .{ .len = 4, .expected = 8 },
+        .{ .len = 5, .expected = 8 },
+        .{ .len = 6, .expected = 8 },
+        .{ .len = 7, .expected = 12 },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected, base64.paddedChars(case.len));
+        try std.testing.expectEqual(case.expected, base64.chars(case.len, true));
+    }
+}
+
 test "phase 6 base64 chars reports exact padded and unpadded lengths" {
     const cases = [_]struct {
         len: usize,
@@ -84,6 +105,34 @@ test "phase 6 base64 bytes reports exact decoded lengths for kernel-aligned vect
 
     for (cases) |case| {
         try std.testing.expectEqual(case.expected, try base64.bytes(case.input, case.padding, case.variant));
+    }
+}
+
+test "phase 6 base64 maxDecodedBytes keeps the public decode bound reviewable" {
+    const cases = [_]struct {
+        nchars: usize,
+        expected: usize,
+    }{
+        .{ .nchars = 0, .expected = 0 },
+        .{ .nchars = 1, .expected = 0 },
+        .{ .nchars = 2, .expected = 1 },
+        .{ .nchars = 3, .expected = 2 },
+        .{ .nchars = 4, .expected = 3 },
+        .{ .nchars = 5, .expected = 3 },
+        .{ .nchars = 6, .expected = 4 },
+        .{ .nchars = 7, .expected = 5 },
+        .{ .nchars = 8, .expected = 6 },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected, base64.maxDecodedBytes(case.nchars));
+    }
+
+    for (fixtures.standard_decode_cases) |case| {
+        try std.testing.expect(base64.maxDecodedBytes(case.input.len) >= case.expected.len);
+    }
+    for (fixtures.variant_decode_cases) |case| {
+        try std.testing.expect(base64.maxDecodedBytes(case.input.len) >= case.expected.len);
     }
 }
 
