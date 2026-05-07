@@ -298,7 +298,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         fused_dev_t_issues = validate_bindings(dev_t_bindings)
-        assert fused_dev_t_issues == [f"{dev_t_bindings}:1:{FUSED_MARKER.strip()}]
+        assert fused_dev_t_issues == [f"{dev_t_bindings}:1:{FUSED_MARKER.strip()}"]
 
         dev_t_bindings.write_text(
             "\n".join(
@@ -317,7 +317,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         fused_notifier_issues = validate_bindings(notifier_bindings)
-        assert fused_notifier_issues == [f"{notifier_bindings}:1:{FUSED_MARKER.strip()}]
+        assert fused_notifier_issues == [f"{notifier_bindings}:1:{FUSED_MARKER.strip()}"]
 
         notifier_bindings.write_text(
             "\n".join(
