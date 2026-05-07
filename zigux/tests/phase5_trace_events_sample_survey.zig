@@ -232,3 +232,34 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[2], "kernel thread scheduling or timeout parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[3], "module registration or unregister wiring parity"));
 }
+
+test "phase 5 trace-events survey packet keeps the formatting boundary aligned" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-trace-events-sample-survey.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const sample_root_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(sample_root_readme);
+
+    try expectContains(survey_note, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample");
+    try expectContains(survey_note, "selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig`");
+    try expectContains(survey_note, "closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet");
+
+    try expectContains(sample_root_readme, "phase5_trace_events_sample_survey.zig");
+    try expectContains(sample_root_readme, "phase5-trace-events-sample-survey.md");
+    try expectContains(sample_root_readme, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` reference sample");
+    try expectContains(sample_root_readme, "selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig`");
+    try expectContains(sample_root_readme, "closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet");
+}
