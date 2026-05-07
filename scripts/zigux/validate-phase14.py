@@ -611,6 +611,13 @@ def run_self_test() -> int:
             print("self-test expected rollback-threshold checker silent subprocess failure", file=sys.stderr)
             return 1
         write_text(root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
+        missing_rollback_checker = root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
+        missing_rollback_checker.unlink()
+        errors = check(root)
+        if "missing file: scripts/zigux/check-phase14-rollback-threshold-sequencing.py" not in errors:
+            print("self-test expected missing rollback-threshold checker failure", file=sys.stderr)
+            return 1
+        write_text(root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         broken_release_boundary_checker = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
         broken_release_boundary_checker.write_text(
             "#!/usr/bin/env python3\n"
