@@ -136,6 +136,9 @@ test "phase 9 runtime bitmap survey manifest records the roadmap selftest hook, 
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
             try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lifecycle parity") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "request-contract scaffolds") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validate and hold the prepared bitmap handoff plan") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "no live loader binding consumes that plan yet") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -216,6 +219,10 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     try std.testing.expect(std.mem.indexOf(u8, note, "top-bit boundary replay: the focused companion contract still proves that bit `127` is the highest valid bit") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "review-contract boundary: the direct sample still exposes the ordered review focus `descriptor_and_anchor`, `summary_replay`, and `selftest_lifecycle`; it does not claim standalone `initFromBitList()`, `formatSetBits()`, parse/print differential parity, or a loadable runtime bitmap module on `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "diff-gate replay: the bounded parity cases still cover the single-word fill starter, the `79..97` cross-boundary clear cutout, the sparse `10,20,30,40,50,60,80,123` population replay, and the copied `0..108` tail-clear snapshot with `first_zero=109`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "the shared runtime-loader facade plus allocator/init-flow contract replay now stop at prepared-request and release-without-substrate handoff validation and no live loader binding consumes the prepared bitmap plan yet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "the still-missing live loader binding that would consume the prepared bitmap plan and drive true module entry/exit parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "the still-blocked `runtime-bitmap-live-loader-binding` beyond the landed shared request-contract scaffold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "remaining live loader binding or lifecycle-parity blocker in `zigux/kernel/runtime_loader.zig`") != null);
 }
 
 test "phase 9 runtime bitmap survey cross-checks the shared sample-root boundary catalog" {
