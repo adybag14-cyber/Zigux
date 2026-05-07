@@ -5,7 +5,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-segment-survey`
 - surveyed commit: `0e8ce03f80f631368bfa3c32452d615bb629e3db`
-- scope: segment manifest plus six landed bounded slices across four helper-first starters, one shared file-path bridge helper packet, and one perf-buffer poll adjunct, with the heavier file-path-and-handle resource boundary still parked behind the current bridge packet
+- scope: segment manifest plus six landed bounded slices across four helper-first starters, one shared file-path bridge helper packet, one perf-buffer poll adjunct, and one compile-together verifier for the landed helper bundle, with the heavier file-path-and-handle resource boundary still parked behind the current bridge packet
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
@@ -14,6 +14,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `tools/lib/bpf/zigux_segments/type_names.zig`
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+  - `tools/lib/bpf/zigux_segments/verify.zig`
   - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
   - `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
   - `zigux/tests/phase8_cpu_mask.zig`
@@ -80,6 +81,7 @@ The current starter implementation stays deliberately bounded:
 - `perf_buffer_poll.zig` keeps `perf_buffer__poll(timeout_ms)` wait-result classification, ready-buffer bookkeeping, explicit `perf_buffer__buffer_fd(buf_idx)` and `perf_buffer__buffer(buf_idx)` slot lookup plus errno-shaped return shaping, and ordered process-record summaries reviewable without claiming live epoll wiring or per-CPU setup
 - the broader `perf-buffer-online-cpu-routing` setup remains deferred around per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, and `PERF_EVENT_IOC_ENABLE` enablement
 - the current packet does not claim online-CPU filtering, epoll registration, timer semantics, or broader interrupt-routing behavior beyond those explicit setup-side anchors
+- `verify.zig` keeps `logging.zig`, `pin_path.zig`, `cpu_mask.zig`, `type_names.zig`, `file_path_handle_bridge.zig`, and `perf_buffer_poll.zig` compiling together so the parked libbpf packet has one durable helper-bundle replay surface beside the focused per-slice and shared Phase 8 test routes
 
 The current tests check:
 - mixed single-CPU and `start-end` ranges expand into the expected dense mask
