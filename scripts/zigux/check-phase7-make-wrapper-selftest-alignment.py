@@ -18,7 +18,7 @@ REQUIRED_CHECKER_MARKERS = (
     '"phase7-test": [',
     '"phase7": [',
     'print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")',
-    'print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=9")',
+    'print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=12")',
     'print(f"PHASE7_MAKE_WRAPPER_TARGET_COUNT={len(EXPECTED_MAKE_EXPANSIONS)}")',
 )
 REQUIRED_CHECKER_EXACT_COUNTS = {
@@ -26,7 +26,7 @@ REQUIRED_CHECKER_EXACT_COUNTS = {
     '"phase7-test": [': 1,
     '"phase7": [': 1,
     'print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")': 1,
-    'print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=9")': 1,
+    'print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=12")': 1,
     'print(f"PHASE7_MAKE_WRAPPER_TARGET_COUNT={len(EXPECTED_MAKE_EXPANSIONS)}")': 1,
 }
 REQUIRED_MAKEFILE_LINES = (
@@ -144,7 +144,7 @@ def build_self_test_root(root: Path) -> None:
                 '    "phase7": [',
                 "}",
                 'print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")',
-                'print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=9")',
+                'print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=12")',
                 'print(f"PHASE7_MAKE_WRAPPER_TARGET_COUNT={len(EXPECTED_MAKE_EXPANSIONS)}")',
                 "",
             )
