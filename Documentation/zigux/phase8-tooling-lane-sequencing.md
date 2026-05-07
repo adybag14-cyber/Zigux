@@ -91,6 +91,10 @@ Current parked review packet:
 - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
 - `zigux/tests/phase8_libbpf_segments.zig`
 - `zigux/tests/phase8_libbpf_segments_only_build.zig`
+- `zigux/tests/phase8_build.zig`
+- `tools/lib/bpf/zigux_segments/logging.zig`
+- `tools/lib/bpf/zigux_segments/pin_path.zig`
+- `tools/lib/bpf/zigux_segments/verify.zig`
 - `tools/lib/bpf/zigux_segments/manifest.json`
 
 Keep this lane helper-first.
