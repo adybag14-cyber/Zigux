@@ -62,6 +62,7 @@ Until a bounded runtime substrate exists, the landed Phase 5 `samples/zigux/` re
 - keep the Linux anchor path explicit in a descriptor or note
 - include a tiny self-check or fixture-backed replay for the queue-order expectations that make the sample useful to reviewers
 - show ownership and lifetime boundaries clearly, especially initialization, reset, and teardown
+- keep queue-shape cues explicit too, so remaining-capacity and wrapped-window state stay reviewable as part of the bounded ring idiom instead of being left implicit inside helper internals
 - keep procfs, user-copy, blocking lock behavior, and module-registration claims out of scope unless a later lane lands the required substrate first
 
 In practice, the approved Phase 5 in-memory FIFO idiom is a side-by-side behavior sample, not a claim that Zigux already has `proc_create()`, `kfifo_from_user()`, or module-load parity.
@@ -77,6 +78,7 @@ The sample intentionally stays small:
 - it now makes ownership and lifetime explicit through a tiny `init()` -> `runAnchorReplay()` -> `exit()` flow instead of implying a runtime-ready module lifecycle
 - it now records one non-destructive snapshot of the filled queue before the final drain so reviewers can confirm the exact anchor sequence without inferring hidden mutation
 - it now exposes a tiny `runPreviewBoundaryReplay()` check so reviewers can see preview truncation stay non-destructive before the full drain
+- it now keeps the queue-shape idiom reviewable through explicit `available()` and `usesWrappedStorageWindow()` cues instead of hiding rollover behavior behind the fixed ring-buffer internals
 - it exposes a single bounded self-check that resets state, replays the bytestream example, and returns the exact observations that reviewers should care about
 
 The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
@@ -88,6 +90,8 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 - peeking afterward observes `3` without draining it
 - the fill loop succeeds for bytes `20` through `42` inclusive and then stops at the bounded capacity
 - `runPreviewBoundaryReplay()` proves a truncated preview stays non-destructive: `snapshotInto()` still begins with `[2,3,4,5]`, `previewInto()` copies `[2,3,4,5,6,7,8,9]`, reports `10` visible bytes, and leaves the queued data intact
+- `available()` reports `32` at cold, initialized, replay-complete, reset, and exited boundaries, `27` after enqueueing `"hello"`, `22` after the preview-boundary setup, `0` at full capacity, and `1` immediately after skip-at-capacity
+- `usesWrappedStorageWindow()` stays `false` at cold, initialized, reset, preview-boundary, replay-complete, and full-capacity states, then flips `true` only after the skip-at-capacity plus refill rollover cue makes the bounded ring window wrap
 - `snapshotInto()` captures the exact 32-byte Linux anchor sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]` before the final drain without mutating queue state
 - the final drain yields the exact 32-byte Linux anchor sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
 - empty-queue peek and skip return `null`, pushing past capacity returns `false`, and `reset()` restores an empty queue
@@ -100,6 +104,7 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly c
 
 - does `BytestreamFifoSample.descriptor()` still name the Linux anchor `samples/kfifo/bytestream-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` still describe the exact queue-order replay, preview truncation boundary, the non-destructive snapshot contract, lifecycle boundary, and bounded helper contract run through `zigux/tests/phase5_build.zig`?
+- does that same approved in-memory FIFO idiom still keep queue-shape evidence explicit so `available()` and `usesWrappedStorageWindow()` show the same cold, full, and rollover boundaries reviewers expect from a bounded ring sample?
 - do the shared Phase 5 contributor surfaces in `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still point at this exact sample packet and keep it separate from the later Phase 9 runtime starters instead of leaving this note to carry the boundary alone?
 - do the shared Phase 5 packet and this sample note still say clearly that there is no standalone `samples/zigux/*bitmap*` Phase 5 reference sample, so direct bitmap helper reviewability stays under `tools/lib/bitmap.zig`, `Documentation/zigux/phase1-closure.md`, and `Documentation/zigux/phase4-validation-matrix.md` while the separate Phase 9 runtime bitmap family stays under `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/tests/phase9_build.zig` instead of being misread as a fifth Phase 5 sample?
 - does that same helper-facing packet still keep the short-drain bytestream contract explicit so draining a three-byte destination from `"hello"` yields `"hel"`, preserves the `"lo"` remainder in queue order, and returns `0` once the queue is empty again?
@@ -115,7 +120,7 @@ The current gap is not "Zigux lacks every sample." The more precise gap is:
 - the repo now has four reviewable Phase 5 samples plus later runtime-oriented starters and loader-side follow-ons in `samples/zigux/`
 - the completed Phase 5 sample set still has to stay visibly separate from the later Phase 9 runtime starters and loader-side follow-ons for `trace-events`, `kretprobe`, `bitmap`, and `atomic64`
 - the shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too, so this survey note does not understate the already-shipped review surface for the landed sample
-- the kfifo sample now covers both queue-order replay and one explicit ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
+- the kfifo sample now covers queue-order replay, explicit queue-shape rollover cues, and one ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
 
 This slice closes the `kfifo` survey-only gap by landing the first sample-backed replay and documenting its exact checks so future Phase 5 work can advance from a concrete baseline instead of another round of ambiguous sample naming.
 
@@ -128,6 +133,7 @@ A focused current-`master` replay was re-run on 2026-05-05 with the attached Zig
 - a focused scratch replay assembled from the current `master` versions of `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_bytestream_fifo_manifest.json` passed `5/5` build steps and `8/8` tests via `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
 - the observed sample markers matched the manifest-backed contract exactly: `len_after_initial_fill = 15`, `first_out = "hello"`, `second_out = {0, 1}`, `skipped_byte = 2`, `peek_value = 3`, `fill_start = 20`, `fill_end = 42`, `snapshot_len = 32`, `snapshot_sequence stayed [3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`, `final_len = 32`, and the final drain sequence stayed `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
 - the preview-boundary replay also held: `runPreviewBoundaryReplay()` kept `snapshot_prefix = {2, 3, 4, 5}`, `preview_prefix = {2, 3, 4, 5, 6, 7, 8, 9}`, reported `preview_total_visible = 10`, and left `queue_len_after_preview = 10`
+- the queue-shape replay also held: `available()` stayed `32` at cold, initialized, replay-complete, reset, and exited boundaries, dropped to `27` after `"hello"`, to `22` after the preview-boundary setup, to `0` at full capacity, back to `1` after skip-at-capacity, and `usesWrappedStorageWindow()` stayed `false` until the refill-after-skip rollover flipped it `true`
 - the helper-boundary replay also held: empty peek and skip returned `null`, empty enqueue copied `0` bytes, overflow push was rejected at the 32-byte capacity, skip-at-capacity returned `0`, reset restored an empty queue, pop-after-reset returned `null`, and the helper-facing short-drain replay still produced `"hel"`, preserved the `"lo"` remainder, and returned `0` on the empty follow-up drain
 - the ownership-and-lifetime replay also held: the sample still moved `cold -> initialized -> replay_complete -> exited`, rejected replay before `init()`, rejected duplicate `init()`, and rejected `exit()` after teardown
 
