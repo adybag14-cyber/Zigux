@@ -66,7 +66,9 @@
         "tail_zero_clamped_first",
         "tail_zero_clamped_next",
         "tail_and_clamped_first",
-        "tail_and_clamped_next"
+        "tail_and_clamped_next",
+        "tail_clamped_last",
+        "tail_clamped_empty_last"
       ]
     },
     "tools/lib/rbtree.zig": {
