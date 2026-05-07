@@ -71,6 +71,10 @@ PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER = (
     "plus the shipped `phase9-runtime-bitmap-top-bit-tests` step in `zigux/tests/phase9_build.zig`"
 )
 
+PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER = (
+    "if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?"
+)
+
 PHASE9_SCRIPTS_README_OWNER_MAP_MARKER = (
     "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map for how "
     "that scripts-root summary stays split between the loader lane and the four pilot-family packets."
@@ -153,12 +157,13 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "no-dedicated-`validate-phase9.py` posture",
     PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER,
     PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER,
-    "if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?",
+    PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER,
 ]
 
 REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS = {
     PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER: 1,
     PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER: 1,
+    PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER: 1,
 }
 
 REQUIRED_FREEZE_MAP_MARKERS = [
@@ -433,15 +438,17 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / SAMPLES_README_PATH, minimal_marker_doc("samples/zigux", REQUIRED_SAMPLES_README_MARKERS))
     write_text(root / REVIEW_CHECKLIST_PATH, minimal_marker_doc("Zigux Review Checklist", REQUIRED_REVIEW_CHECKLIST_MARKERS))
     write_text(root / FREEZE_MAP_PATH, minimal_marker_doc("Zigux Freeze Map", REQUIRED_FREEZE_MAP_MARKERS))
-    write_text(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
-    write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
+    write_text(root / MAKEFILE_PATH, minimal_marker_doc("Makefile", REQUIRED_MAKEFILE_MARKERS))
+    write_text(root / WORKFLOW_PATH, minimal_marker_doc("zigux-bootstrap workflow", REQUIRED_WORKFLOW_MARKERS))
     write_text(root / PHASE9_BUILD_PATH, phase9_build_fixture())
-    write_text(root / RUNTIME_LOADER_PATH, "// runtime loader placeholder\n")
+    write_text(root / RUNTIME_LOADER_PATH, "# runtime_loader placeholder\n")
     write_text(root / RUNTIME_LOADER_CONTRACT_PATH, runtime_loader_contract_fixture())
-    write_text(root / "zigux/tests/runtime_loader_allocator_init_flow.zig", "// allocator/init-flow placeholder\n")
 
-    for rel_path in REQUIRED_PHASE9_NOTE_PATHS + REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS:
-        write_text(root / rel_path, "// placeholder\n")
+    for rel_path in REQUIRED_PHASE9_NOTE_PATHS:
+        write_text(root / rel_path, "# phase9 note placeholder\n")
+
+    for rel_path in REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS:
+        write_text(root / rel_path, "# runtime loader scaffold placeholder\n")
 
 
 def expect_failure(root: Path, expected_failure: str, label: str) -> None:
@@ -680,6 +687,19 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(root)
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            review_checklist + PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"review_checklist_exact_count:{PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER}:expected=1:actual=2",
+            "duplicate_phase9_freeze_map_anchor_prompt",
+        )
+
+        write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
@@ -808,7 +828,7 @@ def run_self_test() -> int:
         review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
             review_checklist.replace(
-                "if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?\n",
+                PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER + "\n",
                 "",
                 1,
             ),
@@ -816,7 +836,7 @@ def run_self_test() -> int:
         )
         expect_failure(
             root,
-            "review_checklist:if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?",
+            f"review_checklist:{PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER}",
             "missing_phase9_freeze_map_anchor_prompt",
         )
 
@@ -919,7 +939,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=38")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=39")
     return 0
 
 
