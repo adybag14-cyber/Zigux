@@ -2,20 +2,22 @@
   "tool": "scripts/zigux/fixdep.zig",
   "status": "closed",
   "fixture_root": "zigux/tests/fixtures/fixdep",
-  "case_count": 5,
+  "case_count": 6,
   "cases": [
     "sample",
     "sample_escaped_space",
     "sample_multi_target",
     "sample_comment_only",
-    "sample_missing_dep"
+    "sample_missing_dep",
+    "sample_escaped_hash_comment_chain"
   ],
   "stdout_packet": [
     "sample_expected.txt",
     "sample_escaped_space_expected.txt",
     "sample_multi_target_expected.txt",
     "sample_comment_only_expected.txt",
-    "sample_missing_dep_expected.txt"
+    "sample_missing_dep_expected.txt",
+    "sample_escaped_hash_comment_chain_expected.txt"
   ],
   "stderr_packet": [
     "sample_comment_only_expected.stderr.txt",
