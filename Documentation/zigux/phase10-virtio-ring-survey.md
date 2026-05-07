@@ -106,4 +106,4 @@ Taken together, these gates keep the bounded virtqueue-wrapper packet reviewable
 
 ## Next bounded step
 
-Keep the broader Phase 10 virtio lane parked unless fresh repo inspection finds another one-file or tightly coupled survey, manifest, slice-note, or helper-test truthfulness repair before widening into interrupt acknowledgement, reset, queue discovery, or probe lifecycle work.
+Keep the broader Phase 10 virtio lane parked unless fresh repo inspection shows the ring packet itself drifted. Inside this ring lane, the only honest next bounded step is one more wrapper-facing verifier follow-up in `drivers/virtio/virtio_ring_verify.zig` for broken-queue recovery or packed-ring event-index behavior if the live repo shows a truthfulness gap. Do not reopen MMIO, DMA, interrupt acknowledgement, queue discovery, reset execution, or probe/remove lifecycle work from this note.
