@@ -15,6 +15,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "Documentation/zigux/phase13-contributor-workflow-guide.md",
+    "Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
     "Documentation/zigux/phase13-libfs-slice.md",
     "Documentation/zigux/phase13-libfs-survey.md",
     "Documentation/zigux/phase13-devres-slice.md",
@@ -136,6 +137,7 @@ CONTRIBUTOR_SYNC_REQUIRED_MARKERS = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase13-contributor-workflow-guide.md",
+    "Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
@@ -168,6 +170,7 @@ CONTRIBUTOR_SYNC_EXACT_COUNTS = {
 TESTS_REVIEW_COMPANION_REQUIRED_MARKERS = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase13-contributor-workflow-guide.md",
+    "Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
@@ -612,6 +615,41 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+        contributor_surface_sync_path = root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"
+        contributor_surface_sync_path.write_text(
+            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS).replace(
+                "Documentation/zigux/phase13-shared-helper-lane-sequencing.md\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["contributor-surface-sync:Documentation/zigux/phase13-shared-helper-lane-sequencing.md"],
+            "missing_contributor_surface_sync_sequencing_marker_failed",
+        )
+        _write(
+            contributor_surface_sync_path,
+            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
+        )
+        case_count += 1
+
+        tests_review_companion_path.write_text(
+            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS).replace(
+                "Documentation/zigux/phase13-shared-helper-lane-sequencing.md\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["tests-review-companion:Documentation/zigux/phase13-shared-helper-lane-sequencing.md"],
+            "missing_tests_review_companion_sequencing_marker_failed",
+        )
+        _write(
+            tests_review_companion_path,
+            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
+        )
+        case_count += 1
+
         tests_review_companion_path.write_text(
             _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS)
             + "same shipped validator-first release path\n",
@@ -635,6 +673,15 @@ def run_self_test() -> int:
             "missing_landlock_checker_file_failed",
         )
         _write(root / "scripts/zigux/check-phase13-landlock-ruleset-packet.py", "# stub\n")
+        case_count += 1
+
+        (root / "Documentation/zigux/phase13-shared-helper-lane-sequencing.md").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase13-shared-helper-lane-sequencing.md"],
+            "missing_shared_helper_lane_sequencing_file_failed",
+        )
+        _write(root / "Documentation/zigux/phase13-shared-helper-lane-sequencing.md", "# stub\n")
         case_count += 1
 
         (root / "zigux/tests/phase13_landlock_syscalls_reviewability.zig").unlink()
