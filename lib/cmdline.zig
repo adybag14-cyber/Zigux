@@ -128,10 +128,18 @@ pub fn parseOptionStr(str: []const u8, option: []const u8) bool {
         return false;
     }
 
-    var it = std.mem.splitScalar(u8, haystack, ',');
-    while (it.next()) |segment| {
-        if (std.mem.eql(u8, segment, needle)) {
-            return true;
+    var index: usize = 0;
+    while (index < haystack.len) {
+        if (std.mem.startsWith(u8, haystack[index..], needle)) {
+            const end = index + needle.len;
+            if (end == haystack.len or haystack[end] == ',') {
+                return true;
+            }
+        }
+
+        while (index < haystack.len and haystack[index] != ',') : (index += 1) {}
+        if (index < haystack.len and haystack[index] == ',') {
+            index += 1;
         }
     }
     return false;
@@ -429,6 +437,9 @@ test "parseOptionStr only matches full comma-delimited options" {
     try std.testing.expect(!parseOptionStr("nodebug,quiet", "debug"));
     try std.testing.expect(!parseOptionStr("debug=1,quiet", "debug"));
     try std.testing.expect(!parseOptionStr("debug,panic\x00,quiet", "quiet"));
+    try std.testing.expect(parseOptionStr(",debug", ""));
+    try std.testing.expect(parseOptionStr("debug,,quiet", ""));
+    try std.testing.expect(!parseOptionStr("debug,", ""));
     try std.testing.expect(!parseOptionStr("", ""));
 }
 
