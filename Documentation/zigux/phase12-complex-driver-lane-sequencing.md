@@ -26,7 +26,7 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
 ## Driver lane map
 - `virtio_net` lane:
   Owns `Documentation/zigux/phase12-virtio-net-survey.md`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_survey.zig`, and `drivers/net/virtio_net.zig`.
-  The bounded live scope is the probe snapshot starter plus the directly coupled syntax-lab, queue-recovery, receive-refill, transmit-recycle, and mergeable-buffer-length follow-ups.
+  The bounded live scope is the probe snapshot starter plus the directly coupled syntax-lab, queue-recovery, receive-refill, control-queue-restore, transmit-recycle, and mergeable-buffer-length follow-ups.
   It must stay below live DMA-backed runtime data-path work and must remain a shared-tree-only anchor unless a real commit-pinned fallback artifact lands.
 - `nvme_pci` lane:
   Owns `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `drivers/nvme/host/pci.zig`, and `drivers/nvme/host/pci_verify.zig`.
