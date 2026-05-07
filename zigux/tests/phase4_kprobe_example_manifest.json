@@ -1,0 +1,25 @@
+{
+  "lane_key": "validation-perf",
+  "phase": "Phase 4",
+  "anchor_path": "samples/kprobes/kprobe_example.c",
+  "anchor_blob_sha": "53ec6c8b8c40d0f41f2d4f9becacc9d6b98f1d0d",
+  "sample_path": "samples/zigux/kprobe_example.zig",
+  "sample_present": false,
+  "current_replay": "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
+  "survey_note": "Documentation/zigux/phase4-kprobe-example-gap-survey.md",
+  "survey_owner": "Validation and Perf Team",
+  "rollback_owner": "Validation and Perf Team",
+  "shared_gate_evidence_packet_present": false,
+  "validation_entrypoint": "zig test zigux/tests/phase4_kprobe_example_survey.zig",
+  "review_prompts": [
+    "the survey keeps the Linux anchor path and blob sha explicit while the Zig starter stays absent",
+    "the packet keeps the live make replay command explicit without implying a shipped Zig sample",
+    "the owner and rollback owner remain Validation and Perf Team while the packet stays adjacent to the shared Phase 4 validator-first route",
+    "the packet stays outside the shared gate-evidence target set until a later bounded promotion lands"
+  ],
+  "non_goals": [
+    "shipped kprobe Zig starter",
+    "shared gate-evidence promotion",
+    "approved kprobe perf threshold"
+  ]
+}
