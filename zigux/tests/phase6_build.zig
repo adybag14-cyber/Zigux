@@ -108,6 +108,9 @@ pub fn build(b: *std.Build) void {
     });
     const run_hexdump_tests = b.addRunArtifact(hexdump_tests);
 
+    const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");
+    hexdump_test_step.dependOn(&run_hexdump_tests.step);
+
     const hexdump_perf_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_hexdump_perf.zig"),
         .target = target,
