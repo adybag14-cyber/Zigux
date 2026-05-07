@@ -43,6 +43,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const bitmap_diff_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase4_bitmap_diff_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const bitmap_live_helper_replay_module = b.createModule(.{
         .root_source_file = b.path("phase4_bitmap_live_helper_replay.zig"),
         .target = target,
@@ -69,6 +74,12 @@ pub fn build(b: *std.Build) void {
     });
     const run_bitmap_diff_tests = b.addRunArtifact(bitmap_diff_tests);
 
+    const bitmap_diff_survey_tests = b.addTest(.{
+        .name = "phase4-bitmap-diff-survey-tests",
+        .root_module = bitmap_diff_survey_module,
+    });
+    const run_bitmap_diff_survey_tests = b.addRunArtifact(bitmap_diff_survey_tests);
+
     const bitmap_live_helper_replay_tests = b.addTest(.{
         .name = "phase4-bitmap-live-helper-replay-tests",
         .root_module = bitmap_live_helper_replay_module,
@@ -79,6 +90,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_atomic64_diff_tests.step);
     test_step.dependOn(&run_runtime_atomic64_diff_survey_tests.step);
     test_step.dependOn(&run_bitmap_diff_tests.step);
+    test_step.dependOn(&run_bitmap_diff_survey_tests.step);
     test_step.dependOn(&run_bitmap_live_helper_replay_tests.step);
 
     const runtime_atomic64_diff_step = b.step(
@@ -95,6 +107,12 @@ pub fn build(b: *std.Build) void {
 
     const bitmap_diff_step = b.step("phase4-bitmap-diff", "Run the isolated Phase 4 bitmap diff replay");
     bitmap_diff_step.dependOn(&run_bitmap_diff_tests.step);
+
+    const bitmap_diff_survey_step = b.step(
+        "phase4-bitmap-diff-survey",
+        "Run the manifest-backed Phase 4 bitmap rollback survey",
+    );
+    bitmap_diff_survey_step.dependOn(&run_bitmap_diff_survey_tests.step);
 
     const bitmap_live_helper_replay_step = b.step(
         "phase4-bitmap-live-helper-replay",
