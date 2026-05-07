@@ -5,7 +5,7 @@ This note records the current anti-overlap sequencing for the live Phase 8 users
 It is a coordination artifact, not a closure claim.
 
 ## Current posture
-- `PHASE8_STATUS=active`
+- `PHASE8_STATUS=parked`
 - `PHASE8_SEQUENCE=tooling-lane-anti-overlap`
 - shared validator-first entrypoint: `python3 scripts/zigux/validate-phase8.py`
 - shared make validation route: `make -C zigux phase8-validate`
@@ -65,10 +65,10 @@ Do not reopen this lane for:
 
 The next honest symbol reopen should stay helper-local, such as one fresh symbol-class parity gap or callback-contract mismatch, not a broad Phase 8 wording pass.
 
-### 3. Libbpf helper lane: the current active Phase 8 implementation surface
+### 3. Libbpf helper lane: parked unless a tighter same-lane gap appears
 Use this lane for bounded work inside the current `tools/lib/bpf/zigux_segments/` helper family and its paired tests and surveys.
 
-This heading stays stable for shared validator continuity, but the live helper-family packet itself is currently parked after the landed file-path bridge, perf-buffer poll, and shared tests-root reminder updates. Reopen it only when a smaller same-lane libbpf helper, validator, checker, survey, README, or wording gap is visible again.
+This heading stays stable for shared validator continuity, and the live helper-family packet itself is currently parked after the landed file-path bridge, perf-buffer poll, and shared tests-root reminder updates. Reopen it only when a smaller same-lane libbpf helper, validator, checker, survey, README, or wording gap is visible again.
 
 Current parked review packet:
 - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
