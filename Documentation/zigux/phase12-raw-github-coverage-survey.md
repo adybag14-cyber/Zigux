@@ -56,7 +56,7 @@ Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO compan
 
 `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion for `virtio_net`, `nvme_pci`, and `virtio_scsi`, so this shared fallback overview should be reread beside that lane map instead of letting the mixed fallback split blur those three driver lanes back together.
 
-The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this shared fallback-overview wording stays aligned with the shipped PMO release packet.
+The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and the direct PMO drift-control reruns are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` plus `python3 scripts/zigux/check-build-only-phase12-surface.py` before or beside the workflow-backed replay in `.github/workflows/zigux-bootstrap.yml`, so this shared fallback-overview wording stays aligned with the shipped PMO release packet.
 
 This overview should stay read-only and should not be used to imply an unshipped `validate-phase12.py`, any `check-phase12-*.py` packet, a focused libbpf-only replay route, or a `make -C zigux phase12-validate` target.
 
