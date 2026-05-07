@@ -63,6 +63,18 @@ def run_self_test() -> int:
 
     issues = validate_texts(
         workflow_text.replace(
+            "run: python3 scripts/zigux/check-phase2-fixdep-gate.py\n",
+            "",
+            1,
+        )
+    )
+    assert (
+        "workflow_exact_marker:python3 scripts/zigux/check-phase2-fixdep-gate.py:count=0:expected=1"
+        in issues
+    )
+
+    issues = validate_texts(
+        workflow_text.replace(
             "run: python3 scripts/zigux/check-fixdep-diff.py --self-test\n",
             "",
             1,
@@ -84,12 +96,33 @@ def run_self_test() -> int:
 
     issues = validate_texts(
         workflow_text.replace(
+            "run: python3 scripts/zigux/check-phase2-fixdep-gate.py\n",
+            "run: python3 scripts/zigux/check-phase2-fixdep-gate.py\nrun: python3 scripts/zigux/check-phase2-fixdep-gate.py\n",
+            1,
+        )
+    )
+    assert (
+        "workflow_exact_marker:python3 scripts/zigux/check-phase2-fixdep-gate.py:count=2:expected=1"
+        in issues
+    )
+
+    issues = validate_texts(
+        workflow_text.replace(
             "run: zig test scripts/zigux/fixdep.zig\n",
             "",
             1,
         )
     )
     assert "workflow_exact_marker:zig test scripts/zigux/fixdep.zig:count=0:expected=1" in issues
+
+    issues = validate_texts(
+        workflow_text.replace(
+            "run: zig test scripts/zigux/fixdep.zig\n",
+            "run: zig test scripts/zigux/fixdep.zig\nrun: zig test scripts/zigux/fixdep.zig\n",
+            1,
+        )
+    )
+    assert "workflow_exact_marker:zig test scripts/zigux/fixdep.zig:count=2:expected=1" in issues
 
     issues = validate_texts(
         workflow_text.replace(
@@ -113,7 +146,7 @@ def run_self_test() -> int:
     assert "workflow_order:fixdep_gate_packet" in issues
 
     print("PHASE2_FIXDEP_GATE_SELF_TEST=pass")
-    print("PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT=5")
+    print("PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
