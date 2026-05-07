@@ -326,7 +326,8 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
 
     const samples_root_markers = [_][]const u8{
         "samples/zigux/bytestream_fifo.zig",
-        "approved in-memory queue-order and ownership-and-lifetime idiom",
+        "approved Phase 5 in-memory FIFO idiom",
+        "approved in-memory queue-order, non-destructive snapshot, queue-shape, and ownership-and-lifetime idiom cues",
         "samples/kfifo/bytestream-example.c",
         "phase5-kfifo-sample-survey.md",
         "phase5_bytestream_fifo_survey.zig",
