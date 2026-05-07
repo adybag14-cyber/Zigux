@@ -8,6 +8,7 @@ This document records the bounded Phase 12 survey lane around `drivers/scsi/virt
 - `PHASE12_SLICE=virtio-scsi-survey`
 - `PHASE12_LANE=P12-L13`
 - scope: survey manifest, dedicated survey gate, shared Phase 12 build wiring, and a lane note that compares the live repo state against the roadmap for `drivers/scsi/virtio_scsi.zig`
+- owner lane: `P12-L13`
 - fallback note role: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is read-only replay evidence for degraded reads and does not own the active survey packet
 - product boundary:
   - `drivers/scsi/virtio_scsi.zig`
@@ -34,6 +35,14 @@ The highest-value honest step in this lane is therefore to keep the survey, vali
 - the live repo also now ships a bounded `drivers/scsi/virtio_scsi.zig` starter, dedicated `zigux/tests/phase12_virtio_scsi.zig` coverage, and `Documentation/zigux/phase12-virtio-scsi-slice.md`. That starter is intentionally narrow: it models control, event, request, and request_poll queue-family planning in memory, preserves poll-queue clamping, keeps stable global virtqueue indexes, records a bounded `virtscsi_probe()` config snapshot through `num_queues`, `seg_max`, `cmd_per_lun`, `max_target`, `max_lun`, `max_sectors`, and the derived control or event versus request virtqueue layout, records a lab-only freeze or restore summary that blocks planning while transport is frozen and clears the old queue snapshot after restore, now also proves that a repeated transport-reset cycle reuses only the newly replanned queue topology while incrementing the bounded recovery generation, and now also records a bounded restore queue rebind summary, a bounded recovery event-rearm summary, a restore-time event-buffer ownership summary, and a rollback summary so the recovery packet keeps queue-family ranges, device-ready ordering, event rearm, event-buffer reservation, and restore-before-replan discipline explicit without claiming live DMA-backed submission.
 - the shared Phase 12 packet now also keeps the focused smoke preflight explicit: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-smoke` rerun the direct `virtio_scsi` starter ahead of the broader survey-backed replay, so this survey note should not leave that narrower driver-facing shard implied only by `zigux/tests/phase12_build.zig`, the Makefile, or the fallback catalog.
 - the next honest driver-facing step is no longer another queue-family-only helper; keep this lane parked until a roadmap-approved follow-up is ready beyond the now-landed probe-config snapshot and the current queue-layout plus recovery packet.
+
+## Rollback and Reversible Delivery
+
+- owner lane: `P12-L13`
+- rollback owner: keep `drivers/scsi/virtio_scsi.zig`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, and `zigux/tests/phase12_virtio_scsi_survey.zig` aligned so the lab-only recovery packet never outruns the shipped starter or survey gate.
+- fallback path: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` remains the read-only degraded-read map, while the bounded code fallback is still the current `drivers/scsi/virtio_scsi.zig` queue-layout and recovery packet rather than a broader transport-reset or DMA-backed recovery implementation.
+- reversible-delivery evidence: the shipped starter keeps the lab-only freeze or restore boundary, repeated transport-reset recovery generation, restore queue rebind summary, recovery event-rearm summary, restore-time event-buffer ownership summary, and rollback summary explicit without claiming `scsi_scan_host()` replay, live completion handling, or runtime DMA parity.
+- rollback drill: rerun `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`; if the survey wording or recovery packet drifts ahead of the shipped starter, restore the last truthful `virtio_scsi` survey note, slice note, manifest, and direct survey gate before widening into new transport-facing work.
 
 ## Recorded gaps
 
