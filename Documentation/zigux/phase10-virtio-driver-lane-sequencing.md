@@ -44,7 +44,7 @@ Shared Phase 10 replay surface:
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-These shared docs, packet guards, routes, plus the shared closure manifest prove that the current bounded virtio packet still replays together. They do not change which lane owns a helper, verify replay, manifest, survey gate, or next bounded follow-up. When those shared summaries call out the current focused replay evidence, keep `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` explicit as lane-owned replays instead of collapsing them into generic focused-test shorthand.
+These shared docs, packet guards, routes, plus the shared closure manifest prove that the current bounded virtio packet still replays together. They do not change which lane owns a helper, verify replay, manifest, survey gate, or next bounded follow-up. When those shared summaries call out the current focused replay evidence, keep `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, and `zigux/tests/phase10_virtio_mmio_queue_isolation.zig` explicit as lane-owned replays instead of collapsing them into generic focused-test shorthand.
 
 ## Lane map
 
@@ -71,6 +71,7 @@ The next honest core step stays outside transport-backed probe or remove work. I
 - `scripts/zigux/check-phase10-ring-packet.py`
 - `drivers/virtio/virtio_ring.zig`
 - `drivers/virtio/virtio_ring_verify.zig`
+- the focused `zigux/tests/phase10_virtio_ring_reset_reuse.zig` replay
 
 This lane may talk about adjacent MMIO footing when the survey compares roadmap posture, but it does not own MMIO helper growth, MMIO manifests, or MMIO next-step selection. Its next bounded work stays queue-local, such as broken-queue recovery or packed-ring event-index review.
 
@@ -85,7 +86,7 @@ This lane may talk about adjacent MMIO footing when the survey compares roadmap 
 - `scripts/zigux/check-phase10-input-packet.py`
 - `drivers/virtio/virtio_input.zig`
 - `drivers/virtio/virtio_input_verify.zig`
-- the focused `zigux/tests/phase10_virtio_input_status_drain.zig` replay
+- the focused `zigux/tests/phase10_virtio_input_status_drain.zig` and `zigux/tests/phase10_virtio_input_multitouch_preflight.zig` replays
 
 This lane consumes shared core, ring, and MMIO prerequisites, but it does not own wrapper-layer growth in those packets. Its next bounded work stays inside input registration truthfulness, ownership notes, wrapper-facing verify replays, or similarly narrow survey-backed repairs.
 
@@ -98,15 +99,16 @@ This lane consumes shared core, ring, and MMIO prerequisites, but it does not ow
 - `zigux/tests/phase10_virtio_mmio_survey.zig`
 - `scripts/zigux/check-phase10-mmio-packet.py`
 - `drivers/virtio/virtio_mmio.zig`
+- the focused `zigux/tests/phase10_virtio_mmio_queue_isolation.zig` replay
 
 Ring, core, and input lanes may cite this packet as adjacent evidence, but they should not absorb its transport-identity helper, queue-discovery, IRQ, reset, or lifecycle follow-up.
 
 ## Anti-overlap rules
 
 - If a Phase 10 run changes `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, the core manifest, the direct `zigux/tests/phase10_virtio_core.zig` replay, the core survey gate, or the core checker, that work belongs to the core lane.
-- If a Phase 10 run changes `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, the ring manifest, the direct `zigux/tests/phase10_virtio_ring.zig` replay, the ring survey gate, or the ring checker, that work belongs to the ring lane.
-- If a Phase 10 run changes `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, the input manifest, the direct `zigux/tests/phase10_virtio_input.zig` replay, the input survey gate, the focused status-drain replay, or the input checker, that work belongs to the input lane.
-- If a Phase 10 run changes `drivers/virtio/virtio_mmio.zig`, the direct `zigux/tests/phase10_virtio_mmio.zig` replay, the MMIO manifest, the MMIO survey gate, or the MMIO checker, that work belongs to the MMIO packet instead of ring, input, or core follow-through.
+- If a Phase 10 run changes `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, the ring manifest, the direct `zigux/tests/phase10_virtio_ring.zig` replay, the ring survey gate, or the ring checker, that work belongs to the ring lane.
+- If a Phase 10 run changes `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, the input manifest, the direct `zigux/tests/phase10_virtio_input.zig` replay, the input survey gate, the focused status-drain replay, or the input checker, that work belongs to the input lane.
+- If a Phase 10 run changes `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`, the direct `zigux/tests/phase10_virtio_mmio.zig` replay, the MMIO manifest, the MMIO survey gate, or the MMIO checker, that work belongs to the MMIO packet instead of ring, input, or core follow-through.
 - Shared build or make replay drift should only reopen the smallest directly coupled lane packet unless the break truly spans multiple driver packets at once.
 - If a Phase 10 run only changes `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/README.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_closure_manifest.json`, `zigux/Makefile`, or the shared Phase 10 packet guards, it should reopen the smallest directly coupled shared review surface first instead of quietly consuming one of the driver lanes.
 
