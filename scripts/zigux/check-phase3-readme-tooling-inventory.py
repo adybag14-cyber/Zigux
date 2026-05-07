@@ -57,6 +57,7 @@ REQUIRED_HELPERS = (
     "check-phase10-mmio-packet.py",
     "check-phase11-shared-replay-contract.py",
     "check-phase11-header-boundary-packet.py",
+    "check-phase11-hvc-survey-packet.py",
     "check-build-only-phase12-surface.py",
     "validate-phase13-release.py",
     "check-phase13-devres-packet.py",
@@ -165,7 +166,7 @@ PHASE15_VALIDATE_COMMANDS = (
 )
 REQUIRED_README_SNIPPETS = (
     "- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `check-phase3-abi-dump-gate.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-byte-guards.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
-    "- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or aggregated `phase6-perf` target on `master`; the shipped dedicated perf replays are `make -C zigux phase6-checksum-perf` and `make -C zigux phase6-hexdump-perf`, which keep the checksum slowdown ceiling and the formatter-sensitive hexdump fixture packet wired into Linux-style entrypoints without overstating perf coverage for the rest of the Phase 6 helper packet.",
+    "- there is no separate shared `validate-phase6.py` or broader external portability checker packet beyond `check-phase6-shared-surface.py` on `master`; the shipped dedicated perf replays are `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`, while `make -C zigux phase6-perf` remains the narrow aggregate route for the checksum and hexdump perf packet rather than a bundle-wide Phase 6 perf closure",
     "- the current shared Phase 7 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `samples/zigux/README.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_build.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
     "- `make -C zigux phase7-validate` keeps the shared Phase 7 validator plus the dedicated make-wrapper, make-wrapper selftest-alignment, argvSplit packet, rbtree parity, and build-wiring checkers wired through the Linux-style validation entrypoint.",
     "- the current shared Phase 8 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase8-exec-cmd-slice.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`, `Documentation/zigux/phase8-bpf-type-names-slice.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `scripts/zigux/validate-phase8.py`, `scripts/zigux/check-phase8-exec-cmd-packet.py`, `scripts/zigux/check-phase8-help-kallsyms-packet.py`, `zigux/tests/phase8_build.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_exec_cmd_only_build.zig`, `zigux/tests/phase8_help.zig`, `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, `zigux/tests/phase8_kallsyms_only_build.zig`, `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_logging.zig`, `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_bpf_type_names.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_libbpf_segments.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
@@ -193,15 +194,12 @@ TESTS_README_PHASE3_MARKERS = (
     "opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`",
 )
 
-
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
 
-
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
 
 def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
     found = False
@@ -225,7 +223,6 @@ def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
         issues.append("missing_readme_helper_entries")
     return entries, issues
 
-
 def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | None:
     in_target = False
     lines: list[str] = []
@@ -241,7 +238,6 @@ def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | No
         lines.append(raw)
     return lines if in_target else None
 
-
 def _collect_target_helpers(makefile: str, target: str) -> list[str]:
     lines = _collect_makefile_target_lines(makefile, target)
     if lines is None:
@@ -255,7 +251,6 @@ def _collect_target_helpers(makefile: str, target: str) -> list[str]:
         if rel.endswith(".py"):
             helpers.append(Path(rel).name)
     return helpers
-
 
 def _validate_target_helpers(issues: list[str], makefile: str, target: str, required_helpers: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
@@ -274,7 +269,6 @@ def _validate_target_helpers(issues: list[str], makefile: str, target: str, requ
             issues.append(f"unexpected_makefile_helper:{target}:{helper}")
     if [helper for helper in helpers if helper in required_helpers] != list(required_helpers):
         issues.append(f"makefile_helper_order_drift:{target}")
-
 
 def _validate_target_commands(issues: list[str], makefile: str, target: str, required_commands: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
@@ -295,7 +289,6 @@ def _validate_target_commands(issues: list[str], makefile: str, target: str, req
     if [command for command in commands if command in required_commands] != expected:
         issues.append(f"makefile_command_order_drift:{target}")
 
-
 def _validate_substring_markers(issues: list[str], text: str, prefix: str, markers: tuple[str, ...]) -> None:
     for marker in markers:
         count = text.count(marker)
@@ -303,7 +296,6 @@ def _validate_substring_markers(issues: list[str], text: str, prefix: str, marke
             issues.append(f"missing_{prefix}_marker:{marker}")
         elif count != 1:
             issues.append(f"unexpected_{prefix}_marker_count:{count}:{marker}")
-
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
@@ -356,9 +348,7 @@ def validate(root: Path) -> list[str]:
     _validate_substring_markers(issues, tests_readme, "tests_readme_phase3", TESTS_README_PHASE3_MARKERS)
     return issues
 
-
 # self-test helpers below this point are trimmed from the base capture and replaced later
-
 
 def _baseline_readme() -> str:
     helper_lines = "\n".join(f"- `{helper}`" for helper in REQUIRED_HELPERS)
@@ -380,7 +370,6 @@ def _baseline_readme() -> str:
         sections.extend(("", title, snippet))
     sections.append("")
     return "\n".join(sections)
-
 
 def _baseline_tests_readme() -> str:
     sections = [
@@ -409,7 +398,6 @@ def _baseline_tests_readme() -> str:
         "",
     ]
     return "\n".join(sections)
-
 
 def _baseline_makefile() -> str:
     return "\n".join((
@@ -472,13 +460,11 @@ def _baseline_makefile() -> str:
         "",
     ))
 
-
 def _assert_only(issues: list[str], expected: list[str], label: str) -> None:
     if issues != expected:
         got = ",".join(issues) or "none"
         want = ",".join(expected) or "none"
         raise SystemExit(f"phase3-readme-tooling-inventory-self-test:{label}:got={got}:want={want}")
-
 
 def run_self_test() -> int:
     case_count = 0
@@ -517,6 +503,30 @@ def run_self_test() -> int:
         _write(root / MAKEFILE_REL, baseline_makefile.replace(cmd, "", 1))
         _assert_only(validate(root), [f"missing_makefile_command:phase8-validate:{cmd.strip()}", "makefile_command_order_drift:phase8-validate"], "missing_phase8_help_kallsyms_live_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        marker = (
+            "while `make -C zigux phase6-perf` remains the narrow aggregate route for the checksum and hexdump "
+            "perf packet rather than a bundle-wide Phase 6 perf closure"
+        )
+        replacement = "and there is no `make -C zigux phase6-perf` route on `master`"
+        _write(root / README_REL, baseline_readme.replace(marker, replacement, 1))
+        _assert_only(
+            validate(root),
+            [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[1]}"],
+            "missing_phase6_perf_route_readme_guard_failed",
+        )
+        _write(root / README_REL, baseline_readme)
+        case_count += 1
+
+        marker = "- `check-phase11-hvc-survey-packet.py`\n"
+        _write(root / README_REL, baseline_readme.replace(marker, "", 1))
+        _assert_only(
+            validate(root),
+            ["missing_readme_helper_entry:check-phase11-hvc-survey-packet.py", "readme_helper_order_drift"],
+            "missing_phase11_hvc_survey_packet_readme_guard_failed",
+        )
+        _write(root / README_REL, baseline_readme)
         case_count += 1
 
         path = root / "scripts" / "zigux" / "check-phase6-shared-surface.py"
@@ -568,7 +578,6 @@ def run_self_test() -> int:
     print(f"PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Keep the scripts/zigux README tooling inventory aligned with the shipped repo-tooling packet.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated checker coverage.")
@@ -586,7 +595,6 @@ def main() -> int:
     print("PHASE3_README_TOOLING_INVENTORY=pass")
     print(f"PHASE3_README_TOOLING_INVENTORY_HELPER_COUNT={len(REQUIRED_HELPERS)}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
