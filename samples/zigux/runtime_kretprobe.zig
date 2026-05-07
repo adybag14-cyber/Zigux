@@ -200,6 +200,7 @@ pub const RuntimeKretprobeSample = struct {
 
     pub fn runSelftest(self: *Self) !SelftestSummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+        if (self.active_instances != 0) return error.OutstandingProbeInstance;
 
         const skipped = try self.entryHandler(false, 10);
         if (skipped) return error.UnexpectedEntryArming;
@@ -280,6 +281,40 @@ test "kretprobe sample keeps selftest-ready replay explicit in helper-local life
     try std.testing.expectEqual(@as(usize, 1), exit_report.selftest_runs);
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+}
+
+test "kretprobe sample rejects selftest while a probe instance is still armed" {
+    var module = RuntimeKretprobeSample{};
+    try module.init();
+    try std.testing.expect(try module.entryHandler(true, 200));
+
+    const before_rejected_selftest = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.active_instances);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_selftest.selftest_runs);
+    try std.testing.expect(before_rejected_selftest.entry_timestamp_armed);
+
+    try std.testing.expectError(error.OutstandingProbeInstance, module.runSelftest());
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+
+    const after_rejected_selftest = module.summary();
+    try std.testing.expectEqual(before_rejected_selftest.active_instances, after_rejected_selftest.active_instances);
+    try std.testing.expectEqual(before_rejected_selftest.skipped_kernel_threads, after_rejected_selftest.skipped_kernel_threads);
+    try std.testing.expectEqual(before_rejected_selftest.nmissed, after_rejected_selftest.nmissed);
+    try std.testing.expectEqual(before_rejected_selftest.last_retval, after_rejected_selftest.last_retval);
+    try std.testing.expectEqual(before_rejected_selftest.last_duration_ns, after_rejected_selftest.last_duration_ns);
+    try std.testing.expectEqual(before_rejected_selftest.selftest_runs, after_rejected_selftest.selftest_runs);
+    try std.testing.expectEqual(before_rejected_selftest.entry_timestamp_armed, after_rejected_selftest.entry_timestamp_armed);
+
+    const drained = try module.retHandler(9, 260);
+    try std.testing.expectEqual(@as(usize, 9), drained.retval);
+    try std.testing.expectEqual(@as(i64, 60), drained.duration_ns);
+
+    const selftest_summary = try module.runSelftest();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 42), selftest_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), selftest_summary.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.nmissed);
 }
 
 test "kretprobe sample preserves initialized-stage failed-exit state until the active probe drains before selftest" {
