@@ -46,6 +46,7 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
 ## Anti-overlap rules
 - Do not let the `virtio_net` lane inherit the storage-lane fallback artifacts or the `virtio_scsi` rollback drill just because all three drivers share `phase12_build.zig`.
 - Do not let the `nvme_pci` lane reuse `virtio_scsi` rollback wording as storage-wide recovery proof; its live packet is still the smaller queue-count, PRP-shape, PRP-metadata, recovery replay, and direct verify starter.
+- Do not let the shared smoke packet turn `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, or `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` into tranche-wide evidence; those focused smoke shards remain lane-local proofs for `nvme_pci`, `virtio_net`, and `virtio_scsi` respectively.
 - Do not let the `virtio_scsi` lane recast the `virtio_net` syntax-lab shard or the `nvme_pci` PRP helpers as shared storage evidence.
 - Do not treat the shared smoke, build, Makefile, workflow, README, PMO notes, or the shared raw-coverage overview as ownership transfer. Those surfaces coordinate the three driver lanes; they do not merge them.
 
