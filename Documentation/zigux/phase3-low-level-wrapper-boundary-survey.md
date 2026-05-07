@@ -11,7 +11,7 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 - `PHASE3_ATOMIC_BLOB_SHA=3d709c0f9c77ae2e6a8a6d4fe6951c6326e4d1de`
 - `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full-acquire-release-pair`
-- `PHASE3_BARRIER_STATUS=local-sentinel-probe-only`
+- `PHASE3_BARRIER_STATUS=local-caller-state-and-handoff-probes-landed`
 - `PHASE3_BARRIER_BLOB_SHA=782616269d5003960cf3f6b7ef2a3ce502ddb3ed`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_SCOPE=range-read8-write8-read16-write16-read32-write32-read64-write64`
@@ -57,7 +57,7 @@ This survey is anchored to packet-local blob IDs because the current connector r
 The current tree carries a real low-level wrapper packet:
 
 - `zigux/helpers/atomic.zig` exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, with helper-local tests still carrying a few atomic edge cases beyond the focused replay.
-- `zigux/helpers/barrier.zig` exposes `acquire`, `release`, `full`, and `acquireRelease()` through local compiler-barrier wrappers, with direct locality proof now also present in the focused replay.
+- `zigux/helpers/barrier.zig` exposes `acquire`, `release`, `full`, and `acquireRelease()` through local compiler-barrier wrappers, with helper-local caller-state and acquire-release handoff probes while direct locality proof now also appears in the focused replay.
 - `zigux/helpers/mmio.zig` exposes `range`, `read8`, `write8`, `read16`, `write16`, `read32`, `write32`, `read64`, and `write64`, all routed through the narrow pointer bridge in `zigux/unsafe/narrow.zig`, which now keeps the MMIO pointer handoff at `align(1)` so byte-addressed 16-bit, 32-bit, and 64-bit accesses do not silently assume stronger alignment than the helper packet proves.
 - `zigux/unsafe/narrow.zig` exposes `addressOf`, `byteOffset`, `pointerAt`, `constSliceAt`, `constPointerAt`, `writeValueAt`, and the explicit unsafe-scope decoders `scopeFromInteropPolicyBytes`, `scopeFromInteropPolicy`, `scopeFromByte`, `recognizes*`, and `permits*`, with helper-local tests keeping the raw-pointer bridge plus the interop-policy unsafe-scope bytes reviewable beside the focused MMIO replay.
 - `zigux/tests/phase3_low_level_wrappers.zig` now directly proves the shipped helper surface, including fetch, signed atomic arithmetic and min/max edges, monotonic strong `compareExchange()`, `acq_rel` strong `compareExchange()` mismatch handling, weak compare-exchange coverage, explicit barrier-locality replay, non-`seq_cst` ordering, plus byte-addressed 16-bit, 32-bit, and 64-bit MMIO range descriptors and odd-offset MMIO behavior.
