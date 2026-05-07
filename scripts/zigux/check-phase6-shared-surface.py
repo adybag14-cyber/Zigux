@@ -19,7 +19,7 @@ REQUIRED_SNIPPETS = {
         "- `Documentation/zigux/phase6-checksum-slice.md`",
         "- `Documentation/zigux/phase6-hexdump-slice.md`",
         "- `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `make -C zigux phase6-validate`, and `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` now keep the current base64, bsearch, checksum, and hexdump helper bundle reviewable",
-        "- the current bounded Phase 6 decision is no longer whether one more tiny external fixture is still worth carrying; the live leaf-helper lane is the bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already kept reviewable through `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`",
+        "- the current bounded Phase 6 decision is no longer whether one more tiny external fixture is still worth carrying; the live leaf-helper lane is the bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already kept reviewable through `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`, so future follow-up here should reopen only for a concrete parity gap or another similarly small helper-first step inside that same packet.",
     ],
     "scripts/zigux/README.md": [
         "- `check-phase6-shared-surface.py`",
@@ -134,13 +134,15 @@ REQUIRED_SNIPPETS = {
         "- `PHASE6_PERF_SURVEY_STATUS=active`",
         "- `PHASE6_PERF_PACKET=base64-bsearch-checksum-hexdump`",
         "- shared replay note: the shared `make -C zigux phase6` route still stops at `phase6-validate` plus `phase6-test`; dedicated perf replays remain helper-local through `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`",
-        "- base64 shared posture: `zigux/tests/phase6_base64_perf.zig` still emits dedicated encode and decode slowdown markers for four fixture-backed replay cases, `zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, and `zigux/Makefile` still exposes `make -C zigux phase6-base64-perf`, but neither the shared `phase6` target nor `.github/workflows/zigux-bootstrap.yml` replays that base64 perf gate on the bundled route",
+        "- aggregated route note: `make -C zigux phase6-perf` now exists as a narrow convenience wrapper for `phase6-checksum-perf` plus `phase6-hexdump-perf`; it still excludes base64 even though `.github/workflows/zigux-bootstrap.yml` reruns `phase6-base64-perf` directly in CI",
+        "- base64 shared posture: `zigux/tests/phase6_base64_perf.zig` still emits dedicated encode and decode slowdown markers for four fixture-backed replay cases, `zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, `zigux/Makefile` still exposes `make -C zigux phase6-base64-perf`, and `.github/workflows/zigux-bootstrap.yml` now reruns that base64 perf gate as its own direct CI step, while the shared `phase6` target and aggregate `phase6-perf` route still do not",
         "- base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` still pins four perf cases (`STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, and `URLSAFE_NO_PAD`) at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`",
         "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replay inside `zigux/tests/phase6_bsearch.zig`, not a separate wall-clock perf harness",
         "- bsearch exact evidence: the current 15-element typed and raw replay packet still requires `counted_compare_calls <= 4` across five representative typed lookups and `counted_raw_compare_calls <= 4` across five representative raw lookups, which keeps the packet aligned with the expected `std.math.log2_int_ceil(len) + 1` search budget without widening into standalone nanosecond thresholds",
         "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replay rather than a separate fixture module or standalone `phase6_bsearch_perf` route",
         "- checksum shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
         "- hexdump shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
+        "- the bundled `phase6` and aggregate `phase6-perf` make routes still replay only the shared helper tests plus the checksum and hexdump dedicated perf gates, while `.github/workflows/zigux-bootstrap.yml` separately reruns the base64 perf gate as its own direct CI step",
     ],
     "zigux/tests/phase6_build.zig": [
         'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
@@ -482,8 +484,20 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "Documentation/zigux/phase6-perf-gate-survey.md",
-            "`zigux/Makefile` still exposes `make -C zigux phase6-base64-perf`, but neither the shared `phase6` target nor `.github/workflows/zigux-bootstrap.yml` replays that base64 perf gate on the bundled route",
-            "`zigux/Makefile` no longer exposes `make -C zigux phase6-base64-perf`, and the bundled route replays it everywhere",
+            "`zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, `zigux/Makefile` still exposes `make -C zigux phase6-base64-perf`, and `.github/workflows/zigux-bootstrap.yml` now reruns that base64 perf gate as its own direct CI step, while the shared `phase6` target and aggregate `phase6-perf` route still do not",
+            "`zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, but no shared replay surface reruns that base64 perf gate anywhere on current `master`",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-perf-gate-survey.md",
+            "`make -C zigux phase6-perf` now exists as a narrow convenience wrapper for `phase6-checksum-perf` plus `phase6-hexdump-perf`; it still excludes base64 even though `.github/workflows/zigux-bootstrap.yml` reruns `phase6-base64-perf` directly in CI",
+            "`make -C zigux phase6-perf` now exists as a narrow convenience wrapper for every dedicated helper-local perf gate on current `master`",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-perf-gate-survey.md",
+            "the bundled `phase6` and aggregate `phase6-perf` make routes still replay only the shared helper tests plus the checksum and hexdump dedicated perf gates, while `.github/workflows/zigux-bootstrap.yml` separately reruns the base64 perf gate as its own direct CI step",
+            "the bundled `phase6` and aggregate `phase6-perf` routes now replay every dedicated Phase 6 perf gate directly",
         )
         assert_failure(
             root,
