@@ -190,6 +190,14 @@ That means `partial_xor_nbits` and `partial_xor_masked_values` stay present and 
 
 - `PHASE1_BITMAP_PARTIAL_XOR_REVIEW=partial_xor_nbits and partial_xor_masked_values stay explicit through the shared Phase 1 parity fixture and replay so caller-selected bit windows cannot silently leak tail bits beyond nbits`
 
+The helper-local bitmap predicate tail-mask proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+
+That means `test "bitmap predicates ignore out-of-range tail bits"` stays present and review-visible whenever `equal()`, `intersects()`, or `subset()` changes. This helper-local test is the bounded proof that the bitmap predicates still mask last-word tail noise instead of treating out-of-range bits as live equality, overlap, or subset data.
+
+- `PHASE1_BITMAP_PREDICATE_TAIL_MASK_REVIEW=helper-local bitmap predicate tail-mask proof stays explicit through the direct bitmap test anchor so equal, intersects, and subset ignore out-of-range tail bits instead of treating tail noise as live data`
+
 The helper-local first-word boundary proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
