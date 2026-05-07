@@ -186,12 +186,36 @@ REQUIRED_FREEZE_MAP_EXACT_COUNTS = {
 }
 
 REQUIRED_MAKEFILE_MARKERS = [
-    "PHONY += phase9-test phase9",
+    "PHONY += phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test phase9",
+    "phase9-runtime-atomic64-test:",
+    "$(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig",
+    "phase9-runtime-bitmap-top-bit-test:",
+    "$(ZIG) build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig",
+    "phase9-runtime-trace-events-test:",
+    "$(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig",
+    "phase9-runtime-kretprobe-test:",
+    "$(ZIG) build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig",
+    "phase9-runtime-loader-shared-tests:",
+    "$(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig",
     "phase9-test:",
     "$(PYTHON) scripts/zigux/check-phase9-build-only-surface.py",
     "$(ZIG) build test --build-file zigux/tests/phase9_build.zig",
     "phase9: phase9-test",
 ]
+
+REQUIRED_MAKEFILE_EXACT_COUNTS = {
+    REQUIRED_MAKEFILE_MARKERS[0]: 1,
+    REQUIRED_MAKEFILE_MARKERS[1]: 1,
+    REQUIRED_MAKEFILE_MARKERS[2]: 1,
+    REQUIRED_MAKEFILE_MARKERS[3]: 1,
+    REQUIRED_MAKEFILE_MARKERS[4]: 1,
+    REQUIRED_MAKEFILE_MARKERS[5]: 1,
+    REQUIRED_MAKEFILE_MARKERS[6]: 1,
+    REQUIRED_MAKEFILE_MARKERS[7]: 1,
+    REQUIRED_MAKEFILE_MARKERS[8]: 1,
+    REQUIRED_MAKEFILE_MARKERS[9]: 1,
+    REQUIRED_MAKEFILE_MARKERS[10]: 1,
+}
 
 REQUIRED_WORKFLOW_MARKERS = [
     "Self-test Phase 9 build-only surface checker",
@@ -413,6 +437,7 @@ def validate(root: Path) -> list[str]:
     ensure_exact_counts(failures, "samples_readme", samples_readme, REQUIRED_SAMPLES_README_EXACT_COUNTS)
     ensure_exact_counts(failures, "review_checklist", review_checklist, REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS)
     ensure_exact_counts(failures, "freeze_map", freeze_map, REQUIRED_FREEZE_MAP_EXACT_COUNTS)
+    ensure_exact_counts(failures, "makefile", makefile, REQUIRED_MAKEFILE_EXACT_COUNTS)
     ensure_exact_counts(failures, "phase9_build", phase9_build, REQUIRED_PHASE9_BUILD_EXACT_COUNTS)
 
     for marker in FORBIDDEN_MAKEFILE_MARKERS:
@@ -507,13 +532,24 @@ def run_self_test() -> int:
         makefile_path = base / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
-            makefile.replace("$(PYTHON) scripts/zigux/check-phase9-build-only-surface.py\n", "", 1),
+            makefile.replace("phase9-runtime-loader-shared-tests:\n", "", 1),
             encoding="utf-8",
         )
-        expect_failure(base, "makefile:$(PYTHON) scripts/zigux/check-phase9-build-only-surface.py")
+        expect_failure(base, "makefile:phase9-runtime-loader-shared-tests:")
+
+        write_fixture_tree(base)
+        makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            makefile + "phase9-runtime-loader-shared-tests:\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "makefile_exact_count:phase9-runtime-loader-shared-tests::expected=1:actual=2",
+        )
 
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=4")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=5")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
