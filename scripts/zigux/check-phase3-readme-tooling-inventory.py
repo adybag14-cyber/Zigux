@@ -190,6 +190,7 @@ TESTS_README_PHASE3_MARKERS = (
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "python3 scripts/zigux/validate_phase3_selftest.py",
+    "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "make -C zigux phase3-selftest",
     "opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`",
 )
@@ -390,7 +391,8 @@ def _baseline_tests_readme() -> str:
             "`scripts/zigux/validate-phase3-export-uapi-survey.py`, "
             "`scripts/zigux/validate-phase3-abi-bindings-syntax.py`, "
             "`scripts/zigux/survey-phase3-abi-constant-parity.py`, `zigux/Makefile`, "
-            "`python3 scripts/zigux/validate_phase3_selftest.py`, and "
+            "`python3 scripts/zigux/validate_phase3_selftest.py`, "
+            "`python3 scripts/zigux/phase3_catalog.py --audit-doc-sync`, and "
             "`make -C zigux phase3-selftest` should continue to keep the shared validator-support runner "
             "visible as an opt-in safety check that complements but does not duplicate "
             "`make -C zigux phase3-validate`"
@@ -580,6 +582,16 @@ def run_self_test() -> int:
             validate(root),
             ["missing_tests_readme_phase3_marker:scripts/zigux/survey-phase3-abi-constant-parity.py"],
             "missing_phase3_abi_constant_parity_tests_readme_guard_failed",
+        )
+        _write(root / TESTS_README_REL, baseline_tests_readme)
+        case_count += 1
+
+        tests_marker = "`python3 scripts/zigux/phase3_catalog.py --audit-doc-sync`, "
+        _write(root / TESTS_README_REL, baseline_tests_readme.replace(tests_marker, "", 1))
+        _assert_only(
+            validate(root),
+            ["missing_tests_readme_phase3_marker:python3 scripts/zigux/phase3_catalog.py --audit-doc-sync"],
+            "missing_phase3_catalog_audit_doc_sync_tests_readme_guard_failed",
         )
         _write(root / TESTS_README_REL, baseline_tests_readme)
         case_count += 1
