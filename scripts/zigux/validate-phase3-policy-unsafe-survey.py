@@ -329,6 +329,16 @@ def run_self_test() -> int:
         assert "missing_marker:PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet" in issues
 
         build_valid_workspace(root)
+        missing_dump_gate = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "- `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`\n",
+            "",
+            1,
+        )
+        write_file(root / SURVEY_REL, missing_dump_gate)
+        issues = validate(root)
+        assert "missing_marker:PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig" in issues
+
+        build_valid_workspace(root)
         missing_guard_marker = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
             "- `PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py`\n",
             "",
@@ -404,7 +414,7 @@ def run_self_test() -> int:
         assert "policy_byte_guard_exit:1" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=10")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
