@@ -475,7 +475,7 @@ def run_self_test() -> int:
             "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
         ]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
-            build_lines.append("b.addTest(.")
+            build_lines.append("b.addTest(.{")
             build_lines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
@@ -614,8 +614,7 @@ def run_self_test() -> int:
         )
         errors = check(root)
         if not any(
-            "missing marker in Documentation/zigux/review-checklist.md: scripts/zigux/check-phase14-release-boundary-exact-counts.py" in error
-            for error in errors
+            "missing marker in Documentation/zigux/review-checklist.md: scripts/zigux/check-phase14-release-boundary-exact-counts.py" in error for error in errors
         ):
             print("self-test expected review-checklist marker failure", file=sys.stderr)
             return 1
