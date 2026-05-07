@@ -230,6 +230,7 @@ REQUIRED_MARKERS = {
         "Validate Phase 8 tooling packet",
         "make -C zigux phase8-validate",
         "Run focused Phase 8 help and kallsyms tests",
+        "make -C zigux phase8-help-kallsyms-test",
         "zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all",
         "Run Phase 8 tooling tests",
         "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
@@ -244,6 +245,8 @@ REQUIRED_MARKERS = {
         "$(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
         "phase8-help-test:",
         "$(ZIG) build test --build-file zigux/tests/phase8_help_only_build.zig --summary all",
+        "phase8-help-kallsyms-test:",
+        "$(ZIG) build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all",
         "phase8-kallsyms-test:",
         "$(ZIG) build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all",
         "phase8-libbpf-segments-test:",
@@ -334,6 +337,7 @@ REQUIRED_MARKERS = {
         "\"phase8_kallsyms.zig\"",
         "phase8-help-tests",
         "phase8-kallsyms-tests",
+        "Run focused Phase 8 help and kallsyms tests",
     ],
     "zigux/tests/phase8_help_only_build.zig": [
         "\"Documentation/zigux/phase8-help-slice.md\"",
@@ -519,40 +523,36 @@ def load_manifest_segments(root: Path) -> tuple[list[object] | None, list[str]]:
 
 
 def collect_manifest_errors(root: Path) -> list[str]:
-    segments, errors = load_manifest_segments(root)
-    if errors:
-        return errors
-
-    manifest_errors: list[str] = []
-    seen: dict[str, int] = {}
-    segment_status: dict[str, str] = {}
-
+    segments, manifest_errors = load_manifest_segments(root)
+    if manifest_errors:
+        return manifest_errors
     assert segments is not None
+
+    segment_status: dict[str, str] = {}
     for index, segment in enumerate(segments):
         if not isinstance(segment, dict):
-            manifest_errors.append(f"{MANIFEST_PATH}: segment_{index}_not_object")
+            manifest_errors.append(f"{MANIFEST_PATH}: segment_not_object:{index}")
             continue
 
         slug = segment.get("slug")
-        if not isinstance(slug, str):
-            manifest_errors.append(f"{MANIFEST_PATH}: segment_{index}_invalid_slug")
-            continue
-
         status = segment.get("status")
+        if not isinstance(slug, str):
+            manifest_errors.append(f"{MANIFEST_PATH}: invalid_slug:{index}")
+            continue
         if not isinstance(status, str):
-            manifest_errors.append(f"{MANIFEST_PATH}: {slug}: invalid_status")
+            manifest_errors.append(f"{MANIFEST_PATH}: invalid_status:{slug}")
+            continue
+        if slug in segment_status:
+            manifest_errors.append(f"{MANIFEST_PATH}: duplicate_slug:{slug}")
             continue
 
-        seen[slug] = seen.get(slug, 0) + 1
-        if seen[slug] == 1:
-            segment_status[slug] = status
+        segment_status[slug] = status
 
-    for slug, count in sorted(seen.items()):
-        if count > 1:
-            manifest_errors.append(f"{MANIFEST_PATH}: duplicate_slug:{slug}:{count}")
+    if manifest_errors:
+        return manifest_errors
 
     for slug, expected_status in REQUIRED_SEGMENTS.items():
-        if slug not in seen:
+        if slug not in segment_status:
             manifest_errors.append(f"{MANIFEST_PATH}: missing_slug:{slug}")
             continue
         actual_status = segment_status[slug]
@@ -765,6 +765,13 @@ def run_self_test() -> None:
             ".github/workflows/zigux-bootstrap.yml: Run focused Phase 8 help and kallsyms tests",
         ),
         (
+            "workflow_phase8_focused_make_route",
+            ".github/workflows/zigux-bootstrap.yml",
+            "make -C zigux phase8-help-kallsyms-test",
+            "make -C zigux phase8-help-test",
+            ".github/workflows/zigux-bootstrap.yml: make -C zigux phase8-help-kallsyms-test",
+        ),
+        (
             "workflow_phase8_focused_build",
             ".github/workflows/zigux-bootstrap.yml",
             "zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all",
@@ -798,6 +805,20 @@ def run_self_test() -> None:
             "phase8-exec-cmd-test:",
             "phase8-exec-test:",
             "zigux/Makefile: phase8-exec-cmd-test:",
+        ),
+        (
+            "makefile_help_kallsyms_target",
+            "zigux/Makefile",
+            "phase8-help-kallsyms-test:",
+            "phase8-help-symbol-test:",
+            "zigux/Makefile: phase8-help-kallsyms-test:",
+        ),
+        (
+            "makefile_help_kallsyms_build",
+            "zigux/Makefile",
+            "$(ZIG) build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all",
+            "$(ZIG) build test --build-file zigux/tests/phase8_help_only_build.zig --summary all",
+            "zigux/Makefile: $(ZIG) build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all",
         ),
         (
             "shared_build_exec_cmd_source",
@@ -847,6 +868,13 @@ def run_self_test() -> None:
             "phase8-exec-cmd-tests",
             "phase8-exec-tests",
             "zigux/tests/phase8_exec_cmd_only_build.zig: phase8-exec-cmd-tests",
+        ),
+        (
+            "help_kallsyms_build_step_name",
+            "zigux/tests/phase8_help_kallsyms_only_build.zig",
+            "Run focused Phase 8 help and kallsyms tests",
+            "Run focused Phase 8 help tests",
+            "zigux/tests/phase8_help_kallsyms_only_build.zig: Run focused Phase 8 help and kallsyms tests",
         ),
         (
             "kallsyms_test_combined_shard_marker",
