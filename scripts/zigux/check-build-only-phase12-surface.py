@@ -248,6 +248,8 @@ def validate(root: Path) -> list[str]:
 
 
 def run_self_test() -> int:
+    case_count = 0
+
     with tempfile.TemporaryDirectory(prefix="phase12-build-only-surface-") as tmp:
         root = Path(tmp)
         write_fixture_tree(root)
@@ -258,6 +260,7 @@ def run_self_test() -> int:
             for failure in failures:
                 print(failure)
             return 1
+        case_count += 1
 
         for rel_path, markers in REQUIRED_FILE_MARKERS.items():
             path = root / rel_path
@@ -274,8 +277,49 @@ def run_self_test() -> int:
                         print(failure)
                     return 1
                 path.write_text(original, encoding="utf-8")
+                case_count += 1
+
+        missing_required = root / PHASE12_CLOSURE_CHECKLIST_PATH
+        missing_required.unlink()
+        failures = validate(root)
+        expected_missing = f"missing_file:{PHASE12_CLOSURE_CHECKLIST_PATH}"
+        if failures != [expected_missing]:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-release-closure-checklist-missing-file-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        write(root, PHASE12_CLOSURE_CHECKLIST_PATH, fixture_content(PHASE12_CLOSURE_CHECKLIST_PATH, REQUIRED_FILE_MARKERS[PHASE12_CLOSURE_CHECKLIST_PATH]))
+        case_count += 1
+
+        forbidden_file = FORBIDDEN_FILES[0]
+        write(root, forbidden_file, "# forbidden fixture\n")
+        failures = validate(root)
+        expected_forbidden = f"unexpected_file:{forbidden_file}"
+        if failures != [expected_forbidden]:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-validate-file-forbidden-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        (root / forbidden_file).unlink()
+        case_count += 1
+
+        forbidden_glob = "scripts/zigux/check-phase12-temporary.py"
+        write(root, forbidden_glob, "# forbidden glob fixture\n")
+        failures = validate(root)
+        expected_glob = f"unexpected_file:{forbidden_glob}"
+        if failures != [expected_glob]:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-checker-glob-forbidden-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        (root / forbidden_glob).unlink()
+        case_count += 1
 
     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
+    print(f"PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
