@@ -72,7 +72,7 @@ Fresh live current-`master` inspection on 2026-05-06 confirmed that the shipped 
 - `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` still describe the same bounded payload, formatting, callback, and teardown contract
 - the public `runPayloadBoundaryReplay()` and `runCallbackBoundaryReplay()` helpers, `formattedMessage()` surface, replay-summary callback-path markers, and registration-balance cue all remain explicit on current `master`
 - the survey gate still enforces repo-local review guidance by keeping the no-standalone-format-sample boundary tied to the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet
-- the shared review route remains `zig build test --build-file zigux/tests/phase5_build.zig --summary all` plus `make -C zigux phase5`, while the sample stays visibly separate from the Phase 9 `runtime_trace_events` family
+- the shared review route remains `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `make -C zigux phase5-test`, and `make -C zigux phase5`, while the sample stays visibly separate from the Phase 9 `runtime_trace_events` family
 
 ## Contributor refresh prompts for the landed sample
 
@@ -88,7 +88,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - if the sample behavior changes, is the manifest updated alongside the replay contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `CREATE_TRACE_POINTS`, tracepoint macros from `trace-events-sample.h`, kernel scheduling, and module registration wiring remain out of scope for this Phase 5 sample?
 - if the broader shared review packet is refreshed, does it keep `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` pointing at this exact landed `samples/zigux/trace_events_sample.zig` packet and the shared `phase5_build.zig` route while still separating this sample from the later Phase 9 `runtime_trace_events` family instead of leaving that distinction trace-events-only?
-- if this survey note moves again, does it still keep the latest verification posture repo-local and explicit about the shared `phase5_build.zig` route plus the separate Phase 9 `runtime_trace_events` family?
+- if this survey note moves again, does it still keep the latest verification posture repo-local and explicit about the shared `phase5_build.zig` route, the focused `make -C zigux phase5-test` replay, and the separate Phase 9 `runtime_trace_events` family?
 - if this survey note moves again, does it still say there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample, and does it keep the selected-string plus `iter=%d` replay tied to the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet instead of implying a new standalone formatting helper sample?
 
 ## Recorded gap vs roadmap
@@ -109,6 +109,7 @@ The current gap is no longer "Zigux has no trace-events sample guidance." The mo
    - `find samples/zigux -maxdepth 1 -type f | sort | rg "trace_events_sample|runtime_trace_events"`
 3. run the exact bounded Phase 5 sample checks
    - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
+   - `make -C zigux phase5-test`
 
 ## Non-goals
 
