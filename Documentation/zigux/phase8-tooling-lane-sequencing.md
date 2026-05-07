@@ -13,6 +13,7 @@ It is a coordination artifact, not a closure claim.
 - Linux-style replay entrypoint: `make -C zigux phase8`
 - shipped shared coordination surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`, `zigux/tests/phase8_build.zig`, and `zigux/Makefile`
 - current helper-family posture: the bounded libbpf packet is parked after the landed file-path bridge and perf-buffer poll review updates, and this sequencing note should reopen it only for another smaller same-lane helper, validator, checker, survey, README, or shared wording gap
+- continuity wording guard: if another shared Phase 8 reminder still says the libbpf shard routes are active, treat that wording as a focused reopen-entrypoint cue only, not as a claim that the libbpf packet is currently active by default
 
 ## Why this note exists
 
@@ -132,4 +133,6 @@ That split matches the live docs-root Phase 8 summary and prevents scheduled too
 
 Before reopening another tooling helper lane, refresh the shared tests-root reminder so it keeps the parked libbpf shard routes explicit beside the parked `exec-cmd`, `help`, and `kallsyms` packet.
 
-That older immediate next step is now complete, and that shared tests-root reminder is now refreshed on `master`, so the honest default is to leave this lane parked unless another one-file same-lane helper-local, validator, checker, survey, README, or wording drift appears inside the shared libbpf packet.
+That older immediate next step is now complete, and the shared tests-root reminder should now be read as a parked-packet reminder plus focused reopen map rather than as a reason to treat the libbpf packet as already active again by default.
+
+The honest default is to leave this lane parked unless another one-file same-lane helper-local, validator, checker, survey, README, or wording drift appears inside the shared libbpf packet.
