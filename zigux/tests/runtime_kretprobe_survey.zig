@@ -12,6 +12,7 @@ const LifecycleBoundarySummary = struct {
     pre_execution_handoff_only: bool,
     requires_idle_registration_snapshot: bool,
     failed_exit_state_retained_until_drain: bool,
+    prepared_snapshot_owned_by_loader_request: bool,
     metadata_only_registration_labels: []const []const u8,
     shared_request_surface: []const u8,
     live_registration_parity: []const u8,
@@ -131,6 +132,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try std.testing.expect(manifest.lifecycle_boundary_summary.pre_execution_handoff_only);
     try std.testing.expect(manifest.lifecycle_boundary_summary.requires_idle_registration_snapshot);
     try std.testing.expect(manifest.lifecycle_boundary_summary.failed_exit_state_retained_until_drain);
+    try std.testing.expect(manifest.lifecycle_boundary_summary.prepared_snapshot_owned_by_loader_request);
     try std.testing.expectEqual(@as(usize, 2), manifest.lifecycle_boundary_summary.metadata_only_registration_labels.len);
     try std.testing.expectEqualStrings("register_kretprobe", manifest.lifecycle_boundary_summary.metadata_only_registration_labels[0]);
     try std.testing.expectEqualStrings("unregister_kretprobe", manifest.lifecycle_boundary_summary.metadata_only_registration_labels[1]);
@@ -164,6 +166,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(survey_doc, "metadata-only labels");
     try expectContains(survey_doc, "idle registration snapshot");
     try expectContains(survey_doc, "failed-exit state");
+    try expectContains(survey_doc, "loader-owned prepared handoff snapshot");
     try expectContains(survey_doc, "active probe drains");
     try expectContains(survey_doc, "Roadmap gap vs current pilot");
     try expectContains(survey_doc, "first loadable Zigux runtime modules");
@@ -181,6 +184,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(module_slice_doc, "register_kretprobe()");
     try expectContains(module_slice_doc, "unregister_kretprobe()");
     try expectContains(module_slice_doc, "idle registration snapshot");
+    try expectContains(module_slice_doc, "loader-owned prepared handoff snapshot");
     try expectContains(module_slice_doc, "failed-exit state");
     try expectContains(module_slice_doc, "Roadmap gap vs current pilot");
     try expectContains(module_slice_doc, "starter_landed_without_loadable_runtime_substrate");
@@ -188,6 +192,8 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
 
     try expectContains(loader_source, "error.OutstandingProbeStateForLoader");
     try expectContains(loader_source, "summary.active_instances != 0 or summary.entry_timestamp_armed");
+    try expectContains(loader_source, "runtime kretprobe loader keeps the prepared snapshot stable across later sample mutation");
+    try expectContains(loader_source, "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity");
 
     try expectContains(runtime_loader_source, "pub const AllocatorHandoff = contract.AllocatorHandoff;");
     try expectContains(runtime_loader_source, "pub const LoadPlan = contract.LoadPlan;");
@@ -249,6 +255,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", gap.zigux_destination);
             try expectContains(gap.why_now, "idle registration snapshot");
+            try expectContains(gap.why_now, "prepared-snapshot ownership");
             try expectContains(gap.why_now, "failed-exit state retention");
         }
         if (std.mem.eql(u8, gap.id, "runtime-kretprobe-substrate-handoff")) {
