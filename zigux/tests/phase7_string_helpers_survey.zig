@@ -15,6 +15,8 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     defer allocator.free(slice_note);
     try expectContains(slice_note, "lib/string_helpers.c");
     try expectContains(slice_note, "lib/string_helpers.zig");
+    try expectContains(slice_note, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
+    try expectContains(slice_note, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
     try expectContains(slice_note, "zigux/tests/phase7_string_helpers.zig");
     try expectContains(slice_note, "zigux/tests/phase7_string_helpers_survey.zig");
     try expectContains(slice_note, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
@@ -61,6 +63,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     defer allocator.free(scripts_root);
     try expectContains(scripts_root, "validate-phase7.py");
     try expectContains(scripts_root, "check-phase7-build-wiring.py");
+    try expectContains(scripts_root, "check-phase7-make-wrapper-selftest-alignment.py");
     try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(scripts_root, "make -C zigux phase7-validate");
 
@@ -73,7 +76,26 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
 
     const validator = try readRepoFile(allocator, "scripts/zigux/validate-phase7.py");
     defer allocator.free(validator);
+    try expectContains(validator, "\"Documentation/zigux/phase7-make-wrapper-selftest-alignment.md\"");
+    try expectContains(validator, "\"scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py\"");
     try expectContains(validator, "\"zigux/tests/phase7_string_helpers_survey.zig\"");
+
+    const alignment_note = try readRepoFile(allocator, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
+    defer allocator.free(alignment_note);
+    try expectContains(alignment_note, "PHASE7_LANE_KEY=P7-Y05");
+    try expectContains(alignment_note, "`scripts/zigux/check-phase7-make-wrapper.py`");
+    try expectContains(alignment_note, "`scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`");
+    try expectContains(alignment_note, "`scripts/zigux/validate-phase7.py`");
+    try expectContains(alignment_note, "`make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface");
+    try expectContains(alignment_note, "this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`");
+
+    const alignment_checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
+    defer allocator.free(alignment_checker);
+    try expectContains(alignment_checker, "scripts/zigux/check-phase7-make-wrapper.py");
+    try expectContains(alignment_checker, "zigux/Makefile");
+    try expectContains(alignment_checker, ".github/workflows/zigux-bootstrap.yml");
+    try expectContains(alignment_checker, "PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_SELF_TEST=pass");
+    try expectContains(alignment_checker, "PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass");
 
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
