@@ -210,6 +210,11 @@
       "overflow_vectors": 4,
       "required_length_vectors": 9,
       "perf_vectors": 4,
+      "uppercase_pack_sample_vectors": 5,
+      "byte_range_roundtrip_vectors": 256,
+      "parity_matrix_cases": 384,
+      "overflow_matrix_cases": 2112,
+      "normalization_focus_cases": 5,
       "perf_labels": [
         "16B-plain-g1",
         "32B-ascii-g2",
