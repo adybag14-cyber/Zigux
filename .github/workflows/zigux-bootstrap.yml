@@ -155,6 +155,9 @@ jobs:
       - name: Self-test artifact diff contract checker
         run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test
 
+      - name: Check artifact diff contract replay
+        run: python3 scripts/zigux/check-artifact-diff-contract.py
+
       - name: Self-test Phase 4 gate evidence checker
         run: python3 scripts/zigux/check-phase4-gate-evidence.py --self-test
 
