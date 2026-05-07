@@ -240,6 +240,23 @@ test "shared runtime loader contract rejects impossible, stale, or selftest-hook
     };
     try std.testing.expectError(error.InvalidInitFlow, prepareRequest(duplicate_init));
 
+    const initialized_with_premature_selftest = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expectError(error.InvalidInitFlow, prepareRequest(initialized_with_premature_selftest));
+
     const exited_plan = LoadPlan{
         .module_name = "runtime_bitmap",
         .anchor = "lib/test_bitmap.c",
