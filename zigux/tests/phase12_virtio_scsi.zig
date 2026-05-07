@@ -226,7 +226,7 @@ test "phase12 virtio scsi recovery event ownership and rollback keep the frozen 
     try std.testing.expectEqual(@as(u16, 0), rollback.recovery_generation);
     try std.testing.expect(rollback.blocks_queue_planning_until_restore);
     try std.testing.expect(rollback.blocks_request_queue_access_until_restore);
-    try std.testing.expect(rollback.keeps_frozen_layoutForRestore);
+    try std.testing.expect(rollback.keeps_frozen_layout_for_restore);
     try std.testing.expect(rollback.clears_live_layout_after_restore);
     try std.testing.expect(rollback.requires_replan_before_queue_reuse);
 
@@ -250,7 +250,7 @@ test "phase12 virtio scsi recovery event rearm summary stays tied to the frozen 
     try std.testing.expect(summary.reuses_frozen_event_queue_index);
     try std.testing.expect(summary.requires_device_ready_before_rearm);
     try std.testing.expect(summary.rearms_event_queue_before_event_recycling);
-    try std.testing.expect(summary.rearms_event_queueBeforeRequestQueueReuse);
+    try std.testing.expect(summary.rearms_event_queue_before_request_queue_reuse);
 }
 
 test "phase12 virtio scsi recovery event rearm summary requires a frozen transport" {
