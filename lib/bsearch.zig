@@ -195,6 +195,10 @@ fn compareIntDescending(key: *const i32, item: *const i32) i32 {
     return compareInt(item, key);
 }
 
+fn compareIntDescendingAlias(key: *const i32, item: *const i32) i32 {
+    return compareIntDescending(key, item);
+}
+
 fn compareIntDescendingCounted(key: *const i32, item: *const i32) i32 {
     compare_call_count += 1;
     return compareIntDescending(key, item);
@@ -367,6 +371,28 @@ test "search accepts explicitly typed c abi comparator pointers" {
         try std.testing.expectEqual(@as(?usize, 4), searchIndex(i32, i32, &@as(i32, 16), values[0..], compare));
         const found = search(i32, i32, &@as(i32, 7), values[0..], compare) orelse return error.TestUnexpectedResult;
         try std.testing.expectEqual(@as(i32, 7), found.*);
+    }
+}
+
+test "search accepts runtime-selected descending native comparator pointers" {
+    var values = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+    const comparators = [_]Comparator(i32, i32){ compareIntDescending, compareIntDescendingAlias };
+
+    for (comparators) |compare| {
+        try std.testing.expectEqual(@as(?usize, 3), searchIndex(i32, i32, &@as(i32, 11), values[0..], compare));
+
+        const found = search(i32, i32, &@as(i32, 7), values[0..], compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@as(i32, 7), found.*);
+        try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(found));
+
+        try std.testing.expectEqual(@as(?usize, null), searchIndex(i32, i32, &@as(i32, 10), values[0..], compare));
+        try std.testing.expect(search(i32, i32, &@as(i32, 10), values[0..], compare) == null);
+
+        const mutable = searchMutable(i32, i32, &@as(i32, 16), values[0..], compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@intFromPtr(&values[2]), @intFromPtr(mutable));
+        mutable.* = 17;
+        try std.testing.expectEqual(@as(i32, 17), values[2]);
+        mutable.* = 16;
     }
 }
 
