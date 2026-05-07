@@ -456,6 +456,11 @@ pub fn eraseInit(node: *Node, root: *Root) void {
     clearNode(node);
 }
 
+pub fn eraseInitCached(node: *Node, root: *RootCached) void {
+    _ = eraseCached(node, root);
+    clearNode(node);
+}
+
 pub fn first(root: *const Root) ?*Node {
     const node = root.node orelse return null;
     return minimum(node);
@@ -937,4 +942,71 @@ test "rbtree eraseCached returns null for a singleton cached tree" {
     try std.testing.expect(eraseCached(&entry.node, &root) == null);
     try std.testing.expect(firstCached(&root) == null);
     try std.testing.expect(root.root.node == null);
+}
+
+test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var root = RootCached.init();
+
+    for (&entries) |*entry| {
+        addCached(&entry.node, &root, less);
+    }
+
+    eraseInitCached(&entries[1].node, &root);
+    try std.testing.expect(emptyNode(&entries[1].node));
+    try std.testing.expectEqual(@as(?*Node, &entries[0].node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+
+    eraseInitCached(&entries[0].node, &root);
+    try std.testing.expect(emptyNode(&entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, &entries[2].node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+}
+
+test "rbtree eraseInitCached clears singleton cached roots before reseed" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var first_entry = Entry{ .key = 10 };
+    var second_entry = Entry{ .key = 6 };
+    var root = RootCached.init();
+
+    addCached(&first_entry.node, &root, less);
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), firstCached(&root));
+
+    eraseInitCached(&first_entry.node, &root);
+    try std.testing.expect(emptyNode(&first_entry.node));
+    try std.testing.expectEqual(@as(?*Node, null), root.root.node);
+    try std.testing.expectEqual(@as(?*Node, null), firstCached(&root));
+
+    addCached(&second_entry.node, &root, less);
+    try std.testing.expectEqual(@as(?*Node, &second_entry.node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
 }
