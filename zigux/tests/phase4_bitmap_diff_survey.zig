@@ -82,6 +82,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/bitmap_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "shared Phase 4 gate-evidence note") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "phase4_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "reviewer-facing validation maintenance") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/bitmap_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_bitmap_live_helper_replay.zig") != null);
@@ -91,9 +92,9 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "measurable and reversible") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "scripts/zigux/validate-phase4.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Documentation/zigux/phase4-validation-matrix.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "samples or perf-threshold approval") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "one bounded same-lane validation step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "reviewer-facing artifact") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "sample packets, or perf-threshold approval") != null);
 }
 
 test "phase 4 bitmap survey keeps the shared build route explicit" {
@@ -144,6 +145,6 @@ test "phase 4 bitmap survey keeps owner and rollback owner governance explicit" 
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", manifest.shared_matrix_path);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.shared_gate_evidence_path);
 
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Shared Subsystems Pod owner plus rollback owner metadata") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Shared Subsystems Pod owner plus rollback owner metadata") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "shared validator or docs-side artifact") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "already-aligned bitmap rollback survey pair") != null);
 }
