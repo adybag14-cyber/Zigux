@@ -378,10 +378,10 @@ def main_validation(root: Path) -> list[str]:
             return [f"missing_file:{abs_path.relative_to(root)}"]
 
     closure = (root / "Documentation/zigux/phase2-closure.md").read_text(encoding="utf-8")
-    workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
+    workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
     ledger = (root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
-    artifact_doc = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
+    artifact_doc = (root / "Documentation" / "zigux" / "artifact-diff.md").read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     tool_manifest = json.loads(
         (root / "zigux/tests/fixtures/phase2_tool_manifest.json").read_text(encoding="utf-8")
@@ -548,7 +548,7 @@ def main_validation(root: Path) -> list[str]:
     if targets_manifest.get("target_count") != 3:
         issues.append("targets:target_count=3")
     if len(targets_manifest.get("targets", [])) != 3:
-        issues.append(f"targets:len={len(targets_manifest.get('targets', [])})")
+        issues.append(f"targets:len={len(targets_manifest.get('targets', []))}")
     return issues
 
 
@@ -564,6 +564,7 @@ def run_self_test() -> int:
         "scripts/zigux/check-kconfig-bridge.py",
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+        "scripts/zigux/check-genksyms-crc-diff.py",
     ]
     for command in make_duplicate_cases:
         mutated = make_ok + f"\ncd $(ZIGUX_ROOT) && $(PYTHON) {command}"
@@ -594,6 +595,7 @@ def run_self_test() -> int:
         "python3 scripts/zigux/check-kconfig-bridge.py",
         "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
         "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+        "python3 scripts/zigux/check-genksyms-crc-diff.py",
     ]
     for command in workflow_duplicate_cases:
         mutated = workflow_ok + f"run: {command}\n"
