@@ -48,7 +48,7 @@ Current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sampl
 - `zig test lib/rbtree.zig`
 
 2. run the shared Phase 7 helper gate
-- `zig build test --build-file zigux/tests/phase7_build.zig`
+- `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
 3. keep the survey record machine-checked
 - `zig test zigux/tests/phase7_rbtree_survey.zig`
