@@ -153,7 +153,7 @@ REQUIRED_CLOSURE_MARKERS = [
     ),
     (
         "closure_string_review_packet_count",
-        "PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors and parity fixture keys",
+        "PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors, committed C-string replacement bytes, and parity fixture keys",
         1,
     ),
 ]
