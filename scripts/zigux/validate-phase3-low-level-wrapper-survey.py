@@ -46,6 +46,7 @@ ABI_MANIFEST_REQUIRED_FILES = (
     "zigux/uapi/version.zig",
     ABI_TEST_REL,
     ABI_DUMP_REL,
+    "zigux/tests/phase3_export_uapi_layout.zig",
     LOW_LEVEL_TEST_REL,
     "zigux/tests/build.zig",
     ABI_EXPECTED_REL,
@@ -57,7 +58,12 @@ ABI_MANIFEST_REQUIRED_FILES = (
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/check-phase3-policy-byte-guards.py",
     ABI_SLICE_DOC_REL,
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
 )
 
 
@@ -524,7 +530,7 @@ def run_self_test() -> int:
                     "    try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);",
                     "    const weak_release_mismatch = atomic.compareExchangeWeak(",
                     "        u32,",
-                    "        &weak_release_value,",
+                    "        &weak_release_value,
                     "        13,",
                     "        23,",
                     "        .release,",
@@ -650,7 +656,7 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        (root / LOW_LEVEL_TEST_REL).write_text(
+        (root / LOW_LEVEL_TEST_REL).writeText(
             "\n".join(
                 (
                     'test "phase3 low-level wrappers cover the shipped helper surface directly" {',
