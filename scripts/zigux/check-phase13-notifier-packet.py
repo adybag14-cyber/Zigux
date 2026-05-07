@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase13-notifier-list-survey.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "zigux/tests/README.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
@@ -26,6 +28,34 @@ SURVEY_MARKERS = [
     "`scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet",
     "shared Phase 13 build intentionally omits this packet",
 ]
+
+TESTS_REVIEW_COMPANION_MARKERS = [
+    "scripts/zigux/check-phase13-notifier-packet.py",
+    "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/tests/phase13_notifier_list_reviewability.zig",
+    "include/zigux/notifier_abi.h",
+    "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/notifier_chain_view.zig",
+    "extra Phase 13 checker or replay surfaces that are not on `master`",
+]
+
+TESTS_REVIEW_COMPANION_EXACT_COUNTS = {
+    "scripts/zigux/check-phase13-notifier-packet.py": 2,
+}
+
+TESTS_README_MARKERS = [
+    "scripts/zigux/check-phase13-notifier-packet.py",
+    "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/tests/phase13_notifier_list_reviewability.zig",
+    "include/zigux/notifier_abi.h",
+    "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/notifier_chain_view.zig",
+    "adjacent release-surface evidence rather than extra shared replay steps",
+]
+
+TESTS_README_EXACT_COUNTS = {
+    "scripts/zigux/check-phase13-notifier-packet.py": 1,
+}
 
 BINDING_MARKERS = [
     "pub const NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING",
@@ -96,6 +126,15 @@ def collect_missing(text: str, markers: list[str], prefix: str) -> list[str]:
     return [f"{prefix}:{marker}" for marker in markers if marker not in text]
 
 
+def collect_exact_count_issues(text: str, counts: dict[str, int], prefix: str) -> list[str]:
+    issues: list[str] = []
+    for needle, expected in counts.items():
+        actual = text.count(needle)
+        if actual != expected:
+            issues.append(f"{prefix}:{needle}:expected={expected}:actual={actual}")
+    return issues
+
+
 def validate_manifest(text: str) -> list[str]:
     try:
         manifest = json.loads(text)
@@ -136,6 +175,10 @@ def validate(root: Path) -> list[str]:
         return issues
 
     survey_text = read_text(root / "Documentation/zigux/phase13-notifier-list-survey.md")
+    tests_review_companion_text = read_text(
+        root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
+    )
+    tests_readme_text = read_text(root / "zigux/tests/README.md")
     manifest_text = read_text(root / "zigux/tests/phase13_notifier_list_manifest.json")
     reviewability_text = read_text(root / "zigux/tests/phase13_notifier_list_reviewability.zig")
     binding_text = read_text(root / "zigux/bindings/notifier_abi.zig")
@@ -144,6 +187,28 @@ def validate(root: Path) -> list[str]:
     build_text = read_text(root / "zigux/tests/phase13_build.zig")
 
     issues.extend(collect_missing(survey_text, SURVEY_MARKERS, "phase13-notifier-survey"))
+    issues.extend(
+        collect_missing(
+            tests_review_companion_text,
+            TESTS_REVIEW_COMPANION_MARKERS,
+            "phase13-tests-review-companion",
+        )
+    )
+    issues.extend(
+        collect_exact_count_issues(
+            tests_review_companion_text,
+            TESTS_REVIEW_COMPANION_EXACT_COUNTS,
+            "phase13-tests-review-companion-exact",
+        )
+    )
+    issues.extend(collect_missing(tests_readme_text, TESTS_README_MARKERS, "phase13-tests-readme"))
+    issues.extend(
+        collect_exact_count_issues(
+            tests_readme_text,
+            TESTS_README_EXACT_COUNTS,
+            "phase13-tests-readme-exact",
+        )
+    )
     issues.extend(collect_missing(binding_text, BINDING_MARKERS, "phase13-notifier-binding"))
     issues.extend(collect_missing(helper_text, HELPER_MARKERS, "phase13-notifier-helper"))
     issues.extend(collect_missing(header_text, HEADER_MARKERS, "phase13-notifier-header"))
@@ -161,6 +226,37 @@ def seed_fixture_tree(root: Path) -> None:
         write_text(root / rel, "// stub\n")
 
     write_text(root / "Documentation/zigux/phase13-notifier-list-survey.md", "\n".join(SURVEY_MARKERS) + "\n")
+    write_text(
+        root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+        "\n".join(
+            [
+                "scripts/zigux/check-phase13-notifier-packet.py",
+                "zigux/tests/phase13_notifier_list_manifest.json",
+                "zigux/tests/phase13_notifier_list_reviewability.zig",
+                "include/zigux/notifier_abi.h",
+                "zigux/bindings/notifier_abi.zig",
+                "zigux/helpers/notifier_chain_view.zig",
+                "extra Phase 13 checker or replay surfaces that are not on `master`",
+                "scripts/zigux/check-phase13-notifier-packet.py",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root / "zigux/tests/README.md",
+        "\n".join(
+            [
+                "scripts/zigux/check-phase13-notifier-packet.py",
+                "zigux/tests/phase13_notifier_list_manifest.json",
+                "zigux/tests/phase13_notifier_list_reviewability.zig",
+                "include/zigux/notifier_abi.h",
+                "zigux/bindings/notifier_abi.zig",
+                "zigux/helpers/notifier_chain_view.zig",
+                "adjacent release-surface evidence rather than extra shared replay steps",
+            ]
+        )
+        + "\n",
+    )
     write_text(root / "zigux/bindings/notifier_abi.zig", "\n".join(BINDING_MARKERS) + "\n")
     write_text(root / "zigux/helpers/notifier_chain_view.zig", "\n".join(HELPER_MARKERS) + "\n")
     write_text(root / "include/zigux/notifier_abi.h", "\n".join(HEADER_MARKERS) + "\n")
@@ -219,6 +315,57 @@ def run_self_test() -> int:
                 "phase13-notifier-survey:shared Phase 13 build intentionally omits this packet",
             ],
             "survey_guard_failed",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
+        write_text(
+            root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            "\n".join(
+                marker
+                for marker in [
+                    "zigux/tests/phase13_notifier_list_manifest.json",
+                    "zigux/tests/phase13_notifier_list_reviewability.zig",
+                    "include/zigux/notifier_abi.h",
+                    "zigux/bindings/notifier_abi.zig",
+                    "zigux/helpers/notifier_chain_view.zig",
+                    "extra Phase 13 checker or replay surfaces that are not on `master`",
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "phase13-tests-review-companion:scripts/zigux/check-phase13-notifier-packet.py",
+                "phase13-tests-review-companion-exact:scripts/zigux/check-phase13-notifier-packet.py:expected=2:actual=0",
+            ],
+            "tests_review_companion_guard_failed",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(
+                [
+                    "zigux/tests/phase13_notifier_list_manifest.json",
+                    "zigux/tests/phase13_notifier_list_reviewability.zig",
+                    "include/zigux/notifier_abi.h",
+                    "zigux/bindings/notifier_abi.zig",
+                    "zigux/helpers/notifier_chain_view.zig",
+                    "adjacent release-surface evidence rather than extra shared replay steps",
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "phase13-tests-readme:scripts/zigux/check-phase13-notifier-packet.py",
+                "phase13-tests-readme-exact:scripts/zigux/check-phase13-notifier-packet.py:expected=1:actual=0",
+            ],
+            "tests_readme_guard_failed",
         )
         seed_fixture_tree(root)
         case_count += 1
@@ -317,12 +464,13 @@ def run_self_test() -> int:
         )
         case_count += 1
 
-        (root / "include/zigux/notifier_abi.h").unlink()
+        (root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md").unlink()
         assert_only(
             validate(root),
-            ["missing_file:include/zigux/notifier_abi.h"],
-            "required_file_guard_failed",
+            ["missing_file:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"],
+            "required_companion_file_guard_failed",
         )
+        seed_fixture_tree(root)
         case_count += 1
 
     print("PHASE13_NOTIFIER_PACKET=pass")
