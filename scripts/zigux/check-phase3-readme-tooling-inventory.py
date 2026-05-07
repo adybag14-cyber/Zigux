@@ -23,6 +23,7 @@ REQUIRED_HELPERS = (
     "validate-phase1-closure.py",
     "validate-phase2.py",
     "validate-phase2-closure.py",
+    "check-phase2-tool-manifest-packets.py",
     "validate-phase3.py",
     "validate_phase3_selftest.py",
     "check-phase3-selftest-surface.py",
@@ -33,6 +34,7 @@ REQUIRED_HELPERS = (
     "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase3-export-uapi-survey.py",
     "validate-phase3-abi-bindings-syntax.py",
+    "survey-phase3-abi-constant-parity.py",
     "artifact_diff.py",
     "check-artifact-diff-contract.py",
     "validate-phase4.py",
@@ -91,6 +93,8 @@ PHASE3_VALIDATE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
@@ -149,7 +153,7 @@ PHASE15_VALIDATE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
 )
 REQUIRED_README_SNIPPETS = (
-    "- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `check-phase3-abi-dump-gate.py`, `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
+    "- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `check-phase3-abi-dump-gate.py`, `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
     "- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or aggregated `phase6-perf` target on `master`; the shipped dedicated perf replays are `make -C zigux phase6-checksum-perf` and `make -C zigux phase6-hexdump-perf`, which keep the checksum slowdown ceiling and the formatter-sensitive hexdump fixture packet wired into Linux-style entrypoints without overstating perf coverage for the rest of the Phase 6 helper packet.",
     "- the current shared Phase 7 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `samples/zigux/README.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_build.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
     "- `make -C zigux phase7-validate` keeps the shared Phase 7 validator plus the dedicated make-wrapper, argvSplit packet, rbtree parity, and build-wiring checkers wired through the Linux-style validation entrypoint.",
@@ -159,6 +163,7 @@ REQUIRED_README_SNIPPETS = (
     "- `python3 scripts/zigux/check-phase10-core-packet.py` keeps the restored core survey note, core manifest, core survey gate, reset-queue replay, and driver-id replay aligned around that shared review packet, and `python3 scripts/zigux/check-phase10-input-packet.py` keeps the input slice, input module slice, input survey note, build wiring, and status-drain replay markers aligned inside that same bounded Phase 10 route while `zig build test --build-file zigux/tests/phase10_build.zig` and `make -C zigux phase10` rerun the same bounded virtio core, virtio ring, virtio input, and virtio mmio packet.",
     "- there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.",
     "- `make -C zigux phase13-validate` keeps that same release packet wired through the Linux-style validation entrypoint.",
+    "- `check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed `fixdep`, `genksyms`, and `kconfig` packet manifests so the shared Phase 2 tool inventory stays explicit before the direct Zig replays run.",
 )
 TESTS_README_PHASE3_MARKERS = (
     "scripts/zigux/validate_phase3_selftest.py",
@@ -353,6 +358,7 @@ def _baseline_readme() -> str:
         ("Phase 10 flow", REQUIRED_README_SNIPPETS[7]),
         ("Phase 12 flow", REQUIRED_README_SNIPPETS[8]),
         ("Phase 13 flow", REQUIRED_README_SNIPPETS[9]),
+        ("Phase 2 flow", REQUIRED_README_SNIPPETS[10]),
     )
     for title, snippet in flow_pairs:
         sections.extend(("", title, snippet))
@@ -394,6 +400,8 @@ def _baseline_makefile() -> str:
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
@@ -594,8 +602,10 @@ def run_self_test() -> int:
             ("validate-phase4.py", "missing_phase4_validator_repo_file_guard_failed"),
             ("check-phase4-gate-evidence.py", "missing_phase4_gate_evidence_repo_file_guard_failed"),
             ("validate-phase2.py", "missing_phase2_validator_repo_file_guard_failed"),
+            ("check-phase2-tool-manifest-packets.py", "missing_phase2_tool_manifest_packets_repo_file_guard_failed"),
             ("validate-phase2-closure.py", "missing_phase2_closure_validator_repo_file_guard_failed"),
             ("validate-phase3.py", "missing_phase3_validator_repo_file_guard_failed"),
+            ("survey-phase3-abi-constant-parity.py", "missing_phase3_abi_constant_parity_repo_file_guard_failed"),
             ("validate_phase3_selftest.py", "missing_phase3_validate_selftest_repo_file_guard_failed"),
             ("check-fixdep-diff.py", "missing_phase2_fixdep_diff_repo_file_guard_failed"),
             ("check-genksyms-bridge.py", "missing_phase2_genksyms_bridge_repo_file_guard_failed"),
