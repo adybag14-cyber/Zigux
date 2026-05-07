@@ -20,6 +20,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/install-zig.py",
@@ -33,6 +34,7 @@ REQUIRED_FILES = [
     "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_cross_targets.json",
+    "zigux/tests/fixtures/phase2_tool_manifest.json",
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -79,6 +81,9 @@ TOOLCHAIN_NOTES_MARKERS = [
     "- shared kconfig selftest-alignment guard: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "- shared kconfig bridge self-test: `python3 scripts/zigux/check-kconfig-bridge.py --self-test`",
     "- shared kconfig bridge parity gate: `python3 scripts/zigux/check-kconfig-bridge.py`",
+    "- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`",
+    "- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`",
+    "- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator`",
     "zig test scripts/zigux/genksyms_crc.zig",
     "zig test scripts/zigux/kconfig/conf_bridge.zig",
     "zig test scripts/zigux/kconfig/confdata_bridge.zig",
@@ -98,6 +103,7 @@ SCRIPTS_README_MARKERS = [
     "check-phase2-cross-selftest-alignment.py",
     "check-phase2-kconfig-selftest-alignment.py",
     "check-phase2-toolchain-pin-scope.py",
+    "check-phase2-tool-manifest-packets.py",
     "validate-phase2.py",
     "validate-phase2-closure.py",
     "check-phase2-cross.py",
@@ -133,6 +139,7 @@ TESTS_README_MARKERS = [
 MAKEFILE_MARKERS = [
     "phase2-validate:",
     "check-phase2-tests-readme-alignment.py",
+    "check-phase2-tool-manifest-packets.py",
     "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
 ]
 
@@ -148,6 +155,9 @@ EXACT_COUNT_CHECKS = {
         "- shared kconfig selftest-alignment guard: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`": 1,
         "- shared kconfig bridge self-test: `python3 scripts/zigux/check-kconfig-bridge.py --self-test`": 1,
         "- shared kconfig bridge parity gate: `python3 scripts/zigux/check-kconfig-bridge.py`": 1,
+        "- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`": 1,
+        "- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`": 1,
+        "- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator`": 1,
         "zig test scripts/zigux/genksyms_crc.zig": 1,
         "zig test scripts/zigux/kconfig/conf_bridge.zig": 1,
         "zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
@@ -163,6 +173,7 @@ EXACT_COUNT_CHECKS = {
     "scripts/zigux/README.md": {
         "check-phase2-genksyms-bridge-selftest-alignment.py": 1,
         "check-phase2-kconfig-selftest-alignment.py": 1,
+        "check-phase2-tool-manifest-packets.py": 1,
     },
     "zigux/tests/README.md": {
         "make -C zigux phase2-validate": 1,
@@ -175,10 +186,10 @@ EXACT_COUNT_CHECKS = {
     },
     "zigux/Makefile": {
         "check-phase2-tests-readme-alignment.py": 1,
+        "check-phase2-tool-manifest-packets.py": 1,
         "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross": 1,
     },
 }
-
 
 def collect_missing_markers(text: str, markers: list[str], *, prefix: str) -> list[str]:
     return [f"{prefix}:{marker}" for marker in markers if marker not in text]
@@ -580,6 +591,90 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(
+                marker
+                for marker in TOOLCHAIN_NOTES_MARKERS
+                if marker != "- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "toolchain_notes:- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(TOOLCHAIN_NOTES_MARKERS)
+            + "\n- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "toolchain_notes:exact_count:- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(
+                marker
+                for marker in TOOLCHAIN_NOTES_MARKERS
+                if marker != "- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "toolchain_notes:- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(TOOLCHAIN_NOTES_MARKERS)
+            + "\n- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "toolchain_notes:exact_count:- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(
+                marker
+                for marker in TOOLCHAIN_NOTES_MARKERS
+                if marker != "- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator`"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "toolchain_notes:- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator`"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(TOOLCHAIN_NOTES_MARKERS)
+            + "\n- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator`\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "toolchain_notes:exact_count:- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator`:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
             root / "scripts/zigux/README.md",
             "\n".join(
                 marker
@@ -604,6 +699,31 @@ def run_self_test() -> int:
         )
 
         build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/README.md",
+            "\n".join(
+                marker
+                for marker in SCRIPTS_README_MARKERS
+                if marker != "check-phase2-tool-manifest-packets.py"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "scripts_readme:check-phase2-tool-manifest-packets.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/README.md",
+            "\n".join(SCRIPTS_README_MARKERS)
+            + "\ncheck-phase2-tool-manifest-packets.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "scripts_readme:exact_count:check-phase2-tool-manifest-packets.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
         (root / "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py" in issues
@@ -612,6 +732,16 @@ def run_self_test() -> int:
         (root / "scripts/zigux/check-genksyms-crc-diff.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/check-genksyms-crc-diff.py" in issues
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase2-tool-manifest-packets.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/check-phase2-tool-manifest-packets.py" in issues
+
+        build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_tool_manifest.json").unlink()
+        issues = validate_root(root)
+        assert "missing_file:zigux/tests/fixtures/phase2_tool_manifest.json" in issues
 
         build_self_test_root(root)
         (root / "scripts/zigux/genksyms_crc.zig").unlink()
@@ -758,8 +888,33 @@ def run_self_test() -> int:
             in issues
         )
 
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/Makefile",
+            "\n".join(
+                marker
+                for marker in MAKEFILE_MARKERS
+                if marker != "check-phase2-tool-manifest-packets.py"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "makefile:check-phase2-tool-manifest-packets.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/Makefile",
+            "\n".join(MAKEFILE_MARKERS)
+            + "\ncheck-phase2-tool-manifest-packets.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "makefile:exact_count:check-phase2-tool-manifest-packets.py:count=2:expected=1"
+            in issues
+        )
+
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=63")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=73")
     return 0
 
 
