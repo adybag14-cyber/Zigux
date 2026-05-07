@@ -94,6 +94,9 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     const zigux_makefile = try readRepoFile(allocator, "zigux/Makefile");
     defer allocator.free(zigux_makefile);
 
+    const workflow = try readRepoFile(allocator, ".github/workflows/zigux-bootstrap.yml");
+    defer allocator.free(workflow);
+
     const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -173,10 +176,12 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(scripts_root, "zigux/tests/phase7_argv_split_survey.zig");
     try expectContains(scripts_root, "zigux/tests/phase7_argv_split_manifest.json");
     try expectContains(scripts_root, "scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(scripts_root, "scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(scripts_root, "make -C zigux phase7-validate");
     try expectContains(scripts_root, "make -C zigux phase7");
 
     try expectContains(tests_root, "`scripts/zigux/check-phase7-argv-split-packet.py`");
+    try expectContains(tests_root, "`scripts/zigux/check-phase7-build-wiring.py`");
     try expectContains(tests_root, "the dedicated `zigux/tests/phase7_argv_split_survey.zig` argvSplit survey gate");
     try expectContains(tests_root, "`make -C zigux phase7-validate`");
     try expectContains(tests_root, "`make -C zigux phase7`");
@@ -187,6 +192,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(docs_root, "zigux/tests/phase7_argv_split_survey.zig");
     try expectContains(docs_root, "zigux/tests/phase7_argv_split_manifest.json");
     try expectContains(docs_root, "scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(docs_root, "scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(docs_root, "zigux/tests/phase7_build.zig");
 
     try expectContains(samples_root, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;");
@@ -203,11 +209,19 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_manifest.json\"");
     try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"");
     try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-argv-split-packet.py\"");
+    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-build-wiring.py\"");
 
     try expectContains(zigux_makefile, "phase7-validate:");
     try expectContains(zigux_makefile, "scripts/zigux/check-phase7-argv-split-packet.py --self-test");
     try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(zigux_makefile, "scripts/zigux/check-phase7-build-wiring.py --self-test");
+    try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(zigux_makefile, "phase7: phase7-validate phase7-test");
+
+    try expectContains(workflow, "Validate Phase 7 runtime helper gates");
+    try expectContains(workflow, "make -C zigux phase7-validate");
+    try expectContains(workflow, "Run Phase 7 runtime helper tests");
+    try expectContains(workflow, "make -C zigux phase7-test");
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
