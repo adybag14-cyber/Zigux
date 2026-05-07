@@ -129,10 +129,6 @@ pub const PlatformHandoffSummary = struct {
     registration_call: []const u8,
     parent_anchor: []const u8,
     drvdata_anchor: []const u8,
-    platform_driver_registration_call: []const u8,
-    platform_probe_anchor: []const u8,
-    platform_remove_anchor: []const u8,
-    platform_shutdown_anchor: []const u8,
     top_source: TopSource,
     timeout_origin: ProbeTimeoutOrigin,
     rate_hz: u32,
@@ -359,10 +355,6 @@ pub const DwWdtLab = struct {
             .registration_call = registration.registration_call,
             .parent_anchor = registration.parent_anchor,
             .drvdata_anchor = "platform_set_drvdata",
-            .platform_driver_registration_call = "platform_driver_register",
-            .platform_probe_anchor = "platform_driver.probe",
-            .platform_remove_anchor = "platform_driver.remove",
-            .platform_shutdown_anchor = "platform_driver.shutdown",
             .top_source = self.top_source,
             .timeout_origin = registration.timeout_origin,
             .rate_hz = self.rate_hz,
@@ -647,7 +639,7 @@ fn divCeil(value: u32, divisor: u32) u32 {
     return @intCast((@as(u64, value) + divisor - 1) / divisor);
 }
 
-test "platform handoff exposes the bounded platform registration anchors when irq wiring is ready" {
+test "platform handoff keeps the bounded drvdata handoff explicit when irq wiring is ready" {
     var watchdog = try DwWdtLab.initFixedTops(65_536, true);
     _ = watchdog.loadRegisters(.{
         .control = control_reg_wdt_en_mask | control_reg_resp_mode_mask,
@@ -661,17 +653,13 @@ test "platform handoff exposes the bounded platform registration anchors when ir
     }, true, true, true);
 
     try std.testing.expectEqualStrings("platform_set_drvdata", handoff.drvdata_anchor);
-    try std.testing.expectEqualStrings("platform_driver_register", handoff.platform_driver_registration_call);
-    try std.testing.expectEqualStrings("platform_driver.probe", handoff.platform_probe_anchor);
-    try std.testing.expectEqualStrings("platform_driver.remove", handoff.platform_remove_anchor);
-    try std.testing.expectEqualStrings("platform_driver.shutdown", handoff.platform_shutdown_anchor);
     try std.testing.expect(handoff.irq_registration_ready);
     try std.testing.expect(handoff.drvdata_ready);
     try std.testing.expectEqual(@as(u32, 16), handoff.timeout_sec);
     try std.testing.expectEqual(@as(u32, 8), handoff.pretimeout_sec);
 }
 
-test "platform handoff keeps the same platform registration anchors when irq or drvdata are still blocked" {
+test "platform handoff keeps the same drvdata anchor when irq or drvdata are still blocked" {
     var watchdog = try DwWdtLab.initCustomTops(1_000, false, [_]u32{
         20_000, 4_000,  8_000,  12_000,
         16_000, 24_000, 28_000, 32_000,
@@ -685,10 +673,7 @@ test "platform handoff keeps the same platform registration anchors when irq or 
         .stop_on_reboot = true,
     }, true, false, false);
 
-    try std.testing.expectEqualStrings("platform_driver_register", handoff.platform_driver_registration_call);
-    try std.testing.expectEqualStrings("platform_driver.probe", handoff.platform_probe_anchor);
-    try std.testing.expectEqualStrings("platform_driver.remove", handoff.platform_remove_anchor);
-    try std.testing.expectEqualStrings("platform_driver.shutdown", handoff.platform_shutdown_anchor);
+    try std.testing.expectEqualStrings("platform_set_drvdata", handoff.drvdata_anchor);
     try std.testing.expect(!handoff.irq_registration_ready);
     try std.testing.expect(!handoff.drvdata_ready);
     try std.testing.expectEqual(TopSource.custom, handoff.top_source);
