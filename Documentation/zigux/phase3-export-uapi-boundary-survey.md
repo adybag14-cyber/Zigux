@@ -35,6 +35,7 @@ The Phase 3 roadmap wants one blessed export surface with explicit ownership and
 
 - the export/UAPI packet owns the starter boundary wording, the shared header relay contract, and the focused `zigux/tests/phase3_export_uapi_layout.zig` replay for this surface.
 - helper-local slices still own semantic growth once a new helper family stops being just starter export/UAPI boundary plumbing.
+- on current `master`, the required shared review-surface refresh should keep this packet-local survey explicit beside `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/README.md`, and `scripts/zigux/README.md` so the starter export/UAPI boundary does not collapse back into an implied header-only claim.
 - any new top-level export/UAPI entry point should land with a resurvey of this note, a matching `phase3_export_uapi_layout` replay update, and one shared review-surface refresh instead of being implied by broader Phase 3 header growth alone.
 
 ## Current Gap
