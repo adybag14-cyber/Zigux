@@ -96,6 +96,10 @@ PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER = (
     "if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?"
 )
 
+PHASE9_REVIEW_CHECKLIST_SELF_TEST_HOOK_RUNTIME_LIFECYCLE_MARKER = (
+    "roadmap-backed selftest-hook and runtime module lifecycle parity cues"
+)
+
 PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER = (
     "the dedicated owner-map split recorded in `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`"
 )
@@ -178,7 +182,7 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "`scripts/zigux/check-phase9-build-only-surface.py`",
     "the shipped build-only surface checker",
     "workflow-backed `make -C zigux phase9` route",
-    "roadmap-backed selftest-hook and runtime module lifecycle parity cues",
+    PHASE9_REVIEW_CHECKLIST_SELF_TEST_HOOK_RUNTIME_LIFECYCLE_MARKER,
     "no-dedicated-`validate-phase9.py` posture",
     PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER,
     PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER,
@@ -190,6 +194,7 @@ REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS = {
     PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER: 1,
     PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER: 1,
     PHASE9_REVIEW_CHECKLIST_FREEZE_MAP_PROMPT_MARKER: 1,
+    PHASE9_REVIEW_CHECKLIST_SELF_TEST_HOOK_RUNTIME_LIFECYCLE_MARKER: 1,
     PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER: 1,
 }
 
@@ -561,7 +566,7 @@ def run_self_test() -> int:
         checklist = checklist_path.read_text(encoding="utf-8")
         checklist_path.write_text(
             checklist.replace(
-                "roadmap-backed selftest-hook and runtime module lifecycle parity cues",
+                PHASE9_REVIEW_CHECKLIST_SELF_TEST_HOOK_RUNTIME_LIFECYCLE_MARKER,
                 "roadmap-backed runtime module lifecycle parity cues",
                 1,
             ),
@@ -569,7 +574,18 @@ def run_self_test() -> int:
         )
         expect_failure(
             base,
-            "review_checklist:roadmap-backed selftest-hook and runtime module lifecycle parity cues",
+            f"review_checklist:{PHASE9_REVIEW_CHECKLIST_SELF_TEST_HOOK_RUNTIME_LIFECYCLE_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            checklist + PHASE9_REVIEW_CHECKLIST_SELF_TEST_HOOK_RUNTIME_LIFECYCLE_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"review_checklist_exact_count:{PHASE9_REVIEW_CHECKLIST_SELF_TEST_HOOK_RUNTIME_LIFECYCLE_MARKER}:expected=1:actual=2",
         )
 
         write_fixture_tree(base)
@@ -637,7 +653,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=9")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=10")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
