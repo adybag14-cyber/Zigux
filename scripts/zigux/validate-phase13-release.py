@@ -582,6 +582,7 @@ def run_self_test() -> int:
         case_count += 1
 
         tests_readme_path = root / "zigux/tests/README.md"
+        tests_readme_path.writeText = None
         tests_readme_path.write_text(
             "\n".join(
                 marker
