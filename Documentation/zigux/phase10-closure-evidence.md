@@ -35,6 +35,11 @@ This note closes that truthfulness gap at the shared closure layer so reviewers 
 
 The shared Phase 10 closure packet currently stays inside:
 
+- `Documentation/zigux/README.md`
+- `scripts/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `zigux/tests/README.md`
 - `drivers/virtio/virtio.zig`
 - `drivers/virtio/virtio_verify.zig`
 - `drivers/virtio/virtio_ring.zig`
@@ -100,7 +105,7 @@ The honest shared closure gates on current `master` are:
 The shared Phase 10 closure packet now keeps two adjacent parity-scoreboard buckets explicit so reviewers do not overcount non-Phase-10 evidence as virtio closure progress.
 
 - `reference_samples` stays `out_of_scope`; its evidence remains `samples/zigux`, `zigux/tests/phase5_build.zig`, and `Documentation/zigux/review-checklist.md`. Those files prove the landed Phase 5 sample packet is real, but they do not widen the active Phase 10 virtio closure claim.
-- `runtime_starters` stays `out_of_scope`; its evidence remains `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_trace_events_manifest.json`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/helpers/allocator_policy.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `samples/zigux/runtime_trace_events_loader.zig`, and `samples/zigux/runtime_trace_events.zig`. Those files prove the bounded Phase 9 runtime-starter packet is real, but they do not widen the active Phase 10 risky-transport closure claim.
+- `runtime_starters` stays `out_of_scope`; its evidence remains `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_trace_events_manifest.json`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/helpers/allocator_policy.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, and `samples/zigux/runtime_trace_events_loader.zig`. Those files prove the bounded Phase 9 runtime-starter packet is real, but they do not widen the active Phase 10 risky-transport closure claim.
 
 ## Parked Boundary
 
