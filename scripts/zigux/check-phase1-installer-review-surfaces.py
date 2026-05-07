@@ -304,12 +304,22 @@ def run_self_test() -> int:
         assert "makefile_phase1_installer_selftest:expected=1:actual=2" in issues
 
         build_self_test_root(root)
+        (root / "Documentation/zigux/review-checklist.md").unlink()
+        issues = validate_root(root)
+        assert "missing_file:Documentation/zigux/review-checklist.md" in issues
+
+        build_self_test_root(root)
+        (root / "zigux/tests/README.md").unlink()
+        issues = validate_root(root)
+        assert "missing_file:zigux/tests/README.md" in issues
+
+        build_self_test_root(root)
         (root / "scripts/zigux/install-zig.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/install-zig.py" in issues
 
     print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass")
-    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=13")
+    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
