@@ -41,15 +41,25 @@ EXPECTED_MAKEFILE_MARKERS = [
 ]
 
 EXPECTED_HELPER_MARKERS = [
+    "pub const ConfigWritePlanSummary = struct {",
+    "pub const ConfigWriteDispositionSummary = struct {",
     "pub const TransportIdentitySummary = struct {",
     "pub const SelectedQueueReadinessSummary = struct {",
+    "pub fn planConfigWriteOffset(self: *Self, offset: u32, planned_value: u32) !ConfigWritePlanSummary {",
+    "pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary {",
     "pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {",
     "pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary {",
     "pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {",
 ]
 
 EXPECTED_TEST_MARKERS = [
+    'test "phase10 virtio mmio plans a bounded config-word write without mutating config space" {',
+    'test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {',
     'test "phase10 virtio mmio summarizes transport identity before lifecycle work" {',
+    'test "phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work" {',
+    'test "phase10 virtio mmio keeps the legacy probe preflight path ready when transport identity stays aligned" {',
+    'test "phase10 virtio mmio marks probe preflight incomplete when identity presence falls away" {',
+    'test "phase10 virtio mmio marks probe preflight incomplete when transport identity drifts" {',
     'test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {',
 ]
 
@@ -161,15 +171,25 @@ const run_phase10_virtio_mmio_survey_tests = b.addRunArtifact(phase10_virtio_mmi
 test_step.dependOn(&run_phase10_virtio_mmio_tests.step);
 test_step.dependOn(&run_phase10_virtio_mmio_survey_tests.step);
 """,
-    "drivers/virtio/virtio_mmio.zig": """pub const TransportIdentitySummary = struct {};
+    "drivers/virtio/virtio_mmio.zig": """pub const ConfigWritePlanSummary = struct {};
+pub const ConfigWriteDispositionSummary = struct {};
+pub const TransportIdentitySummary = struct {};
 pub const SelectedQueueReadinessSummary = struct {};
+pub fn planConfigWriteOffset(self: *Self, offset: u32, planned_value: u32) !ConfigWritePlanSummary { _ = self; _ = offset; _ = planned_value; return .{}; }
+pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary { _ = self; return .{}; }
 pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary { _ = self; return .{}; }
 pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary { _ = self; return .{}; }
 pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self; return .{}; }
 """,
     "drivers/virtio/virtio_ring_verify.zig": 'test "virtio ring verify fixture" {}\n',
     "drivers/virtio/virtio_input_verify.zig": 'test "virtio input verify fixture" {}\n',
-    "zigux/tests/phase10_virtio_mmio.zig": """test "phase10 virtio mmio summarizes transport identity before lifecycle work" {}
+    "zigux/tests/phase10_virtio_mmio.zig": """test "phase10 virtio mmio plans a bounded config-word write without mutating config space" {}
+test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {}
+test "phase10 virtio mmio summarizes transport identity before lifecycle work" {}
+test "phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work" {}
+test "phase10 virtio mmio keeps the legacy probe preflight path ready when transport identity stays aligned" {}
+test "phase10 virtio mmio marks probe preflight incomplete when identity presence falls away" {}
+test "phase10 virtio mmio marks probe preflight incomplete when transport identity drifts" {}
 test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {}
 """,
     "zigux/tests/phase10_virtio_mmio_survey.zig": """test "phase10 virtio mmio survey manifest records the landed identity-backed packet" {
@@ -401,6 +421,15 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_identity_helper_marker_missing")
         helper_path.write_text(original_helper, encoding="utf-8")
 
+        helper_path.write_text(
+            original_helper.replace("pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary {", "pub fn configWriteDispositionDrift(self: *const Self) !ConfigWriteDispositionSummary {", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "helper:pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary {" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_config_write_disposition_helper_marker_missing")
+        helper_path.write_text(original_helper, encoding="utf-8")
+
         verify_path = tmp_root / "drivers/virtio/virtio_ring_verify.zig"
         verify_path.unlink()
         missing_files, _ = validate(tmp_root)
@@ -410,6 +439,7 @@ def run_self_test() -> int:
 
         build_path = tmp_root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
+        build_path.writeText = None
         build_path.write_text(
             original_build.replace('"phase10-virtio-mmio-survey-tests"', '"phase10-virtio-mmio-survey-drift"', 1),
             encoding="utf-8",
@@ -460,6 +490,32 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if 'tests:test "phase10 virtio mmio summarizes transport identity before lifecycle work" {' not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_identity_test_marker_missing")
+        test_path.write_text(original_test, encoding="utf-8")
+
+        test_path.write_text(
+            original_test.replace(
+                'test "phase10 virtio mmio plans a bounded config-word write without mutating config space" {',
+                'test "phase10 virtio mmio config-write-plan drift without mutating config space" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'tests:test "phase10 virtio mmio plans a bounded config-word write without mutating config space" {' not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_config_write_plan_test_marker_missing")
+        test_path.write_text(original_test, encoding="utf-8")
+
+        test_path.write_text(
+            original_test.replace(
+                'test "phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work" {',
+                'test "phase10 virtio mmio probe-preflight drift before lifecycle work" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'tests:test "phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work" {' not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_probe_preflight_test_marker_missing")
         test_path.write_text(original_test, encoding="utf-8")
 
         manifest_path = tmp_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
@@ -599,7 +655,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_ring_helper_status_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
