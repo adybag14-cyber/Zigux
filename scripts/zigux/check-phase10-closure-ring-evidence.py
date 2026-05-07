@@ -25,6 +25,7 @@ BASELINE_RING_HELPERS = [
     "phase10-queue-reset-helper",
     "phase10-queue-reset-readiness-helper",
 ]
+BASELINE_RING_SURVEYED_COMMIT = "e42103fc02f544e1bd23a5ec2e5b584734f5af7d"
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -79,6 +80,15 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     if ring_lane_key != closure_ring_lane_key:
         missing_markers.append("closure_manifest:ring_lane_key_parity")
 
+    ring_surveyed_commit = ring_manifest.get("surveyed_commit")
+    closure_ring_surveyed_commit = (
+        closure_manifest.get("survey_provenance", {})
+        .get("surveyed_commits", {})
+        .get("ring")
+    )
+    if ring_surveyed_commit != closure_ring_surveyed_commit:
+        missing_markers.append("closure_manifest:ring_surveyed_commit_parity")
+
     if RING_MANIFEST_PATH not in closure_manifest.get("roadmap_parity_scoreboard", {}).get(
         "virtqueue_wrappers", {}
     ).get("evidence", []):
@@ -109,6 +119,7 @@ def write_json(root: Path, rel_path: str, payload: object) -> None:
 def baseline_fixture(root: Path) -> None:
     ring_manifest = {
         "lane_key": "P10-L07",
+        "surveyed_commit": BASELINE_RING_SURVEYED_COMMIT,
         "gaps": [
             {
                 "id": helper_id,
@@ -126,7 +137,10 @@ def baseline_fixture(root: Path) -> None:
         ],
     }
     closure_manifest = {
-        "survey_provenance": {"lane_keys": {"ring": "P10-L07"}},
+        "survey_provenance": {
+            "lane_keys": {"ring": "P10-L07"},
+            "surveyed_commits": {"ring": BASELINE_RING_SURVEYED_COMMIT},
+        },
         "roadmap_parity_scoreboard": {
             "virtqueue_wrappers": {
                 "evidence": [
@@ -193,6 +207,18 @@ def run_self_test() -> int:
             )
         write_json(tmp_root, CLOSURE_MANIFEST_PATH, original_closure_manifest)
 
+        drift_manifest = json.loads(json.dumps(original_closure_manifest))
+        drift_manifest["survey_provenance"]["surveyed_commits"]["ring"] = (
+            "84f90e23ad1c28ae345905d5293a8c5395f37d43"
+        )
+        write_json(tmp_root, CLOSURE_MANIFEST_PATH, drift_manifest)
+        _, missing_markers = validate(tmp_root)
+        if "closure_manifest:ring_surveyed_commit_parity" not in missing_markers:
+            raise SystemExit(
+                "phase10-closure-ring-self-test:expected_surveyed_commit_marker_missing"
+            )
+        write_json(tmp_root, CLOSURE_MANIFEST_PATH, original_closure_manifest)
+
         closure_note_path = tmp_root / CLOSURE_NOTE_PATH
         original_closure_note = closure_note_path.read_text(encoding="utf-8")
         closure_note_path.write_text(
@@ -208,7 +234,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_RING_EVIDENCE_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_RING_EVIDENCE_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_CLOSURE_RING_EVIDENCE_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
