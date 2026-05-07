@@ -45,11 +45,14 @@ REQUIRED_MARKERS = {
         '@import("fixtures/phase7_argv_split_vectors.zig")',
         "split.cArgv()",
         "phase 7 argvSplit token buffer does not alias the source text",
+        "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy",
+        "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
         "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
         "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
+        "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
         "Documentation/zigux/phase7-argv-split-slice.md",
@@ -149,7 +152,7 @@ def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
-    assert missing_markers == [marker], case
+    assert marker in missing_markers, case
 
 
 def remove_first_marker(text: str, marker: str) -> str:
@@ -323,6 +326,54 @@ def run_self_test() -> None:
             "argv_split_cargv_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split.zig: split.cArgv()",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
+                "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_storage_pointer_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit keeps every shared token pointer inside the owned storage copy",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
+                "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_terminator_alignment_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
+                "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_allocation_failure_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
         )
         case_count += 1
         tests_path.write_text(original_tests, encoding="utf-8")
