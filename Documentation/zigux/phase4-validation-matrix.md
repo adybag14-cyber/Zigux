@@ -135,8 +135,8 @@ The same validator-first route also keeps `Documentation/zigux/artifact-diff.md`
 - current replay path: `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`
 - survey owner: `Validation and Perf Team`
 - rollback owner: `Validation and Perf Team`
-- current measurable status: absent on current `master`; no dedicated Phase 4 survey packet is shipped yet, so this remains matrix-only and intentionally outside the shipped gate-evidence target set
-- next bounded evidence step: land one manifest-backed survey packet that keeps the current C anchor, replay command, and rollback notes reviewable without claiming a shipped Zig starter
+- current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` keeps the current C anchor, replay command, owner, and rollback owner reviewable, but that bounded packet remains intentionally outside the shipped gate-evidence target set
+- next bounded evidence step: land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet about that same parked survey note, manifest, and replay command without claiming a shipped Zig starter
 
 ### `samples/zigux/test_fsmount.zig`
 - current C anchor: `samples/vfs/test-fsmount.c`
