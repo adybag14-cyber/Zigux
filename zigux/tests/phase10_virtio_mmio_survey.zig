@@ -14,6 +14,7 @@ const SurveySummary = struct {
     preexisting_virtio_input_survey_present: bool,
     preexisting_virtio_mmio_zig_present: bool,
     preexisting_virtio_mmio_test_present: bool,
+    preexisting_virtio_mmio_verify_present: bool,
 };
 
 const Gap = struct {
@@ -124,6 +125,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_verify_present);
     try std.testing.expect(manifest.gaps.len >= 17);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md") != null);
@@ -141,6 +143,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-input-packet.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_ring_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_input_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shorter restaged config window clears stale second-word data") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "plans one bounded config-word write") != null);
@@ -162,22 +165,27 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "../../drivers/virtio/virtio_ring_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "../../drivers/virtio/virtio_input_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "../../drivers/virtio/virtio_mmio_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-ring-verify-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-input-verify-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-mmio-verify-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase10_virtio_ring_verify_tests.step") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase10_virtio_input_verify_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase10_virtio_mmio_verify_tests.step") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "scripts/zigux/check-phase10-ring-packet.py --self-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "scripts/zigux/check-phase10-input-packet.py --self-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "$(ZIG) build test --build-file zigux/tests/phase10_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_ring_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_input_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-word write planning summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-write disposition summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "one explicit transport-identity summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "probe-preflight summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "selected-queue readiness summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "zig test drivers/virtio/virtio_mmio_verify.zig") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -224,6 +232,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
             saw_mmio_survey_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-mmio-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dedicated MMIO verifier replay") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-register-window-helper")) {
@@ -244,6 +253,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
             saw_mmio_slice_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-mmio-slice.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dedicated MMIO verifier replay") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-feature-word-selector-helper")) {
