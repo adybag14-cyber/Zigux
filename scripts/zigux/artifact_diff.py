@@ -237,6 +237,13 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('text_mismatch')
+        assert_repeatable_case(
+            'text',
+            text_a,
+            text_b,
+            False,
+            render_result_lines(matched, details),
+        )
 
         json_a.write_text('{"alpha": 1, "beta": [2, 3]}\n', encoding='utf-8', newline='\n')
         json_b.write_text('{\n  "beta": [2, 3],\n  "alpha": 1\n}\n', encoding='utf-8', newline='\n')
