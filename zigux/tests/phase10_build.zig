@@ -21,6 +21,11 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase10_virtio_core_reset_queue_module.addImport("virtio_core", virtio_core_module);
+    const phase10_virtio_core_verify_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_verify.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const phase10_virtio_core_survey_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_core_survey.zig"),
         .target = target,
@@ -114,6 +119,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase10_virtio_core_reset_queue_module,
     });
     const run_phase10_virtio_core_reset_queue_tests = b.addRunArtifact(phase10_virtio_core_reset_queue_tests);
+    const phase10_virtio_core_verify_tests = b.addTest(.{
+        .name = "phase10-virtio-core-verify-tests",
+        .root_module = phase10_virtio_core_verify_module,
+    });
+    const run_phase10_virtio_core_verify_tests = b.addRunArtifact(phase10_virtio_core_verify_tests);
     const phase10_virtio_core_survey_tests = b.addTest(.{
         .name = "phase10-virtio-core-survey-tests",
         .root_module = phase10_virtio_core_survey_module,
@@ -173,6 +183,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run Phase 10 virtio core, virtio ring, virtio input, virtio mmio, verifier, and survey tests");
     test_step.dependOn(&run_phase10_virtio_core_tests.step);
     test_step.dependOn(&run_phase10_virtio_core_reset_queue_tests.step);
+    test_step.dependOn(&run_phase10_virtio_core_verify_tests.step);
     test_step.dependOn(&run_phase10_virtio_core_survey_tests.step);
     test_step.dependOn(&run_phase10_virtio_driver_id_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_tests.step);
