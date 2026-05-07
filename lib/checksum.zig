@@ -120,12 +120,12 @@ fn unfold(sum: u16) u32 {
     return sum;
 }
 
-fn add16(sum: u16, addend: u16) u16 {
+pub fn add16(sum: u16, addend: u16) u16 {
     const result = sum +% addend;
     return result +% @as(u16, @intFromBool(result < addend));
 }
 
-fn sub16(sum: u16, addend: u16) u16 {
+pub fn sub16(sum: u16, addend: u16) u16 {
     return add16(sum, ~addend);
 }
 
