@@ -39,6 +39,7 @@ STATIC_MARKERS = (
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
     "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+    "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig",
     "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
     "PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-until-a-real-policy-or-unsafe-helper-expansion-lands",
 )
@@ -308,6 +309,16 @@ def run_self_test() -> int:
         assert "missing_marker:PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet" in issues
 
         build_valid_workspace(root)
+        missing_dump_gate = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "- `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`\n",
+            "",
+            1,
+        )
+        write_file(root / SURVEY_REL, missing_dump_gate)
+        issues = validate(root)
+        assert "missing_marker:PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig" in issues
+
+        build_valid_workspace(root)
         missing_panic_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
             REQUIRED_SURVEY_SNIPPETS[1] + "\n",
             "",
@@ -388,7 +399,7 @@ def run_self_test() -> int:
         assert f"missing_makefile_line:{MAKEFILE_REQUIRED_LINES[1]}" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
