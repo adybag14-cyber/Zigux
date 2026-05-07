@@ -42,7 +42,11 @@ pub const OwnershipSummary = struct {
     anchor: []const u8,
     owner_lane: []const u8,
     queue_planning_owner: OwnershipBoundary,
+    queue_count_reservation_owner: OwnershipBoundary,
+    queue_reservation_replay_owner: OwnershipBoundary,
     prp_shape_owner: OwnershipBoundary,
+    prp_metadata_owner: OwnershipBoundary,
+    recovery_replay_owner: OwnershipBoundary,
     live_dma_owner: OwnershipBoundary,
     recovery_transport_owner: OwnershipBoundary,
 };
@@ -194,7 +198,11 @@ pub const NvmePciQueueLab = struct {
             .anchor = descriptor().anchor,
             .owner_lane = "P12-L05",
             .queue_planning_owner = .starter_packet,
+            .queue_count_reservation_owner = .starter_packet,
+            .queue_reservation_replay_owner = .starter_packet,
             .prp_shape_owner = .starter_packet,
+            .prp_metadata_owner = .starter_packet,
+            .recovery_replay_owner = .starter_packet,
             .live_dma_owner = .dma_transport_substrate,
             .recovery_transport_owner = .dma_transport_substrate,
         };
