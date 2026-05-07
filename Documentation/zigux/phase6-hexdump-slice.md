@@ -57,7 +57,7 @@ The current hexdump helper surface exercised by this slice covers:
 The current tests check:
 
 - mixed-case hex digit decoding
-- lowercase and uppercase nibble helpers stay aligned with the byte-pack paths on representative inputs
+- lowercase and uppercase nibble helpers stay aligned with the byte-pack paths on representative inputs and across the full byte range through lower-case and upper-case `hex2bin` round-trips
 - encode/decode round-trips on bounded fixtures
 - malformed source and destination handling, including undersized uppercase byte-pack buffers
 - serialized fixture vectors derived from `lib/test_hexdump.c`
