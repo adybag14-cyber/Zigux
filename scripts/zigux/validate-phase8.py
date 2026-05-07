@@ -99,6 +99,7 @@ REQUIRED_MARKERS = {
         "stops before any ownership of `execv_cmd()` or `execvp()`",
         "stops before any ownership of `execl_cmd()`",
         "direct varargs launch path",
+        "integrated `planDeferredExecvCall()` plus `planDeferredExeclCall()` planner packet",
     ],
     "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md": [
         "parse_cpu_mask_str()",
@@ -300,6 +301,7 @@ REQUIRED_MARKERS = {
         "helper-first, output-stable deferred-exec planning",
         "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors",
         "`execl_cmd()`",
+        "focused Phase 8 replay keeps the integrated deferred-exec packet reviewable",
     ],
     "zigux/tests/phase8_exec_cmd_only_build.zig": [
         "../../tools/lib/subcmd/exec-cmd.zig",
@@ -420,6 +422,8 @@ REQUIRED_MARKERS = {
     "tools/lib/subcmd/exec-cmd.zig": [
         "pub fn buildDeferredExecvCall",
         "pub fn buildDeferredExeclCall",
+        "pub fn planDeferredExecvCall",
+        "pub fn planDeferredExeclCall",
         "pub fn collectExeclArgs",
         "pub fn choosePwdCwdFromFilesystem",
         "pub const max_execl_slots",
@@ -649,6 +653,13 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-exec-cmd-slice.md: stops before any ownership of `execl_cmd()`",
         ),
         (
+            "exec_cmd_slice_planner_packet",
+            "Documentation/zigux/phase8-exec-cmd-slice.md",
+            "integrated `planDeferredExecvCall()` plus `planDeferredExeclCall()` planner packet",
+            "integrated deferred planner packet",
+            "Documentation/zigux/phase8-exec-cmd-slice.md: integrated `planDeferredExecvCall()` plus `planDeferredExeclCall()` planner packet",
+        ),
+        (
             "help_slice_make_wrapper",
             "Documentation/zigux/phase8-help-slice.md",
             "make -C zigux phase8-help-test",
@@ -817,6 +828,13 @@ def run_self_test() -> None:
             "zigux/tests/phase8_exec_cmd.zig: phase 8 exec-cmd deferred boundary note still matches the live C helper anchors",
         ),
         (
+            "focused_exec_cmd_integrated_packet",
+            "zigux/tests/phase8_exec_cmd.zig",
+            "focused Phase 8 replay keeps the integrated deferred-exec packet reviewable",
+            "focused Phase 8 replay keeps the deferred-exec packet reviewable",
+            "zigux/tests/phase8_exec_cmd.zig: focused Phase 8 replay keeps the integrated deferred-exec packet reviewable",
+        ),
+        (
             "help_test_combined_shard_marker",
             "zigux/tests/phase8_help.zig",
             "phase8_help_kallsyms_only_build.zig",
@@ -843,6 +861,20 @@ def run_self_test() -> None:
             "pub fn buildDeferredExecvCall",
             "pub fn buildDeferredExecCall",
             "tools/lib/subcmd/exec-cmd.zig: pub fn buildDeferredExecvCall",
+        ),
+        (
+            "helper_planned_execv",
+            "tools/lib/subcmd/exec-cmd.zig",
+            "pub fn planDeferredExecvCall",
+            "pub fn planDeferredExecCall",
+            "tools/lib/subcmd/exec-cmd.zig: pub fn planDeferredExecvCall",
+        ),
+        (
+            "helper_planned_execl",
+            "tools/lib/subcmd/exec-cmd.zig",
+            "pub fn planDeferredExeclCall",
+            "pub fn planDeferredExecLineCall",
+            "tools/lib/subcmd/exec-cmd.zig: pub fn planDeferredExeclCall",
         ),
         (
             "survey_file_path_make_wrapper",
