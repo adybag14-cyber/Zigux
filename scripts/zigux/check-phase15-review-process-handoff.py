@@ -79,6 +79,7 @@ REQUIRED_CURRENT_REPO_HANDOFF_MARKERS = (
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -454,6 +455,21 @@ def run_self_test() -> int:
             root,
             ["manifest_handoff:Documentation/zigux/phase15-readiness-gate-survey.md"],
             "missing_current_repo_handoff_readiness_note_marker",
+        )
+        write_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"]["current_repo_handoff"].replace(
+            "Documentation/zigux/phase15-governance-lane-sequencing.md",
+            "",
+            1,
+        )
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(
+            root,
+            ["manifest_handoff:Documentation/zigux/phase15-governance-lane-sequencing.md"],
+            "missing_current_repo_handoff_governance_lane_note_marker",
         )
         write_fixture_tree(root)
         case_count += 1
