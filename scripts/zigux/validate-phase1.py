@@ -89,7 +89,12 @@ PHASE1_REPLAY_MARKERS = [
     "fixture.find_bit.tail_and_clamped_next",
     "fixture.bitmap.partial_xor_nbits",
     "fixture.bitmap.partial_xor_masked_values",
+    "fixture.string.replace_char",
+    "fixture.string.replace_char_end",
+    "fixture.string.replace_char_cstr_end",
+    "fixture.string.replace_char_cstr_bytes",
     "fixture.string.memchr_inv_index",
+    "fixture.string.memchr_inv_none",
     "fixture.rbtree.find_found_key",
     "fixture.rbtree.find_missing",
     "fixture.rbtree.find_first_serial",
@@ -176,9 +181,12 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
             'test "memparse applies suffixes before signed clamping"',
         ],
         "parity_fixture_keys": [
-            "memchr_inv_index",
+            "replace_char",
+            "replace_char_end",
             "replace_char_cstr_end",
             "replace_char_cstr_bytes",
+            "memchr_inv_index",
+            "memchr_inv_none",
         ],
     },
 }
@@ -379,7 +387,12 @@ def run_self_test() -> None:
         'fixture.bitmap.partial_xor_nbits\n'
         'bitmap.lastWordMask(fixture.bitmap.partial_xor_nbits)\n'
         'fixture.bitmap.partial_xor_masked_values\n'
+        'fixture.string.replace_char\n'
+        'fixture.string.replace_char_end\n'
+        'fixture.string.replace_char_cstr_end\n'
+        'fixture.string.replace_char_cstr_bytes\n'
         'fixture.string.memchr_inv_index\n'
+        'fixture.string.memchr_inv_none\n'
         'fixture.rbtree.find_found_key\n'
         'fixture.rbtree.find_missing\n'
         'fixture.rbtree.find_first_serial\n'
@@ -396,7 +409,12 @@ def run_self_test() -> None:
             [
                 "fixture.bitmap.partial_xor_nbits",
                 "fixture.bitmap.partial_xor_masked_values",
+                "fixture.string.replace_char",
+                "fixture.string.replace_char_end",
+                "fixture.string.replace_char_cstr_end",
+                "fixture.string.replace_char_cstr_bytes",
                 "fixture.string.memchr_inv_index",
+                "fixture.string.memchr_inv_none",
                 "fixture.rbtree.find_found_key",
                 "fixture.rbtree.find_missing",
                 "fixture.rbtree.find_first_serial",
@@ -447,6 +465,7 @@ def run_self_test() -> None:
             + '\n',
             encoding="utf-8",
         )
+        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").writeText = None
         (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").write_text(
             json.dumps(
                 {
@@ -474,7 +493,14 @@ def run_self_test() -> None:
                     },
                     "slab": {},
                     "str_error_r": {},
-                    "string": {"memchr_inv_index": 4, "memchr_inv_none": True},
+                    "string": {
+                        "replace_char": "a_b",
+                        "replace_char_end": 3,
+                        "replace_char_cstr_end": 2,
+                        "replace_char_cstr_bytes": [97, 95, 0, 45, 122],
+                        "memchr_inv_index": 4,
+                        "memchr_inv_none": True,
+                    },
                     "vsprintf": {},
                     "zalloc": {},
                 },
@@ -498,8 +524,25 @@ def run_self_test() -> None:
         )
         assert not collect_missing_markers(tmp_root)
 
+        phase1_helpers_path = tmp_root / "zigux" / "tests" / "phase1_helpers.zig"
+        phase1_helpers_text = phase1_helpers_path.read_text(encoding="utf-8")
+        phase1_helpers_path.write_text(
+            phase1_helpers_text.replace("fixture.string.replace_char_cstr_bytes\n", "", 1),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(tmp_root)
+        assert "phase1_parity_replay_marker:fixture.string.replace_char_cstr_bytes:expected>=1:actual=0" in missing
+        phase1_helpers_path.write_text(phase1_helpers_text, encoding="utf-8")
+
+        manifest_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["parity_fixture_keys"].remove("replace_char_end")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "phase1_manifest_review_anchor:value=tools/lib/string.zig:parity_fixture_keys:replace_char_end" in missing
+
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=3")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=5")
 
 
 def main() -> int:
