@@ -28,14 +28,17 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 ## Gates
 
-1. run the focused Zig Phase 6 helper tests
+1. rerun the focused hexdump helper packet without reopening the full Phase 6 bundle
+- `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`
+
+2. run the shared Zig Phase 6 helper bundle
 - `zig build test --build-file zigux/tests/phase6_build.zig`
 
-2. run the dedicated hexdump perf gate when the formatter-sensitive lane reopens
+3. run the dedicated hexdump perf gate when the formatter-sensitive lane reopens
 - `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
 - `make -C zigux phase6-hexdump-perf`
 
-3. keep the helper wired through the Zigux convenience targets
+4. keep the helper wired through the Zigux convenience targets
 - `make -C zigux phase6`
 
 ## Current parity surface
@@ -69,6 +72,7 @@ The current tests check:
 - truncation behavior while still reporting the full required line length
 - the non-truncating helper path now uses a direct full-buffer formatter so the grouped ASCII perf replays do not pay the truncating writer's per-byte bounds checks
 - a dedicated perf replay that benchmarks the existing four-case perf fixture packet against the committed `fixtures.prepareExpectedLine(...)` reference path
+- a dedicated hexdump-only build step now reruns the focused helper replay without dragging the full shared Phase 6 helper packet along
 
 The current perf fixture packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` stays bounded to:
 
