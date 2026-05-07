@@ -14,4 +14,6 @@ The current helper stays intentionally narrow:
 
 This slice does not claim live `devres_alloc_node()` ownership, actual MMIO mappings, resource-region side effects, ioport helpers, device-tree walking, live arch memtype reservation or removal side effects, devres groups, or the broader managed resource-family teardown behavior from `lib/devres.c`.
 
-The next honest bounded step in this same lane is to keep the work steady unless current repo evidence reveals another equally small exported-helper gap. Do not widen into live mappings, generic devres groups, or cross-subsystem device-resource state just to keep the file moving.
+It also does not claim live DMA-backed helpers, live scatter-gather ownership, `sg_table lifecycle` control, `dma_map_sgtable()` coverage, or broader `sg_*` ownership transfer.
+
+The next honest bounded step in this same lane is to keep the work steady unless current repo evidence reveals another equally small exported-helper gap. Do not widen into live mappings, generic devres groups, cross-subsystem device-resource state, live DMA-backed helpers, or scatterlist delivery just to keep the file moving.
