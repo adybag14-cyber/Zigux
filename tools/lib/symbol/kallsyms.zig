@@ -280,6 +280,19 @@ test "kallsyms helpers preserve classification and malformed-line behavior" {
     try std.testing.expectEqual(@as(?ParsedSymbol, null), try parseLine("not-hex T broken"));
 }
 
+test "weak object symbol classes keep the current C helper classification" {
+    try std.testing.expectEqual(elf_stb_global, kallsyms2ElfBinding('V'));
+    try std.testing.expectEqual(elf_stb_local, kallsyms2ElfBinding('v'));
+    try std.testing.expectEqual(elf_stt_object, kallsyms2ElfType('V'));
+    try std.testing.expectEqual(elf_stt_object, kallsyms2ElfType('v'));
+    try std.testing.expect(!isFunction('V'));
+    try std.testing.expect(!isFunction('v'));
+
+    const parsed = (try parseLine("ffffffff81000200 V weak_object")) orelse unreachable;
+    try std.testing.expectEqual(@as(u8, 'V'), parsed.symbol_type);
+    try std.testing.expectEqualStrings("weak_object", parsed.name);
+}
+
 test "parseLine truncates oversized names instead of failing them" {
     const too_long_name = "a" ** (KSYM_NAME_LEN + 9);
     const oversized_line = try std.fmt.allocPrint(std.testing.allocator, "1 T {s}", .{too_long_name});
