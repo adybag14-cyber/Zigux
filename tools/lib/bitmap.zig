@@ -550,6 +550,21 @@ test "bitmap range helpers honor exact first-word boundaries" {
     try std.testing.expectEqual(~@as(Word, 0), map[1]);
 }
 
+test "bitmap range helpers clamp the final partial word" {
+    const start = bits_per_long + 2;
+    const len = 3;
+
+    var set_map = [_]Word{ 0, 0 };
+    setRange(&set_map, start, len);
+    try std.testing.expectEqual(@as(Word, 0), set_map[0]);
+    try std.testing.expectEqual(@as(Word, 0b1_1100), set_map[1]);
+
+    var clear_map = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
+    clearRange(&clear_map, start, len);
+    try std.testing.expectEqual(~@as(Word, 0), clear_map[0]);
+    try std.testing.expectEqual(~@as(Word, 0b1_1100), clear_map[1]);
+}
+
 test "bitmap fill clamps tail bits in partial words" {
     const nbits = bits_per_long + 5;
     var map = [_]Word{ 0, 0 };
