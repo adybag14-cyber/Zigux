@@ -52,13 +52,14 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_approved_idiom_prompt = false;
     var saw_manifest_prompt = false;
+    var saw_queue_shape_prompt = false;
     var saw_shared_surfaces_prompt = false;
     var saw_contract_refresh_prompt = false;
     var saw_scope_prompt = false;
@@ -67,6 +68,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_helper_boundary = false;
     var saw_preview_boundary = false;
     var saw_available_capacity = false;
+    var saw_wrapped_storage_boundary = false;
     var saw_snapshot = false;
     var saw_short_drain_prefix = false;
     var saw_lifecycle = false;
@@ -82,6 +84,9 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "phase5_build.zig") != null) {
             saw_manifest_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "available() and usesWrappedStorageWindow()") != null) {
+            saw_queue_shape_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "shared docs-root, sample-root, scripts-root, and tests-root contributor packet") != null) {
             saw_shared_surfaces_prompt = true;
@@ -122,6 +127,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "0 at full capacity") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "1 immediately after skip-at-capacity") != null);
         }
+        if (std.mem.eql(u8, check.id, "wrapped-storage-window-boundary")) {
+            saw_wrapped_storage_boundary = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "usesWrappedStorageWindow() stays false") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "flips true only after the skip-at-capacity plus refill rollover cue") != null);
+        }
         if (std.mem.eql(u8, check.id, "non-destructive-snapshot")) {
             saw_snapshot = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "without mutating queue state") != null);
@@ -152,6 +162,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_approved_idiom_prompt);
     try std.testing.expect(saw_manifest_prompt);
+    try std.testing.expect(saw_queue_shape_prompt);
     try std.testing.expect(saw_shared_surfaces_prompt);
     try std.testing.expect(saw_contract_refresh_prompt);
     try std.testing.expect(saw_scope_prompt);
@@ -160,6 +171,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_helper_boundary);
     try std.testing.expect(saw_preview_boundary);
     try std.testing.expect(saw_available_capacity);
+    try std.testing.expect(saw_wrapped_storage_boundary);
     try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_short_drain_prefix);
     try std.testing.expect(saw_lifecycle);
@@ -230,6 +242,7 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         "loader-side follow-ons",
         "`samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
         "shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too",
+        "`available()` and `usesWrappedStorageWindow()`",
     };
 
     for (required_mentions) |needle| {
@@ -455,6 +468,35 @@ test "phase 5 bytestream fifo survey note records the preview boundary contract"
     }
 }
 
+test "phase 5 bytestream fifo survey note records the queue-shape boundary contract" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-kfifo-sample-survey.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const required_markers = [_][]const u8{
+        "`available()` reports `32` at cold, initialized, replay-complete, reset, and exited boundaries",
+        "`27` after enqueueing `\"hello\"`",
+        "`22` after the preview-boundary setup",
+        "`0` at full capacity",
+        "`1` immediately after skip-at-capacity",
+        "`usesWrappedStorageWindow()` stays `false` at cold, initialized, reset, preview-boundary, replay-complete, and full-capacity states",
+        "flips `true` only after the skip-at-capacity plus refill rollover cue",
+        "the queue-shape replay also held",
+        "`usesWrappedStorageWindow()` stayed `false` until the refill-after-skip rollover flipped it `true`",
+    };
+
+    for (required_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
+    }
+}
+
 test "phase 5 bytestream fifo survey note records the latest verification snapshot" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -489,6 +531,7 @@ test "phase 5 bytestream fifo survey note records the latest verification snapsh
         "skip-at-capacity returned `0`",
         "pop-after-reset returned `null`",
         "cold -> initialized -> replay_complete -> exited",
+        "`usesWrappedStorageWindow()` stayed `false` until the refill-after-skip rollover flipped it `true`",
     };
 
     for (required_markers) |needle| {
