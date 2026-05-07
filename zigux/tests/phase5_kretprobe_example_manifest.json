@@ -51,6 +51,11 @@
       "expected": "ownershipSummary keeps cold, initialized, armed, replay_complete, and exited snapshots explicit with active instance and entry-timestamp state"
     },
     {
+      "id": "lifecycle-guard-replay",
+      "kind": "ownership_lifetime",
+      "expected": "runLifecycleGuardReplay keeps the pre-init anchor and exit rejections, double-init rejection, post-init retarget rejection, and initialized post-init state explicit without implying runtime registration parity"
+    },
+    {
       "id": "outstanding-instance-boundary",
       "kind": "ownership_lifetime",
       "expected": "exit rejects an armed sample until retHandler clears the outstanding tracked instance"
