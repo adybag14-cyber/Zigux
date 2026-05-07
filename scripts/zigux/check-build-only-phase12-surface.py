@@ -86,11 +86,13 @@ REQUIRED_FILE_MARKERS = {
     NVME_FALLBACK_MAP_PATH: [
         "PMO closure companion",
         "Documentation/zigux/phase12-release-closure-checklist.md",
+        "direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
     ],
     VIRTIO_SCSI_FALLBACK_PATH: [
         "PMO closure companion",
         "Documentation/zigux/phase12-release-closure-checklist.md",
+        "direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
     ],
     VIRTIO_NET_SURVEY_PATH: [
@@ -266,6 +268,7 @@ Phase 12 notes
         """# Phase 12 NVMe PCI Raw GitHub Fallback Map
 - PMO closure companion
 - Documentation/zigux/phase12-release-closure-checklist.md
+- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
 - The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`
 """,
     )
@@ -275,6 +278,7 @@ Phase 12 notes
         """# Phase 12 Virtio SCSI Raw GitHub Fallback Catalog
 - PMO closure companion
 - Documentation/zigux/phase12-release-closure-checklist.md
+- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
 - The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`
 """,
     )
@@ -538,6 +542,48 @@ def run_self_test() -> int:
                 print(failure)
             return 1
         raw_coverage_path.write_text(original_raw_coverage, encoding="utf-8")
+
+        nvme_fallback_path = root / NVME_FALLBACK_MAP_PATH
+        original_nvme_fallback = nvme_fallback_path.read_text(encoding="utf-8")
+        broken_nvme_fallback = original_nvme_fallback.replace(
+            "- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`\n",
+            "",
+            1,
+        )
+        nvme_fallback_path.write_text(broken_nvme_fallback, encoding="utf-8")
+        failures = validate(root)
+        expected = (
+            f"{NVME_FALLBACK_MAP_PATH}:"
+            "direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`"
+        )
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("nvme-fallback-direct-build-preflight-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        nvme_fallback_path.write_text(original_nvme_fallback, encoding="utf-8")
+
+        virtio_scsi_fallback_path = root / VIRTIO_SCSI_FALLBACK_PATH
+        original_virtio_scsi_fallback = virtio_scsi_fallback_path.read_text(encoding="utf-8")
+        broken_virtio_scsi_fallback = original_virtio_scsi_fallback.replace(
+            "- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`\n",
+            "",
+            1,
+        )
+        virtio_scsi_fallback_path.write_text(broken_virtio_scsi_fallback, encoding="utf-8")
+        failures = validate(root)
+        expected = (
+            f"{VIRTIO_SCSI_FALLBACK_PATH}:"
+            "direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`"
+        )
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("virtio-scsi-fallback-direct-build-preflight-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        virtio_scsi_fallback_path.write_text(original_virtio_scsi_fallback, encoding="utf-8")
 
         libbpf_survey_path = root / LIBBPF_SURVEY_PATH
         original_libbpf_survey = libbpf_survey_path.read_text(encoding="utf-8")
