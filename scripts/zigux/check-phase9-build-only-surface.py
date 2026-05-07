@@ -47,6 +47,7 @@ REQUIRED_PHASE9_NOTE_PATHS = [
 REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS = [
     "samples/zigux/runtime_atomic64_loader.zig",
     "samples/zigux/runtime_bitmap_loader.zig",
+    "samples/zigux/runtime_bitmap_top_bit_contract.zig",
     "samples/zigux/runtime_trace_events_loader.zig",
     "samples/zigux/runtime_kretprobe_loader.zig",
 ]
@@ -63,6 +64,11 @@ PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER = (
     "the Phase 2 config-surface references `scripts/zigux/kconfig/conf_bridge.zig` and "
     "`scripts/zigux/kconfig/confdata_bridge.zig`, and the Phase 3 export-boundary references "
     "`rust/exports.c` and `zigux/kernel/export_shim.zig`"
+)
+
+PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER = (
+    "the focused bitmap top-bit companion replay `samples/zigux/runtime_bitmap_top_bit_contract.zig` "
+    "plus the shipped `phase9-runtime-bitmap-top-bit-tests` step in `zigux/tests/phase9_build.zig`"
 )
 
 PHASE9_SCRIPTS_README_OWNER_MAP_MARKER = (
@@ -146,6 +152,7 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "roadmap-backed selftest-hook and runtime module lifecycle parity cues",
     "no-dedicated-`validate-phase9.py` posture",
     PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER,
+    PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER,
     "if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?",
 ]
 
@@ -190,6 +197,8 @@ REQUIRED_PHASE9_BUILD_MARKERS = [
     '.root_source_file = b.path("../kernel/runtime_loader.zig"),',
     'const runtime_atomic64_loader_module = b.createModule(.{',
     '.root_source_file = b.path("../../samples/zigux/runtime_atomic64_loader.zig"),',
+    'const runtime_bitmap_top_bit_contract_module = b.createModule(.{',
+    '.root_source_file = b.path("../../samples/zigux/runtime_bitmap_top_bit_contract.zig"),',
     'const runtime_bitmap_loader_module = b.createModule(.{',
     '.root_source_file = b.path("../../samples/zigux/runtime_bitmap_loader.zig"),',
     'const runtime_trace_events_loader_module = b.createModule(.{',
@@ -224,6 +233,15 @@ REQUIRED_PHASE9_BUILD_MARKERS = [
     '.root_module = runtime_atomic64_loader_module,',
     "const run_runtime_atomic64_loader_tests = b.addRunArtifact(runtime_atomic64_loader_tests);",
     "test_step.dependOn(&run_runtime_atomic64_loader_tests.step);",
+    'const runtime_bitmap_top_bit_contract_tests = b.addTest(.{',
+    '.name = "phase9-runtime-bitmap-top-bit-contract-tests",',
+    '.root_module = runtime_bitmap_top_bit_contract_module,',
+    "const run_runtime_bitmap_top_bit_contract_tests = b.addRunArtifact(runtime_bitmap_top_bit_contract_tests);",
+    'const runtime_bitmap_top_bit_tests_step = b.step(',
+    '"phase9-runtime-bitmap-top-bit-tests",',
+    '"Run the focused Phase 9 runtime bitmap top-bit contract tests",',
+    "runtime_bitmap_top_bit_tests_step.dependOn(&run_runtime_bitmap_top_bit_contract_tests.step);",
+    "test_step.dependOn(&run_runtime_bitmap_top_bit_contract_tests.step);",
     'const runtime_bitmap_loader_tests = b.addTest(.{',
     '.name = "phase9-runtime-bitmap-loader-tests",',
     '.root_module = runtime_bitmap_loader_module,',
@@ -631,6 +649,54 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(root)
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            review_checklist.replace(
+                PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER,
+                "the focused bitmap companion replay stays nearby",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"review_checklist:{PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER}",
+            "missing_phase9_bitmap_top_bit_review_marker",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace('const runtime_bitmap_top_bit_contract_module = b.createModule(.{\n', "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(root, 'phase9_build:const runtime_bitmap_top_bit_contract_module = b.createModule(.{', "missing_bitmap_top_bit_module")
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace('"phase9-runtime-bitmap-top-bit-tests",\n', "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(root, 'phase9_build:"phase9-runtime-bitmap-top-bit-tests",', "missing_bitmap_top_bit_step_name")
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build + "test_step.dependOn(&run_runtime_bitmap_top_bit_contract_tests.step);\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build_exact_count:test_step.dependOn(&run_runtime_bitmap_top_bit_contract_tests.step);:expected=1:actual=2",
+            "duplicate_bitmap_top_bit_dependency",
+        )
+
+        write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
@@ -839,7 +905,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=33")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
