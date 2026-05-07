@@ -112,12 +112,26 @@ REQUIRED_WORKFLOW_MARKERS = [
     "Run Phase 11 shared replay contract checker",
     "make -C zigux phase11-contract",
 ]
+EXACT_COUNT_MARKERS = [
+    (
+        TESTS_README_PATH,
+        "`Documentation/zigux/phase11-driver-lane-sequencing.md`",
+        1,
+        "tests_readme_lane_owner_map",
+    ),
+    (
+        REVIEW_CHECKLIST_PATH,
+        "`Documentation/zigux/phase11-driver-lane-sequencing.md`",
+        1,
+        "review_checklist_lane_owner_map",
+    ),
+]
 FORBIDDEN_CONTRACT_MARKERS = [
     "there is no dedicated shared `validate-phase11.py` or `phase11-validate` packet on current `master`",
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 27
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 29
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -195,6 +209,12 @@ def validate(root: Path) -> list[str]:
                 failures.append(f"{label}:{marker}")
     if failures:
         return failures
+    for rel_path, marker, expected_count, label in EXACT_COUNT_MARKERS:
+        count = read_text(root, rel_path).count(marker)
+        if count != expected_count:
+            failures.append(f"exact_count:{label}:{expected_count}:{count}:{marker}")
+    if failures:
+        return failures
     phase11_contract = read_text(root, PHASE11_CONTRACT_PATH)
     scripts_readme = read_text(root, SCRIPTS_README_PATH)
     for marker in FORBIDDEN_CONTRACT_MARKERS:
@@ -225,6 +245,16 @@ def expect_failure(root: Path, rel_path: str, label: str, marker: str, expected_
         raise AssertionError(f"missing expected failure {expected_failure!r}; got {failures!r}")
 
 
+def expect_exact_count_failure(root: Path, rel_path: str, marker: str, label: str) -> None:
+    path = root / rel_path
+    original = path.read_text(encoding="utf-8")
+    path.write_text(original + marker + "\n", encoding="utf-8")
+    failures = validate(root)
+    expected_prefix = f"exact_count:{label}:"
+    if not any(failure.startswith(expected_prefix) for failure in failures):
+        raise AssertionError(f"missing expected exact-count failure {expected_prefix!r}; got {failures!r}")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase11_contract_") as tmpdir:
         root = Path(tmpdir)
@@ -238,6 +268,13 @@ def run_self_test() -> int:
             write_fixture_tree(root)
             try:
                 expect_failure(root, rel_path, label, marker, expected_marker)
+            except AssertionError as exc:
+                print(exc, file=sys.stderr)
+                return 1
+        for rel_path, marker, _expected_count, label in EXACT_COUNT_MARKERS:
+            write_fixture_tree(root)
+            try:
+                expect_exact_count_failure(root, rel_path, marker, label)
             except AssertionError as exc:
                 print(exc, file=sys.stderr)
                 return 1
