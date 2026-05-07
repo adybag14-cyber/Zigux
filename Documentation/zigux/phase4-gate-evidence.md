@@ -6,23 +6,23 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
-- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=f14c9826dfb5b9271b0dd085edec23a36209a4ff`
-- `PHASE4_VALIDATOR_BLOB_SHA=60dd5759e0c149f70802e4474b2e22513ceabcab`
+- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=949f23c72846a70a027e80f594cc4061c7d9e5e4`
+- `PHASE4_VALIDATOR_BLOB_SHA=f552b17b663ca92db07db954bccf26585c5ca93b`
 - `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=f63b23c4f68cf75ae16bf254a509d754f5eaae49`
-- `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=4007f376d422f2d38ef3d14b6f2a9cb28281d722`
+- `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=0055105196e8af6e9c215d8589549c4b7b3e8ac2`
 - `PHASE4_BUILD_BLOB_SHA=3164f1e56835ae0f0511d890f150dc374b45d1f4`
 - `PHASE4_MAKEFILE_BLOB_SHA=e124b807578ed9d7b160f94461173d6ade766f89`
 - `PHASE4_WORKFLOW_BLOB_SHA=543646097a7f9f64eb05dc37fca92ec73072ef56`
-- `PHASE4_DOC_README_BLOB_SHA=db98cad732ca6fa3d853d3d82cd212eb10c58528`
-- `PHASE4_SCRIPT_README_BLOB_SHA=efc5e0faf5aa30d09c1465724b607996014afe95`
+- `PHASE4_DOC_README_BLOB_SHA=7e05ca14a5b551c399994922b685368cc9059550`
+- `PHASE4_SCRIPT_README_BLOB_SHA=5f4051d999496f83a24fd4b913bd01d4636e88a4`
 - `PHASE4_TESTS_README_BLOB_SHA=d6b8536eef38a453b536c70340c0fea00277587c`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=13e094cbaee5bdb3a64e1687925bb1acd218414f`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=d3c082339d3357d7f4ed458313966705a7a9c409`
-- `PHASE4_BITMAP_DIFF_BLOB_SHA=bb495012d8e15f1e44c343223376d7c2b9b66f49`
+- `PHASE4_BITMAP_DIFF_BLOB_SHA=825823b724a96c6d4fcca97071ddad8202686587`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=24418ad890696a59b95276fe8dec7eaeecf25172`
-- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=893b354a2380782602aa43c85eebd12b17687072`
-- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=eac7ada9d7a894d91378db60d658de89a25823dc`
-- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=e1def97f99abd39d47b9b2fd35ea8c833b4d13c3`
+- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=59d1f525766d226550491667ad4c63ae76dc3e8c`
+- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=dee1ccddf2787584cba0311cee768542a4c831a4`
+- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=93d0c533776d650b66d484311cbfd93d8bd0954a`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift,missing_exact_readback_heading,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift,phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift,gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift,shared_validator_reruns_gate_evidence_self_test_drift,shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift,missing_note_file`
@@ -51,7 +51,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `Documentation/zigux/phase4-validation-matrix.md` still keeps the missing `samples/zigux/kprobe_example.zig` row on the current `samples/kprobes/kprobe_example.c` anchor, with `Validation and Perf Team` named as both survey owner and rollback owner, the live C-anchor replay held at `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`, and no hard timing threshold approved before a bounded Zig starter lands.
 - The same matrix still keeps the missing `samples/zigux/test_fsmount.zig` row on the current `samples/vfs/test-fsmount.c` anchor, with `Validation and Perf Team` named as both survey owner and rollback owner, the live C-anchor replay held at `make M=samples/vfs`, and no hard timing threshold approved before a bounded Zig starter lands.
 - The shipped-gate perf row is still equally explicit in that matrix: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` remain correctness-only gates today, `runtime_atomic64_diff.zig` remains the single underlying atomic64 replay body, and the next bounded threshold step is still one benchmark command plus one acceptable limit per gate before Phase 4 claims perf coverage.
-- `zigux/tests/bitmap_diff.zig` now exact-pins the rounded-prefix threshold replay batch itself: `runThresholdReplay()` still rejects empty batches, the deterministic single-iteration and repeated checksums are now `4641743358357118437` and `15640590978236698512`, and the repeated batch also pins `final_first_set=0`, `final_first_zero=109`, `final_weight=1005`, and `final_nth_seven=123` on the current rollback gate.
+- `zigux/tests/bitmap_diff.zig` now exact-pins the rounded-prefix threshold replay batch itself: `runThresholdReplay()` still rejects empty batches, the deterministic single-iteration and repeated checksums are now `5216946504564592253` and `7942141539243507472`, and the repeated batch also pins `final_first_set=0`, `final_first_zero=109`, `final_weight=1005`, and `final_nth_seven=123` on the current rollback gate.
 - `zigux/Makefile` still exposes `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, and `make -C zigux phase4`, so the Linux-style local replay surface matches the current shared Phase 4 packet instead of hiding those routes in the build file alone.
 - The exact-readback set is now current for the shipped validator-backed packet, and `zigux/tests/atomic64_diff.zig` now exact-checks the current gate-evidence blob pins for the wrapper, runtime replay, manifest, and survey while `scripts/zigux/validate-phase4.py` now also exact-checks the manifest-backed runtime atomic64 packet's `Documentation/zigux/review-checklist.md` blob pin beside the existing `phase4_build.zig`, `validate-phase4.py`, `phase4-validation-matrix.md`, and `phase9_build.zig` exact-readbacks.
 - `Documentation/zigux/review-checklist.md` is now also surfaced in this note as `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA` for the same manifest-backed runtime atomic64 handoff packet, and both the shared validator and the dedicated exact-readback checker still fail closed if that same manifest-backed reviewer-facing blob pin drifts.
