@@ -23,6 +23,9 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(slice_note, "make -C zigux phase7-validate");
     try expectContains(slice_note, "make -C zigux phase7");
     try expectContains(slice_note, "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.");
+    try expectContains(slice_note, "started as a small runtime-safe leaf batch and now keeps its landed formatting, escaping, and allocator-backed helpers reviewable through the same bounded Zig gates instead of widening into broader ownership families");
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "before deeper formatting, escaping, or allocation-backed helpers are attempted") == null);
+    try expectContains(slice_note, "The current bounded slice covers:");
     try expectContains(slice_note, "`kasprintf_strarray()` over the bounded sequential prefix-index ownership path");
     try expectContains(slice_note, "`kfree_strarray()` over the bounded repeated-teardown-safe release path");
     try expectContains(slice_note, "one allocator-backed `kasprintf_strarray()` proof that returns sequential `prefix-index` owned strings together with a trailing null-pointer view for C-style callers");
