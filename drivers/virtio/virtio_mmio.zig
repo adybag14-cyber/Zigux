@@ -576,7 +576,7 @@ test "phase10 virtio mmio exposes a transport identity summary before lifecycle 
     try std.testing.expect(!summary.vendor_id_present);
 }
 
-test "phase10 virtio mmio summarizes selected-queue readiness before transport handoff" {
+test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {
     var device = try VirtioMmioLab.init(59, &[_]u16{ 8, 16 });
 
     var summary = try device.selectedQueueReadinessSummary();
