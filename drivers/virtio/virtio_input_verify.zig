@@ -113,3 +113,55 @@ test "virtio input registration preflight does not demand multitouch slots when 
     try std.testing.expect(summary.ready_for_registration);
     try std.testing.expect(summary.blocker == null);
 }
+
+test "virtio input wrapper-facing reset returns preflight blockers to earliest bounded state" {
+    var device = try virtio_input.VirtioInputLab.init("verify-reset", "verify-reset-seq", 35, null);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{0});
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
+    try device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = 0,
+        .maximum = 2,
+    });
+    _ = try device.planMultitouchSlots();
+
+    var queue_preflight = device.queueCallbackPreflightSummary();
+    try std.testing.expect(queue_preflight.ready_for_queue_callbacks);
+    try std.testing.expect(queue_preflight.blocker == null);
+
+    var registration_preflight = device.registrationPreflightSummary();
+    try std.testing.expect(registration_preflight.ready_for_registration);
+    try std.testing.expect(registration_preflight.blocker == null);
+
+    const teardown = device.teardownObservationSummary();
+    try std.testing.expect(teardown.clears_runtime_state);
+    try std.testing.expect(teardown.clears_capability_state);
+
+    const snapshot = device.configSnapshot();
+    device.reset();
+
+    const reset_snapshot = device.configSnapshot();
+    try std.testing.expectEqualStrings(snapshot.anchor, reset_snapshot.anchor);
+    try std.testing.expectEqualStrings(snapshot.name, reset_snapshot.name);
+    try std.testing.expectEqualStrings(snapshot.serial, reset_snapshot.serial);
+    try std.testing.expectEqualStrings(snapshot.phys, reset_snapshot.phys);
+
+    queue_preflight = device.queueCallbackPreflightSummary();
+    try std.testing.expectEqualStrings("event_queue_unconfigured", @tagName(queue_preflight.blocker.?));
+    try std.testing.expect(!queue_preflight.ready_for_queue_callbacks);
+    try std.testing.expect(!queue_preflight.event_queue_configured);
+    try std.testing.expect(!queue_preflight.status_queue_configured);
+    try std.testing.expectEqual(@as(u16, 0), queue_preflight.queued_event_buffer_count);
+
+    registration_preflight = device.registrationPreflightSummary();
+    try std.testing.expectEqualStrings("event_queue_unconfigured", @tagName(registration_preflight.blocker.?));
+    try std.testing.expect(!registration_preflight.queue_plan_ready);
+    try std.testing.expect(!registration_preflight.device_ready);
+    try std.testing.expect(!registration_preflight.capability_setup_ready);
+    try std.testing.expect(registration_preflight.multitouch_slots_ready);
+    try std.testing.expect(!registration_preflight.ready_for_registration);
+}
