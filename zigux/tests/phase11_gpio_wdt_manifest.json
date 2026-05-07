@@ -9,7 +9,7 @@
   ],
   "survey_summary": {
     "gpio_wdt_c_lines": 194,
-    "preexisting_phase11_test_files": 2,
+    "preexisting_phase11_test_files": 3,
     "preexisting_phase11_build_present": true,
     "preexisting_gpio_wdt_zig_present": true,
     "preexisting_gpio_wdt_test_present": true,
@@ -102,6 +102,20 @@
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
       "why_now": "The starter now adds a tiny timeout-property checkpoint so review can see that hw_margin_ms stays required and bounds-checked after descriptor lookup but before always-running bookkeeping, watchdog_set_drvdata(), and the registration-facing handoff, while invalid timeout values still block those later handoffs."
+    },
+    {
+      "id": "phase11-gpio-wdt-platform-drvdata-checkpoint",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
+      "why_now": "The starter now adds a tiny platform drvdata checkpoint summary so review can see that the probe-time allocation is followed by platform_set_drvdata() before hw_algo parsing, descriptor lookup, hw_margin_ms validation, and the later watchdog_set_drvdata()/registration handoffs without claiming live platform probing."
+    },
+    {
+      "id": "phase11-gpio-wdt-platform-drvdata-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_gpio_wdt_platform_drvdata.zig",
+      "why_now": "A focused Phase 11 harness now keeps the early platform_set_drvdata() ordering explicit around the landed checkpoint without widening into the broader shared Phase 11 build packet."
     },
     {
       "id": "phase11-gpio-wdt-drvdata-checkpoint",
