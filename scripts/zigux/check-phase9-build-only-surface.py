@@ -24,6 +24,7 @@ ROOT = infer_repo_root()
 DOCS_README_PATH = "Documentation/zigux/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
+SAMPLES_README_PATH = "samples/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -104,6 +105,13 @@ REQUIRED_TESTS_README_MARKERS = [
     "so the loader-handoff packet stays reviewable through the same shipped build-only checker and workflow-backed "
     "replay route without implying shared runtime substrate closure or a dedicated `validate-phase9.py` surface "
     "that does not exist on `master`",
+]
+
+REQUIRED_SAMPLES_README_MARKERS = [
+    "Separate Phase 9 runtime pilot family",
+    "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map for the `runtime_loader` lane versus the four pilot-family packets, so the focused `phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local instead of drifting into shared loader evidence",
+    "keep the older command and environment control boundary explicit too: `tools/lib/subcmd/exec-cmd.zig` still owns the deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` tooling cues, while `tools/lib/subcmd/help.zig` still owns the `LINES` and `COLUMNS` terminal-formatting cues; the Phase 9 loader packet remains a metadata-only handoff and should not be read as shipped runtime command or environment activation control on current `master`",
+    "review the shipped Phase 9 runtime pilot family through `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, the focused `phase9-runtime-loader-shared-tests` step, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `.github/workflows/zigux-bootstrap.yml`, and `make -C zigux phase9`; keep those shared loader-handoff surfaces explicit instead of implying a dedicated `validate-phase9.py` route, a missing shared checker, or a cleared runtime-substrate handoff on current `master`",
 ]
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
@@ -292,6 +300,7 @@ def validate(root: Path) -> list[str]:
         DOCS_README_PATH,
         SCRIPTS_README_PATH,
         TESTS_README_PATH,
+        SAMPLES_README_PATH,
         REVIEW_CHECKLIST_PATH,
         FREEZE_MAP_PATH,
         MAKEFILE_PATH,
@@ -315,6 +324,7 @@ def validate(root: Path) -> list[str]:
     docs_readme = read_text(root, DOCS_README_PATH)
     scripts_readme = read_text(root, SCRIPTS_README_PATH)
     tests_readme = read_text(root, TESTS_README_PATH)
+    samples_readme = read_text(root, SAMPLES_README_PATH)
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
     freeze_map = read_text(root, FREEZE_MAP_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
@@ -325,6 +335,7 @@ def validate(root: Path) -> list[str]:
     ensure_contains(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_MARKERS)
     ensure_contains(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPT_README_MARKERS)
     ensure_contains(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_MARKERS)
+    ensure_contains(failures, "samples_readme", samples_readme, REQUIRED_SAMPLES_README_MARKERS)
     ensure_contains(failures, "review_checklist", review_checklist, REQUIRED_REVIEW_CHECKLIST_MARKERS)
     ensure_contains(failures, "freeze_map", freeze_map, REQUIRED_FREEZE_MAP_MARKERS)
     ensure_contains(failures, "makefile", makefile, REQUIRED_MAKEFILE_MARKERS)
@@ -367,6 +378,7 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / DOCS_README_PATH, minimal_marker_doc("Zigux Documentation", REQUIRED_DOCS_README_MARKERS))
     write_text(root / SCRIPTS_README_PATH, minimal_marker_doc("scripts/zigux", REQUIRED_SCRIPT_README_MARKERS))
     write_text(root / TESTS_README_PATH, minimal_marker_doc("zigux/tests", REQUIRED_TESTS_README_MARKERS))
+    write_text(root / SAMPLES_README_PATH, minimal_marker_doc("samples/zigux", REQUIRED_SAMPLES_README_MARKERS))
     write_text(root / REVIEW_CHECKLIST_PATH, minimal_marker_doc("Zigux Review Checklist", REQUIRED_REVIEW_CHECKLIST_MARKERS))
     write_text(root / FREEZE_MAP_PATH, minimal_marker_doc("Zigux Freeze Map", REQUIRED_FREEZE_MAP_MARKERS))
     write_text(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_MARKERS + [""]))
@@ -441,6 +453,40 @@ def run_self_test() -> int:
             root,
             f"tests_readme:{REQUIRED_TESTS_README_MARKERS[0]}",
             "missing_tests_root_lane_sequencing_note",
+        )
+
+        write_fixture_tree(root)
+        samples_readme_path = root / SAMPLES_README_PATH
+        samples_readme = samples_readme_path.read_text(encoding="utf-8")
+        samples_readme_path.write_text(
+            samples_readme.replace(
+                "the focused `phase9-runtime-bitmap-top-bit-tests` companion stays bitmap-local instead of drifting into shared loader evidence",
+                "the focused bitmap companion stays bitmap-local instead of drifting into shared loader evidence",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"samples_readme:{REQUIRED_SAMPLES_README_MARKERS[1]}",
+            "missing_samples_root_bitmap_top_bit_boundary",
+        )
+
+        write_fixture_tree(root)
+        samples_readme_path = root / SAMPLES_README_PATH
+        samples_readme = samples_readme_path.read_text(encoding="utf-8")
+        samples_readme_path.write_text(
+            samples_readme.replace(
+                "keep the older command and environment control boundary explicit too: `tools/lib/subcmd/exec-cmd.zig` still owns the deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` tooling cues, while `tools/lib/subcmd/help.zig` still owns the `LINES` and `COLUMNS` terminal-formatting cues; the Phase 9 loader packet remains a metadata-only handoff and should not be read as shipped runtime command or environment activation control on current `master`",
+                "keep the older boundary explicit too: `tools/lib/subcmd/help.zig` still owns terminal-formatting cues",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"samples_readme:{REQUIRED_SAMPLES_README_MARKERS[2]}",
+            "missing_samples_root_command_environment_boundary",
         )
 
         write_fixture_tree(root)
@@ -652,7 +698,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=23")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
@@ -688,7 +734,7 @@ def main() -> int:
     print("PHASE9_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE9_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_PHASE9_BUILD_MARKERS) + len(REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS)}"
+        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SAMPLES_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_PHASE9_BUILD_MARKERS) + len(REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS)}"
     )
     return 0
 
