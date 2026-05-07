@@ -321,6 +321,17 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
     const tests_root_markers = [_][]const u8{
         "keep the shared Phase 5 reference-sample checks wired through `zigux/tests/phase5_build.zig`",
         "the four shipped sample-backed surveys stay reviewable without implying runtime-substrate closure",
+        "keep the landed Phase 5 `kobject_example` packet explicit in the tests root too",
+        "Documentation/zigux/phase5-kobject-sample-survey.md",
+        "samples/zigux/kobject_example.zig",
+        "zigux/tests/phase5_kobject_example_manifest.json",
+        "zigux/tests/phase5_kobject_example.zig",
+        "zigux/tests/phase5_kobject_example_survey.zig",
+        "initialized-but-not-registered zero-active-attributes boundary",
+        "`ownershipSummary()` lifecycle packet",
+        "unnamed attribute-group shape",
+        "shared `baz`/`bar` dispatch",
+        "`abandoned_before_registration` versus `tore_down_registered_attributes` exit split",
     };
 
     for (tests_root_markers) |needle| {
