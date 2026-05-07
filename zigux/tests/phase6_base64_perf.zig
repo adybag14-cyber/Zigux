@@ -17,6 +17,94 @@ fn fixtureVariant(name: []const u8) base64.Variant {
     unreachable;
 }
 
+fn perfPayloadFingerprint(bytes: []const u8) u64 {
+    var acc: u64 = 0xcbf2_9ce4_8422_2325;
+    for (bytes, 0..) |byte, idx| {
+        acc ^= @as(u64, byte) +% (@as(u64, @intCast(idx)) << 8);
+        acc *%= 0x0000_0100_0000_01b3;
+    }
+    return acc;
+}
+
+fn validatePerfMatrix() !void {
+    const expected = [_]struct {
+        label: []const u8,
+        variant_name: []const u8,
+        padding: bool,
+        iterations: usize,
+        max_encode_slowdown_pct: u64,
+        max_decode_slowdown_pct: u64,
+        fingerprint: u64,
+    }{
+        .{ .label = "STD_PAD", .variant_name = "std", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, .fingerprint = 0xf0fc_dea9_f1c7_6907 },
+        .{ .label = "STD_NO_PAD", .variant_name = "std", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, .fingerprint = 0xf0fc_dea9_f1c7_6907 },
+        .{ .label = "URLSAFE_PAD", .variant_name = "urlsafe", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, .fingerprint = 0xf0fc_dea9_f1c7_6907 },
+        .{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325, .fingerprint = 0xf0fc_dea9_f1c7_6907 },
+    };
+
+    var saw_std_pad = false;
+    var saw_std_no_pad = false;
+    var saw_urlsafe_pad = false;
+    var saw_urlsafe_no_pad = false;
+
+    if (fixtures.perf_cases.len != expected.len) return error.Base64PerfMatrixMismatch;
+    if (fixtures.perf_payload.len != fixtures.perf_payload_buf_size) return error.Base64PerfMatrixMismatch;
+
+    for (expected, 0..) |want, idx| {
+        const actual = fixtures.perf_cases[idx];
+        if (!std.mem.eql(u8, want.label, actual.label)) return error.Base64PerfMatrixMismatch;
+        if (!std.mem.eql(u8, want.variant_name, actual.variant_name)) return error.Base64PerfMatrixMismatch;
+        if (want.padding != actual.padding) return error.Base64PerfMatrixMismatch;
+        if (want.iterations != actual.iterations) return error.Base64PerfMatrixMismatch;
+        if (want.max_encode_slowdown_pct != actual.max_encode_slowdown_pct) return error.Base64PerfMatrixMismatch;
+        if (want.max_decode_slowdown_pct != actual.max_decode_slowdown_pct) return error.Base64PerfMatrixMismatch;
+        if (want.fingerprint != perfPayloadFingerprint(actual.payload)) return error.Base64PerfMatrixMismatch;
+    }
+
+    for (fixtures.perf_cases, 0..) |case, idx| {
+        if (!std.mem.eql(u8, fixtures.perf_payload, case.payload)) return error.Base64PerfMatrixMismatch;
+        if (case.iterations == 0 or case.max_encode_slowdown_pct == 0 or case.max_decode_slowdown_pct == 0) {
+            return error.Base64PerfMatrixMismatch;
+        }
+        if (fixtures.perf_payload_buf_size < case.payload.len) return error.Base64PerfMatrixMismatch;
+
+        const needed_chars = std.base64.standard.Encoder.calcSize(case.payload.len);
+        if (fixtures.perf_encoded_buf_size < needed_chars) return error.Base64PerfMatrixMismatch;
+
+        if (std.mem.eql(u8, case.label, "STD_PAD")) {
+            if (!std.mem.eql(u8, case.variant_name, "std") or !case.padding or saw_std_pad) {
+                return error.Base64PerfMatrixMismatch;
+            }
+            saw_std_pad = true;
+        } else if (std.mem.eql(u8, case.label, "STD_NO_PAD")) {
+            if (!std.mem.eql(u8, case.variant_name, "std") or case.padding or saw_std_no_pad) {
+                return error.Base64PerfMatrixMismatch;
+            }
+            saw_std_no_pad = true;
+        } else if (std.mem.eql(u8, case.label, "URLSAFE_PAD")) {
+            if (!std.mem.eql(u8, case.variant_name, "urlsafe") or !case.padding or saw_urlsafe_pad) {
+                return error.Base64PerfMatrixMismatch;
+            }
+            saw_urlsafe_pad = true;
+        } else if (std.mem.eql(u8, case.label, "URLSAFE_NO_PAD")) {
+            if (!std.mem.eql(u8, case.variant_name, "urlsafe") or case.padding or saw_urlsafe_no_pad) {
+                return error.Base64PerfMatrixMismatch;
+            }
+            saw_urlsafe_no_pad = true;
+        } else {
+            return error.Base64PerfMatrixMismatch;
+        }
+
+        for (fixtures.perf_cases[idx + 1 ..]) |other| {
+            if (std.mem.eql(u8, case.label, other.label)) return error.Base64PerfMatrixMismatch;
+        }
+    }
+
+    if (!saw_std_pad or !saw_std_no_pad or !saw_urlsafe_pad or !saw_urlsafe_no_pad) {
+        return error.Base64PerfMatrixMismatch;
+    }
+}
+
 fn stdCodecs(variant: base64.Variant, padding: bool) std.base64.Codecs {
     return switch (variant) {
         .std => if (padding) std.base64.standard else std.base64.standard_no_pad,
@@ -103,6 +191,8 @@ fn runStdDecodeBench(encoded: []const u8, expected_len: usize, codec: std.base64
 }
 
 pub fn main(init: std.process.Init) !void {
+    try validatePerfMatrix();
+
     const io = init.io;
     var stdout_buffer: [4096]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
@@ -194,6 +284,10 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.flush();
 
     if (failed) return error.Base64PerfRegression;
+}
+
+test "phase 6 base64 perf matrix preflight stays aligned with the documented packet" {
+    try validatePerfMatrix();
 }
 
 test "medianNs selects the middle sample after sorting" {
