@@ -96,7 +96,7 @@ REQUIRED_TESTS_README_MARKERS = [
     "keep the bounded Phase 9 runtime-loader packet wired through `Documentation/zigux/README.md`, "
     "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `scripts/zigux/README.md`, "
     "`Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-build-only-surface.py`, "
-    "`zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/Makefile`, ".github/workflows/zigux-bootstrap.yml", "
+    "`zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, "
     "`make -C zigux phase9`, the four survey entrypoints `zigux/tests/runtime_atomic64_survey.zig`, "
     "`zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_trace_events_survey.zig`, and "
     "`zigux/tests/runtime_kretprobe_survey.zig`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, "
