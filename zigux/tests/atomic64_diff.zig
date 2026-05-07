@@ -119,7 +119,7 @@ test "atomic64 diff canonical wrapper keeps the shipped runtime gate wired in" {
 test "atomic64 diff wrapper records the current bounded runtime checks" {
     try expectMarker(
         runtime_atomic64_diff_source,
-        "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxchg, add_unless, and bitwise expectations",
+        "runtime atomic64 diff gate replays bounded atomic64_test.c arithmetic, exchange, cmpxchg, add_unless, and bitwise expectations",
     );
     try expectMarker(
         runtime_atomic64_diff_source,
@@ -332,6 +332,38 @@ test "atomic64 diff wrapper keeps the phase4 replay routes measurable" {
     );
 }
 
+test "atomic64 diff wrapper records the exact bounded arithmetic and threshold checks" {
+    try expectOrderedMarkersInSection(
+        runtime_atomic64_diff_source,
+        "const arithmetic_cases = [_]ArithmeticCase{",
+        "const cases = [_]DiffCase{",
+        &.{
+            ".name = \"v0 arithmetic path mirrors add/sub/add_return/sub_return/inc_return/dec_return sequencing\"",
+            ".name = \"negative-one arithmetic path keeps decrement-style updates visible\"",
+        },
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "test \"runtime atomic64 diff gate rejects an empty threshold replay batch\" {",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "test \"runtime atomic64 diff gate keeps a deterministic threshold replay batch ready for future perf baselines\" {",
+    );
+    try expectMarker(runtime_atomic64_diff_source, "try std.testing.expectEqual(@as(usize, 1), single.iterations);");
+    try expectMarker(runtime_atomic64_diff_source, "try std.testing.expectEqual(@as(usize, 4), repeated.iterations);");
+    try expectMarker(runtime_atomic64_diff_source, "try std.testing.expectEqual(@as(i64, 130322557735600377), single.final_counter);");
+    try expectMarker(runtime_atomic64_diff_source, "try std.testing.expectEqual(@as(i64, 130322557735600376), repeated.final_counter);");
+    try expectMarker(runtime_atomic64_diff_source, "try std.testing.expectEqual(@as(u64, 3626254113632800175), single.checksum);");
+    try expectMarker(runtime_atomic64_diff_source, "try std.testing.expectEqual(@as(u64, 9210681150676220922), repeated.checksum);");
+    try expectMarker(runtime_atomic64_diff_source, "try std.testing.expectEqualDeep(repeated, try runThresholdReplay(4));");
+    try expectMarker(runtime_atomic64_diff_source, "try std.testing.expect(repeated.checksum != single.checksum);");
+}
+
 test "atomic64 diff wrapper records the exact bounded runtime case names" {
     try expectOrderedMarkersInSection(
         runtime_atomic64_diff_source,
@@ -386,6 +418,11 @@ test "atomic64 diff wrapper records the exact bounded runtime case names" {
 }
 
 test "atomic64 diff wrapper pins the current bounded runtime case groups" {
+    try expectRuntimeCaseGroupCardinality(
+        "const arithmetic_cases = [_]ArithmeticCase{",
+        "const cases = [_]DiffCase{",
+        2,
+    );
     try expectRuntimeCaseGroupCardinality(
         "const cases = [_]DiffCase{",
         "const compare_swap_cases = [_]CompareSwapCase{",
