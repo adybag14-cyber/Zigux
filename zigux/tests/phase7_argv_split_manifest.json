@@ -27,21 +27,21 @@
       "status": "starter_landed",
       "kind": "runtime_leaf_helper",
       "zigux_destination": "lib/argv_split.zig",
-      "why_now": "The roadmap names lib/argv_split.zig directly, and the live helper already delivers the bounded whitespace-only countArgc and argvSplit surface with copied-buffer ownership and a null-terminated argv view."
+      "why_now": "The roadmap names lib/argv_split.zig directly, and the live helper already delivers the bounded whitespace-only countArgc and argvSplit surface with copied-buffer ownership, canonical blank sentinels, repeatable teardown, and a null-terminated argv view."
     },
     {
       "id": "phase7-argv-split-dedicated-tests",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_argv_split.zig",
-      "why_now": "A dedicated Phase 7 gate keeps the argv_split starter surface reviewable around whitespace collapsing, first-NUL stop behavior, quote-as-literal non-goals, and copied-buffer ownership."
+      "why_now": "A dedicated Phase 7 gate keeps the argv_split starter surface reviewable around whitespace collapsing, first-NUL stop behavior, quote-as-literal non-goals, per-call ownership independence, and blank-input sentinel teardown safety."
     },
     {
       "id": "phase7-argv-split-shared-fixtures",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-      "why_now": "The shared fixture layer keeps the existing focused parity inputs reviewable from one source instead of leaving the argv_split gate entirely inline."
+      "why_now": "The shared fixture layer keeps the focused parity and first-NUL ownership inputs reviewable from one source instead of leaving the argv_split gate entirely inline."
     },
     {
       "id": "phase7-argv-split-slice-note",
@@ -55,7 +55,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_argv_split_survey.zig",
-      "why_now": "A machine-checked survey gate keeps the roadmap anchor and landed review surfaces explicit without reopening argv parsing behavior."
+      "why_now": "A machine-checked survey gate keeps the roadmap anchor, dedicated packet checker, and landed ownership-review surfaces explicit without reopening argv parsing behavior."
     },
     {
       "id": "phase7-argv-split-packet-checker",
