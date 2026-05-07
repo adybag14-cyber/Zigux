@@ -58,6 +58,7 @@ It is not a closure claim, and it is not itself a shipped replay surface.
 
 ## Active release blocker
 - Phase 12 is still an active release-planning tranche, not a release-closed packet.
+- the smallest same-lane follow-through is now shared-surface drift control.
 - The live PMO job is shared-surface drift control across the shipped docs-root packet, review checklist, sequencing note, this closure companion, the compact release-coordination matrix, the shared fallback overview, the complex-driver anti-overlap companion, the shared libbpf anti-overlap companion, scripts-root summary, tests-root summary, workflow, Makefile, the two commit-pinned fallback notes, and the active `nvme_pci`, `virtio_net`, `virtio_scsi`, and libbpf survey-backed evidence so they keep naming the same smoke-first build-only release route.
 - `Documentation/zigux/README.md` now also keeps `zig build test --build-file zigux/tests/phase12_build.zig --summary all` explicit beside `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, and `make -C zigux phase12`, so the older docs-root replay reminder is no longer the live blocker on `master`.
 - That reread must keep the attached-toolchain override explicit as part of the shipped smoke-first order whenever `zig` is unavailable on `PATH`.
