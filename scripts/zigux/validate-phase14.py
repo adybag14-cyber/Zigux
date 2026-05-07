@@ -288,7 +288,7 @@ def check_compile_matrix(root: Path) -> list[str]:
         errors.append("phase14 smoke note focused compile-shard count drifted from the current one-shard packet")
     if smoke_note_text.count("coverage `full_bundle_only`") != 4:
         errors.append("phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet")
-    if build_text.count("b.addTest(.{") != 5:
+    if build_text.count("b.addTest(.") != 5:
         errors.append("phase14 build bundle no longer declares the current five compile artifacts")
     if build_text.count("b.addRunArtifact(") != 5:
         errors.append("phase14 build bundle no longer wires the current five compile-artifact runs")
@@ -497,7 +497,7 @@ def run_self_test() -> int:
         if not any("missing compile-matrix row" in error for error in errors):
             print("self-test expected compile-matrix row failure", file=sys.stderr)
             return 1
-        write_text(broken_smoke_note, "\n".join(matrix_lines) + "\n")
+        write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
         broken_build = root / "zigux/tests/phase14_build.zig"
         broken_build.write_text(
             broken_build.read_text(encoding="utf-8").replace(
@@ -528,13 +528,13 @@ def run_self_test() -> int:
         broken_anchor_manifest_path = root / "zigux/tests/phase14_skbuff_bridge_manifest.json"
         broken_anchor_manifest = load_json_file(broken_anchor_manifest_path)
         broken_anchor_manifest.pop("surveyed_commit", None)
-        write_text(broken_anchor_manifest_path, json.dumps(broken_anchor_manifest, indent=2) + "\n")
+        write_text(root / "zigux/tests/phase14_skbuff_bridge_manifest.json", json.dumps(broken_anchor_manifest, indent=2) + "\n")
         errors = check(root)
         if "missing surveyed_commit in zigux/tests/phase14_skbuff_bridge_manifest.json" not in errors:
             print("self-test expected anchor-manifest surveyed_commit failure", file=sys.stderr)
             return 1
         write_text(
-            broken_anchor_manifest_path,
+            root / "zigux/tests/phase14_skbuff_bridge_manifest.json",
             json.dumps(anchor_manifests["zigux/tests/phase14_skbuff_bridge_manifest.json"], indent=2) + "\n",
         )
         broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
@@ -605,6 +605,21 @@ def run_self_test() -> int:
             print("self-test expected docs-root marker failure", file=sys.stderr)
             return 1
         write_text(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/README.md"]) + "\n")
+        broken_review_checklist = root / "Documentation/zigux/review-checklist.md"
+        broken_review_checklist.write_text(
+            broken_review_checklist.read_text(encoding="utf-8").replace(
+                "scripts/zigux/check-phase14-release-boundary-exact-counts.py\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "missing marker in Documentation/zigux/review-checklist.md: scripts/zigux/check-phase14-release-boundary-exact-counts.py" in error
+            for error in errors
+        ):
+            print("self-test expected review-checklist marker failure", file=sys.stderr)
+            return 1
+        write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/review-checklist.md"]) + "\n")
         broken_checker = root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
         broken_checker.write_text(
             "#!/usr/bin/env python3\n"
