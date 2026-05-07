@@ -50,7 +50,7 @@ REQUIRED_CLOSURE_MARKERS = [
 REQUIRED_BOOTSTRAP_MARKERS = [
     "- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`",
     "- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`",
-    "- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator",
+    "- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep this bootstrap note aligned with `zigux/tests/fixtures/phase2_tool_manifest.json`, the dedicated `fixdep`, `genksyms`, `kconfig`, and `confdata` packet links it pins, and the Linux-style `make -C zigux phase2-validate` route instead of leaving that manifest-backed Phase 2 packet implied only by the closure note and shared validator`,
 ]
 REQUIRED_SCRIPTS_README_MARKERS = [
     "- `check-phase2-tool-manifest-packets.py`",
@@ -165,9 +165,13 @@ def validate_root(root: Path) -> list[str]:
             issues.append(f"bootstrap_marker:{marker}")
 
     scripts_readme_text = (root / SCRIPTS_README.relative_to(ROOT)).read_text(encoding="utf-8")
-    for marker in REQUIRED_SCRIPTS_README_MARKERS:
-        if marker not in scripts_readme_text:
-            issues.append(f"scripts_readme_marker:{marker}")
+    issues.extend(
+        validate_exact_lines(
+            scripts_readme_text,
+            REQUIRED_SCRIPTS_README_MARKERS,
+            prefix="scripts_readme_line",
+        )
+    )
 
     makefile_text = (root / MAKEFILE.relative_to(ROOT)).read_text(encoding="utf-8")
     issues.extend(validate_exact_lines(makefile_text, REQUIRED_MAKEFILE_LINES, prefix="makefile_line"))
@@ -362,7 +366,14 @@ def run_self_test() -> int:
         scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8").replace(REQUIRED_SCRIPTS_README_MARKERS[1] + "\n", "", 1)
         write_text(scripts_readme_path, scripts_readme_text)
         issues = validate_root(root)
-        assert f"scripts_readme_marker:{REQUIRED_SCRIPTS_README_MARKERS[1]}" in issues
+        assert f"scripts_readme_line:{REQUIRED_SCRIPTS_README_MARKERS[1]}:count=0:expected=1" in issues
+
+        build_self_test_root(root)
+        scripts_readme_path = root / "scripts/zigux/README.md"
+        scripts_readme_text = scripts_readme_path.read_text(encoding="utf-8") + REQUIRED_SCRIPTS_README_MARKERS[1] + "\n"
+        write_text(scripts_readme_path, scripts_readme_text)
+        issues = validate_root(root)
+        assert f"scripts_readme_line:{REQUIRED_SCRIPTS_README_MARKERS[1]}:count=2:expected=1" in issues
 
         build_self_test_root(root)
         makefile_path = root / "zigux/Makefile"
@@ -393,7 +404,7 @@ def run_self_test() -> int:
         assert f"workflow_line:{REQUIRED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
 
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=20")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
