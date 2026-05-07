@@ -302,6 +302,8 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(parity_checker, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectContains(parity_checker, "lib/rbtree.c");
     try expectContains(parity_fixture, "\"ordered\"");
+    try expectContains(parity_fixture, "\"reverse_order\"");
+    try expectContains(parity_fixture, "\"replace_order\"");
     try expectContains(parity_fixture, "\"duplicates\"");
     try expectContains(parity_fixture, "\"erase_init\"");
     try expectContains(parity_fixture, "\"postorder\"");
