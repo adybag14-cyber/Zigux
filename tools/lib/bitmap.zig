@@ -624,6 +624,21 @@ test "bitmap scnprintf collapses contiguous ranges" {
     try std.testing.expectEqualStrings("1-3,7,10-11", buffer[0..len]);
 }
 
+test "bitmap scnprintf collapses contiguous ranges across word boundaries" {
+    const start = bits_per_long - 2;
+    const len_bits = 5;
+    const nbits = bits_per_long + 4;
+    var map = [_]Word{ 0, 0 };
+    setRange(&map, start, len_bits);
+
+    var buffer: [32]u8 = undefined;
+    const written = scnprintf(&map, nbits, &buffer);
+
+    var expected_buffer: [32]u8 = undefined;
+    const expected = try std.fmt.bufPrint(&expected_buffer, "{d}-{d}", .{ start, start + len_bits - 1 });
+    try std.testing.expectEqualStrings(expected, buffer[0..written]);
+}
+
 test "bitmap scnprintf reports full length while truncating the buffer" {
     var map = [_]Word{0};
     setRange(&map, 1, 3);
