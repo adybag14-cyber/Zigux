@@ -52,8 +52,24 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
+fn isLowerHexCommitSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |byte| {
+        const is_digit = byte >= '0' and byte <= '9';
+        const is_lower_hex = byte >= 'a' and byte <= 'f';
+        if (!is_digit and !is_lower_hex) return false;
+    }
+    return true;
+}
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn expectMarkdownStatusValue(doc: []const u8, key: []const u8, value: []const u8) !void {
+    var buf: [160]u8 = undefined;
+    const needle = try std.fmt.bufPrint(&buf, "- `{s}={s}`", .{ key, value });
+    try expectContains(doc, needle);
 }
 
 test "phase 9 runtime kretprobe survey manifest records the roadmap gap between the landed starter and a loadable pilot module" {
@@ -122,6 +138,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
+    try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.kretprobe_example_c_lines >= 100);
@@ -157,6 +174,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try std.testing.expect(manifest.gaps.len >= 6);
 
     try expectContains(survey_doc, "PHASE9_SLICE=runtime-kretprobe-survey");
+    try expectMarkdownStatusValue(survey_doc, "PHASE9_SURVEYED_COMMIT", manifest.surveyed_commit);
     try expectContains(survey_doc, "P9-L13");
     try expectContains(survey_doc, "samples/zigux/runtime_kretprobe_loader.zig");
     try expectContains(survey_doc, "zigux/kernel/runtime_loader.zig");
@@ -177,6 +195,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(survey_doc, "make -C zigux phase9");
 
     try expectContains(module_slice_doc, "PHASE9_SLICE=runtime-kretprobe-module-starter");
+    try expectMarkdownStatusValue(module_slice_doc, "PHASE9_SURVEYED_COMMIT", manifest.surveyed_commit);
     try expectContains(module_slice_doc, "samples/zigux/runtime_kretprobe_loader.zig");
     try expectContains(module_slice_doc, "zigux/kernel/runtime_loader.zig");
     try expectContains(module_slice_doc, "zigux/kernel/runtime_loader_contract.zig");
