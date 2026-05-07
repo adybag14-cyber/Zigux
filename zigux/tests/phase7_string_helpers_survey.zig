@@ -82,6 +82,8 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
+    try expectContains(helper_tests, "phase 7 string matching preserves null-terminated search semantics");
+    try expectContains(helper_tests, "phase 7 match helpers accept Linux-style all-entries search bounds");
     try expectContains(helper_tests, "phase 7 parseIntArray keeps base and sign parsing explicit");
     try expectContains(helper_tests, "phase 7 parseIntArray respects first-NUL and no-entry behavior");
     try expectContains(helper_tests, "phase 7 parseIntArrayUser copies a bounded user buffer before parsing");
@@ -106,6 +108,8 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_impl, "pub fn kasprintfStrarray");
     try expectContains(helper_impl, "pub fn skipSpaces");
     try expectContains(helper_impl, "pub fn strim");
+    try expectContains(helper_impl, "test \"matchString stops at null sentinels and returns -EINVAL on miss\"");
+    try expectContains(helper_impl, "test \"sysfsMatchString reuses sysfs newline semantics\"");
     try expectContains(helper_impl, "test \"stringGetSize formats decimal and binary units with Linux-style rounding\"");
     try expectContains(helper_impl, "test \"stringGetSize respects no-space and no-bytes modifiers\"");
     try expectContains(helper_impl, "test \"stringGetSize reports truncated output length without losing termination\"");
