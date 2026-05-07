@@ -90,7 +90,12 @@
         "erase_init_order",
         "postorder_count",
         "erase_init_node_empty",
-        "cleared_node_empty"
+        "cleared_node_empty",
+        "find_found_key",
+        "find_missing",
+        "find_first_serial",
+        "next_match_serials",
+        "next_match_terminal_null"
       ]
     },
     "tools/lib/string.zig": {
