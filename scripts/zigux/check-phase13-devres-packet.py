@@ -32,6 +32,8 @@ SURVEY_MARKERS = [
     "blocked `phase13-devres-live-dma-backed-helpers`",
     "blocked `phase13-devres-live-scatterlist-ownership`",
     "helper-only DMA/scatterlist boundary",
+    "devm_ioremap_uc()",
+    "devm_ioremap_resource_wc()",
 ]
 
 BUILD_MARKERS = [
@@ -77,6 +79,8 @@ DEVRES_HELPER_MARKERS = [
 ]
 
 DEVRES_TEST_MARKERS = [
+    'test "phase13 devres uncached ioremap wrapper preserves the managed lifetime path" {',
+    'test "phase13 devres WC resource wrapper preserves the requested WC mapping type" {',
     'test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning" {',
     "try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);",
     "try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);",
@@ -87,7 +91,6 @@ DEVRES_TEST_MARKERS = [
 
 MANIFEST_EXPECTED_LANE_KEY = "P13-L05"
 MANIFEST_EXPECTED_SURVEYED_COMMIT = "10369315cba5d146a7c6c4c6480ef9d279dc490f"
-
 MANIFEST_SUMMARY_KEYS = [
     "preexisting_phase13_devres_test_present",
     "preexisting_phase13_devres_reviewability_present",
@@ -232,6 +235,8 @@ def run_self_test() -> int:
                 "phase13-devres-survey:blocked `phase13-devres-live-dma-backed-helpers`",
                 "phase13-devres-survey:blocked `phase13-devres-live-scatterlist-ownership`",
                 "phase13-devres-survey:helper-only DMA/scatterlist boundary",
+                "phase13-devres-survey:devm_ioremap_uc()",
+                "phase13-devres-survey:devm_ioremap_resource_wc()",
             ],
             "survey_guard_failed",
         )
@@ -276,6 +281,8 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                'phase13-devres-test:test "phase13 devres uncached ioremap wrapper preserves the managed lifetime path" {',
+                'phase13-devres-test:test "phase13 devres WC resource wrapper preserves the requested WC mapping type" {',
                 "phase13-devres-test:try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);",
                 "phase13-devres-test:try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);",
                 "phase13-devres-test:try std.testing.expectEqual(@as(?u64, 0x10), failure.reported_size);",
