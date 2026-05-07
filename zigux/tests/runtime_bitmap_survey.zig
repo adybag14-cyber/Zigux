@@ -397,6 +397,10 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "try std.testing.expectEqual(@as(u32, 4), pending_plan.summary.weight);") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-sample-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-module-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-diff-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-loader-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-top-bit-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-loader-shared-tests") != null);
 }
