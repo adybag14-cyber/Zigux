@@ -11,6 +11,8 @@ test "phase12 virtio scsi syntax lab keeps bounded queue-lab exports reachable" 
     _ = virtio_scsi.QueueLayoutSummary;
     _ = virtio_scsi.RequestQueueSummary;
     _ = virtio_scsi.ProbeConfigSnapshot;
+    _ = virtio_scsi.HostShapeRequest;
+    _ = virtio_scsi.HostShapeSummary;
     _ = virtio_scsi.RecoverySummary;
     _ = virtio_scsi.RecoveryRestoreSummary;
     _ = virtio_scsi.RecoveryRestoreQueueRebindSummary;
@@ -22,6 +24,7 @@ test "phase12 virtio scsi syntax lab keeps bounded queue-lab exports reachable" 
     try std.testing.expectEqualStrings("virtio_scsi_queue_lab", descriptor.name);
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_queue_family_planner);
+    try std.testing.expect(descriptor.provides_host_shape_summary);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_scsi_host);
     try std.testing.expect(descriptor.touches_transport_reset);
@@ -60,6 +63,33 @@ test "phase12 virtio scsi syntax lab keeps probe-config snapshot variants reacha
     try std.testing.expect(snapshot.respects_poll_queue_clamp);
     try std.testing.expect(snapshot.preserves_probe_only_scope);
     try std.testing.expect(snapshot.blocks_dma_submission);
+}
+
+test "phase12 virtio scsi syntax lab keeps host-shape summaries reachable" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const summary = try lab.captureHostShapeSummary(.{
+        .num_queues = 4,
+        .requested_poll_queues = 3,
+        .seg_max = 96,
+        .cmd_per_lun = 32,
+        .max_target = 7,
+        .max_lun = 3,
+        .max_sectors = 1024,
+    });
+
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 4), summary.request_queues);
+    try std.testing.expectEqual(@as(u16, 1), summary.default_queues);
+    try std.testing.expectEqual(@as(u16, 3), summary.poll_queues);
+    try std.testing.expectEqual(@as(u32, 96), summary.sg_tablesize);
+    try std.testing.expectEqual(@as(u32, 32), summary.cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 1024), summary.max_sectors);
+    try std.testing.expectEqual(@as(u16, 4), summary.nr_hw_queues);
+    try std.testing.expectEqual(@as(u16, 3), summary.nr_maps);
+    try std.testing.expect(summary.uses_map_queues);
+    try std.testing.expect(summary.uses_commit_rqs);
+    try std.testing.expect(summary.uses_mq_poll);
+    try std.testing.expect(summary.preserves_pre_registration_scope);
 }
 
 test "phase12 virtio scsi syntax lab keeps recovery summaries reachable through freeze and restore" {
