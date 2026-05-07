@@ -13,6 +13,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
   - `include/zigux/dev_t.h`
   - `zigux/bindings/abi.zig`
   - `zigux/bindings/dev_t.zig`
+  - `zigux/bindings/notifier_abi.zig`
   - `zigux/kernel/export_shim.zig`
   - `zigux/helpers/*`
   - `zigux/unsafe/narrow.zig`
@@ -38,9 +39,9 @@ This document starts the first bounded Phase 3 slice for Zigux.
   - docs-root tranche summaries should keep naming `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and the focused `phase3_export_uapi_layout` replay so the active Phase 3 packet does not collapse back into an ABI-plus-policy-only note when the boundary starter moves
 - current shared ABI replay:
   - `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
-  - `PHASE3_ABI_MANIFEST_FILE_COUNT=27`
+  - `PHASE3_ABI_MANIFEST_FILE_COUNT=28`
   - `PHASE3_ABI_REPLAY_SCOPE=shared dump plus focused low-level wrapper replay`
-  - the live `phase3_abi` packet now exercises the curated boundary header and export status root, bitmap and cpumask views, list and hlist views, err_ptr and xarray summaries, the current ida and minor-allocation/dev-region planning ladder, and the currently shipped chrdev notify/ack delivery-budget guard families through the shared dump and layout harness
+  - the live `phase3_abi` packet now exercises the curated boundary header and export status root, bitmap and cpumask views, list and hlist views, err_ptr and xarray summaries, the current ida and minor-allocation/dev-region planning ladder, the notifier starter binding packet, and the currently shipped chrdev notify/ack delivery-budget guard families through the shared dump and layout harness
   - the focused syntax gate now fail-closes on fused top-level C header declarations in `include/zigux/abi.h` plus fused top-level `;pub const` declarations in `zigux/bindings/abi.zig` or `zigux/bindings/dev_t.zig` until the authoritative header and curated bindings body are split back into parse-clean lines
   - the current shared ABI packet also keeps the focused baseline constant-parity survey explicit across `include/zigux/abi.h`, `zigux/bindings/abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json` through `scripts/zigux/survey-phase3-abi-constant-parity.py`
 
@@ -52,7 +53,7 @@ The first correct move is not a broad runtime port.
 It is a small substrate that makes future ports measurable:
 
 - one C header pair
-- curated Zig boundary bindings that keep the ABI root and `dev_t` starter surface reviewable
+- curated Zig boundary bindings that keep the ABI root plus the `dev_t` and notifier starter surfaces reviewable
 - one export-shim module
 - explicit panic and allocator policies
 - explicit atomic, barrier, and MMIO wrappers
@@ -124,6 +125,7 @@ The current Phase 3 low-level wrapper packet is still intentionally small, but i
 - `include/zigux/abi.h` is the authoritative C-facing layout surface for this slice.
 - `zigux/bindings/abi.zig` must mirror it with `extern struct` layout, not approximate it.
 - `include/zigux/dev_t.h` and `zigux/bindings/dev_t.zig` stay curated beside the ABI root so `dev_t` encode, decode, range policy, and last-in-range parity remain reviewable at the same boundary.
+- `zigux/bindings/notifier_abi.zig` stays in the shared ABI packet so notifier-chain flags plus the starter head, block, view, and summary layouts do not drift outside the curated Phase 3 review surface.
 - new boundary structs require committed fixture updates under `zigux/tests/fixtures/phase3_abi/`.
 - export shims must return explicit status codes instead of hidden failure behavior.
 - future bindings generators are allowed later, but this slice stays curated and reviewable.
