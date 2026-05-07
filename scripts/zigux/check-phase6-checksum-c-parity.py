@@ -20,9 +20,9 @@ EXPECTED_SORTED_LINES = sorted(
     [
         "compute\tempty\t0xffff",
         "compute\ttwo-byte word\t0xfffe",
-        "compute\tipv4 header\t0x9c5d",
         "compute\todd payload\t0xd638",
         "compute\tcarry-heavy payload\t0x80ff",
+        "ip-fast-csum\tipv4 header\t0x9c5d",
         "partial\todd payload with saturated seed\t0x000029c7",
         "partial\tcarry-heavy payload with unfolded seed\t0x00007f00",
         "partial\tipv4 fragment with arbitrary seed\t0x00004d50",
