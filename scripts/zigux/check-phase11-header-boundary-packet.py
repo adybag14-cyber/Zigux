@@ -96,7 +96,23 @@ REQUIRED_SURVEY_MARKERS = [
     "phase11 shared header parity survey keeps the exported hvc header declarations explicit",
     "phase11 shared header parity survey keeps the shared build hook explicit",
     "layout_assert.assertSize(WatchdogInfo, 40);",
+    "layout_assert.assertAlign(WatchdogInfo, 4);",
+    'layout_assert.assertFieldType(WatchdogInfo, "options", u32);',
+    'layout_assert.assertFieldType(WatchdogInfo, "firmware_version", u32);',
+    'layout_assert.assertFieldType(WatchdogInfo, "identity", [32]u8);',
+    'layout_assert.assertOffset(WatchdogInfo, "options", 0);',
+    'layout_assert.assertOffset(WatchdogInfo, "firmware_version", 4);',
+    'layout_assert.assertOffset(WatchdogInfo, "identity", 8);',
     "layout_assert.assertSize(WinSize, 8);",
+    "layout_assert.assertAlign(WinSize, 2);",
+    'layout_assert.assertFieldType(WinSize, "ws_row", u16);',
+    'layout_assert.assertFieldType(WinSize, "ws_col", u16);',
+    'layout_assert.assertFieldType(WinSize, "ws_xpixel", u16);',
+    'layout_assert.assertFieldType(WinSize, "ws_ypixel", u16);',
+    'layout_assert.assertOffset(WinSize, "ws_row", 0);',
+    'layout_assert.assertOffset(WinSize, "ws_col", 2);',
+    'layout_assert.assertOffset(WinSize, "ws_xpixel", 4);',
+    'layout_assert.assertOffset(WinSize, "ws_ypixel", 6);',
 ]
 
 REQUIRED_BUILD_MARKERS = [
@@ -321,8 +337,22 @@ def run_self_test() -> int:
             '"zigux_destination": "zigux/tests/phase11_uapi_header_packet_survey.zig"',
             "zigux_destination mismatch",
         )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            'layout_assert.assertOffset(WatchdogInfo, "identity", 8);',
+            'layout_assert.assertOffset(WatchdogInfo, "identity", 12);',
+            "survey missing markers",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            'layout_assert.assertFieldType(WinSize, "ws_ypixel", u16);',
+            'layout_assert.assertFieldType(WinSize, "ws_ypixel", u32);',
+            "survey missing markers",
+        )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=8")
+    print("phase11-header-boundary-packet: self-test cases=10")
     return 0
 
 
