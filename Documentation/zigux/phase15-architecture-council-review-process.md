@@ -14,6 +14,8 @@ This document records the bounded Phase 15 governance lane around the Architectu
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
+  - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+  - `Documentation/zigux/phase15-readiness-gate-survey.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `Documentation/zigux/phase15-indefinite-c-policy.md`
   - `Documentation/zigux/review-checklist.md`
@@ -102,7 +104,7 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 ## Current Approval Posture
 
 - no Architecture Council approval is currently recorded for a freeze-map status change
-- the current bounded evidence is the freeze map, this review-process note, the review checklist hook, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `Documentation/zigux/phase15-parity-scorecard.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the focused `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` replay already wired through the shared Phase 15 build, and the rest of the parked `phase15_freeze_map_governance`, `phase15_architecture_council_review_process`, `phase15_handoff_next_steps`, `phase15_indefinite_c_policy`, and `phase15_readiness_gate` evidence packet carried by `zigux/tests/phase15_build.zig`
+- the current bounded evidence is the freeze map, this review-process note, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, the review checklist hook, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `Documentation/zigux/phase15-parity-scorecard.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the focused `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` replay already wired through the shared Phase 15 build, and the rest of the parked `phase15_freeze_map_governance`, `phase15_architecture_council_review_process`, `phase15_handoff_next_steps`, `phase15_indefinite_c_policy`, and `phase15_readiness_gate` evidence packet carried by `zigux/tests/phase15_build.zig`
 - current review-process evidence is limited to named `phase`, `current status bucket`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, rollback-threshold, retained-discussion-state, and reopen-trigger records in the review packet plus the validator-first `make -C zigux phase15-validate` route and the anchor-specific rollback-owner records in the parity scorecard
 - until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
 
