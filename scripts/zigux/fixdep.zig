@@ -115,24 +115,25 @@ const Processor = struct {
     }
 
     fn parseConfigFile(self: *Processor, writer: anytype, text: []const u8) !void {
+        const visible_text = bytesBeforeFirstNull(text);
         var index: usize = 0;
-        while (std.mem.indexOfPos(u8, text, index, "CONFIG_")) |start| {
-            if (start > 0 and isIdentByte(text[start - 1])) {
+        while (std.mem.indexOfPos(u8, visible_text, index, "CONFIG_")) |start| {
+            if (start > 0 and isIdentByte(visible_text[start - 1])) {
                 index = start + 7;
                 continue;
             }
 
             var end = start + 7;
-            while (end < text.len and isIdentByte(text[end])) : (end += 1) {}
+            while (end < visible_text.len and isIdentByte(visible_text[end])) : (end += 1) {}
 
             var trimmed_end = end;
-            const token = text[start + 7 .. end];
+            const token = visible_text[start + 7 .. end];
             if (std.mem.endsWith(u8, token, "_MODULE")) {
                 trimmed_end -= 7;
             }
 
             if (trimmed_end > start + 7) {
-                try self.useConfig(writer, text[start + 7 .. trimmed_end]);
+                try self.useConfig(writer, visible_text[start + 7 .. trimmed_end]);
             }
             index = end;
         }
@@ -248,8 +249,7 @@ const Processor = struct {
             if (is_source) {
                 if (!saw_any_target) {
                     saw_any_target = true;
-                    try writer.print("source_{s} := {s}\n\n", .{ target, token.items });
-                    try writer.print("deps_{s} := \\\n", .{target});
+                    try writer.print("source_{s} := {s}\n\ndeps_{s} := \\\n", .{ target, token.items, target });
                     need_parse = true;
                 }
             } else if (!isIgnoredFile(token.items) and !try self.remember(&self.file_seen, token.items)) {
@@ -371,6 +371,46 @@ test "config parsing trims _MODULE and deduplicates symbols" {
 
     try std.testing.expectEqualStrings(
         "    $(wildcard include/config/ZIGUX_CORE) \\\n    $(wildcard include/config/ZIGUX_DEBUG) \\\n",
+        capture.list.items,
+    );
+}
+
+test "config parsing stops at the first embedded NUL" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 64),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseConfigFile(
+        &capture,
+        "CONFIG_ZIGUX_CORE\x00CONFIG_ZIGUX_AFTER_NUL",
+    );
+
+    try std.testing.expectEqualStrings(
+        "    $(wildcard include/config/ZIGUX_CORE) \\\n",
         capture.list.items,
     );
 }
