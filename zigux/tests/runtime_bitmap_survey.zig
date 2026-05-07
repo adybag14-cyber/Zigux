@@ -68,6 +68,7 @@ test "phase 9 runtime bitmap survey manifest records the roadmap selftest hook, 
     var saw_selftest_hook = false;
     var saw_diff_gate = false;
     var saw_loader_scaffold = false;
+    var saw_top_bit_boundary = false;
     var saw_live_loader_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -120,6 +121,12 @@ test "phase 9 runtime bitmap survey manifest records the roadmap selftest hook, 
             try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "requires_runtime_substrate") != null);
         }
+        if (std.mem.eql(u8, gap.id, "runtime-bitmap-top-bit-boundary")) {
+            saw_top_bit_boundary = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_top_bit_contract.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "highest valid bit") != null);
+        }
         if (std.mem.eql(u8, gap.id, "runtime-bitmap-live-loader-binding")) {
             saw_live_loader_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
@@ -141,6 +148,7 @@ test "phase 9 runtime bitmap survey manifest records the roadmap selftest hook, 
     try std.testing.expect(saw_selftest_hook);
     try std.testing.expect(saw_diff_gate);
     try std.testing.expect(saw_loader_scaffold);
+    try std.testing.expect(saw_top_bit_boundary);
     try std.testing.expect(saw_live_loader_blocker);
 }
 
@@ -191,6 +199,8 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     try std.testing.expect(std.mem.indexOf(u8, note, "a Phase 5 approved `samples/zigux/` reference idiom") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_top_bit_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_top_bit_contract.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "a landed sample-backed runtime starter with selftest-hook metadata under `samples/zigux/runtime_bitmap.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "the shared `zigux/tests/phase9_build.zig` gate still carries the direct `phase9-runtime-bitmap-sample-tests` leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "The current direct bitmap sample contract is verified through these exact checks:") != null);
@@ -199,6 +209,7 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     try std.testing.expect(std.mem.indexOf(u8, note, "copy and selftest path: a second initialized sample can mirror the mutated bitmap, `runSelftest()` still reports the four ordered operation families `clear_set`, `copy`, `summary`, and `lifecycle`, and selftest leaves the bitmap summary unchanged") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "loader snapshot stability: after `prepare()` captures the `0,5,64,70` bitmap summary, later sample mutation still leaves the pending loader handoff at `first_set=0`, `first_zero=1`, and `weight=4` even while the live sample moves to `first_set=5`, `first_zero=0`, and `weight=7` before `requestRuntimeLoad()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "shared-loader contract replay: the loader still imports `runtime_loader`, maps initialized and selftest-complete sample stages into the shared handoff flow, fixes `allocator_handoff=.arena`, keeps `init_runs=1` and `exit_runs=0`, and rejects snapshot drift in module name, allocator handoff, handoff stage, or selftest count") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "top-bit boundary replay: the focused companion contract still proves that bit `127` is the highest valid bit") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "review-contract boundary: the direct sample still exposes the ordered review focus `descriptor_and_anchor`, `summary_replay`, and `selftest_lifecycle`; it does not claim standalone `initFromBitList()`, `formatSetBits()`, parse/print differential parity, or a loadable runtime bitmap module on `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "diff-gate replay: the bounded parity cases still cover the single-word fill starter, the `79..97` cross-boundary clear cutout, the sparse `10,20,30,40,50,60,80,123` population replay, and the copied `0..108` tail-clear snapshot with `first_zero=109`") != null);
 }
@@ -222,7 +233,9 @@ test "phase 9 runtime bitmap survey cross-checks the shared sample-root boundary
     try std.testing.expect(std.mem.indexOf(u8, sample_root, "- `samples/zigux/trace_events_sample.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root, "later runtime follow-ons stay under the separate Phase 9 `samples/zigux/runtime_*` family and should not be counted as extra Phase 5 reference anchors") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root, "Separate Phase 9 runtime pilot family") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_root, "- `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` keep the `lib/test_bitmap.c` starter and loader handoff distinct from the Phase 5 sample packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root, "- `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_{build,contract}.zig` companion replay keep the `lib/test_bitmap.c` starter, loader handoff, and top-bit boundary fixture distinct from the Phase 5 sample packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root, "samples/zigux/runtime_bitmap_top_bit_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root, "samples/zigux/runtime_bitmap_top_bit_contract.zig") != null);
 }
 
 test "phase 9 runtime bitmap module slice keeps the loader-backed survey packet explicit" {
