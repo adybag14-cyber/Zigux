@@ -1,6 +1,6 @@
 # Phase 11 DesignWare Watchdog Survey
 
-This survey note tracks the Phase 11 gap around `drivers/watchdog/dw_wdt.c` after re-reading `master` `23d15e44622d2cedd7691c88f78709db6bf1eb7e`.
+This survey note tracks the Phase 11 gap around `drivers/watchdog/dw_wdt.c` after re-reading `master` `75f8336c4305beed127d7abfae37d3999b7cc57c`.
 
 The live repo state is now:
   * `drivers/watchdog/gpio_wdt.zig` and `drivers/watchdog/bcm2835_wdt.zig` already give the simple-driver watchdog tranche two landed Phase 11 footholds
@@ -13,5 +13,5 @@ The live repo state is now:
 
 Against the Phase 11 simple-driver roadmap, the current packet now lands two required features in bounded form: the hardware validation matrix is present, and teardown and failure-mode parity is reviewable through the paired verify replay, including the reset-controlled-versus-continued-heartbeat teardown split, the idle stop and idle IRQ-configured teardown no-fabricated-stop-path checks, and the idle remove-time no-fabricated-heartbeat checks. The remaining simple-driver gap is the next ready step already hinted at by the starter: attach the bounded registration-facing handoff to platform-backed registration scaffolding in a direct-port or dual-implementation style without widening into PM or live MMIO work yet.
 
-This cleanup packet now carries lane identity `P11-L10` so the live manifest, focused survey gate, and survey note all point at the same DesignWare watchdog review record.
+This cleanup packet now carries lane identity `P11-L12` so the live manifest, focused survey gate, and survey note all point at the same DesignWare watchdog review record.
 This lane still does not claim platform-driver registration side effects, clock or reset acquisition, live IRQ registration, suspend or resume handling, debugfs support, or live MMIO access. Hardware-validation coverage remains bounded to the review matrix already recorded for the current starter rather than any hardware-backed validation beyond the bounded matrix evidence already recorded for the current starter.
