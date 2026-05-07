@@ -102,8 +102,8 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 The current gap is not "Zigux has no kobject sample guidance." The more precise remaining job is:
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, duplicate-registration rejection, registered-stage replay rejection, pre-registration access blocking, ownership snapshots, initialized-only abandonment, dispatch, parse failures, and teardown
-- contributor guidance still needs to keep the approved Phase 5 in-memory ownership-and-lifetime idiom visibly separate from real sysfs or module substrate claims
-- the shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too, so this survey note does not understate the already-shipped review surface for the landed sample
+- the main remaining shared-surface drift is narrower: `Documentation/zigux/README.md` still summarizes this landed packet mostly as registration and attribute-roundtrip coverage, even though the shipped sample is now reviewable as an approved in-memory ownership-and-lifetime idiom with explicit `ownershipSummary()`, sample-owned `runOwnershipReplay()`, the initialized-but-not-registered pre-registration boundary, and the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split
+- `samples/zigux/README.md`, `zigux/tests/README.md`, the manifest, and the focused survey gate already carry those sharper ownership-and-lifetime cues, so the next same-lane step is to bring the docs-root summary up to the same packet truth instead of widening into new sample semantics or runtime substrate claims
 - current `master` now carries all four roadmap-backed Phase 5 reference samples, so this survey should stay explicit about the kobject sample's own ownership-and-lifetime boundary instead of implying that another Phase 5 anchor is still missing
 
 This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle and non-goal cues reviewers should check before approving future edits.
@@ -129,4 +129,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and tighten contributor guidance or one exact replay check only if fresh repo inspection shows a real sample drift on current `master`, while keeping this landed Phase 5 sample distinct from the later Phase 9 runtime starters.
+Stay in the Phase 5 samples-and-reference-patterns lane and refresh `Documentation/zigux/README.md` plus the directly coupled docs-root markers in `zigux/tests/phase5_kobject_example_survey.zig` if fresh repo inspection still shows that shared docs-root summary under-describing the landed ownership-and-lifetime packet, while keeping this landed Phase 5 sample distinct from the later Phase 9 runtime starters.
