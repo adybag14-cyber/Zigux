@@ -27,6 +27,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(slice_note, "`kfree_strarray()` over the bounded repeated-teardown-safe release path");
     try expectContains(slice_note, "one allocator-backed `kasprintf_strarray()` proof that returns sequential `prefix-index` owned strings together with a trailing null-pointer view for C-style callers");
     try expectContains(slice_note, "one `kfree_strarray()` proof that keeps first-NUL prefix handling, zero-count sentinel reuse, repeated teardown, and setup-failure cleanup safe");
+    try expectContains(slice_note, "one allocator-backed quotable duplication proof that hex-escapes control bytes, quotes, and backslashes for log-safe callers while preserving null-input, first-NUL bounds, and allocation-failure cleanup");
     try expectContains(slice_note, "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.");
 
     const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
