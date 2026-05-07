@@ -321,6 +321,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "post-exit handler rejection",
         "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample",
         "tools/lib/bitmap.zig",
+        "Documentation/zigux/phase1-closure.md",
         "Documentation/zigux/phase4-validation-matrix.md",
         "Documentation/zigux/phase9-runtime-bitmap-survey.md",
         "samples/zigux/runtime_bitmap.zig",
