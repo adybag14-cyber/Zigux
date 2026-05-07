@@ -197,6 +197,10 @@
       "ipv4_pseudo_header_vectors": 1,
       "ipv6_pseudo_header_vectors": 3,
       "carry_discipline_vectors": 4,
+      "negate_vectors": 4,
+      "fold_vectors": 5,
+      "add16_vectors": 3,
+      "sub16_vectors": 2,
       "kunit_random_prefix_vectors": 6,
       "c_parity_self_test_cases": 12,
       "c_parity_cases": 30
