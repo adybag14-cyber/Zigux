@@ -335,6 +335,34 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         try std.testing.expect(std.mem.indexOf(u8, samples_root, needle) != null);
     }
 
+    const review_guide = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-sample-review-guide.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(review_guide);
+
+    const review_guide_markers = [_][]const u8{
+        "Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, or direct `*bitmap*` Phase 5 reference sample.",
+        "tools/lib/bitmap.zig",
+        "Documentation/zigux/phase1-closure.md",
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "Documentation/zigux/phase9-runtime-bitmap-survey.md",
+        "samples/zigux/runtime_bitmap.zig",
+        "samples/zigux/runtime_bitmap_loader.zig",
+        "samples/zigux/runtime_bitmap_top_bit_build.zig",
+        "samples/zigux/runtime_bitmap_top_bit_contract.zig",
+        "zigux/kernel/runtime_loader.zig",
+        "zigux/kernel/runtime_loader_contract.zig",
+        "zigux/tests/phase9_build.zig",
+        "instead of treating bitmap as a shared Phase 5 approved idiom",
+    };
+
+    for (review_guide_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, review_guide, needle) != null);
+    }
+
     const tests_root = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/README.md",
