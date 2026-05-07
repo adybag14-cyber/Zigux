@@ -59,7 +59,7 @@ REQUIRED_GPIO_WDT_MATRIX_MARKERS = [
     "`zigux/tests/README.md`",
     "`zigux/Makefile`",
     "`drivers/watchdog/gpio_wdt.zig`",
-    "keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route or the focused shared header-boundary packet",
+    "keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_gpio_wdt_survey.zig`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route or the focused shared header-boundary packet",
 ]
 REQUIRED_DW_WDT_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
@@ -67,7 +67,7 @@ REQUIRED_DW_WDT_MATRIX_MARKERS = [
     "`zigux/Makefile`",
     "`drivers/watchdog/dw_wdt_verify.zig`",
     "`phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet",
-    "keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route or the focused shared header-boundary packet",
+    "keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route or the focused shared header-boundary packet",
 ]
 REQUIRED_HVC_CONSOLE_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
@@ -114,7 +114,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 22
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 24
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -147,8 +147,10 @@ SELF_TEST_CASES = [
     (MAKEFILE_PATH, "makefile", REQUIRED_MAKEFILE_MARKERS[2], REQUIRED_MAKEFILE_MARKERS[2]),
     (WORKFLOW_PATH, "workflow", REQUIRED_WORKFLOW_MARKERS[1], REQUIRED_WORKFLOW_MARKERS[1]),
     (GPIO_WDT_MATRIX_PATH, "gpio_wdt_matrix", REQUIRED_GPIO_WDT_MATRIX_MARKERS[3], REQUIRED_GPIO_WDT_MATRIX_MARKERS[3]),
+    (GPIO_WDT_MATRIX_PATH, "gpio_wdt_matrix", "`zigux/tests/phase11_gpio_wdt_manifest.json`", REQUIRED_GPIO_WDT_MATRIX_MARKERS[4]),
     (BCM2835_WDT_MATRIX_PATH, "bcm2835_wdt_matrix", REQUIRED_BCM2835_WDT_MATRIX_MARKERS[4], REQUIRED_BCM2835_WDT_MATRIX_MARKERS[4]),
     (DW_WDT_MATRIX_PATH, "dw_wdt_matrix", REQUIRED_DW_WDT_MATRIX_MARKERS[4], REQUIRED_DW_WDT_MATRIX_MARKERS[4]),
+    (DW_WDT_MATRIX_PATH, "dw_wdt_matrix", "`zigux/tests/phase11_dw_wdt_manifest.json`", REQUIRED_DW_WDT_MATRIX_MARKERS[5]),
     (HVC_CONSOLE_MATRIX_PATH, "hvc_console_matrix", REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[3], REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[3]),
     (HVC_CONSOLE_MATRIX_PATH, "hvc_console_matrix", REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[4], REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[4]),
     (HVC_CONSOLE_MATRIX_PATH, "hvc_console_matrix", REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[5], REQUIRED_HVC_CONSOLE_MATRIX_MARKERS[5]),
@@ -227,7 +229,7 @@ def run_self_test() -> int:
                 print(failure, file=sys.stderr)
             return 1
         for rel_path, label, marker, expected_marker in SELF_TEST_CASES:
-            write_fixture_tree(root)
+            write_fixtureTree(root)
             try:
                 expect_failure(root, rel_path, label, marker, expected_marker)
             except AssertionError as exc:
