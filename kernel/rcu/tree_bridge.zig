@@ -12,6 +12,7 @@ pub const ModuleDescriptor = struct {
     provides_boundary_map: bool,
     provides_concurrency_audit_outline: bool,
     provides_stay_in_c_decisions: bool,
+    provides_bridge_governance: bool,
     touches_live_gp_state: bool,
     touches_live_nocb_state: bool,
     touches_live_hotplug_state: bool,
@@ -58,6 +59,18 @@ pub const ConcurrencyAudit = struct {
     posture: []const u8,
     checkpoints: []const AuditCheckpoint,
     blocked_live_behaviors: []const []const u8,
+    next_step: []const u8,
+};
+
+pub const BridgeGovernance = struct {
+    status_bucket: []const u8,
+    blocker_status: []const u8,
+    blocker_id: []const u8,
+    owner: []const u8,
+    rollback_owner: []const u8,
+    blocker_reason: []const u8,
+    required_evidence: []const []const u8,
+    automatic_return_triggers: []const []const u8,
     next_step: []const u8,
 };
 
@@ -209,6 +222,24 @@ const blocked_live_behaviors = [_][]const u8{
     "CPU hotplug enrollment, teardown, and callback migration",
 };
 
+const governance_required_evidence = [_][]const u8{
+    "Architecture Council reopen record linked from the reviewable packet",
+    "parity scorecard evidence and benchmark notes attached to the same review packet",
+    "validation replay command and evidence archive path recorded beside the latest blocker disposition",
+};
+
+const governance_automatic_return_triggers = [_][]const u8{
+    "any kernel/rcu/tree_bridge.zig claim or status review that lacks the Architecture Council reopen record",
+    "missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
+    "freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner",
+};
+
+const governance_blocker_reason =
+    "gp_seq publication, public wait and barrier APIs, NOCB offload, idle-watch transitions, CPU-hotplug callback migration, and memory-ordering behavior remain too coupled to the deep-core Tree RCU implementation for live bridge ownership.";
+
+const governance_next_step =
+    "Keep kernel/rcu/tree_bridge.zig review-only until the same review packet carries a real Architecture Council reopen record, parity scorecard evidence, benchmark notes, and replay command.";
+
 pub const RcuTreeBridgeLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -218,6 +249,7 @@ pub const RcuTreeBridgeLab = struct {
             .provides_boundary_map = true,
             .provides_concurrency_audit_outline = true,
             .provides_stay_in_c_decisions = true,
+            .provides_bridge_governance = true,
             .touches_live_gp_state = false,
             .touches_live_nocb_state = false,
             .touches_live_hotplug_state = false,
@@ -242,6 +274,20 @@ pub const RcuTreeBridgeLab = struct {
         };
     }
 
+    pub fn bridgeGovernance() BridgeGovernance {
+        return .{
+            .status_bucket = "freeze_in_c",
+            .blocker_status = "blocked_on_stay_in_c_evidence",
+            .blocker_id = "phase14-rcu-tree-bridge-blocker",
+            .owner = "Core-Adjacent Pod",
+            .rollback_owner = "Repo Tooling Pod",
+            .blocker_reason = governance_blocker_reason,
+            .required_evidence = governance_required_evidence[0..],
+            .automatic_return_triggers = governance_automatic_return_triggers[0..],
+            .next_step = governance_next_step,
+        };
+    }
+
     pub fn stayInCDecisionCount() usize {
         var count: usize = 0;
         for (boundary_areas) |area| {
@@ -252,6 +298,14 @@ pub const RcuTreeBridgeLab = struct {
 
     pub fn auditCheckpointCount() usize {
         return audit_checkpoints.len;
+    }
+
+    pub fn requiredEvidenceCount() usize {
+        return governance_required_evidence.len;
+    }
+
+    pub fn automaticReturnTriggerCount() usize {
+        return governance_automatic_return_triggers.len;
     }
 
     pub fn checkpointById(id: []const u8) ?AuditCheckpoint {
@@ -279,8 +333,22 @@ pub const RcuTreeBridgeLab = struct {
         return blockedBehaviorIndex(behavior) != null;
     }
 
+    pub fn listsRequiredEvidence(evidence: []const u8) bool {
+        for (governance_required_evidence) |required_evidence| {
+            if (std.mem.eql(u8, required_evidence, evidence)) return true;
+        }
+        return false;
+    }
+
+    pub fn listsAutomaticReturnTrigger(trigger: []const u8) bool {
+        for (governance_automatic_return_triggers) |automatic_return_trigger| {
+            if (std.mem.eql(u8, automatic_return_trigger, trigger)) return true;
+        }
+        return false;
+    }
+
     pub fn nextAuditFocus() []const u8 {
-        return "Keep kernel/rcu/tree_bridge.zig review-only; no smaller truthful followup remains before the blocked live bridge boundary around GP publication, public wait and barrier APIs, NOCB offload, and CPU-hotplug callback migration.";
+        return governance_next_step;
     }
 };
 
@@ -293,6 +361,7 @@ test "rcu tree bridge descriptor stays boundary-map only" {
     try std.testing.expect(descriptor.provides_boundary_map);
     try std.testing.expect(descriptor.provides_concurrency_audit_outline);
     try std.testing.expect(descriptor.provides_stay_in_c_decisions);
+    try std.testing.expect(descriptor.provides_bridge_governance);
     try std.testing.expect(!descriptor.touches_live_gp_state);
     try std.testing.expect(!descriptor.touches_live_nocb_state);
     try std.testing.expect(!descriptor.touches_live_hotplug_state);
@@ -306,7 +375,7 @@ test "rcu tree bridge boundary map records the stay-in-c decision packet" {
     try std.testing.expectEqual(@as(usize, 7), map.areas.len);
     try std.testing.expectEqual(@as(usize, 7), RcuTreeBridgeLab.stayInCDecisionCount());
     try std.testing.expect(std.mem.indexOf(u8, RcuTreeBridgeLab.nextAuditFocus(), "review-only") != null);
-    try std.testing.expect(std.mem.indexOf(u8, RcuTreeBridgeLab.nextAuditFocus(), "CPU-hotplug callback migration") != null);
+    try std.testing.expect(std.mem.indexOf(u8, RcuTreeBridgeLab.nextAuditFocus(), "Architecture Council reopen record") != null);
 
     try std.testing.expectEqualStrings("grace-period-sequence-publication", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .stay_in_c);
@@ -353,4 +422,27 @@ test "rcu tree bridge concurrency audit stays review-only" {
     try std.testing.expect(RcuTreeBridgeLab.blocksLiveBehavior("public wait, polling-cookie, and callback-barrier ownership"));
     try std.testing.expectEqual(@as(?usize, 8), RcuTreeBridgeLab.blockedBehaviorIndex("CPU hotplug enrollment, teardown, and callback migration"));
     try std.testing.expect(!RcuTreeBridgeLab.blocksLiveBehavior("nonexistent rcu bridge behavior"));
+}
+
+test "rcu tree bridge governance keeps the blocker and rollback packet queryable" {
+    const governance = RcuTreeBridgeLab.bridgeGovernance();
+
+    try std.testing.expectEqualStrings("freeze_in_c", governance.status_bucket);
+    try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", governance.blocker_status);
+    try std.testing.expectEqualStrings("phase14-rcu-tree-bridge-blocker", governance.blocker_id);
+    try std.testing.expectEqualStrings("Core-Adjacent Pod", governance.owner);
+    try std.testing.expectEqualStrings("Repo Tooling Pod", governance.rollback_owner);
+    try std.testing.expectEqual(@as(usize, 3), governance.required_evidence.len);
+    try std.testing.expectEqual(@as(usize, 3), governance.automatic_return_triggers.len);
+    try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.requiredEvidenceCount());
+    try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.automaticReturnTriggerCount());
+    try std.testing.expect(std.mem.indexOf(u8, governance.blocker_reason, "public wait and barrier APIs") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance.blocker_reason, "CPU-hotplug callback migration") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance.next_step, "Architecture Council reopen record") != null);
+    try std.testing.expect(RcuTreeBridgeLab.listsRequiredEvidence("Architecture Council reopen record linked from the reviewable packet"));
+    try std.testing.expect(RcuTreeBridgeLab.listsRequiredEvidence("parity scorecard evidence and benchmark notes attached to the same review packet"));
+    try std.testing.expect(RcuTreeBridgeLab.listsAutomaticReturnTrigger("missing parity scorecard evidence, benchmark notes, or replay command in the active review packet"));
+    try std.testing.expect(RcuTreeBridgeLab.listsAutomaticReturnTrigger("freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner"));
+    try std.testing.expect(!RcuTreeBridgeLab.listsRequiredEvidence("placeholder bridge wrapper"));
+    try std.testing.expect(!RcuTreeBridgeLab.listsAutomaticReturnTrigger("nonexistent trigger"));
 }
