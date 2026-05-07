@@ -124,7 +124,14 @@ REQUIRED_MARKERS = {
         'const uapi_version = @import("uapi_version");',
         'test "phase3 export shim and uapi keep canonical boundary layout" {',
         "const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 16, 0x55);",
+        "const undersized = export_shim.compatibleHeader(export_shim.header_size - 1, 0x55);",
+        "const uapi_undersized = uapi_version.compatibleHeader(uapi_version.header_size - 1, 0x55);",
         "try std.testing.expectEqual(header, uapi_header);",
+        "try std.testing.expectEqual(undersized, uapi_undersized);",
+        "try std.testing.expect(export_shim.headerCompatibility(undersized) == null);",
+        "try std.testing.expect(uapi_version.compatibility(uapi_undersized) == null);",
+        "try std.testing.expect(export_shim.canonicalizeHeader(undersized) == null);",
+        "try std.testing.expect(uapi_version.canonicalizeHeader(uapi_undersized) == null);",
         "try std.testing.expect(export_shim.headerCompatibility(version_mismatch) == null);",
         "try std.testing.expect(uapi_version.compatibility(version_mismatch) == null);",
     ),
@@ -405,6 +412,8 @@ def run_self_test() -> int:
             '    const header = export_shim.header(0x55);',
             '    const uapi_header = uapi_version.boundaryHeader(0x55);',
             '    const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 16, 0x55);',
+            '    const undersized = export_shim.compatibleHeader(export_shim.header_size - 1, 0x55);',
+            '    const uapi_undersized = uapi_version.compatibleHeader(uapi_version.header_size - 1, 0x55);',
             '    const version_mismatch = export_shim.versionedHeader(',
             '        export_shim.header_size,',
             '        export_shim.abi_version + 1,',
@@ -412,6 +421,11 @@ def run_self_test() -> int:
             '    );',
             "",
             '    try std.testing.expectEqual(header, uapi_header);',
+            '    try std.testing.expectEqual(undersized, uapi_undersized);',
+            '    try std.testing.expect(export_shim.headerCompatibility(undersized) == null);',
+            '    try std.testing.expect(uapi_version.compatibility(uapi_undersized) == null);',
+            '    try std.testing.expect(export_shim.canonicalizeHeader(undersized) == null);',
+            '    try std.testing.expect(uapi_version.canonicalizeHeader(uapi_undersized) == null);',
             '    try std.testing.expect(export_shim.headerCompatibility(version_mismatch) == null);',
             '    try std.testing.expect(uapi_version.compatibility(version_mismatch) == null);',
             '    _ = abi;',
@@ -565,11 +579,11 @@ def run_self_test() -> int:
 
         _write(
             root / EXPORT_UAPI_LAYOUT_REL,
-            export_uapi_layout_text.replace('const export_shim = @import("export_shim");\n', "", 1),
+            export_uapi_layout_text.replace('const undersized = export_shim.compatibleHeader(export_shim.header_size - 1, 0x55);\n', "", 1),
         )
         issues = validate(root)
         expected = [
-            'missing_marker:zigux/tests/phase3_export_uapi_layout.zig:const export_shim = @import("export_shim");'
+            'missing_marker:zigux/tests/phase3_export_uapi_layout.zig:const undersized = export_shim.compatibleHeader(export_shim.header_size - 1, 0x55);'
         ]
         if issues != expected:
             raise SystemExit(f"phase3-export-uapi-self-test:replay_marker_guard_failed:{issues}")
