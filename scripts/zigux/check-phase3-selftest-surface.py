@@ -96,6 +96,7 @@ ABI_SLICE_MARKERS = [
 SCRIPTS_README_MARKERS = [
     "validate_phase3_selftest.py",
     "The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`",
+    "survey-phase3-abi-constant-parity.py",
     "phase3_catalog.py --self-test",
     "phase3_catalog.py --audit-doc-sync",
     "make -C zigux phase3-selftest",
@@ -412,6 +413,7 @@ def run_self_test() -> int:
             "scripts_readme:The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`"
             in issues
         )
+        assert "scripts_readme:survey-phase3-abi-constant-parity.py" in issues
         assert "scripts_readme:phase3_catalog.py --self-test" in issues
         assert "scripts_readme:phase3_catalog.py --audit-doc-sync" in issues
         assert "scripts_readme:make -C zigux phase3-selftest" in issues
@@ -524,7 +526,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=29")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
