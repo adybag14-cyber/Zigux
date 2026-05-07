@@ -706,33 +706,55 @@ test "runtime trace-events loader rejects non-idle registration state at the met
     try std.testing.expect(!recovered_plan.summary.registration_paths_checked);
 }
 
-test "runtime trace-events loader rejects shared selftest-hook drift before any live registration claim" {
+test "runtime trace-events loader keeps selftest-ready nested registration drains explicit before shared handoff" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
-
-    const initialized_plan = try RuntimeTraceEventsLoader.planFor(&module);
-    var initialized_shared_plan = toSharedLoadPlan(initialized_plan);
-    try std.testing.expect(initialized_shared_plan.provides_selftest_hook);
-    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(initialized_shared_plan));
-
-    initialized_shared_plan.provides_selftest_hook = false;
-    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(initialized_shared_plan));
-    try std.testing.expectError(
-        error.InvalidSelftestHookEvidence,
-        runtime_loader.prepareRequest(initialized_shared_plan),
-    );
-
     _ = try module.runSelftest();
 
-    const selftest_plan = try RuntimeTraceEventsLoader.planFor(&module);
-    var selftest_shared_plan = toSharedLoadPlan(selftest_plan);
-    try std.testing.expect(selftest_shared_plan.provides_selftest_hook);
-    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(selftest_shared_plan));
+    try module.registerFunctionThread();
+    try module.registerFunctionThread();
+    _ = try module.emitFunctionIteration(9);
 
-    selftest_shared_plan.provides_selftest_hook = false;
-    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(selftest_shared_plan));
-    try std.testing.expectError(
-        error.InvalidSelftestHookEvidence,
-        runtime_loader.prepareRequest(selftest_shared_plan),
-    );
+    try std.testing.expectError(error.OutstandingRegistrationForLoader, RuntimeTraceEventsLoader.planFor(&module));
+
+    var blocked_loader = RuntimeTraceEventsLoader{};
+    try std.testing.expectError(error.OutstandingRegistrationForLoader, blocked_loader.prepare(&module));
+
+    try module.unregisterFunctionThread();
+    try std.testing.expectError(error.OutstandingRegistrationForLoader, RuntimeTraceEventsLoader.planFor(&module));
+
+    var partially_drained_loader = RuntimeTraceEventsLoader{};
+    try std.testing.expectError(error.OutstandingRegistrationForLoader, partially_drained_loader.prepareSharedRequest(&module));
+
+    try module.unregisterFunctionThread();
+
+    var loader = RuntimeTraceEventsLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    const recovered_plan = try RuntimeTraceEventsLoader.planFor(&module);
+    try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.selftest_complete, recovered_plan.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), recovered_plan.summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 5), recovered_plan.summary.event_families.len);
+    try std.testing.expectEqual(@as(usize, 6), recovered_plan.summary.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 4), recovered_plan.summary.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 10), recovered_plan.summary.total_events);
+    try std.testing.expect(recovered_plan.summary.conditional_paths_checked);
+    try std.testing.expect(recovered_plan.summary.registration_paths_checked);
+    try std.testing.expectEqual(@as(i32, 0), recovered_plan.summary.last_main_count);
+    try std.testing.expectEqual(@as(i32, 9), recovered_plan.summary.last_fn_count);
+    try std.testing.expectEqual(@as(usize, 1), recovered_plan.summary.selftest_runs);
+
+    const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expectEqualStrings("runtime_trace_events", pending_plan.module_name);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, pending_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 1), pending_plan.init_flow.selftest_runs);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(pending_plan));
+
+    try loader.releaseSharedWithoutSubstrate(&shared_request);
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
 }
