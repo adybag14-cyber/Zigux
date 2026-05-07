@@ -69,6 +69,10 @@ fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
     return total;
 }
 
+fn expectExactCount(haystack: []const u8, needle: []const u8, expected_count: usize) !void {
+    try std.testing.expectEqual(expected_count, countOccurrences(haystack, needle));
+}
+
 fn findUniqueUnescapeCase(name: []const u8) !escape_vectors.UnescapeCase {
     var found: ?escape_vectors.UnescapeCase = null;
 
@@ -237,22 +241,31 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try std.testing.expect(saw_slice_note);
 
     try expectContains(sample_source, ".name = \"string_helpers_sample\"");
+    try expectExactCount(sample_source, ".name = \"string_helpers_sample\"", 1);
     try expectContains(sample_source, ".anchor = \"lib/string_helpers.c\"");
+    try expectExactCount(sample_source, ".anchor = \"lib/string_helpers.c\"", 1);
     try expectContains(sample_source, ".matched_index = string_helpers.sysfsMatchString(&values, values.len, \"enabled\\n\"),");
     try expectContains(sample_source, "const values = [_]?[]const u8{ \"disabled\", \"enabled\", null, \"ignored\" };");
+    try expectExactCount(sample_source, "const values = [_]?[]const u8{ \"disabled\", \"enabled\", null, \"ignored\" };", 1);
     try expectContains(sample_source, "string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES,");
+    try expectExactCount(sample_source, "string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES,", 1);
     try expectContains(sample_source, "string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND,");
+    try expectExactCount(sample_source, "string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND,", 1);
 
     try expectOrderedContains(sample_source, manifest.sample_replay_contract.lifecycle_states);
     try expectOrderedContains(sample_source, manifest.sample_replay_contract.checked_focus);
 
     for (manifest.sample_replay_contract.helper_call_markers) |marker| {
         try expectContains(sample_source, marker);
+        try expectExactCount(sample_source, marker, 1);
     }
     for (manifest.sample_replay_contract.test_assertions) |marker| {
         try expectContains(sample_source, marker);
+        try expectExactCount(sample_source, marker, 1);
     }
 
+    try expectExactCount(sample_source, "test \"string helper sample replay keeps the existing helper surface reviewable\"", 1);
+    try expectExactCount(sample_source, "test \"string helper sample enforces simple lifecycle boundaries\"", 1);
     try std.testing.expectEqual(@as(usize, 2), countOccurrences(sample_source, "test \"string helper sample"));
 
     const expected_helper_markers = [_][]const u8{
@@ -286,6 +299,10 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     for (expected_fixture_markers) |marker| {
         try expectContains(fixture_source, marker);
     }
+    try expectExactCount(fixture_source, "sample replay newline suffix", 1);
+    try expectExactCount(fixture_source, "sample replay newline hex escape", 1);
+    try expectExactCount(fixture_source, "dictionary-limited space escaping", 1);
+    try expectExactCount(fixture_source, "append dictionary entries with hex escaping", 1);
     try std.testing.expectEqual(@as(usize, 2), countOccurrences(fixture_source, "sample replay newline "));
 
     const expected_build_markers = [_][]const u8{
@@ -302,6 +319,13 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     for (expected_build_markers) |marker| {
         try expectContains(build_source, marker);
     }
+    try expectExactCount(build_source, "../../samples/zigux/string_helpers_sample.zig", 1);
+    try expectExactCount(build_source, "phase7-string-helpers-sample-tests", 1);
+    try expectExactCount(build_source, "phase7-string-helpers-sample-survey-tests", 1);
+    try expectExactCount(build_source, "phase7_string_helpers_sample_survey.zig", 1);
+    try expectExactCount(build_source, "run_string_helpers_sample_survey_tests.setCwd(repo_root);", 1);
+    try expectExactCount(build_source, "test_step.dependOn(&run_string_helpers_sample_tests.step);", 1);
+    try expectExactCount(build_source, "test_step.dependOn(&run_string_helpers_sample_survey_tests.step);", 1);
 
     const expected_doc_markers = [_][]const u8{
         "shared deterministic escape fixtures, bounded sample replay, and manifest-backed survey evidence landed",
@@ -314,6 +338,9 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     for (expected_doc_markers) |marker| {
         try expectContains(slice_note, marker);
     }
+    try expectExactCount(slice_note, "`samples/zigux/string_helpers_sample.zig`", 1);
+    try expectExactCount(slice_note, "`zigux/tests/phase7_string_helpers_sample_manifest.json`", 1);
+    try expectExactCount(slice_note, "`zigux/tests/phase7_string_helpers_sample_survey.zig`", 1);
 }
 
 test "phase 7 string helper sample survey replays the shared fixture-backed outputs directly" {
