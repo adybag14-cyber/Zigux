@@ -148,6 +148,8 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_impl, "test \"stringUnescape exact-fit destination still decodes an escape\"");
     try expectContains(helper_impl, "test \"stringUnescape keeps terminator-only and zero-capacity destinations bounded\"");
     try expectContains(helper_impl, "test \"stringUnescapeInplace reuses the in-place core path without touching bytes after the first NUL\"");
+    try expectContains(helper_impl, "test \"kstrdupQuotable hex-escapes special log bytes while preserving ordinary characters\"");
+    try expectContains(helper_impl, "test \"kstrdupQuotable returns null for null input, keeps empty results owned, and stops at the first NUL\"");
     try expectContains(helper_impl, "test \"kstrdupQuotable frees the owned copy when allocation fails\"");
     try expectContains(helper_impl, "test \"kasprintfStrarray frees intermediate allocations when setup fails\"");
     try expectContains(helper_impl, "std.testing.checkAllAllocationFailures");
