@@ -31,6 +31,7 @@ WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
 RUNTIME_LOADER_CONTRACT_PATH = "zigux/kernel/runtime_loader_contract.zig"
+PHASE9_LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 
 REQUIRED_PHASE9_NOTE_PATHS = [
     "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
@@ -41,8 +42,22 @@ REQUIRED_PHASE9_NOTE_PATHS = [
     "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
     "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
     "Documentation/zigux/phase9-runtime-trace-events-survey.md",
-    "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+    PHASE9_LANE_SEQUENCING_PATH,
 ]
+
+PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER = (
+    "- the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` "
+    "hook when the work is about checker-local reviewability drift before the broader "
+    "`make -C zigux phase9` replay"
+)
+
+REQUIRED_PHASE9_LANE_SEQUENCING_MARKERS = [
+    PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER,
+]
+
+REQUIRED_PHASE9_LANE_SEQUENCING_EXACT_COUNTS = {
+    PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER: 1,
+}
 
 REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS = [
     "samples/zigux/runtime_atomic64_loader.zig",
@@ -413,6 +428,7 @@ def validate(root: Path) -> list[str]:
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
     phase9_build = read_text(root, PHASE9_BUILD_PATH)
+    phase9_lane_sequencing = read_text(root, PHASE9_LANE_SEQUENCING_PATH)
     runtime_loader_contract = read_text(root, RUNTIME_LOADER_CONTRACT_PATH)
 
     ensure_contains(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_MARKERS)
@@ -424,6 +440,12 @@ def validate(root: Path) -> list[str]:
     ensure_contains(failures, "makefile", makefile, REQUIRED_MAKEFILE_MARKERS)
     ensure_contains(failures, "workflow", workflow, REQUIRED_WORKFLOW_MARKERS)
     ensure_contains(failures, "phase9_build", phase9_build, REQUIRED_PHASE9_BUILD_MARKERS)
+    ensure_contains(
+        failures,
+        "phase9_lane_sequencing",
+        phase9_lane_sequencing,
+        REQUIRED_PHASE9_LANE_SEQUENCING_MARKERS,
+    )
     ensure_contains(
         failures,
         "runtime_loader_contract",
@@ -439,6 +461,12 @@ def validate(root: Path) -> list[str]:
     ensure_exact_counts(failures, "freeze_map", freeze_map, REQUIRED_FREEZE_MAP_EXACT_COUNTS)
     ensure_exact_counts(failures, "makefile", makefile, REQUIRED_MAKEFILE_EXACT_COUNTS)
     ensure_exact_counts(failures, "phase9_build", phase9_build, REQUIRED_PHASE9_BUILD_EXACT_COUNTS)
+    ensure_exact_counts(
+        failures,
+        "phase9_lane_sequencing",
+        phase9_lane_sequencing,
+        REQUIRED_PHASE9_LANE_SEQUENCING_EXACT_COUNTS,
+    )
 
     for marker in FORBIDDEN_MAKEFILE_MARKERS:
         if marker in makefile:
@@ -474,6 +502,15 @@ def write_fixture_tree(root: Path) -> None:
     )
 
     for rel_path in REQUIRED_PHASE9_NOTE_PATHS:
+        if rel_path == PHASE9_LANE_SEQUENCING_PATH:
+            write_text(
+                root / rel_path,
+                minimal_marker_doc(
+                    "Phase 9 Runtime Pilot Lane Sequencing",
+                    REQUIRED_PHASE9_LANE_SEQUENCING_MARKERS,
+                ),
+            )
+            continue
         write_text(root / rel_path, "# phase9 note placeholder\n")
     for rel_path in REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS:
         write_text(root / rel_path, "// loader scaffold placeholder\n")
@@ -495,6 +532,7 @@ def run_self_test() -> int:
 
         checklist_path = base / REVIEW_CHECKLIST_PATH
         checklist = checklist_path.read_text(encoding="utf-8")
+        lane_sequencing_path = base / PHASE9_LANE_SEQUENCING_PATH
 
         checklist_path.write_text(
             checklist.replace(PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER, "", 1),
@@ -538,6 +576,28 @@ def run_self_test() -> int:
         expect_failure(base, "makefile:phase9-runtime-loader-shared-tests:")
 
         write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing.replace(PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing:{PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing + PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing_exact_count:{PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
             makefile + "phase9-runtime-loader-shared-tests:\n",
@@ -549,7 +609,7 @@ def run_self_test() -> int:
         )
 
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=5")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=7")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -587,7 +647,7 @@ def main() -> int:
     print("PHASE9_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE9_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SAMPLES_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_PHASE9_BUILD_MARKERS) + len(REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS)}"
+        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SAMPLES_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_PHASE9_BUILD_MARKERS) + len(REQUIRED_PHASE9_LANE_SEQUENCING_MARKERS) + len(REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS)}"
     )
     return 0
 
