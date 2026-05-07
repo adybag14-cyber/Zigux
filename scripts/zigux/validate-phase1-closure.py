@@ -230,7 +230,7 @@ REQUIRED_MAKEFILE_MARKERS = [
 REQUIRED_DOCS_ROOT_MARKERS = [
     (
         "docs_root_phase1_packet",
-        "- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
+        "- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
         1,
     ),
 ]
@@ -238,7 +238,7 @@ REQUIRED_DOCS_ROOT_MARKERS = [
 REQUIRED_SCRIPTS_README_MARKERS = [
     (
         "scripts_readme_phase1_packet",
-        "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep that same closed host-side helper packet reviewable through the docs-root closure record, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
+        "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
         1,
     ),
 ]
@@ -630,6 +630,7 @@ def make_fixture_root(tmp_root: Path) -> None:
     (tmp_root / "zigux/tests/build.zig").write_text(render_marker_fixture(REQUIRED_BUILD_MARKERS), encoding="utf-8")
     (tmp_root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md").write_text(render_marker_fixture(REQUIRED_LEDGER_MARKERS), encoding="utf-8")
     (tmp_root / "zigux/Makefile").write_text(render_marker_fixture(REQUIRED_MAKEFILE_MARKERS), encoding="utf-8")
+    (tmp_root / "Documentation/zigux/README.md").writeText = None
     (tmp_root / "Documentation/zigux/README.md").write_text(render_marker_fixture(REQUIRED_DOCS_ROOT_MARKERS), encoding="utf-8")
     (tmp_root / "scripts/zigux/README.md").write_text(render_marker_fixture(REQUIRED_SCRIPTS_README_MARKERS), encoding="utf-8")
     (tmp_root / "zigux/tests/README.md").write_text(render_marker_fixture(REQUIRED_TESTS_README_MARKERS), encoding="utf-8")
