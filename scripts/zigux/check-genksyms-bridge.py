@@ -260,6 +260,7 @@ def normalize_cli_stderr(text: str) -> str:
         re.compile(r"^.+: (option requires an argument -- '.+')$"),
         re.compile(r"^.+: (option '--.+?' requires an argument)$"),
         re.compile(r"^.+: (option '--.+?' doesn't allow an argument)$"),
+        re.compile(r"^.+: (option '--.+?' is ambiguous)(?:; possibilities: .+)?$"),
         re.compile(r"^.+: (unrecognized option '.+')$"),
     )
     normalized_lines: list[str] = []
@@ -393,6 +394,7 @@ def run_self_test() -> int:
 
         assert normalize_cli_stderr("genksyms: option '--reference' requires an argument\n") == "option '--reference' requires an argument\n"
         assert normalize_cli_stderr("genksyms: option '--help' doesn't allow an argument\n") == "option '--help' doesn't allow an argument\n"
+        assert normalize_cli_stderr("genksyms: option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n") == "option '--du' is ambiguous\n"
         assert success_lines(refresh=False)[:2] == [
             'GENKSYMS_BRIDGE_DIFF=pass',
             'GENKSYMS_BRIDGE_DETERMINISM=pass',
@@ -401,7 +403,7 @@ def run_self_test() -> int:
         assert 'GENKSYMS_BRIDGE_DETERMINISM=pass' not in success_lines(refresh=True)
 
     print('GENKSYMS_BRIDGE_SELF_TEST=pass')
-    print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6')
+    print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=7')
     return 0
 
 
