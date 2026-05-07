@@ -288,7 +288,7 @@ def check_compile_matrix(root: Path) -> list[str]:
         errors.append("phase14 smoke note focused compile-shard count drifted from the current one-shard packet")
     if smoke_note_text.count("coverage `full_bundle_only`") != 4:
         errors.append("phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet")
-    if build_text.count("b.addTest(.{") != 5:
+    if build_text.count("b.addTest(.") != 5:
         errors.append("phase14 build bundle no longer declares the current five compile artifacts")
     if build_text.count("b.addRunArtifact(") != 5:
         errors.append("phase14 build bundle no longer wires the current five compile-artifact runs")
@@ -475,7 +475,7 @@ def run_self_test() -> int:
             "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
         ]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
-            build_lines.append("b.addTest(.{")
+            build_lines.append("b.addTest(.")
             build_lines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
@@ -525,6 +525,18 @@ def run_self_test() -> int:
             print("self-test expected traceability failure", file=sys.stderr)
             return 1
         write_text(root / TRACEABILITY_PATH, "\n".join(expected_traceability_markers) + "\n")
+        broken_anchor_manifest_path = root / "zigux/tests/phase14_skbuff_bridge_manifest.json"
+        broken_anchor_manifest = load_json_file(broken_anchor_manifest_path)
+        broken_anchor_manifest.pop("surveyed_commit", None)
+        write_text(broken_anchor_manifest_path, json.dumps(broken_anchor_manifest, indent=2) + "\n")
+        errors = check(root)
+        if "missing surveyed_commit in zigux/tests/phase14_skbuff_bridge_manifest.json" not in errors:
+            print("self-test expected anchor-manifest surveyed_commit failure", file=sys.stderr)
+            return 1
+        write_text(
+            broken_anchor_manifest_path,
+            json.dumps(anchor_manifests["zigux/tests/phase14_skbuff_bridge_manifest.json"], indent=2) + "\n",
+        )
         broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken_manifest["lane_key"] = "P14-L99"
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
