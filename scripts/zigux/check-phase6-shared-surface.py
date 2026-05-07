@@ -39,6 +39,41 @@ REQUIRED_SNIPPETS = {
         "  * `zigux/tests/phase6_hexdump_perf.zig`",
         "  * keep the shared Phase 6 leaf-helper packet wired through `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, and `make -C zigux phase6`",
     ],
+    "Documentation/zigux/phase6-helper-parity-catalog.md": [
+        "# Phase 6 Helper Parity Catalog",
+        "- `PHASE6_STATUS=parked`",
+        "- `PHASE6_PACKET=base64-bsearch-checksum-hexdump`",
+        "- shared packet manifest: `zigux/tests/phase6_helper_parity_manifest.json`",
+        "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
+        "- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay; there is no separate timing-style perf target in the shipped packet today",
+        "- current review posture: helper parity plus the shipped dedicated slowdown gate exposed through `make -C zigux phase6-checksum-perf`",
+        "- current review posture: helper parity plus the shipped formatter-sensitive slowdown gate exposed through `make -C zigux phase6-hexdump-perf`",
+        "- `make -C zigux phase6-validate`",
+        "- `make -C zigux phase6`",
+        "- `make -C zigux phase6-base64-perf`",
+        "- `make -C zigux phase6-checksum-perf`",
+        "- `make -C zigux phase6-hexdump-perf`",
+        "- `make -C zigux phase6-perf`",
+    ],
+    "zigux/tests/phase6_helper_parity_manifest.json": [
+        "\"phase\": \"Phase 6\",",
+        "\"tranche\": \"leaf-helper-parity\",",
+        "\"surveyed_commit\": \"",
+        "\"id\": \"base64\"",
+        "\"id\": \"bsearch\"",
+        "\"id\": \"checksum\"",
+        "\"id\": \"hexdump\"",
+        "\"Documentation/zigux/phase6-helper-parity-catalog.md\",",
+        "\"Documentation/zigux/phase6-perf-gate-survey.md\",",
+        "\"scripts/zigux/check-phase6-shared-surface.py\",",
+        "\"make -C zigux phase6-validate\",",
+        "\"make -C zigux phase6\",",
+        "\"make -C zigux phase6-perf\",",
+        "\"make -C zigux phase6-base64-perf\",",
+        "\"make -C zigux phase6-checksum-perf\",",
+        "\"make -C zigux phase6-hexdump-perf\",",
+        "\"generated_fixture_artifacts_committed\": false",
+    ],
     "Documentation/zigux/phase6-base64-slice.md": [
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_SLICE=base64-leaf-helper`",
@@ -216,6 +251,20 @@ REQUIRED_SNIPPETS = {
 }
 
 EXACT_COUNT_MARKERS = {
+    "Documentation/zigux/phase6-helper-parity-catalog.md": [
+        "### base64",
+        "### bsearch",
+        "### checksum",
+        "### hexdump",
+    ],
+    "zigux/tests/phase6_helper_parity_manifest.json": [
+        "\"id\": \"base64\"",
+        "\"id\": \"bsearch\"",
+        "\"id\": \"checksum\"",
+        "\"id\": \"hexdump\"",
+        "\"timing_sanity_only_helpers\": []",
+        "\"generated_fixture_artifacts_committed\": false",
+    ],
     "zigux/Makefile": [
         "PHONY += phase6-validate phase6-test phase6-perf phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6",
         "phase6-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
@@ -337,6 +386,30 @@ def run_self_test() -> None:
             raise AssertionError("expected removed-path failure")
         removed_path.unlink()
 
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-helper-parity-catalog.md",
+            "- `PHASE6_PACKET=base64-bsearch-checksum-hexdump`",
+            "- `PHASE6_PACKET=base64-checksum-hexdump`",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-helper-parity-catalog.md",
+            "### checksum",
+            "### sumcheck",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_helper_parity_manifest.json",
+            "\"tranche\": \"leaf-helper-parity\",",
+            "\"tranche\": \"leaf-helper\",",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_helper_parity_manifest.json",
+            "\"make -C zigux phase6-perf\",",
+            "\"make -C zigux phase6-bsearch-perf\",",
+        )
         assert_failure(
             root,
             "Documentation/zigux/phase6-base64-slice.md",
