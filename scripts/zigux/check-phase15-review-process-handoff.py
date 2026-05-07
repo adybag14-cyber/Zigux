@@ -75,6 +75,8 @@ REQUIRED_CURRENT_REPO_HANDOFF_MARKERS = (
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/review-checklist.md",
@@ -108,6 +110,8 @@ REQUIRED_DOCS_README_MARKERS = (
     "`Documentation/zigux/freeze-map.md`",
     "`Documentation/zigux/phase15-freeze-map-governance.md`",
     "`Documentation/zigux/phase15-architecture-council-review-process.md`",
+    "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
+    "`Documentation/zigux/phase15-readiness-gate-survey.md`",
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
     "`scripts/zigux/README.md`",
@@ -154,6 +158,8 @@ REQUIRED_SCRIPT_README_MARKERS = (
     "Phase 15 flow",
     "phase15-freeze-map-governance.md",
     "phase15-architecture-council-review-process.md",
+    "phase15-handoff-next-steps-survey.md",
+    "phase15-readiness-gate-survey.md",
     "phase15-parity-scorecard.md",
     "phase15-indefinite-c-policy.md",
     "check-phase15-scripts-readme-alignment.py",
@@ -419,9 +425,76 @@ def run_self_test() -> int:
         case_count += 1
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"]["current_repo_handoff"].replace(
+            "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+            "",
+            1,
+        )
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(
+            root,
+            ["manifest_handoff:Documentation/zigux/phase15-handoff-next-steps-survey.md"],
+            "missing_current_repo_handoff_handoff_note_marker",
+        )
+        write_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"]["current_repo_handoff"].replace(
+            "Documentation/zigux/phase15-readiness-gate-survey.md",
+            "",
+            1,
+        )
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(
+            root,
+            ["manifest_handoff:Documentation/zigux/phase15-readiness-gate-survey.md"],
+            "missing_current_repo_handoff_readiness_note_marker",
+        )
+        write_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["handoff_evidence"]["current_bounded_lane"] = manifest["handoff_evidence"]["current_bounded_lane"].replace("scripts-root validator path", "scripts validator path", 1)
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_only(root, ["manifest_lane:scripts-root validator path"], "missing_current_bounded_lane_marker")
+        write_fixture_tree(root)
+        case_count += 1
+
+        docs_readme_path = root / DOCS_README_PATH
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
+                "`Documentation/zigux/phase15-handoff-next-steps.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["docs_readme:`Documentation/zigux/phase15-handoff-next-steps-survey.md`"],
+            "missing_docs_readme_handoff_note_marker",
+        )
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+        case_count += 1
+
+        script_readme_path = root / SCRIPT_README_PATH
+        original_script_readme = script_readme_path.read_text(encoding="utf-8")
+        script_readme_path.write_text(
+            original_script_readme.replace(
+                "phase15-readiness-gate-survey.md",
+                "phase15-readiness-gate.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["script_readme:phase15-readiness-gate-survey.md"],
+            "missing_script_readme_readiness_note_marker",
+        )
+        script_readme_path.write_text(original_script_readme, encoding="utf-8")
         case_count += 1
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
