@@ -33,6 +33,7 @@ Shared Phase 10 replay surface:
 - `scripts/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `zigux/tests/README.md`
 - `zigux/tests/phase10_build.zig`
 - `zigux/tests/phase10_closure_manifest.json`
 - `scripts/zigux/check-phase10-core-packet.py`
@@ -107,7 +108,7 @@ Ring, core, and input lanes may cite this packet as adjacent evidence, but they 
 - If a Phase 10 run changes `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, the input manifest, the direct `zigux/tests/phase10_virtio_input.zig` replay, the input survey gate, the focused status-drain replay, or the input checker, that work belongs to the input lane.
 - If a Phase 10 run changes `drivers/virtio/virtio_mmio.zig`, the direct `zigux/tests/phase10_virtio_mmio.zig` replay, the MMIO manifest, the MMIO survey gate, or the MMIO checker, that work belongs to the MMIO packet instead of ring, input, or core follow-through.
 - Shared build or make replay drift should only reopen the smallest directly coupled lane packet unless the break truly spans multiple driver packets at once.
-- If a Phase 10 run only changes `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_closure_manifest.json`, `zigux/Makefile`, or the shared Phase 10 packet guards, it should reopen the smallest directly coupled shared review surface first instead of quietly consuming one of the driver lanes.
+- If a Phase 10 run only changes `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/README.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_closure_manifest.json`, `zigux/Makefile`, or the shared Phase 10 packet guards, it should reopen the smallest directly coupled shared review surface first instead of quietly consuming one of the driver lanes.
 
 ## Next bounded step
 
