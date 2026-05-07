@@ -17,6 +17,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
     "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, and `permitsGlobalFallbackPolicyBytes` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
     "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.",
+    "`zigux/unsafe/narrow.zig` now also mirrors the panic and allocator helper style with typed `InteropPolicy` entry points through `scopeFromInteropPolicy`, `recognizesInteropPolicy`, `permitsNoUnsafeInteropPolicy`, `permitsVolatileMmioInteropPolicy`, and `permitsRawPointerBridgeInteropPolicy` so shared callers do not have to split unsafe-scope bytes out by hand before checking the bounded unsafe contract.",
 )
 
 REQUIRED_PANIC_SNIPPETS = (
@@ -44,10 +45,19 @@ REQUIRED_ALLOCATOR_SNIPPETS = (
 )
 
 REQUIRED_UNSAFE_SNIPPETS = (
-    "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {",
+    "const abi = @import(\"abi_bindings\");",
+    "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?UnsafeScopeTag {",
+    "pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
     "if (reserved != 0) return null;",
     "try std.testing.expect(!recognizesInteropPolicyBytes(1, 1));",
-    "try std.testing.expect(!permitsRawPointerBridgePolicyBytes(2, 1));",
+    "try std.testing.expectEqual(@as(?UnsafeScopeTag, .raw_pointer_bridge), scopeFromInteropPolicy(raw_policy));",
+    "try std.testing.expect(!recognizesInteropPolicy(reserved_policy));",
+    "try std.testing.expect(permitsNoUnsafeInteropPolicy(none_policy));",
+    "try std.testing.expect(permitsVolatileMmioInteropPolicy(mmio_policy));",
+    "try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(reserved_policy));",
 )
 
 
@@ -146,8 +156,18 @@ def run_self_test() -> int:
         issues = validate(root)
         assert "missing_unsafe_snippet:try std.testing.expect(!recognizesInteropPolicyBytes(1, 1));" in issues
 
+        build_valid_workspace(root)
+        broken_typed_unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8").replace(
+            "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {\n",
+            "",
+            1,
+        )
+        write(root / UNSAFE_NARROW_REL, broken_typed_unsafe)
+        issues = validate(root)
+        assert "missing_unsafe_snippet:pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {" in issues
+
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=5")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
