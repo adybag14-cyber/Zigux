@@ -25,6 +25,14 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const DecisionChecklistEntry = struct {
+    id: []const u8,
+    summary: []const u8,
+    ownership: []const u8,
+    anchor_symbols: []const []const u8,
+    rationale: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -32,6 +40,7 @@ const Manifest = struct {
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
+    decision_checklist: []const DecisionChecklistEntry,
     gaps: []const Gap,
 };
 
@@ -75,13 +84,15 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.decision_checklist.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_boundary_map = false;
     var saw_audit_outline = false;
+    var saw_decision_checklist = false;
     var saw_checksum_audit = false;
     var saw_segmentation_audit = false;
     var saw_tail_owner_audit = false;
@@ -108,6 +119,15 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__alloc_skb") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "consume_skb") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "stay-in-C") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase14-skbuff-boundary-decision-checklist")) {
+            saw_decision_checklist = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("governance", gap.kind);
+            try std.testing.expectEqualStrings("zigux/tests/phase14_skbuff_bridge_manifest.json", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dataref ownership") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "consume_skb() teardown") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "qdisc-facing skb_segment() publication checkpoints") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-skbuff-concurrency-audit-outline")) {
             saw_audit_outline = true;
@@ -170,16 +190,80 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), landed_count);
+    try std.testing.expectEqual(@as(usize, 13), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_map);
     try std.testing.expect(saw_audit_outline);
+    try std.testing.expect(saw_decision_checklist);
     try std.testing.expect(saw_checksum_audit);
     try std.testing.expect(saw_segmentation_audit);
     try std.testing.expect(saw_tail_owner_audit);
     try std.testing.expect(saw_followup);
     try std.testing.expect(saw_blocker);
+}
+
+test "phase14 skbuff bridge manifest exposes the landed stay-in-c decision checklist" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase14_skbuff_bridge_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const checklist = parsed.value.decision_checklist;
+    try std.testing.expectEqualStrings("shared-info-refcount-ownership", checklist[0].id);
+    try std.testing.expectEqualStrings("stay_in_c", checklist[0].ownership);
+    try std.testing.expectEqualStrings("struct skb_shared_info", checklist[0].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("dataref", checklist[0].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("skb_header_cloned", checklist[0].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[0].rationale, "header-clone rules") != null);
+    try std.testing.expectEqualStrings(skbuff_bridge.SkbuffBridgeLab.boundaryMap().areas[4].id, checklist[0].id);
+    try std.testing.expectEqualStrings(skbuff_bridge.SkbuffBridgeLab.boundaryMap().areas[4].summary, checklist[0].summary);
+    try std.testing.expectEqualStrings(skbuff_bridge.SkbuffBridgeLab.boundaryMap().areas[4].rationale, checklist[0].rationale);
+
+    try std.testing.expectEqualStrings("destructor-and-free-path", checklist[1].id);
+    try std.testing.expectEqualStrings("skb_release_head_state", checklist[1].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("skb_release_data", checklist[1].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("consume_skb", checklist[1].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[1].rationale, "destructor callbacks") != null);
+    try std.testing.expectEqualStrings(skbuff_bridge.SkbuffBridgeLab.boundaryMap().areas[5].id, checklist[1].id);
+    try std.testing.expectEqualStrings(skbuff_bridge.SkbuffBridgeLab.boundaryMap().areas[5].summary, checklist[1].summary);
+    try std.testing.expectEqualStrings(skbuff_bridge.SkbuffBridgeLab.boundaryMap().areas[5].rationale, checklist[1].rationale);
+
+    const tail_owner = skbuff_bridge.SkbuffBridgeLab.checkpointById("segmentation-partial-tail-owner-transfer") orelse return error.MissingCheckpoint;
+    try std.testing.expectEqualStrings("segmentation-partial-tail-owner-transfer", checklist[2].id);
+    try std.testing.expectEqualStrings("skb_segment", checklist[2].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("SKB_GSO_PARTIAL", checklist[2].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("sock_wfree", checklist[2].anchor_symbols[2]);
+    try std.testing.expectEqualStrings(tail_owner.id, checklist[2].id);
+    try std.testing.expectEqualStrings(tail_owner.summary, checklist[2].summary);
+    try std.testing.expectEqualStrings(tail_owner.blocked_by, checklist[2].rationale);
+
+    const checksum_crossover = skbuff_bridge.SkbuffBridgeLab.checkpointById("segmentation-checksum-data-offset-crossover") orelse return error.MissingCheckpoint;
+    try std.testing.expectEqualStrings("segmentation-checksum-data-offset-crossover", checklist[3].id);
+    try std.testing.expectEqualStrings("skb_segment", checklist[3].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("SKB_GSO_CB", checklist[3].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("remcsum_offload", checklist[3].anchor_symbols[2]);
+    try std.testing.expectEqualStrings(checksum_crossover.id, checklist[3].id);
+    try std.testing.expectEqualStrings(checksum_crossover.summary, checklist[3].summary);
+    try std.testing.expectEqualStrings(checksum_crossover.blocked_by, checklist[3].rationale);
+
+    const tail_publication = skbuff_bridge.SkbuffBridgeLab.checkpointById("segmentation-tail-publication-consumer-contract") orelse return error.MissingCheckpoint;
+    try std.testing.expectEqualStrings("segmentation-tail-publication-consumer-contract", checklist[4].id);
+    try std.testing.expectEqualStrings("skb_segment", checklist[4].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("segs->prev", checklist[4].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("validate_xmit_skb_list", checklist[4].anchor_symbols[2]);
+    try std.testing.expectEqualStrings(tail_publication.id, checklist[4].id);
+    try std.testing.expectEqualStrings(tail_publication.summary, checklist[4].summary);
+    try std.testing.expectEqualStrings(tail_publication.blocked_by, checklist[4].rationale);
 }
 
 test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
