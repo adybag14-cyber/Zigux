@@ -97,8 +97,8 @@ REQUIRED_MARKERS = {
         "pub fn canonicalizeHeader(header_value: Header) ?Header {",
         "return uapi_version.canonicalizeHeader(header_value);",
         "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {",
-        "test \"phase3 export shim keeps failure encoding explicit\" {",
-        "test \"phase3 export shim reuses the shared boundary-header compatibility rules\" {",
+        'test "phase3 export shim keeps failure encoding explicit" {',
+        'test "phase3 export shim reuses the shared boundary-header compatibility rules" {',
     ),
     UAPI_VERSION_REL: (
         "pub const Compatibility = enum {",
@@ -109,7 +109,7 @@ REQUIRED_MARKERS = {
         "return canonicalHeader(flags);",
         "pub fn compatibleHeader(size: u32, flags: u16) Header {",
         "pub fn canonicalizeHeader(header: Header) ?Header {",
-        "test \"phase3 uapi boundary header distinguishes canonical and future-compatible shapes\" {",
+        'test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes" {',
     ),
     LINUX_HEADER_REL: (
         "#include <zigux/abi.h>",
@@ -141,7 +141,7 @@ REQUIRED_MARKERS = {
 }
 
 DOCS_ROOT_REQUIRED_MARKERS = (
-    "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
+    "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `Documentation/zigux/phase3-export-uapi-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
     "the export/UAPI boundary survey, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.",
 )
 
@@ -488,7 +488,7 @@ def run_self_test() -> int:
             "\n".join(
                 (
                     "# Zigux Documentation",
-                    "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
+                    "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `Documentation/zigux/phase3-export-uapi-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
                     "- the export/UAPI boundary survey, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.",
                     "",
                 )
