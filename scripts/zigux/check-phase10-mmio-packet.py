@@ -542,7 +542,6 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_build_survey_marker_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
-        build_path.writeText = None
         build_path.write_text(
             original_build.replace('"phase10-virtio-mmio-verify-tests"', '"phase10-virtio-mmio-verify-drift"', 1),
             encoding="utf-8",
