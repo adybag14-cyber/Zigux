@@ -27,6 +27,32 @@ test "virtio input wrapper-facing queue preflight advances in bounded order" {
     try std.testing.expect(summary.blocker == null);
 }
 
+test "virtio input wrapper-facing refill replay preserves queue-callback readiness" {
+    var device = try virtio_input.VirtioInputLab.init("verify-tablet", "verify-refill", 34, null);
+
+    try device.configureEventQueue(16);
+    try device.configureStatusQueue(8);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+
+    var preflight = device.queueCallbackPreflightSummary();
+    try std.testing.expect(preflight.ready_for_queue_callbacks);
+    try std.testing.expect(preflight.blocker == null);
+    try std.testing.expectEqual(@as(u16, 16), preflight.queued_event_buffer_count);
+
+    const refill = try device.refillEventBuffers(5);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", refill.anchor);
+    try std.testing.expectEqual(@as(u16, 5), refill.completed_event_count);
+    try std.testing.expectEqual(@as(u16, 16), refill.queued_event_buffer_count_before);
+    try std.testing.expectEqual(@as(u16, 16), refill.queued_event_buffer_count_after);
+    try std.testing.expect(refill.ready);
+
+    preflight = device.queueCallbackPreflightSummary();
+    try std.testing.expect(preflight.ready_for_queue_callbacks);
+    try std.testing.expect(preflight.blocker == null);
+    try std.testing.expectEqual(@as(u16, 16), preflight.queued_event_buffer_count);
+}
+
 test "virtio input registration preflight keeps wrapper prerequisites ahead of registration claims" {
     var device = try virtio_input.VirtioInputLab.init("verify-touch", "verify-registration", 32, null);
 
