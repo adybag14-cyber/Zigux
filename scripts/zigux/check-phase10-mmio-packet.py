@@ -29,8 +29,8 @@ EXPECTED_HELPER_MARKERS = [
 ]
 
 EXPECTED_TEST_MARKERS = [
-    'test "phase10 virtio mmio summarizes transport identity before lifecycle work" {',
-    'test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {',
+    'test "phase10 virtio mmio exposes a transport identity summary before lifecycle work" {',
+    'test "phase10 virtio mmio summarizes selected-queue readiness before transport handoff" {',
 ]
 
 EXPECTED_SURVEY_TEST_MARKERS = [
@@ -112,8 +112,8 @@ pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary { _ 
 pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary { _ = self; return .{}; }
 pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self; return .{}; }
 """,
-    "zigux/tests/phase10_virtio_mmio.zig": """test \"phase10 virtio mmio summarizes transport identity before lifecycle work\" {}
-test \"phase10 virtio mmio summarizes selected-queue readiness before queue handoff\" {}
+    "zigux/tests/phase10_virtio_mmio.zig": """test \"phase10 virtio mmio exposes a transport identity summary before lifecycle work\" {}
+test \"phase10 virtio mmio summarizes selected-queue readiness before transport handoff\" {}
 """,
     "zigux/tests/phase10_virtio_mmio_survey.zig": """test \"phase10 virtio mmio survey manifest records the landed identity-backed packet\" {
     try std.testing.expectEqualStrings(\"P10-L10\", manifest.lane_key);
@@ -323,14 +323,14 @@ def run_self_test() -> int:
         original_test = test_path.read_text(encoding="utf-8")
         test_path.write_text(
             original_test.replace(
-                'test "phase10 virtio mmio summarizes transport identity before lifecycle work" {',
+                'test "phase10 virtio mmio exposes a transport identity summary before lifecycle work" {',
                 'test "phase10 virtio mmio identity drift before lifecycle work" {',
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'tests:test "phase10 virtio mmio summarizes transport identity before lifecycle work" {' not in missing_markers:
+        if 'tests:test "phase10 virtio mmio exposes a transport identity summary before lifecycle work" {' not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_identity_test_marker_missing")
         test_path.write_text(original_test, encoding="utf-8")
 
@@ -372,7 +372,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_slice_direct_replay_marker_missing")
         slice_path.write_text(original_slice, encoding="utf-8")
 
-        slice_path.write_text(
+        slice_path.writeText(
             original_slice.replace(
                 "zig test zigux/tests/phase10_virtio_mmio_survey.zig",
                 "zig test zigux/tests/phase10_virtio_mmio_drift.zig",
@@ -400,14 +400,14 @@ def run_self_test() -> int:
 
         test_path.write_text(
             original_test.replace(
-                'test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {',
-                'test "phase10 virtio mmio summarizes queue-handoff drift before queue handoff" {',
+                'test "phase10 virtio mmio summarizes selected-queue readiness before transport handoff" {',
+                'test "phase10 virtio mmio summarizes queue-handoff drift before transport handoff" {',
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'tests:test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {' not in missing_markers:
+        if 'tests:test "phase10 virtio mmio summarizes selected-queue readiness before transport handoff" {' not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_selected_queue_test_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
