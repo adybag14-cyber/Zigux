@@ -38,12 +38,13 @@ This document starts the first bounded Phase 3 slice for Zigux.
   - docs-root tranche summaries should keep the export/UAPI boundary packet explicit through this shared ABI slice, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, the focused `phase3_export_uapi_layout` replay, and clear boundary wording so the active Phase 3 packet does not collapse back into an ABI-plus-policy-only note when the boundary starter moves
 - current shared ABI replay:
   - `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
-  - `PHASE3_ABI_MANIFEST_FILE_COUNT=32`
+  - `PHASE3_ABI_MANIFEST_FILE_COUNT=35`
   - `PHASE3_ABI_REPLAY_SCOPE=shared dump plus focused low-level wrapper and export-uapi layout replays`
   - the live `phase3_abi` packet now exercises the curated boundary header and export status root, bitmap and cpumask views, list and hlist views, err_ptr and xarray summaries, the current ida and minor-allocation/dev-region planning ladder, the notifier starter binding packet, and the currently shipped chrdev notify/ack delivery-budget guard families through the shared dump and layout harness
   - the focused syntax gate now fail-closes on fused top-level C header declarations in `include/zigux/abi.h` plus fused top-level `;pub const` declarations in `zigux/bindings/abi.zig` or `zigux/bindings/dev_t.zig` until the authoritative header and curated bindings body are split back into parse-clean lines
   - the current shared ABI packet also keeps the focused export/UAPI boundary replay explicit across `zigux/tests/phase3_export_uapi_layout.zig`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and `Documentation/zigux/phase3-export-uapi-boundary-survey.md` so the manifest-backed replay surface matches the shipped packet-local starter proof
   - the current shared ABI packet also keeps the focused baseline constant-parity survey explicit across `include/zigux/abi.h`, `zigux/bindings/abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json` through `scripts/zigux/survey-phase3-abi-constant-parity.py`
+  - the current shared ABI packet also keeps the focused policy-and-unsafe survey packet explicit across `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`, `scripts/zigux/validate-phase3-policy-unsafe-survey.py`, and `scripts/zigux/check-phase3-policy-byte-guards.py` so the narrow panic, allocator, MMIO, and unsafe-scope boundary wording stays reviewable without pretending the still-missing dedicated replay pair already exists
 
 ## Why this slice exists
 
