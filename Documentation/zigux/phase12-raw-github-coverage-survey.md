@@ -45,7 +45,7 @@ Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO compan
 
 `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase12-release-sequencing.md` should keep this shared fallback overview visible beside that same PMO companion so the two-artifact-plus-two-anchor split does not disappear from the shared release packet while the narrower driver-local fallback notes stay unchanged.
 
-`Documentation/zigux/phase12-release-sequencing.md` and `Documentation/zigux/phase12-release-coordination-matrix.md` should stay aligned on that same split so the compact coordination view remains reviewable without pretending the tests-root packet already owns the matrix reminder directly.
+`Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, and `zigux/tests/README.md` should stay aligned on that same split so the compact coordination view remains reviewable while the tests-root packet keeps the matrix reminder explicit.
 
 `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion for `virtio_net`, `nvme_pci`, and `virtio_scsi`, so this shared fallback overview should be reread beside that lane map instead of letting the mixed fallback split blur those three driver lanes back together.
 
