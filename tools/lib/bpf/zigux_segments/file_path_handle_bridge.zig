@@ -734,3 +734,34 @@ test "resolveReusePinnedMapAttempt keeps path presence and fdinfo reuse compatib
     try std.testing.expectEqual(MapReuseCompatibility.compatible, ready.compatibility.?.outcome);
     try std.testing.expect(ready.should_attempt_reopen);
 }
+
+test "resolveReusePinnedMapAttempt keeps the readonly-prog normalization devmap-only" {
+    const expected = MapReuseExpectation{
+        .name = "stats_map",
+        .map_type = 5,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20,
+    };
+
+    const incompatible_flags = resolveReusePinnedMapAttempt("/sys/fs/bpf/stats", expected, .{
+        .name = "stats_map",
+        .map_type = 5,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | bpf_f_rdonly_prog,
+    });
+    try std.testing.expectEqual(
+        ReusePinnedMapAttemptDisposition.incompatible_map_definition,
+        incompatible_flags.disposition,
+    );
+    try std.testing.expectEqual(ReusedMapNameSource.kernel_name, incompatible_flags.resolved_name.?.source);
+    try std.testing.expectEqual(MapReuseCompatibility.map_flags_mismatch, incompatible_flags.compatibility.?.outcome);
+    try std.testing.expectEqual(
+        @as(u32, 0x20 | bpf_f_rdonly_prog),
+        incompatible_flags.compatibility.?.normalized_observed_map_flags,
+    );
+    try std.testing.expect(!incompatible_flags.should_attempt_reopen);
+}
