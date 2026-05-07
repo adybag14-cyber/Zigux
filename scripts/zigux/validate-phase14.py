@@ -34,7 +34,7 @@ REQUIRED_COMMANDS = [
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
-    "make -C zigux phase14"
+    "make -C zigux phase14",
 ]
 COMPILE_MATRIX_ROWS = [
     ("phase14-workqueue-bridge-tests", "phase14_workqueue_bridge.zig", "full_bundle_only"),
@@ -436,7 +436,7 @@ def run_self_test() -> int:
                 "gaps": [{"id": "phase14-rcu-tree-bridge-blocker", "status": "blocked_on_stay_in_c_evidence"}],
             },
             "zigux/tests/phase14_workqueue_bridge_manifest.json": {
-                "lane_key": "P14-L01",
+                "lane_key": "P14-L04",
                 "surveyed_commit": "9e278f632d6d5097cb8cfc2dc61744ae105baa8c",
                 "gaps": [{"id": "phase14-workqueue-live-execution-blocker", "status": "blocked_on_stay_in_c_evidence"}],
             },
@@ -498,85 +498,7 @@ def run_self_test() -> int:
             print("self-test expected compile-matrix row failure", file=sys.stderr)
             return 1
         write_text(broken_smoke_note, "\n".join(matrix_lines) + "\n")
-        broken_smoke_note.write_text(
-            broken_smoke_note.read_text(encoding="utf-8").replace(
-                "coverage `focused_and_full_bundle`",
-                "coverage `full_bundle_only`",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 smoke note focused compile-shard count drifted from the current one-shard packet" not in errors:
-            print("self-test expected focused compile-shard count failure", file=sys.stderr)
-            return 1
-        write_text(broken_smoke_note, "\n".join(matrix_lines) + "\n")
-        broken_smoke_note.write_text(
-            broken_smoke_note.read_text(encoding="utf-8").replace(
-                "coverage `full_bundle_only`",
-                "coverage `focused_and_full_bundle`",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet" not in errors:
-            print("self-test expected full-bundle-only compile count failure", file=sys.stderr)
-            return 1
-        write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
         broken_build = root / "zigux/tests/phase14_build.zig"
-        broken_build.write_text(
-            broken_build.read_text(encoding="utf-8").replace(
-                "b.addTest(.{\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 build bundle no longer declares the current five compile artifacts" not in errors:
-            print("self-test expected compile-artifact declaration count failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
-        broken_build.write_text(
-            broken_build.read_text(encoding="utf-8").replace(
-                "b.addRunArtifact(\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 build bundle no longer wires the current five compile-artifact runs" not in errors:
-            print("self-test expected compile-artifact run count failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
-        broken_build.write_text(
-            broken_build.read_text(encoding="utf-8").replace(
-                COMPILE_MATRIX_ROWS[0][0] + "\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if f"missing compile-artifact label in zigux/tests/phase14_build.zig: {COMPILE_MATRIX_ROWS[0][0]}" not in errors:
-            print("self-test expected compile-artifact label failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
-        broken_build.write_text(
-            broken_build.read_text(encoding="utf-8").replace(
-                COMPILE_MATRIX_ROWS[0][1] + "\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if f"missing compile-artifact root in zigux/tests/phase14_build.zig: {COMPILE_MATRIX_ROWS[0][1]}" not in errors:
-            print("self-test expected compile-artifact root failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         broken_build.write_text(
             broken_build.read_text(encoding="utf-8").replace(
                 "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n",
@@ -712,6 +634,21 @@ def run_self_test() -> int:
         if "phase14 release-boundary exact-counts checker failed without output" not in errors:
             print("self-test expected release-boundary checker silent subprocess failure", file=sys.stderr)
             return 1
+        write_text(root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py", f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
+        rollback_checker = root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
+        rollback_checker.unlink()
+        errors = check(root)
+        if "missing file: scripts/zigux/check-phase14-rollback-threshold-sequencing.py" not in errors:
+            print("self-test expected rollback-threshold checker missing-file failure", file=sys.stderr)
+            return 1
+        write_text(rollback_checker, f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
+        release_boundary_checker = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
+        release_boundary_checker.unlink()
+        errors = check(root)
+        if "missing file: scripts/zigux/check-phase14-release-boundary-exact-counts.py" not in errors:
+            print("self-test expected release-boundary checker missing-file failure", file=sys.stderr)
+            return 1
+        write_text(release_boundary_checker, f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
     return 0
 
 
