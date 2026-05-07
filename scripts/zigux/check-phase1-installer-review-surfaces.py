@@ -14,6 +14,8 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase1-closure.md",
     "scripts/zigux/README.md",
     "scripts/zigux/install-zig.py",
+    ".github/workflows/zigux-bootstrap.yml",
+    "zigux/Makefile",
     "zigux/tests/README.md",
 ]
 
@@ -47,7 +49,35 @@ REVIEW_CHECKLIST_MARKERS = [
 
 CLOSURE_MARKERS = [
     "- `scripts/zigux/install-zig.py`",
+    "- `scripts/zigux/check-phase1-installer-review-surfaces.py`",
     "- `python3 scripts/zigux/install-zig.py --self-test`",
+]
+
+WORKFLOW_MARKERS = [
+    (
+        "workflow_phase1_installer_selftest",
+        "run: python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase1_installer_check",
+        "run: python3 scripts/zigux/check-phase1-installer-review-surfaces.py",
+        1,
+    ),
+]
+
+MAKEFILE_MARKERS = [
+    ("makefile_phase1_validate_target", "phase1-validate:", 1),
+    (
+        "makefile_phase1_installer_selftest",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-review-surfaces.py --self-test",
+        1,
+    ),
+    (
+        "makefile_phase1_installer_check",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-installer-review-surfaces.py",
+        1,
+    ),
 ]
 
 
@@ -59,6 +89,20 @@ def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) 
     issues: list[str] = []
     for label, marker, expected_count in markers:
         actual_count = text.count(marker)
+        if actual_count != expected_count:
+            issues.append(f"{label}:expected={expected_count}:actual={actual_count}")
+    return issues
+
+
+def collect_exact_line_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
+    actual_counts: dict[str, int] = {}
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        actual_counts[line] = actual_counts.get(line, 0) + 1
+
+    issues: list[str] = []
+    for label, marker, expected_count in markers:
+        actual_count = actual_counts.get(marker, 0)
         if actual_count != expected_count:
             issues.append(f"{label}:expected={expected_count}:actual={actual_count}")
     return issues
@@ -82,12 +126,16 @@ def validate_root(root: Path) -> list[str]:
     review_checklist = (root / "Documentation/zigux/review-checklist.md").read_text(encoding="utf-8")
     phase1_closure = (root / "Documentation/zigux/phase1-closure.md").read_text(encoding="utf-8")
     scripts_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
+    workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
+    makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
 
     issues = []
     issues.extend(collect_exact_count_markers(docs_root, DOCS_ROOT_MARKERS))
     issues.extend(collect_exact_count_markers(scripts_readme, SCRIPTS_README_MARKERS))
     issues.extend(collect_exact_count_markers(tests_readme, TESTS_README_MARKERS))
+    issues.extend(collect_exact_line_count_markers(workflow, WORKFLOW_MARKERS))
+    issues.extend(collect_exact_line_count_markers(makefile, MAKEFILE_MARKERS))
     issues.extend(
         collect_presence_markers(
             review_checklist,
@@ -133,6 +181,14 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         root / "Documentation/zigux/phase1-closure.md",
         "\n".join(CLOSURE_MARKERS) + "\n",
+    )
+    write_text(
+        root / ".github/workflows/zigux-bootstrap.yml",
+        "\n".join(marker for _, marker, _ in WORKFLOW_MARKERS) + "\n",
+    )
+    write_text(
+        root / "zigux/Makefile",
+        "\n".join(marker for _, marker, _ in MAKEFILE_MARKERS) + "\n",
     )
 
 
@@ -204,9 +260,48 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "phase1_closure_installer_packet:- `scripts/zigux/install-zig.py`:expected>=1:actual=0" in issues
         assert (
+            "phase1_closure_installer_packet:- `scripts/zigux/check-phase1-installer-review-surfaces.py`:expected>=1:actual=0"
+            in issues
+        )
+        assert (
             "phase1_closure_installer_packet:- `python3 scripts/zigux/install-zig.py --self-test`:expected>=1:actual=0"
             in issues
         )
+
+        build_self_test_root(root)
+        write_text(root / ".github/workflows/zigux-bootstrap.yml", "")
+        issues = validate_root(root)
+        assert "workflow_phase1_installer_selftest:expected=1:actual=0" in issues
+        assert "workflow_phase1_installer_check:expected=1:actual=0" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / ".github/workflows/zigux-bootstrap.yml",
+            "\n".join(marker for _, marker, _ in WORKFLOW_MARKERS)
+            + "\n"
+            + WORKFLOW_MARKERS[0][1]
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "workflow_phase1_installer_selftest:expected=1:actual=2" in issues
+
+        build_self_test_root(root)
+        write_text(root / "zigux/Makefile", "")
+        issues = validate_root(root)
+        assert "makefile_phase1_validate_target:expected=1:actual=0" in issues
+        assert "makefile_phase1_installer_selftest:expected=1:actual=0" in issues
+        assert "makefile_phase1_installer_check:expected=1:actual=0" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/Makefile",
+            "\n".join(marker for _, marker, _ in MAKEFILE_MARKERS)
+            + "\n"
+            + MAKEFILE_MARKERS[1][1]
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "makefile_phase1_installer_selftest:expected=1:actual=2" in issues
 
         build_self_test_root(root)
         (root / "scripts/zigux/install-zig.py").unlink()
@@ -214,7 +309,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/install-zig.py" in issues
 
     print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass")
-    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=9")
+    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -244,7 +339,7 @@ def main() -> int:
     print("PHASE1_INSTALLER_REVIEW_SURFACES=pass")
     print(
         "PHASE1_INSTALLER_REVIEW_SURFACES_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(MAKEFILE_MARKERS)}"
     )
     return 0
 
