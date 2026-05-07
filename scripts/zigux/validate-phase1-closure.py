@@ -158,7 +158,7 @@ REQUIRED_CLOSURE_MARKERS = [
     ),
     (
         "closure_rbtree_review_packet_count",
-        "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal and detached-node replay stay explicit so duplicate-search and cached-root behavior keep direct review anchors without implying a broader duplicate-search fixture packet than current master ships",
+        "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while cached-root behavior keeps direct review anchors without implying a broader cached-root fixture packet than current master ships",
         1,
     ),
     (
@@ -328,6 +328,11 @@ EXPECTED_REVIEW_ANCHORS = {
             "postorder_count",
             "erase_init_node_empty",
             "cleared_node_empty",
+            "find_found_key",
+            "find_missing",
+            "find_first_serial",
+            "next_match_serials",
+            "next_match_terminal_null",
         ],
     },
     "tools/lib/string.zig": {
