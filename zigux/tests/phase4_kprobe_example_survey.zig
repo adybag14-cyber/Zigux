@@ -63,7 +63,26 @@ test "phase4 kprobe gap manifest keeps the parked survey explicit" {
         manifest.validation_entrypoint,
     );
     try std.testing.expectEqual(@as(usize, 4), manifest.review_prompts.len);
+    try std.testing.expectEqualStrings(
+        "the survey keeps the Linux anchor path and blob sha explicit while the Zig starter stays absent",
+        manifest.review_prompts[0],
+    );
+    try std.testing.expectEqualStrings(
+        "the packet keeps the live make replay command explicit without implying a shipped Zig sample",
+        manifest.review_prompts[1],
+    );
+    try std.testing.expectEqualStrings(
+        "the owner and rollback owner remain Validation and Perf Team while the packet stays adjacent to the shared Phase 4 validator-first route",
+        manifest.review_prompts[2],
+    );
+    try std.testing.expectEqualStrings(
+        "the packet stays outside the shared gate-evidence target set until a later bounded promotion lands",
+        manifest.review_prompts[3],
+    );
     try std.testing.expectEqual(@as(usize, 3), manifest.non_goals.len);
+    try std.testing.expectEqualStrings("shipped kprobe Zig starter", manifest.non_goals[0]);
+    try std.testing.expectEqualStrings("shared gate-evidence promotion", manifest.non_goals[1]);
+    try std.testing.expectEqualStrings("approved kprobe perf threshold", manifest.non_goals[2]);
 }
 
 test "phase4 kprobe gap survey note stays honest about the parked boundary" {
@@ -100,8 +119,12 @@ test "phase4 kprobe gap survey note stays honest about the parked boundary" {
         "PHASE4_SURVEY_OWNER=Validation and Perf Team",
         "PHASE4_ROLLBACK_OWNER=Validation and Perf Team",
         "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false",
+        "zigux/tests/phase4_kprobe_example_manifest.json",
+        "zigux/tests/phase4_kprobe_example_survey.zig",
         "`samples/zigux/kprobe_example.zig` is still absent",
         "Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet",
+        "claiming that the shared Phase 4 exact-readback gate already carries this packet",
+        "claiming approved hard perf thresholds for the kprobe anchor",
     };
 
     for (required_markers) |marker| {
