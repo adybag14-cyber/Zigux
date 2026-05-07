@@ -612,7 +612,7 @@ test "phase 9 runtime loader allocator/init-flow replay keeps exact current init
         "samples/zigux/runtime_trace_events_loader.zig",
     ) orelse return error.MissingTraceEventsLoaderOwnership;
     try std.testing.expectEqualStrings("loader_scaffold", trace_events_loader_owner.role);
-    try std.testing.expectEqualStrings("P9-L12", trace_events_loader_owner.owner);
+    try std.testing.expectEqualStrings("P9-L16", trace_events_loader_owner.owner);
     try std.testing.expect(std.mem.indexOf(
         u8,
         trace_events_loader_owner.boundary,
@@ -623,7 +623,7 @@ test "phase 9 runtime loader allocator/init-flow replay keeps exact current init
         "zigux/tests/phase9_build.zig",
     ) orelse return error.MissingTraceEventsBuildOwnership;
     try std.testing.expectEqualStrings("shared_build_bundle", trace_events_build_owner.role);
-    try std.testing.expectEqualStrings("P9-L12", trace_events_build_owner.owner);
+    try std.testing.expectEqualStrings("P9-L16", trace_events_build_owner.owner);
     try std.testing.expect(std.mem.indexOf(
         u8,
         trace_events_build_owner.boundary,
