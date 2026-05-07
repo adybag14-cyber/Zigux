@@ -78,6 +78,10 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expectEqualStrings("946d5c73fdb763ba860a20879b05da54e1896e8c", manifest.surveyed_commit);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=946d5c73fdb763ba860a20879b05da54e1896e8c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Nested writer stack audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`MAX_NEST`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`commit_page` only moves on the outermost writer") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "HEADER-to-UPDATE") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Remote-reader metadata audit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Reader-page consume audit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Exported-page copy-path audit") != null);
@@ -104,12 +108,13 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
     try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_boundary_checklist = false;
+    var saw_nested_writer_audit = false;
     var saw_overwrite_audit = false;
     var saw_remote_reader_meta_followup = false;
     var saw_wakeup_mmap_followup = false;
@@ -140,6 +145,15 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
             try std.testing.expectEqualStrings("zigux/tests/phase14_ring_buffer_manifest.json", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reserve") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remote") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-nested-writer-audit")) {
+            saw_nested_writer_audit = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`commit_page`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "HEADER-to-UPDATE") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`MAX_NEST`") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-overwrite-audit")) {
@@ -222,10 +236,11 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), landed_count);
+    try std.testing.expectEqual(@as(usize, 15), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_checklist);
+    try std.testing.expect(saw_nested_writer_audit);
     try std.testing.expect(saw_overwrite_audit);
     try std.testing.expect(saw_remote_reader_meta_followup);
     try std.testing.expect(saw_wakeup_mmap_followup);
