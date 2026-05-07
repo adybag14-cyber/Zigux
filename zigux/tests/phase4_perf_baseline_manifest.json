@@ -30,28 +30,28 @@
       "status": "starter_landed",
       "kind": "survey_manifest",
       "zigux_destination": "zigux/tests/phase4_perf_baseline_manifest.json",
-      "why_now": "The roadmap still requires perf baselines and thresholds, so the narrowest honest progress is a manifest-backed survey packet that keeps the current unapproved benchmark-command and acceptable-limit posture machine-checked without inventing numbers."
+      "why_now": "The roadmap still requires perf baselines and thresholds, so the narrowest honest progress is a manifest-backed survey packet that keeps the current unapproved benchmark-command and acceptable-limit posture machine-checked without inventing numbers. Live master now ships that packet, but the shared Phase 4 tests-root summary still leaves the local perf-baseline survey pair implicit even though the validation matrix and gate-evidence note already keep it explicit."
     },
     {
       "id": "phase4-perf-baseline-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase4_perf_baseline_survey.zig",
-      "why_now": "A dedicated Phase 4 survey gate keeps the current correctness-only posture for the shipped atomic64 and bitmap rollback gates measurable without treating that local survey route as shared CI perf approval."
+      "why_now": "A dedicated Phase 4 survey gate keeps the current correctness-only posture for the shipped atomic64 and bitmap rollback gates measurable without treating that local survey route as shared CI perf approval. The smaller same-lane follow-through now is a shared-surface truthfulness repair so zigux/tests/README.md names this shipped local-only survey packet before command approval work widens the lane."
     },
     {
       "id": "phase4-perf-baseline-atomic64-command",
       "status": "ready_next",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/atomic64_diff.zig",
-      "why_now": "The atomic64 rollback gate is still correctness-only, so the next bounded same-lane step is one benchmark command plus one acceptable limit for the existing atomic64 replay before Phase 4 claims perf coverage."
+      "why_now": "After the shared tests-root summary stops undercounting the landed local perf packet, the atomic64 rollback gate is still correctness-only, so the next bounded same-lane perf promotion is one benchmark command plus one acceptable limit for the existing atomic64 replay before Phase 4 claims perf coverage."
     },
     {
       "id": "phase4-perf-baseline-bitmap-command",
       "status": "ready_next",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/bitmap_diff.zig",
-      "why_now": "The bitmap rollback gate is still correctness-only, so the next bounded same-lane step is one benchmark command plus one acceptable limit for the existing bitmap replay before Phase 4 claims perf coverage."
+      "why_now": "After the shared tests-root summary stops undercounting the landed local perf packet, the bitmap rollback gate is still correctness-only, so the next bounded same-lane perf promotion is one benchmark command plus one acceptable limit for the existing bitmap replay before Phase 4 claims perf coverage."
     }
   ]
 }
