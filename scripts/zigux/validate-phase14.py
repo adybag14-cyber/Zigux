@@ -476,7 +476,7 @@ def run_self_test() -> int:
         ]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
             build_lines.append("b.addTest(.{")
-            build_lines.append("b.addRunArtifact(")
+            buildLines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
@@ -640,6 +640,13 @@ def run_self_test() -> int:
         errors = check(root)
         if "phase14 release-boundary exact-counts checker failed without output" not in errors:
             print("self-test expected release-boundary checker silent subprocess failure", file=sys.stderr)
+            return 1
+        write_text(root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py", f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
+        missing_release_boundary_checker = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
+        missing_release_boundary_checker.unlink()
+        errors = check(root)
+        if "missing file: scripts/zigux/check-phase14-release-boundary-exact-counts.py" not in errors:
+            print("self-test expected missing release-boundary checker failure", file=sys.stderr)
             return 1
         write_text(root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py", f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
     return 0
