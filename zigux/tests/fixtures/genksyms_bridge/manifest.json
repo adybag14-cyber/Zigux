@@ -1,0 +1,55 @@
+{
+  "tool": "scripts/zigux/genksyms.zig",
+  "mode": "wrapper-first bridge",
+  "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
+  "harness": "zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c",
+  "case_count": 16,
+  "cases": [
+    "minimal",
+    "debug_reference_types",
+    "long_options",
+    "abbreviated_long_options",
+    "quiet_overrides_warning",
+    "explicit_option_terminator",
+    "positional_passthrough",
+    "help",
+    "abbreviated_help",
+    "version",
+    "abbreviated_version",
+    "invalid_option",
+    "missing_reference_argument",
+    "unsupported_long_option",
+    "missing_long_reference_argument",
+    "missing_long_dump_types_argument"
+  ],
+  "stdout_packet": [
+    "minimal_expected.json",
+    "debug_reference_types_expected.json",
+    "long_options_expected.json",
+    "abbreviated_long_options_expected.json",
+    "quiet_overrides_warning_expected.json",
+    "explicit_option_terminator_expected.json",
+    "positional_passthrough_expected.json"
+  ],
+  "process_packet": [
+    "help_expected.json",
+    "version_expected.json",
+    "abbreviated_version_expected.json",
+    "invalid_option_expected.json",
+    "missing_reference_argument_expected.json",
+    "unsupported_long_option_expected.json",
+    "missing_long_reference_argument_expected.json",
+    "missing_long_dump_types_argument_expected.json"
+  ],
+  "normalized_stderr_packet": [
+    "invalid_option_expected.json",
+    "missing_reference_argument_expected.json",
+    "unsupported_long_option_expected.json",
+    "missing_long_reference_argument_expected.json",
+    "missing_long_dump_types_argument_expected.json"
+  ],
+  "action_abbrev_cases": [
+    "abbreviated_help",
+    "abbreviated_version"
+  ]
+}
