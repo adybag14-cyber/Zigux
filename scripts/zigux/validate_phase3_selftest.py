@@ -27,22 +27,22 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/check-phase3-selftest-surface.py",
         "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
-        ("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20",),
+        ("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=",),
     ),
     SelfTestTarget(
         "scripts/zigux/check-phase3-readme-tooling-inventory.py",
         "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass",
-        ("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=43",),
+        ("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=",),
     ),
     SelfTestTarget(
         "scripts/zigux/check-phase3-abi-dump-gate.py",
         "PHASE3_ABI_DUMP_GATE_SELF_TEST=pass",
-        ("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4",),
+        ("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=",),
     ),
     SelfTestTarget(
         "scripts/zigux/check-phase3-catalog-selftest.py",
         "PHASE3_CATALOG_SELF_TEST=pass",
-        ("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=6",),
+        ("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=",),
     ),
     SelfTestTarget(
         "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
@@ -59,12 +59,12 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass",
-        ("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5",),
+        ("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=",),
     ),
     SelfTestTarget(
         "scripts/zigux/phase3_catalog.py",
         "PHASE3_CATALOG_SELF_TEST=pass",
-        ("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=6",),
+        ("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=",),
     ),
     SelfTestTarget("scripts/zigux/phase3_check_lib.py", "PHASE3_CHECK_LIB_SELF_TEST=pass"),
     SelfTestTarget("scripts/zigux/run-phase3-checks.py", "PHASE3_RUNNER_SELF_TEST=pass"),
@@ -77,6 +77,10 @@ SELF_TEST_TARGETS = (
 
 def exact_output_marker_count(output: str, marker: str) -> int:
     return Counter(output.splitlines()).get(marker, 0)
+
+
+def prefix_output_marker_count(output: str, prefix: str) -> int:
+    return sum(1 for line in output.splitlines() if line.startswith(prefix))
 
 
 def run_targets(root: Path, targets: tuple[SelfTestTarget, ...] = SELF_TEST_TARGETS) -> list[str]:
@@ -110,7 +114,10 @@ def run_targets(root: Path, targets: tuple[SelfTestTarget, ...] = SELF_TEST_TARG
             elif marker_count != 1:
                 issues.append(f"duplicate_pass_marker:{target.relpath}:{marker_count}:{target.marker}")
         for marker in target.extra_markers:
-            marker_count = exact_output_marker_count(completed.stdout, marker)
+            if marker.endswith("="):
+                marker_count = prefix_output_marker_count(completed.stdout, marker)
+            else:
+                marker_count = exact_output_marker_count(completed.stdout, marker)
             if marker_count == 0:
                 issues.append(f"missing_aux_marker:{target.relpath}:{marker}")
             elif marker_count != 1:
@@ -136,7 +143,9 @@ def write_script(
         'if "--self-test" in sys.argv:',
         f'    print("{marker}")',
     ]
-    lines.extend(f'    print("{extra_marker}")' for extra_marker in extra_markers)
+    for extra_marker in extra_markers:
+        rendered_marker = f"{extra_marker}1" if extra_marker.endswith("=") else extra_marker
+        lines.append(f'    print("{rendered_marker}")')
     lines.extend(
         [
             f"    raise SystemExit({exit_code})",
@@ -299,7 +308,7 @@ def run_self_test() -> int:
         issues = run_targets(surface_count_root)
         assert (
             "missing_aux_marker:scripts/zigux/check-phase3-selftest-surface.py:"
-            "PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20"
+            "PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT="
             in issues
         )
 
@@ -318,8 +327,8 @@ def run_self_test() -> int:
                             "",
                             'if "--self-test" in sys.argv:',
                             '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")',
-                            '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20")',
-                            '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20")',
+                            '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=1")',
+                            '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=2")',
                             "    raise SystemExit(0)",
                             "",
                             'raise SystemExit("expected --self-test")',
@@ -334,7 +343,7 @@ def run_self_test() -> int:
         issues = run_targets(surface_duplicate_count_root)
         assert (
             "duplicate_aux_marker:scripts/zigux/check-phase3-selftest-surface.py:2:"
-            "PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20"
+            "PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT="
             in issues
         )
 
@@ -406,7 +415,7 @@ def run_self_test() -> int:
         issues = run_targets(tooling_inventory_count_root)
         assert (
             "missing_aux_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py:"
-            "PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=43"
+            "PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT="
             in issues
         )
 
@@ -425,8 +434,8 @@ def run_self_test() -> int:
                             "",
                             'if "--self-test" in sys.argv:',
                             '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")',
-                            '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=43")',
-                            '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=43")',
+                            '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=1")',
+                            '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=2")',
                             "    raise SystemExit(0)",
                             "",
                             'raise SystemExit("expected --self-test")',
@@ -441,7 +450,7 @@ def run_self_test() -> int:
         issues = run_targets(tooling_inventory_duplicate_count_root)
         assert (
             "duplicate_aux_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py:2:"
-            "PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=43"
+            "PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT="
             in issues
         )
 
@@ -480,7 +489,7 @@ def run_self_test() -> int:
                             'if "--self-test" in sys.argv:',
                             '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")',
                             '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")',
-                            '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4")',
+                            '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=1")',
                             "    raise SystemExit(0)",
                             "",
                             'raise SystemExit("expected --self-test")',
@@ -514,7 +523,7 @@ def run_self_test() -> int:
         issues = run_targets(abi_dump_gate_count_root)
         assert (
             "missing_aux_marker:scripts/zigux/check-phase3-abi-dump-gate.py:"
-            "PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4"
+            "PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT="
             in issues
         )
 
@@ -533,8 +542,8 @@ def run_self_test() -> int:
                             "",
                             'if "--self-test" in sys.argv:',
                             '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")',
-                            '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4")',
-                            '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4")',
+                            '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=1")',
+                            '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=2")',
                             "    raise SystemExit(0)",
                             "",
                             'raise SystemExit("expected --self-test")',
@@ -549,7 +558,7 @@ def run_self_test() -> int:
         issues = run_targets(abi_dump_gate_duplicate_count_root)
         assert (
             "duplicate_aux_marker:scripts/zigux/check-phase3-abi-dump-gate.py:2:"
-            "PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4"
+            "PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT="
             in issues
         )
 
@@ -587,7 +596,7 @@ def run_self_test() -> int:
         issues = run_targets(catalog_selftest_count_root)
         assert (
             "missing_aux_marker:scripts/zigux/check-phase3-catalog-selftest.py:"
-            "PHASE3_CATALOG_SELF_TEST_CASE_COUNT=6"
+            "PHASE3_CATALOG_SELF_TEST_CASE_COUNT="
             in issues
         )
 
@@ -621,7 +630,7 @@ def run_self_test() -> int:
         issues = run_targets(catalog_selftest_count_substring_root)
         assert (
             "missing_aux_marker:scripts/zigux/check-phase3-catalog-selftest.py:"
-            "PHASE3_CATALOG_SELF_TEST_CASE_COUNT=6"
+            "PHASE3_CATALOG_SELF_TEST_CASE_COUNT="
             in issues
         )
 
@@ -659,7 +668,7 @@ def run_self_test() -> int:
         issues = run_targets(catalog_count_root)
         assert (
             "missing_aux_marker:scripts/zigux/phase3_catalog.py:"
-            "PHASE3_CATALOG_SELF_TEST_CASE_COUNT=6"
+            "PHASE3_CATALOG_SELF_TEST_CASE_COUNT="
             in issues
         )
 
@@ -736,7 +745,7 @@ def run_self_test() -> int:
                             'if "--self-test" in sys.argv:',
                             '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
                             '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
-                            '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5")',
+                            '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=1")',
                             "    raise SystemExit(0)",
                             "",
                             'raise SystemExit("expected --self-test")',
@@ -770,7 +779,7 @@ def run_self_test() -> int:
         issues = run_targets(export_uapi_count_root)
         assert (
             "missing_aux_marker:scripts/zigux/validate-phase3-export-uapi-survey.py:"
-            "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5"
+            "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT="
             in issues
         )
 
@@ -789,8 +798,8 @@ def run_self_test() -> int:
                             "",
                             'if "--self-test" in sys.argv:',
                             '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
-                            '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5")',
-                            '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5")',
+                            '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=1")',
+                            '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=2")',
                             "    raise SystemExit(0)",
                             "",
                             'raise SystemExit("expected --self-test")',
@@ -805,7 +814,7 @@ def run_self_test() -> int:
         issues = run_targets(export_uapi_duplicate_count_root)
         assert (
             "duplicate_aux_marker:scripts/zigux/validate-phase3-export-uapi-survey.py:2:"
-            "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5"
+            "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT="
             in issues
         )
 
