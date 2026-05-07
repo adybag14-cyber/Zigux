@@ -14,6 +14,7 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 PHASE12_SEQUENCE_PATH = "Documentation/zigux/phase12-release-sequencing.md"
 PHASE12_CLOSURE_CHECKLIST_PATH = "Documentation/zigux/phase12-release-closure-checklist.md"
 PHASE12_COMPLEX_DRIVER_LANE_PATH = "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
+PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH = "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
 PHASE12_RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 NVME_FALLBACK_MAP_PATH = "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
 VIRTIO_SCSI_FALLBACK_PATH = "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
@@ -85,6 +86,13 @@ REQUIRED_FILE_MARKERS = {
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "That rollback drill is storage-lane-local evidence, not a shared Phase 12 recovery claim.",
+    ],
+    PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH: [
+        "Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
+        "shipped shared coordination surfaces on `master`",
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
+        "shared reviewability surfaces that describe or gate the live Phase 12 libbpf packet",
+        "shared reviewability owns the survey, manifest, deterministic snapshot fixture, reviewability gate, and shared build alignment",
     ],
     PHASE12_RAW_GITHUB_COVERAGE_PATH: [
         "commit-pinned fallback artifacts:",
