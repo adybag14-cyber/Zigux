@@ -6,7 +6,8 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+_SELF_PATH = Path(__file__).resolve()
+ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) >= 3 else _SELF_PATH.parent
 
 REQUIRED_FILES = [
     "Documentation/zigux/README.md",
@@ -49,11 +50,18 @@ REVIEW_CHECKLIST_MARKERS = [
 
 CLOSURE_MARKERS = [
     "- `scripts/zigux/install-zig.py`",
-    "- `scripts/zigux/check-phase1-installer-review-surfaces.py`",
     "- `python3 scripts/zigux/install-zig.py --self-test`",
     "- explicit opt-in to Node 24 action execution on GitHub-hosted runners",
     "- no known dependency on the deprecated Node 20 runtime",
     "- Zig installation through an in-repo official-download step instead of a Node 20-bound action",
+]
+
+CLOSURE_EXACT_MARKERS = [
+    (
+        "phase1_closure_installer_checker_anchor",
+        "- `scripts/zigux/check-phase1-installer-review-surfaces.py`",
+        1,
+    ),
 ]
 
 WORKFLOW_MARKERS = [
@@ -137,6 +145,7 @@ def validate_root(root: Path) -> list[str]:
     issues.extend(collect_exact_count_markers(docs_root, DOCS_ROOT_MARKERS))
     issues.extend(collect_exact_count_markers(scripts_readme, SCRIPTS_README_MARKERS))
     issues.extend(collect_exact_count_markers(tests_readme, TESTS_README_MARKERS))
+    issues.extend(collect_exact_count_markers(phase1_closure, CLOSURE_EXACT_MARKERS))
     issues.extend(collect_exact_line_count_markers(workflow, WORKFLOW_MARKERS))
     issues.extend(collect_exact_line_count_markers(makefile, MAKEFILE_MARKERS))
     issues.extend(
@@ -183,7 +192,7 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(
         root / "Documentation/zigux/phase1-closure.md",
-        "\n".join(CLOSURE_MARKERS) + "\n",
+        "\n".join([marker for _, marker, _ in CLOSURE_EXACT_MARKERS] + CLOSURE_MARKERS) + "\n",
     )
     write_text(
         root / ".github/workflows/zigux-bootstrap.yml",
@@ -193,7 +202,6 @@ def build_self_test_root(root: Path) -> None:
         root / "zigux/Makefile",
         "\n".join(marker for _, marker, _ in MAKEFILE_MARKERS) + "\n",
     )
-
 
 
 def run_self_test() -> int:
@@ -262,11 +270,8 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root / "Documentation/zigux/phase1-closure.md", "")
         issues = validate_root(root)
+        assert "phase1_closure_installer_checker_anchor:expected=1:actual=0" in issues
         assert "phase1_closure_installer_packet:- `scripts/zigux/install-zig.py`:expected>=1:actual=0" in issues
-        assert (
-            "phase1_closure_installer_packet:- `scripts/zigux/check-phase1-installer-review-surfaces.py`:expected>=1:actual=0"
-            in issues
-        )
         assert (
             "phase1_closure_installer_packet:- `python3 scripts/zigux/install-zig.py --self-test`:expected>=1:actual=0"
             in issues
@@ -283,6 +288,17 @@ def run_self_test() -> int:
             "phase1_closure_installer_packet:- Zig installation through an in-repo official-download step instead of a Node 20-bound action:expected>=1:actual=0"
             in issues
         )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase1-closure.md",
+            "\n".join([marker for _, marker, _ in CLOSURE_EXACT_MARKERS] + CLOSURE_MARKERS)
+            + "\n"
+            + CLOSURE_EXACT_MARKERS[0][1]
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "phase1_closure_installer_checker_anchor:expected=1:actual=2" in issues
 
         build_self_test_root(root)
         write_text(root / ".github/workflows/zigux-bootstrap.yml", "")
@@ -335,7 +351,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/install-zig.py" in issues
 
     print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass")
-    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=16")
+    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
@@ -365,7 +381,7 @@ def main() -> int:
     print("PHASE1_INSTALLER_REVIEW_SURFACES=pass")
     print(
         "PHASE1_INSTALLER_REVIEW_SURFACES_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(MAKEFILE_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS) + len(CLOSURE_EXACT_MARKERS) + len(WORKFLOW_MARKERS) + len(MAKEFILE_MARKERS)}"
     )
     return 0
 
