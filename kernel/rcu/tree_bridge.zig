@@ -222,6 +222,18 @@ const blocked_live_behaviors = [_][]const u8{
     "CPU hotplug enrollment, teardown, and callback migration",
 };
 
+const critical_freeze_checkpoint_ids = [_][]const u8{
+    "memory-ordering-lock-network",
+    "public-wait-and-barrier-contract",
+    "cpu-hotplug-callback-migration",
+};
+
+const critical_freeze_blocked_behaviors = [_][]const u8{
+    "memory-ordering lock-network publication across GP, polling, and hotplug paths",
+    "public wait, polling-cookie, and callback-barrier ownership",
+    "CPU hotplug enrollment, teardown, and callback migration",
+};
+
 const governance_required_evidence = [_][]const u8{
     "Architecture Council reopen record linked from the reviewable packet",
     "parity scorecard evidence and benchmark notes attached to the same review packet",
@@ -333,6 +345,25 @@ pub const RcuTreeBridgeLab = struct {
         return blockedBehaviorIndex(behavior) != null;
     }
 
+    pub fn criticalFreezeCheckpointIds() []const []const u8 {
+        return critical_freeze_checkpoint_ids[0..];
+    }
+
+    pub fn criticalFreezeCheckpointCount() usize {
+        return critical_freeze_checkpoint_ids.len;
+    }
+
+    pub fn isCriticalFreezeCheckpoint(id: []const u8) bool {
+        for (critical_freeze_checkpoint_ids) |checkpoint_id| {
+            if (std.mem.eql(u8, checkpoint_id, id)) return true;
+        }
+        return false;
+    }
+
+    pub fn criticalFreezeBlockedBehaviors() []const []const u8 {
+        return critical_freeze_blocked_behaviors[0..];
+    }
+
     pub fn listsRequiredEvidence(evidence: []const u8) bool {
         for (governance_required_evidence) |required_evidence| {
             if (std.mem.eql(u8, required_evidence, evidence)) return true;
@@ -422,6 +453,33 @@ test "rcu tree bridge concurrency audit stays review-only" {
     try std.testing.expect(RcuTreeBridgeLab.blocksLiveBehavior("public wait, polling-cookie, and callback-barrier ownership"));
     try std.testing.expectEqual(@as(?usize, 8), RcuTreeBridgeLab.blockedBehaviorIndex("CPU hotplug enrollment, teardown, and callback migration"));
     try std.testing.expect(!RcuTreeBridgeLab.blocksLiveBehavior("nonexistent rcu bridge behavior"));
+}
+
+test "rcu tree bridge critical freeze checkpoint catalog stays anchored to the deepest blockers" {
+    try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.criticalFreezeCheckpointCount());
+    try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.criticalFreezeCheckpointIds().len);
+    try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.criticalFreezeBlockedBehaviors().len);
+
+    for (RcuTreeBridgeLab.criticalFreezeCheckpointIds()) |checkpoint_id| {
+        const checkpoint = RcuTreeBridgeLab.checkpointById(checkpoint_id) orelse return error.MissingCheckpoint;
+        try std.testing.expect(checkpoint.ownership == .stay_in_c);
+        try std.testing.expect(RcuTreeBridgeLab.isCriticalFreezeCheckpoint(checkpoint_id));
+    }
+
+    const ordering = RcuTreeBridgeLab.checkpointById("memory-ordering-lock-network") orelse return error.MissingCheckpoint;
+    try std.testing.expect(ordering.guard == .memory_ordering_lock_network);
+
+    const public_wait = RcuTreeBridgeLab.checkpointById("public-wait-and-barrier-contract") orelse return error.MissingCheckpoint;
+    try std.testing.expect(public_wait.guard == .public_wait_and_barrier_contract);
+
+    const hotplug = RcuTreeBridgeLab.checkpointById("cpu-hotplug-callback-migration") orelse return error.MissingCheckpoint;
+    try std.testing.expect(hotplug.guard == .cpu_hotplug_callback_migration);
+
+    for (RcuTreeBridgeLab.criticalFreezeBlockedBehaviors()) |behavior| {
+        try std.testing.expect(RcuTreeBridgeLab.blocksLiveBehavior(behavior));
+    }
+
+    try std.testing.expect(!RcuTreeBridgeLab.isCriticalFreezeCheckpoint("grace-period-sequence-publication"));
 }
 
 test "rcu tree bridge governance keeps the blocker and rollback packet queryable" {
