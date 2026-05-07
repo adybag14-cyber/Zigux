@@ -131,6 +131,28 @@ test "hvc_console verify keeps cleanup prerequisite failures explicit" {
     }));
 }
 
+test "hvc_console verify keeps open notifier-state failures explicit" {
+    var console = try hvc_console.HvcConsoleLab.init(8);
+    _ = console.instantiate(0x81);
+
+    const notifierless = try console.summarizeOpenHandoff(.{
+        .notifier_add_available = false,
+    });
+    try std.testing.expect(!notifierless.already_open);
+    try std.testing.expect(notifierless.tty_port_tty_set_requested);
+    try std.testing.expect(!notifierless.notifier_add_requested);
+    try std.testing.expect(!notifierless.notifier_add_failed);
+    try std.testing.expect(notifierless.dtr_rts_raise_requested);
+    try std.testing.expect(notifierless.port_initialized);
+    try std.testing.expect(notifierless.khvcd_wakeup_requested);
+    try std.testing.expect(notifierless.host_io_deferred);
+
+    try std.testing.expectError(error.NotifierAddResultWithoutNotifier, console.summarizeOpenHandoff(.{
+        .notifier_add_available = false,
+        .notifier_add_result = -1,
+    }));
+}
+
 test "hvc_console verify keeps notifier prerequisite failures explicit" {
     var console = try hvc_console.HvcConsoleLab.init(10);
     _ = console.instantiate(0xa1);
