@@ -101,6 +101,8 @@ REQUIRED_TESTS_README_MARKERS = [
     "zigux/tests/runtime_atomic64_diff.zig",
     "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
     "zigux/tests/bitmap_diff.zig",
+    "zigux/tests/phase4_bitmap_diff_manifest.json",
+    "zigux/tests/phase4_bitmap_diff_survey.zig",
     "zigux/tests/phase4_bitmap_live_helper_replay.zig",
     "zigux/tests/phase4_build.zig",
     "scripts/zigux/validate-phase4.py",
@@ -462,6 +464,8 @@ def build_fixture_tree(root: Path) -> None:
                 "zigux/tests/runtime_atomic64_diff.zig",
                 "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
                 "zigux/tests/bitmap_diff.zig",
+                "zigux/tests/phase4_bitmap_diff_manifest.json",
+                "zigux/tests/phase4_bitmap_diff_survey.zig",
                 "zigux/tests/phase4_bitmap_live_helper_replay.zig",
                 "zigux/tests/phase4_build.zig",
                 "scripts/zigux/validate-phase4.py",
@@ -626,6 +630,19 @@ def run_self_test() -> int:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         failures = run_phase4_bitmap_packet_check(bad_root2)
         assert failures and failures[0].startswith("bitmap_manifest_sha:live_gate_blob_sha:")
+
+        bad_root3 = Path(tmp_dir) / "bad3"
+        build_fixture_tree(bad_root3)
+        tests_readme = bad_root3 / "zigux/tests/README.md"
+        tests_readme.write_text(
+            tests_readme.read_text(encoding="utf-8").replace(
+                "zigux/tests/phase4_bitmap_diff_manifest.json\n", ""
+            ),
+            encoding="utf-8",
+        )
+        assert validate_root(bad_root3) == [
+            "tests_readme:zigux/tests/phase4_bitmap_diff_manifest.json"
+        ]
 
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
