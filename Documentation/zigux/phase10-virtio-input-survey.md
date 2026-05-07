@@ -6,7 +6,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-input-survey`
-- `PHASE10_LANE_KEY=P10-L13`
+- `PHASE10_LANE_KEY=P10-Y04`
 - `PHASE10_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
 - scope: survey manifest, dedicated survey gate, dedicated `check-phase10-input-packet.py` review guard, the helper-facing `drivers/virtio/virtio_input.zig` replay, the wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay, the focused status-drain replay, the shared Phase 10 tests-root review companion, the shared Phase 10 driver lane sequencing note, the shared Phase 10 core, ring, and MMIO packet guards, shared Phase 10 build wiring, the shared Linux-style replay route, and a lane-level note that compares the already-landed starter against the remaining roadmap gap
 - product boundary:
