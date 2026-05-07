@@ -119,6 +119,10 @@ pub fn replaceChar(buf: []u8, old: u8, new: u8) usize {
     return buf.len;
 }
 
+pub fn strreplace(buf: []u8, old: u8, new: u8) usize {
+    return replaceChar(buf, old, new);
+}
+
 pub fn memchrInv(buf: []const u8, value: u8) ?usize {
     for (buf, 0..) |ch, idx| {
         if (ch != value) {
@@ -327,6 +331,16 @@ test "skip trim remove and replace spaces work in place" {
     var replace_cstr_buf = [_]u8{ 'a', '-', 0, '-' };
     try std.testing.expectEqual(@as(usize, 2), replaceChar(&replace_cstr_buf, '-', '_'));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 0, '-' }, &replace_cstr_buf);
+}
+
+test "strreplace mirrors replaceChar C-string semantics" {
+    var replace_buf = [_]u8{ 'a', '-', 'b' };
+    try std.testing.expectEqual(@as(usize, 3), strreplace(&replace_buf, '-', '_'));
+    try std.testing.expectEqualSlices(u8, "a_b", &replace_buf);
+
+    var replace_cstr_buf = [_]u8{ 'a', '-', 0, '-', 'z' };
+    try std.testing.expectEqual(@as(usize, 2), strreplace(&replace_cstr_buf, '-', '_'));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 0, '-', 'z' }, &replace_cstr_buf);
 }
 
 test "strHasPrefix honors C-string boundaries" {
