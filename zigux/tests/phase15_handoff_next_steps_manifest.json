@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L08",
   "phase": "Phase 15",
-  "surveyed_commit": "39cdd038909f9834a8702070a697a0bf2111cb66",
+  "surveyed_commit": "current-master-readback-2026-05-07",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -26,7 +26,7 @@
     "dedicated_handoff_guard_present": true,
     "shared_build_handoff_replay_present": true,
     "lane_key_matches_phase15_lane_map": true,
-    "paired_parity_scorecard_reports_later_head": false,
+    "paired_parity_scorecard_blocker_posture_matches": true,
     "deep_core_status_change_ready": false
   },
   "open_handoff_gaps": [
