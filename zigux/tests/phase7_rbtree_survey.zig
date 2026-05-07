@@ -227,6 +227,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(slice_note, "erase-and-detach ownership reset via `eraseInit()`");
     try expectContains(slice_note, "detached-node clearing semantics");
     try expectContains(slice_note, "terminal postorder handoff accepts null input so callers can finish walks without a separate pre-check");
+    try expectContains(slice_note, "returned-leftmost handoff state");
     try expectContains(docs_root, "Documentation/zigux/phase7-rbtree-slice.md");
     try expectContains(docs_root, "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample");
     try expectContains(docs_root, "lib/rbtree.zig");
@@ -259,7 +260,9 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(validate_phase7, "python3 scripts/zigux/check-phase7-rbtree-parity.py");
     try expectContains(helper_impl, "pub const NodeLinked");
     try expectContains(helper_impl, "pub const RootLinked");
+    try expectContains(helper_impl, "pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node");
     try expectContains(helper_impl, "pub fn addLinked");
+    try expectContains(helper_impl, "pub fn eraseCached(node: *Node, root: *RootCached) ?*Node");
     try expectContains(helper_impl, "pub fn eraseLinked");
     try expectContains(helper_impl, "pub fn clearLinkedNode");
     try expectContains(helper_impl, "pub fn eraseInit");
@@ -273,12 +276,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(helper_tests, "phase 7 rbtree traversal helpers walk a manually linked tree");
     try expectContains(helper_tests, "phase 7 rbtree replaceNode and postorder helpers preserve structure");
     try expectContains(helper_tests, "phase 7 rbtree balancing helpers keep ordered insert erase traversal stable");
+    try expectContains(helper_tests, "phase 7 rbtree cached helpers return leftmost handoff state");
     try expectContains(helper_tests, "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable");
     try expectContains(helper_tests, "phase 7 rbtree detached nodes stay non-empty until callers clear them");
     try expectContains(helper_tests, "phase 7 rbtree clearNode marks detached nodes as empty");
     try expectContains(helper_tests, "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours");
     try expectContains(helper_tests, "phase 7 rbtree find helpers walk duplicate-key ranges");
     try expectContains(helper_tests, "phase 7 rbtree postorder traversal matches committed parity fixture");
+    try expectContains(helper_tests, "try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.eraseCached(&entries[3].node, &root));");
     try expectContains(helper_tests, "try std.testing.expectEqual(@as(?*Node, null), nextPostorder(null));");
     try expectContains(samples_readme, "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;");
     try expectContains(samples_readme, "Documentation/zigux/phase7-rbtree-slice.md");
