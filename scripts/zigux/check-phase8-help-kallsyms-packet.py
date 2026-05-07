@@ -12,6 +12,8 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 REQUIRED_FILES = [
     "Documentation/zigux/phase8-help-slice.md",
     "Documentation/zigux/phase8-kallsyms-slice.md",
+    "scripts/zigux/README.md",
+    ".github/workflows/zigux-bootstrap.yml",
     "scripts/zigux/check-phase8-help-kallsyms-packet.py",
     "tools/lib/subcmd/help.zig",
     "tools/lib/symbol/kallsyms.zig",
@@ -33,6 +35,19 @@ REQUIRED_MARKERS = {
         "PHASE8_SLICE=kallsyms-parse-wrapper-parked",
         "one direct `kallsymsParse()` wrapper",
         "oversized symbol names now raise `error.SymbolNameTooLong`",
+    ],
+    "scripts/zigux/README.md": [
+        "Phase 8 flow",
+        "scripts/zigux/check-phase8-help-kallsyms-packet.py",
+        "zigux/tests/phase8_help_kallsyms_only_build.zig",
+        "make -C zigux phase8-help-kallsyms-test",
+    ],
+    ".github/workflows/zigux-bootstrap.yml": [
+        "Validate Phase 8 tooling packet",
+        "make -C zigux phase8-validate",
+        "Run focused Phase 8 help and kallsyms tests",
+        "make -C zigux phase8-help-kallsyms-test",
+        "zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all",
     ],
     "tools/lib/subcmd/help.zig": [
         "pub fn loadCommandListsFromSource",
@@ -94,6 +109,11 @@ FIXTURE_OVERRIDES = {
     + "\n",
     "Documentation/zigux/phase8-kallsyms-slice.md": "\n".join(
         REQUIRED_MARKERS["Documentation/zigux/phase8-kallsyms-slice.md"]
+    )
+    + "\n",
+    "scripts/zigux/README.md": "\n".join(REQUIRED_MARKERS["scripts/zigux/README.md"]) + "\n",
+    ".github/workflows/zigux-bootstrap.yml": "\n".join(
+        REQUIRED_MARKERS[".github/workflows/zigux-bootstrap.yml"]
     )
     + "\n",
     "scripts/zigux/check-phase8-help-kallsyms-packet.py": "# fixture\n",
@@ -180,6 +200,8 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 def run_self_test() -> None:
     missing_file_cases = [
         ("missing_checker", "scripts/zigux/check-phase8-help-kallsyms-packet.py"),
+        ("missing_scripts_readme", "scripts/zigux/README.md"),
+        ("missing_workflow", ".github/workflows/zigux-bootstrap.yml"),
         ("missing_help_slice", "Documentation/zigux/phase8-help-slice.md"),
         ("missing_kallsyms_slice", "Documentation/zigux/phase8-kallsyms-slice.md"),
         ("missing_help_helper", "tools/lib/subcmd/help.zig"),
@@ -202,6 +224,34 @@ def run_self_test() -> None:
             "oversized symbol names now raise `error.SymbolNameTooLong`",
             "oversized symbol names are noted",
             "Documentation/zigux/phase8-kallsyms-slice.md: oversized symbol names now raise `error.SymbolNameTooLong`",
+        ),
+        (
+            "scripts_readme_combined_checker",
+            "scripts/zigux/README.md",
+            "scripts/zigux/check-phase8-help-kallsyms-packet.py",
+            "scripts/zigux/check-phase8-help-kallsyms-surface.py",
+            "scripts/zigux/README.md: scripts/zigux/check-phase8-help-kallsyms-packet.py",
+        ),
+        (
+            "scripts_readme_combined_make_route",
+            "scripts/zigux/README.md",
+            "make -C zigux phase8-help-kallsyms-test",
+            "make -C zigux phase8-help-test",
+            "scripts/zigux/README.md: make -C zigux phase8-help-kallsyms-test",
+        ),
+        (
+            "workflow_combined_step",
+            ".github/workflows/zigux-bootstrap.yml",
+            "Run focused Phase 8 help and kallsyms tests",
+            "Run focused Phase 8 help tests",
+            ".github/workflows/zigux-bootstrap.yml: Run focused Phase 8 help and kallsyms tests",
+        ),
+        (
+            "workflow_combined_make_route",
+            ".github/workflows/zigux-bootstrap.yml",
+            "make -C zigux phase8-help-kallsyms-test",
+            "make -C zigux phase8-help-test",
+            ".github/workflows/zigux-bootstrap.yml: make -C zigux phase8-help-kallsyms-test",
         ),
         (
             "help_helper_terminal_writer",
