@@ -48,6 +48,8 @@ REQUIRED_CONTRACT_MARKERS = [
     "`.github/workflows/zigux-bootstrap.yml`",
     "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
     "`make -C zigux phase11`",
+    "`Documentation/zigux/phase11-closure-note.md`",
+    "The shared closure checkpoint now also stays explicit beside that replay route:",
     "there is no dedicated shared `validate-phase11.py` on `master`",
     "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`",
     "there is no broader multi-checker Phase 11 validator stack on `master`",
@@ -147,7 +149,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 41
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 43
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -174,6 +176,8 @@ SELF_TEST_CASES = [
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[20], REQUIRED_CONTRACT_MARKERS[20]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[22], REQUIRED_CONTRACT_MARKERS[22]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[23], REQUIRED_CONTRACT_MARKERS[23]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[24], REQUIRED_CONTRACT_MARKERS[24]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[25], REQUIRED_CONTRACT_MARKERS[25]),
     (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[0], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[0]),
     (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2]),
     (DOCS_README_PATH, "docs_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_DOCS_README_MARKERS[2]),
@@ -199,11 +203,11 @@ SELF_TEST_CASES = [
     (PHASE11_CONTRACT_PATH, "phase11_contract", "`scripts/zigux/check-phase11-hvc-survey-packet.py`", REQUIRED_CONTRACT_MARKERS[10]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", "`zigux/tests/phase11_hvc_console_manifest.json`", REQUIRED_CONTRACT_MARKERS[12]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", "`make -C zigux phase11-hvc-survey`", REQUIRED_CONTRACT_MARKERS[13]),
-    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[27], REQUIRED_CONTRACT_MARKERS[27]),
-    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[28], REQUIRED_CONTRACT_MARKERS[28]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[29], REQUIRED_CONTRACT_MARKERS[29]),
-    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[32], REQUIRED_CONTRACT_MARKERS[32]),
-    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[33], REQUIRED_CONTRACT_MARKERS[33]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[30], REQUIRED_CONTRACT_MARKERS[30]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[31], REQUIRED_CONTRACT_MARKERS[31]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[34], REQUIRED_CONTRACT_MARKERS[34]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[35], REQUIRED_CONTRACT_MARKERS[35]),
 ]
 
 FIXTURE_CONTENT = {
