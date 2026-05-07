@@ -307,6 +307,7 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "strlcpy copies and returns the source length"',
             'test "streq matches C-string equality semantics"',
             'test "skip trim remove and replace spaces work in place"',
+            'test "strreplace mirrors replaceChar C-string semantics"',
             'test "strHasPrefix honors C-string boundaries"',
             'test "strstarts mirrors the header-level prefix helper"',
             'test "strEndsWith honors C-string boundaries"',
@@ -315,11 +316,13 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "memparse handles decimal hexadecimal octal and suffixes"',
             'test "memparse keeps original rest when sign is not followed by digits"',
             'test "memparse saturates signed overflow instead of trapping"',
+            'test "memparse keeps signed values and their trailing rest aligned"',
             'test "memparse consumes suffix after saturation"',
         ],
         "memparse_review_anchors": [
             'test "memparse keeps original rest when sign is not followed by digits"',
             'test "memparse saturates signed overflow instead of trapping"',
+            'test "memparse keeps signed values and their trailing rest aligned"',
             'test "memparse consumes suffix after saturation"',
         ],
         "prefix_suffix_review_anchors": [
@@ -328,7 +331,7 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "strEndsWith honors C-string boundaries"',
         ],
         "prefix_suffix_review_summary": "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields",
-        "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed overflow saturates, and suffixes are still consumed after saturation",
+        "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, signed overflow saturates, and suffixes are still consumed after saturation",
         "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
         "shared_replace_char_cstr_review_summary": "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without widening helper-local memparse ownership",
         "parity_fixture_keys": [
