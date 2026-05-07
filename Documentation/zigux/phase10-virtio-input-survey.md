@@ -54,6 +54,7 @@ The survey manifest now records:
 - the landed `phase10-virtio-ring-lab-helper`
 - the landed `phase10-virtio-input-lab-helper`
 - the landed `phase10-virtio-input-lab-gate`
+- the landed `phase10-virtio-input-verify-replay`
 - the landed `phase10-virtio-input-slice-note`
 - the landed `phase10-virtio-input-survey-gate`
 - the landed `phase10-virtio-input-survey-note`
@@ -65,7 +66,7 @@ The survey manifest now records:
 - the landed `phase10-virtio-input-wrapper-ownership-note`
 - the still-blocked `phase10-virtio-input-registration-lifecycle`
 
-This keeps the lane concrete and reviewable without overstating progress: the starter helper is real, the slot-planning foothold and registration-preflight boundary are now real, the queue-callback-preflight boundary is now real, the bounded status-drain replay is now recorded in the same packet, the wrapper-ownership note is now real, and the risky registration and transport surface remains intentionally out of scope.
+This keeps the lane concrete and reviewable without overstating progress: the starter helper is real, the dedicated wrapper-facing verify replay is now recorded as its own landed validation surface, the slot-planning foothold and registration-preflight boundary are now real, the queue-callback-preflight boundary is now real, the bounded status-drain replay is now recorded in the same packet, the wrapper-ownership note is now real, and the risky registration and transport surface remains intentionally out of scope.
 
 ## Non-goals
 
