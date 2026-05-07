@@ -41,6 +41,27 @@ test "phase 5 trace-events sample replays the bounded payload and callback idiom
     try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
 }
 
+test "phase 5 trace-events sample keeps the conditional-event boundary explicit" {
+    var module = sample.TraceEventsReferenceSample{};
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runConditionalBoundaryReplay(0));
+    try module.init();
+
+    const conditional_boundary = try module.runConditionalBoundaryReplay(0);
+    try std.testing.expectEqual(sample.SampleStage.initialized, conditional_boundary.stage_before_iteration);
+    try std.testing.expectEqual(sample.SampleStage.initialized, conditional_boundary.stage_after_iteration);
+    try std.testing.expectEqual(@as(i32, 0), conditional_boundary.main_count);
+    try std.testing.expectEqualStrings("iter=0", conditional_boundary.formatted_message);
+    try std.testing.expectEqualStrings("Mother Goose", conditional_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 0xdeadbeef), conditional_boundary.bitmask_word);
+    try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, conditional_boundary.main_thread_event_calls);
+    try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, conditional_boundary.total_event_calls_after_replay);
+    try std.testing.expect(conditional_boundary.conditional_paths_checked);
+    try std.testing.expect(conditional_boundary.vararg_payload_path_checked);
+    try std.testing.expect(conditional_boundary.relative_location_path_checked);
+    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
+}
+
 test "phase 5 trace-events sample keeps payload and callback boundaries explicit" {
     var module = sample.TraceEventsReferenceSample{};
 
