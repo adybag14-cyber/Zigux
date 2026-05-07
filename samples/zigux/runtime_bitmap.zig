@@ -347,3 +347,45 @@ test "runtime bitmap sample keeps top-bit boundary mutation and bounds checks re
     try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(top_bit + 1, 1));
     try std.testing.expectEqual(ModuleStage.initialized, module.stage());
 }
+
+test "runtime bitmap sample keeps exit-path summaries stable" {
+    const second_word_base = RuntimeBitmapSample.bitmap_nbits / 2;
+
+    var initialized = RuntimeBitmapSample{};
+    try initialized.initWithSetBits(&.{ 0, 5, second_word_base, second_word_base + 6 });
+    const before_initialized_exit = initialized.summary();
+    try initialized.exit();
+
+    const after_initialized_exit = initialized.summary();
+    try std.testing.expectEqual(ModuleStage.exited, initialized.stage());
+    try std.testing.expectEqual(@as(usize, 1), initialized.exit_runs);
+    try std.testing.expectEqual(before_initialized_exit.first_set, after_initialized_exit.first_set);
+    try std.testing.expectEqual(before_initialized_exit.first_zero, after_initialized_exit.first_zero);
+    try std.testing.expectEqual(before_initialized_exit.weight, after_initialized_exit.weight);
+    try std.testing.expectEqual(before_initialized_exit.nbits, after_initialized_exit.nbits);
+    try std.testing.expect(initialized.isSet(0));
+    try std.testing.expect(initialized.isSet(second_word_base + 6));
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized.exit());
+
+    var selftested = RuntimeBitmapSample{};
+    try selftested.initWithSetBits(&.{ 0, 5, second_word_base, second_word_base + 6 });
+    _ = try selftested.runSelftest();
+    try selftested.clearRange(0, 1);
+    try selftested.setRange(1, 2);
+    const before_selftested_exit = selftested.summary();
+    try selftested.exit();
+
+    const after_selftested_exit = selftested.summary();
+    try std.testing.expectEqual(ModuleStage.exited, selftested.stage());
+    try std.testing.expectEqual(@as(usize, 1), selftested.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested.exit_runs);
+    try std.testing.expectEqual(before_selftested_exit.first_set, after_selftested_exit.first_set);
+    try std.testing.expectEqual(before_selftested_exit.first_zero, after_selftested_exit.first_zero);
+    try std.testing.expectEqual(before_selftested_exit.weight, after_selftested_exit.weight);
+    try std.testing.expectEqual(before_selftested_exit.nbits, after_selftested_exit.nbits);
+    try std.testing.expect(selftested.isSet(1));
+    try std.testing.expect(selftested.isSet(2));
+    try std.testing.expect(selftested.isSet(second_word_base));
+    try std.testing.expect(selftested.isSet(second_word_base + 6));
+    try std.testing.expectError(error.InvalidLifecycleTransition, selftested.setRange(1, 1));
+}
