@@ -83,6 +83,7 @@ REQUIRED_FILE_MARKERS = {
         "The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order used by the PMO sequencing and closure companion notes.",
         "current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion",
+        "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this shared fallback overview",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion",
     ],
@@ -211,7 +212,6 @@ def write_fixture_tree(root: Path) -> None:
         DOCS_README_PATH,
         """# Zigux Documentation
 Phase 12 notes
-- `Documentation/zigux/phase12-release-sequencing.md`
 - `Documentation/zigux/phase12-release-closure-checklist.md`
 - `zigux/tests/phase12_virtio_net_syntax_lab.zig`
 - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
@@ -277,6 +277,7 @@ Phase 12 notes
 - The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order used by the PMO sequencing and closure companion notes.
 - current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion
+- `Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this shared fallback overview
 - The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`
 - `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion
 """,
@@ -622,6 +623,25 @@ def run_self_test() -> int:
         if expected not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("raw-coverage-current-smoke-packet-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        raw_coverage_path.write_text(original_raw_coverage, encoding="utf-8")
+
+        broken_raw_coverage = original_raw_coverage.replace(
+            "- `Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this shared fallback overview\n",
+            "",
+            1,
+        )
+        raw_coverage_path.write_text(broken_raw_coverage, encoding="utf-8")
+        failures = validate(root)
+        expected = (
+            f"{PHASE12_RAW_GITHUB_COVERAGE_PATH}:"
+            "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this shared fallback overview"
+        )
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("raw-coverage-coordination-matrix-marker-guard")
             for failure in failures:
                 print(failure)
             return 1
