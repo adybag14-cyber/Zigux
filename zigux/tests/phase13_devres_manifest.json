@@ -38,14 +38,14 @@
       "status": "starter_landed",
       "kind": "resource_lifetime_helper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The landed helper lab already mirrors the bounded __devm_ioremap() lifetime split, keeps the direct devm_ioremap_wc() wrapper explicit as a pure write-combined lifetime planner, preserves exact devm_iounmap() pointer matching, and stays inside the helper-first posture the roadmap allows."
+      "why_now": "The landed helper lab already mirrors the bounded __devm_ioremap() lifetime split, keeps the direct devm_ioremap_uc() and devm_ioremap_wc() wrappers explicit as pure uncached and write-combined lifetime-planning steps, preserves exact devm_iounmap() pointer matching, and stays inside the helper-first posture the roadmap allows."
     },
     {
       "id": "phase13-devres-test-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres.zig",
-      "why_now": "Dedicated devres tests keep the current helper-only packet honest around managed acquire cleanup, the direct devm_ioremap_wc() wrapper success and map-failure cleanup path, resource-backed planning, devm_of_iomap() size reporting, WC memtype reservation shaping, and arch phys WC release-token bookkeeping."
+      "why_now": "Dedicated devres tests keep the current helper-only packet honest around managed acquire cleanup, the direct devm_ioremap_uc() wrapper cleanup path, the direct devm_ioremap_wc() wrapper success and map-failure cleanup path, devm_ioremap_resource_wc() resource-wrapper success and busy-region shaping, resource-backed planning, devm_of_iomap() size reporting, WC memtype reservation shaping, and arch phys WC release-token bookkeeping."
     },
     {
       "id": "phase13-devres-slice-note",
@@ -80,7 +80,7 @@
       "status": "starter_landed",
       "kind": "resource_lifetime_helper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The helper lab already carries the bounded __devm_ioremap_resource() planner for memory-backed resource checks, inclusive size calculation, pretty-name shaping, busy-region failures, and remap cleanup without claiming live reservations."
+      "why_now": "The helper lab already carries the bounded __devm_ioremap_resource() planner for memory-backed resource checks, inclusive size calculation, pretty-name shaping, busy-region failures, remap cleanup, and the explicit devm_ioremap_resource_wc() route without claiming live reservations."
     },
     {
       "id": "phase13-devres-of-iomap-planner",
