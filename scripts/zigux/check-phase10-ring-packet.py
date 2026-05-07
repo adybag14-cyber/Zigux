@@ -42,10 +42,20 @@ EXPECTED_MAKEFILE_MARKERS = [
 ]
 
 EXPECTED_HELPER_MARKERS = [
+    "pub const PackedEventIndexSummary = struct {",
+    "pub fn packedEventIndexSummary(self: *Self, queue_index: u16) !PackedEventIndexSummary {",
     "pub const QueueResetReadinessSummary = struct {",
     "pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
     "pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary {",
     "pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
+]
+
+EXPECTED_VERIFY_TEST_MARKERS = [
+    'test "virtio ring packed event-index summary rejects unsupported queues and reports queue-local poll pressure" {',
+    "try testing.expectError(error.QueueLayoutDoesNotSupportPackedEventIndex, lab.packedEventIndexSummary(1));",
+    "try testing.expectError(error.QueueDoesNotUseEventIndex, lab.packedEventIndexSummary(2));",
+    "try testing.expectEqual(@as(u16, 1), summary.event_index_window);",
+    "try testing.expect(summary.should_poll);",
 ]
 
 EXPECTED_TEST_MARKERS = [
@@ -152,19 +162,27 @@ const phase10_virtio_ring_tests = b.addTest(.{ .name = \"phase10-virtio-ring-tes
 const phase10_virtio_ring_survey_tests = b.addTest(.{ .name = \"phase10-virtio-ring-survey-tests\" });
 const phase10_virtio_ring_verify_tests = b.addTest(.{ .name = \"phase10-virtio-ring-verify-tests\" });
 """,
-    "drivers/virtio/virtio_ring.zig": """pub const QueueResetReadinessSummary = struct {};
+    "drivers/virtio/virtio_ring.zig": """pub const PackedEventIndexSummary = struct {};
+pub fn packedEventIndexSummary(self: *Self, queue_index: u16) !PackedEventIndexSummary { _ = self; _ = queue_index; }
+pub const QueueResetReadinessSummary = struct {};
 pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary { _ = self; _ = queue_index; }
 pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary { _ = self; _ = queue_index; }
 pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary { _ = self; _ = queue_index; }
 """,
-    "drivers/virtio/virtio_ring_verify.zig": 'test "virtio ring verify fixture" {}\n',
-    "zigux/tests/phase10_virtio_ring.zig": """test "phase10 virtio ring reset-readiness preflight reports the current queue blocker" {}
-test "phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work" {}
-test "phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases" {}
-test "phase10 virtio ring callback re-enable reports pending used work and settles after poll" {}
+    "drivers/virtio/virtio_ring_verify.zig": """test \"virtio ring packed event-index summary rejects unsupported queues and reports queue-local poll pressure\" {
+    try testing.expectError(error.QueueLayoutDoesNotSupportPackedEventIndex, lab.packedEventIndexSummary(1));
+    try testing.expectError(error.QueueDoesNotUseEventIndex, lab.packedEventIndexSummary(2));
+    try testing.expectEqual(@as(u16, 1), summary.event_index_window);
+    try testing.expect(summary.should_poll);
+}
 """,
-    "zigux/tests/phase10_virtio_ring_survey.zig": """test "phase10 virtio ring survey manifest records the queue-local foothold and remaining lab-driver bridge" {
-    try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);
+    "zigux/tests/phase10_virtio_ring.zig": """test \"phase10 virtio ring reset-readiness preflight reports the current queue blocker\" {}
+test \"phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work\" {}
+test \"phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases\" {}
+test \"phase10 virtio ring callback re-enable reports pending used work and settles after poll\" {}
+""",
+    "zigux/tests/phase10_virtio_ring_survey.zig": """test \"phase10 virtio ring survey manifest records the queue-local foothold and remaining lab-driver bridge\" {
+    try std.testing.expectEqualStrings(\"P10-L07\", manifest.lane_key);
     try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     var saw_ring_verify_replay = false;
@@ -273,6 +291,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_HELPER_MARKERS:
         if marker not in helper_text:
             missing_markers.append(f"helper:{marker}")
+
+    verify_text = read_text(root, "drivers/virtio/virtio_ring_verify.zig")
+    for marker in EXPECTED_VERIFY_TEST_MARKERS:
+        if marker not in verify_text:
+            missing_markers.append(f"verify:{marker}")
 
     test_text = read_text(root, "zigux/tests/phase10_virtio_ring.zig")
     for marker in EXPECTED_TEST_MARKERS:
@@ -394,6 +417,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_lane_key_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest_path.writeText = None
         manifest_path.write_text(
             original_manifest.replace('\"freeze_boundary_status\": \"aligned\"', '\"freeze_boundary_status\": \"drifted\"', 1),
             encoding="utf-8",
@@ -447,6 +471,19 @@ def run_self_test() -> int:
         original_helper = helper_path.read_text(encoding="utf-8")
         helper_path.write_text(
             original_helper.replace(
+                "pub fn packedEventIndexSummary(self: *Self, queue_index: u16) !PackedEventIndexSummary {",
+                "pub fn packedEventIndexDrift(self: *Self, queue_index: u16) !PackedEventIndexSummary {",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "helper:pub fn packedEventIndexSummary(self: *Self, queue_index: u16) !PackedEventIndexSummary {" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_helper_event_index_marker_missing")
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
                 "pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
                 "pub fn queueResetReadinessDrift(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
                 1,
@@ -457,6 +494,21 @@ def run_self_test() -> int:
         if "helper:pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_helper_marker_missing")
         helper_path.write_text(original_helper, encoding="utf-8")
+
+        verify_path = tmp_root / "drivers/virtio/virtio_ring_verify.zig"
+        original_verify = verify_path.read_text(encoding="utf-8")
+        verify_path.write_text(
+            original_verify.replace(
+                'test \"virtio ring packed event-index summary rejects unsupported queues and reports queue-local poll pressure\" {',
+                'test \"virtio ring packed event-index drift\" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'verify:test \"virtio ring packed event-index summary rejects unsupported queues and reports queue-local poll pressure\" {' not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_verify_test_marker_missing")
+        verify_path.write_text(original_verify, encoding="utf-8")
 
         test_path = tmp_root / "zigux/tests/phase10_virtio_ring.zig"
         original_test = test_path.read_text(encoding="utf-8")
@@ -529,7 +581,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_survey_test_verify_marker_missing")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
