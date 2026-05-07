@@ -23,6 +23,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "- do not allocate");
     try expectContains(slice_note, "Linux-style hyphen range expansion, validation-only counting, and leading-plus numeric acceptance for `get_option()` and `get_options()`");
     try expectContains(slice_note, "memory-size suffix scaling, leading-plus numeric acceptance, and accurate parse-stop reporting in `memparse()`");
+    try expectContains(slice_note, "exact bare-option matching for comma-delimited flags, including leading and doubled-comma empty-option acceptance plus trailing-comma rejection");
     try expectContains(slice_note, "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination");
     try expectContains(slice_note, "the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice");
 
@@ -92,6 +93,8 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(helper_impl, "test \"getOptions expands ranges, supports validation-only counting, and accepts leading plus\"");
     try expectContains(helper_impl, "test \"memparse handles size suffixes, accepts leading plus, and reports where parsing stopped\"");
     try expectContains(helper_impl, "test \"parseOptionStr only matches full comma-delimited options\"");
+    try expectContains(helper_impl, "try std.testing.expect(parseOptionStr(\",debug\", \"\"));");
+    try expectContains(helper_impl, "try std.testing.expect(parseOptionStr(\"debug,,quiet\", \"\"));");
     try expectContains(helper_impl, "try std.testing.expect(!parseOptionStr(\"debug,\", \"\"));");
     try expectContains(helper_impl, "test \"nextArg keeps embedded equals inside quoted values\"");
     try expectContains(helper_impl, "test \"nextArg does not treat a leading equals sign as a value separator\"");
@@ -128,6 +131,8 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(cmdline_tests, "phase 7 memparse preserves suffix scaling, leading plus, and stop index semantics");
     try expectContains(cmdline_tests, "cmdline.memparse(\"+1K\", &index)");
     try expectContains(cmdline_tests, "phase 7 parseOptionStr matches only exact bare options");
+    try expectContains(cmdline_tests, "try std.testing.expect(cmdline.parseOptionStr(\",debug\", \"\"));");
+    try expectContains(cmdline_tests, "try std.testing.expect(cmdline.parseOptionStr(\"debug,,quiet\", \"\"));");
     try expectContains(cmdline_tests, "try std.testing.expect(!cmdline.parseOptionStr(\"debug,\", \"\"));");
     try expectContains(cmdline_tests, "phase 7 nextArg matches serialized edge fixtures");
     try expectContains(cmdline_tests, "for (next_arg_vectors.next_arg_cases) |fixture| {");
