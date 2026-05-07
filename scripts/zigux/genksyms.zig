@@ -24,6 +24,7 @@ pub const ParseFailure = union(enum) {
     ambiguous_option: []const u8,
     missing_option_argument: []const u8,
     unexpected_option_argument: []const u8,
+    too_many_reference_files,
 };
 
 pub const ParseOutcome = union(enum) {
@@ -46,6 +47,7 @@ const usage_text =
     "  -V, --version         Print the release version\n";
 
 const version_text = "genksyms version 2.5.60\n";
+const max_reference_files: usize = 16;
 
 const LongOptionKind = enum {
     help,
@@ -142,6 +144,10 @@ fn writeUnexpectedOptionArgumentError(writer: anytype, option: []const u8) !void
     try writer.print("option doesn't allow an argument -- '{s}'\n", .{rendered});
 }
 
+fn writeTooManyReferenceFilesError(writer: anytype) !void {
+    try writer.writeAll("too many reference files\n");
+}
+
 pub fn renderGenksymsBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("{\"tool\":\"scripts/genksyms/genksyms\",\"stdin\":\"cpp-stream\",\"stdout\":\"symversions\",\"argv\":[\"scripts/genksyms/genksyms\"");
     for (request.rendered_args) |arg| {
@@ -196,6 +202,18 @@ fn resolveLongOption(name: []const u8) LongOptionResolution {
     if (prefix_count == 1) return .{ .match = prefix_match.? };
     if (prefix_count > 1) return .ambiguous;
     return .none;
+}
+
+fn appendReferenceFile(
+    allocator: std.mem.Allocator,
+    references: *std.ArrayList([]const u8),
+    value: []const u8,
+) !?ParseFailure {
+    if (references.items.len >= max_reference_files) {
+        return .too_many_reference_files;
+    }
+    try references.append(allocator, value);
+    return null;
 }
 
 fn parseLongOption(
@@ -253,7 +271,9 @@ fn parseLongOption(
                 break :blk args[index.*];
             };
             if (option.kind == .reference) {
-                try references.append(allocator, value);
+                if (try appendReferenceFile(allocator, references, value)) |failure| {
+                    return .{ .failure = failure };
+                }
             } else {
                 request.dump_types_file = value;
             }
@@ -291,7 +311,9 @@ fn parseShortOptions(
                     break :blk args[index.*];
                 };
                 if (option == 'r') {
-                    try references.append(allocator, value);
+                    if (try appendReferenceFile(allocator, references, value)) |failure| {
+                        return .{ .failure = failure };
+                    }
                 } else {
                     request.dump_types_file = value;
                 }
@@ -387,6 +409,7 @@ pub fn main(init: std.process.Init) !void {
                 .ambiguous_option => |option| try writeAmbiguousOptionError(&stderr_writer.interface, option),
                 .missing_option_argument => |option| try writeMissingOptionArgumentError(&stderr_writer.interface, option),
                 .unexpected_option_argument => |option| try writeUnexpectedOptionArgumentError(&stderr_writer.interface, option),
+                .too_many_reference_files => try writeTooManyReferenceFilesError(&stderr_writer.interface),
             }
             try stderr_writer.interface.flush();
             std.process.exit(1);
@@ -439,5 +462,21 @@ test "parseArgs reports ambiguous abbreviated long options" {
             else => return error.UnexpectedParseFailure,
         },
         else => return error.ExpectedAmbiguousLongOptionFailure,
+    }
+}
+
+test "genksyms bridge rejects more than sixteen reference files like the C harness" {
+    const args = [_][]const u8{
+        "-r", "01.symref", "-r", "02.symref", "-r", "03.symref", "-r", "04.symref",
+        "-r", "05.symref", "-r", "06.symref", "-r", "07.symref", "-r", "08.symref",
+        "-r", "09.symref", "-r", "10.symref", "-r", "11.symref", "-r", "12.symref",
+        "-r", "13.symref", "-r", "14.symref", "-r", "15.symref", "-r", "16.symref",
+        "-r", "17.symref",
+    };
+
+    const outcome = try parseArgs(testing.allocator, &args);
+    switch (outcome) {
+        .failure => |failure| try testing.expectEqual(ParseFailure.too_many_reference_files, failure),
+        else => return error.TestExpectedFailure,
     }
 }
