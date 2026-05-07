@@ -61,6 +61,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "make -C zigux phase3-selftest",
     "manual-only support-script rerun",
@@ -296,6 +297,7 @@ def run_self_test() -> int:
         assert "review_checklist:scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in issues
         assert "review_checklist:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
         assert "review_checklist:scripts/zigux/validate-phase3-abi-bindings-syntax.py" in issues
+        assert "review_checklist:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
         assert "review_checklist:python3 scripts/zigux/phase3_catalog.py --audit-doc-sync" in issues
         assert "review_checklist:make -C zigux phase3-selftest" in issues
 
@@ -305,9 +307,9 @@ def run_self_test() -> int:
             "\n".join(
                 REVIEW_CHECKLIST_MARKERS[:3]
                  + [
-                     "the review packet keeps scripts/zigux/check-phase3-readme-tooling-inventory.py, scripts/zigux/check-phase3-abi-dump-gate.py, scripts/zigux/check-phase3-catalog-selftest.py, scripts/zigux/validate-phase3-policy-unsafe-survey.py, scripts/zigux/check-phase3-policy-byte-guards.py, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, scripts/zigux/validate-phase3-export-uapi-survey.py, scripts/zigux/validate-phase3-abi-bindings-syntax.py, python3 scripts/zigux/phase3_catalog.py --audit-doc-sync, and make -C zigux phase3-selftest visible inside one longer checklist sentence"
+                     "the review packet keeps scripts/zigux/check-phase3-readme-tooling-inventory.py, scripts/zigux/check-phase3-abi-dump-gate.py, scripts/zigux/check-phase3-catalog-selftest.py, scripts/zigux/validate-phase3-policy-unsafe-survey.py, scripts/zigux/check-phase3-policy-byte-guards.py, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, scripts/zigux/validate-phase3-export-uapi-survey.py, scripts/zigux/validate-phase3-abi-bindings-syntax.py, scripts/zigux/survey-phase3-abi-constant-parity.py, python3 scripts/zigux/phase3_catalog.py --audit-doc-sync, and make -C zigux phase3-selftest visible inside one longer checklist sentence"
                  ]
-                + REVIEW_CHECKLIST_MARKERS[13:]
+                + REVIEW_CHECKLIST_MARKERS[14:]
             )
             + "\n",
         )
@@ -316,10 +318,21 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[12]]) + "\n",
+            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[13]]) + "\n",
         )
         issues = validate_root(root)
         assert "duplicate_review_checklist_marker:2:make -C zigux phase3-selftest" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[11]]) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "duplicate_review_checklist_marker:2:scripts/zigux/survey-phase3-abi-constant-parity.py"
+            in issues
+        )
 
         build_self_test_root(root)
         write_text(root / "Documentation/zigux/phase3-abi-slice.md", "python3 scripts/zigux/validate_phase3_selftest.py\n")
@@ -549,7 +562,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=32")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
