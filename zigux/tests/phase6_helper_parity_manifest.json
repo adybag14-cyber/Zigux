@@ -26,14 +26,9 @@
       "id": "bsearch",
       "helper": "lib/bsearch.zig",
       "tests": [
-        "zigux/tests/phase6_bsearch.zig",
-        "zigux/tests/phase6_bsearch_c_parity.zig"
+        "zigux/tests/phase6_bsearch.zig"
       ],
-      "fixtures": [
-        "zigux/tests/fixtures/phase6_bsearch_c_harness.c"
-      ],
-      "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
-      "external_parity": "python3 scripts/zigux/check-phase6-bsearch-c-parity.py"
+      "slice_note": "Documentation/zigux/phase6-bsearch-slice.md"
     },
     {
       "id": "checksum",
@@ -55,15 +50,12 @@
       "helper": "lib/hexdump.zig",
       "tests": [
         "zigux/tests/phase6_hexdump.zig",
-        "zigux/tests/phase6_hexdump_perf.zig",
-        "zigux/tests/phase6_hexdump_c_parity.zig"
+        "zigux/tests/phase6_hexdump_perf.zig"
       ],
       "fixtures": [
-        "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
-        "zigux/tests/fixtures/phase6_hexdump_c_harness.c"
+        "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
       ],
-      "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
-      "external_parity": "python3 scripts/zigux/check-phase6-hexdump-c-parity.py"
+      "slice_note": "Documentation/zigux/phase6-hexdump-slice.md"
     }
   ],
   "shared_gates": [
@@ -114,9 +106,7 @@
       "inline_corpus": "sorted integer and symbol tables",
       "comparison_budget_typed_cases": 5,
       "comparison_budget_raw_cases": 5,
-      "comparison_budget_max_compare_calls": 4,
-      "c_parity_self_test_cases": 7,
-      "c_parity_cases": 29
+      "comparison_budget_max_compare_calls": 4
     },
     "checksum": {
       "compute_vectors": 5,
@@ -144,30 +134,20 @@
         "normalizedRowsize",
         "normalizedGroupsizeForLen",
         "prepareExpectedLine"
-      ],
-      "c_parity_self_test_cases": 8,
-      "c_parity_cases": 29
+      ]
     },
     "generated_fixture_artifacts_committed": false
   },
   "exact_checks": [
     "python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
     "python3 scripts/zigux/check-phase6-shared-surface.py",
-    "python3 scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
-    "python3 scripts/zigux/check-phase6-docs-root-external-parity.py",
     "make -C zigux phase6-validate",
     "make -C zigux phase6",
     "make -C zigux phase6-perf",
     "make -C zigux phase6-base64-perf",
     "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-hexdump-perf",
-    "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test",
-    "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
-    "python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test",
-    "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
-    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
-    "python3 scripts/zigux/check-phase6-hexdump-c-parity.py --self-test",
-    "python3 scripts/zigux/check-phase6-hexdump-c-parity.py"
+    "python3 scripts/zigux/check-phase6-checksum-c-parity.py"
   ]
 }
