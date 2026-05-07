@@ -62,6 +62,7 @@ The current checksum helper surface exercised by this slice covers:
 - `replace4`
 - `from32to16`
 - `fold`
+- `unfold`
 - `add16`
 - `sub16`
 - `tcpUdpNofold`
@@ -78,6 +79,7 @@ The current tests check:
 - non-zero seeded `partial` accumulation parity across odd, carry-heavy, and pre-folded seed inputs
 - fixture-backed carry-discipline and imported KUnit random-prefix replays for all-ones prefixes and no-spurious-carry seeded cases
 - fixture-backed fold reviewability for `from32to16` and `fold`
+- direct stored-checksum word exposure through `unfold` stays explicit for replacement-helper reviewability
 - IPv4 and IPv6 pseudo-header accumulation parity between the dedicated helper paths and manual `partial` plus `blockAdd` composition
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement
 - a direct 30-case C-vs-Zig replay for compute, seeded partial, composition, IPv4 and IPv6 pseudo-header, direct `negate`, direct `from32to16` and `fold`, and incremental replacement behavior
