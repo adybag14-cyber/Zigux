@@ -66,15 +66,22 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     try std.testing.expectEqualStrings("7b5519444e8f73f84c68dc3e63580fcaef06ffb6", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.supporting_artifacts.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.supporting_artifacts.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.indefinite_c_requirements.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.anchors[0]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.supporting_artifacts[3]);
     try std.testing.expectEqualStrings("Documentation/zigux/README.md", manifest.supporting_artifacts[5]);
-    try std.testing.expectEqualStrings("zigux/tests/phase15_indefinite_c_blocker_evidence.zig", manifest.supporting_artifacts[6]);
-    try std.testing.expectEqualStrings("zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig", manifest.supporting_artifacts[7]);
+    try std.testing.expectEqualStrings("scripts/zigux/README.md", manifest.supporting_artifacts[6]);
+    try std.testing.expectEqualStrings("scripts/zigux/check-phase15-scripts-readme-alignment.py", manifest.supporting_artifacts[7]);
+    try std.testing.expectEqualStrings("scripts/zigux/check-phase15-review-process-handoff.py", manifest.supporting_artifacts[8]);
+    try std.testing.expectEqualStrings("zigux/tests/README.md", manifest.supporting_artifacts[9]);
+    try std.testing.expectEqualStrings(".github/workflows/zigux-bootstrap.yml", manifest.supporting_artifacts[10]);
+    try std.testing.expectEqualStrings("zigux/Makefile", manifest.supporting_artifacts[11]);
+    try std.testing.expectEqualStrings("zigux/tests/phase15_build.zig", manifest.supporting_artifacts[12]);
+    try std.testing.expectEqualStrings("zigux/tests/phase15_indefinite_c_blocker_evidence.zig", manifest.supporting_artifacts[13]);
+    try std.testing.expectEqualStrings("zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig", manifest.supporting_artifacts[14]);
 
     var saw_source_of_truth = false;
     var saw_recordkeeping = false;
@@ -146,6 +153,13 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
         "PHASE15_LANE_KEY=P15-L16",
         "survey provenance refreshed against verified `master` head `7b5519444e8f73f84c68dc3e63580fcaef06ffb6`",
         "the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build",
+        "scripts/zigux/README.md",
+        "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+        "scripts/zigux/check-phase15-review-process-handoff.py",
+        "zigux/tests/README.md",
+        ".github/workflows/zigux-bootstrap.yml",
+        "zigux/Makefile",
+        "zigux/tests/phase15_build.zig",
         "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
         "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
         "## When the indefinite-C policy applies",
@@ -211,9 +225,14 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
     try expectContains(io_instance.io(), "scripts/zigux/README.md", &.{
         "Phase 15 flow",
         "phase15-indefinite-c-policy.md",
+        "check-phase15-scripts-readme-alignment.py",
+        "check-phase15-review-process-handoff.py",
         "phase15_indefinite_c_policy.json",
+        "phase15_indefinite_c_blocker_evidence.zig",
         "phase15_indefinite_c_policy.zig",
         "phase15_indefinite_c_lane_owner_alignment.zig",
+        "phase15_build.zig",
+        "make -C zigux phase15-validate",
         "make -C zigux phase15",
     });
 
@@ -222,6 +241,7 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
         "Documentation/zigux/phase15-indefinite-c-policy.md",
         "zigux/tests/phase15_indefinite_c_policy.json",
         "zigux/tests/phase15_indefinite_c_policy.zig",
+        "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
         "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
         "make -C zigux phase15-validate",
         "make -C zigux phase15",
@@ -258,6 +278,10 @@ test "phase 15 indefinite-C evidence archives and build wiring stay aligned with
     try expectContains(io_instance.io(), "zigux/tests/phase15_build.zig", &.{
         "phase15_indefinite_c_policy.zig",
         "phase15-indefinite-c-policy-tests",
+        "phase15_indefinite_c_blocker_evidence.zig",
+        "phase15-indefinite-c-blocker-evidence-tests",
+        "phase15_indefinite_c_lane_owner_alignment.zig",
+        "phase15-indefinite-c-lane-owner-alignment-tests",
     });
 }
 
@@ -315,6 +339,7 @@ test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
         } else if (std.mem.eql(u8, gap.id, "phase15-indefinite-c-field-sync-followup")) {
             saw_sync_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared scripts-root validator-first route") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reopen-trigger catalog") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blocker-evidence replay") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lane-owner-alignment replay") != null);
