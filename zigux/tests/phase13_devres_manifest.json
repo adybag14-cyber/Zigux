@@ -69,6 +69,13 @@
       "why_now": "The dedicated coherent-DMA replay proves the manifest still records the shipped devres test, reviewability gate, and survey evidence while keeping the live DMA-backed helper and scatterlist ownership boundary explicit."
     },
     {
+      "id": "phase13-devres-boundary-evidence-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_devres_boundary_evidence.zig",
+      "why_now": "A dedicated boundary-evidence gate cross-checks the manifest, slice note, and survey note so the blocked DMA-backed and scatterlist-owned helper families stay explicit and machine-checkable even as nearby planner coverage grows."
+    },
+    {
       "id": "phase13-devres-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
