@@ -237,7 +237,8 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "make -C zigux phase5-test",
         "make -C zigux phase5",
         "zigux/tests/phase5_kretprobe_example.zig",
-        "zigux/tests/phase5_kretprobe_example_build.zig",
+        "temporary out-of-tree scratch build file",
+        "imported the live sample and paired boundary test modules",
         "runtime_kretprobe",
         "## Latest verification snapshot",
         "zig fmt --check",
@@ -290,6 +291,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "one bounded self-check through `runAnchorReplay()`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/build.zig") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_kretprobe_example_build.zig") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
 
     const docs_root = try std.Io.Dir.cwd().readFileAlloc(
