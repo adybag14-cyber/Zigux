@@ -14,7 +14,7 @@ pub fn byteOffset(base: usize, offset: usize) usize {
     return std.math.add(usize, base, offset) catch @panic("phase3 narrow unsafe byte offset overflow");
 }
 
-pub fn pointerAt(comptime T: type, base: usize, offset: usize) *volatile T {
+pub fn pointerAt(comptime T: type, base: usize, offset: usize) *align(1) volatile T {
     return @ptrFromInt(byteOffset(base, offset));
 }
 
@@ -67,6 +67,12 @@ test "phase3 narrow unsafe wrappers stay bounded" {
     const ptr = pointerAt(u32, base, 0);
     ptr.* = 11;
     try std.testing.expectEqual(@as(u32, 11), value);
+
+    var odd_bytes = [_]u8{ 0, 0, 0, 0 };
+    const odd_ptr = pointerAt(u16, addressOf(&odd_bytes[0]), 1);
+    odd_ptr.* = 0x1234;
+    const odd_confirm: *align(1) const u16 = @ptrCast(&odd_bytes[1]);
+    try std.testing.expectEqual(@as(u16, 0x1234), odd_confirm.*);
 
     const slice = constSliceAt(u32, base, 1);
     try std.testing.expectEqual(@as(u32, 11), slice[0]);
