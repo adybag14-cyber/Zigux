@@ -269,6 +269,8 @@ That means `test "strtobool accepts common Linux forms"`, `test "strlcpy copies 
 - `PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, signed overflow saturates instead of trapping, and suffixes are still consumed after saturation`
 - `PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors, committed C-string replacement bytes, and parity fixture keys`
 
+The direct helper-local follow-up test `test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"` must also stay review-visible whenever `trimSpaces()` or `strim()` changes. The shared Phase 1 string fixture still records the trimmed bytes but not the preserved tail bytes beyond the first terminator, so this direct follow-up remains the owning proof that trailing-whitespace trimming stops at the first embedded NUL instead of mutating bytes past the C-string boundary.
+
 ## Rollback
 
 Rollback owner:
