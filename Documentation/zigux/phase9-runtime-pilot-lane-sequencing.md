@@ -19,10 +19,11 @@ Treat the shared loader lane as the only owner of:
 - `zigux/kernel/runtime_loader_contract.zig`
 - `zigux/tests/runtime_loader_allocator_init_flow.zig`
 - `scripts/zigux/check-phase9-build-only-surface.py`
+- the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook when the work is about checker-local reviewability drift before the broader `make -C zigux phase9` replay
 - the `phase9-runtime-loader-shared-tests` step in `zigux/tests/phase9_build.zig`
-- the shared `make -C zigux phase9` route when the work is about loader-facade, allocator-handoff, or request-contract reviewability
+- the shared `make -C zigux phase9` route when the work is about loader-facade, allocator-handoff, request-contract, or bundled runtime-pilot reviewability
 
-This lane may tighten loader-facing reviewability, contract wording, or shared build-only validation, but it should not reopen pilot-local sample, module, diff, or survey logic unless a shared loader contract change forces a synchronized follow-up.
+This lane may tighten loader-facing reviewability, checker-local selftest-hook wording, contract wording, or shared build-only validation, but it should not reopen pilot-local sample, module, diff, or survey logic unless a shared loader contract change forces a synchronized follow-up.
 
 ## Pilot-family lanes
 
@@ -107,19 +108,19 @@ Keep that follow-through bounded to one shared summary at a time:
 
 Only `samples/zigux/README.md` and `Documentation/zigux/review-checklist.md` should restate the bitmap-only top-bit companion or the older command and environment control boundaries; the docs root, scripts root, and tests root should keep pointing back here instead of duplicating those pilot-local reminders.
 
-This keeps later closure-note work small while preserving the explicit split between the shared loader lane, the bitmap-only top-bit replay, the samples-root and checklist-facing command and environment boundaries, and the four pilot-family packets.
+This keeps later closure-note work small while preserving the explicit split between the shared loader lane, the bitmap-only top-bit replay, the samples-root and checklist-facing command and environment boundaries, the shipped checker self-test hook, and the four pilot-family packets.
 
 ## Current live follow-through state
 
 - `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`
 - `samples/zigux/README.md` already carries the bitmap-only top-bit companion reminder plus the older command and environment control boundaries, so later shared-loader follow-through should leave those pilot-local cues there instead of flattening them back into the loader packet
 - `Documentation/zigux/freeze-map.md` already keeps the shared Phase 9 runtime-loader packet explicit as a review-only boundary beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`, so the shared loader lane should treat freeze-map wording there as a review-surface cue rather than runtime-substrate closure or a status-change request
-- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, but `scripts/zigux/check-phase9-build-only-surface.py` still treats the freeze-map anchor prompt there as presence-only rather than exact-counted reviewer evidence
+- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet
 - the next same-lane follow-through is still the checker-local freeze-map prompt exact-count hardening in `scripts/zigux/check-phase9-build-only-surface.py`; after that lands, reopen only if one of the shared reminder surfaces drifts, or if the shared loader lane picks up a new bounded validation surface that needs to be named across the packet
 
 ## Recommended next-step order
 
-1. shared loader lane: only when the change is about request-contract, allocator/init-flow, or build-only reviewability
+1. shared loader lane: only when the change is about request-contract, allocator/init-flow, build-only reviewability, or the shipped checker self-test hook
 2. shared reminder refresh: only if one of the docs-root, scripts-root, tests-root, samples-root, or checklist surfaces drifts again
 3. bitmap lane: after that, only if the goal is to refine the already-landed top-bit or bitmap-specific replay packet
 4. atomic64, trace-events, or kretprobe lanes: only when the change stays inside that family’s sample, loader, module, diff, or survey evidence
