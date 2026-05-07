@@ -32,7 +32,7 @@ EXPECTED_HELPER_MARKERS = [
 
 EXPECTED_TEST_MARKERS = [
     'test "phase10 virtio mmio exposes a transport identity summary before lifecycle work" {',
-    'test "phase10 virtio mmio summarizes selected-queue readiness before transport handoff" {',
+    'test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {',
 ]
 
 EXPECTED_SURVEY_TEST_MARKERS = [
@@ -125,7 +125,7 @@ pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self
     "drivers/virtio/virtio_ring_verify.zig": 'test "virtio ring verify fixture" {}\n',
     "drivers/virtio/virtio_input_verify.zig": 'test "virtio input verify fixture" {}\n',
     "zigux/tests/phase10_virtio_mmio.zig": """test "phase10 virtio mmio exposes a transport identity summary before lifecycle work" {}
-test "phase10 virtio mmio summarizes selected-queue readiness before transport handoff" {}
+test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {}
 """,
     "zigux/tests/phase10_virtio_mmio_survey.zig": """test "phase10 virtio mmio survey manifest records the landed identity-backed packet" {
     try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);
@@ -452,14 +452,14 @@ def run_self_test() -> int:
 
         test_path.write_text(
             original_test.replace(
-                'test "phase10 virtio mmio summarizes selected-queue readiness before transport handoff" {',
+                'test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {',
                 'test "phase10 virtio mmio summarizes queue-handoff drift before transport handoff" {',
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'tests:test "phase10 virtio mmio summarizes selected-queue readiness before transport handoff" {' not in missing_markers:
+        if 'tests:test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {' not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_selected_queue_test_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
