@@ -1,6 +1,8 @@
 {
   "tool": "scripts/zigux/genksyms.zig",
+  "status": "closed",
   "mode": "wrapper-first bridge",
+  "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
   "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
   "harness": "zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c",
   "case_count": 16,
@@ -51,5 +53,18 @@
   "action_abbrev_cases": [
     "abbreviated_help",
     "abbreviated_version"
+  ],
+  "helper_local_anchors": [
+    "genksyms bridge parses repeated short flags and arguments",
+    "genksyms bridge parses long options and quiet override",
+    "genksyms bridge keeps version as a side effect while parsing later options",
+    "genksyms bridge accepts unambiguous abbreviated long options",
+    "genksyms bridge canonicalizes unexpected long option argument failures",
+    "genksyms bridge treats lone dash as positional passthrough",
+    "genksyms bridge accepts explicit option terminator",
+    "genksyms bridge reports invalid short option in getopt style",
+    "genksyms bridge reports missing short option argument in getopt style",
+    "genksyms bridge renders normalized invocation plan",
+    "genksyms bridge ignores positional args while still parsing later options"
   ]
 }
