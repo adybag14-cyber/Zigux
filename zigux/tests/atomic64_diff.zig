@@ -444,3 +444,30 @@ test "atomic64 diff wrapper pins the current bounded runtime case groups" {
         3,
     );
 }
+
+test "atomic64 diff wrapper records the threshold replay lifecycle markers" {
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(sample.ModuleStage.exited, single.final_stage);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(sample.ModuleStage.exited, repeated.final_stage);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(@as(usize, 1), single.final_selftest_runs);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(@as(usize, 1), repeated.final_selftest_runs);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(@as(usize, 1), single.final_exit_runs);",
+    );
+    try expectMarker(
+        runtime_atomic64_diff_source,
+        "try std.testing.expectEqual(@as(usize, 1), repeated.final_exit_runs);",
+    );
+}
