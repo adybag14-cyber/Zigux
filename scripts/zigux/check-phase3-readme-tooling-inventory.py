@@ -569,6 +569,7 @@ def run_self_test() -> int:
             ("validate-bootstrap.py", "missing_validate_bootstrap_repo_file_guard_failed"),
             ("install-zig.py", "missing_install_zig_repo_file_guard_failed"),
             ("check-phase6-shared-surface.py", "missing_phase6_shared_surface_repo_file_guard_failed"),
+            ("validate-phase7.py", "missing_phase7_validator_repo_file_guard_failed"),
             ("check-phase7-make-wrapper.py", "missing_phase7_make_wrapper_repo_file_guard_failed"),
             ("check-phase7-argv-split-packet.py", "missing_phase7_argv_split_packet_repo_file_guard_failed"),
             ("check-phase7-rbtree-parity.py", "missing_phase7_rbtree_parity_repo_file_guard_failed"),
