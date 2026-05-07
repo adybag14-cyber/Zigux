@@ -15,6 +15,9 @@ const RepoEvidence = struct {
     shared_ci_phase15_present: bool,
     dedicated_handoff_guard_present: bool,
     shared_build_handoff_replay_present: bool,
+    indefinite_c_blocker_evidence_replay_present: bool,
+    indefinite_c_lane_owner_alignment_replay_present: bool,
+    governance_lane_sequencing_replay_present: bool,
     lane_key_matches_phase15_lane_map: bool,
     paired_parity_scorecard_blocker_posture_matches: bool,
     deep_core_status_change_ready: bool,
@@ -76,6 +79,9 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(manifest.repo_evidence.dedicated_handoff_guard_present);
     try std.testing.expect(manifest.repo_evidence.shared_build_handoff_replay_present);
+    try std.testing.expect(manifest.repo_evidence.indefinite_c_blocker_evidence_replay_present);
+    try std.testing.expect(manifest.repo_evidence.indefinite_c_lane_owner_alignment_replay_present);
+    try std.testing.expect(manifest.repo_evidence.governance_lane_sequencing_replay_present);
     try std.testing.expect(manifest.repo_evidence.lane_key_matches_phase15_lane_map);
     try std.testing.expect(manifest.repo_evidence.paired_parity_scorecard_blocker_posture_matches);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
@@ -191,6 +197,10 @@ test "phase 15 handoff note keeps the repaired validator-first surface and remai
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "ownership_or_validation_changed") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_indefinite_c_blocker_evidence.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_governance_lane_sequencing.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "blocker vocabulary, lane-owner vocabulary, and anti-overlap posture explicit beside this parked next-step packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_lane_note, "### 5. Handoff lane: parked next-step record only") != null);
