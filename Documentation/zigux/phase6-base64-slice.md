@@ -71,7 +71,8 @@ The current tests check:
 - shared kernel-derived encode, decode, variant, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - invalid-input rejection through both `bytes` and `decode` for malformed, embedded-NUL, and variant-mismatched decode inputs
 - exhaustive canonical tail acceptance for padded and unpadded std, URL-safe, and IMAP decode paths
-- dedicated encode and decode perf sanity across std, URL-safe, and IMAP paths with and without padding through `zigux/tests/phase6_base64_perf.zig`
+- dedicated encode and decode perf sanity across std and URL-safe paths with and without padding through `zigux/tests/phase6_base64_perf.zig`
+- IMAP remains covered by functional parity and decode-classification checks, not by the dedicated perf gate
 - the bounded external C-vs-Zig replay packet through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `python3 scripts/zigux/check-phase6-base64-c-parity.py`, including the current `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=10` review gate and `PHASE6_BASE64_C_PARITY_CASES=122` spot check
 
 ## Non-goals
