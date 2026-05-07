@@ -310,7 +310,6 @@ def run_self_test() -> int:
 
         helper_path = tmp_root / "drivers/virtio/virtio_mmio.zig"
         original_helper = helper_path.read_text(encoding="utf-8")
-        helper_path.writeText = None
         helper_path.write_text(
             original_helper.replace("pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {", "pub fn transportIdentityDrift(self: *const Self) TransportIdentitySummary {", 1),
             encoding="utf-8",
