@@ -52,7 +52,7 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     barrier.full();
     barrier.acquireRelease();
 
-    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     const base = narrow.addressOf(&bytes[0]);
     const aligned_halfword: *align(1) const u16 = @ptrCast(&bytes[2]);
     const aligned_word: *align(1) const u32 = @ptrCast(&bytes[@sizeOf(u32)]);
@@ -91,6 +91,11 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     mmio.write32(base, 3, 0x89abcdef);
     try std.testing.expectEqual(@as(u32, 0x89abcdef), odd_word.*);
     try std.testing.expectEqual(@as(u32, 0x89abcdef), mmio.read32(base, 3));
+
+    const odd_doubleword: *align(1) const u64 = @ptrCast(&bytes[5]);
+    mmio.write64(base, 5, 0x0123_4567_89ab_cdef);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), odd_doubleword.*);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), mmio.read64(base, 5));
 }
 
 test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {
