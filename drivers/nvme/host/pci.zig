@@ -98,6 +98,24 @@ pub const IoQueueReservationSummary = struct {
     reset_generation: u32,
 };
 
+pub const RecoveryReservationReplayPlanSummary = struct {
+    anchor: []const u8,
+    state: RecoveryState,
+    reset_generation: u32,
+    requested_reserved_io_queues: usize,
+    controller_io_queue_limit: usize,
+    planner_remaining_io_slots: usize,
+    replayable_reserved_io_queues: usize,
+    first_queue_id: u16,
+    last_queue_id: u16,
+    controller_limited: bool,
+    planner_limited: bool,
+    queue_planning_blocked: bool,
+    queues_frozen: bool,
+    cached_queue_reservation_stale: bool,
+    admin_queue_must_be_replanned: bool,
+};
+
 pub const PrpBufferShapeSummary = struct {
     anchor: []const u8,
     total_transfer_bytes: u32,
@@ -314,22 +332,72 @@ pub const NvmePciQueueLab = struct {
         };
     }
 
+    pub fn planRecoveryReservationReplay(
+        self: *const Self,
+        request: RecoveryReplayRequest,
+        controller_io_queue_limit: usize,
+    ) !RecoveryReservationReplayPlanSummary {
+        if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
+        if (!request.had_io_queue_reservation or request.cached_reserved_io_queues == 0) {
+            return error.NoQueueReservationToReplay;
+        }
+
+        const cached_queue_reservation_stale = request.cached_queue_reservation_generation != self.reset_generation;
+        if (!cached_queue_reservation_stale) {
+            return error.QueueReservationAlreadyCurrent;
+        }
+
+        const admin_queue_must_be_replanned = request.had_admin_queue_plan and
+            self.last_admin_queue_generation != self.reset_generation;
+        if (admin_queue_must_be_replanned) {
+            return error.AdminQueueReplayRequired;
+        }
+
+        const plan = try self.planIoQueueCount(request.cached_reserved_io_queues, controller_io_queue_limit);
+        return .{
+            .anchor = plan.anchor,
+            .state = self.recovery_state,
+            .reset_generation = self.reset_generation,
+            .requested_reserved_io_queues = request.cached_reserved_io_queues,
+            .controller_io_queue_limit = controller_io_queue_limit,
+            .planner_remaining_io_slots = plan.planner_remaining_io_slots,
+            .replayable_reserved_io_queues = plan.selected_io_queues,
+            .first_queue_id = plan.first_queue_id,
+            .last_queue_id = plan.last_queue_id,
+            .controller_limited = plan.controller_limited,
+            .planner_limited = plan.planner_limited,
+            .queue_planning_blocked = false,
+            .queues_frozen = plan.queues_frozen,
+            .cached_queue_reservation_stale = true,
+            .admin_queue_must_be_replanned = false,
+        };
+    }
+
     pub fn replayReservedIoQueues(
         self: *Self,
         request: RecoveryReplayRequest,
         controller_io_queue_limit: usize,
     ) !IoQueueReservationSummary {
-        if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
-        if (!request.had_io_queue_reservation or request.cached_reserved_io_queues == 0) {
-            return error.NoQueueReservationToReplay;
-        }
-        if (request.cached_queue_reservation_generation == self.reset_generation) {
-            return error.QueueReservationAlreadyCurrent;
-        }
-        if (request.had_admin_queue_plan and self.last_admin_queue_generation != self.reset_generation) {
-            return error.AdminQueueReplayRequired;
-        }
-        return self.reserveIoQueues(request.cached_reserved_io_queues, controller_io_queue_limit);
+        const plan = try self.planRecoveryReservationReplay(request, controller_io_queue_limit);
+        const reservation_delta = try checkedCastU16(plan.replayable_reserved_io_queues);
+
+        self.next_io_queue_id = try checkedAddU16(self.next_io_queue_id, reservation_delta);
+        self.planned_io_queues = try checkedAddUsize(self.planned_io_queues, plan.replayable_reserved_io_queues);
+
+        return .{
+            .anchor = plan.anchor,
+            .requested_io_queues = plan.requested_reserved_io_queues,
+            .controller_io_queue_limit = plan.controller_io_queue_limit,
+            .planner_remaining_io_slots = plan.planner_remaining_io_slots,
+            .reserved_io_queues = plan.replayable_reserved_io_queues,
+            .first_queue_id = plan.first_queue_id,
+            .last_queue_id = plan.last_queue_id,
+            .planned_io_queues_after_reserve = self.planned_io_queues,
+            .controller_limited = plan.controller_limited,
+            .planner_limited = plan.planner_limited,
+            .queues_frozen = plan.queues_frozen,
+            .reset_generation = plan.reset_generation,
+        };
     }
 
     pub fn planPrpBufferShape(
