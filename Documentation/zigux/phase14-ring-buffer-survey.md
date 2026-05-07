@@ -34,7 +34,7 @@ It is to make the blocked state reviewable and record the first stay-in-C checkl
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live source still carries explicit nesting state through `MAX_NEST`, `current_context`, `committing`, `commits`, and `nest` on `struct ring_buffer_per_cpu`, which means the roadmap's requested concurrency audit should keep nested-writer sequencing reviewable instead of reducing this lane to a size-only survey.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
-- the survey manifest now records a landed decision checklist plus the nested-writer, overwrite, remote-reader metadata, wakeup or mmap, tracefs mapping limitation, mapped-reader ioctl, reader-page consume, exported-page copy-path, and mapped-reader lifetime audits so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
+- the survey manifest now records a landed decision checklist plus the nested-writer, overwrite, tracefs reader-serialization, remote-reader metadata, wakeup or mmap, tracefs mapping limitation, mapped-reader ioctl, reader-page consume, exported-page copy-path, and mapped-reader lifetime audits so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
 
 ## Decision checklist
 
@@ -66,6 +66,17 @@ When the tail page catches the head page and overwrite mode is disabled, the wri
 - Lost-event reporting is finalized on the reader side, not at the overwrite point itself.
 After the reader swaps in the next page, the code compares `overrun` against `last_overrun` and publishes the delta through `lost_events`, which means overwrite accounting stays coupled to reader-page replacement and should remain study-only for now.
 - The supporting docs line up with that code path: `Documentation/trace/ring-buffer-design.rst` explains that overwrite mode must move the head page before the tail can advance, and `Documentation/trace/ftrace.rst` distinguishes dropped events from overwritten or unread data in the exposed trace stats.
+
+## Tracefs reader-serialization audit
+
+- `trace_access_lock()` and `trace_access_unlock()` keep tracefs readers behind the same top-level serialization that the tracing side already uses for ring-buffer access.
+`tracing_buffers_read()` takes that lock before it reaches `ring_buffer_read_page()`, so ordinary tracefs reads do not own an independent page-handoff policy surface.
+- The lock is guarding consumed-page lifetime, not just file position.
+Once `tracing_buffers_read()` has entered the read path, it either copies or splices from the current reader page before releasing trace access again, which keeps the exposed page lifetime tied to the same C-owned read-versus-splice consumed-page lifetime rule.
+- That means tracefs reads still depend on the same reader-page and exported-page decisions already recorded elsewhere in this survey.
+Mapped buffers still force the copying fallback, partially consumed pages still stay on the defensive path, and direct page handoff still depends on the reader-page choreography rather than on an isolated tracefs wrapper seam.
+- The Phase 14 stay-in-C boundary therefore remains explicit here.
+`trace_access_lock()`, `trace_access_unlock()`, `tracing_buffers_read()`, and the read-versus-splice consumed-page lifetime rule still move together with the existing reader-page, exported-page, and mapping audits, so this lane records them as one more C-owned concurrency seam instead of implying a new Zig bridge candidate.
 
 ## Remote-reader metadata audit
 
@@ -162,6 +173,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-boundary-decision-checklist`
 - landed `phase14-ring-buffer-nested-writer-audit`
 - landed `phase14-ring-buffer-overwrite-audit`
+- landed `phase14-ring-buffer-tracefs-reader-serialization-followup`
 - landed `phase14-ring-buffer-remote-reader-meta-followup`
 - landed `phase14-ring-buffer-wakeup-mmap-followup`
 - landed `phase14-ring-buffer-splice-resize-followup`
@@ -194,4 +206,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Leave this ring-buffer survey lane parked unless a later Phase 14 traceability or release-boundary refresh needs to restate the current writer-stack, reader-page, remote-reader, mapped-reader, exported-page, or mapped-reader lifetime stay-in-C boundary after another anchor-local survey change. Any future ring-buffer work here should stay on the study-only side of writer-stack, reader, wakeup, mapping, remote-reader, exported-page, or mapping-lifetime boundary evidence rather than reopening a bridge or port claim.
+Leave this ring-buffer survey lane parked unless a later Phase 14 traceability or release-boundary refresh needs to restate the current writer-stack, tracefs reader-serialization, reader-page, remote-reader, mapped-reader, exported-page, or mapped-reader lifetime stay-in-C boundary after another anchor-local survey change. Any future ring-buffer work here should stay on the study-only side of writer-stack, tracefs reader serialization, reader, wakeup, mapping, remote-reader, exported-page, or mapping-lifetime boundary evidence rather than reopening a bridge or port claim.
