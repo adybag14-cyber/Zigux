@@ -216,6 +216,8 @@ test "phase11 dw_wdt survey note, slice note, and validation matrix stay aligned
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "teardown and failure-mode parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "platform-backed registration scaffolding") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_register_device") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-verify-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/watchdog/dw_wdt_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L10`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L05`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L11`") == null);
@@ -225,6 +227,8 @@ test "phase11 dw_wdt survey note, slice note, and validation matrix stay aligned
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "platform-backed registration scaffold") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "watchdog_register_device") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11_dw_wdt.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11-dw-wdt-verify-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "drivers/watchdog/dw_wdt_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L10`") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L05`") == null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L12`") == null);
