@@ -154,6 +154,7 @@ PHASE13_VALIDATE_HELPERS = (
     "validate-phase13-release.py",
     "check-phase13-devres-packet.py",
     "check-phase13-landlock-ruleset-packet.py",
+    "check-phase13-notifier-packet.py",
 )
 PHASE15_VALIDATE_TARGET = "phase15-validate"
 PHASE15_VALIDATE_COMMANDS = (
@@ -464,6 +465,7 @@ def _baseline_makefile() -> str:
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py",
         "",
         "phase15-validate:",
         *PHASE15_VALIDATE_COMMANDS,
@@ -527,6 +529,19 @@ def run_self_test() -> int:
         path.unlink()
         _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase13-notifier-packet.py"], "missing_phase13_notifier_packet_repo_file_guard_failed")
         _write(path, "# stub\n")
+        case_count += 1
+
+        cmd = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py\n"
+        _write(root / MAKEFILE_REL, baseline_makefile.replace(cmd, "", 1))
+        _assert_only(
+            validate(root),
+            [
+                "missing_makefile_helper:phase13-validate:check-phase13-notifier-packet.py",
+                "makefile_helper_order_drift:phase13-validate",
+            ],
+            "missing_phase13_notifier_packet_makefile_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
 
         tests_marker = "`scripts/zigux/check-phase3-policy-byte-guards.py`, "
