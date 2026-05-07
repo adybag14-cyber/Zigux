@@ -88,11 +88,7 @@
         "postorder_count",
         "erase_init_node_empty",
         "cleared_node_empty"
-      ],
-      "duplicate_range_review_summary": "helper-local duplicate-range anchors stay explicit through the direct rbtree tests because the shared Phase 1 replay still covers only traversal and detached-node parity, not a committed duplicate-search fixture packet",
-      "duplicate_range_owner": "the direct helper-local findAdd and nextMatch tests remain the owning proof for duplicate insertion and duplicate-range traversal until zigux/tests/phase1_helpers.zig consumes dedicated duplicate-search fixture fields",
-      "cached_root_review_summary": "helper-local cached-root anchors stay explicit through the direct rbtree tests because the shared Phase 1 replay does not currently exercise RootCached leftmost-pointer promotion, replacement, or singleton erase behavior",
-      "cached_root_owner": "the direct helper-local cached-root tests remain the owning proof for addCached, eraseCached, firstCached, and replaceNodeCached behavior until the shared Phase 1 fixture grows dedicated cached-root fields"
+      ]
     },
     "tools/lib/string.zig": {
       "helper_test_anchors": [
