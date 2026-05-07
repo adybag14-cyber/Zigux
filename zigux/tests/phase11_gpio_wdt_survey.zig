@@ -9,6 +9,7 @@ const SurveySummary = struct {
     preexisting_phase11_survey_note_present: bool,
     preexisting_phase11_module_note_present: bool,
     preexisting_phase11_validation_matrix_present: bool,
+    preexisting_phase11_shared_replay_evidence_present: bool,
 };
 
 const Gap = struct {
@@ -63,6 +64,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_module_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_validation_matrix_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase11_shared_replay_evidence_present);
     try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
@@ -132,7 +134,8 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             saw_validation_matrix = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-validation-matrix.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validation posture") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 replay path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact focused survey replay") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device request evidence") != null);
         }
 
@@ -239,6 +242,7 @@ test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_watchdog_register_device()") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_GPIO_WDT_STATUS=hardware_validation_matrix_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "## Shared Replay Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "descriptorPreflightSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "timeoutPropertyCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "registerDeviceCallSummary()") != null);
@@ -246,6 +250,11 @@ test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "scripts/zigux/check-phase11-shared-replay-contract.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "teardown and failure-mode parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "hardware-backed validation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11-gpio-wdt-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11-gpio-wdt-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "make -C zigux phase11") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zig test zigux/tests/phase11_gpio_wdt_survey.zig") != null);
 }
 
 test "phase11 gpio_wdt module-slice note stays wired into the review packet" {
