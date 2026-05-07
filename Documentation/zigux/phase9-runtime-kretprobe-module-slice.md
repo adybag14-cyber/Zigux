@@ -50,3 +50,21 @@ This slice does not yet claim:
 - a kernel-loadable Zigux kretprobe module
 - real `register_kretprobe()` or `unregister_kretprobe()` parity
 - architecture-specific register extraction parity for `regs_return_value()`
+
+## Gates
+
+1. run the focused shared runtime-loader shard
+- `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
+
+2. run the focused runtime kretprobe lane step
+- `zig build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig`
+
+3. run the dedicated Phase 9 build
+- `zig build test --build-file zigux/tests/phase9_build.zig`
+
+4. run the convenience target
+- `make -C zigux phase9`
+
+## Next bounded step
+
+Stay in the Phase 9 runtime kretprobe lane and keep broader work blocked until a shared runtime loader substrate can consume the bounded `register_kretprobe()` and `unregister_kretprobe()` handoff plan.
