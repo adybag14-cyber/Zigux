@@ -480,8 +480,8 @@ def run_self_test() -> int:
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
             build_lines.append("b.addTest(.")
             build_lines.append("b.addRunArtifact(")
-            build_lines.append(label)
-            build_lines.append(root_source)
+            buildLines.append(label)
+            buildLines.append(root_source)
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         errors = check(root)
         if errors:
@@ -613,7 +613,6 @@ def run_self_test() -> int:
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken_docs_root = root / "Documentation/zigux/README.md"
-        broken_docs_root.writeText = broken_docs_root.write_text
         broken_docs_root.write_text(
             broken_docs_root.read_text(encoding="utf-8").replace("make -C zigux phase14-validate\n", "", 1),
             encoding="utf-8",
@@ -767,7 +766,7 @@ def run_self_test() -> int:
         if "missing file: scripts/zigux/check-phase14-rollback-threshold-sequencing.py" not in errors:
             print("self-test expected rollback-threshold checker missing-file failure", file=sys.stderr)
             return 1
-        writeText(root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
+        write_text(rollback_checker, f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         release_boundary_checker = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
         release_boundary_checker.unlink()
         errors = check(root)
