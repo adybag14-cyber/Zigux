@@ -137,7 +137,7 @@ DOCS_ROOT_REQUIRED_MARKERS = (
 
 SCRIPTS_README_REQUIRED_MARKERS = (
     "`validate-phase3-export-uapi-survey.py`",
-    "`validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, the canonical ABI headers, and the workflow hooks that rerun that same survey surface.",
+    "`validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `include/linux/zigux.h`, `include/zigux/abi.h`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and the workflow hooks that rerun that same survey surface.",
 )
 
 WORKFLOW_REQUIRED_MARKERS = (
@@ -480,7 +480,7 @@ def run_self_test() -> int:
                 (
                     "# scripts/zigux",
                     "- `validate-phase3-export-uapi-survey.py`",
-                    "- `validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, the canonical ABI headers, and the workflow hooks that rerun that same survey surface.",
+                    "- `validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `include/linux/zigux.h`, `include/zigux/abi.h`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and the workflow hooks that rerun that same survey surface.",
                     "",
                 )
             ),
