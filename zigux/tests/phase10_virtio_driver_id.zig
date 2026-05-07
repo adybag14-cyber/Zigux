@@ -64,3 +64,48 @@ test "phase10 virtio driver id helper models wildcard and unmatched paths" {
     try std.testing.expect(!summary.matched_device_any);
     try std.testing.expect(!summary.matched_vendor_any);
 }
+
+test "phase10 virtio driver id helper flags when a broad earlier rule hides a later exact match" {
+    const helper = try virtio_driver_id.VirtioDriverIdMatcher.init(8, 0x1040, 0x1AF4);
+    const summary = helper.driverIdTableReviewSummary(&.{
+        .{ .device_id = virtio_driver_id.any_id, .vendor_id = 0x1AF4 },
+        .{ .device_id = 0x1040, .vendor_id = 0x1AF4 },
+        .{ .device_id = 0x1040, .vendor_id = virtio_driver_id.any_id },
+    });
+
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(@as(?usize, 0), summary.matched_rule_index);
+    try std.testing.expectEqual(virtio_driver_id.DriverIdMatchSpecificity.device_wildcard, summary.matched_specificity);
+    try std.testing.expect(summary.matched_device_any);
+    try std.testing.expect(!summary.matched_vendor_any);
+    try std.testing.expectEqual(@as(?usize, 1), summary.shadowed_more_specific_rule_index);
+}
+
+test "phase10 virtio driver id helper reports exact and unmatched table reviews without false shadowing" {
+    const exact_helper = try virtio_driver_id.VirtioDriverIdMatcher.init(2, 0x1040, 0x1AF4);
+    var summary = exact_helper.driverIdTableReviewSummary(&.{
+        .{ .device_id = 0x1040, .vendor_id = 0x1AF4 },
+        .{ .device_id = virtio_driver_id.any_id, .vendor_id = virtio_driver_id.any_id },
+    });
+
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(@as(?usize, 0), summary.matched_rule_index);
+    try std.testing.expectEqual(virtio_driver_id.DriverIdMatchSpecificity.exact, summary.matched_specificity);
+    try std.testing.expect(!summary.matched_device_any);
+    try std.testing.expect(!summary.matched_vendor_any);
+    try std.testing.expectEqual(@as(?usize, null), summary.shadowed_more_specific_rule_index);
+
+    const unmatched_helper = try virtio_driver_id.VirtioDriverIdMatcher.init(4, 0x1052, 0x1AF4);
+    summary = unmatched_helper.driverIdTableReviewSummary(&.{
+        .{ .device_id = 0x1000, .vendor_id = 0x1AF4 },
+        .{ .device_id = 0x1052, .vendor_id = 0xFFFF },
+    });
+
+    try std.testing.expect(!summary.matched);
+    try std.testing.expectEqual(@as(?usize, null), summary.matched_rule_index);
+    try std.testing.expectEqual(virtio_driver_id.DriverIdMatchSpecificity.unmatched, summary.matched_specificity);
+    try std.testing.expect(!summary.matched_device_any);
+    try std.testing.expect(!summary.matched_vendor_any);
+    try std.testing.expectEqual(@as(?usize, null), summary.shadowed_more_specific_rule_index);
+}
