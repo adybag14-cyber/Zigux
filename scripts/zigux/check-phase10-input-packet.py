@@ -14,6 +14,7 @@ FILES = [
     "scripts/zigux/check-phase10-input-packet.py",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/Makefile",
@@ -52,6 +53,15 @@ EXPECTED_LANE_SEQUENCING_MARKERS = [
     "drivers/virtio/virtio_input_verify.zig",
     "the focused `zigux/tests/phase10_virtio_input_status_drain.zig` replay",
     "that work belongs to the input lane.",
+]
+
+EXPECTED_COMPANION_MARKERS = [
+    "scripts/zigux/check-phase10-input-packet.py",
+    "drivers/virtio/virtio_input_verify.zig",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "zigux/tests/phase10_virtio_input_manifest.json",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "make -C zigux phase10-test",
 ]
 
 EXPECTED_SCRIPTS_README_MARKERS = [
@@ -206,6 +216,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_LANE_SEQUENCING_MARKERS:
         if marker not in lane_sequencing_text:
             missing_markers.append(f"lane_sequencing:{marker}")
+
+    companion_text = read_text(root, "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
+    for marker in EXPECTED_COMPANION_MARKERS:
+        if marker not in companion_text:
+            missing_markers.append(f"companion:{marker}")
 
     scripts_readme_text = read_text(root, "scripts/zigux/README.md")
     for marker in EXPECTED_SCRIPTS_README_MARKERS:
@@ -492,6 +507,17 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_lane_sequencing_marker_missing")
         lane_sequencing_path.write_text(original_lane_sequencing, encoding="utf-8")
 
+        companion_path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
+        original_companion = companion_path.read_text(encoding="utf-8")
+        companion_path.write_text(
+            original_companion.replace("drivers/virtio/virtio_input_verify.zig", "drivers/virtio/virtio_input_verify_drift.zig", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "companion:drivers/virtio/virtio_input_verify.zig" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_companion_marker_missing")
+        companion_path.write_text(original_companion, encoding="utf-8")
+
         makefile_path = tmp_root / "zigux/Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -526,7 +552,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
