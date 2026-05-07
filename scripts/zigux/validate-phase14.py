@@ -34,7 +34,7 @@ REQUIRED_COMMANDS = [
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
-    "make -C zigux phase14",
+    "make -C zigux phase14"
 ]
 COMPILE_MATRIX_ROWS = [
     ("phase14-workqueue-bridge-tests", "phase14_workqueue_bridge.zig", "full_bundle_only"),
@@ -70,6 +70,7 @@ REQUIRED_SURFACES = {
     ".github/workflows/zigux-bootstrap.yml": "Run focused Phase 14 smoke shard",
     "kernel/workqueue_bridge.zig": "pub const WorkqueueBridgeLab",
     "net/core/skbuff_bridge.zig": "pub const SkbuffBridgeLab",
+    "kernel/rcu/tree_bridge.zig": "pub const RcuTreeBridgeLab",
 }
 REQUIRED_FILE_MARKERS = {
     "Documentation/zigux/README.md": [
@@ -84,6 +85,7 @@ REQUIRED_FILE_MARKERS = {
         "PHASE14_COMPILE_ARTIFACT_COUNT=5",
         "PHASE14_FOCUSED_SHARD_COUNT=1",
         "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
+        "kernel/rcu/tree_bridge.zig",
     ],
     "Documentation/zigux/phase14-release-boundary-survey.md": [
         "PHASE14_RELEASE_BOUNDARY=present",
@@ -169,6 +171,7 @@ REQUIRED_FILE_MARKERS = {
     ],
     "kernel/workqueue_bridge.zig": ["pub const WorkqueueBridgeLab"],
     "net/core/skbuff_bridge.zig": ["pub const SkbuffBridgeLab"],
+    "kernel/rcu/tree_bridge.zig": ["pub const RcuTreeBridgeLab"],
 }
 
 
@@ -288,7 +291,7 @@ def check_compile_matrix(root: Path) -> list[str]:
         errors.append("phase14 smoke note focused compile-shard count drifted from the current one-shard packet")
     if smoke_note_text.count("coverage `full_bundle_only`") != 4:
         errors.append("phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet")
-    if build_text.count("b.addTest(.{") != 5:
+    if build_text.count("b.addTest(.") != 5:
         errors.append("phase14 build bundle no longer declares the current five compile artifacts")
     if build_text.count("b.addRunArtifact(") != 5:
         errors.append("phase14 build bundle no longer wires the current five compile-artifact runs")
@@ -538,7 +541,7 @@ def run_self_test() -> int:
             return 1
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         broken_traceability = root / TRACEABILITY_PATH
-        broken_traceability.write_text(
+        broken_traceability.writeText(
             broken_traceability.read_text(encoding="utf-8").replace("- lane key: `P14-L08`\n", "", 1),
             encoding="utf-8",
         )
