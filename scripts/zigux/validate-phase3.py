@@ -61,12 +61,12 @@ LOW_LEVEL_WRAPPER_REQUIRED_MARKERS = (
     "const byte_desc = mmio.range(base, 8, 1);",
     "const halfword_desc = mmio.range(base, 8, 2);",
     "const desc = mmio.range(base, 8, 4);",
-    "mmio.write8(base, 1, 0x5a);",
-    "mmio.read8(base, 1)",
-    "mmio.write16(base, 2, 0xbeef);",
-    "mmio.read16(base, 2)",
-    "mmio.write32(base, @sizeOf(u32), 0xfeedbeef);",
-    "mmio.read32(base, @sizeOf(u32))",
+    "mmio.write8(base, 0, 0x5a);",
+    "mmio.read8(base, 0)",
+    "mmio.write16(base, 1, 0xbeef);",
+    "mmio.read16(base, 1)",
+    "mmio.write32(base, 3, 0xfeedbeef);",
+    "mmio.read32(base, 3)",
     "atomic.store(u32, &handoff_value, 41, .release);",
     "atomic.load(u32, &handoff_value, .acquire)",
     "atomic.compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire)",
@@ -654,7 +654,7 @@ def run_self_test() -> int:
         issues = validate_slices(root, alpha, check_artifact_diff=True)
         assert "artifact_diff:missing_phase3_section:Documentation/zigux/artifact-diff.md" in issues
 
-        (paths.tests_dir / "build.zig").write_text(
+        (paths.tests_dir / "build.zig").writeText(
             'const phase3_alpha_dump_step = b.step("phase3-alpha-dump", "Run Phase 3 alpha dump");\n',
             encoding="utf-8",
             newline="\n",
@@ -662,7 +662,7 @@ def run_self_test() -> int:
         issues = validate_slices(root, alpha, check_artifact_diff=False)
         assert f"build:missing_step:{BUILD_FILE_REL}:phase3-test" in issues
 
-        (paths.tests_dir / "build.zig").write_text(
+        (paths.tests_dir / "build.zig").writeText(
             'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");\n',
             encoding="utf-8",
             newline="\n",
