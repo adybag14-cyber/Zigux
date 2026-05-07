@@ -144,6 +144,18 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
     "probe_remove_lifecycle",
 ]
 
+EXPECTED_STUDY_ONLY_ANCHORS = [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+]
+
+EXPECTED_FREEZE_IN_C_ANCHORS = [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c",
+]
+
 BASELINE_FIXTURE = {
     "scripts/zigux/check-phase10-ring-packet.py": "# synthetic fixture for self-test\n",
     "zigux/Makefile": """phase10-test:
@@ -236,6 +248,9 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
             "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
             "architecture_council_reopen_required": True,
             "architecture_council_reopen_attached": False,
+            "freeze_boundary_owner_lane": "P10-L10",
+            "study_only_anchors": EXPECTED_STUDY_ONLY_ANCHORS,
+            "freeze_in_c_anchors": EXPECTED_FREEZE_IN_C_ANCHORS,
             "survey_summary": {
                 "virtio_ring_c_lines": 3940,
                 "preexisting_phase10_test_files": 7,
@@ -358,6 +373,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:architecture_council_reopen_required=true")
     if manifest.get("architecture_council_reopen_attached") is not False:
         missing_markers.append("manifest:architecture_council_reopen_attached=false")
+    if manifest.get("freeze_boundary_owner_lane") != "P10-L10":
+        missing_markers.append("manifest:freeze_boundary_owner_lane=P10-L10")
+    if manifest.get("study_only_anchors") != EXPECTED_STUDY_ONLY_ANCHORS:
+        missing_markers.append("manifest:study_only_anchors")
+    if manifest.get("freeze_in_c_anchors") != EXPECTED_FREEZE_IN_C_ANCHORS:
+        missing_markers.append("manifest:freeze_in_c_anchors")
 
     summary = manifest.get("survey_summary", {})
     if summary.get("virtio_ring_c_lines") != 3940:
@@ -428,6 +449,35 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:freeze_boundary_status=aligned" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_freeze_boundary_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace('\"freeze_boundary_owner_lane\": \"P10-L10\"', '\"freeze_boundary_owner_lane\": \"P10-drift\"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:freeze_boundary_owner_lane=P10-L10" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_freeze_boundary_owner_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        manifest["study_only_anchors"] = ["kernel/workqueue.c"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        _, missing_markers = validate(tmp_root)
+        if "manifest:study_only_anchors" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_study_only_anchor_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        manifest["freeze_in_c_anchors"] = [
+            "kernel/sched/core.c",
+            "mm/page_alloc.c",
+            "kernel/rcu/tree.c",
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        _, missing_markers = validate(tmp_root)
+        if "manifest:freeze_in_c_anchors" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_freeze_in_c_anchor_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest = json.loads(original_manifest)
@@ -584,7 +634,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_survey_test_verify_marker_missing")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
