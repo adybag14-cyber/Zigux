@@ -46,10 +46,10 @@ Until a bounded runtime substrate exists, the landed Phase 5 `samples/zigux/` re
 
 - model only the directory name, unnamed attribute group shape, integer-backed attributes, and lifecycle in memory
 - keep the Linux anchor path explicit in a descriptor or note
-- include a tiny self-check or manifest-backed replay for the registration, duplicate-registration rejection, registered-stage replay rejection, integer roundtrip, teardown expectations, and pre-registration access boundary that make the sample useful to reviewers
+- include a tiny self-check or manifest-backed replay for the registration, duplicate-registration rejection, registered-stage replay rejection, integer roundtrip, shared `baz` and `bar` dispatch, and pre-registration access boundary that make the sample useful to reviewers
 - make `ownershipSummary()` and sample-owned `runOwnershipReplay()` explicit so reviewers can read the `cold`, `initialized`, `registered`, and `exited` lifecycle packet without inferring it from counters or focused tests alone
 - keep sample-owned `runPreRegistrationBoundaryReplay()` explicit so the initialized-but-not-registered zero-active-attributes plus no-show-or-store boundary stays executable in the sample packet instead of living only in focused tests
-- keep sample-owned `runRegisteredBoundaryReplay()` and `runTeardownReplay()` explicit so the already-registered duplicate-registration and replay-restart rejection plus the registered teardown reset-and-rejection packet stay reviewable without forcing contributors to infer those boundaries from code or teardown assertions alone
+- keep sample-owned `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, and `runTeardownReplay()` explicit so the already-registered duplicate-registration and replay-restart rejection, the shared `baz`/`bar` dispatch plus parse-failure packet, and the registered teardown reset-and-rejection packet stay reviewable without forcing contributors to infer those boundaries from code or teardown assertions alone
 - keep initialized-only exit and registered teardown distinct through `abandoned_before_registration` and `tore_down_registered_attributes`
 - keep sysfs creation, `kernel_kobj` integration, uevents, and module-registration claims out of scope unless a later lane lands the required substrate first
 
@@ -68,11 +68,12 @@ The sample intentionally stays small:
 - sample-owned `runPreRegistrationBoundaryReplay()` now keeps that initialized-but-not-registered access block executable instead of leaving it implied by focused tests alone
 - once `registerAttributes()` succeeds, duplicate `registerAttributes()` calls and registered-stage `runAnchorReplay()` calls still return `InvalidLifecycleTransition`, so the already-registered boundary is replayable instead of implied
 - sample-owned `runRegisteredBoundaryReplay()` keeps that already-registered duplicate-registration and replay-restart packet executable instead of leaving it buried in focused tests alone
+- sample-owned `runInputValidationReplay()` keeps the shared `baz`/`bar` dispatch, invalid-integer rejection, and unknown-attribute rejection packet executable while the sample remains in the `registered` stage instead of leaving those contributor cues split between helper methods and focused assertions
 - `ownershipSummary()` keeps the per-stage lifecycle snapshot explicit across `cold`, `initialized`, `registered`, and `exited`
 - sample-owned `runOwnershipReplay()` keeps the full cold-to-exited lifecycle and the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split explicit without leaving the ownership replay trapped in focused test scaffolding
 - `exit()` now distinguishes initialized-only abandonment with `abandoned_before_registration` from registered teardown with `tore_down_registered_attributes`
 - sample-owned `runTeardownReplay()` keeps the registered teardown reset, post-`exit()` show-or-store rejection, second-`exit()` rejection, and anchor-replay rejection explicit without implying a runtime-ready sysfs or module implementation
-- it provides bounded sample-owned self-checks through `runAnchorReplay()` for attribute replay, `runPreRegistrationBoundaryReplay()` for the initialized-but-not-registered access block, `runRegisteredBoundaryReplay()` for the already-registered boundary, `runOwnershipReplay()` for the lifecycle packet, and `runTeardownReplay()` for the registered teardown reset-and-rejection packet instead of implying a runtime-ready sysfs or module implementation
+- it provides bounded sample-owned self-checks through `runAnchorReplay()` for attribute replay, `runPreRegistrationBoundaryReplay()` for the initialized-but-not-registered access block, `runRegisteredBoundaryReplay()` for the already-registered boundary, `runInputValidationReplay()` for the shared dispatch and parse-failure packet, `runOwnershipReplay()` for the lifecycle packet, and `runTeardownReplay()` for the registered teardown reset-and-rejection packet instead of implying a runtime-ready sysfs or module implementation
 
 The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
@@ -80,6 +81,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 - `runAnchorReplay()` requires `init()` first, registers exactly three attributes, leaves the sample in the `registered` stage, and still blocks duplicate `registerAttributes()` plus registered-stage `runAnchorReplay()` with `InvalidLifecycleTransition`
 - `runPreRegistrationBoundaryReplay()` leaves the sample initialized, keeps `activeAttrCount()` at zero, and shows that `showValue()` or `storeValue()` still return `InvalidLifecycleTransition` before `registerAttributes()`
 - `runRegisteredBoundaryReplay()` leaves the sample registered, keeps `activeAttrCount()` at three, and makes duplicate `registerAttributes()` plus registered-stage `runAnchorReplay()` rejection explicit
+- `runInputValidationReplay()` keeps the shared `baz`/`bar` dispatch plus invalid-integer and unknown-attribute rejection explicit while leaving the sample in the `registered` stage
 - `ownershipSummary()` and `runOwnershipReplay()` report the `cold`, `initialized`, `registered`, and `exited` stages with active attribute counts `0`, `0`, `3`, and `0`
 - `runOwnershipReplay()` keeps the init/register/exit counter progression explicit as `0/0/0`, `1/0/0`, `1/1/0`, and `1/1/1` across those same lifecycle snapshots
 - initialized-only `exit()` reports `abandoned_before_registration` before attributes are registered
@@ -99,6 +101,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 - do the manifest prompts still keep the initialized-but-not-registered zero-active-attributes plus no-show-or-store boundary explicit before `registerAttributes()` opens the sample?
 - do the manifest prompts and exact checks still keep sample-owned `runPreRegistrationBoundaryReplay()` explicit for that initialized-but-not-registered boundary?
 - do the manifest prompts and exact checks still keep sample-owned `runRegisteredBoundaryReplay()` explicit for the already-registered duplicate-registration and replay-restart rejection packet?
+- do the manifest prompts and exact checks still keep sample-owned `runInputValidationReplay()` explicit for the shared `baz`/`bar` dispatch plus parse-failure visibility packet while the sample stays in the `registered` stage?
 - do the manifest prompts and exact checks still keep `ownershipSummary()` and sample-owned `runOwnershipReplay()` explicit across `cold`, `initialized`, `registered`, and `exited`?
 - do the manifest prompts and exact checks still keep sample-owned `runTeardownReplay()` explicit for the registered teardown reset, post-`exit()` show-or-store rejection, second-`exit()` rejection, and anchor-replay rejection packet?
 - do the manifest prompts and exact checks still keep initialized-only `exit()` reporting `abandoned_before_registration` and registered `exit()` reporting `tore_down_registered_attributes`?
@@ -110,9 +113,9 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 
 The current gap is not "Zigux has no kobject sample guidance." The more precise remaining job is:
 
-- the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, duplicate-registration rejection, registered-stage replay rejection, pre-registration access blocking, ownership snapshots, initialized-only abandonment, dispatch, parse failures, and teardown
+- the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, duplicate-registration rejection, registered-stage replay rejection, pre-registration access blocking, shared-dispatch and parse-failure visibility through `runInputValidationReplay()`, ownership snapshots, initialized-only abandonment, and teardown
 - the broader shared contributor packet is now already present across `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, so the remaining same-lane job is narrower than a docs-root summary catch-up
-- the live same-lane reviewability risk is instead drift between that shared packet and the exact kobject-owned replay names: `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()`
+- the live same-lane reviewability risk is instead drift between that shared packet and the exact kobject-owned replay names: `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()`
 - follow-up in this lane should therefore stay inside survey-note, manifest-prompt, or shared-guide truthfulness for those existing replays instead of widening into new sample semantics, runtime substrate claims, or another Phase 5 anchor
 
 This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle and non-goal cues reviewers should check before approving future edits.
