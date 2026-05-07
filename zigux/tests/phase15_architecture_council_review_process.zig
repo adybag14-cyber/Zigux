@@ -94,7 +94,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
 
     try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-06", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-07", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
@@ -126,7 +126,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "## Current Approval Posture");
     try expectContains(survey_doc, "## Maintenance-Mode Handoff");
     try expectContains(survey_doc, "`PHASE15_LANE_KEY=P15-L08`");
-    try expectContains(survey_doc, "survey provenance refreshed against current `master` readback on 2026-05-06");
+    try expectContains(survey_doc, "survey provenance refreshed against current `master` readback on 2026-05-07");
     try expectContains(survey_doc, "maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires or the deep-core blocker posture changes");
     try expectContains(survey_doc, "current review-process evidence is limited to named `phase`");
     try expectContains(survey_doc, "`validation gate summary`");
@@ -142,6 +142,9 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "next future target: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice");
     try expectContains(survey_doc, "landed `phase15-roadmap-minimum-field-sync`");
     try expectContains(survey_doc, "landed `phase15-lane-owner-alignment-replay-visible`");
+    try expectContains(survey_doc, "Documentation/zigux/phase15-governance-lane-sequencing.md");
+    try expectContains(survey_doc, "zigux/tests/phase15_indefinite_c_blocker_evidence.zig");
+    try expectContains(survey_doc, "zigux/tests/phase15_governance_lane_sequencing.zig");
 
     try expectContains(script_readme, "Phase 15 flow");
     try expectContains(script_readme, "check-phase15-review-process-handoff.py");
@@ -160,7 +163,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(makefile, "zigux/tests/phase15_build.zig");
 
     try expectContains(manifest_json, "\"lane_key\": \"P15-L08\"");
-    try expectContains(manifest_json, "\"surveyed_commit\": \"current-master-readback-2026-05-06\"");
+    try expectContains(manifest_json, "\"surveyed_commit\": \"current-master-readback-2026-05-07\"");
     try expectContains(manifest_json, "\"handoff\"");
     try expectContains(manifest_json, "\"current_mode\": \"maintenance_mode\"");
     try expectContains(manifest_json, "make -C zigux phase15-validate");
@@ -169,4 +172,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(manifest_json, "deep_core_blocker_posture_change");
     try expectContains(manifest_json, "phase15-roadmap-minimum-field-sync");
     try expectContains(manifest_json, "phase15-lane-owner-alignment-replay-visible");
+    try expectContains(manifest_json, "Documentation/zigux/phase15-governance-lane-sequencing.md");
+    try expectContains(manifest_json, "zigux/tests/phase15_indefinite_c_blocker_evidence.zig");
+    try expectContains(manifest_json, "zigux/tests/phase15_governance_lane_sequencing.zig");
 }
