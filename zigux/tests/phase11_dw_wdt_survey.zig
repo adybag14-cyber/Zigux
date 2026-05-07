@@ -93,13 +93,9 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
         try std.testing.expect(gap.why_now.len > 0);
         try std.testing.expect(isAllowedStatus(gap.status));
 
-        if (std.mem.eql(u8, gap.status, "starter_landed")) {
-            starter_landed_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
-            ready_next_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "blocked_on_driver_scaffold")) {
-            blocked_count += 1;
-        }
+        if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1
+        else if (std.mem.eql(u8, gap.status, "ready_next")) ready_next_count += 1
+        else if (std.mem.eql(u8, gap.status, "blocked_on_driver_scaffold")) blocked_count += 1;
 
         if (std.mem.eql(u8, gap.id, "phase11-build-gate")) {
             saw_build_gate = true;
@@ -158,6 +154,11 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown and failure-mode parity") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "unstoppable hardware") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "idle remove without a fabricated heartbeat") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "idle remove with reset-backed quiesce") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "idle stop outcomes across reset-controlled and non-stoppable hardware") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "idle IRQ-configured teardown without a fabricated stop path or continued heartbeat") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "IRQ-mode teardown outcomes") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-platform-registration-scaffold")) {
             saw_platform_ready_next = true;
@@ -200,28 +201,11 @@ test "phase11 dw_wdt survey note, slice note, and validation matrix stay aligned
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase11-dw-wdt-survey.md",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "Documentation/zigux/phase11-dw-wdt-survey.md", std.testing.allocator, .limited(32 * 1024));
     defer std.testing.allocator.free(survey_note);
-
-    const validation_matrix = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
-        std.testing.allocator,
-        .limited(64 * 1024),
-    );
+    const validation_matrix = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "Documentation/zigux/phase11-dw-wdt-validation-matrix.md", std.testing.allocator, .limited(64 * 1024));
     defer std.testing.allocator.free(validation_matrix);
-
-    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase11-dw-wdt-slice.md",
-        std.testing.allocator,
-        .limited(16 * 1024),
-    );
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "Documentation/zigux/phase11-dw-wdt-slice.md", std.testing.allocator, .limited(16 * 1024));
     defer std.testing.allocator.free(slice_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);
