@@ -4,7 +4,7 @@ This document tracks the first bounded `drivers/virtio/virtio_ring.c` lab helper
 
 ## Status
 
-- `PHASE10_STATUS=active`
+- `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-ring-lab-helper`
 - scope: queue index bounds, descriptor-count validation, split or packed layout metadata, avail and used index bookkeeping, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing bookkeeping, broken-queue discipline, queue-local reset bookkeeping, reset-readiness preflight bookkeeping, notify-prepare accounting, dedicated Phase 10 ring tests, the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay, the committed ring survey manifest and survey gate, the dedicated ring packet review guard, the shared Phase 10 core, input, and MMIO packet guards, the shared reset-queue, driver-id, and input status-drain replays, and the shared Phase 10 build-and-make routes
 - product boundary:
