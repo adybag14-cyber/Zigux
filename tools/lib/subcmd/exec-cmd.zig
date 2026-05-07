@@ -303,12 +303,12 @@ pub fn buildSearchPath(
     return builder.toOwnedSlice(allocator);
 }
 
-pub fn setupPath(
+fn setupPathWithEffectiveCwd(
     allocator: std.mem.Allocator,
     env: *EnvMap,
     state: ExecCmdState,
     config: Config,
-    cwd: []const u8,
+    effective_cwd: []const u8,
 ) ![]u8 {
     const argv_exec_path = try getArgvExecPath(
         allocator,
@@ -318,7 +318,6 @@ pub fn setupPath(
     );
     defer allocator.free(argv_exec_path);
 
-    const effective_cwd = choosePwdCwdFromFilesystem(cwd, env.get("PWD"));
     const new_path = try buildSearchPath(
         allocator,
         effective_cwd,
@@ -330,6 +329,40 @@ pub fn setupPath(
 
     try env.set("PATH", new_path);
     return new_path;
+}
+
+pub fn setupPath(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+) ![]u8 {
+    return setupPathWithEffectiveCwd(
+        allocator,
+        env,
+        state,
+        config,
+        choosePwdCwdFromFilesystem(cwd, env.get("PWD")),
+    );
+}
+
+pub fn setupPathWithPwd(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    pwd: ?[]const u8,
+    same_location: bool,
+) ![]u8 {
+    return setupPathWithEffectiveCwd(
+        allocator,
+        env,
+        state,
+        config,
+        choosePwdCwd(cwd, pwd, same_location),
+    );
 }
 
 pub fn prepareExecCmd(
@@ -404,6 +437,21 @@ pub fn buildDeferredExeclCall(
     return buildDeferredCallFromNullTerminatedArgs(allocator, config, args);
 }
 
+fn planDeferredCallWithPath(
+    allocator: std.mem.Allocator,
+    call: DeferredExecCall,
+    path: []u8,
+) !DeferredExecPlan {
+    var owned_call = call;
+    errdefer owned_call.deinit(allocator);
+    errdefer allocator.free(path);
+
+    return .{
+        .path = path,
+        .call = owned_call,
+    };
+}
+
 fn planDeferredCall(
     allocator: std.mem.Allocator,
     env: *EnvMap,
@@ -412,16 +460,28 @@ fn planDeferredCall(
     cwd: []const u8,
     call: DeferredExecCall,
 ) !DeferredExecPlan {
-    var owned_call = call;
-    errdefer owned_call.deinit(allocator);
+    return planDeferredCallWithPath(
+        allocator,
+        call,
+        try setupPath(allocator, env, state, config, cwd),
+    );
+}
 
-    const path = try setupPath(allocator, env, state, config, cwd);
-    errdefer allocator.free(path);
-
-    return .{
-        .path = path,
-        .call = owned_call,
-    };
+fn planDeferredCallWithPwd(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    pwd: ?[]const u8,
+    same_location: bool,
+    call: DeferredExecCall,
+) !DeferredExecPlan {
+    return planDeferredCallWithPath(
+        allocator,
+        call,
+        try setupPathWithPwd(allocator, env, state, config, cwd, pwd, same_location),
+    );
 }
 
 pub fn planDeferredExecvCall(
@@ -442,6 +502,28 @@ pub fn planDeferredExecvCall(
     );
 }
 
+pub fn planDeferredExecvCallWithPwd(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    pwd: ?[]const u8,
+    same_location: bool,
+    argv: []const []const u8,
+) !DeferredExecPlan {
+    return planDeferredCallWithPwd(
+        allocator,
+        env,
+        state,
+        config,
+        cwd,
+        pwd,
+        same_location,
+        try buildDeferredExecvCall(allocator, config, argv),
+    );
+}
+
 pub fn planDeferredExeclCall(
     allocator: std.mem.Allocator,
     env: *EnvMap,
@@ -457,6 +539,29 @@ pub fn planDeferredExeclCall(
         state,
         config,
         cwd,
+        try buildDeferredExeclCall(allocator, config, cmd, argv_tail),
+    );
+}
+
+pub fn planDeferredExeclCallWithPwd(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    pwd: ?[]const u8,
+    same_location: bool,
+    cmd: []const u8,
+    argv_tail: []const ?[]const u8,
+) (CollectExeclArgsError || std.mem.Allocator.Error || error{MissingCurrentWorkingDirectory})!DeferredExecPlan {
+    return planDeferredCallWithPwd(
+        allocator,
+        env,
+        state,
+        config,
+        cwd,
+        pwd,
+        same_location,
         try buildDeferredExeclCall(allocator, config, cmd, argv_tail),
     );
 }
@@ -532,7 +637,6 @@ test "buildSearchPath rewrites relative entries against the working directory" {
         null,
     );
     defer std.testing.allocator.free(fallback);
-
     try std.testing.expectEqualStrings(
         "/opt/perf/bin:/usr/local/bin:/usr/bin:/bin",
         fallback,
@@ -698,6 +802,48 @@ test "planDeferredExecvCall bundles PATH setup with deferred argv handoff" {
     try std.testing.expectEqual(@as(?[]const u8, null), planned.call.argv[3]);
 }
 
+test "planDeferredExecvCallWithPwd reuses caller-proved logical PWD aliases" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    var planned = try planDeferredExecvCallWithPwd(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "/logical/repo",
+        true,
+        &[_][]const u8{ "record", "-a" },
+    );
+    defer planned.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(
+        "/logical/repo/tools/bin:/logical/repo/scripts:/usr/bin:/bin",
+        planned.path,
+    );
+    try std.testing.expectEqualStrings(planned.path, env.get("PATH").?);
+    try std.testing.expectEqualStrings("perf", planned.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", planned.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", planned.call.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), planned.call.argv[3]);
+}
+
 test "planDeferredExeclCall bundles PATH setup with deferred argv collection" {
     const config = Config{
         .exec_name = "perf",
@@ -730,6 +876,50 @@ test "planDeferredExeclCall bundles PATH setup with deferred argv collection" {
 
     try std.testing.expectEqualStrings(
         "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
+        planned.path,
+    );
+    try std.testing.expectEqualStrings(planned.path, env.get("PATH").?);
+    try std.testing.expectEqualStrings("perf", planned.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", planned.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", planned.call.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", planned.call.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), planned.call.argv[4]);
+}
+
+test "planDeferredExeclCallWithPwd reuses caller-proved logical PWD aliases" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    var planned = try planDeferredExeclCallWithPwd(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "/logical/repo",
+        true,
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer planned.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(
+        "/logical/repo/tools/bin:/logical/repo/scripts:/usr/bin:/bin",
         planned.path,
     );
     try std.testing.expectEqualStrings(planned.path, env.get("PATH").?);
@@ -861,6 +1051,43 @@ test "setupPath updates PATH using stored exec path, argv0 path, and fallback de
         fallback,
     );
     try std.testing.expectEqualStrings(fallback, fallback_env.get("PATH").?);
+}
+
+test "setupPathWithPwd lets callers reuse proven logical PWD aliases without stat calls" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    const updated = try setupPathWithPwd(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "/logical/repo",
+        true,
+    );
+    defer std.testing.allocator.free(updated);
+
+    try std.testing.expectEqualStrings(
+        "/logical/repo/tools/bin:/logical/repo/scripts:/usr/bin:/bin",
+        updated,
+    );
+    try std.testing.expectEqualStrings(updated, env.get("PATH").?);
 }
 
 test "setupPath preserves the rooted argv0 edge without injecting slash into PATH" {
