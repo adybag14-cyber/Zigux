@@ -32,8 +32,9 @@ It is to make the blocked state reviewable and record the first stay-in-C checkl
 - `Documentation/trace/ring-buffer-design.rst` is present at 983 lines and documents the reserve, commit, reader, overwrite, and nested writer model in detail.
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
+- the live source still carries explicit nesting state through `MAX_NEST`, `current_context`, `committing`, `commits`, and `nest` on `struct ring_buffer_per_cpu`, which means the roadmap's requested concurrency audit should keep nested-writer sequencing reviewable instead of reducing this lane to a size-only survey.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
-- the survey manifest now records a landed decision checklist plus the overwrite, remote-reader metadata, wakeup or mmap, tracefs mapping limitation, mapped-reader ioctl, reader-page consume, exported-page copy-path, and mapped-reader lifetime audits so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
+- the survey manifest now records a landed decision checklist plus the nested-writer, overwrite, remote-reader metadata, wakeup or mmap, tracefs mapping limitation, mapped-reader ioctl, reader-page consume, exported-page copy-path, and mapped-reader lifetime audits so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
 
 ## Decision checklist
 
@@ -44,6 +45,17 @@ It is to make the blocked state reviewable and record the first stay-in-C checkl
 - `wakeup-watermark-mmap-boundary`: keep `rb_wake_up_waiters()`, `rb_watermark_hit()`, `ring_buffer_wait()`, `ring_buffer_poll_wait()`, and `rb_update_meta_page()` in C because irq-work wakeups, full-waiter watermarks, and mapped-reader publication still describe one shared reader-visible contract.
 - `tracefs-mapping-limitations`: keep `ring_buffer_map()`, `ring_buffer_resize()`, `ring_buffer_swap_cpu()`, `ring_buffer_map_get_reader()`, and `tracing_buffers_splice_read()` in C because mapped-reader lockouts, snapshot restrictions, and splice fallback remain one shared tracefs-facing policy surface.
 - `mapped-reader-lifetime-teardown`: keep `ring_buffer_map_dup()`, `ring_buffer_unmap()`, `resize_disabled`, and `rb_free_meta_page()` in C because duplicated mappings, last-user teardown, and resize-lockout release still ride one shared lifetime contract.
+
+## Nested writer stack audit
+
+- The upstream design note treats nested writers as a first-class lockless constraint rather than a side effect.
+On one per-CPU buffer, two writers do not run concurrently, but an interrupting writer may preempt another writer and must finish before the outer writer resumes, so the algorithm depends on writer-stack ordering instead of generic parallel producer logic.
+- `commit_page` only moves on the outermost writer.
+The design note says nested commits remain pending until every earlier writer has committed, and the live source still carries `MAX_NEST`, `nest`, `committing`, `commits`, and `current_context` inside `struct ring_buffer_per_cpu`, which means commit publication stays coupled to the active nesting model instead of a wrapper-friendly helper seam.
+- The head-move path also depends on explicit `HEADER-to-UPDATE` ownership.
+When overwrite pressure or tail movement reaches the head boundary, the writer that converts the head pointer from HEADER to UPDATE is the only writer that may restore it to NORMAL, while nested writers may still advance the next head page and retry tail movement through cmpxchg-driven sequencing.
+- Reader behavior is constrained by that same choreography.
+The design note says the reader must spin while UPDATE is visible and cannot preempt the writer during head movement, which confirms that head advancement, tail retries, and reader visibility remain one concurrency contract that Phase 14 should keep in C.
 
 ## Overwrite and lost-event audit
 
@@ -148,6 +160,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-survey-gate`
 - landed `phase14-ring-buffer-survey-note`
 - landed `phase14-ring-buffer-boundary-decision-checklist`
+- landed `phase14-ring-buffer-nested-writer-audit`
 - landed `phase14-ring-buffer-overwrite-audit`
 - landed `phase14-ring-buffer-remote-reader-meta-followup`
 - landed `phase14-ring-buffer-wakeup-mmap-followup`
@@ -181,4 +194,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Leave this ring-buffer survey lane parked unless a later Phase 14 traceability or release-boundary refresh needs to restate the current reader-page, remote-reader, mapped-reader, exported-page, or mapped-reader lifetime stay-in-C boundary after another anchor-local survey change. Any future ring-buffer work here should stay on the study-only side of reader, writer, wakeup, mapping, remote-reader, exported-page, or mapping-lifetime boundary evidence rather than reopening a bridge or port claim.
+Leave this ring-buffer survey lane parked unless a later Phase 14 traceability or release-boundary refresh needs to restate the current writer-stack, reader-page, remote-reader, mapped-reader, exported-page, or mapped-reader lifetime stay-in-C boundary after another anchor-local survey change. Any future ring-buffer work here should stay on the study-only side of writer-stack, reader, wakeup, mapping, remote-reader, exported-page, or mapping-lifetime boundary evidence rather than reopening a bridge or port claim.
