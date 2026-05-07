@@ -100,6 +100,13 @@
       "mode": "process_json",
       "normalize_stderr": true,
       "expected": "missing_long_dump_types_argument_expected.json"
+    },
+    {
+      "name": "too_many_reference_files",
+      "argv": ["-r", "01.symref", "-r", "02.symref", "-r", "03.symref", "-r", "04.symref", "-r", "05.symref", "-r", "06.symref", "-r", "07.symref", "-r", "08.symref", "-r", "09.symref", "-r", "10.symref", "-r", "11.symref", "-r", "12.symref", "-r", "13.symref", "-r", "14.symref", "-r", "15.symref", "-r", "16.symref", "-r", "17.symref"],
+      "mode": "process_json",
+      "normalize_stderr": true,
+      "expected": "too_many_reference_files_expected.json"
     }
   ]
 }
