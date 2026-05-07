@@ -119,7 +119,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L17", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -155,7 +155,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try std.testing.expect(manifest.gaps.len >= 6);
 
     try expectContains(survey_doc, "PHASE9_SLICE=runtime-kretprobe-survey");
-    try expectContains(survey_doc, "P9-L17");
+    try expectContains(survey_doc, "P9-L13");
     try expectContains(survey_doc, "samples/zigux/runtime_kretprobe_loader.zig");
     try expectContains(survey_doc, "zigux/kernel/runtime_loader.zig");
     try expectContains(survey_doc, "zigux/kernel/runtime_loader_contract.zig");
