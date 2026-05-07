@@ -48,11 +48,11 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
     try std.testing.expect(manifest.roadmap_atomic64_wrapper_targets_runtime_diff);
 
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.live_gate_path);
-    try std.testing.expectEqualStrings("49a10b2c4124a7c05ef77fad9c7fadf3b62480b2", manifest.live_gate_blob_sha);
+    try std.testing.expectEqualStrings("35689a918b8e72c9c63716f4896f6b75eb8866d2", manifest.live_gate_blob_sha);
     try std.testing.expectEqual(@as(usize, 204), manifest.live_gate_line_count);
 
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.runtime_replay_path);
-    try std.testing.expectEqualStrings("49a10b2c4124a7c05ef77fad9c7fadf3b62480b2", manifest.runtime_replay_blob_sha);
+    try std.testing.expectEqualStrings("35689a918b8e72c9c63716f4896f6b75eb8866d2", manifest.runtime_replay_blob_sha);
     try std.testing.expectEqual(@as(usize, 204), manifest.runtime_replay_line_count);
 
     try std.testing.expect(manifest.phase4_build_present);
@@ -68,8 +68,8 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
 
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("1977a58d097fd6b3e4afb14482089c44e0de6387", manifest.phase4_validation_matrix_blob_sha);
-    try std.testing.expectEqualStrings("8328d4dc5682084071270141bb427052d96d27da", manifest.phase4_review_checklist_blob_sha);
+    try std.testing.expectEqualStrings("c64d4730c6b9ce530edf9440eea4918cd4000efe", manifest.phase4_validation_matrix_blob_sha);
+    try std.testing.expectEqualStrings("0171c6f716ecec5fff0b75c3dfe144d9df060864", manifest.phase4_review_checklist_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
