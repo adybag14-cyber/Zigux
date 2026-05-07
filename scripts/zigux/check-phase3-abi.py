@@ -28,6 +28,14 @@ def main() -> int:
     if constant_parity_check.returncode != 0:
         return constant_parity_check.returncode
 
+    policy_byte_guard_check = subprocess.run(
+        [sys.executable, "scripts/zigux/check-phase3-policy-byte-guards.py"],
+        cwd=ROOT,
+        check=False,
+    )
+    if policy_byte_guard_check.returncode != 0:
+        return policy_byte_guard_check.returncode
+
     return run_from_wrapper(__file__)
 
 
