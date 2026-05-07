@@ -34,6 +34,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 ## Landed starter surface
 
 - a bounded `runtime_kretprobe_loader` scaffold that keeps the planned `register_kretprobe()` and `unregister_kretprobe()` labels, entry or exit symbol naming, private-data size, idle registration snapshot, and failed-exit state retention explicit while the real runtime substrate is still unavailable.
+- the loader-owned prepared handoff snapshot stays stable once captured, so later sample mutation or late selftest activity does not silently rewrite the parked registration plan before runtime-substrate review.
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` now stays inside this slice's shipped product boundary too, so the kretprobe starter keeps the pilot-family owner split explicit instead of leaving the shared loader lane versus pilot-local packet implicit.
 
 ## Roadmap gap vs current pilot
