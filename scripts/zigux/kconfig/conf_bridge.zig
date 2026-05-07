@@ -80,18 +80,21 @@ pub const Request = struct {
     allconfig: ?[]const u8 = null,
     seed: ?[]const u8 = null,
     probability: ?[]const u8 = null,
+    nosilentupdate: ?[]const u8 = null,
 };
 
 const BridgeOptions = struct {
     allconfig: ?[]const u8 = null,
     seed: ?[]const u8 = null,
     probability: ?[]const u8 = null,
+    nosilentupdate: ?[]const u8 = null,
 };
 
 const ParseBridgeOptionsError = error{
     DuplicateAllConfig,
     DuplicateSeed,
     DuplicateProbability,
+    DuplicateNoSilentUpdate,
     UnexpectedArgument,
 };
 
@@ -152,6 +155,7 @@ fn parseBridgeOptions(mode: Mode, args: []const []const u8) ParseBridgeOptionsEr
     var saw_allconfig = false;
     var saw_seed = false;
     var saw_probability = false;
+    var saw_nosilentupdate = false;
 
     for (args) |arg| {
         if (std.mem.startsWith(u8, arg, "allconfig=")) {
@@ -175,6 +179,13 @@ fn parseBridgeOptions(mode: Mode, args: []const []const u8) ParseBridgeOptionsEr
             saw_probability = true;
             const value = arg["probability=".len..];
             options.probability = if (value.len == 0) null else value;
+            continue;
+        }
+        if (std.mem.startsWith(u8, arg, "nosilentupdate=")) {
+            if (mode != .syncconfig) return error.UnexpectedArgument;
+            if (saw_nosilentupdate) return error.DuplicateNoSilentUpdate;
+            saw_nosilentupdate = true;
+            options.nosilentupdate = arg["nosilentupdate=".len..];
             continue;
         }
         return error.UnexpectedArgument;
@@ -210,6 +221,11 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
     }
     if (request.mode == .syncconfig) {
         try writer.writeAll(",\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\",\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\"");
+        if (request.nosilentupdate) |nosilentupdate| {
+            try writer.writeAll(",\"KCONFIG_NOSILENTUPDATE\":\"");
+            try writeJsonEscaped(writer, nosilentupdate);
+            try writer.writeAll("\"");
+        }
     }
     if (request.mode == .randconfig) {
         if (request.seed) |seed| {
@@ -234,7 +250,7 @@ pub fn main(init: std.process.Init) !void {
     if (args.len < 5 or args.len > 8) {
         var stderr_buffer: [200]u8 = undefined;
         var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg] [allconfig=<value>] [seed=<value>] [probability=<value>]\n");
+        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg] [allconfig=<value>] [seed=<value>] [probability=<value>] [nosilentupdate=<value>]\n");
         try stderr_writer.interface.flush();
         std.process.exit(1);
     }
@@ -269,6 +285,7 @@ pub fn main(init: std.process.Init) !void {
             error.DuplicateAllConfig => "Error: duplicate allconfig override option\n",
             error.DuplicateSeed => "Error: duplicate randconfig seed option\n",
             error.DuplicateProbability => "Error: duplicate randconfig probability option\n",
+            error.DuplicateNoSilentUpdate => "Error: duplicate syncconfig nosilentupdate option\n",
             error.UnexpectedArgument => "Error: unexpected bridge option for mode\n",
         };
         try stderr_writer.interface.writeAll(message);
@@ -287,6 +304,7 @@ pub fn main(init: std.process.Init) !void {
         .allconfig = options.allconfig,
         .seed = options.seed,
         .probability = options.probability,
+        .nosilentupdate = options.nosilentupdate,
     });
     try stdout_writer.interface.flush();
 }
@@ -323,28 +341,8 @@ test "conf bridge mode surface stays aligned with conf.c long options" {
 }
 
 test "conf bridge emits olddefconfig argv and env" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 128), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
+    const Capture = TestCapture;
+    var capture = try Capture.init(std.testing.allocator, 128);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -360,28 +358,8 @@ test "conf bridge emits olddefconfig argv and env" {
 }
 
 test "conf bridge emits syncconfig auto files" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 160), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
+    const Capture = TestCapture;
+    var capture = try Capture.init(std.testing.allocator, 192);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -396,29 +374,25 @@ test "conf bridge emits syncconfig auto files" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"riscv64\"") != null);
 }
 
+test "conf bridge emits syncconfig nosilentupdate when present" {
+    const Capture = TestCapture;
+    var capture = try Capture.init(std.testing.allocator, 224);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .syncconfig,
+        .kconfig = "Kconfig",
+        .config = "out/.config",
+        .arch = "riscv64",
+        .nosilentupdate = "1",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_NOSILENTUPDATE\":\"1\"") != null);
+}
+
 test "conf bridge emits alldefconfig argv and env" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 160), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
+    const Capture = TestCapture;
+    var capture = try Capture.init(std.testing.allocator, 160);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -436,28 +410,8 @@ test "conf bridge emits alldefconfig argv and env" {
 }
 
 test "conf bridge emits explicit empty allconfig override for allmodconfig" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 160), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
+    const Capture = TestCapture;
+    var capture = try Capture.init(std.testing.allocator, 160);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -473,28 +427,8 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
 }
 
 test "conf bridge emits randconfig tunables when present" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
+    const Capture = TestCapture;
+    var capture = try Capture.init(std.testing.allocator, 192);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -512,28 +446,8 @@ test "conf bridge emits randconfig tunables when present" {
 }
 
 test "conf bridge emits explicit randconfig allconfig override when present" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 224), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
+    const Capture = TestCapture;
+    var capture = try Capture.init(std.testing.allocator, 224);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -550,28 +464,8 @@ test "conf bridge emits explicit randconfig allconfig override when present" {
 }
 
 test "conf bridge emits yes2modconfig argv and env" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 144), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
+    const Capture = TestCapture;
+    var capture = try Capture.init(std.testing.allocator, 144);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -588,28 +482,8 @@ test "conf bridge emits yes2modconfig argv and env" {
 }
 
 test "conf bridge emits defconfig mode argument before kconfig" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
+    const Capture = TestCapture;
+    var capture = try Capture.init(std.testing.allocator, 192);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -626,28 +500,8 @@ test "conf bridge emits defconfig mode argument before kconfig" {
 }
 
 test "conf bridge emits savedefconfig mode argument before kconfig" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
+    const Capture = TestCapture;
+    var capture = try Capture.init(std.testing.allocator, 192);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -664,28 +518,8 @@ test "conf bridge emits savedefconfig mode argument before kconfig" {
 }
 
 test "conf bridge escapes low control bytes in JSON strings" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 32), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
+    const Capture = TestCapture;
+    var capture = try Capture.init(std.testing.allocator, 32);
     defer capture.deinit();
 
     try writeJsonEscaped(&capture, "\x01\x08\x0c");
@@ -698,34 +532,8 @@ test "bridge options parser accepts explicit allconfig override for allmodconfig
     try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
     try std.testing.expect(options.seed == null);
     try std.testing.expect(options.probability == null);
+    try std.testing.expect(options.nosilentupdate == null);
 }
 
-test "bridge options parser accepts randconfig allconfig and tunables together" {
-    const options = try parseBridgeOptions(.randconfig, &.{ "allconfig=allrandom.config", "seed=0xC0FFEE", "probability=15:25" });
-    try std.testing.expectEqualStrings("allrandom.config", options.allconfig.?);
-    try std.testing.expectEqualStrings("0xC0FFEE", options.seed.?);
-    try std.testing.expectEqualStrings("15:25", options.probability.?);
-}
-
-test "bridge options parser treats empty randconfig tunables as absent" {
-    const options = try parseBridgeOptions(.randconfig, &.{ "seed=", "probability=" });
-    try std.testing.expect(options.allconfig == null);
-    try std.testing.expect(options.seed == null);
-    try std.testing.expect(options.probability == null);
-}
-
-test "bridge options parser rejects duplicate allconfig override" {
-    try std.testing.expectError(error.DuplicateAllConfig, parseBridgeOptions(.randconfig, &.{ "allconfig=first", "allconfig=second" }));
-}
-
-test "bridge options parser rejects duplicate seed" {
-    try std.testing.expectError(error.DuplicateSeed, parseBridgeOptions(.randconfig, &.{ "seed=1", "seed=2" }));
-}
-
-test "bridge options parser rejects seed outside randconfig" {
-    try std.testing.expectError(error.UnexpectedArgument, parseBridgeOptions(.allmodconfig, &.{"seed=1"}));
-}
-
-test "bridge options parser rejects unexpected argument" {
-    try std.testing.expectError(error.UnexpectedArgument, parseBridgeOptions(.randconfig, &.{"bogus"}));
-}
+test "bridge options parser accepts syncconfig nosilentupdate" {
+    const options = try parseBridgeOptions(.syncconfig, &.{
