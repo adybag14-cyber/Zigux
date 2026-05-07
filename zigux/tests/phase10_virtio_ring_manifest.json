@@ -26,6 +26,17 @@
   ],
   "architecture_council_reopen_required": true,
   "architecture_council_reopen_attached": false,
+  "freeze_boundary_owner_lane": "P10-L10",
+  "study_only_anchors": [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c"
+  ],
+  "freeze_in_c_anchors": [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c"
+  ],
   "survey_summary": {
     "virtio_ring_c_lines": 3940,
     "preexisting_phase10_test_files": 7,
