@@ -43,6 +43,7 @@ These shared routes prove that the current bounded virtio packet still replays t
 - `Documentation/zigux/phase10-virtio-core-slice.md`
 - `Documentation/zigux/phase10-virtio-core-survey.md`
 - `zigux/tests/phase10_virtio_core_manifest.json`
+- `zigux/tests/phase10_virtio_core.zig`
 - `zigux/tests/phase10_virtio_core_survey.zig`
 - `scripts/zigux/check-phase10-core-packet.py`
 - the bounded `drivers/virtio/virtio.zig` and `drivers/virtio/virtio_driver_id.zig` review surface
@@ -55,6 +56,7 @@ The next honest core step stays outside transport-backed probe or remove work. I
 - `Documentation/zigux/phase10-virtio-ring-slice.md`
 - `Documentation/zigux/phase10-virtio-ring-survey.md`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
+- `zigux/tests/phase10_virtio_ring.zig`
 - `zigux/tests/phase10_virtio_ring_survey.zig`
 - `scripts/zigux/check-phase10-ring-packet.py`
 - `drivers/virtio/virtio_ring.zig`
@@ -68,6 +70,7 @@ This lane may talk about adjacent MMIO footing when the survey compares roadmap 
 - `Documentation/zigux/phase10-virtio-input-module-slice.md`
 - `Documentation/zigux/phase10-virtio-input-survey.md`
 - `zigux/tests/phase10_virtio_input_manifest.json`
+- `zigux/tests/phase10_virtio_input.zig`
 - `zigux/tests/phase10_virtio_input_survey.zig`
 - `scripts/zigux/check-phase10-input-packet.py`
 - `drivers/virtio/virtio_input.zig`
@@ -90,9 +93,9 @@ Ring, core, and input lanes may cite this packet as adjacent evidence, but they 
 
 ## Anti-overlap rules
 
-- If a Phase 10 run changes `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, the core manifest, the core survey gate, or the core checker, that work belongs to the core lane.
-- If a Phase 10 run changes `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, the ring manifest, the ring survey gate, or the ring checker, that work belongs to the ring lane.
-- If a Phase 10 run changes `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, the input manifest, the input survey gate, the focused status-drain replay, or the input checker, that work belongs to the input lane.
+- If a Phase 10 run changes `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, the core manifest, the direct `zigux/tests/phase10_virtio_core.zig` replay, the core survey gate, or the core checker, that work belongs to the core lane.
+- If a Phase 10 run changes `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, the ring manifest, the direct `zigux/tests/phase10_virtio_ring.zig` replay, the ring survey gate, or the ring checker, that work belongs to the ring lane.
+- If a Phase 10 run changes `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, the input manifest, the direct `zigux/tests/phase10_virtio_input.zig` replay, the input survey gate, the focused status-drain replay, or the input checker, that work belongs to the input lane.
 - If a Phase 10 run changes `drivers/virtio/virtio_mmio.zig`, the direct `zigux/tests/phase10_virtio_mmio.zig` replay, the MMIO manifest, the MMIO survey gate, or the MMIO checker, that work belongs to the MMIO packet instead of ring, input, or core follow-through.
 - Shared build or make replay drift should only reopen the smallest directly coupled lane packet unless the break truly spans multiple driver packets at once.
 
