@@ -41,6 +41,7 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
 - `Documentation/zigux/phase12-release-closure-checklist.md` is the PMO closure companion, not a driver-lane planner.
 - `Documentation/zigux/phase12-raw-github-coverage-survey.md` owns the mixed fallback-overview split for the active tranche, so driver lanes should reread it beside this note instead of treating it as a driver-local fallback artifact.
 - `Documentation/zigux/phase12-release-coordination-matrix.md` keeps the compact lane-owner split, fallback split, and smoke-set summary explicit for PMO drift control, so driver lanes should reread it beside this note instead of leaving that compact release view implied from broader PMO prose.
+- Driver-local survey notes that rely on this owner map should name `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` explicitly instead of referring to an unnamed lane note, so the anti-overlap anchor stays discoverable from the active `virtio_net`, `nvme_pci`, and `virtio_scsi` packet.
 - `scripts/zigux/check-build-only-phase12-surface.py` and `.github/workflows/zigux-bootstrap.yml` enforce the shared build-only review surface, not driver-local ownership.
 - `Documentation/zigux/phase12-libbpf-segment-survey.md` and `tools/lib/bpf/zigux_segments/manifest.json` remain real Phase 12 evidence, but they belong to the non-driver helper packet and should not be absorbed into this driver-only map.
 
