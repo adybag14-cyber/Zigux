@@ -20,7 +20,7 @@ The current Phase 15 packet is already real product progress:
 - the Architecture Council review-process packet records the required review fields and bounded decision buckets
 - the parity scorecard records per-anchor blocker dispositions and evidence-archive destinations
 - the handoff packet records the parked next-step posture
-- the indefinite-C packet records the long-term stay-in-C rules and lane-owner vocabulary
+- the indefinite-C packet records the long-term stay-in-C rules, blocker-evidence replay, and lane-owner vocabulary
 
 Without a dedicated sequencing note, nearby scheduled governance runs can still reopen the same packet from different directions just because the files live close together.
 
@@ -88,15 +88,16 @@ Own:
 
 Do not use this lane to move a freeze-map anchor, rewrite a scorecard blocker, or broaden the Architecture Council process.
 
-### 6. Indefinite-C policy lane: stay-in-C policy wording only
+### 6. Indefinite-C policy lane: stay-in-C policy and blocker-evidence wording only
 
-Use the indefinite-C policy lane when the work is about the long-term policy for code that remains in C indefinitely or the lane-owner vocabulary alignment tied to that packet.
+Use the indefinite-C policy lane when the work is about the long-term policy for code that remains in C indefinitely, the documented exception posture, the blocker-evidence replay, or the lane-owner vocabulary alignment tied to that packet.
 
 Own:
 
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `zigux/tests/phase15_indefinite_c_policy.zig`
 - `zigux/tests/phase15_indefinite_c_policy.json`
+- `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 
 Do not use this lane to restate readiness, handoff, or scorecard status unless the policy packet itself has drifted.
