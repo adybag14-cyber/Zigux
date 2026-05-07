@@ -165,6 +165,69 @@ test "phase12 nvme pci queue-count reservation helper respects reset freeze and 
     try std.testing.expectEqual(@as(u16, 4), io_after_reserve.queue_id);
 }
 
+test "phase12 nvme pci replays stale queue reservations after reset" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(6, 4);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    const replay = try lab.replayReservedIoQueues(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 6);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", replay.anchor);
+    try std.testing.expectEqual(@as(usize, 4), replay.requested_io_queues);
+    try std.testing.expectEqual(@as(usize, 4), replay.reserved_io_queues);
+    try std.testing.expectEqual(@as(u16, 1), replay.first_queue_id);
+    try std.testing.expectEqual(@as(u16, 4), replay.last_queue_id);
+    try std.testing.expectEqual(@as(usize, 4), replay.planned_io_queues_after_reserve);
+    try std.testing.expectEqual(@as(u32, 1), replay.reset_generation);
+
+    const next = try lab.planIoQueue(8, 64, false);
+    try std.testing.expectEqual(@as(u16, 5), next.queue_id);
+}
+
+test "phase12 nvme pci replay helper rejects current, missing, and frozen reservations" {
+    var current_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try current_lab.planAdminQueue(32, 64, false);
+    const current = try current_lab.reserveIoQueues(4, 4);
+    try std.testing.expectError(error.QueueReservationAlreadyCurrent, current_lab.replayReservedIoQueues(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = current.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = current.reserved_io_queues,
+    }, 4));
+
+    var missing_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try missing_lab.planAdminQueue(32, 64, false);
+    try std.testing.expectError(error.NoQueueReservationToReplay, missing_lab.replayReservedIoQueues(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+    }, 4));
+
+    var frozen_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try frozen_lab.planAdminQueue(32, 64, false);
+    const frozen = try frozen_lab.reserveIoQueues(4, 4);
+    _ = frozen_lab.beginReset();
+    try std.testing.expectError(error.QueuePlanningBlockedByReset, frozen_lab.replayReservedIoQueues(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = frozen.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = frozen.reserved_io_queues,
+    }, 4));
+}
+
 test "phase12 nvme pci io queue count helper rejects empty negotiation and respects reset freeze" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     try std.testing.expectError(error.InvalidRequestedIoQueues, lab.planIoQueueCount(0, 4));
