@@ -286,6 +286,8 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "rbtree nextMatch walks the duplicate range in order"',
             'test "rbtree cached root keeps the leftmost pointer in sync"',
             'test "rbtree eraseCached returns null for a singleton cached tree"',
+            'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
+            'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
         ],
         "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
         "parity_fixture_keys": [
