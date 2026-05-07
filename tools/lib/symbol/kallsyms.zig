@@ -18,10 +18,6 @@ pub const ParsedSymbol = struct {
 
 pub const ProcessSymbolFn = *const fn (?*anyopaque, [:0]const u8, u8, u64) i32;
 
-pub const ParseLineError = error{
-    SymbolNameTooLong,
-};
-
 pub fn kallsyms2ElfBinding(symbol_type: u8) u8 {
     if (symbol_type == 'W') return elf_stb_weak;
     return if (std.ascii.isUpper(symbol_type)) elf_stb_global else elf_stb_local;
@@ -52,7 +48,7 @@ fn normalizeName(name: []const u8) []const u8 {
     return if (name.len > KSYM_NAME_LEN) name[0..KSYM_NAME_LEN] else name;
 }
 
-pub fn parseLine(line: []const u8) ParseLineError!?ParsedSymbol {
+pub fn parseLine(line: []const u8) ?ParsedSymbol {
     const trimmed = trimTrailingCarriageReturn(line);
     if (trimmed.len == 0) return null;
 
@@ -79,7 +75,7 @@ pub fn forEachParsedLine(
 ) !void {
     var lines = std.mem.splitScalar(u8, contents, '\n');
     while (lines.next()) |line| {
-        const parsed = try parseLine(line) orelse continue;
+        const parsed = parseLine(line) orelse continue;
         try process_symbol(context, parsed);
     }
 }
@@ -89,7 +85,7 @@ fn processParsedLine(
     context: anytype,
     comptime process_symbol: fn (@TypeOf(context), ParsedSymbol) anyerror!void,
 ) !void {
-    const parsed = try parseLine(line) orelse return;
+    const parsed = parseLine(line) orelse return;
     try process_symbol(context, parsed);
 }
 
@@ -272,12 +268,12 @@ test "kallsyms helpers preserve classification and malformed-line behavior" {
     try std.testing.expect(isFunction('T'));
     try std.testing.expect(!isFunction('B'));
 
-    const parsed = (try parseLine("ffffffff81000000 T startup_64")) orelse unreachable;
+    const parsed = parseLine("ffffffff81000000 T startup_64") orelse unreachable;
     try std.testing.expectEqual(@as(u64, 0xffffffff81000000), parsed.start);
     try std.testing.expectEqualStrings("startup_64", parsed.name);
 
-    try std.testing.expectEqual(@as(?ParsedSymbol, null), try parseLine(""));
-    try std.testing.expectEqual(@as(?ParsedSymbol, null), try parseLine("not-hex T broken"));
+    try std.testing.expectEqual(@as(?ParsedSymbol, null), parseLine(""));
+    try std.testing.expectEqual(@as(?ParsedSymbol, null), parseLine("not-hex T broken"));
 }
 
 test "weak object symbol classes keep the current C helper classification" {
@@ -288,17 +284,17 @@ test "weak object symbol classes keep the current C helper classification" {
     try std.testing.expect(!isFunction('V'));
     try std.testing.expect(!isFunction('v'));
 
-    const parsed = (try parseLine("ffffffff81000200 V weak_object")) orelse unreachable;
+    const parsed = parseLine("ffffffff81000200 V weak_object") orelse unreachable;
     try std.testing.expectEqual(@as(u8, 'V'), parsed.symbol_type);
     try std.testing.expectEqualStrings("weak_object", parsed.name);
 }
 
-test "parseLine truncates oversized names instead of failing them" {
+test "parseLine truncates oversized names without keeping a parser-local error surface" {
     const too_long_name = "a" ** (KSYM_NAME_LEN + 9);
     const oversized_line = try std.fmt.allocPrint(std.testing.allocator, "1 T {s}", .{too_long_name});
     defer std.testing.allocator.free(oversized_line);
 
-    const parsed = (try parseLine(oversized_line)) orelse unreachable;
+    const parsed = parseLine(oversized_line) orelse unreachable;
     try std.testing.expectEqual(@as(usize, KSYM_NAME_LEN), parsed.name.len);
     try std.testing.expectEqualStrings(too_long_name[0..KSYM_NAME_LEN], parsed.name);
 }
