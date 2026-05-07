@@ -66,6 +66,7 @@ EXPECTED_SURVEY_TEST_MARKERS = [
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity summary") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "consumes that identity snapshot") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "selected-queue readiness summary") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe-preflight summary flips from ready to blocked") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_ring_verify.zig") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_input_verify.zig") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, slice_note, "selected-queue readiness summary") != null);',
@@ -98,6 +99,7 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "transport-identity summary",
     "consumes that identity snapshot",
     "selected-queue readiness summary",
+    "probe-preflight summary flips from ready to blocked",
     "queue-ready-for-handoff posture",
     "zig test zigux/tests/phase10_virtio_mmio.zig",
 ]
@@ -182,6 +184,7 @@ test "phase10 virtio mmio summarizes selected-queue readiness before queue hando
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "consumes that identity snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "selected-queue readiness summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe-preflight summary flips from ready to blocked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_ring_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_input_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "selected-queue readiness summary") != null);
@@ -211,6 +214,7 @@ test "phase10 virtio mmio summarizes selected-queue readiness before queue hando
 - transport-identity summary
 - consumes that identity snapshot
 - selected-queue readiness summary
+- probe-preflight summary flips from ready to blocked
 - queue-ready-for-handoff posture
 - `zig test zigux/tests/phase10_virtio_mmio.zig`
 """,
@@ -481,6 +485,19 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_survey_verify_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
+        survey_path.write_text(
+            original_survey.replace(
+                "probe-preflight summary flips from ready to blocked",
+                "probe-preflight summary drifted away from the blocked posture",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:probe-preflight summary flips from ready to blocked" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_probe_preflight_blocked_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
         slice_path = tmp_root / "Documentation/zigux/phase10-virtio-mmio-slice.md"
         original_slice = slice_path.read_text(encoding="utf-8")
         slice_path.write_text(
@@ -505,6 +522,19 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if 'survey_test:try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_ring_verify.zig") != null);' not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_survey_test_verify_marker_missing")
+        survey_test_path.write_text(original_survey_test, encoding="utf-8")
+
+        survey_test_path.write_text(
+            original_survey_test.replace(
+                'try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe-preflight summary flips from ready to blocked") != null);',
+                'try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe-preflight summary drifted away from the blocked posture") != null);',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'survey_test:try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe-preflight summary flips from ready to blocked") != null);' not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_survey_test_probe_preflight_marker_missing")
         survey_test_path.write_text(original_survey_test, encoding="utf-8")
 
         slice_path.write_text(
@@ -569,7 +599,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_ring_helper_status_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
