@@ -13,7 +13,7 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
   - `zigux/tests/phase6_bsearch.zig`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
-- evidence note: direct readback on `2026-05-07` inspected current `master` head `affdebd460c9c33ce939c7535cdb929352648e93`, `lib/bsearch.c` blob `bf86aa66f2b275798ae850e321a1a459d1a6bfab`, `lib/bsearch.zig` blob `8e3302545725094e5ff13ffe81858efd7c1e71d4`, and `zigux/tests/phase6_bsearch.zig` blob `9853d7c45443b4830cba8338c07a532f5680b52d`
+- evidence note: direct readback on `2026-05-07` inspected the current `lib/bsearch.c`, `lib/bsearch.zig`, and `zigux/tests/phase6_bsearch.zig` packet so this slice stays limited to the shipped helper-local review surface instead of stale blob bookkeeping
 
 ## Why this slice exists
 
@@ -62,14 +62,13 @@ The current tests check:
 - heterogeneous-key lookup where the key type differs from the element type
 - pointer-return parity for successful typed lookups
 - mutable typed and raw lookup write-through parity
-- raw byte-stride parity across record-style entries where the comparator reads the member key field
 - duplicate-key found-or-null parity without claiming stable duplicate selection
-- representative lookup work stays inside a bounded binary-search comparison budget for both typed and raw lookup paths
 - raw empty-input parity, including that the comparator is not invoked when `num_members == 0`
 - runtime-selected native comparator pointer parity
-- runtime-selected C ABI comparator pointer parity
+- runtime-selected typed C ABI comparator pointer parity across ascending and descending sorted slices
 - runtime-selected raw native comparator pointer parity
 - runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses
+- representative lookup work stays inside a bounded binary-search comparison budget for both typed and raw lookup paths
 
 The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable, and the same focused replay now carries the bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route.
 
@@ -80,7 +79,8 @@ This slice does not yet claim:
 - lower-bound or upper-bound helpers
 - duplicate-key stability guarantees beyond matching the kernel-style found-or-null contract
 - standalone nanosecond ceilings or a dedicated `phase6_bsearch_perf` route beyond the bundled comparison-budget replay
+- record-style raw `member_size` parity beyond the module-local `lib/bsearch.zig` self-test packet
 
 ## Next bounded step
 
-Keep the next Phase 6 follow-up inside the existing bsearch helper-local packet. Reopen this slice only if fresh repo inspection finds a concrete new `bsearch.c` parity, comparator-alias, comparison-budget, or packet-alignment drift inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, or the shared bundled gates that already cover this parked helper.
+Keep the next Phase 6 follow-up inside the existing bsearch helper-local packet. Reopen this slice only if fresh repo inspection finds a concrete new `bsearch.c` parity, comparator-alias, comparison-budget, or packet-alignment drift inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, or the shared bundled gates that already cover this parked helper. If the next real gap is the missing record-style raw `member_size` replay inside the focused Phase 6 packet, add that bounded test directly to `zigux/tests/phase6_bsearch.zig` rather than widening into a separate fixture or perf route.
