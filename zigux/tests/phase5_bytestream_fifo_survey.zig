@@ -217,6 +217,20 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         .{ manifest.lane_key, manifest.surveyed_commit },
     );
 
+    var replay_intro_marker_buf: [192]u8 = undefined;
+    const replay_intro_marker = try std.fmt.bufPrint(
+        replay_intro_marker_buf[0..],
+        "A focused replay for the recorded `PHASE5_SURVEYED_COMMIT={s}` packet was re-run on 2026-05-05",
+        .{manifest.surveyed_commit},
+    );
+
+    var pinned_snapshot_marker_buf: [384]u8 = undefined;
+    const pinned_snapshot_marker = try std.fmt.bufPrint(
+        pinned_snapshot_marker_buf[0..],
+        "This snapshot is commit-pinned to `PHASE5_SURVEYED_COMMIT={s}`; newer unrelated `master` commits should not be read as automatically re-verified unless this note, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` move together.",
+        .{manifest.surveyed_commit},
+    );
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase5-kfifo-sample-survey.md",
@@ -253,6 +267,10 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, review_gate_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, replay_intro_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, pinned_snapshot_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "A focused current-`master` replay was re-run") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "assembled from the current `master` versions") == null);
 
     const docs_root = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
