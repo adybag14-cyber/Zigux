@@ -158,6 +158,7 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
 
 REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS = {
     PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER: 1,
+    PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER: 1,
 }
 
 REQUIRED_FREEZE_MAP_MARKERS = [
@@ -432,10 +433,10 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / SAMPLES_README_PATH, minimal_marker_doc("samples/zigux", REQUIRED_SAMPLES_README_MARKERS))
     write_text(root / REVIEW_CHECKLIST_PATH, minimal_marker_doc("Zigux Review Checklist", REQUIRED_REVIEW_CHECKLIST_MARKERS))
     write_text(root / FREEZE_MAP_PATH, minimal_marker_doc("Zigux Freeze Map", REQUIRED_FREEZE_MAP_MARKERS))
-    write_text(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_MARKERS + [""]))
-    write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_MARKERS + [""]))
+    write_text(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
+    write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
     write_text(root / PHASE9_BUILD_PATH, phase9_build_fixture())
-    write_text(root / RUNTIME_LOADER_PATH, "// facade placeholder\n")
+    write_text(root / RUNTIME_LOADER_PATH, "// runtime loader placeholder\n")
     write_text(root / RUNTIME_LOADER_CONTRACT_PATH, runtime_loader_contract_fixture())
     write_text(root / "zigux/tests/runtime_loader_allocator_init_flow.zig", "// allocator/init-flow placeholder\n")
 
@@ -663,6 +664,19 @@ def run_self_test() -> int:
             root,
             f"review_checklist:{PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER}",
             "missing_phase9_bitmap_top_bit_review_marker",
+        )
+
+        write_fixture_tree(root)
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            review_checklist + PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"review_checklist_exact_count:{PHASE9_REVIEW_CHECKLIST_BITMAP_TOP_BIT_MARKER}:expected=1:actual=2",
+            "duplicate_phase9_bitmap_top_bit_review_marker",
         )
 
         write_fixture_tree(root)
@@ -905,7 +919,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=37")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=38")
     return 0
 
 
