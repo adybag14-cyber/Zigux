@@ -82,6 +82,19 @@ pub const ReusePinnedMapAttemptPlan = struct {
     compatibility: ?MapReuseCompatibilitySummary = null,
 };
 
+pub const TokenPreparationDisposition = enum {
+    missing_token_path,
+    bridge_plan_not_ready,
+    ready_for_token_open_attempt,
+};
+
+pub const TokenPreparationPlan = struct {
+    disposition: TokenPreparationDisposition,
+    token_path: ?[]const u8 = null,
+    bridge_plan: ReusePinnedMapAttemptPlan,
+    should_attempt_token_open: bool,
+};
+
 pub const MapReuseCompatibility = enum {
     compatible,
     map_type_mismatch,
@@ -362,6 +375,39 @@ pub fn resolveReusePinnedMapAttempt(
         .resolved_name = resolved_name,
         .should_attempt_reopen = true,
         .compatibility = compatibility,
+    };
+}
+
+pub fn planTokenPreparation(
+    token_path: ?[]const u8,
+    bridge_plan: ReusePinnedMapAttemptPlan,
+) TokenPreparationPlan {
+    const raw_path = token_path orelse return .{
+        .disposition = .missing_token_path,
+        .bridge_plan = bridge_plan,
+        .should_attempt_token_open = false,
+    };
+    const trimmed_path = std.mem.trim(u8, raw_path, " \t\r\n");
+    if (trimmed_path.len == 0) {
+        return .{
+            .disposition = .missing_token_path,
+            .bridge_plan = bridge_plan,
+            .should_attempt_token_open = false,
+        };
+    }
+    if (!bridge_plan.should_attempt_reopen) {
+        return .{
+            .disposition = .bridge_plan_not_ready,
+            .token_path = trimmed_path,
+            .bridge_plan = bridge_plan,
+            .should_attempt_token_open = false,
+        };
+    }
+    return .{
+        .disposition = .ready_for_token_open_attempt,
+        .token_path = trimmed_path,
+        .bridge_plan = bridge_plan,
+        .should_attempt_token_open = true,
     };
 }
 
@@ -733,6 +779,84 @@ test "resolveReusePinnedMapAttempt keeps path presence and fdinfo reuse compatib
     try std.testing.expectEqualStrings("/sys/fs/bpf/stats", ready.pinned_path.?);
     try std.testing.expectEqual(MapReuseCompatibility.compatible, ready.compatibility.?.outcome);
     try std.testing.expect(ready.should_attempt_reopen);
+}
+
+test "planTokenPreparation keeps missing token paths explicit" {
+    const ready_bridge_plan = ReusePinnedMapAttemptPlan{
+        .disposition = .ready_for_reopen_attempt,
+        .pinned_path = "/sys/fs/bpf/stats",
+        .resolved_name = .{
+            .source = .object_name,
+            .value = "process_pinned_map",
+        },
+        .should_attempt_reopen = true,
+        .compatibility = .{
+            .outcome = .compatible,
+            .normalized_observed_map_flags = 0x20,
+        },
+    };
+
+    const missing = planTokenPreparation(null, ready_bridge_plan);
+    try std.testing.expectEqual(
+        TokenPreparationDisposition.missing_token_path,
+        missing.disposition,
+    );
+    try std.testing.expectEqual(@as(?[]const u8, null), missing.token_path);
+    try std.testing.expect(!missing.should_attempt_token_open);
+
+    const blank = planTokenPreparation(" \t\r\n ", ready_bridge_plan);
+    try std.testing.expectEqual(
+        TokenPreparationDisposition.missing_token_path,
+        blank.disposition,
+    );
+    try std.testing.expectEqual(@as(?[]const u8, null), blank.token_path);
+    try std.testing.expect(!blank.should_attempt_token_open);
+}
+
+test "planTokenPreparation keeps token opening behind the reused-map bridge plan" {
+    const expected = MapReuseExpectation{
+        .name = "process_pinned_map",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20,
+        .map_extra = 7,
+    };
+
+    const bridge_blocked = resolveReusePinnedMapAttempt("/sys/fs/bpf/stats", expected, null);
+    const blocked = planTokenPreparation(" /sys/fs/bpf/token ", bridge_blocked);
+    try std.testing.expectEqual(
+        TokenPreparationDisposition.bridge_plan_not_ready,
+        blocked.disposition,
+    );
+    try std.testing.expectEqualStrings("/sys/fs/bpf/token", blocked.token_path.?);
+    try std.testing.expectEqual(
+        ReusePinnedMapAttemptDisposition.missing_map_observation,
+        blocked.bridge_plan.disposition,
+    );
+    try std.testing.expect(!blocked.should_attempt_token_open);
+
+    const bridge_ready = resolveReusePinnedMapAttempt("/sys/fs/bpf/stats", expected, .{
+        .name = "process_pinned_",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | bpf_f_rdonly_prog,
+        .map_extra = 7,
+    });
+    const ready = planTokenPreparation(" /sys/fs/bpf/token ", bridge_ready);
+    try std.testing.expectEqual(
+        TokenPreparationDisposition.ready_for_token_open_attempt,
+        ready.disposition,
+    );
+    try std.testing.expectEqualStrings("/sys/fs/bpf/token", ready.token_path.?);
+    try std.testing.expectEqual(
+        ReusePinnedMapAttemptDisposition.ready_for_reopen_attempt,
+        ready.bridge_plan.disposition,
+    );
+    try std.testing.expect(ready.should_attempt_token_open);
 }
 
 test "resolveReusePinnedMapAttempt keeps the readonly-prog normalization devmap-only" {
