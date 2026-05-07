@@ -105,15 +105,15 @@ Keep that follow-through bounded to one shared summary at a time:
 - `samples/zigux/README.md` only when the Phase 9 boundary wording there is being touched already
 - `Documentation/zigux/review-checklist.md` for the reviewer-facing Phase 9 prompt
 
-Only `samples/zigux/README.md` should restate the bitmap-only top-bit companion or the older command and environment control boundaries; the docs root, scripts root, tests root, and checklist should keep pointing back here instead of duplicating those pilot-local reminders.
+Only `samples/zigux/README.md` and `Documentation/zigux/review-checklist.md` should restate the bitmap-only top-bit companion or the older command and environment control boundaries; the docs root, scripts root, and tests root should keep pointing back here instead of duplicating those pilot-local reminders.
 
-This keeps later closure-note work small while preserving the explicit split between the shared loader lane, the bitmap-only top-bit replay, the samples-root-only command and environment boundaries, and the four pilot-family packets.
+This keeps later closure-note work small while preserving the explicit split between the shared loader lane, the bitmap-only top-bit replay, the samples-root and checklist-facing command and environment boundaries, and the four pilot-family packets.
 
 ## Current live follow-through state
 
 - `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`
 - `samples/zigux/README.md` already carries the bitmap-only top-bit companion reminder plus the older command and environment control boundaries, so later shared-loader follow-through should leave those pilot-local cues there instead of flattening them back into the loader packet
-- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig` and the rest of the shared packet
+- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries
 - the next same-lane follow-through should reopen only if one of the shared reminder surfaces drifts, or if the shared loader lane picks up a new bounded validation surface that needs to be named across the packet
 
 ## Recommended next-step order
