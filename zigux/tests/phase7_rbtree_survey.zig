@@ -58,6 +58,38 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     );
     defer std.testing.allocator.free(slice_note);
 
+    const docs_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(docs_root);
+
+    const scripts_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(scripts_root);
+
+    const tests_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(tests_root);
+
+    const build_file = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase7_build.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(build_file);
+
     const validate_phase7 = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "scripts/zigux/validate-phase7.py",
@@ -174,6 +206,30 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(slice_note, "erase-and-detach ownership reset via `eraseInit()`");
     try expectContains(slice_note, "detached-node clearing semantics");
     try expectContains(slice_note, "terminal postorder handoff accepts null input so callers can finish walks without a separate pre-check");
+    try expectContains(docs_root, "Documentation/zigux/phase7-rbtree-slice.md");
+    try expectContains(docs_root, "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample");
+    try expectContains(docs_root, "lib/rbtree.zig");
+    try expectContains(docs_root, "scripts/zigux/check-phase7-rbtree-parity.py");
+    try expectContains(docs_root, "zigux/tests/phase7_rbtree.zig");
+    try expectContains(docs_root, "zigux/tests/phase7_rbtree_survey.zig");
+    try expectContains(docs_root, "zigux/tests/phase7_build.zig");
+    try expectContains(scripts_root, "scripts/zigux/check-phase7-rbtree-parity.py");
+    try expectContains(scripts_root, "zigux/tests/phase7_rbtree.zig");
+    try expectContains(scripts_root, "zigux/tests/phase7_rbtree_survey.zig");
+    try expectContains(scripts_root, "zigux/tests/phase7_rbtree_manifest.json");
+    try expectContains(scripts_root, "zigux/tests/fixtures/phase7_rbtree.json");
+    try expectContains(scripts_root, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
+    try expectContains(scripts_root, "make -C zigux phase7-validate");
+    try expectContains(scripts_root, "make -C zigux phase7");
+    try expectContains(tests_root, "`scripts/zigux/check-phase7-rbtree-parity.py`");
+    try expectContains(tests_root, "the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate");
+    try expectContains(tests_root, "`make -C zigux phase7-validate`");
+    try expectContains(tests_root, "`make -C zigux phase7`");
+    try expectContains(build_file, "\"phase7_rbtree.zig\"");
+    try expectContains(build_file, "\"phase7_rbtree_survey.zig\"");
+    try expectContains(build_file, "\"phase7-rbtree-tests\"");
+    try expectContains(build_file, "\"phase7-rbtree-survey-tests\"");
+    try expectContains(build_file, "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));");
     try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-rbtree-parity.py\",");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree.zig\",");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree_survey.zig\",");
