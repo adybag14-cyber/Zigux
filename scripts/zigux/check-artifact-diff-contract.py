@@ -59,7 +59,6 @@ REQUIRED_REVIEW_NOTE_MARKERS = [
     '- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_TEXT` must prove both the stable text pass shape and the direct text mismatch fail shape',
     '- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_JSON` must prove canonical JSON equivalence while `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID` proves malformed JSON fails without inventing digest or exists markers',
     '- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_SHA256` must prove both the shared digest pass line and the exact expected-vs-actual digest drift lines',
-    '- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID` must prove malformed JSON fails without inventing digest or exists markers',
     '- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_MISSING` must prove missing-path failures emit only the EXISTS markers',
 ]
 
@@ -166,6 +165,11 @@ def assert_contract_catalog_shape() -> None:
     if len(set(REPEAT_CONTRACT_CASES)) != len(REPEAT_CONTRACT_CASES):
         raise AssertionError(
             f'artifact-diff repeat contract cases must stay unique: {REPEAT_CONTRACT_CASES}'
+        )
+    if len(set(REQUIRED_REVIEW_NOTE_MARKERS)) != len(REQUIRED_REVIEW_NOTE_MARKERS):
+        raise AssertionError(
+            'artifact-diff review note markers must stay unique: '
+            f'{REQUIRED_REVIEW_NOTE_MARKERS}'
         )
     missing_repeat_cases = [
         case for case in REPEAT_CONTRACT_CASES if case not in EXPECTED_CONTRACT_CASES
