@@ -52,6 +52,17 @@ const HandoffEvidence = struct {
     maintenance_mode_next_step: []const u8,
 };
 
+const Metrics = struct {
+    active_freeze_in_c_anchor_count: usize,
+    total_tracked_line_count: usize,
+    anchors_with_phase14_blocker_evidence: usize,
+    anchors_without_phase14_blocker_evidence: usize,
+    architecture_council_owned_anchor_count: usize,
+    specialist_lane_owned_anchor_count: usize,
+    reserved_decision_record_template_count: usize,
+    blocked_status_change_anchor_count: usize,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -66,6 +77,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     review_process: ReviewProcess,
     handoff_evidence: HandoffEvidence,
+    metrics: Metrics,
     anchors: []const AnchorScorecard,
     repo_evidence: RepoEvidence,
     gaps: []const Gap,
@@ -122,9 +134,9 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L12", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-Y03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("39cdd038909f9834a8702070a697a0bf2111cb66", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2359c03fa82626b7359467c9b8bc9d0b092de5aa", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 10), manifest.review_process.required_record_field_count);
     try std.testing.expectEqual(manifest.review_process.required_record_field_count, manifest.review_process.required_record_fields.len);
@@ -158,6 +170,14 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "named reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "deep-core blocker posture") != null);
+    try std.testing.expectEqual(@as(usize, 4), manifest.metrics.active_freeze_in_c_anchor_count);
+    try std.testing.expectEqual(@as(usize, 31437), manifest.metrics.total_tracked_line_count);
+    try std.testing.expectEqual(@as(usize, 2), manifest.metrics.anchors_with_phase14_blocker_evidence);
+    try std.testing.expectEqual(@as(usize, 2), manifest.metrics.anchors_without_phase14_blocker_evidence);
+    try std.testing.expectEqual(@as(usize, 2), manifest.metrics.architecture_council_owned_anchor_count);
+    try std.testing.expectEqual(@as(usize, 2), manifest.metrics.specialist_lane_owned_anchor_count);
+    try std.testing.expectEqual(@as(usize, 4), manifest.metrics.reserved_decision_record_template_count);
+    try std.testing.expectEqual(@as(usize, 4), manifest.metrics.blocked_status_change_anchor_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expect(manifest.repo_evidence.freeze_map_present);
     try std.testing.expect(manifest.repo_evidence.review_checklist_present);
@@ -399,7 +419,7 @@ test "phase 15 council review gate stays aligned between the scorecard and check
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
-        .limited(16 * 1024),
+        .limited(48 * 1024),
     );
     defer std.testing.allocator.free(review_checklist);
 
