@@ -131,15 +131,20 @@ EXPECTED_SURVEY_TEST_MARKERS = [
     'test "phase10 virtio input survey manifest records the live starter and remaining gap" {',
     'try std.testing.expectEqualStrings("P10-L13", manifest.lane_key);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated queue-callback-preflight replay") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper ownership stays with the already-landed shared Phase 10 packets") != null);',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-survey-note")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-replay")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-wrapper-ownership-note")) {',
     'try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lab-only driver validation evidence") != null);',
     'try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.preexisting_phase10_test_files);',
+    '"phase10-virtio-input-queue-callback-preflight-replay"',
     '"phase10-virtio-input-status-drain-helper"',
+    'try std.testing.expect(saw_queue_callback_preflight_replay);',
     'try std.testing.expect(saw_queue_callback_preflight_helper);',
-    'try std.testing.expect(starter_landed_count >= 14);',
+    'try std.testing.expect(starter_landed_count >= 15);',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
 ]
@@ -164,7 +169,10 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "PHASE10_LANE_KEY=P10-L13",
     "drivers/virtio/virtio_input_verify.zig",
     "wrapper-facing verify replay",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "dedicated queue-callback-preflight replay",
     "phase10-virtio-input-verify-replay",
+    "phase10-virtio-input-queue-callback-preflight-replay",
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
     "phase10-virtio-input-status-drain-helper",
@@ -184,6 +192,7 @@ EXPECTED_GAPS = {
     "phase10-virtio-input-lab-helper": "starter_landed",
     "phase10-virtio-input-lab-gate": "starter_landed",
     "phase10-virtio-input-verify-replay": "starter_landed",
+    "phase10-virtio-input-queue-callback-preflight-replay": "starter_landed",
     "phase10-virtio-input-survey-gate": "starter_landed",
     "phase10-virtio-input-capability-setup-helper": "starter_landed",
     "phase10-virtio-input-multitouch-slot-helper": "starter_landed",
@@ -345,7 +354,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"manifest:{key}")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 14:
+    if len(gaps) < 15:
         missing_markers.append("manifest:gaps")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     for gap_id, status in EXPECTED_GAPS.items():
@@ -406,7 +415,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_freeze_boundary_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
-        manifest_path.write_text(
+        manifest_path.writeText(
             original_manifest.replace(
                 '"risky_transport_posture": "blocked_on_risky_transport"',
                 '"risky_transport_posture": "ready_next"',
