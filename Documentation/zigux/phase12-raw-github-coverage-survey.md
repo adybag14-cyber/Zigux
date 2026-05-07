@@ -30,7 +30,7 @@ Those two notes remain truthful shared-tree-only anchors on `master`. They are r
 
 ## Shared replay reminder
 
-The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order used by the PMO sequencing and closure companion notes.
+The shipped Phase 12 packet on `master` still keeps the same smoke-first replay order, including the attached-toolchain fallback when `zig` is absent from `PATH`, used by the PMO sequencing and closure companion notes.
 
 - current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 
@@ -38,6 +38,10 @@ The shipped Phase 12 packet on `master` still keeps the same four-step smoke-fir
 2. `make -C zigux phase12-smoke`
 3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 4. `make -C zigux phase12`
+5. If the local runtime does not provide `zig` on `PATH`, keep the same smoke-first order and rerun the shipped Make routes with an attached toolchain override instead of inventing a new Phase 12 entrypoint.
+   - `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
+   - `make -C zigux phase12 ZIG=<attached-zig-path>`
+   - This is an environment override for the existing replay packet, not a validator-first or `phase12-validate` route.
 
 Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether those same shipped surfaces are close enough to describe the active Phase 12 tranche as release-closed.
 
