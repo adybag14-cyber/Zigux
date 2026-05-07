@@ -33,7 +33,23 @@ test "phase 8 cpu mask starter slice keeps delimiter skipping bounded and reject
     try std.testing.expectError(error.EmptyCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, ",\n"));
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "2-1"));
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "cpu0"));
-    try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "\r0-1"));
+    try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, ",\r,"));
+}
+
+test "phase 8 cpu mask starter slice keeps libbpf whitespace parity" {
+    const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "\r0-1,\t4\n6-7");
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 8), parsed.values.len);
+    try std.testing.expectEqual(@as(usize, 5), parsed.countSet());
+    try std.testing.expect(parsed.values[0]);
+    try std.testing.expect(parsed.values[1]);
+    try std.testing.expect(!parsed.values[2]);
+    try std.testing.expect(!parsed.values[3]);
+    try std.testing.expect(parsed.values[4]);
+    try std.testing.expect(!parsed.values[5]);
+    try std.testing.expect(parsed.values[6]);
+    try std.testing.expect(parsed.values[7]);
 }
 
 test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
@@ -75,7 +91,7 @@ test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
     try std.testing.expect(parsed.values[8]);
 }
 
-test "phase 8 cpu mask reader interface rejects carriage-return-delimited chunks" {
+test "phase 8 cpu mask reader interface keeps libbpf whitespace parity" {
     const ReaderState = struct {
         chunks: []const []const u8,
         index: usize = 0,
@@ -94,14 +110,24 @@ test "phase 8 cpu mask reader interface rejects carriage-return-delimited chunks
     };
 
     var state = ReaderState{
-        .chunks = &.{ "0-3,\r", "5\n" },
+        .chunks = &.{ "0-3,\r", "5\n", "\t7-8\n" },
     };
     var scratch: [8]u8 = undefined;
-
-    try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
+    const parsed = try cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
         .context = &state,
         .readFn = ReaderState.read,
-    }));
+    });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 9), parsed.values.len);
+    try std.testing.expectEqual(@as(usize, 7), parsed.countSet());
+    try std.testing.expect(parsed.values[0]);
+    try std.testing.expect(parsed.values[3]);
+    try std.testing.expect(!parsed.values[4]);
+    try std.testing.expect(parsed.values[5]);
+    try std.testing.expect(!parsed.values[6]);
+    try std.testing.expect(parsed.values[7]);
+    try std.testing.expect(parsed.values[8]);
 }
 
 test "phase 8 cpu mask reader interface keeps failures explicit" {
