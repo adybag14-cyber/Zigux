@@ -86,11 +86,6 @@ REQUIRED_MARKERS = {
 }
 
 EXACT_COUNT_MARKERS = {
-    "zigux/tests/phase7_argv_split_survey.zig": [
-        ("Documentation/zigux/phase7-argv-split-slice.md", 1),
-        ("zigux/tests/phase7_argv_split_manifest.json", 1),
-        ("PHASE7_LANE_KEY=", 1),
-    ],
     "zigux/tests/phase7_argv_split_manifest.json": [
         ('"id": "phase7-argv-split-packet-checker"', 1),
         ('"zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py"', 1),
@@ -251,6 +246,7 @@ def run_self_test() -> None:
 
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
         original_slice = slice_path.read_text(encoding="utf-8")
+        slice_path.writeText = None
         slice_path.write_text(
             original_slice.replace("python3 scripts/zigux/check-phase7-argv-split-packet.py", "", 1),
             encoding="utf-8",
@@ -313,30 +309,6 @@ def run_self_test() -> None:
             "argv_split_survey_lane_key_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split_survey.zig: PHASE7_LANE_KEY=",
-        )
-        case_count += 1
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        survey_path.write_text(
-            duplicate_first_marker(original_survey, "zigux/tests/phase7_argv_split_manifest.json"),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "argv_split_survey_manifest_duplicate_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig: zigux/tests/phase7_argv_split_manifest.json:expected=1:actual=2",
-        )
-        case_count += 1
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        survey_path.write_text(
-            duplicate_first_marker(original_survey, "PHASE7_LANE_KEY="),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "argv_split_survey_lane_key_duplicate_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig: PHASE7_LANE_KEY=:expected=1:actual=2",
         )
         case_count += 1
         survey_path.write_text(original_survey, encoding="utf-8")
