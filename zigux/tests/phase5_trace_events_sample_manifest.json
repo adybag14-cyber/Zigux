@@ -9,6 +9,7 @@
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest and survey test still describe the exact vararg-payload, message, relative-location, callback-path, and teardown contract run through phase5_build.zig",
     "the contributor packet still names runPayloadBoundaryReplay() as the approved public count-4 payload-boundary helper instead of implying private field inspection for the 1,2,3,4 prefix, zero sentinel, iter=%d replay, and selected-string branch",
+    "the contributor packet still names runConditionalBoundaryReplay() as the approved public conditional-family helper for the count-0 Mother Goose branch, iter=%d message, 0xdeadbeef bitmask, and main-thread family counts instead of implying private sample-state reads",
     "the in-memory replay still keeps the array payload, selected string, and iter-format message reviewable instead of hiding them behind runtime thread state",
     "runCallbackBoundaryReplay() keeps function-callback replay a balanced register-then-unregister idiom rather than implying kthread creation or tracepoint enablement parity",
     "the sample-owned prompts keep the exact checked_focus order, unregisterFunctionCallback() underflow plus OutstandingRegistration rejection, and post-exit replay rejection explicit instead of leaving those callback-boundary cues implied",
@@ -35,6 +36,11 @@
       "id": "public-payload-boundary-helper",
       "kind": "bounded_payload",
       "expected": "runPayloadBoundaryReplay keeps the count-4 iter=4 payload boundary public by returning the 1,2,3,4 prefix, zero sentinel, selected string One ring to rule them all, and initialized-stage boundary without private sample-state reads"
+    },
+    {
+      "id": "public-conditional-boundary-helper",
+      "kind": "bounded_summary",
+      "expected": "runConditionalBoundaryReplay keeps the count-0 conditional-family boundary public by returning the Mother Goose selection, iter=0 message, 0xdeadbeef bitmask word, six main-thread event calls, and the vararg-payload plus relative-location markers without private sample-state reads"
     },
     {
       "id": "bitmask-and-rel-loc",
