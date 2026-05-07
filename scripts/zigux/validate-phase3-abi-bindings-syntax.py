@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ABI_HEADER = ROOT / "include" / "zigux" / "abi.h"
 DEFAULT_ABI_BINDINGS = ROOT / "zigux" / "bindings" / "abi.zig"
 DEFAULT_DEV_T_BINDINGS = ROOT / "zigux" / "bindings" / "dev_t.zig"
+DEFAULT_NOTIFIER_BINDINGS = ROOT / "zigux" / "bindings" / "notifier_abi.zig"
 DEFAULT_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi_manifest.json"
 DEFAULT_DOC = ROOT / "Documentation" / "zigux" / "phase3-abi-slice.md"
 FUSED_MARKER = ";pub const "
@@ -26,6 +27,7 @@ REQUIRED_MANIFEST_FILES = (
     "include/linux/zigux.h",
     "zigux/bindings/abi.zig",
     "zigux/bindings/dev_t.zig",
+    "zigux/bindings/notifier_abi.zig",
     "zigux/helpers/layout_assert.zig",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
@@ -43,6 +45,7 @@ REQUIRED_BINDINGS_DOC_MARKERS = (
     "include/linux/zigux.h",
     "zigux/bindings/abi.zig",
     "zigux/bindings/dev_t.zig",
+    "zigux/bindings/notifier_abi.zig",
 )
 REQUIRED_EXPORT_UAPI_DOC_MARKERS = (
     "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
@@ -116,12 +119,14 @@ def run_validation(
     abi_header_path: Path,
     abi_bindings_path: Path,
     dev_t_bindings_path: Path,
+    notifier_bindings_path: Path,
     manifest_path: Path,
     doc_path: Path,
 ) -> int:
     issues = validate_header(abi_header_path)
     issues.extend(validate_bindings(abi_bindings_path))
     issues.extend(validate_bindings(dev_t_bindings_path))
+    issues.extend(validate_bindings(notifier_bindings_path))
     issues.extend(validate_gate_contract(manifest_path, doc_path))
     if issues:
         print("PHASE3_ABI_BINDINGS_SYNTAX=fail")
@@ -134,6 +139,7 @@ def run_validation(
     print(f"ABI_HEADER_PATH={abi_header_path.relative_to(ROOT).as_posix()}")
     print(f"ABI_BINDINGS_PATH={abi_bindings_path.relative_to(ROOT).as_posix()}")
     print(f"DEV_T_BINDINGS_PATH={dev_t_bindings_path.relative_to(ROOT).as_posix()}")
+    print(f"NOTIFIER_BINDINGS_PATH={notifier_bindings_path.relative_to(ROOT).as_posix()}")
     print(f"ABI_BINDINGS_MANIFEST={manifest_path.relative_to(ROOT).as_posix()}")
     print(f"ABI_BINDINGS_DOC={doc_path.relative_to(ROOT).as_posix()}")
     return 0
@@ -146,6 +152,7 @@ def run_self_test() -> int:
         abi_header = root / "include" / "zigux" / "abi.h"
         abi_bindings = root / "zigux" / "bindings" / "abi.zig"
         dev_t_bindings = root / "zigux" / "bindings" / "dev_t.zig"
+        notifier_bindings = root / "zigux" / "bindings" / "notifier_abi.zig"
         manifest = root / "zigux" / "tests" / "fixtures" / "phase3_abi_manifest.json"
         doc = root / "Documentation" / "zigux" / "phase3-abi-slice.md"
         for path in (abi_header.parent, abi_bindings.parent, manifest.parent, doc.parent):
@@ -189,6 +196,17 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+        notifier_bindings.write_text(
+            "\n".join(
+                [
+                    "pub const NOTIFIER_CHAIN_FLAG_EMPTY: u32 = 1;",
+                    "pub const NOTIFIER_CHAIN_FLAG_TERMINATED: u32 = 2;",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
         manifest.write_text(
             json.dumps(
                 {
@@ -213,6 +231,7 @@ def run_self_test() -> int:
                     "- `include/linux/zigux.h`",
                     "- `zigux/bindings/abi.zig`",
                     "- `zigux/bindings/dev_t.zig`",
+                    "- `zigux/bindings/notifier_abi.zig`",
                     "- `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`",
                     "- `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`",
                     "- `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
@@ -227,6 +246,7 @@ def run_self_test() -> int:
         assert validate_header(abi_header) == []
         assert validate_bindings(abi_bindings) == []
         assert validate_bindings(dev_t_bindings) == []
+        assert validate_bindings(notifier_bindings) == []
         assert validate_gate_contract(manifest, doc) == []
 
         abi_header.write_text(
@@ -278,13 +298,32 @@ def run_self_test() -> int:
             newline="\n",
         )
         fused_dev_t_issues = validate_bindings(dev_t_bindings)
-        assert fused_dev_t_issues == [f"{dev_t_bindings}:1:{FUSED_MARKER.strip()}"]
+        assert fused_dev_t_issues == [f"{dev_t_bindings}:1:{FUSED_MARKER.strip()}]
 
         dev_t_bindings.write_text(
             "\n".join(
                 [
                     "pub const minor_bits: u5 = 20;",
                     "pub const minor_mask: u32 = (1 << minor_bits) - 1;",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        notifier_bindings.write_text(
+            "pub const NOTIFIER_CHAIN_FLAG_EMPTY: u32 = 1;pub const NOTIFIER_CHAIN_FLAG_TERMINATED: u32 = 2;\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        fused_notifier_issues = validate_bindings(notifier_bindings)
+        assert fused_notifier_issues == [f"{notifier_bindings}:1:{FUSED_MARKER.strip()}]
+
+        notifier_bindings.write_text(
+            "\n".join(
+                [
+                    "pub const NOTIFIER_CHAIN_FLAG_EMPTY: u32 = 1;",
+                    "pub const NOTIFIER_CHAIN_FLAG_TERMINATED: u32 = 2;",
                     "",
                 ]
             ),
@@ -345,7 +384,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Detect fused top-level declarations across the authoritative Phase 3 ABI header and the curated ABI and dev_t bindings, and require the dedicated syntax gate contract."
+        description="Detect fused top-level declarations across the authoritative Phase 3 ABI header and the curated ABI, dev_t, and notifier bindings, and require the dedicated syntax gate contract."
     )
     parser.add_argument(
         "abi_path",
@@ -367,6 +406,12 @@ def main() -> int:
         help="dev_t bindings file to inspect.",
     )
     parser.add_argument(
+        "--notifier-path",
+        type=Path,
+        default=DEFAULT_NOTIFIER_BINDINGS,
+        help="notifier starter bindings file to inspect.",
+    )
+    parser.add_argument(
         "--manifest",
         type=Path,
         default=DEFAULT_MANIFEST,
@@ -383,7 +428,7 @@ def main() -> int:
 
     if args.self_test:
         return run_self_test()
-    return run_validation(args.header_path, args.abi_path, args.dev_t_path, args.manifest, args.doc)
+    return run_validation(args.header_path, args.abi_path, args.dev_t_path, args.notifier_path, args.manifest, args.doc)
 
 
 if __name__ == "__main__":
