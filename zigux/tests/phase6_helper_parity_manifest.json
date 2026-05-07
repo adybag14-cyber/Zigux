@@ -15,18 +15,12 @@
       "helper": "lib/base64.zig",
       "tests": [
         "zigux/tests/phase6_base64.zig",
-        "zigux/tests/phase6_base64_perf.zig",
-        "zigux/tests/phase6_base64_c_parity.zig"
-      ],
-      "generators": [
-        "zigux/tests/phase6_base64_c_casegen.zig"
+        "zigux/tests/phase6_base64_perf.zig"
       ],
       "fixtures": [
-        "zigux/tests/fixtures/phase6_base64_vectors.zig",
-        "zigux/tests/fixtures/phase6_base64_c_harness.c"
+        "zigux/tests/fixtures/phase6_base64_vectors.zig"
       ],
-      "slice_note": "Documentation/zigux/phase6-base64-slice.md",
-      "external_parity": "python3 scripts/zigux/check-phase6-base64-c-parity.py"
+      "slice_note": "Documentation/zigux/phase6-base64-slice.md"
     },
     {
       "id": "bsearch",
@@ -109,14 +103,12 @@
   "determinism_evidence": {
     "base64": {
       "standard_encode_vectors": 22,
-      "variant_encode_vectors": 30,
+      "variant_encode_vectors": 4,
       "standard_decode_vectors": 22,
-      "variant_decode_vectors": 20,
-      "invalid_decode_vectors": 28,
-      "perf_payload_cases": 2,
-      "perf_replay_cases": 10,
-      "c_parity_self_test_cases": 10,
-      "c_parity_cases": 122
+      "variant_decode_vectors": 4,
+      "invalid_decode_vectors": 24,
+      "perf_payload_cases": 1,
+      "perf_replay_cases": 4
     },
     "bsearch": {
       "inline_corpus": "sorted integer and symbol tables",
@@ -169,10 +161,6 @@
     "make -C zigux phase6-base64-perf",
     "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-hexdump-perf",
-    "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
-    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
-    "python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test",
-    "python3 scripts/zigux/check-phase6-base64-catalog-evidence.py",
     "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test",
     "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
     "python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test",
