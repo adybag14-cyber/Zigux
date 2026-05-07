@@ -28,6 +28,9 @@ const Fixture = struct {
         next_zero: usize,
         first_and: usize,
         next_and: usize,
+        past_nbits_next: usize,
+        past_nbits_zero: usize,
+        past_nbits_and: usize,
         tail_clamped_first: usize,
         tail_clamped_next: usize,
         tail_zero_clamped_first: usize,
@@ -209,6 +212,51 @@ test "phase 1 helper ports match committed parity fixture" {
     const find_rhs = [_]find_bit.Word{ @as(find_bit.Word, 1) << 9, @as(find_bit.Word, 1) << 2 };
     try std.testing.expectEqual(fixture.find_bit.first_and, find_bit.findFirstAndBit(&find_lhs, &find_rhs, fixture.find_bit.bits_per_long * 2));
     try std.testing.expectEqual(fixture.find_bit.next_and, find_bit.findNextAndBit(&find_lhs, &find_rhs, fixture.find_bit.bits_per_long * 2, 10));
+
+    const past_nbits_boundary = fixture.find_bit.past_nbits_next;
+    const past_nbits_empty = [_]find_bit.Word{};
+    try std.testing.expectEqual(
+        fixture.find_bit.past_nbits_next,
+        find_bit.findNextBit(&past_nbits_empty, past_nbits_boundary, past_nbits_boundary),
+    );
+    try std.testing.expectEqual(
+        fixture.find_bit.past_nbits_next,
+        find_bit.findNextBit(&past_nbits_empty, past_nbits_boundary, past_nbits_boundary + 4),
+    );
+    try std.testing.expectEqual(
+        fixture.find_bit.past_nbits_zero,
+        find_bit.findNextZeroBit(
+            &past_nbits_empty,
+            fixture.find_bit.past_nbits_zero,
+            fixture.find_bit.past_nbits_zero,
+        ),
+    );
+    try std.testing.expectEqual(
+        fixture.find_bit.past_nbits_zero,
+        find_bit.findNextZeroBit(
+            &past_nbits_empty,
+            fixture.find_bit.past_nbits_zero,
+            fixture.find_bit.past_nbits_zero + 4,
+        ),
+    );
+    try std.testing.expectEqual(
+        fixture.find_bit.past_nbits_and,
+        find_bit.findNextAndBit(
+            &past_nbits_empty,
+            &past_nbits_empty,
+            fixture.find_bit.past_nbits_and,
+            fixture.find_bit.past_nbits_and,
+        ),
+    );
+    try std.testing.expectEqual(
+        fixture.find_bit.past_nbits_and,
+        find_bit.findNextAndBit(
+            &past_nbits_empty,
+            &past_nbits_empty,
+            fixture.find_bit.past_nbits_and,
+            fixture.find_bit.past_nbits_and + 4,
+        ),
+    );
 
     const find_tail_nbits = fixture.find_bit.bits_per_long + 5;
     const find_tail = [_]find_bit.Word{ 0, @as(find_bit.Word, 1) << 9 };
