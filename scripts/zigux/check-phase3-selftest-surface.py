@@ -23,6 +23,7 @@ REQUIRED_FILES = [
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/check-phase3-policy-byte-guards.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/phase3_catalog.py",
@@ -81,6 +82,8 @@ ABI_SLICE_MARKERS = [
     "python3 scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+    "python3 scripts/zigux/check-phase3-policy-byte-guards.py",
+    "python3 scripts/zigux/check-phase3-policy-byte-guards.py --self-test",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
@@ -326,6 +329,8 @@ def run_self_test() -> int:
         assert "abi_slice:python3 scripts/zigux/survey-phase3-abi-constant-parity.py --self-test" in issues
         assert "abi_slice:python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py" in issues
         assert "abi_slice:python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test" in issues
+        assert "abi_slice:python3 scripts/zigux/check-phase3-policy-byte-guards.py" in issues
+        assert "abi_slice:python3 scripts/zigux/check-phase3-policy-byte-guards.py --self-test" in issues
         assert "abi_slice:python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in issues
         assert "abi_slice:python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test" in issues
         assert "abi_slice:python3 scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
@@ -507,12 +512,17 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
 
         build_self_test_root(root)
+        (root / "scripts/zigux/check-phase3-policy-byte-guards.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/check-phase3-policy-byte-guards.py" in issues
+
+        build_self_test_root(root)
         (root / "scripts/zigux/survey-phase3-abi-constant-parity.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=27")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
