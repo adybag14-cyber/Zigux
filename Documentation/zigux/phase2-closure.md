@@ -43,48 +43,52 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-fixdep-diff.py --self-test`
 - `python3 scripts/zigux/check-fixdep-diff.py`
 
-2. bounded genksyms CRC artifact parity
+2. bounded Phase 2 fixdep workflow gate
+- `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`
+- `python3 scripts/zigux/check-phase2-fixdep-gate.py`
+
+3. bounded genksyms CRC artifact parity
 - `python3 scripts/zigux/check-genksyms-crc-diff.py`
 
-3. bounded genksyms wrapper-first bridge parity
+4. bounded genksyms wrapper-first bridge parity
 - `python3 scripts/zigux/check-genksyms-bridge.py --self-test`
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 
-4. bounded Phase 2 genksyms bridge self-test alignment gate
+5. bounded Phase 2 genksyms bridge self-test alignment gate
 - `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`
 
-5. bounded mk_elfconfig artifact parity
+6. bounded mk_elfconfig artifact parity
 - `python3 scripts/zigux/check-mk-elfconfig-diff.py`
 
-6. bounded kconfig bridge parity
+7. bounded kconfig bridge parity
 - `python3 scripts/zigux/check-kconfig-bridge.py --self-test`
 - `python3 scripts/zigux/check-kconfig-bridge.py`
 
-7. bounded Phase 2 kconfig self-test alignment gate
+8. bounded Phase 2 kconfig self-test alignment gate
 - `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
 
-8. bounded phase2 cross-target compile gate
+9. bounded phase2 cross-target compile gate
 - `python3 scripts/zigux/check-phase2-cross.py --self-test`
 - `python3 scripts/zigux/check-phase2-cross.py`
 
-9. bounded phase2 cross-target self-test alignment gate
+10. bounded phase2 cross-target self-test alignment gate
 - `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`
 
-10. bounded phase2 toolchain pin-scope gate
+11. bounded phase2 toolchain pin-scope gate
 - `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
 
-11. bounded phase2 tool-manifest packet gate
+12. bounded phase2 tool-manifest packet gate
 - `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`
 - `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`
 
-12. bounded phase2 tests README alignment gate
+13. bounded phase2 tests README alignment gate
 - `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
 
-13. bounded phase2 unit gates
+14. bounded phase2 unit gates
 - `zig test scripts/zigux/fixdep.zig`
 - `zig test scripts/zigux/genksyms.zig`
 - `zig test scripts/zigux/genksyms_crc.zig`
@@ -92,10 +96,12 @@ Phase 2 is only considered closed when all of the following are green:
 - `zig test scripts/zigux/kconfig/conf_bridge.zig`
 - `zig test scripts/zigux/kconfig/confdata_bridge.zig`
 
-14. closure validation
+15. closure validation
 - `python3 scripts/zigux/validate-phase2-closure.py`
 
 - `PHASE2_FIXDEP_SELF_TEST=python3 scripts/zigux/check-fixdep-diff.py --self-test`
+- `PHASE2_FIXDEP_GATE_SELF_TEST=python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`
+- `PHASE2_FIXDEP_GATE=python3 scripts/zigux/check-phase2-fixdep-gate.py`
 - `PHASE2_GENKSYMS_BRIDGE_SELF_TEST=python3 scripts/zigux/check-genksyms-bridge.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`
@@ -129,6 +135,7 @@ The bounded fixdep closure packet currently keeps six committed artifact cases p
 - `PHASE2_FIXDEP_PACKET=zigux/tests/fixtures/fixdep/manifest.json`
 - `PHASE2_FIXDEP_HELPER_LOCAL_ANCHOR_COUNT=5`
 - the shared Phase 2 tool manifest points at the same tool-local packet through `fixdep_packet`, keeping the committed fixdep case list and stdout/stderr packet reviewable without widening the broader Phase 2 manifest surface
+- workflow packet coverage now also stays anchored by `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test` and `python3 scripts/zigux/check-phase2-fixdep-gate.py`, which exact-check the shipped workflow-backed fixdep gate ordering around the dedicated fixdep checker self-test, the live parity gate, and the direct `zig test scripts/zigux/fixdep.zig` replay so that closure evidence does not rely on CI wiring by implication alone
 - success coverage stays anchored by `sample_expected.txt`, `sample_escaped_space_expected.txt`, `sample_multi_target_expected.txt`, and `sample_escaped_hash_comment_chain_expected.txt`
 - bounded failure coverage stays anchored by the comment-only parse error and missing-dependency open error fixtures in `zigux/tests/fixtures/fixdep/`
 - `sample_escaped_hash_comment_chain_expected.txt` now keeps the rustc-style escaped `#` dependency, continued comment, and concatenated second-target tail reviewable in the shared packet instead of only in helper-local coverage
