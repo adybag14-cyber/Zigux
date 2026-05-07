@@ -35,6 +35,8 @@ REQUIRED_FILES = [
     "zigux/tests/phase4_bitmap_diff_manifest.json",
     "zigux/tests/phase4_bitmap_diff_survey.zig",
     "zigux/tests/phase4_bitmap_live_helper_replay.zig",
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
     "zigux/tests/phase4_build.zig",
     "zigux/tests/phase9_build.zig",
 ]
@@ -128,6 +130,10 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     "phase4_bitmap_diff_manifest.json",
     "phase4_bitmap_diff_survey.zig",
     "phase4_bitmap_live_helper_replay.zig",
+    "phase4_perf_baseline_manifest.json",
+    "phase4_perf_baseline_survey.zig",
+    "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land",
+    "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
     "rollback owner",
     "Lab And CI Matrix",
     "threshold posture",
@@ -138,14 +144,17 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
 REQUIRED_PHASE4_BUILD_MARKERS = [
     'root_source_file = b.path("atomic64_diff.zig")',
     'root_source_file = b.path("phase4_runtime_atomic64_diff_survey.zig")',
+    'root_source_file = b.path("phase4_perf_baseline_survey.zig")',
     'root_source_file = b.path("bitmap_diff.zig")',
     'root_source_file = b.path("phase4_bitmap_diff_survey.zig")',
     'root_source_file = b.path("phase4_bitmap_live_helper_replay.zig")',
     'name = "phase4-runtime-atomic64-diff-tests"',
     'name = "phase4-runtime-atomic64-diff-survey-tests"',
+    'name = "phase4-perf-baseline-survey-tests"',
     'name = "phase4-bitmap-diff-tests"',
     'name = "phase4-bitmap-diff-survey-tests"',
     'name = "phase4-bitmap-live-helper-replay-tests"',
+    '"phase4-perf-baseline-survey"',
 ]
 
 FORBIDDEN_SCRIPT_README_MARKERS = [
@@ -503,6 +512,10 @@ def build_fixture_tree(root: Path) -> None:
                 "phase4_bitmap_diff_manifest.json",
                 "phase4_bitmap_diff_survey.zig",
                 "phase4_bitmap_live_helper_replay.zig",
+                "phase4_perf_baseline_manifest.json",
+                "phase4_perf_baseline_survey.zig",
+                "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land",
+                "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
                 "rollback owner",
                 "Lab And CI Matrix",
                 "threshold posture",
@@ -522,6 +535,8 @@ def build_fixture_tree(root: Path) -> None:
     _write(root, "zigux/tests/runtime_atomic64_diff.zig", "// runtime atomic64 diff\n")
     _write(root, "zigux/tests/bitmap_diff.zig", "// bitmap diff\n")
     _write(root, "zigux/tests/phase4_bitmap_live_helper_replay.zig", "// helper replay\n")
+    _write(root, "zigux/tests/phase4_perf_baseline_manifest.json", "{}\n")
+    _write(root, "zigux/tests/phase4_perf_baseline_survey.zig", "// perf baseline survey\n")
     _write(
         root,
         "Documentation/zigux/phase4-gate-evidence.md",
@@ -617,10 +632,10 @@ def run_self_test() -> int:
         build_fixture_tree(bad_root)
         matrix = bad_root / "Documentation/zigux/phase4-validation-matrix.md"
         matrix.write_text(
-            matrix.read_text(encoding="utf-8").replace("phase4_bitmap_diff_manifest.json\n", ""),
+            matrix.read_text(encoding="utf-8").replace("phase4_perf_baseline_manifest.json\n", ""),
             encoding="utf-8",
         )
-        assert validate_root(bad_root) == ["phase4_matrix:phase4_bitmap_diff_manifest.json"]
+        assert validate_root(bad_root) == ["phase4_matrix:phase4_perf_baseline_manifest.json"]
 
         bad_root2 = Path(tmp_dir) / "bad2"
         build_fixture_tree(bad_root2)
@@ -633,15 +648,15 @@ def run_self_test() -> int:
 
         bad_root3 = Path(tmp_dir) / "bad3"
         build_fixture_tree(bad_root3)
-        tests_readme = bad_root3 / "zigux/tests/README.md"
-        tests_readme.write_text(
-            tests_readme.read_text(encoding="utf-8").replace(
-                "zigux/tests/phase4_bitmap_diff_manifest.json\n", ""
+        phase4_build = bad_root3 / "zigux/tests/phase4_build.zig"
+        phase4_build.write_text(
+            phase4_build.read_text(encoding="utf-8").replace(
+                'root_source_file = b.path("phase4_perf_baseline_survey.zig")\n', ""
             ),
             encoding="utf-8",
         )
         assert validate_root(bad_root3) == [
-            "tests_readme:zigux/tests/phase4_bitmap_diff_manifest.json"
+            'phase4_build:root_source_file = b.path("phase4_perf_baseline_survey.zig")'
         ]
 
     print("PHASE4_VALIDATE_SELF_TEST=pass")
