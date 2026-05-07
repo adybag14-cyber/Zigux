@@ -205,7 +205,8 @@ def run_self_test() -> int:
         write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", expected_smoke_text)
         write_text(root / "Documentation/zigux/freeze-map.md", expected_freeze_map_text)
         write_text(root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md", expected_roadmap_text)
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(expected_manifest, indent=2) + "\n")
+        manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
+        write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
 
         errors = check(root)
         if errors:
@@ -327,7 +328,6 @@ def run_self_test() -> int:
             return 1
         write_text(freeze_map_path, expected_freeze_map_text)
 
-        manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
         manifest_data = json.loads(read_text(manifest_path))
         manifest_data["study_only_anchors"] = [
             "kernel/workqueue.c",
@@ -363,6 +363,13 @@ def run_self_test() -> int:
         errors = check(root)
         if not any("phase14 manifest blocked_anchors drifted from the combined study-only plus freeze-governed set" in error for error in errors):
             print("self-test expected failure when manifest blocked anchors drifted", file=sys.stderr)
+            return 1
+        write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
+
+        manifest_path.unlink()
+        errors = check(root)
+        if not any("missing file: zigux/tests/phase14_end_to_end_smoke_manifest.json" in error for error in errors):
+            print("self-test expected missing shared smoke manifest failure", file=sys.stderr)
             return 1
 
     return 0
