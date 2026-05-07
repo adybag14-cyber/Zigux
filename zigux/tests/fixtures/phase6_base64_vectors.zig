@@ -175,3 +175,42 @@ pub const perf_cases = [_]PerfCase{
 
 pub const perf_payload_buf_size = perf_payload.len;
 pub const perf_encoded_buf_size = 512;
+
+test "phase 6 base64 perf fixture packet stays bounded to the documented matrix" {
+    const expected = [_]struct {
+        label: []const u8,
+        variant_name: []const u8,
+        padding: bool,
+        iterations: usize,
+        max_encode_slowdown_pct: u64,
+        max_decode_slowdown_pct: u64,
+    }{
+        .{ .label = "STD_PAD", .variant_name = "std", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "STD_NO_PAD", .variant_name = "std", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "URLSAFE_PAD", .variant_name = "urlsafe", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    };
+
+    try std.testing.expectEqual(expected.len, perf_cases.len);
+
+    for (expected, 0..) |want, idx| {
+        const actual = perf_cases[idx];
+        try std.testing.expectEqualStrings(want.label, actual.label);
+        try std.testing.expectEqualStrings(want.variant_name, actual.variant_name);
+        try std.testing.expectEqual(want.padding, actual.padding);
+        try std.testing.expectEqual(want.iterations, actual.iterations);
+        try std.testing.expectEqual(want.max_encode_slowdown_pct, actual.max_encode_slowdown_pct);
+        try std.testing.expectEqual(want.max_decode_slowdown_pct, actual.max_decode_slowdown_pct);
+    }
+
+    for (perf_cases, 0..) |case, idx| {
+        try std.testing.expectEqualStrings(perf_payload, case.payload);
+        try std.testing.expect(case.iterations > 0);
+        try std.testing.expect(case.max_encode_slowdown_pct > 0);
+        try std.testing.expect(case.max_decode_slowdown_pct > 0);
+
+        for (perf_cases[idx + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, case.label, other.label));
+        }
+    }
+}
