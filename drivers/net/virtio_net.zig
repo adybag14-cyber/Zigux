@@ -146,6 +146,27 @@ pub const ReceiveRefillSummary = struct {
     requires_post_restore_probe_replay: bool,
 };
 
+pub const ControlQueueRestoreDisposition = enum {
+    not_required,
+    restore_after_data_queue_restore,
+    restore_before_rss_reapply,
+};
+
+pub const ControlQueueRestoreSummary = struct {
+    anchor: []const u8,
+    recovery_generation: u16,
+    readiness: QueueResumeReadiness,
+    restore_disposition: ControlQueueRestoreDisposition,
+    restore_queue_pairs: u16,
+    restore_total_queue_count: u16,
+    restore_control_queue_index: ?u16,
+    remembered_queue_recovery_action: QueueRecoveryAction,
+    remembered_rss_recovery_state: RssRecoveryState,
+    requires_rss_reapply: bool,
+    requires_fresh_probe_snapshot: bool,
+    requires_post_restore_probe_replay: bool,
+};
+
 pub const MergeableBufferLengthSource = enum {
     page_minus_room,
     observed_average_packet,
@@ -348,6 +369,14 @@ pub const VirtioNetProbeLab = struct {
         return summarizeReceiveRefill(snapshot, resume_summary);
     }
 
+    pub fn planControlQueueRestore(self: *Self) !ControlQueueRestoreSummary {
+        if (!self.transport_recovery_frozen) return error.TransportRecoveryNotFrozen;
+
+        const snapshot = self.frozen_snapshot orelse return error.ProbeSnapshotUnavailable;
+        const resume_summary = summarizeQueueResume(snapshot, self.recovery_generation);
+        return summarizeControlQueueRestore(snapshot, resume_summary);
+    }
+
     pub fn planMergeableBufferLength(
         self: *Self,
         request: MergeableBufferLengthRequest,
@@ -505,6 +534,33 @@ pub const VirtioNetProbeLab = struct {
             .requires_control_queue_restore = resume_summary.requires_control_queue_restore,
             .requires_rss_reapply = resume_summary.requires_rss_reapply,
             .requires_mergeable_buffer_headroom = snapshot.mergeable_rx_buffers,
+            .requires_fresh_probe_snapshot = resume_summary.requires_fresh_probe_snapshot,
+            .requires_post_restore_probe_replay = true,
+        };
+    }
+
+    fn summarizeControlQueueRestore(
+        snapshot: ProbeSnapshot,
+        resume_summary: QueueResumeSummary,
+    ) ControlQueueRestoreSummary {
+        const restore_disposition: ControlQueueRestoreDisposition = if (!resume_summary.requires_control_queue_restore)
+            .not_required
+        else if (resume_summary.requires_rss_reapply)
+            .restore_before_rss_reapply
+        else
+            .restore_after_data_queue_restore;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .recovery_generation = resume_summary.recovery_generation,
+            .readiness = resume_summary.readiness,
+            .restore_disposition = restore_disposition,
+            .restore_queue_pairs = snapshot.planned_queue_pairs,
+            .restore_total_queue_count = snapshot.total_queue_count,
+            .restore_control_queue_index = snapshot.control_queue_index,
+            .remembered_queue_recovery_action = resume_summary.remembered_queue_recovery_action,
+            .remembered_rss_recovery_state = resume_summary.remembered_rss_recovery_state,
+            .requires_rss_reapply = resume_summary.requires_rss_reapply,
             .requires_fresh_probe_snapshot = resume_summary.requires_fresh_probe_snapshot,
             .requires_post_restore_probe_replay = true,
         };
