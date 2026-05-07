@@ -63,7 +63,7 @@ The current tests check:
 - pointer-return parity for successful typed lookups
 - mutable typed and raw lookup write-through parity
 - duplicate-key found-or-null parity without claiming stable duplicate selection
-- raw empty-input parity, including that the comparator is not invoked when `num_members == 0`
+- typed and raw empty-input parity, including that the comparator is not invoked when the typed slice is empty or `num_members == 0`
 - runtime-selected native comparator pointer parity
 - runtime-selected typed C ABI comparator pointer parity across ascending and descending sorted slices
 - runtime-selected raw native comparator pointer parity
