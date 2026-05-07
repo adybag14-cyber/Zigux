@@ -149,6 +149,7 @@ test "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet expl
     try std.testing.expect(std.mem.indexOf(u8, checklist, "`make -C zigux phase8-validate`") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "helper-first, output-stable deferred-exec planning packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "without widening into direct process-launch parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "separate `kernel/workqueue.c` Phase 14 boundary-study target") != null);
 }
 
 test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {
