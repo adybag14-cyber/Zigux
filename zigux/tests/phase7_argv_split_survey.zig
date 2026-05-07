@@ -126,6 +126,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_impl, "pub fn cArgv");
     try expectContains(helper_impl, "test \"argvSplit frees intermediate allocations when allocator failure interrupts setup\"");
     try expectContains(helper_impl, "test \"argvSplit reports overflow before sizing the null-terminated argv vector\"");
+    try expectContains(helper_impl, "test \"ArgvSplitResult deinit is idempotent after the exported views are cleared\"");
 
     try expectContains(helper_tests, "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");");
     try expectContains(helper_tests, "phase 7 argvSplit matches focused parity fixtures");
@@ -133,6 +134,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space");
     try expectContains(helper_tests, "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable");
     try expectContains(helper_tests, "phase 7 argvSplit deinit clears exported storage and argv views");
+    try expectContains(helper_tests, "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result");
     try expectContains(helper_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable");
     try expectContains(helper_tests, "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup");
     try expectContains(helper_tests, "split.cArgv()");
