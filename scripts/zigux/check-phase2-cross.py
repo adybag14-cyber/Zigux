@@ -10,8 +10,7 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
-MANIFEST = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_tool_manifest.json'
-TARGETS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_cross_targets.json'
+CROSS_PACKET = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_cross_targets.json'
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -72,28 +71,29 @@ def require_unique_strings(values: list[str], *, label: str) -> None:
         seen.add(item)
 
 
-def load_manifest_tools(path: Path) -> list[str]:
-    payload = load_json_object(path, label='phase2_tool_manifest')
-    tools = require_string_list(payload, key='tools', label='phase2_tool_manifest')
-    require_unique_strings(tools, label='phase2_tool_manifest:tools')
-    declared_count = payload.get('tool_count')
-    if declared_count != len(tools):
-        raise SystemExit(
-            f'phase2_tool_manifest:tool_count_mismatch:{declared_count}:{len(tools)}'
-        )
-    return tools
-
-
-def load_targets(path: Path) -> list[str]:
+def load_cross_packet(path: Path) -> tuple[list[str], list[str]]:
     payload = load_json_object(path, label='phase2_cross_targets')
+    if payload.get('phase') != 'Phase 2':
+        raise SystemExit(f"phase2_cross_targets:phase:expected='Phase 2':actual={payload.get('phase')!r}")
+    if payload.get('status') != 'closed':
+        raise SystemExit(f"phase2_cross_targets:status:expected='closed':actual={payload.get('status')!r}")
+
     targets = require_string_list(payload, key='targets', label='phase2_cross_targets')
     require_unique_strings(targets, label='phase2_cross_targets:targets')
-    declared_count = payload.get('target_count')
-    if declared_count != len(targets):
+    declared_target_count = payload.get('target_count')
+    if declared_target_count != len(targets):
         raise SystemExit(
-            f'phase2_cross_targets:target_count_mismatch:{declared_count}:{len(targets)}'
+            f'phase2_cross_targets:target_count_mismatch:{declared_target_count}:{len(targets)}'
         )
-    return targets
+
+    tools = require_string_list(payload, key='tools', label='phase2_cross_targets')
+    require_unique_strings(tools, label='phase2_cross_targets:tools')
+    declared_tool_count = payload.get('tool_count')
+    if declared_tool_count != len(tools):
+        raise SystemExit(
+            f'phase2_cross_targets:tool_count_mismatch:{declared_tool_count}:{len(tools)}'
+        )
+    return tools, targets
 
 
 def resolve_targets(allowed_targets: list[str], requested_targets: list[str] | None) -> list[str]:
@@ -110,24 +110,9 @@ def resolve_targets(allowed_targets: list[str], requested_targets: list[str] | N
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix='zigux_phase2_cross_selftest_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
-        manifest_path = tmp_dir / 'phase2_tool_manifest.json'
-        targets_path = tmp_dir / 'phase2_cross_targets.json'
+        packet_path = tmp_dir / 'phase2_cross_targets.json'
 
-        manifest_path.write_text(
-            json.dumps(
-                {
-                    'phase': 'Phase 2',
-                    'status': 'closed',
-                    'tool_count': 2,
-                    'tools': [
-                        'scripts/zigux/fixdep.zig',
-                        'scripts/zigux/genksyms.zig',
-                    ],
-                }
-            ),
-            encoding='utf-8',
-        )
-        targets_path.write_text(
+        packet_path.write_text(
             json.dumps(
                 {
                     'phase': 'Phase 2',
@@ -138,98 +123,36 @@ def run_self_test() -> int:
                         'aarch64-linux-musl',
                         'riscv64-linux-musl',
                     ],
+                    'tool_count': 2,
+                    'tools': [
+                        'scripts/zigux/fixdep.zig',
+                        'scripts/zigux/genksyms.zig',
+                    ],
                 }
             ),
             encoding='utf-8',
         )
 
-        assert load_manifest_tools(manifest_path) == [
+        tools, allowed_targets = load_cross_packet(packet_path)
+        assert tools == [
             'scripts/zigux/fixdep.zig',
             'scripts/zigux/genksyms.zig',
         ]
-        allowed_targets = load_targets(targets_path)
         assert resolve_targets(allowed_targets, None) == allowed_targets
         assert resolve_targets(allowed_targets, ['aarch64-linux-musl']) == ['aarch64-linux-musl']
 
-        manifest_path.write_text(
-            '{"phase":"Phase 2","status":"closed","tool_count":2,"tools":["scripts/zigux/fixdep.zig"],"tools":["scripts/zigux/genksyms.zig"]}',
+        packet_path.write_text(
+            '{"phase":"Phase 2","status":"closed","target_count":3,"targets":["x86_64-linux-musl"],"targets":["riscv64-linux-musl"],"tool_count":2,"tools":["scripts/zigux/fixdep.zig","scripts/zigux/genksyms.zig"]}',
             encoding='utf-8',
         )
         try:
-            load_manifest_tools(manifest_path)
-        except SystemExit as exc:
-            assert str(exc) == 'phase2_tool_manifest:duplicate_key:tools'
-        else:
-            raise AssertionError('expected duplicate manifest key to fail')
-
-        manifest_path.write_text(
-            json.dumps(
-                {
-                    'phase': 'Phase 2',
-                    'status': 'closed',
-                    'tool_count': 2,
-                    'tools': [
-                        'scripts/zigux/fixdep.zig',
-                        'scripts/zigux/fixdep.zig',
-                    ],
-                }
-            ),
-            encoding='utf-8',
-        )
-        try:
-            load_manifest_tools(manifest_path)
-        except SystemExit as exc:
-            assert str(exc) == 'phase2_tool_manifest:tools:duplicate:scripts/zigux/fixdep.zig'
-        else:
-            raise AssertionError('expected duplicate manifest tool to fail')
-
-        manifest_path.write_text(
-            json.dumps(
-                {
-                    'phase': 'Phase 2',
-                    'status': 'closed',
-                    'tool_count': 3,
-                    'tools': [
-                        'scripts/zigux/fixdep.zig',
-                        'scripts/zigux/genksyms.zig',
-                    ],
-                }
-            ),
-            encoding='utf-8',
-        )
-        try:
-            load_manifest_tools(manifest_path)
-        except SystemExit as exc:
-            assert str(exc) == 'phase2_tool_manifest:tool_count_mismatch:3:2'
-        else:
-            raise AssertionError('expected tool-count drift to fail')
-
-        manifest_path.write_text(
-            json.dumps(
-                {
-                    'phase': 'Phase 2',
-                    'status': 'closed',
-                    'tool_count': 2,
-                    'tools': [
-                        'scripts/zigux/fixdep.zig',
-                        'scripts/zigux/genksyms.zig',
-                    ],
-                }
-            ),
-            encoding='utf-8',
-        )
-        targets_path.write_text(
-            '{"phase":"Phase 2","status":"closed","target_count":3,"targets":["x86_64-linux-musl"],"targets":["riscv64-linux-musl"]}',
-            encoding='utf-8',
-        )
-        try:
-            load_targets(targets_path)
+            load_cross_packet(packet_path)
         except SystemExit as exc:
             assert str(exc) == 'phase2_cross_targets:duplicate_key:targets'
         else:
             raise AssertionError('expected duplicate target key to fail')
 
-        targets_path.write_text(
+        packet_path.write_text(
             json.dumps(
                 {
                     'phase': 'Phase 2',
@@ -240,18 +163,23 @@ def run_self_test() -> int:
                         'x86_64-linux-musl',
                         'riscv64-linux-musl',
                     ],
+                    'tool_count': 2,
+                    'tools': [
+                        'scripts/zigux/fixdep.zig',
+                        'scripts/zigux/genksyms.zig',
+                    ],
                 }
             ),
             encoding='utf-8',
         )
         try:
-            load_targets(targets_path)
+            load_cross_packet(packet_path)
         except SystemExit as exc:
             assert str(exc) == 'phase2_cross_targets:targets:duplicate:x86_64-linux-musl'
         else:
             raise AssertionError('expected duplicate manifest target to fail')
 
-        targets_path.write_text(
+        packet_path.write_text(
             json.dumps(
                 {
                     'phase': 'Phase 2',
@@ -262,16 +190,86 @@ def run_self_test() -> int:
                         'aarch64-linux-musl',
                         'riscv64-linux-musl',
                     ],
+                    'tool_count': 2,
+                    'tools': [
+                        'scripts/zigux/fixdep.zig',
+                        'scripts/zigux/genksyms.zig',
+                    ],
                 }
             ),
             encoding='utf-8',
         )
         try:
-            load_targets(targets_path)
+            load_cross_packet(packet_path)
         except SystemExit as exc:
             assert str(exc) == 'phase2_cross_targets:target_count_mismatch:4:3'
         else:
             raise AssertionError('expected target-count drift to fail')
+
+        packet_path.write_text(
+            '{"phase":"Phase 2","status":"closed","target_count":3,"targets":["x86_64-linux-musl","aarch64-linux-musl","riscv64-linux-musl"],"tool_count":2,"tools":["scripts/zigux/fixdep.zig"],"tools":["scripts/zigux/genksyms.zig"]}',
+            encoding='utf-8',
+        )
+        try:
+            load_cross_packet(packet_path)
+        except SystemExit as exc:
+            assert str(exc) == 'phase2_cross_targets:duplicate_key:tools'
+        else:
+            raise AssertionError('expected duplicate tool key to fail')
+
+        packet_path.write_text(
+            json.dumps(
+                {
+                    'phase': 'Phase 2',
+                    'status': 'closed',
+                    'target_count': 3,
+                    'targets': [
+                        'x86_64-linux-musl',
+                        'aarch64-linux-musl',
+                        'riscv64-linux-musl',
+                    ],
+                    'tool_count': 2,
+                    'tools': [
+                        'scripts/zigux/fixdep.zig',
+                        'scripts/zigux/fixdep.zig',
+                    ],
+                }
+            ),
+            encoding='utf-8',
+        )
+        try:
+            load_cross_packet(packet_path)
+        except SystemExit as exc:
+            assert str(exc) == 'phase2_cross_targets:tools:duplicate:scripts/zigux/fixdep.zig'
+        else:
+            raise AssertionError('expected duplicate manifest tool to fail')
+
+        packet_path.write_text(
+            json.dumps(
+                {
+                    'phase': 'Phase 2',
+                    'status': 'closed',
+                    'target_count': 3,
+                    'targets': [
+                        'x86_64-linux-musl',
+                        'aarch64-linux-musl',
+                        'riscv64-linux-musl',
+                    ],
+                    'tool_count': 3,
+                    'tools': [
+                        'scripts/zigux/fixdep.zig',
+                        'scripts/zigux/genksyms.zig',
+                    ],
+                }
+            ),
+            encoding='utf-8',
+        )
+        try:
+            load_cross_packet(packet_path)
+        except SystemExit as exc:
+            assert str(exc) == 'phase2_cross_targets:tool_count_mismatch:3:2'
+        else:
+            raise AssertionError('expected tool-count drift to fail')
 
         try:
             resolve_targets(
@@ -294,7 +292,7 @@ def run_self_test() -> int:
             raise AssertionError('expected unexpected explicit target to fail')
 
     print('PHASE2_CROSS_SELF_TEST=pass')
-    print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=10')
+    print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=9')
     return 0
 
 
@@ -305,7 +303,7 @@ def main() -> int:
     parser.add_argument(
         '--self-test',
         action='store_true',
-        help='Run built-in manifest and target validation coverage without compiling.',
+        help='Run built-in packet and target validation coverage without compiling.',
     )
     args = parser.parse_args()
 
@@ -313,8 +311,7 @@ def main() -> int:
         return run_self_test()
 
     zig = find_zig(args.zig)
-    tools = load_manifest_tools(MANIFEST)
-    allowed_targets = load_targets(TARGETS)
+    tools, allowed_targets = load_cross_packet(CROSS_PACKET)
     targets = resolve_targets(allowed_targets, args.target)
 
     with tempfile.TemporaryDirectory(prefix='zigux_phase2_cross_') as tmp_dir_str:
