@@ -102,6 +102,32 @@ test "phase 7 ASCII case helpers stop at NUL and respect destination bounds" {
     try std.testing.expectEqualSlices(u8, "zz9!", &lower);
 }
 
+test "phase 7 stringGetSize keeps Linux-style size rendering and truncation reviewable" {
+    var out = [_]u8{0} ** 16;
+
+    try std.testing.expectEqual(@as(usize, 7), string_helpers.stringGetSize(1500, 1, string_helpers.STRING_UNITS_10, &out));
+    try std.testing.expectEqualStrings("1.50 kB", std.mem.sliceTo(&out, 0));
+
+    try std.testing.expectEqual(
+        @as(usize, 6),
+        string_helpers.stringGetSize(
+            4096,
+            1,
+            string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES,
+            &out,
+        ),
+    );
+    try std.testing.expectEqualStrings("4.00Ki", std.mem.sliceTo(&out, 0));
+
+    var truncated = [_]u8{ '!', '!', '!', '!' };
+    const truncated_len = string_helpers.stringGetSize(1500, 1, string_helpers.STRING_UNITS_10, &truncated);
+    try std.testing.expectEqual(@as(usize, 7), truncated_len);
+    try std.testing.expectEqual(@as(u8, '1'), truncated[0]);
+    try std.testing.expectEqual(@as(u8, '.'), truncated[1]);
+    try std.testing.expectEqual(@as(u8, '5'), truncated[2]);
+    try std.testing.expectEqual(@as(u8, 0), truncated[3]);
+}
+
 test "phase 7 parseIntArray keeps base and sign parsing explicit" {
     const ints = try string_helpers.parseIntArray(std.testing.allocator, "0x10,07,-2");
     defer string_helpers.freeIntArray(std.testing.allocator, ints);
