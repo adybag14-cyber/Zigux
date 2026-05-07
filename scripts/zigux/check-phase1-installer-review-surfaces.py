@@ -15,6 +15,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase1-closure.md",
     "scripts/zigux/README.md",
     "scripts/zigux/install-zig.py",
+    "scripts/zigux/check-phase1-installer-review-surfaces.py",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
     "zigux/tests/README.md",
@@ -350,8 +351,13 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/install-zig.py" in issues
 
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase1-installer-review-surfaces.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/check-phase1-installer-review-surfaces.py" in issues
+
     print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass")
-    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=17")
+    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
