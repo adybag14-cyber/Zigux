@@ -12,6 +12,7 @@ It is a coordination artifact, not a closure claim.
 - shared build replay entrypoint: `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 - Linux-style replay entrypoint: `make -C zigux phase8`
 - shipped shared coordination surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`, `zigux/tests/phase8_build.zig`, and `zigux/Makefile`
+- current helper-family posture: the bounded libbpf packet is parked after the landed file-path bridge and perf-buffer poll review updates, and this sequencing note should reopen it only for another smaller same-lane helper, validator, checker, survey, README, or shared wording gap
 
 ## Why this note exists
 
@@ -67,6 +68,8 @@ The next honest symbol reopen should stay helper-local, such as one fresh symbol
 ### 3. Libbpf helper lane: the current active Phase 8 implementation surface
 Use this lane for bounded work inside the current `tools/lib/bpf/zigux_segments/` helper family and its paired tests and surveys.
 
+The helper-family packet is currently parked after the landed file-path bridge, perf-buffer poll, and shared tests-root reminder updates. Reopen it only when a smaller same-lane libbpf helper, validator, checker, survey, README, or wording gap is visible again.
+
 Current active packet:
 - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
 - `Documentation/zigux/phase8-bpf-type-names-slice.md`
@@ -109,7 +112,7 @@ If a wording fix requires changing helper logic, split the helper change back in
 ## Sequencing rule
 1. Re-read the shared packet surfaces first.
 2. If they already agree that `exec-cmd`, `help`, and `kallsyms` are parked, do not start there.
-3. Prefer the next bounded step inside the active libbpf helper lane.
+3. If a fresh same-lane gap exists, prefer the next bounded step inside the libbpf helper lane before widening into broader Phase 8 wording work.
 4. Use the shared packet wording lane only when the coordination surfaces themselves have drifted.
 5. Keep every reopened task small enough to validate through its focused shard before rerunning the shared `phase8_build.zig` path.
 
@@ -117,7 +120,7 @@ If a wording fix requires changing helper logic, split the helper change back in
 
 Today the strongest Phase 8 sequencing correction is simple:
 - treat `exec-cmd`, `help`, and `kallsyms` as parked tooling slices
-- treat the libbpf helper family plus its bridge and survey notes as the active Phase 8 packet
+- treat the libbpf helper family plus its bridge and survey notes as the currently parked reviewable Phase 8 libbpf packet, reopening it only for tighter same-lane gaps
 - keep shared wording-only repairs separate from helper-local parity work
 
 That split matches the live docs-root Phase 8 summary and prevents scheduled tooling runs from duplicating already-parked starter-slice work.
@@ -125,3 +128,5 @@ That split matches the live docs-root Phase 8 summary and prevents scheduled too
 ## Next bounded step
 
 Before reopening another tooling helper lane, refresh the shared tests-root reminder so it keeps the active libbpf shard routes explicit beside the parked `exec-cmd`, `help`, and `kallsyms` packet. After that, the next implementation-facing Phase 8 follow-up should come from one bounded libbpf helper or bridge step rather than another starter-slice wording pass.
+
+That shared tests-root reminder is now refreshed on `master`, so the honest default is to leave this lane parked unless another one-file same-lane helper-local, validator, checker, survey, README, or wording drift appears inside the shared libbpf packet.
