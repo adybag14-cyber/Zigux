@@ -136,6 +136,7 @@ REQUIRED_SAMPLES_README_MARKERS = [
 REQUIRED_SAMPLES_README_EXACT_COUNTS = {
     REQUIRED_SAMPLES_README_MARKERS[1]: 1,
     REQUIRED_SAMPLES_README_MARKERS[2]: 1,
+    REQUIRED_SAMPLES_README_MARKERS[3]: 1,
 }
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
@@ -604,6 +605,19 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(root)
+        samples_readme_path = root / SAMPLES_README_PATH
+        samples_readme = samples_readme_path.read_text(encoding="utf-8")
+        samples_readme_path.write_text(
+            samples_readme + REQUIRED_SAMPLES_README_MARKERS[3] + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"samples_readme_exact_count:{REQUIRED_SAMPLES_README_MARKERS[3]}:expected=1:actual=2",
+            "duplicate_samples_root_shared_phase9_review_route",
+        )
+
+        write_fixture_tree(root)
         freeze_map_path = root / FREEZE_MAP_PATH
         freeze_map = freeze_map_path.read_text(encoding="utf-8")
         freeze_map_path.write_text(
@@ -825,7 +839,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=32")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
