@@ -34,7 +34,7 @@ REQUIRED_COMMANDS = [
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
-    "make -C zigux phase14",
+    "make -C zigux phase14"
 ]
 COMPILE_MATRIX_ROWS = [
     ("phase14-workqueue-bridge-tests", "phase14_workqueue_bridge.zig", "full_bundle_only"),
@@ -494,6 +494,14 @@ def run_self_test() -> int:
             print("self-test expected traceability failure", file=sys.stderr)
             return 1
         write_text(root / TRACEABILITY_PATH, "\n".join(expected_traceability_markers) + "\n")
+        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken_manifest["lane_key"] = "P14-L99"
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
+        errors = check(root)
+        if not any("phase14 shared smoke manifest lane_key drifted from the current shared-lane owner" in error for error in errors):
+            print("self-test expected manifest lane_key failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken_manifest["commands"] = REQUIRED_COMMANDS[:-1]
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
