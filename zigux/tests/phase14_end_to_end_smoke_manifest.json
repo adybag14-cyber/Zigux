@@ -120,6 +120,10 @@
     {
       "path": "net/core/skbuff_bridge.zig",
       "required_marker": "pub const SkbuffBridgeLab"
+    },
+    {
+      "path": "kernel/rcu/tree_bridge.zig",
+      "required_marker": "pub const RcuTreeBridgeLab"
     }
   ],
   "study_only_anchors": [
