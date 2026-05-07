@@ -115,6 +115,8 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_impl, "test \"stringGetSize respects no-space and no-bytes modifiers\"");
     try expectContains(helper_impl, "test \"stringGetSize reports truncated output length without losing termination\"");
     try expectContains(helper_impl, "test \"stringGetSize handles zero block size and zero-length outputs safely\"");
+    try expectContains(helper_impl, "test \"stringUnescape exact-fit destination still decodes an escape\"");
+    try expectContains(helper_impl, "test \"stringUnescape keeps terminator-only and zero-capacity destinations bounded\"");
     try expectContains(helper_impl, "test \"kstrdupQuotable frees the owned copy when allocation fails\"");
     try expectContains(helper_impl, "test \"kasprintfStrarray frees intermediate allocations when setup fails\"");
     try expectContains(helper_impl, "std.testing.checkAllAllocationFailures");
