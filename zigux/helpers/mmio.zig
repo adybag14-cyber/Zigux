@@ -51,7 +51,7 @@ pub fn write64(base_addr: usize, offset: usize, value: u64) void {
 }
 
 test "phase3 mmio wrapper uses bounded volatile access" {
-    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     const base = narrow.addressOf(&bytes[0]);
 
     write8(base, 0, 0x5a);
@@ -68,13 +68,23 @@ test "phase3 mmio wrapper uses bounded volatile access" {
     try std.testing.expectEqual(@as(u32, 0xfeedbeef), unaligned_word.*);
     try std.testing.expectEqual(@as(u32, 0xfeedbeef), read32(base, 3));
 
-    const unaligned_doubleword: *align(1) const u64 = @ptrCast(&bytes[5]);
-    write64(base, 5, 0x0123_4567_89ab_cdef);
-    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), unaligned_doubleword.*);
-    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), read64(base, 5));
+    const aligned_doubleword: *align(1) const u64 = @ptrCast(&bytes[8]);
+    write64(base, 8, 0x0123_4567_89ab_cdef);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), aligned_doubleword.*);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), read64(base, 8));
 
-    const desc = range(base, 16, 1);
+    const unaligned_doubleword: *align(1) const u64 = @ptrCast(&bytes[5]);
+    write64(base, 5, 0xfedc_ba98_7654_3210);
+    try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), unaligned_doubleword.*);
+    try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), read64(base, 5));
+
+    const desc = range(base, 24, 1);
     try std.testing.expectEqual(base, desc.base_addr);
-    try std.testing.expectEqual(@as(u32, 16), desc.length);
+    try std.testing.expectEqual(@as(u32, 24), desc.length);
     try std.testing.expectEqual(@as(u32, 1), desc.stride);
+
+    const dword_desc = range(base, 24, 8);
+    try std.testing.expectEqual(base, dword_desc.base_addr);
+    try std.testing.expectEqual(@as(u32, 24), dword_desc.length);
+    try std.testing.expectEqual(@as(u32, 8), dword_desc.stride);
 }
