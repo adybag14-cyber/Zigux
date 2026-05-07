@@ -789,3 +789,71 @@ test "runtime trace-events loader keeps selftest-ready nested registration drain
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
 }
+
+test "runtime trace-events loader recovers from initialized-stage failed exit into the same bounded handoff plan" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.emitMainIteration(4);
+    try module.registerFunctionThread();
+    _ = try module.emitFunctionIteration(6);
+
+    const blocked_summary = module.summary();
+    try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.initialized, blocked_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), blocked_summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), blocked_summary.total_events);
+    try std.testing.expectEqual(@as(i32, 4), blocked_summary.last_main_count);
+    try std.testing.expectEqual(@as(i32, 6), blocked_summary.last_fn_count);
+    try std.testing.expectEqual(@as(usize, 0), blocked_summary.selftest_runs);
+    try std.testing.expect(blocked_summary.saw_conditional_path);
+
+    try std.testing.expectError(error.OutstandingRegistration, module.exit());
+    try std.testing.expectError(error.OutstandingRegistrationForLoader, RuntimeTraceEventsLoader.planFor(&module));
+
+    var blocked_loader = RuntimeTraceEventsLoader{};
+    try std.testing.expectError(error.OutstandingRegistrationForLoader, blocked_loader.prepareSharedRequest(&module));
+    try std.testing.expectEqual(LoaderStage.idle, blocked_loader.stage());
+
+    try module.unregisterFunctionThread();
+
+    const recovered = try RuntimeTraceEventsLoader.planFor(&module);
+    try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.initialized, recovered.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), recovered.summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), recovered.summary.event_families.len);
+    try std.testing.expectEqual(@as(usize, 6), recovered.summary.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 2), recovered.summary.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 8), recovered.summary.total_events);
+    try std.testing.expect(recovered.summary.conditional_paths_checked);
+    try std.testing.expect(recovered.summary.registration_paths_checked);
+    try std.testing.expectEqual(@as(i32, 4), recovered.summary.last_main_count);
+    try std.testing.expectEqual(@as(i32, 6), recovered.summary.last_fn_count);
+    try std.testing.expectEqual(@as(usize, 0), recovered.summary.selftest_runs);
+
+    var loader = RuntimeTraceEventsLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, shared_request.plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), shared_request.plan.init_flow.selftest_runs);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(shared_request.plan));
+
+    const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expectEqualStrings("runtime_trace_events", pending_plan.module_name);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.init_flow.selftest_runs);
+    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+        pending_plan,
+        .caller_provided,
+        .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    ));
+
+    try loader.releaseSharedWithoutSubstrate(&shared_request);
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+}
