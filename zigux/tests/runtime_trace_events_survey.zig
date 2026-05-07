@@ -350,6 +350,7 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the trace-events starter still stops before a real module-loading substrate or live tracepoint registration lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the current bounded starter still advertises `requires_runtime_substrate=true` and `provides_selftest_hook=true`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the same loader packet also fail-closes shared selftest-hook drift in both the prepared shared-request path and the direct initialized and selftest-complete shared-plan path before any live registration claim") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime task ownership or event-loop substrate parity remains blocked behind that same shared runtime-loader boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "polling-backed wake or dispatch behavior also remains blocked until the shared runtime substrate exists") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the manifest-backed ownership packet now records a four-entry `delivery_evidence_catalog` and a six-surface `ownership_map`") != null);
@@ -366,6 +367,7 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "shared runtime loader substrate can consume the bounded loader-handoff plan") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "keeping the roadmap-required selftest hook explicit through `provides_selftest_hook=true`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "the prepared shared-request plus direct initialized and selftest-complete shared selftest-hook drift checks before any live handoff claim") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "runtime task ownership or event-loop substrate parity remains blocked behind that shared runtime-loader surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "polling-backed wake or dispatch behavior remains blocked behind the same shared runtime-loader surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "a manifest-backed ownership packet that now names the survey note, module-slice note, starter sample, loader scaffold, dedicated survey gate, and the focused `phase9-runtime-trace-events-tests` step together") != null);
@@ -382,6 +384,8 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .waiting_on_runtime_substrate;") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .released_without_substrate;") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader keeps the prepared snapshot stable across later sample mutation\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects prepared shared selftest-hook drift before any local runtime handoff\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects shared selftest-hook drift before any local runtime handoff\"") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".provides_selftest_hook = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "pub fn runSelftest(self: *Self) !EmissionSummary") != null);
