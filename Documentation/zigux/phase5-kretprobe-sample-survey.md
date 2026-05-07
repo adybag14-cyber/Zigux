@@ -40,7 +40,7 @@ Fresh repo inspection already showed landed Phase 5 FIFO and kobject reference s
   - real registration and teardown substrate through `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs`, and module init or exit hooks
 - the honest Phase 5 move is to make symbol choice, skip behavior, the one-word private timestamp record, return-duration bookkeeping, the fixed `maxactiveBudget()` review cue at `20`, the `nmissed` summary, and ownership snapshots reviewable in memory while leaving probe registration and module plumbing out of scope.
 - the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now keep this kretprobe note aligned with the same four-sample Phase 5 packet described from the docs root, guide, sample root, scripts root, and tests root.
-- the narrower same-lane guidance risk on current `master` is no longer missing broad shared-packet coverage; it is sample-local drift between this survey note, the shared Phase 5 guide, and the manifest-backed replay prompts whenever retargeting, lifecycle-guard, or teardown wording changes.
+- the narrower same-lane guidance risk on current `master` is no longer missing broad shared-packet coverage; it is sample-local drift between this survey note, the shared Phase 5 guide, and the manifest-backed replay prompts whenever retargeting, lifecycle-guard, recovery-replay, or teardown wording changes.
 
 ## Landed sample and exact checks
 
@@ -53,6 +53,7 @@ The sample intentionally stays small:
 - it uses a tiny `init()` -> `entryHandler()` -> `retHandler()` -> `recordMissedInstance()` -> `exit()` lifecycle so ownership and teardown stay explicit
 - it provides `runAnchorReplay()` for the bounded skip, private-data, return-duration, and missed-summary contract
 - it provides `runLifecycleGuardReplay()` so pre-init rejection, double-init rejection, and post-init retarget rejection stay reviewable without implying a runtime-ready kretprobe implementation
+- it provides `runRecoveryReplay()` so retargeting, outstanding-instance exit rejection, invalid timestamp order recovery, and post-`exit()` handler rejection stay reviewable inside the sample-owned packet instead of living only in a focused external test
 - it provides `ownershipSummary()` so the sample-owned lifecycle packet stays explicit across `cold`, `initialized`, `armed`, `replay_complete`, and `exited` without borrowing the separate Phase 9 runtime summary surface
 
 The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
@@ -64,20 +65,23 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 - `maxactiveBudget()` keeps the fixed review-only budget at `20` without implying runtime registration-pressure handling
 - the replay records one missed instance so the exit-side `nmissed` summary stays reviewable without claiming registration-pressure parity
 - `ownershipSummary()` keeps `cold`, `initialized`, `armed`, `replay_complete`, and `exited` snapshots explicit with active-instance and entry-timestamp state
-- `exit()` rejects an armed sample until `retHandler()` clears the outstanding tracked instance
-- after `exit()` the sample rejects later summary or handler calls
+- `runLifecycleGuardReplay()` keeps pre-init rejection, double-init rejection, and post-init retarget rejection explicit without implying runtime registration parity
+- `runRecoveryReplay()` keeps direct retargeting, exit rejection while armed, invalid timestamp recovery, and the recovered duration `60 ns` explicit until `retHandler()` clears the tracked instance
+- after `exit()` the sample rejects later summary or handler calls, with `runRecoveryReplay()` keeping that post-exit packet explicit too
 
 ## Latest verification snapshot
 
-A focused current-`master` scratch replay was re-run on 2026-05-06 with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2`.
+A focused current-`master` scratch replay was re-run on 2026-05-07 with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2`.
 
-- `zig fmt --check` passed for `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_survey.zig`, and the focused scratch `zigux/tests/build.zig`
-- `zig test samples/zigux/kretprobe_example.zig` passed `3/3` sample self-checks
-- a focused scratch replay assembled from the current `master` versions of `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_survey.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and this survey note passed `5/5` build steps and `7/7` tests via `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
+- `zig fmt --check` passed for `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, and the focused scratch `zigux/tests/phase5_kretprobe_example_build.zig`
+- `zig test samples/zigux/kretprobe_example.zig` passed `4/4` sample self-checks
+- a focused scratch replay assembled from the current `master` versions of `samples/zigux/kretprobe_example.zig` and `zigux/tests/phase5_kretprobe_example.zig` passed `5/5` paired boundary tests via `zig build test --build-file zigux/tests/phase5_kretprobe_example_build.zig --summary all`
+- `python3 -m json.tool zigux/tests/phase5_kretprobe_example_manifest.json` also succeeded for the refreshed manifest packet
 - the observed sample markers matched the manifest-backed replay contract exactly: `symbol_name = kernel_clone`, `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `maxactive_budget = 20`, `nmissed = 1`, `maxactive = 20`, and `replay_runs = 1`
 - the lifecycle-guard replay also held: `pre_init_anchor_rejected = true`, `pre_init_exit_rejected = true`, `double_init_rejected = true`, `post_init_retarget_rejected = true`, and `stage_after_init = initialized`
 - `ownershipSummary()` also stayed explicit across the sample-owned lifecycle packet: `cold`, `initialized`, `armed`, `replay_complete`, and `exited` all remained reviewable through one helper, with `active_instances = 1` plus `entry_timestamp_armed = true` only in the armed state
 - the focused `zigux/tests/phase5_kretprobe_example.zig` boundary replay also still held: `entryHandler(false, 11) still skips the kernel-thread path`, `entryHandler(true, 120) still rejects an outstanding tracked instance`, `retHandler(37, 145) still yields duration 45`, `retHandler(9, 199) still rejects invalid timestamp order`, and `retHandler(9, 260) still recovers with duration 60`
+- the sample-owned `runRecoveryReplay()` helper also held: it retargeted to `do_sys_openat2`, rejected `exit()` while armed, recovered after the invalid timestamp ordering check, and kept post-`exit()` `recordMissedInstance()`, `entryHandler()`, and `retHandler()` rejection explicit
 - the ownership and teardown path stayed explicit across the sample-owned anchor replay and the focused retarget-and-recovery replay: `cold -> initialized -> replay_complete` for the bounded anchor replay, and `cold -> initialized -> exited` after the teardown-focused recovery path completes
 
 ## Contributor refresh prompts for the landed sample
@@ -86,7 +90,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 
 - does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, private-data, return-value, duration, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
-- do the survey note and focused survey gate still name both `runAnchorReplay()` and `runLifecycleGuardReplay()` so the sample-owned replay and lifecycle-guard surfaces stay explicit?
+- do the survey note and focused survey gate still name `runAnchorReplay()`, `runLifecycleGuardReplay()`, and `runRecoveryReplay()` so the sample-owned replay, lifecycle-guard, and teardown-recovery surfaces stay explicit?
 - does the focused `zigux/tests/phase5_kretprobe_example.zig` replay still keep direct retargeting, outstanding-instance rejection, timestamp-order rejection and recovery, and post-exit teardown rejection explicit while the sample-owned helpers stay bounded?
 - do the sample-owned prompts still keep the fixed `maxactiveBudget()` cue at `20`, timestamp-order rejection and recovery, and post-exit handler rejection explicit instead of leaving those probe-lifecycle boundaries implied?
 - does `ownershipSummary()` still keep the `cold`, `initialized`, `armed`, `replay_complete`, and `exited` lifecycle packet explicit without implying the separate Phase 9 runtime summary surface?
@@ -99,7 +103,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 
 The current gap is no longer "Zigux has no kretprobe sample guidance." The more precise remaining job is:
 
-- the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, skip behavior, private-data shape, return timing, summary recording, ownership snapshots, and teardown
+- the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, skip behavior, private-data shape, return timing, summary recording, ownership snapshots, lifecycle-guard behavior, and teardown recovery
 - this sample must remain visibly separate from the later Phase 9 runtime `kretprobe` starter so contributors do not over-claim runtime substrate coverage
 - the live same-lane reviewability risk is no longer missing shared-packet coverage; it is drift between the kretprobe-owned survey note, the shared Phase 5 guide, and the existing manifest-backed replay prompts when the sample contract changes
 - current `master` now carries all four roadmap-backed Phase 5 reference samples, so this slice should stay explicit about its own boundary rather than implying another anchor is still missing
