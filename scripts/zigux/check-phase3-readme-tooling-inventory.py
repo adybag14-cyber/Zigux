@@ -190,12 +190,15 @@ TESTS_README_PHASE3_MARKERS = (
     "opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`",
 )
 
+
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
 
+
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
     found = False
@@ -219,6 +222,7 @@ def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
         issues.append("missing_readme_helper_entries")
     return entries, issues
 
+
 def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | None:
     in_target = False
     lines: list[str] = []
@@ -234,6 +238,7 @@ def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | No
         lines.append(raw)
     return lines if in_target else None
 
+
 def _collect_target_helpers(makefile: str, target: str) -> list[str]:
     lines = _collect_makefile_target_lines(makefile, target)
     if lines is None:
@@ -247,6 +252,7 @@ def _collect_target_helpers(makefile: str, target: str) -> list[str]:
         if rel.endswith(".py"):
             helpers.append(Path(rel).name)
     return helpers
+
 
 def _validate_target_helpers(issues: list[str], makefile: str, target: str, required_helpers: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
@@ -265,6 +271,7 @@ def _validate_target_helpers(issues: list[str], makefile: str, target: str, requ
             issues.append(f"unexpected_makefile_helper:{target}:{helper}")
     if [helper for helper in helpers if helper in required_helpers] != list(required_helpers):
         issues.append(f"makefile_helper_order_drift:{target}")
+
 
 def _validate_target_commands(issues: list[str], makefile: str, target: str, required_commands: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
@@ -285,6 +292,7 @@ def _validate_target_commands(issues: list[str], makefile: str, target: str, req
     if [command for command in commands if command in required_commands] != expected:
         issues.append(f"makefile_command_order_drift:{target}")
 
+
 def _validate_substring_markers(issues: list[str], text: str, prefix: str, markers: tuple[str, ...]) -> None:
     for marker in markers:
         count = text.count(marker)
@@ -292,6 +300,7 @@ def _validate_substring_markers(issues: list[str], text: str, prefix: str, marke
             issues.append(f"missing_{prefix}_marker:{marker}")
         elif count != 1:
             issues.append(f"unexpected_{prefix}_marker_count:{count}:{marker}")
+
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
@@ -343,6 +352,7 @@ def validate(root: Path) -> list[str]:
             issues.append(f"unexpected_readme_snippet_count:{count}:{snippet}")
     _validate_substring_markers(issues, tests_readme, "tests_readme_phase3", TESTS_README_PHASE3_MARKERS)
     return issues
+
 
 # self-test helpers below this point are trimmed from the base capture and replaced later
 
@@ -501,6 +511,12 @@ def run_self_test() -> int:
         _write(root / MAKEFILE_REL, baseline_makefile.replace(cmd, "", 1))
         _assert_only(validate(root), [f"missing_makefile_command:phase8-validate:{cmd.strip()}", "makefile_command_order_drift:phase8-validate"], "missing_phase8_help_kallsyms_live_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        path = root / "scripts" / "zigux" / "check-phase6-shared-surface.py"
+        path.unlink()
+        _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase6-shared-surface.py"], "missing_phase6_shared_surface_repo_file_guard_failed")
+        _write(path, "# stub\n")
         case_count += 1
 
         path = root / "scripts" / "zigux" / "check-phase13-notifier-packet.py"
