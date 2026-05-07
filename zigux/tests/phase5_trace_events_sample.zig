@@ -71,6 +71,7 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
     try std.testing.expectEqual(@as(usize, 8), callback_boundary.total_event_calls_after_replay);
     try std.testing.expect(callback_boundary.function_callback_path_checked);
     try std.testing.expectEqual(@as(usize, 1), callback_boundary.registration_depth_after_register);
+    try std.testing.expectEqual(@as(usize, 0), callback_boundary.registration_depth_after_unregister);
     try std.testing.expect(callback_boundary.registration_balance_restored);
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
 }
