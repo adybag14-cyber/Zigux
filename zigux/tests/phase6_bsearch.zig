@@ -209,6 +209,35 @@ test "phase 6 bsearch treats duplicate keys as found-or-null without claiming st
     try std.testing.expectEqual(@as(u32, 7), found.*);
 }
 
+test "phase 6 bsearch typed empty-input lookup returns null without invoking the comparator" {
+    const empty = [_]u32{};
+    var mutable_empty = [_]u32{};
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 5), empty[0..], compareU32Counted));
+    try std.testing.expectEqual(@as(usize, 0), counted_compare_calls);
+
+    counted_compare_calls = 0;
+    try std.testing.expect(bsearch.search(u32, u32, &@as(u32, 5), empty[0..], compareU32Counted) == null);
+    try std.testing.expectEqual(@as(usize, 0), counted_compare_calls);
+
+    counted_compare_calls = 0;
+    try std.testing.expect(bsearch.searchMutable(u32, u32, &@as(u32, 5), mutable_empty[0..], compareU32Counted) == null);
+    try std.testing.expectEqual(@as(usize, 0), counted_compare_calls);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 5), empty[0..], compareDescendingU32Counted));
+    try std.testing.expectEqual(@as(usize, 0), counted_compare_calls);
+
+    counted_compare_calls = 0;
+    try std.testing.expect(bsearch.search(u32, u32, &@as(u32, 5), empty[0..], compareDescendingU32Counted) == null);
+    try std.testing.expectEqual(@as(usize, 0), counted_compare_calls);
+
+    counted_compare_calls = 0;
+    try std.testing.expect(bsearch.searchMutable(u32, u32, &@as(u32, 5), mutable_empty[0..], compareDescendingU32Counted) == null);
+    try std.testing.expectEqual(@as(usize, 0), counted_compare_calls);
+}
+
 test "phase 6 bsearch singleton typed and raw lookup paths stay inside a one-compare budget" {
     var values = [_]u32{11};
     const raw_values: [*]u8 = @ptrCast(values[0..].ptr);
