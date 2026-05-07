@@ -370,6 +370,8 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
         "zigux/tests/phase5_trace_events_sample_manifest.json",
         "zigux/tests/phase5_trace_events_sample_survey.zig",
         "zigux/tests/phase5_build.zig",
+        "there is no shared `validate-phase5.py`, no shipped `check-phase5-*.py` packet, and no `phase5-validate` target on `master`",
+        "`make -C zigux phase5-test`, and `make -C zigux phase5` are the shipped shared replay routes for the four approved Phase 5 reference samples",
     };
 
     for (scripts_root_markers) |needle| {
