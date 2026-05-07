@@ -126,6 +126,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     defer allocator.free(cmdline_tests);
     try expectContains(cmdline_tests, "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");");
     try expectContains(cmdline_tests, "phase 7 getOption and getOptions preserve Linux-style range parsing");
+    try expectContains(cmdline_tests, "phase 7 getOption preserves validator-only numeric acceptance");
     try expectContains(cmdline_tests, "const plus_rest = cmdline.getOptions(\"+7\", plus_values.len, &plus_values);");
     try expectContains(cmdline_tests, "const plus_validate_rest = cmdline.getOptions(\"+7\", 0, &plus_validate);");
     try expectContains(cmdline_tests, "const single_rest = cmdline.getOptions(\"1-1\", single.len, &single);");
