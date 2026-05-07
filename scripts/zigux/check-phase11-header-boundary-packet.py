@@ -83,6 +83,10 @@ REQUIRED_NOTE_MARKERS = [
     "rather than the shared `test` step",
 ]
 
+FORBIDDEN_NOTE_MARKERS = [
+    "drivers/tty/hvc/hvc_console.zig",
+]
+
 REQUIRED_SURVEY_MARKERS = [
     "phase11 shared header parity survey manifest records the maintained packet cleanly",
     "phase11 shared header parity survey keeps a bounded watchdog_info layout proof",
@@ -144,6 +148,12 @@ def require_markers(text: str, markers: list[str], label: str) -> None:
         raise SystemExit(f"{label} missing markers: {', '.join(missing)}")
 
 
+def forbid_markers(text: str, markers: list[str], label: str) -> None:
+    present = [marker for marker in markers if marker in text]
+    if present:
+        raise SystemExit(f"{label} contains stale markers: {', '.join(present)}")
+
+
 def check_manifest(manifest: dict[str, object]) -> None:
     if manifest.get("lane_key") != EXPECTED_LANE_KEY:
         raise SystemExit("manifest lane_key mismatch")
@@ -182,6 +192,7 @@ def check_repo(root: Path) -> None:
     hvc_header = read_text(root, "drivers/tty/hvc/hvc_console.h")
 
     require_markers(note, REQUIRED_NOTE_MARKERS + [manifest["surveyed_commit"]], "note")
+    forbid_markers(note, FORBIDDEN_NOTE_MARKERS, "note")
     require_markers(survey, REQUIRED_SURVEY_MARKERS, "survey")
     require_markers(build, REQUIRED_BUILD_MARKERS, "build")
     require_markers(contract, REQUIRED_CONTRACT_MARKERS, "contract")
@@ -265,6 +276,13 @@ def run_self_test() -> int:
             root,
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
             "phase11-uapi-header-parity-surface",
+            "phase11-uapi-header-parity-surface\ndrivers/tty/hvc/hvc_console.zig",
+            "note contains stale markers",
+        )
+        expect_failure(
+            root,
+            "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+            "phase11-uapi-header-parity-surface",
             "phase11-uapi-header-packet-absent",
             "note missing markers",
         )
@@ -304,7 +322,7 @@ def run_self_test() -> int:
             "zigux_destination mismatch",
         )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=7")
+    print("phase11-header-boundary-packet: self-test cases=8")
     return 0
 
 
