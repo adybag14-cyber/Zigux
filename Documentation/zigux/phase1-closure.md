@@ -142,9 +142,9 @@ That means `test "head-word boundary scans keep the last in-range bit reachable 
 
 - `PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start`
 
-The committed `inclusive_boundary_next`, `inclusive_boundary_zero`, and `inclusive_boundary_and` fields in `zigux/tests/fixtures/phase1_helpers.json` are currently audit-only context, not the authoritative shared replay contract. Until `zigux/tests/phase1_helpers.zig` consumes those fields directly, reviewers must treat the direct helper-local inclusive-boundary test anchor as the owning proof for that path and must not assume the shared parity packet would catch an inclusive-boundary regression on its own.
+The committed `inclusive_boundary_next`, `inclusive_boundary_zero`, and `inclusive_boundary_and` fields in `zigux/tests/fixtures/phase1_helpers.json` are now part of the authoritative shared replay contract because `zigux/tests/phase1_helpers.zig` consumes those fields directly. Reviewers should keep that shared replay and the direct helper-local inclusive-boundary test anchor aligned: the shared packet now catches inclusive-boundary regressions, while the direct helper-local test keeps the same-word inclusive-start path review-visible at the helper surface.
 
-- `PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_OWNER=the direct helper-local inclusive-boundary test remains the owning proof until zigux/tests/phase1_helpers.zig consumes the committed inclusive_boundary_* fixture fields directly`
+- `PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_OWNER=the shared Phase 1 replay now consumes the committed inclusive_boundary_* fixture fields directly, while the direct helper-local inclusive-boundary test remains a review-visible same-word anchor for that path`
 
 For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local zero-bit-window proof explicit through:
 
