@@ -20,7 +20,7 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 - `PHASE3_NARROW_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_NARROW_UNSAFE_SCOPE=address-byte-offset-align1-pointer-slice-const-pointer-write-and-interop-policy-unsafe-scope-byte-decoders`
 - `PHASE3_NARROW_UNSAFE_STATUS=align1-raw-pointer-bridge-plus-explicit-unsafe-scope-byte-policy`
-- `PHASE3_NARROW_UNSAFE_BLOB_SHA=36b4ac26dbd71daf7ed55bf5344c519f62c23ffb`
+- `PHASE3_NARROW_UNSAFE_BLOB_SHA=78319221371f440f974759985dd667d63e617dc1`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay`
 - `PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface`
@@ -31,7 +31,7 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 - `PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b`
 - `PHASE3_ABI_EXPECTED_BLOB_SHA=891be039615b878e10fda94788bc896ef12aac7b`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=91537cc1e4d6ae3cff25907efb47bef231d540b1`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=5c60f975dc6b19f731586f506f7ba574ce9c3802`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=487395ea6a92382aa800c5b882b3f3d2c617d6ad`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet`
