@@ -106,6 +106,8 @@ REQUIRED_TESTS_README_MARKERS = [
     "zigux/tests/phase4_bitmap_diff_manifest.json",
     "zigux/tests/phase4_bitmap_diff_survey.zig",
     "zigux/tests/phase4_bitmap_live_helper_replay.zig",
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
     "zigux/tests/phase4_build.zig",
     "scripts/zigux/validate-phase4.py",
 ]
@@ -476,6 +478,8 @@ def build_fixture_tree(root: Path) -> None:
                 "zigux/tests/phase4_bitmap_diff_manifest.json",
                 "zigux/tests/phase4_bitmap_diff_survey.zig",
                 "zigux/tests/phase4_bitmap_live_helper_replay.zig",
+                "zigux/tests/phase4_perf_baseline_manifest.json",
+                "zigux/tests/phase4_perf_baseline_survey.zig",
                 "zigux/tests/phase4_build.zig",
                 "scripts/zigux/validate-phase4.py",
                 "",
