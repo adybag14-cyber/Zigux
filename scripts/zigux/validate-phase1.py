@@ -26,6 +26,28 @@ EXPECTED_HELPERS = [
     "tools/lib/zalloc.zig",
 ]
 
+EXPECTED_LANE_SEQUENCING = {
+    "shared_replay_parked_helpers": [
+        "tools/lib/argv_split.zig",
+        "tools/lib/cmdline.zig",
+        "tools/lib/ctype.zig",
+        "tools/lib/hweight.zig",
+        "tools/lib/list_sort.zig",
+        "tools/lib/slab.zig",
+        "tools/lib/str_error_r.zig",
+        "tools/lib/vsprintf.zig",
+        "tools/lib/zalloc.zig",
+    ],
+    "direct_anchor_followup_helpers": [
+        "tools/lib/bitmap.zig",
+        "tools/lib/find_bit.zig",
+        "tools/lib/rbtree.zig",
+        "tools/lib/string.zig",
+    ],
+    "rule_summary": "Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local follow-up anchors on current master.",
+    "anti_overlap_rule": "Do not reopen Phase 1 by batching helpers across those two sets in one lane; shared-replay parked helpers reopen only for packet drift, while direct-anchor helpers reopen only for their existing helper-local anchors or already-committed shared fixture keys.",
+}
+
 REQUIRED_FILES = [
     *EXPECTED_HELPERS,
     "scripts/zigux/artifact_diff.py",
@@ -241,7 +263,6 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
     },
     "tools/lib/string.zig": {
         "helper_test_anchors": [
-            'test "sysfsStreq treats trailing newline and NUL as equivalent"',
             'test "memparse applies suffixes before signed clamping"',
             'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
         ],
@@ -397,6 +418,18 @@ def collect_phase1_fixture_mismatches(root: Path) -> list[str]:
     return mismatches
 
 
+def collect_phase1_manifest_lane_mismatches(manifest: dict[str, object]) -> list[str]:
+    mismatches: list[str] = []
+    lane_sequencing = manifest.get("lane_sequencing")
+    if not isinstance(lane_sequencing, dict):
+        return ["phase1_manifest:lane_sequencing"]
+    for field, expected in EXPECTED_LANE_SEQUENCING.items():
+        actual = lane_sequencing.get(field)
+        if actual != expected:
+            mismatches.append(f"phase1_manifest:lane_sequencing:{field}")
+    return mismatches
+
+
 def collect_phase1_manifest_review_mismatches(root: Path) -> list[str]:
     manifest = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").read_text(encoding="utf-8"))
     mismatches: list[str] = []
@@ -408,6 +441,7 @@ def collect_phase1_manifest_review_mismatches(root: Path) -> list[str]:
         mismatches.append("phase1_manifest:helpers")
     if manifest.get("helper_count") != len(EXPECTED_HELPERS):
         mismatches.append("phase1_manifest:helper_count")
+    mismatches.extend(collect_phase1_manifest_lane_mismatches(manifest))
     review_anchors = manifest.get("review_anchors")
     if not isinstance(review_anchors, dict):
         return mismatches + ["phase1_manifest:review_anchors"]
@@ -487,10 +521,22 @@ def run_self_test() -> None:
         (tmp_root / "tools" / "lib" / "rbtree.zig").write_text('\n'.join(SOURCE_MARKERS["rbtree_test_anchor"][1]) + '\n', encoding="utf-8")
         (tmp_root / "zigux" / "tests" / "phase1_helpers.zig").write_text('\n'.join(PHASE1_IMPORT_MARKERS) + '\n' + 'test "phase 1 helper ports match committed parity fixture"\n' + '\n'.join(PHASE1_REPLAY_MARKERS) + '\n' + '\n'.join(HELPER_FOLLOWUP_TESTS) + '\n', encoding="utf-8")
         (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").write_text(json.dumps({"argv_split": {}, "bitmap": {"scnprintf": "1-3,7,10-11", "truncated_scnprintf_len": 7, "truncated_scnprintf": "1-3,7,1", "terminator_only_scnprintf_len": 0, "terminator_only_nul": 0, "zero_length_scnprintf_len": 0, "partial_xor_nbits": 4, "partial_xor_masked_values": [14]}, "cmdline": {}, "ctype": {}, "find_bit": {"bits_per_long": 64, "inclusive_boundary_next": 63, "inclusive_boundary_zero": 63, "inclusive_boundary_and": 63, "past_nbits_next": 7, "past_nbits_zero": 7, "past_nbits_and": 7, "tail_clamped_first": 69, "tail_clamped_next": 69, "tail_zero_clamped_first": 69, "tail_zero_clamped_next": 69, "tail_and_clamped_first": 69, "tail_and_clamped_next": 69, "tail_clamped_last": 67, "tail_clamped_empty_last": 69}, "hweight": {}, "list_sort": {}, "rbtree": {"empty_root": True, "insert_order": [5, 10, 15, 20, 25], "reverse_order": [25, 20, 15, 10, 5], "replace_order": [5, 10, 15, 25], "erase_init_order": [5, 15, 25], "postorder_count": 3, "erase_init_node_empty": True, "cleared_node_empty": True, "find_found_key": 15, "find_missing": True, "find_first_serial": 0, "next_match_serials": [0, 2, 4], "next_match_terminal_null": True}, "slab": {}, "str_error_r": {}, "string": {"replace_char": "a_b", "replace_char_end": 3, "replace_char_cstr_end": 2, "replace_char_cstr_bytes": [97, 95, 0, 45, 122], "memchr_inv_index": 4, "memchr_inv_none": True}, "vsprintf": {}, "zalloc": {}}, separators=(",", ":")), encoding="utf-8")
-        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").write_text(json.dumps({"phase": "Phase 1", "status": "closed", "helper_count": len(EXPECTED_HELPERS), "helpers": EXPECTED_HELPERS, "review_anchors": EXPECTED_MANIFEST_HELPER_FIELDS}, indent=2) + "\n", encoding="utf-8")
+        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").write_text(json.dumps({"phase": "Phase 1", "status": "closed", "helper_count": len(EXPECTED_HELPERS), "helpers": EXPECTED_HELPERS, "lane_sequencing": EXPECTED_LANE_SEQUENCING, "review_anchors": EXPECTED_MANIFEST_HELPER_FIELDS}, indent=2) + "\n", encoding="utf-8")
         assert not collect_missing_markers(tmp_root)
+
+        manifest_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["lane_sequencing"]["direct_anchor_followup_helpers"] = manifest["lane_sequencing"]["direct_anchor_followup_helpers"][:-1]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "phase1_manifest:lane_sequencing:direct_anchor_followup_helpers" in missing
+        manifest["lane_sequencing"] = dict(EXPECTED_LANE_SEQUENCING)
+        manifest["review_anchors"]["tools/lib/string.zig"]["helper_test_anchors"] = ['test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"']
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert 'phase1_manifest_review_anchor:value=tools/lib/string.zig:helper_test_anchors:test "memparse applies suffixes before signed clamping"' in missing
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=5")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=7")
 
 
 def main() -> int:
