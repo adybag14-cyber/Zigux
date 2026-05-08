@@ -685,6 +685,10 @@ test "runtime trace-events loader rejects shared-load-plan snapshot drift" {
     drifted_module.module_name = "runtime_trace_events_drift";
     try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(plan, drifted_module));
 
+    var drifted_hook = shared_plan;
+    drifted_hook.provides_selftest_hook = false;
+    try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(plan, drifted_hook));
+
     var drifted_allocator = shared_plan;
     drifted_allocator.allocator_handoff = .kernel_heap;
     try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(plan, drifted_allocator));
