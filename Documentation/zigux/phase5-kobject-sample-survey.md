@@ -129,6 +129,7 @@ This slice keeps the landed `kobject` sample reviewable by recording the exact l
 3. run the exact bounded Phase 5 sample checks
    - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
    - `make -C zigux phase5-test`
+   - `make -C zigux phase5`
 
 ## Non-goals
 
