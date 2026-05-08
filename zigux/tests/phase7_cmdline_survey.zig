@@ -199,6 +199,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(next_arg_fixture, ".name = \"leading quoted token with equals splits like Linux\",");
     try expectContains(next_arg_fixture, ".name = \"empty whitespace-separated value stays on the current token\",");
     try expectContains(next_arg_fixture, ".name = \"first equals wins inside the value\",");
+    try expectContains(next_arg_fixture, ".name = \"quoted value without trailing token leaves empty rest\",");
     try expectContains(next_arg_fixture, ".name = \"unterminated quoted value stays bounded to the current token\",");
     try expectContains(next_arg_fixture, ".name = \"leading equals sign stays in the parameter token\",");
     try expectContains(next_arg_fixture, ".expected_param = \"\",");
@@ -207,6 +208,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(next_arg_fixture, ".expected_value = \"value\",");
     try expectContains(next_arg_fixture, ".expected_param = \"=bad\",");
     try expectContains(next_arg_fixture, ".expected_value = \"alpha=beta\",");
+    try expectCount(next_arg_fixture, ".name = \"quoted value without trailing token leaves empty rest\",", 1);
     try expectCount(next_arg_fixture, ".name = \"leading equals sign stays in the parameter token\",", 1);
     try expectCount(next_arg_fixture, ".expected_param = \"=bad\",", 1);
 }
