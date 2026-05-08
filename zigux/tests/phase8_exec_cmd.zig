@@ -168,3 +168,20 @@ test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "make -C zigux phase8-exec-cmd-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "make -C zigux phase8-validate") != null);
 }
+
+test "phase 8 exec-cmd tests root summary keeps the focused replay route explicit" {
+    const io = std.testing.io;
+    const tests_root = try std.Io.Dir.cwd().readFileAlloc(
+        io,
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(tests_root);
+
+    try std.testing.expect(std.mem.indexOf(u8, tests_root, "Phase 8 flow") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_root, "`zigux/tests/phase8_exec_cmd.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_root, "`zigux/tests/phase8_exec_cmd_only_build.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_root, "`make -C zigux phase8-exec-cmd-test`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_root, "`make -C zigux phase8`") != null);
+}
