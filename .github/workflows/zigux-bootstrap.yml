@@ -392,7 +392,7 @@ jobs:
         run: make -C zigux phase14-smoke
 
       - name: Run Phase 14 internal bridge tests
-        run: zig build test --build-file zigux/tests/phase14_build.zig --summary all
+        run: make -C zigux phase14-test
 
       - name: Validate Phase 15 governance packet
         run: make -C zigux phase15-validate
