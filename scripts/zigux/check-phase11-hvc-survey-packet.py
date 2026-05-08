@@ -17,6 +17,7 @@ TEARDOWN_NOTE_PATH = "Documentation/zigux/phase11-hvc-console-teardown-note.md"
 VALIDATION_MATRIX_PATH = "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
 SHARED_REPLAY_CONTRACT_PATH = "Documentation/zigux/phase11-shared-replay-contract.md"
 VERIFY_REPLAY_PATH = "drivers/tty/hvc/hvc_console_verify.zig"
+SURVEY_REPLAY_PATH = "zigux/tests/phase11_hvc_console_survey.zig"
 CLEANUP_REPLAY_PATH = "zigux/tests/phase11_hvc_cleanup.zig"
 MANIFEST_PATH = "zigux/tests/phase11_hvc_console_manifest.json"
 BUILD_PATH = "zigux/tests/phase11_build.zig"
@@ -113,8 +114,23 @@ REQUIRED_VERIFY_REPLAY_MARKERS = [
     'test "hvc_console verify keeps sysrq notifier deferral false without dispatch"',
 ]
 
+REQUIRED_SURVEY_REPLAY_MARKERS = [
+    'test "phase11 hvc console survey keeps a bounded winsize layout proof"',
+    'test "phase11 hvc console survey keeps a bounded hv_ops layout proof"',
+    "layout_assert.assertSize(WinSize, 8);",
+    'layout_assert.assertOffset(WinSize, "ws_ypixel", 6);',
+    "layout_assert.assertSize(HvOps, 72);",
+    "layout_assert.assertAlign(HvOps, 8);",
+    'layout_assert.assertFieldType(HvOps, "notifier_hangup", HvOpsNotifierHangup);',
+    'layout_assert.assertOffset(HvOps, "dtr_rts", 64);',
+]
+
 REQUIRED_MANIFEST_MARKERS = [
     '"lane_key": "P11-L16"',
+    '"winsize_layout_assert_present": true',
+    '"hv_ops_layout_assert_present": true',
+    '"id": "phase11-hvc-console-winsize-layout-assert"',
+    '"id": "phase11-hvc-console-hv-ops-layout-assert"',
     '"id": "phase11-hvc-console-driver-starter"',
     "direct-port-or-dual-impl driver-template requirement",
     '"id": "phase11-hvc-console-validation-matrix"',
@@ -141,7 +157,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 40
+SELF_TEST_CASE_COUNT = 45
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -163,6 +179,7 @@ def validate(root: Path) -> list[str]:
         VALIDATION_MATRIX_PATH,
         SHARED_REPLAY_CONTRACT_PATH,
         VERIFY_REPLAY_PATH,
+        SURVEY_REPLAY_PATH,
         CLEANUP_REPLAY_PATH,
         MANIFEST_PATH,
         BUILD_PATH,
@@ -182,6 +199,7 @@ def validate(root: Path) -> list[str]:
     validation_matrix = read_text(root, VALIDATION_MATRIX_PATH)
     shared_replay_contract = read_text(root, SHARED_REPLAY_CONTRACT_PATH)
     verify_replay = read_text(root, VERIFY_REPLAY_PATH)
+    survey_replay = read_text(root, SURVEY_REPLAY_PATH)
     manifest = read_text(root, MANIFEST_PATH)
     build_file = read_text(root, BUILD_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
@@ -205,6 +223,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_VERIFY_REPLAY_MARKERS:
         if marker not in verify_replay:
             failures.append(f"verify_replay:{marker}")
+    for marker in REQUIRED_SURVEY_REPLAY_MARKERS:
+        if marker not in survey_replay:
+            failures.append(f"survey_replay:{marker}")
     for marker in REQUIRED_MANIFEST_MARKERS:
         if marker not in manifest:
             failures.append(f"manifest:{marker}")
@@ -351,6 +372,27 @@ test "hvc_console verify keeps sysrq notifier deferral false without dispatch" {
 """,
     )
     write_text(
+        root / SURVEY_REPLAY_PATH,
+        """const layout_assert = @import("layout_assert");
+
+test "phase11 hvc console survey keeps a bounded winsize layout proof" {
+    comptime {
+        layout_assert.assertSize(WinSize, 8);
+        layout_assert.assertOffset(WinSize, "ws_ypixel", 6);
+    }
+}
+
+test "phase11 hvc console survey keeps a bounded hv_ops layout proof" {
+    comptime {
+        layout_assert.assertSize(HvOps, 72);
+        layout_assert.assertAlign(HvOps, 8);
+        layout_assert.assertFieldType(HvOps, "notifier_hangup", HvOpsNotifierHangup);
+        layout_assert.assertOffset(HvOps, "dtr_rts", 64);
+    }
+}
+""",
+    )
+    write_text(
         root / CLEANUP_REPLAY_PATH,
         """const std = @import("std");
 test "synthetic hvc cleanup replay" {
@@ -362,7 +404,19 @@ test "synthetic hvc cleanup replay" {
         root / MANIFEST_PATH,
         """{
   "lane_key": "P11-L16",
+  "survey_summary": {
+    "winsize_layout_assert_present": true,
+    "hv_ops_layout_assert_present": true
+  },
   "gaps": [
+    {
+      "id": "phase11-hvc-console-winsize-layout-assert",
+      "why_now": "The dedicated hvc survey now keeps a bounded struct winsize layout proof for size 8, alignment 2, and offsets 0, 2, 4, and 6 so the resize boundary stays machine-checked without widening into tty-core ownership."
+    },
+    {
+      "id": "phase11-hvc-console-hv-ops-layout-assert",
+      "why_now": "The dedicated hvc survey now keeps a bounded struct hv_ops callback table layout proof for size 72, alignment 8, and callback-pointer offsets 0 through 64 so the public hvc callback boundary stays machine-checked without widening into struct hvc_struct or tty-core ownership."
+    },
     {
       "id": "phase11-hvc-console-driver-starter",
       "why_now": "The bounded starter now satisfies the roadmap's direct-port-or-dual-impl driver-template requirement in reviewable form."
@@ -667,6 +721,36 @@ def run_self_test() -> int:
             )
             expect_failure(
                 root,
+                SURVEY_REPLAY_PATH,
+                'test "phase11 hvc console survey keeps a bounded winsize layout proof"',
+                'survey_replay:test "phase11 hvc console survey keeps a bounded winsize layout proof"',
+            )
+            expect_failure(
+                root,
+                SURVEY_REPLAY_PATH,
+                'test "phase11 hvc console survey keeps a bounded hv_ops layout proof"',
+                'survey_replay:test "phase11 hvc console survey keeps a bounded hv_ops layout proof"',
+            )
+            expect_failure(
+                root,
+                SURVEY_REPLAY_PATH,
+                'layout_assert.assertSize(HvOps, 72);',
+                'survey_replay:layout_assert.assertSize(HvOps, 72);',
+            )
+            expect_failure(
+                root,
+                MANIFEST_PATH,
+                '"hv_ops_layout_assert_present": true',
+                'manifest:"hv_ops_layout_assert_present": true',
+            )
+            expect_failure(
+                root,
+                MANIFEST_PATH,
+                '"id": "phase11-hvc-console-hv-ops-layout-assert"',
+                'manifest:"id": "phase11-hvc-console-hv-ops-layout-assert"',
+            )
+            expect_failure(
+                root,
                 MANIFEST_PATH,
                 "direct-port-or-dual-impl driver-template requirement",
                 "manifest:direct-port-or-dual-impl driver-template requirement",
@@ -679,6 +763,7 @@ def run_self_test() -> int:
             )
             expect_missing_file(root, SLICE_NOTE_PATH)
             expect_missing_file(root, VERIFY_REPLAY_PATH)
+            expect_missing_file(root, SURVEY_REPLAY_PATH)
             expect_missing_file(root, CLEANUP_REPLAY_PATH)
             expect_missing_file(root, MANIFEST_PATH)
         except AssertionError as exc:
