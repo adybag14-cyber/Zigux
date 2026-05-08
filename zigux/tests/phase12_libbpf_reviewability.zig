@@ -109,10 +109,10 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
         const shared_file_path_handle_destination =
             std.mem.eql(u8, gap.id, "phase12-libbpf-fdinfo-map-info-helper-ready-next") or
             std.mem.eql(u8, gap.id, "phase12-libbpf-map-reuse-compatibility-ready-next") or
-            std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge");
+            std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge-boundary");
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             try std.testing.expect(exists);
-        } else if (shared_file_path_handle_destination or std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing")) {
+        } else if (shared_file_path_handle_destination or std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing-boundary")) {
             try std.testing.expect(exists);
         } else if (std.mem.eql(u8, gap.status, "ready_next") or std.mem.eql(u8, gap.status, "blocked_on_object_model") or std.mem.eql(u8, gap.status, "deferred_high_risk")) {
             try std.testing.expect(!exists);
@@ -149,11 +149,11 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             saw_map_reuse_ready_next = true;
             try std.testing.expect(exists);
         }
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge")) {
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge-boundary")) {
             saw_file_path_handle_bridge = true;
             try std.testing.expect(exists);
         }
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing")) {
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing-boundary")) {
             saw_perf_buffer_online_cpu_routing = true;
             try std.testing.expect(exists);
         }
@@ -172,8 +172,8 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     }
     try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 2), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 2), blocked_count);
-    try std.testing.expectEqual(@as(usize, 3), deferred_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expectEqual(@as(usize, 4), deferred_count);
     try std.testing.expect(saw_landed_manifest);
     try std.testing.expect(saw_landed_type_names);
     try std.testing.expect(saw_landed_cpu_mask);
@@ -223,12 +223,12 @@ test "phase12 libbpf reviewability gate exact-checks the shared bridge and heavy
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("helper_first", gap.kind);
         }
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge")) {
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge-boundary")) {
             saw_file_path_handle_bridge = true;
             try std.testing.expectEqualStrings("deferred_high_risk", gap.status);
             try std.testing.expectEqualStrings("resource_boundary", gap.kind);
         }
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing")) {
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing-boundary")) {
             saw_perf_buffer_online_cpu_routing = true;
             try std.testing.expectEqualStrings("deferred_high_risk", gap.status);
             try std.testing.expectEqualStrings("interrupt_routing", gap.kind);
@@ -240,7 +240,7 @@ test "phase12 libbpf reviewability gate exact-checks the shared bridge and heavy
         }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-object-loader-and-program-load")) {
             saw_object_loader = true;
-            try std.testing.expectEqualStrings("blocked_on_object_model", gap.status);
+            try std.testing.expectEqualStrings("deferred_high_risk", gap.status);
             try std.testing.expectEqualStrings("core_loader", gap.kind);
         }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-btf-relocation-and-program-load")) {
