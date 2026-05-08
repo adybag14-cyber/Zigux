@@ -368,6 +368,25 @@ def run_self_test() -> int:
             return 1
         write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
 
+        broken_smoke_note_path.write_text(
+            broken_smoke_note_path.read_text(encoding="utf-8").replace(
+                "This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.\n",
+                "This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.\n"
+                "This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope. (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate note-local fallback scope failure", file=sys.stderr)
+            return 1
+        write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
+
         broken_scripts_readme_path = root / SCRIPTS_README_PATH
         broken_scripts_readme_path.write_text(
             broken_scripts_readme_path.read_text(encoding="utf-8").replace(
