@@ -148,6 +148,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shorter restaged config window clears stale second-word data") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "plans one bounded config-word write") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "feature-negotiation summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "config-write disposition summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "absolute end offset and changed-byte mask") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "without mutating config space") != null);
@@ -184,6 +185,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-word write planning summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "feature-negotiation summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-write disposition summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "one explicit transport-identity summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "probe-preflight summary") != null);
@@ -198,6 +200,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     var saw_mmio_queue_size_helper = false;
     var saw_mmio_slice_note = false;
     var saw_mmio_feature_selector = false;
+    var saw_mmio_feature_negotiation = false;
     var saw_mmio_config_window = false;
     var saw_mmio_config_write_plan = false;
     var saw_mmio_transport_identity = false;
@@ -264,6 +267,15 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "device-feature selector") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-feature-negotiation-summary-helper")) {
+            saw_mmio_feature_negotiation = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "selected device-feature word") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "driver-feature register value") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reviewable") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-config-window-helper")) {
@@ -333,7 +345,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 16);
+    try std.testing.expect(starter_landed_count >= 17);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_ring_helper);
     try std.testing.expect(saw_mmio_survey_gate);
@@ -342,6 +354,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(saw_mmio_queue_size_helper);
     try std.testing.expect(saw_mmio_slice_note);
     try std.testing.expect(saw_mmio_feature_selector);
+    try std.testing.expect(saw_mmio_feature_negotiation);
     try std.testing.expect(saw_mmio_config_window);
     try std.testing.expect(saw_mmio_config_write_plan);
     try std.testing.expect(saw_mmio_transport_identity);
