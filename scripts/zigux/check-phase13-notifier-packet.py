@@ -18,8 +18,10 @@ REQUIRED_FILES = [
     "zigux/helpers/list_view.zig",
     "zigux/helpers/hlist_view.zig",
     "zigux/helpers/notifier_chain_view.zig",
+    "include/linux/notifier.h",
     "include/zigux/abi.h",
     "include/zigux/notifier_abi.h",
+    "drivers/tty/hvc/hvc_console.h",
     "zigux/tests/phase13_build.zig",
 ]
 
@@ -89,6 +91,25 @@ HLIST_VIEW_MARKERS = [
     "pub fn summarize",
     "phase3 hlist view helpers stay bounded and predictable",
     "phase3 hlist view empty sentinel stays explicit",
+]
+
+LINUX_NOTIFIER_MARKERS = [
+    "struct notifier_block {",
+    "notifier_fn_t notifier_call;",
+    "struct notifier_block __rcu *next;",
+    "int priority;",
+    "struct raw_notifier_head {",
+    "struct notifier_block __rcu *head;",
+]
+
+HVC_INTEROP_MARKERS = [
+    "struct list_head next;",
+    "int (*notifier_add)(struct hvc_struct *hp, int irq);",
+    "void (*notifier_del)(struct hvc_struct *hp, int irq);",
+    "void (*notifier_hangup)(struct hvc_struct *hp, int irq);",
+    "extern int notifier_add_irq(struct hvc_struct *hp, int data);",
+    "extern void notifier_del_irq(struct hvc_struct *hp, int data);",
+    "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);",
 ]
 
 EXPORTED_ABI_MARKERS = [
@@ -222,8 +243,10 @@ def validate(root: Path) -> list[str]:
     list_view_text = read_text(root / "zigux/helpers/list_view.zig")
     hlist_view_text = read_text(root / "zigux/helpers/hlist_view.zig")
     helper_text = read_text(root / "zigux/helpers/notifier_chain_view.zig")
+    linux_notifier_text = read_text(root / "include/linux/notifier.h")
     exported_abi_text = read_text(root / "include/zigux/abi.h")
     header_text = read_text(root / "include/zigux/notifier_abi.h")
+    hvc_interop_text = read_text(root / "drivers/tty/hvc/hvc_console.h")
     build_text = read_text(root / "zigux/tests/phase13_build.zig")
 
     issues.extend(collect_missing(survey_text, SURVEY_MARKERS, "phase13-notifier-survey"))
@@ -253,8 +276,10 @@ def validate(root: Path) -> list[str]:
     issues.extend(collect_missing(list_view_text, LIST_VIEW_MARKERS, "phase13-list-view"))
     issues.extend(collect_missing(hlist_view_text, HLIST_VIEW_MARKERS, "phase13-hlist-view"))
     issues.extend(collect_missing(helper_text, HELPER_MARKERS, "phase13-notifier-helper"))
+    issues.extend(collect_missing(linux_notifier_text, LINUX_NOTIFIER_MARKERS, "phase13-linux-notifier-anchor"))
     issues.extend(collect_missing(exported_abi_text, EXPORTED_ABI_MARKERS, "phase13-exported-list-abi"))
     issues.extend(collect_missing(header_text, HEADER_MARKERS, "phase13-notifier-header"))
+    issues.extend(collect_missing(hvc_interop_text, HVC_INTEROP_MARKERS, "phase13-hvc-interop-anchor"))
     issues.extend(collect_missing(reviewability_text, REVIEWABILITY_MARKERS, "phase13-notifier-reviewability"))
     issues.extend(validate_manifest(manifest_text))
 
@@ -304,12 +329,14 @@ def seed_fixture_tree(root: Path) -> None:
     write_text(root / "zigux/helpers/list_view.zig", "\n".join(LIST_VIEW_MARKERS) + "\n")
     write_text(root / "zigux/helpers/hlist_view.zig", "\n".join(HLIST_VIEW_MARKERS) + "\n")
     write_text(root / "zigux/helpers/notifier_chain_view.zig", "\n".join(HELPER_MARKERS) + "\n")
+    write_text(root / "include/linux/notifier.h", "\n".join(LINUX_NOTIFIER_MARKERS) + "\n")
     write_text(root / "include/zigux/notifier_abi.h", "\n".join(HEADER_MARKERS) + "\n")
+    write_text(root / "drivers/tty/hvc/hvc_console.h", "\n".join(HVC_INTEROP_MARKERS) + "\n")
     write_text(root / "zigux/tests/phase13_notifier_list_reviewability.zig", "\n".join(REVIEWABILITY_MARKERS) + "\n")
     write_text(
         root / "scripts/zigux/check-phase13-notifier-packet.py",
         'print("PHASE13_NOTIFIER_PACKET=pass")\n'
-        'print("\\"phase13-notifier-focused-packet-checker\\"")\n',
+        'print("\\\"phase13-notifier-focused-packet-checker\\\"")\n',
     )
     write_text(root / "include/zigux/abi.h", "\n".join(EXPORTED_ABI_MARKERS) + "\n")
     write_text(root / "zigux/tests/phase13_build.zig", 'const phase13_devres_tests = b.addTest(.{});\n')
@@ -471,6 +498,21 @@ def run_self_test() -> int:
         seed_fixture_tree(root)
         case_count += 1
 
+        write_text(root / "include/linux/notifier.h", "struct notifier_block {\n")
+        assert_only(
+            validate(root),
+            [
+                "phase13-linux-notifier-anchor:notifier_fn_t notifier_call;",
+                "phase13-linux-notifier-anchor:struct notifier_block __rcu *next;",
+                "phase13-linux-notifier-anchor:int priority;",
+                "phase13-linux-notifier-anchor:struct raw_notifier_head {",
+                "phase13-linux-notifier-anchor:struct notifier_block __rcu *head;",
+            ],
+            "linux_notifier_anchor_guard_failed",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
         write_text(root / "include/zigux/abi.h", "struct zigux_list_view\n")
         assert_only(
             validate(root),
@@ -496,6 +538,22 @@ def run_self_test() -> int:
                 "phase13-notifier-header:zigux_notifier_chain_has_nonincreasing_priority_order",
             ],
             "header_guard_failed",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
+        write_text(root / "drivers/tty/hvc/hvc_console.h", "struct list_head next;\n")
+        assert_only(
+            validate(root),
+            [
+                "phase13-hvc-interop-anchor:int (*notifier_add)(struct hvc_struct *hp, int irq);",
+                "phase13-hvc-interop-anchor:void (*notifier_del)(struct hvc_struct *hp, int irq);",
+                "phase13-hvc-interop-anchor:void (*notifier_hangup)(struct hvc_struct *hp, int irq);",
+                "phase13-hvc-interop-anchor:extern int notifier_add_irq(struct hvc_struct *hp, int data);",
+                "phase13-hvc-interop-anchor:extern void notifier_del_irq(struct hvc_struct *hp, int data);",
+                "phase13-hvc-interop-anchor:extern void notifier_hangup_irq(struct hvc_struct *hp, int data);",
+            ],
+            "hvc_interop_anchor_guard_failed",
         )
         seed_fixture_tree(root)
         case_count += 1
