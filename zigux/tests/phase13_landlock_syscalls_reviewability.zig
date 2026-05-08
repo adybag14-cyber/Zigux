@@ -49,10 +49,10 @@ test "phase13 landlock syscalls reviewability shard records the shipped direct e
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P13-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
-    try std.testing.expectEqualStrings("02f3325b2e289b7d492e022db0dbe7b61f2e22c3", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("599ee1519c5464bb86a0ffdcab52dfe958c40571", manifest.surveyed_commit);
 
     const descriptor = syscalls.SyscallsHelperLab.descriptor();
     try std.testing.expectEqualStrings("landlock_syscalls_helper_lab", descriptor.name);
