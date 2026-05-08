@@ -466,6 +466,33 @@ test "runtime bitmap sample keeps top-bit boundary mutation and bounds checks re
     try std.testing.expectEqual(ModuleStage.initialized, module.stage());
 }
 
+test "runtime bitmap sample keeps cross-word boundary mutations explicit" {
+    var module = RuntimeBitmapSample{};
+    const boundary_start = bitmap_view.bits_per_long - 1;
+
+    try module.initWithSetBits(&.{});
+    try module.setRange(boundary_start, 3);
+
+    const after_set = module.summary();
+    try std.testing.expect(module.isSet(boundary_start));
+    try std.testing.expect(module.isSet(boundary_start + 1));
+    try std.testing.expect(module.isSet(boundary_start + 2));
+    try std.testing.expectEqual(boundary_start, after_set.first_set);
+    try std.testing.expectEqual(@as(u32, 0), after_set.first_zero);
+    try std.testing.expectEqual(@as(u32, 3), after_set.weight);
+
+    try module.clearRange(boundary_start, 2);
+
+    const after_clear = module.summary();
+    try std.testing.expect(!module.isSet(boundary_start));
+    try std.testing.expect(!module.isSet(boundary_start + 1));
+    try std.testing.expect(module.isSet(boundary_start + 2));
+    try std.testing.expectEqual(boundary_start + 2, after_clear.first_set);
+    try std.testing.expectEqual(@as(u32, 0), after_clear.first_zero);
+    try std.testing.expectEqual(@as(u32, 1), after_clear.weight);
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+}
+
 test "runtime bitmap sample keeps exit-path summaries stable" {
     const second_word_base = RuntimeBitmapSample.bitmap_nbits / 2;
 
