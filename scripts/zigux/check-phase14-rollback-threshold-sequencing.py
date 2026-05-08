@@ -9,14 +9,16 @@ aligned around the current stay-in-C and freeze-in-C split on master.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import tempfile
 from pathlib import Path
 
 MARKER = "PHASE14_CHECK_PACKET=rollback_threshold_sequencing"
 SMOKE_SURVEY_PATH = "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
+MANIFEST_PATH = "zigux/tests/phase14_end_to_end_smoke_manifest.json"
 REQUIRED_FILE_MARKERS = {
-    "zigux/tests/phase14_end_to_end_smoke_manifest.json": [
+    MANIFEST_PATH: [
         '"rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence"',
         '"kernel/workqueue.c"',
         '"kernel/trace/ring_buffer.c"',
@@ -77,6 +79,12 @@ def check(root: Path) -> list[str]:
             errors.append(f"missing file: {rel_path}")
             continue
         text = read_text(path)
+        if rel_path == MANIFEST_PATH:
+            try:
+                json.loads(text)
+            except json.JSONDecodeError as exc:
+                errors.append(f"invalid json in {MANIFEST_PATH}: {exc}")
+                continue
         for marker in markers:
             if marker not in text:
                 errors.append(f"missing marker in {rel_path}: {marker}")
@@ -98,6 +106,19 @@ def write_text(path: Path, text: str) -> None:
 
 
 def required_text(rel_path: str) -> str:
+    if rel_path == MANIFEST_PATH:
+        return json.dumps(
+            {
+                "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",
+                "blocked_anchors": [
+                    "kernel/workqueue.c",
+                    "kernel/trace/ring_buffer.c",
+                    "kernel/rcu/tree.c",
+                    "net/core/skbuff.c",
+                ],
+            },
+            indent=2,
+        ) + "\n"
     markers = list(REQUIRED_FILE_MARKERS[rel_path])
     if rel_path == SMOKE_SURVEY_PATH:
         markers.extend(SMOKE_SURVEY_EXACT_COUNT_MARKERS)
@@ -173,10 +194,10 @@ def run_self_test() -> int:
 
         write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
 
-        broken_manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
+        broken_manifest_path = root / MANIFEST_PATH
         broken_manifest_path.write_text(
             broken_manifest_path.read_text(encoding="utf-8").replace(
-                '"rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence"\n',
+                '  "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",\n',
                 "",
                 1,
             ),
@@ -191,11 +212,11 @@ def run_self_test() -> int:
             print("self-test expected failure when the shared smoke manifest lost the rollback-owner marker", file=sys.stderr)
             return 1
 
-        write_text(broken_manifest_path, required_text("zigux/tests/phase14_end_to_end_smoke_manifest.json"))
+        write_text(broken_manifest_path, required_text(MANIFEST_PATH))
 
         broken_manifest_path.write_text(
             broken_manifest_path.read_text(encoding="utf-8").replace(
-                '"net/core/skbuff.c"\n',
+                '    "kernel/rcu/tree.c",\n',
                 "",
                 1,
             ),
@@ -203,14 +224,28 @@ def run_self_test() -> int:
         )
         errors = check(root)
         if not errors or not any(
-            'missing marker in zigux/tests/phase14_end_to_end_smoke_manifest.json: "net/core/skbuff.c"'
+            'missing marker in zigux/tests/phase14_end_to_end_smoke_manifest.json: "kernel/rcu/tree.c"'
             in error
             for error in errors
         ):
             print("self-test expected failure when the shared smoke manifest lost a blocked anchor marker", file=sys.stderr)
             return 1
 
-        write_text(broken_manifest_path, required_text("zigux/tests/phase14_end_to_end_smoke_manifest.json"))
+        write_text(broken_manifest_path, required_text(MANIFEST_PATH))
+
+        broken_manifest_path.write_text(
+            "{\n" + required_text(MANIFEST_PATH),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "invalid json in zigux/tests/phase14_end_to_end_smoke_manifest.json:" in error
+            for error in errors
+        ):
+            print("self-test expected failure when the shared smoke manifest JSON was invalid", file=sys.stderr)
+            return 1
+
+        write_text(broken_manifest_path, required_text(MANIFEST_PATH))
 
         broken_smoke_path.write_text(
             broken_smoke_path.read_text(encoding="utf-8").replace(
