@@ -28,7 +28,7 @@ This document records the live Phase 4 differential-validation ownership and rep
   - `zigux/tests/phase4_build.zig`
   - `scripts/zigux/validate-phase4.py`
   - `.github/workflows/zigux-bootstrap.yml`
-- roadmap note: live `master` now carries the roadmap-named Phase 4 entrypoints at `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`, while the manifest-backed `phase4_runtime_atomic64_diff` and `phase4_bitmap_diff` survey packets keep the wrapper-to-runtime atomic64 handoff and the bounded bitmap rollback packet measurable until the still-absent `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` starters are intentionally opened, and the dedicated `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig` packet now keeps the still-unapproved benchmark-command and acceptable-limit posture measurable through a direct local survey route without promoting shared CI perf coverage yet.
+- roadmap note: live `master` now carries the roadmap-named Phase 4 entrypoints at `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`, while the manifest-backed `phase4_runtime_atomic64_diff` and `phase4_bitmap_diff` survey packets keep the wrapper-to-runtime atomic64 handoff and the bounded bitmap rollback packet measurable until the still-absent `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` starters are intentionally opened, and the dedicated `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig` packet now keeps the approved local benchmark commands, the approved local-only atomic64 acceptable limit, and the still-pending bitmap acceptable limit measurable through a direct local survey route without promoting shared CI perf coverage yet.
 
 ## Why this exists
 
@@ -37,7 +37,7 @@ The roadmap says Phase 4 must make future Zigux ports measurable and reversible.
 - the current perf threshold status for those gates
 - the manifest-backed survey packets that keep the atomic64 wrapper-to-runtime handoff and the bitmap rollback packet measurable
 - the shipped host-side artifact-diff contract packet and the dedicated gate-evidence checker-plus-note packet that the broader validator already depends on
-- the dedicated local perf-baseline survey route that keeps the still-unapproved benchmark-command and acceptable-limit posture machine-checked without treating it as shared CI perf approval
+- the dedicated local perf-baseline survey route that keeps the approved local benchmark commands, the approved local-only atomic64 acceptable limit, and the still-pending bitmap acceptable limit machine-checked without treating it as shared CI perf approval
 - the shared review-checklist guardrail that keeps the same Phase 4 packet explicit when reviewers touch it
 - the remaining roadmap-backed gaps that are still intentionally outside the shipped Phase 4 packet
 
@@ -114,8 +114,8 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
 - phase bucket: `Phase 4 dedicated perf-baseline posture survey`
 - owner: `Validation and Perf Team`
 - rollback owner: `Validation and Perf Team`
-- implementation note: `zigux/tests/phase4_perf_baseline_survey.zig` and `zigux/tests/phase4_perf_baseline_manifest.json` keep the still-unapproved benchmark-command and acceptable-limit posture explicit for both shipped rollback gates, and keep the dedicated survey outside the shared `phase4-test` entrypoint until one bounded benchmark command and one acceptable limit are intentionally approved for each gate
-- fallback path: keep this matrix truthful about the still-unapproved perf posture and drop the dedicated survey step from `zigux/tests/phase4_build.zig` if the survey packet drifts until it is repaired
+- implementation note: `zigux/tests/phase4_perf_baseline_survey.zig` and `zigux/tests/phase4_perf_baseline_manifest.json` keep the approved local benchmark commands, the approved local-only atomic64 acceptable limit, and the still-pending bitmap acceptable limit explicit across the two shipped rollback gates, and keep the dedicated survey outside the shared `phase4-test` entrypoint until the remaining bitmap acceptable limit and any shared CI perf promotion are intentionally approved
+- fallback path: keep this matrix truthful about the current local-only perf posture and drop the dedicated survey step from `zigux/tests/phase4_build.zig` if the survey packet drifts until it is repaired
 - perf threshold status: `perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land`
 
 ## Lab And CI Matrix
@@ -128,9 +128,9 @@ lane surface purpose owner rollback owner bootstrap CI replay local lab replay t
 `zigux/tests/bitmap_diff.zig` bounded broad bitmap rollback-readiness replay covering range, prefix, copy, exact `find_nth_bit`, and checksum-pinned threshold-replay checkpoints `Shared Subsystems Pod` `Shared Subsystems Pod` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks`
 `zigux/tests/phase4_bitmap_diff_survey.zig` manifest-backed survey that keeps the bitmap rollback gate, helper-backed replay, build wiring, and gate-evidence contract reviewable on the same shared Phase 4 entrypoint `Shared Subsystems Pod` `Shared Subsystems Pod` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks`
 `zigux/tests/phase4_bitmap_live_helper_replay.zig` helper-backed replay of the shipped `tools/lib/bitmap.zig` and `tools/lib/find_bit.zig` semantics on the shared Phase 4 entrypoint `Shared Subsystems Pod` `Shared Subsystems Pod` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks`
-`zigux/tests/phase4_perf_baseline_survey.zig` dedicated local survey that keeps the benchmark command and acceptable limit unapproved posture machine-checked for both landed rollback gates `Validation and Perf Team` `Validation and Perf Team` not on the shared workflow or validator packet yet; keep this survey local until one bounded benchmark command and one acceptable limit are approved for both shipped rollback gates `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` `perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land`
+`zigux/tests/phase4_perf_baseline_survey.zig` dedicated local survey that keeps the approved local benchmark commands, the approved local-only atomic64 acceptable limit, and the still-pending bitmap acceptable limit machine-checked for both landed rollback gates `Validation and Perf Team` `Validation and Perf Team` not on the shared workflow or validator packet yet; keep this survey local until the remaining bitmap acceptable limit and any shared CI perf promotion are intentionally approved `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` `perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land`
 The shared `zigux/tests/phase4_build.zig` entrypoint still runs `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` and `zigux/tests/phase4_bitmap_diff_survey.zig` beside `zigux/tests/atomic64_diff.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` so the manifest-backed wrapper handoff, the bitmap rollback survey packet, and the shipped helper-backed bitmap semantics stay reviewable on the same bounded Phase 4 replay surface.
-The dedicated perf-baseline survey stays outside the shared `phase4-test` entrypoint and the validator-backed gate-evidence packet until one bounded benchmark command and one acceptable limit are intentionally approved for both shipped rollback gates.
+The dedicated perf-baseline survey stays outside the shared `phase4-test` entrypoint and the validator-backed gate-evidence packet until the remaining bitmap acceptable limit and any shared CI perf promotion are intentionally approved.
 
 ## Remaining Roadmap Gaps
 
@@ -157,11 +157,11 @@ The dedicated perf-baseline survey stays outside the shared `phase4-test` entryp
 - current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig`
 - gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
 - rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
-- current benchmark-command status: the dedicated survey packet at `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig` is now shipped, but the benchmark command and acceptable limit are still unapproved for both landed gates and the dedicated survey intentionally keeps that posture local rather than treating it as shared CI perf coverage
-- current acceptable-limit status: the dedicated survey packet keeps the still-unapproved posture machine-checked, but no bounded acceptable limit is approved yet for either shipped rollback gate
-- next bounded evidence step: land one bounded benchmark command and one acceptable limit per gate before Phase 4 claims perf coverage
+- current benchmark-command status: the dedicated survey packet at `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig` is now shipped, the local benchmark commands are approved for both landed gates, and the dedicated survey intentionally keeps that posture local rather than treating it as shared CI perf coverage
+- current acceptable-limit status: the dedicated survey packet now carries an approved local-only atomic64 acceptable limit, while the bitmap acceptable limit remains intentionally unapproved and shared CI perf coverage is still not claimed
+- next bounded evidence step: land the remaining bitmap acceptable limit before Phase 4 claims perf coverage
 
-This matrix, `scripts/zigux/validate-phase4.py`, and the shared `zigux/tests/phase4_build.zig` entrypoint should stay aligned around the still-correctness-only shared replay routes while the dedicated perf-baseline survey keeps the unapproved threshold posture explicit until a later Phase 4 lane intentionally promotes real perf commands and limits.
+This matrix, `scripts/zigux/validate-phase4.py`, and the shared `zigux/tests/phase4_build.zig` entrypoint should stay aligned around the still-correctness-only shared replay routes while the dedicated perf-baseline survey keeps the approved local benchmark commands, the approved local-only atomic64 acceptable limit, and the still-pending bitmap acceptable limit explicit until a later Phase 4 lane intentionally closes the bitmap limit and any broader shared perf promotion.
 
 ## Review Rules
 - Phase 4 remains a rollback-readiness lane first, not a performance-claim lane
