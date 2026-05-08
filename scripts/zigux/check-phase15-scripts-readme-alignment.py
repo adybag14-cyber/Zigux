@@ -124,6 +124,7 @@ PARITY_SCORECARD_MARKERS = (
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
     "## Gates",
     "1. run the shared validator-first gate",
     "zig build test --build-file zigux/tests/phase15_build.zig",
@@ -455,6 +456,21 @@ def run_self_test() -> int:
             "missing_readiness_manifest_checker_guard_failed",
         )
         _write(readiness_manifest_path, baseline_readiness_manifest)
+        case_count += 1
+
+        parity_scorecard_path = root / PARITY_SCORECARD_NOTE_REL
+        baseline_parity_scorecard = _read(parity_scorecard_path)
+        parity_scorecard_marker = "make -C zigux phase15-test"
+        _write(
+            parity_scorecard_path,
+            baseline_parity_scorecard.replace(parity_scorecard_marker, "make -C zigux phase15-check", 1),
+        )
+        _assert_only(
+            validate(root),
+            [f"parity_scorecard:missing:{parity_scorecard_marker}"],
+            "missing_parity_scorecard_dedicated_make_test_marker_guard_failed",
+        )
+        _write(parity_scorecard_path, baseline_parity_scorecard)
         case_count += 1
 
     print("PHASE15_SCRIPTS_README_ALIGNMENT_SELF_TEST=pass")
