@@ -8,7 +8,7 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 - `PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig`
 - `PHASE3_ATOMIC_SCOPE=load-store-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max-compare-exchange-compare-exchange-weak`
 - `PHASE3_ATOMIC_STATUS=bounded-helper-surface-landed`
-- `PHASE3_ATOMIC_BLOB_SHA=5c0260c1a20d1e255cb72831f480572139cc903c`
+- `PHASE3_ATOMIC_BLOB_SHA=2ccb2a155b9e19fc3fbc033b000c0c44ecfb9494`
 - `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full-acquire-release-pair`
 - `PHASE3_BARRIER_STATUS=local-caller-state-and-handoff-probes-landed`
@@ -56,7 +56,7 @@ This survey is anchored to packet-local blob IDs because the current connector r
 
 The current tree carries a real low-level wrapper packet:
 
-- `zigux/helpers/atomic.zig` exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, with helper-local tests still carrying a few atomic edge cases beyond the focused replay.
+- `zigux/helpers/atomic.zig` exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, with helper-local tests still carrying a few atomic edge cases beyond the focused replay, including `fetchNand`.
 - `zigux/helpers/barrier.zig` exposes `acquire`, `release`, `full`, and `acquireRelease()` through local compiler-barrier wrappers, with helper-local caller-state and acquire-release handoff probes while direct locality proof now also appears in the focused replay.
 - `zigux/helpers/mmio.zig` exposes `range`, `read8`, `write8`, `read16`, `write16`, `read32`, `write32`, `read64`, and `write64`, all routed through the narrow pointer bridge in `zigux/unsafe/narrow.zig`, which now keeps the MMIO pointer handoff at `align(1)` so byte-addressed 16-bit, 32-bit, and 64-bit accesses do not silently assume stronger alignment than the helper packet proves.
 - `zigux/unsafe/narrow.zig` exposes `addressOf`, `byteOffset`, `pointerAt`, `constSliceAt`, `constPointerAt`, `writeValueAt`, and the explicit unsafe-scope decoders `scopeFromInteropPolicyBytes`, `scopeFromInteropPolicy`, `scopeFromByte`, `recognizes*`, and `permits*`, with helper-local tests keeping the raw-pointer bridge plus the interop-policy unsafe-scope bytes reviewable beside the focused MMIO replay.
@@ -79,6 +79,7 @@ The current reviewability gap is narrower:
 - the repo now has a dedicated focused replay for the shipped low-level helper operations in `zigux/tests/phase3_low_level_wrappers.zig`
 - the repo also has helper-local tests in `zigux/unsafe/narrow.zig` that keep the raw-pointer bridge and explicit unsafe-scope byte policy reviewable where the narrow surface actually lives
 - the focused replay now covers signed `fetchAdd` and `fetchSub`, signed `fetchMin` and `fetchMax`, monotonic strong `compareExchange()`, `acq_rel` strong `compareExchange()` mismatch handling, byte/16-bit/32-bit/64-bit MMIO range descriptors, non-`seq_cst` atomic orderings, direct barrier-locality proof, and the byte-addressed alignment handoff for odd-offset 16-bit, 32-bit, and 64-bit MMIO
+- helper-local atomic tests still carry direct `fetchNand` coverage in `zigux/helpers/atomic.zig`, so the live atomic packet is slightly wider than the dedicated focused replay even though the broader compile, layout, and dump proof still belongs to the shared ABI packet
 - the shared ABI packet remains the broader compile, layout, and dump proof surface for this family
 
 That repo reality still fits the roadmap's wrapper-first posture, but it means this survey should describe the widened focused replay honestly while also pinning the narrow-unsafe bridge instead of leaving that evidence implied through MMIO prose alone.
