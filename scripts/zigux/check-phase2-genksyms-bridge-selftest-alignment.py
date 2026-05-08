@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 from pathlib import Path
 import tempfile
@@ -15,6 +16,7 @@ BRIDGE_CASES = Path("zigux/tests/fixtures/genksyms_bridge/cases.json")
 BRIDGE_MANIFEST = Path("zigux/tests/fixtures/genksyms_bridge/manifest.json")
 PHASE2_TOOL_MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 BRIDGE_MANIFEST_PATH = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
+EXPECTED_HELPER_LOCAL_ANCHORS_NAME = "EXPECTED_HELPER_LOCAL_ANCHORS"
 BRIDGE_CONTRACT = {
     "tool": "scripts/genksyms/genksyms",
     "stdin": "cpp-stream",
@@ -69,12 +71,56 @@ def ordered_unique(values: list[str]) -> list[str]:
     return ordered
 
 
+def load_bridge_checker_helper_local_anchors(
+    root: Path,
+) -> tuple[list[str] | None, list[tuple[str, str]]]:
+    bridge_checker_path = root / BRIDGE_CHECKER
+    try:
+        module = ast.parse(read_text(bridge_checker_path), filename=str(bridge_checker_path))
+    except SyntaxError as exc:
+        return None, [("BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES", f"syntax:{exc.lineno}:{exc.msg}")]
+
+    for node in module.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        if not any(
+            isinstance(target, ast.Name) and target.id == EXPECTED_HELPER_LOCAL_ANCHORS_NAME
+            for target in node.targets
+        ):
+            continue
+        try:
+            value = ast.literal_eval(node.value)
+        except (SyntaxError, ValueError) as exc:
+            return None, [("BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES", f"invalid_literal:{exc}")]
+        if not isinstance(value, (list, tuple)):
+            return None, [
+                (
+                    "BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES",
+                    f"{EXPECTED_HELPER_LOCAL_ANCHORS_NAME}:expected_list_or_tuple",
+                )
+            ]
+        anchors = list(value)
+        if any(not isinstance(item, str) or not item for item in anchors):
+            return None, [
+                (
+                    "BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES",
+                    f"{EXPECTED_HELPER_LOCAL_ANCHORS_NAME}:expected_nonempty_string_entries",
+                )
+            ]
+        return anchors, []
+
+    return None, [("BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES", f"missing:{EXPECTED_HELPER_LOCAL_ANCHORS_NAME}")]
+
+
 def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | None, list[tuple[str, str]]]:
     issues: list[tuple[str, str]] = []
     cases_path = root / BRIDGE_CASES
     manifest = load_json(cases_path)
     if not isinstance(manifest, dict):
         return None, [("CASE_PAYLOAD_ISSUES", "cases.json:expected_object")]
+
+    helper_local_anchors, helper_local_anchor_issues = load_bridge_checker_helper_local_anchors(root)
+    issues.extend(helper_local_anchor_issues)
 
     cases = manifest.get("cases")
     if not isinstance(cases, list):
@@ -121,7 +167,7 @@ def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | N
             if name.startswith("abbreviated_"):
                 action_abbrev_cases.append(name)
 
-    if issues:
+    if issues or helper_local_anchors is None:
         return None, issues
 
     payload = {
@@ -138,6 +184,7 @@ def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | N
         "process_packet": ordered_unique(process_packet),
         "normalized_stderr_packet": ordered_unique(normalized_stderr_packet),
         "action_abbrev_cases": ordered_unique(action_abbrev_cases),
+        "helper_local_anchors": helper_local_anchors,
     }
     return payload, []
 
@@ -244,6 +291,11 @@ def build_self_test_root(root: Path) -> None:
         root / BRIDGE_CHECKER,
         "\n".join(
             (
+                "EXPECTED_HELPER_LOCAL_ANCHORS = [",
+                "    'genksyms bridge parses repeated short flags and arguments',",
+                "    'genksyms bridge reports invalid short option in getopt style',",
+                "]",
+                "",
                 "print('GENKSYMS_BRIDGE_SELF_TEST=pass')",
                 "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=7')",
                 "",
@@ -400,10 +452,10 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = root / BRIDGE_MANIFEST
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["status"] = "open"
+        payload["helper_local_anchors"] = ["wrong anchor"]
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert any(block == "MANIFEST_FIELD_MISMATCHES" and value.startswith("status:") for block, value in issues)
+        assert any(block == "MANIFEST_FIELD_MISMATCHES" and value.startswith("helper_local_anchors:") for block, value in issues)
         cases += 1
 
         build_self_test_root(root)
