@@ -506,6 +506,13 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-kconfig-bridge.py")],
+            ["KCONFIG_BRIDGE_DIFF=pass", "FIXTURE_DIR="],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-mk-elfconfig-diff.py"), "--self-test"],
             ["MK_ELFCONFIG_SELF_TEST=pass", "MK_ELFCONFIG_SELF_TEST_CASE_COUNT=4"],
         )
