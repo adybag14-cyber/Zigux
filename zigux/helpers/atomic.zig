@@ -32,6 +32,10 @@ pub fn fetchXor(comptime T: type, ptr: *T, value: T, comptime order: std.builtin
     return @atomicRmw(T, ptr, .Xor, value, order);
 }
 
+pub fn fetchNand(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {
+    return @atomicRmw(T, ptr, .Nand, value, order);
+}
+
 pub fn fetchMin(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {
     return @atomicRmw(T, ptr, .Min, value, order);
 }
@@ -87,6 +91,10 @@ test "phase3 atomic wrappers behave predictably" {
     try std.testing.expectEqual(@as(u32, 14), fetchXor(u32, &value, 3, .seq_cst));
     try std.testing.expectEqual(@as(u32, 13), value);
 
+    var nand_value: u32 = 0x0000_000c;
+    try std.testing.expectEqual(@as(u32, 0x0000_000c), fetchNand(u32, &nand_value, 0x0000_000a, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 0xffff_fff7), nand_value);
+
     try std.testing.expectEqual(@as(u32, 13), fetchMin(u32, &value, 11, .seq_cst));
     try std.testing.expectEqual(@as(u32, 11), value);
 
@@ -133,6 +141,10 @@ test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {
     try std.testing.expectEqual(@as(?u32, 7), monotonic_mismatch);
     try std.testing.expectEqual(@as(u32, 7), monotonic_value);
 
+    var monotonic_nand_value: u32 = 0x0000_00ff;
+    try std.testing.expectEqual(@as(u32, 0x0000_00ff), fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic));
+    try std.testing.expectEqual(@as(u32, 0xffff_fff0), monotonic_nand_value);
+
     var acq_rel_value: u32 = 7;
     try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire));
     try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
@@ -173,4 +185,8 @@ test "phase3 atomic wrappers keep non-seq-cst fetch orderings reviewable" {
     try std.testing.expectEqual(@as(u32, 0b0110), bitwise_value);
     try std.testing.expectEqual(@as(u32, 0b0110), fetchXor(u32, &bitwise_value, 0b0011, .acq_rel));
     try std.testing.expectEqual(@as(u32, 0b0101), bitwise_value);
+
+    var bitwise_nand_value: u32 = 0b1100;
+    try std.testing.expectEqual(@as(u32, 0b1100), fetchNand(u32, &bitwise_nand_value, 0b1010, .release));
+    try std.testing.expectEqual(@as(u32, 0xffff_fff7), bitwise_nand_value);
 }
