@@ -418,7 +418,7 @@ REQUIRED_PHASE1_WORKFLOW_MARKERS = [
 
 REQUIRED_BUILD_MARKERS = [
     ("build_phase1_bench_source_count", "phase1_bench.zig", 1),
-    ('const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");', 1),
+    ("build_phase1_bench_step_count", 'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");', 1),
 ]
 
 REQUIRED_LEDGER_MARKERS = [
