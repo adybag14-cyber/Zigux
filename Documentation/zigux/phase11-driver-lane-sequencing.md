@@ -68,7 +68,7 @@ Driver lanes may cite that shared packet when they explain current replay postur
 
 This lane may mention shared replay drift and keep the dedicated bcm2835 packet checker explicit beside the archival survey packet, but it does not own GPIO, DesignWare, HVC, or shared header-boundary follow-through. Its next honest work stays inside bcm2835 registration truthfulness, platform-handoff wording, checker-backed packet truthfulness, or similarly narrow watchdog-local repairs.
 
-The gpio watchdog lane owns GPIO-local starter and registration-handoff evidence:
+The gpio watchdog lane owns GPIO-local starter, registration-handoff evidence, and the focused platform-drvdata replay:
 
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-slice.md`
@@ -76,10 +76,11 @@ The gpio watchdog lane owns GPIO-local starter and registration-handoff evidence
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `zigux/tests/phase11_gpio_wdt_manifest.json`
 - `zigux/tests/phase11_gpio_wdt_survey.zig`
+- `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`
 - `drivers/watchdog/gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt.zig`
 
-This lane may cite shared watchdog replay coverage, but it does not own bcm2835 poweroff wording, DesignWare timeout-table follow-through, or HVC teardown evidence. Its next bounded work stays inside GPIO descriptor preflight, registration-facing handoff truthfulness, or another comparably small GPIO-local note.
+This lane may cite shared watchdog replay coverage and keep the focused platform-drvdata replay explicit beside the shared packet, but it does not own bcm2835 poweroff wording, DesignWare timeout-table follow-through, or HVC teardown evidence. Its next bounded work stays inside GPIO descriptor preflight, registration-facing handoff truthfulness, focused platform-drvdata ordering truthfulness, or another comparably small GPIO-local note.
 
 The DesignWare watchdog lane owns the `dw_wdt` platform-facing starter and its teardown ownership note:
 
@@ -113,11 +114,11 @@ This lane may rely on the shared replay contract and may keep the bounded `hvc_c
 ## Anti-overlap rules
 
 - If a Phase 11 run changes `drivers/watchdog/bcm2835_wdt.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, the bcm2835 manifest, the bcm2835 survey gate, the bcm2835 validation matrix, or the dedicated bcm2835 packet checker, that work belongs to the bcm2835 lane.
-- If a Phase 11 run changes `drivers/watchdog/gpio_wdt.zig`, the GPIO manifest, the GPIO survey gate, the GPIO module or slice notes, or the GPIO validation matrix, that work belongs to the GPIO watchdog lane.
+- If a Phase 11 run changes `drivers/watchdog/gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`, the GPIO manifest, the GPIO survey gate, the GPIO module or slice notes, or the GPIO validation matrix, that work belongs to the GPIO watchdog lane.
 - If a Phase 11 run changes `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, the DesignWare manifest, the DesignWare survey gate, or the DesignWare validation matrix, that work belongs to the DesignWare watchdog lane.
 - If a Phase 11 run changes `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, the HVC manifest, the HVC survey gate, the dedicated HVC survey checker or its `make -C zigux phase11-hvc-survey` replay path, or the HVC validation matrix, that work belongs to the HVC console lane.
 - If a Phase 11 run only changes `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, the shared replay contract, the shared closure note, the shared contract checker, the shared header-boundary packet, the shared build wiring, or the workflow-backed replay route, it should reopen the smallest directly coupled shared packet first instead of quietly consuming one of the driver lanes.
-- Shared build or make replay drift should only reopen a driver lane when the break is actually rooted in that driver's helper, manifest, survey, validation matrix, dedicated packet checker, or named teardown ownership note.
+- Shared build or make replay drift should only reopen a driver lane when the break is actually rooted in that driver's helper, manifest, survey, validation matrix, dedicated packet checker, named teardown ownership note, or the focused gpio platform-drvdata replay.
 
 ## Next bounded step
 
