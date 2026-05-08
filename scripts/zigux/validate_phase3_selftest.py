@@ -12,7 +12,7 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 17
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 21
 
 
 @dataclass(frozen=True)
