@@ -123,6 +123,38 @@ pub const QueueResumeSummary = struct {
     requires_fresh_probe_snapshot: bool,
 };
 
+pub const RecoveryOwnershipStage = enum {
+    frozen_snapshot,
+    data_queue_resume,
+    control_queue_restore,
+    rss_reapply,
+    receive_refill,
+    transmit_recycle,
+    post_restore_probe_replay,
+};
+
+pub const RecoveryOwnershipSummary = struct {
+    anchor: []const u8,
+    recovery_generation: u16,
+    readiness: QueueResumeReadiness,
+    queue_recovery_action: QueueRecoveryAction,
+    queue_shape_owner: RecoveryOwnershipStage,
+    data_queue_owner: RecoveryOwnershipStage,
+    control_queue_owner: ?RecoveryOwnershipStage,
+    rss_owner: ?RecoveryOwnershipStage,
+    receive_refill_owner: RecoveryOwnershipStage,
+    transmit_recycle_owner: RecoveryOwnershipStage,
+    steady_state_owner: RecoveryOwnershipStage,
+    planned_queue_pairs: u16,
+    total_queue_count: u16,
+    control_queue_index: ?u16,
+    requires_mergeable_buffer_headroom: bool,
+    requires_control_queue_restore: bool,
+    requires_rss_reapply: bool,
+    requires_fresh_probe_snapshot: bool,
+    requires_post_restore_probe_replay: bool,
+};
+
 pub const ReceiveBufferMode = enum {
     one_buffer_per_rx,
     mergeable_rx_buffers,
@@ -369,6 +401,15 @@ pub const VirtioNetProbeLab = struct {
         return summarizeReceiveRefill(snapshot, resume_summary);
     }
 
+    pub fn planRecoveryOwnership(self: *Self) !RecoveryOwnershipSummary {
+        if (!self.transport_recovery_frozen) return error.TransportRecoveryNotFrozen;
+
+        const snapshot = self.frozen_snapshot orelse return error.ProbeSnapshotUnavailable;
+        const resume_summary = summarizeQueueResume(snapshot, self.recovery_generation);
+        const refill_summary = summarizeReceiveRefill(snapshot, resume_summary);
+        return summarizeRecoveryOwnership(snapshot, resume_summary, refill_summary);
+    }
+
     pub fn planControlQueueRestore(self: *Self) !ControlQueueRestoreSummary {
         if (!self.transport_recovery_frozen) return error.TransportRecoveryNotFrozen;
 
@@ -536,6 +577,40 @@ pub const VirtioNetProbeLab = struct {
             .requires_mergeable_buffer_headroom = snapshot.mergeable_rx_buffers,
             .requires_fresh_probe_snapshot = resume_summary.requires_fresh_probe_snapshot,
             .requires_post_restore_probe_replay = true,
+        };
+    }
+
+    fn summarizeRecoveryOwnership(
+        snapshot: ProbeSnapshot,
+        resume_summary: QueueResumeSummary,
+        refill_summary: ReceiveRefillSummary,
+    ) RecoveryOwnershipSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .recovery_generation = resume_summary.recovery_generation,
+            .readiness = resume_summary.readiness,
+            .queue_recovery_action = resume_summary.remembered_queue_recovery_action,
+            .queue_shape_owner = .frozen_snapshot,
+            .data_queue_owner = .data_queue_resume,
+            .control_queue_owner = if (resume_summary.requires_control_queue_restore)
+                .control_queue_restore
+            else
+                null,
+            .rss_owner = if (resume_summary.requires_rss_reapply)
+                .rss_reapply
+            else
+                null,
+            .receive_refill_owner = .receive_refill,
+            .transmit_recycle_owner = .transmit_recycle,
+            .steady_state_owner = .post_restore_probe_replay,
+            .planned_queue_pairs = snapshot.planned_queue_pairs,
+            .total_queue_count = snapshot.total_queue_count,
+            .control_queue_index = snapshot.control_queue_index,
+            .requires_mergeable_buffer_headroom = refill_summary.requires_mergeable_buffer_headroom,
+            .requires_control_queue_restore = resume_summary.requires_control_queue_restore,
+            .requires_rss_reapply = resume_summary.requires_rss_reapply,
+            .requires_fresh_probe_snapshot = resume_summary.requires_fresh_probe_snapshot,
+            .requires_post_restore_probe_replay = refill_summary.requires_post_restore_probe_replay,
         };
     }
 
