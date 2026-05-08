@@ -321,6 +321,18 @@ pub fn loadCommandListFromDir(
     try addExecutableEntriesFromDir(cmds, io, dir, prefix);
 }
 
+fn shouldPopulatePath(path: []const u8, exec_path: ?[]const u8) bool {
+    if (path.len == 0) {
+        return false;
+    }
+
+    if (exec_path) |main_path| {
+        return !std.mem.eql(u8, path, main_path);
+    }
+
+    return true;
+}
+
 pub fn loadCommandListsFromSource(
     prefix: ?[]const u8,
     exec_path: ?[]const u8,
@@ -339,10 +351,8 @@ pub fn loadCommandListsFromSource(
     }
 
     for (path_entries) |path| {
-        if (exec_path) |main_path| {
-            if (std.mem.eql(u8, path, main_path)) {
-                continue;
-            }
+        if (!shouldPopulatePath(path, exec_path)) {
+            continue;
         }
 
         try populate_dir(source_context, other_cmds, path, actual_prefix);
@@ -379,10 +389,8 @@ pub fn loadCommandListsFromEnvPath(
     }
 
     for (split_entries.entries.items) |path| {
-        if (exec_path) |main_path| {
-            if (std.mem.eql(u8, path, main_path)) {
-                continue;
-            }
+        if (!shouldPopulatePath(path, exec_path)) {
+            continue;
         }
 
         try populate_dir(source_context, other_cmds, path, actual_prefix);
@@ -890,6 +898,60 @@ test "loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path fil
     try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
     try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
     try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
+}
+
+test "loadCommandListsFromEnvPath ignores empty PATH segments instead of treating cwd as a command source" {
+    const FixtureDir = struct {
+        path: []const u8,
+        entries: []const DirectoryEntry,
+    };
+
+    const FixtureSource = struct {
+        dirs: []const FixtureDir,
+
+        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
+            for (self.dirs) |dir| {
+                if (std.mem.eql(u8, dir.path, path)) {
+                    try addExecutableEntries(cmds, dir.entries, prefix);
+                    return;
+                }
+            }
+        }
+    };
+
+    const cwd_entries = [_]DirectoryEntry{
+        .{ .name = "perf-cwd", .is_executable = true },
+    };
+    const other_entries = [_]DirectoryEntry{
+        .{ .name = "perf-trace", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "", .entries = &cwd_entries },
+            .{ .path = "/usr/bin", .entries = &other_entries },
+        },
+    };
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        null,
+        null,
+        ":/usr/bin:",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 0), main_cmds.count());
     try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
 }
