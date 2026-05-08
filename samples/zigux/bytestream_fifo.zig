@@ -95,6 +95,13 @@ pub const ReplaySummary = struct {
     storage_backing: StorageBacking,
 };
 
+pub const VisibleSpanSummary = struct {
+    first_span_len: usize,
+    second_span_len: usize,
+    total_visible: usize,
+    wrapped: bool,
+};
+
 pub const PreviewBoundarySummary = struct {
     stage_before_replay: SampleStage,
     stage_after_replay: SampleStage,
@@ -105,14 +112,10 @@ pub const PreviewBoundarySummary = struct {
     preview_truncated: bool,
     preview_prefix: [8]u8,
     queue_len_after_preview: usize,
+    available_after_preview: usize,
+    wrapped_window_after_preview: bool,
+    visible_spans_after_preview: VisibleSpanSummary,
     checked_focus: []const SampleFocus,
-};
-
-pub const VisibleSpanSummary = struct {
-    first_span_len: usize,
-    second_span_len: usize,
-    total_visible: usize,
-    wrapped: bool,
 };
 
 pub const HelperBoundarySummary = struct {
@@ -561,6 +564,7 @@ pub const BytestreamFifoSample = struct {
 
         var preview_prefix: [8]u8 = [_]u8{0} ** 8;
         const preview = self.previewInto(preview_prefix[0..]);
+        const visible_spans_after_preview = self.visibleSpanSummary();
 
         return .{
             .stage_before_replay = .initialized,
@@ -572,6 +576,9 @@ pub const BytestreamFifoSample = struct {
             .preview_truncated = preview.truncated,
             .preview_prefix = preview_prefix,
             .queue_len_after_preview = self.count(),
+            .available_after_preview = self.available(),
+            .wrapped_window_after_preview = self.usesWrappedStorageWindow(),
+            .visible_spans_after_preview = visible_spans_after_preview,
             .checked_focus = &preview_boundary_focus,
         };
     }
@@ -734,6 +741,12 @@ test "bytestream fifo sample keeps preview truncation explicit" {
     try std.testing.expect(preview.preview_truncated);
     try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, preview.preview_prefix[0..]);
     try std.testing.expectEqual(@as(usize, 10), preview.queue_len_after_preview);
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 10), preview.available_after_preview);
+    try std.testing.expect(!preview.wrapped_window_after_preview);
+    try std.testing.expectEqual(@as(usize, 10), preview.visible_spans_after_preview.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), preview.visible_spans_after_preview.second_span_len);
+    try std.testing.expectEqual(@as(usize, 10), preview.visible_spans_after_preview.total_visible);
+    try std.testing.expect(!preview.visible_spans_after_preview.wrapped);
     try std.testing.expectEqual(@as(usize, preview_boundary_focus.len), preview.checked_focus.len);
     for (preview_boundary_focus, preview.checked_focus) |expected, actual| {
         try std.testing.expectEqual(expected, actual);
