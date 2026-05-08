@@ -127,6 +127,8 @@ REQUIRED_MARKERS = {
         'const export_shim = @import("export_shim");',
         'const uapi_version = @import("uapi_version");',
         'test "phase3 export shim and uapi keep canonical boundary layout" {',
+        'const header: export_shim.Header = export_shim.header(0x55);',
+        'const uapi_header: uapi_version.Header = uapi_version.boundaryHeader(0x55);',
         "const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 16, 0x55);",
         "const undersized = export_shim.compatibleHeader(export_shim.header_size - 1, 0x55);",
         "const uapi_undersized = uapi_version.compatibleHeader(uapi_version.header_size - 1, 0x55);",
@@ -414,8 +416,8 @@ def run_self_test() -> int:
             'const uapi_version = @import("uapi_version");',
             "",
             'test "phase3 export shim and uapi keep canonical boundary layout" {',
-            '    const header = export_shim.header(0x55);',
-            '    const uapi_header = uapi_version.boundaryHeader(0x55);',
+            '    const header: export_shim.Header = export_shim.header(0x55);',
+            '    const uapi_header: uapi_version.Header = uapi_version.boundaryHeader(0x55);',
             '    const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 16, 0x55);',
             '    const undersized = export_shim.compatibleHeader(export_shim.header_size - 1, 0x55);',
             '    const uapi_undersized = uapi_version.compatibleHeader(uapi_version.header_size - 1, 0x55);',
@@ -610,6 +612,18 @@ def run_self_test() -> int:
 
         _write(
             root / EXPORT_UAPI_LAYOUT_REL,
+            export_uapi_layout_text.replace('const header: export_shim.Header = export_shim.header(0x55);\n', "", 1),
+        )
+        issues = validate(root)
+        expected = [
+            'missing_marker:zigux/tests/phase3_export_uapi_layout.zig:const header: export_shim.Header = export_shim.header(0x55);'
+        ]
+        if issues != expected:
+            raise SystemExit(f"phase3-export-uapi-self-test:relay_marker_guard_failed:{issues}")
+        _write(root / EXPORT_UAPI_LAYOUT_REL, export_uapi_layout_text)
+
+        _write(
+            root / EXPORT_UAPI_LAYOUT_REL,
             export_uapi_layout_text.replace('const undersized = export_shim.compatibleHeader(export_shim.header_size - 1, 0x55);\n', "", 1),
         )
         issues = validate(root)
@@ -660,7 +674,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:manifest_required_file_guard_failed:{issues}")
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
