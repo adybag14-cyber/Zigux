@@ -204,7 +204,7 @@ test "phase11 hvc console survey note records the bounded layout checkpoints" {
     try expectContains(note, "callback-table");
     try expectContains(note, "size `72`");
     try expectContains(note, "Documentation/zigux/phase11-hvc-console-teardown-note.md");
-    try expectContains(note, "close, cleanup, and remove ownership split");
+    try expectContains(note, "close, cleanup, remove, and hangup-disconnect ownership split");
     try expectContains(note, "current driver, verifier, tests, archival manifest, validation matrix, and shared replay contract");
     try expectContains(note, "khvcd polling-contract follow-through");
     try expectContains(note, "`hvc_hangup()` disconnect boundary");
@@ -224,9 +224,11 @@ test "phase11 hvc console teardown note keeps the bounded ownership split explic
     try expectContains(teardown_note, "summarizeCloseBoundary()");
     try expectContains(teardown_note, "summarizeCleanupHandoff()");
     try expectContains(teardown_note, "summarizeRemoveHandoff()");
+    try expectContains(teardown_note, "summarizeHangupDisconnect()");
     try expectContains(teardown_note, "tty_port_put()");
     try expectContains(teardown_note, "tty_vhangup()");
     try expectContains(teardown_note, "tty_kref_put()");
+    try expectContains(teardown_note, "resize-work cancellation");
     try expectContains(teardown_note, "do not treat this note as evidence of live notifier callbacks");
 }
 
