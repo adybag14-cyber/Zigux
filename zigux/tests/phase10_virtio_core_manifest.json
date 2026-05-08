@@ -105,6 +105,13 @@
       "why_now": "The live driver-id helper keeps bounded register_virtio_device(), virtio_uevent(), virtio_id_match(), and virtio_dev_match() identity strings and wildcard decisions reviewable in memory only."
     },
     {
+      "id": "phase10-driver-id-coverage-disposition-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_driver_id.zig",
+      "why_now": "The live driver-id helper now makes exact coverage, wildcard coverage, wildcard shadowing, and unmatched table outcomes explicit so the bounded identity packet stays reviewable without widening into probe or bus registration."
+    },
+    {
       "id": "phase10-driver-id-gate",
       "status": "starter_landed",
       "kind": "validation",
