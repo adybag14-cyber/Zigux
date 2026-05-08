@@ -105,7 +105,7 @@ test "phase 6 hexdump serialized overflow vectors stay in sync" {
 }
 
 test "phase 6 hexdump serialized required-length vectors stay in sync" {
-    try std.testing.expectEqual(@as(usize, 9), fixtures.length_cases.len);
+    try std.testing.expectEqual(@as(usize, 10), fixtures.length_cases.len);
     for (fixtures.length_cases) |case| {
         try assertFixtureLengthCase(case);
     }
@@ -247,18 +247,21 @@ test "phase 6 hexdump grouped-8 ascii output stays intact when buffer capacity i
 }
 
 test "phase 6 hexdump covers normalization and empty-buffer edge cases" {
+    const empty_ascii_length_case = fixtures.length_cases[1];
     const normalized_parity_case = fixtures.parity_cases[7];
     const uneven_group_parity_case = fixtures.parity_cases[8];
     const normalized_overflow_case = fixtures.overflow_cases[3];
-    const normalized_length_case = fixtures.length_cases[7];
-    const uneven_group_length_case = fixtures.length_cases[8];
+    const normalized_length_case = fixtures.length_cases[8];
+    const uneven_group_length_case = fixtures.length_cases[9];
 
+    try std.testing.expectEqualStrings("empty ascii line reports zero length", empty_ascii_length_case.name);
     try std.testing.expectEqualStrings("normalized rowsize and groupsize fallback", normalized_parity_case.name);
     try std.testing.expectEqualStrings("normalized uneven group fallback", uneven_group_parity_case.name);
     try std.testing.expectEqualStrings("normalized ascii buffer truncates after fallback formatting", normalized_overflow_case.name);
     try std.testing.expectEqualStrings("normalized rowsize and groupsize fallback line length", normalized_length_case.name);
     try std.testing.expectEqualStrings("uneven group fallback line length", uneven_group_length_case.name);
 
+    try assertFixtureLengthCase(empty_ascii_length_case);
     try assertFixtureParityCase(normalized_parity_case);
     try assertFixtureParityCase(uneven_group_parity_case);
     try assertFixtureOverflowCase(normalized_overflow_case);
