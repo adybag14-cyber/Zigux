@@ -211,6 +211,25 @@ pub const DrvdataCheckpointSummary = struct {
     blocked_on_platform_registration: bool,
 };
 
+pub const RebootGlueCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    nowayout: bool,
+    requested_line: ProbeLineRequest,
+    descriptor_flags: DescriptorRequestFlags,
+    start_mode: ProbeStartMode,
+    timeout_init_requested: bool,
+    nowayout_applied: bool,
+    stop_on_reboot_requested: bool,
+    nowayout_precedes_stop_on_reboot: bool,
+    stop_on_reboot_precedes_pre_registration_start: bool,
+    stop_on_reboot_precedes_register_device_request: bool,
+    pre_registration_start_precedes_register_device_request: bool,
+    blocked_on_live_reboot_registration: bool,
+    blocked_on_platform_registration: bool,
+};
+
 pub const RegisterDeviceCallSummary = struct {
     anchor: []const u8,
     register_call: []const u8,
@@ -416,7 +435,10 @@ pub const GpioWatchdogLab = struct {
             .hw_algo = self.hw_algo,
             .always_running = self.always_running,
             .nowayout = false,
-            .disposition = if (self.always_running) .kept_running else .stopped,
+            .disposition = if (self.always_running)
+                .kept_running
+            else
+                .stopped,
             .stop_allowed_by_watchdog_core = true,
             .driver_stop_invoked = true,
             .running = runtime.running,
@@ -529,6 +551,30 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
+    pub fn rebootGlueCheckpointSummary(self: *const Self, nowayout: bool) RebootGlueCheckpointSummary {
+        const probe = self.probeSummary(nowayout);
+        const descriptor_preflight = self.descriptorPreflightSummary();
+
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .always_running = self.always_running,
+            .nowayout = nowayout,
+            .requested_line = descriptor_preflight.requested_line,
+            .descriptor_flags = descriptor_preflight.descriptor_flags,
+            .start_mode = probe.start_mode,
+            .timeout_init_requested = probe.timeout_init_requested,
+            .nowayout_applied = nowayout,
+            .stop_on_reboot_requested = probe.stop_on_reboot,
+            .nowayout_precedes_stop_on_reboot = true,
+            .stop_on_reboot_precedes_pre_registration_start = probe.starts_during_probe,
+            .stop_on_reboot_precedes_register_device_request = true,
+            .pre_registration_start_precedes_register_device_request = probe.starts_during_probe,
+            .blocked_on_live_reboot_registration = true,
+            .blocked_on_platform_registration = descriptor_preflight.blocked_on_platform_registration,
+        };
+    }
+
     pub fn registrationHandoffSummary(self: *const Self, nowayout: bool) RegistrationHandoffSummary {
         const probe = self.probeSummary(nowayout);
         return .{
@@ -562,6 +608,7 @@ pub const GpioWatchdogLab = struct {
         const handoff = self.registrationHandoffSummary(nowayout);
         const descriptor_preflight = self.descriptorPreflightSummary();
         const drvdata_checkpoint = self.drvdataCheckpointSummary();
+        const reboot_glue_checkpoint = self.rebootGlueCheckpointSummary(nowayout);
 
         return .{
             .anchor = descriptor().anchor,
@@ -569,9 +616,9 @@ pub const GpioWatchdogLab = struct {
             .hw_algo = self.hw_algo,
             .always_running = self.always_running,
             .nowayout = nowayout,
-            .requested_line = handoff.requested_line,
-            .descriptor_flags = descriptor_preflight.descriptor_flags,
-            .start_mode = handoff.start_mode,
+            .requested_line = reboot_glue_checkpoint.requested_line,
+            .descriptor_flags = reboot_glue_checkpoint.descriptor_flags,
+            .start_mode = reboot_glue_checkpoint.start_mode,
             .reaches_registration_running = handoff.reaches_registration_running,
             .reaches_registration_line_state = handoff.reaches_registration_line_state,
             .reaches_registration_line_is_output = handoff.reaches_registration_line_is_output,
@@ -581,17 +628,17 @@ pub const GpioWatchdogLab = struct {
             .watchdog_drvdata_set = drvdata_checkpoint.drvdata_attachment_required,
             .module_owner_attached = handoff.module_owner_attached,
             .descriptor_request_ready = descriptor_preflight.descriptor_lookup_required,
-            .timeout_init_requested = handoff.timeout_init_requested,
-            .nowayout_applied = nowayout,
+            .timeout_init_requested = reboot_glue_checkpoint.timeout_init_requested,
+            .nowayout_applied = reboot_glue_checkpoint.nowayout_applied,
             .parent_attached = handoff.parent_attached,
-            .stop_on_reboot = handoff.stop_on_reboot,
+            .stop_on_reboot = reboot_glue_checkpoint.stop_on_reboot_requested,
             .min_timeout_sec = soft_timeout_min,
             .default_timeout_sec = soft_timeout_default,
             .max_hw_heartbeat_ms = self.hw_margin_ms,
             .register_device_requested = true,
             .blocked_on_live_gpio_lookup = drvdata_checkpoint.blocked_on_live_gpio_lookup,
-            .blocked_on_platform_registration = drvdata_checkpoint.blocked_on_platform_registration,
-            .blocked_on_reboot_glue = true,
+            .blocked_on_platform_registration = reboot_glue_checkpoint.blocked_on_platform_registration,
+            .blocked_on_reboot_glue = reboot_glue_checkpoint.blocked_on_live_reboot_registration,
         };
     }
 
@@ -625,6 +672,46 @@ pub const GpioWatchdogLab = struct {
 fn validateHeartbeatMargin(hw_margin_ms: u32) !void {
     if (hw_margin_ms < min_hw_margin_ms) return error.HeartbeatMarginTooSmall;
     if (hw_margin_ms > max_hw_margin_ms) return error.HeartbeatMarginTooLarge;
+}
+
+test "reboot glue checkpoint keeps watchdog_stop_on_reboot ordering explicit" {
+    const prestarted = try GpioWatchdogLab.init(.toggle, 20, true);
+    const prestarted_checkpoint = prestarted.rebootGlueCheckpointSummary(true);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", prestarted_checkpoint.anchor);
+    try std.testing.expectEqual(HardwareAlgorithm.toggle, prestarted_checkpoint.hw_algo);
+    try std.testing.expect(prestarted_checkpoint.always_running);
+    try std.testing.expect(prestarted_checkpoint.nowayout);
+    try std.testing.expectEqual(ProbeLineRequest.input, prestarted_checkpoint.requested_line);
+    try std.testing.expectEqual(DescriptorRequestFlags.in, prestarted_checkpoint.descriptor_flags);
+    try std.testing.expectEqual(ProbeStartMode.start_before_register, prestarted_checkpoint.start_mode);
+    try std.testing.expect(prestarted_checkpoint.timeout_init_requested);
+    try std.testing.expect(prestarted_checkpoint.nowayout_applied);
+    try std.testing.expect(prestarted_checkpoint.stop_on_reboot_requested);
+    try std.testing.expect(prestarted_checkpoint.nowayout_precedes_stop_on_reboot);
+    try std.testing.expect(prestarted_checkpoint.stop_on_reboot_precedes_pre_registration_start);
+    try std.testing.expect(prestarted_checkpoint.stop_on_reboot_precedes_register_device_request);
+    try std.testing.expect(prestarted_checkpoint.pre_registration_start_precedes_register_device_request);
+    try std.testing.expect(prestarted_checkpoint.blocked_on_live_reboot_registration);
+    try std.testing.expect(prestarted_checkpoint.blocked_on_platform_registration);
+
+    const dormant = try GpioWatchdogLab.init(.level, 500, false);
+    const dormant_checkpoint = dormant.rebootGlueCheckpointSummary(false);
+    try std.testing.expectEqual(HardwareAlgorithm.level, dormant_checkpoint.hw_algo);
+    try std.testing.expect(!dormant_checkpoint.always_running);
+    try std.testing.expect(!dormant_checkpoint.nowayout);
+    try std.testing.expectEqual(ProbeLineRequest.output_low, dormant_checkpoint.requested_line);
+    try std.testing.expectEqual(DescriptorRequestFlags.out_low, dormant_checkpoint.descriptor_flags);
+    try std.testing.expectEqual(ProbeStartMode.register_only, dormant_checkpoint.start_mode);
+    try std.testing.expect(dormant_checkpoint.timeout_init_requested);
+    try std.testing.expect(!dormant_checkpoint.nowayout_applied);
+    try std.testing.expect(dormant_checkpoint.stop_on_reboot_requested);
+    try std.testing.expect(dormant_checkpoint.nowayout_precedes_stop_on_reboot);
+    try std.testing.expect(!dormant_checkpoint.stop_on_reboot_precedes_pre_registration_start);
+    try std.testing.expect(dormant_checkpoint.stop_on_reboot_precedes_register_device_request);
+    try std.testing.expect(!dormant_checkpoint.pre_registration_start_precedes_register_device_request);
+    try std.testing.expect(dormant_checkpoint.blocked_on_live_reboot_registration);
+    try std.testing.expect(dormant_checkpoint.blocked_on_platform_registration);
 }
 
 test "register device call summary keeps toggle handoff and descriptor checkpoints aligned" {
