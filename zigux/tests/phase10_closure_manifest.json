@@ -2,7 +2,7 @@
   "phase": "Phase 10",
   "status": "active",
   "tranche": "virtio-lab-bundle",
-  "doc_count": 10,
+  "doc_count": 11,
   "manifest_count": 4,
   "driver_count": 4,
   "test_count": 11,
@@ -222,6 +222,7 @@
     "future_destination_policy": "kernel/trace/ring_buffer.zig remains a future destination only if years of evidence justify it"
   },
   "docs": [
+    "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-core-slice.md",
     "Documentation/zigux/phase10-virtio-core-survey.md",
     "Documentation/zigux/phase10-virtio-ring-slice.md",
