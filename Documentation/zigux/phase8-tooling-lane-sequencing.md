@@ -119,7 +119,7 @@ Allowed surfaces:
 - `zigux/tests/README.md`
 - `zigux/Makefile`
 
-When this wording lane reopens, treat `scripts/zigux/README.md` and `zigux/tests/README.md` as first-pass truth surfaces alongside `Documentation/zigux/README.md`, not as later summaries. On current `master` the scripts-root Phase 8 flow keeps the compact shared packet inventory visible through `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, and `zigux/tests/phase8_libbpf_segments_only_build.zig`, while the tests-root reminder keeps the focused `make -C zigux phase8-file-path-handle-bridge-test` and `make -C zigux phase8-libbpf-segments-test` shard routes explicit beside the parked libbpf packet.
+When this wording lane reopens, treat `scripts/zigux/README.md` and `zigux/tests/README.md` as first-pass truth surfaces alongside `Documentation/zigux/README.md`, not as later summaries. On current `master` the scripts-root Phase 8 flow keeps the compact shared packet inventory visible through `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, and `zigux/tests/phase8_libbpf_segments_only_build.zig`, while the tests-root reminder also needs to keep the parked command and shared symbol replay surfaces explicit through `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_help_kallsyms_only_build.zig`, `make -C zigux phase8-help-test`, and `make -C zigux phase8-help-kallsyms-test` alongside the focused `make -C zigux phase8-file-path-handle-bridge-test` and `make -C zigux phase8-libbpf-segments-test` shard routes beside the parked libbpf packet.
 
 The first wording-only reopen target here should usually be the docs-root plus scripts-root pair when the shared packet falls back to older active-tranche shorthand for the parked libbpf packet.
 
@@ -148,6 +148,6 @@ That split matches the live docs-root Phase 8 summary and prevents scheduled too
 The older shared tests-root reminder refresh is already complete.
 That older immediate next step is now complete, and `zigux/tests/README.md` should now be read as a parked-packet reminder plus focused reopen map rather than as a reason to treat the libbpf packet as already active again by default.
 
-If another wording-only drift appears first, start by rereading `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` together so the parked libbpf shard markers and focused make routes stay aligned before reopening any helper-local Phase 8 follow-up.
+If another wording-only drift appears first, start by rereading `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` together so the parked libbpf shard markers, the focused help-plus-kallsyms shard reminders, and the focused make routes stay aligned before reopening any helper-local Phase 8 follow-up.
 
 The honest default is to leave this lane parked unless another one-file same-lane helper-local, validator, checker, survey, README, or wording drift appears inside the shared libbpf packet.
