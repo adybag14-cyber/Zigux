@@ -106,6 +106,13 @@ fn isConfigSymbol(name: []const u8) bool {
     return std.mem.startsWith(u8, name, config_prefix) and name.len > config_prefix.len;
 }
 
+fn findEntryIndex(entries: []Entry, name: []const u8) ?usize {
+    for (entries, 0..) |entry, index| {
+        if (std.mem.eql(u8, entry.name, name)) return index;
+    }
+    return null;
+}
+
 pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
     var entries = std.ArrayList(Entry).empty;
     errdefer entries.deinit(allocator);
@@ -120,11 +127,24 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         if (std.mem.startsWith(u8, line, "# ") and std.mem.endsWith(u8, line, " is not set")) {
             const name = line[2 .. line.len - " is not set".len];
             if (!isConfigSymbol(name)) continue;
-            try entries.append(allocator, .{
-                .name = try allocator.dupe(u8, name),
-                .kind = .unset,
-                .value = try allocator.dupe(u8, "n"),
-            });
+
+            if (findEntryIndex(entries.items, name)) |existing_index| {
+                const existing = &entries.items[existing_index];
+                if (existing.kind == .unset) {
+                    unset_count -= 1;
+                } else {
+                    set_count -= 1;
+                }
+                allocator.free(existing.value);
+                existing.kind = .unset;
+                existing.value = try allocator.dupe(u8, "n");
+            } else {
+                try entries.append(allocator, .{
+                    .name = try allocator.dupe(u8, name),
+                    .kind = .unset,
+                    .value = try allocator.dupe(u8, "n"),
+                });
+            }
             unset_count += 1;
             continue;
         }
@@ -146,11 +166,23 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         else
             try allocator.dupe(u8, raw_value);
 
-        try entries.append(allocator, .{
-            .name = try allocator.dupe(u8, name),
-            .kind = kind,
-            .value = cooked_value,
-        });
+        if (findEntryIndex(entries.items, name)) |existing_index| {
+            const existing = &entries.items[existing_index];
+            if (existing.kind == .unset) {
+                unset_count -= 1;
+            } else {
+                set_count -= 1;
+            }
+            allocator.free(existing.value);
+            existing.kind = kind;
+            existing.value = cooked_value;
+        } else {
+            try entries.append(allocator, .{
+                .name = try allocator.dupe(u8, name),
+                .kind = kind,
+                .value = cooked_value,
+            });
+        }
         set_count += 1;
     }
 
@@ -455,7 +487,7 @@ test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
         allocator,
-        "CONFIG_PATH=\"" ++ "drivers\\\\" ++ "\"\n",
+        "CONFIG_PATH=\"" ++ "drivers\\\\\\" ++ "\"\n",
     );
     defer deinitSummary(allocator, &summary);
 
@@ -506,4 +538,27 @@ test "confdata bridge emits no entries for empty CONFIG symbol names" {
         "{\"counts\":{\"set\":1,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_VALID\",\"kind\":\"tristate\",\"value\":\"m\"}]}\n",
         capture.list.items,
     );
+}
+
+test "confdata bridge keeps only the last assignment for duplicate symbols" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA=y
+        \\CONFIG_ALPHA=m
+        \\# CONFIG_ALPHA is not set
+        \\CONFIG_BETA="one"
+        \\CONFIG_BETA="two"
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.unset, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("n", summary.entries[0].value);
+    try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[1].name);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("two", summary.entries[1].value);
 }
