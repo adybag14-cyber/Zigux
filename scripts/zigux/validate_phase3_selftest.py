@@ -196,6 +196,18 @@ def run_self_test() -> int:
         tmp_root = Path(tmp_dir)
 
         _require_target(
+            "scripts/zigux/check-phase3-selftest-surface.py",
+            "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
+            extra_markers=("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=",),
+        )
+        case_count += 1
+        _require_target(
+            "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+            "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass",
+            extra_markers=("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=",),
+        )
+        case_count += 1
+        _require_target(
             "scripts/zigux/survey-phase3-abi-constant-parity.py",
             "PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass",
             extra_markers=("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT=",),
