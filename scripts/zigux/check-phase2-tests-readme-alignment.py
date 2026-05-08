@@ -249,6 +249,8 @@ MISSING_FILE_CASES = [
     "scripts/zigux/genksyms_crc.zig",
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/check-mk-elfconfig-diff.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/mk_elfconfig.zig",
 ]
 
 
@@ -358,7 +360,7 @@ def run_self_test() -> int:
             assert f"missing_file:{rel_path}" in issues
             case_count += 1
 
-    assert case_count == 107
+    assert case_count == 109
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
