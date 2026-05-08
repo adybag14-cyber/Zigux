@@ -1165,7 +1165,7 @@ def main() -> int:
         _emit_rows(rewrite_non_doc_legacy_wrapper_references(entries, paths))
         return 0
 
-    if args.rewrite_artifact-diff-phase3-section:
+    if args.rewrite_artifact_diff_phase3_section:
         artifact_diff_path = paths.docs_dir / "artifact-diff.md"
         if rewrite_artifact_diff_phase3_section(entries, artifact_diff_path):
             print(_rel(artifact_diff_path, paths.root))
