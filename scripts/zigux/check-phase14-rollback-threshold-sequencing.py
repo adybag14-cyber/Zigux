@@ -56,6 +56,10 @@ REQUIRED_FILE_MARKERS = {
 SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     "- rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`",
     "Attached-toolchain fallback examples:",
+    "- `make -C zigux phase14-validate ZIG=/absolute/path/to/attached-zig/zig`",
+    "- `make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig`",
+    "- `make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig`",
+    "- `make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig`",
     "This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.",
     "Fallback path:",
     "Keep `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` as the source of truth and keep the shared smoke packet limited to survey-backed reviewability evidence.",
@@ -128,7 +132,7 @@ def required_text(rel_path: str) -> str:
         ) + "\n"
     markers = list(REQUIRED_FILE_MARKERS[rel_path])
     if rel_path == SMOKE_SURVEY_PATH:
-        markers.extend(SMOKE_SURVEY_EXACT_COUNT_MARKERS[7:])
+        markers.extend(SMOKE_SURVEY_EXACT_COUNT_MARKERS[11:])
     return "\n".join(markers) + "\n"
 
 
@@ -285,7 +289,8 @@ def run_self_test() -> int:
         )
         errors = check(root)
         if not errors or not any(
-            "invalid json in zigux/tests/phase14_end_to_end_smoke_manifest.json:" in error
+            "invalid json in zigux/tests/phase14_end_to_end_smoke_manifest.json:"
+            in error
             for error in errors
         ):
             print("self-test expected failure when the shared smoke manifest JSON was invalid", file=sys.stderr)
@@ -327,6 +332,26 @@ def run_self_test() -> int:
             for error in errors
         ):
             print("self-test expected failure when the attached-toolchain fallback example drifted", file=sys.stderr)
+            return 1
+
+        write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
+
+        broken_smoke_path.write_text(
+            broken_smoke_path.read_text(encoding="utf-8").replace(
+                "- `make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig`\n",
+                "- `make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig`\n"
+                "- `make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig` (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the attached-toolchain smoke fallback command duplicated", file=sys.stderr)
             return 1
 
         write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
