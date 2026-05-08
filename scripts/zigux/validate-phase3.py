@@ -25,6 +25,7 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "include/linux/zigux.h",
     "zigux/bindings/abi.zig",
     "zigux/bindings/dev_t.zig",
+    "zigux/bindings/notifier_abi.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
     "zigux/helpers/layout_assert.zig",
