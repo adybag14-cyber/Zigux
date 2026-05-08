@@ -351,7 +351,7 @@ def run_self_test() -> int:
                 print(exc, file=sys.stderr)
                 return 1
         for rel_path, marker, _expected_count, label in EXACT_COUNT_MARKERS:
-            write_fixtureTree(root)
+            write_fixture_tree(root)
             try:
                 expect_exact_count_failure(root, rel_path, marker, label)
             except AssertionError as exc:
