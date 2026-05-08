@@ -182,6 +182,14 @@ test "phase11 shared header parity survey keeps shared replay markers explicit w
     try expectContains(build_file, "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);");
 }
 
+test "phase11 shared header parity survey keeps the hvc header constants explicit" {
+    const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 64 * 1024);
+    defer std.testing.allocator.free(hvc_header);
+
+    try expectContains(hvc_header, "#define MAX_NR_HVC_CONSOLES\t16");
+    try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS\t8");
+}
+
 test "phase11 shared header parity survey keeps the exported hvc header declarations explicit" {
     const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 64 * 1024);
     defer std.testing.allocator.free(hvc_header);
