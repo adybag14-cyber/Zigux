@@ -191,6 +191,7 @@ REQUIRED_FILE_MARKERS = {
     SCRIPTS_README_PATH: [
         "Phase 12 flow",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`Documentation/zigux/phase12-release-readiness-survey.md`",
         "`Documentation/zigux/phase12-release-coordination-matrix.md`",
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "`Documentation/zigux/freeze-map.md`",
