@@ -54,6 +54,18 @@
       "expected": "help_expected.json"
     },
     {
+      "name": "version_then_short_help",
+      "argv": ["-Vh"],
+      "mode": "process_json",
+      "expected": "version_then_help_expected.json"
+    },
+    {
+      "name": "version_then_long_help",
+      "argv": ["-V", "--help"],
+      "mode": "process_json",
+      "expected": "version_then_help_expected.json"
+    },
+    {
       "name": "abbreviated_help",
       "argv": ["--hel"],
       "mode": "process_json",
