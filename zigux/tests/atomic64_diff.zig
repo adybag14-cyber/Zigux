@@ -86,6 +86,16 @@ fn expectAtomic64MatrixMarkerCount(marker: []const u8, expected_count: usize) !v
     try std.testing.expectEqual(expected_count, countOccurrences(section, marker));
 }
 
+fn expectAdjacentGapPacketMarkerCount(
+    repo_root_relative_path: []const u8,
+    marker: []const u8,
+    expected_count: usize,
+) !void {
+    const source = try readRepoFile(std.testing.allocator, repo_root_relative_path);
+    defer std.testing.allocator.free(source);
+    try std.testing.expectEqual(expected_count, countOccurrences(source, marker));
+}
+
 test "atomic64 diff canonical wrapper keeps the shipped runtime gate wired in" {
     _ = runtime_atomic64_diff;
 }
@@ -277,6 +287,39 @@ test "atomic64 diff wrapper keeps the phase4 replay routes measurable" {
     );
     try expectAtomic64MatrixMarkerCount(
         "`zigux/tests/atomic64_diff.zig` bounded atomic64 exchange, cmpxchg, add_unless, bitwise, and selftest-family replay via the shared runtime-backed gate",
+        1,
+    );
+}
+
+test "atomic64 diff wrapper keeps the adjacent test_fsmount gap packet explicit" {
+    try expectAdjacentGapPacketMarkerCount(
+        "zigux/tests/phase4_test_fsmount_manifest.json",
+        "\"sample_path\": \"samples/zigux/test_fsmount.zig\"",
+        1,
+    );
+    try expectAdjacentGapPacketMarkerCount(
+        "zigux/tests/phase4_test_fsmount_manifest.json",
+        "\"shared_gate_evidence_packet_present\": false",
+        1,
+    );
+    try expectAdjacentGapPacketMarkerCount(
+        "zigux/tests/phase4_test_fsmount_survey.zig",
+        "phase4 test_fsmount gap manifest keeps the parked survey explicit",
+        1,
+    );
+    try expectAdjacentGapPacketMarkerCount(
+        "zigux/tests/phase4_test_fsmount_survey.zig",
+        "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false",
+        1,
+    );
+    try expectAdjacentGapPacketMarkerCount(
+        "zigux/tests/phase4_test_fsmount_survey.zig",
+        "`samples/zigux/test_fsmount.zig` is still absent",
+        1,
+    );
+    try expectAdjacentGapPacketMarkerCount(
+        "zigux/tests/phase4_test_fsmount_survey.zig",
+        "Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet",
         1,
     );
 }
