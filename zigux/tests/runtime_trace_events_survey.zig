@@ -8,6 +8,22 @@ const SurveySummary = struct {
     preexisting_runtime_trace_events_doc_present: bool,
 };
 
+const LifecycleBoundarySummary = struct {
+    pre_execution_handoff_only: bool,
+    requires_idle_registration_snapshot: bool,
+    metadata_only_registration_labels: []const []const u8,
+    shared_request_surface: []const u8,
+    live_registration_parity: []const u8,
+};
+
+const RoadmapGapSummary = struct {
+    roadmap_phase_goal: []const u8,
+    landed_pilot_state: []const u8,
+    missing_capability: []const u8,
+    blocked_deliverable: []const u8,
+    next_gate: []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -37,6 +53,8 @@ const Manifest = struct {
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
+    lifecycle_boundary_summary: LifecycleBoundarySummary,
+    roadmap_gap_summary: RoadmapGapSummary,
     delivery_evidence_catalog: []const DeliveryEvidence,
     ownership_map: []const OwnershipEntry,
     gaps: []const Gap,
@@ -85,6 +103,33 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
+    try std.testing.expect(manifest.lifecycle_boundary_summary.pre_execution_handoff_only);
+    try std.testing.expect(manifest.lifecycle_boundary_summary.requires_idle_registration_snapshot);
+    try std.testing.expectEqual(@as(usize, 2), manifest.lifecycle_boundary_summary.metadata_only_registration_labels.len);
+    try std.testing.expectEqualStrings("tracepoint_probe_register", manifest.lifecycle_boundary_summary.metadata_only_registration_labels[0]);
+    try std.testing.expectEqualStrings("tracepoint_probe_unregister", manifest.lifecycle_boundary_summary.metadata_only_registration_labels[1]);
+    try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", manifest.lifecycle_boundary_summary.shared_request_surface);
+    try std.testing.expectEqualStrings("blocked_on_runtime_substrate", manifest.lifecycle_boundary_summary.live_registration_parity);
+    try std.testing.expectEqualStrings(
+        "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
+        manifest.roadmap_gap_summary.roadmap_phase_goal,
+    );
+    try std.testing.expectEqualStrings(
+        "starter_landed_without_loadable_runtime_substrate",
+        manifest.roadmap_gap_summary.landed_pilot_state,
+    );
+    try std.testing.expectEqualStrings(
+        "shared runtime substrate that can turn the bounded tracepoint_probe_register and tracepoint_probe_unregister handoff plan into a real loadable module path",
+        manifest.roadmap_gap_summary.missing_capability,
+    );
+    try std.testing.expectEqualStrings(
+        "loadable Phase 9 runtime trace-events pilot module parity",
+        manifest.roadmap_gap_summary.blocked_deliverable,
+    );
+    try std.testing.expectEqualStrings(
+        "keep the sample, survey, and module slice explicit until the shared runtime loader substrate can consume the handoff plan",
+        manifest.roadmap_gap_summary.next_gate,
+    );
     try std.testing.expectEqual(@as(usize, 4), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
