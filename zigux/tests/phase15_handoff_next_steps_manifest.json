@@ -4,6 +4,7 @@
   "surveyed_commit": "current-master-readback-2026-05-08",
   "cross_packet_truthfulness_mode": "dated_master_readback_blocker_posture_fallback",
   "paired_parity_scorecard_exact_head_matches": false,
+  "paired_parity_scorecard_verified_head": "4fc891b380cdd2991dff7676ade7f844df1b55fd",
   "paired_parity_scorecard_exact_head_fallback_reason": "The handoff packet is refreshed against dated master readback marker current-master-readback-2026-05-08 on 2026-05-08, but the paired parity scorecard still records verified head 4fc891b380cdd2991dff7676ade7f844df1b55fd, so the parked governance packet currently matches on blocker posture rather than exact-head provenance.",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
