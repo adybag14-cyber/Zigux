@@ -279,7 +279,11 @@ REQUIRED_REVIEW_MARKERS = [
     "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "python3 scripts/zigux/install-zig.py --self-test",
+    "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "make -C zigux phase2-validate",
+    "make -C zigux phase2-tools",
+    "make -C zigux phase2-kconfig",
+    "make -C zigux phase2-cross",
     "make -C zigux phase2",
 ]
 
@@ -529,7 +533,7 @@ def run_self_test() -> int:
     assert helper_block.index("check-phase2-kconfig-selftest-alignment.py") < helper_block.index("check-phase2-tests-readme-alignment.py")
     assert "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test"] == 1
-    assert "python3 scripts/zigux/check-zig-toolchain.py --self-test" not in REQUIRED_REVIEW_MARKERS
+    assert "python3 scripts/zigux/check-zig-toolchain.py --self-test" in REQUIRED_REVIEW_MARKERS
     with tempfile.TemporaryDirectory(prefix="phase2_required_files_root_") as tmp_dir:
         temp_root = Path(tmp_dir)
         (temp_root / "zigux" / "tests" / "fixtures" / "genksyms_bridge").mkdir(parents=True)
@@ -555,8 +559,8 @@ def run_self_test() -> int:
         "`scripts/zigux/check-phase2-cross-selftest-alignment.py`, "
         "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, "
         "`scripts/zigux/check-phase2-tool-manifest-packets.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, "
-        "`python3 scripts/zigux/install-zig.py --self-test`, `make -C zigux phase2-validate`, "
-        "`make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, and `make -C zigux phase2` still agree "
+        "`python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `make -C zigux phase2-validate`, "
+        "`make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` still agree "
         "on the same pinned toolchain and bounded kbuild-facing replay surface?"
     )
     issues = validate_exact_review_markers(review_line)
