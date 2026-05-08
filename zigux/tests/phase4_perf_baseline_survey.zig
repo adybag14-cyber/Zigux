@@ -59,6 +59,13 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         .limited(48 * 1024),
     );
     defer std.testing.allocator.free(phase4_matrix);
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(tests_readme);
 
     try std.testing.expectEqualStrings("P4-L20", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
@@ -172,6 +179,12 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expect(saw_gate_gap);
     try std.testing.expect(saw_atomic64_gap);
     try std.testing.expect(saw_bitmap_gap);
+
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "Documentation/zigux/phase4-validation-matrix.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "Documentation/zigux/phase4-gate-evidence.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "scripts/zigux/validate-phase4.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase4_perf_baseline_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase4_perf_baseline_survey.zig") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "`zigux/tests/phase4_perf_baseline_survey.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig") != null);
