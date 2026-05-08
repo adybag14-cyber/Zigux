@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 FILES = [
     "scripts/zigux/check-phase10-ring-packet.py",
+    "scripts/zigux/README.md",
     "zigux/Makefile",
     "zigux/tests/phase10_build.zig",
     "drivers/virtio/virtio_ring.zig",
@@ -103,6 +104,14 @@ EXPECTED_COMPANION_MARKERS = [
     "make -C zigux phase10-test",
 ]
 
+EXPECTED_SCRIPTS_README_MARKERS = [
+    "check-phase10-ring-packet.py",
+    "the lane-sequenced virtio ring plus the focused ring-verify replay",
+    "drivers/virtio/virtio_mmio_verify.zig",
+    "zigux/tests/phase10_closure_manifest.json",
+    "make -C zigux phase10",
+]
+
 EXPECTED_SEQUENCING_MARKERS = [
     "`P10-L07` ring lane owns queue-local virtqueue-wrapper evidence:",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
@@ -158,6 +167,12 @@ EXPECTED_FREEZE_IN_C_ANCHORS = [
 
 BASELINE_FIXTURE = {
     "scripts/zigux/check-phase10-ring-packet.py": "# synthetic fixture for self-test\n",
+    "scripts/zigux/README.md": """- check-phase10-ring-packet.py
+- the lane-sequenced virtio ring plus the focused ring-verify replay
+- drivers/virtio/virtio_mmio_verify.zig
+- zigux/tests/phase10_closure_manifest.json
+- make -C zigux phase10
+""",
     "zigux/Makefile": """phase10-test:
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-core-packet.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-core-packet.py
@@ -295,6 +310,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         return missing_files, []
 
     missing_markers: list[str] = []
+
+    scripts_readme_text = read_text(root, "scripts/zigux/README.md")
+    for marker in EXPECTED_SCRIPTS_README_MARKERS:
+        if marker not in scripts_readme_text:
+            missing_markers.append(f"scripts_readme:{marker}")
 
     build_text = read_text(root, "zigux/tests/phase10_build.zig")
     for marker in EXPECTED_BUILD_MARKERS:
@@ -619,6 +639,21 @@ def run_self_test() -> int:
         if "sequencing:scripts/zigux/check-phase10-ring-packet.py" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_sequencing_marker_missing")
 
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "the lane-sequenced virtio ring plus the focused ring-verify replay",
+                "the lane-sequenced virtio ring plus a drifted verifier cue",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "scripts_readme:the lane-sequenced virtio ring plus the focused ring-verify replay" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_scripts_readme_marker_missing")
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         survey_test_path = tmp_root / "zigux/tests/phase10_virtio_ring_survey.zig"
         original_survey_test = survey_test_path.read_text(encoding="utf-8")
         survey_test_path.write_text(
@@ -634,7 +669,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_survey_test_verify_marker_missing")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
