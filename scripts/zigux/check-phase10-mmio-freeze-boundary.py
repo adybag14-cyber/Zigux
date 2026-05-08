@@ -408,6 +408,12 @@ def run_self_test() -> int:
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
 
+        (tmp_root / MMIO_MANIFEST_PATH).unlink()
+        missing_files, _ = validate(tmp_root)
+        if MMIO_MANIFEST_PATH not in missing_files:
+            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_missing_mmio_manifest")
+        write_json(tmp_root / MMIO_MANIFEST_PATH, manifests["mmio"])
+
         drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
         drifted["freeze_boundary_status"] = "drifted"
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
@@ -459,6 +465,14 @@ def run_self_test() -> int:
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
 
         drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
+        drifted["exact_checks"] = [FREEZE_BOUNDARY_CHECK, FREEZE_BOUNDARY_CHECK]
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
+        _, missing_markers = validate(tmp_root)
+        if "closure_manifest:exact_checks:freeze_boundary_count" not in missing_markers:
+            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_freeze_boundary_count_marker_missing")
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
+
+        drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
         drifted["exact_checks"] = ["python3 scripts/zigux/check-phase10-core-packet.py"]
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
         _, missing_markers = validate(tmp_root)
@@ -466,7 +480,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_exact_check_marker_missing")
 
     print("PHASE10_MMIO_FREEZE_BOUNDARY=pass")
-    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
