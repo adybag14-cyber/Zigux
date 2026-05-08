@@ -32,6 +32,46 @@ const Manifest = struct {
     ready_next: []const u8,
 };
 
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    var count: usize = 0;
+    var start: usize = 0;
+    while (std.mem.indexOfPos(u8, haystack, start, needle)) |index| {
+        count += 1;
+        start = index + needle.len;
+    }
+    return count;
+}
+
+fn readRepoFile(allocator: std.mem.Allocator, repo_root_relative_path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        repo_root_relative_path,
+        allocator,
+        .limited(1024 * 1024),
+    );
+}
+
+fn expectAtomic64MatrixMarkerCount(marker: []const u8, expected_count: usize) !void {
+    const phase4_validation_matrix_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-validation-matrix.md",
+    );
+    defer std.testing.allocator.free(phase4_validation_matrix_source);
+    const section_start = std.mem.indexOf(
+        u8,
+        phase4_validation_matrix_source,
+        "### `zigux/tests/atomic64_diff.zig`",
+    ) orelse return error.MissingAtomic64MatrixSection;
+    const section_end = std.mem.indexOfPos(
+        u8,
+        phase4_validation_matrix_source,
+        section_start,
+        "### `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`",
+    ) orelse return error.MissingAtomic64MatrixSectionBoundary;
+    const section = phase4_validation_matrix_source[section_start..section_end];
+    try std.testing.expectEqual(expected_count, countOccurrences(section, marker));
+}
+
 test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob pins explicit" {
     const parsed = try std.json.parseFromSlice(
         Manifest,
@@ -130,4 +170,21 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/phase4_perf_baseline_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "atomic64 handoff packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "correctness-only replay routes") != null);
+}
+
+test "phase 4 atomic64 survey keeps roadmap rollback ownership and replay routes explicit" {
+    try expectAtomic64MatrixMarkerCount("- owner: `ABI and Runtime Team`", 1);
+    try expectAtomic64MatrixMarkerCount("- rollback owner: `ABI and Runtime Team`", 1);
+    try expectAtomic64MatrixMarkerCount(
+        "`python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml`",
+        1,
+    );
+    try expectAtomic64MatrixMarkerCount(
+        "`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig`",
+        1,
+    );
+    try expectAtomic64MatrixMarkerCount(
+        "- perf threshold status: correctness-only gate today; no hard timing threshold is approved until the lane widens beyond the current bounded exchange, cmpxchg, add_unless, bitwise, and selftest-family replay set",
+        1,
+    );
 }
