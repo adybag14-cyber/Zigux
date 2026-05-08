@@ -162,6 +162,8 @@ REQUIRED_FILE_MARKERS = {
     ],
     "zigux/Makefile": [
         "phase14-validate:",
+        "phase14-smoke:",
+        "phase14-test:",
         "phase14: phase14-validate phase14-smoke phase14-test",
     ],
     ".github/workflows/zigux-bootstrap.yml": [
@@ -175,23 +177,18 @@ REQUIRED_FILE_MARKERS = {
     "kernel/rcu/tree_bridge.zig": ["pub const RcuTreeBridgeLab"],
 }
 
-
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
-
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
 
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
 
-
 def load_json_file(path: Path) -> dict:
     return json.loads(read_text(path))
-
 
 def blocked_gap_id(manifest: dict) -> str | None:
     for gap in manifest.get("gaps", []):
@@ -202,7 +199,6 @@ def blocked_gap_id(manifest: dict) -> str | None:
                 return gap_id
     return None
 
-
 def ready_next_gap_id(manifest: dict) -> str | None:
     for gap in manifest.get("gaps", []):
         if gap.get("status") == "ready_next":
@@ -211,10 +207,8 @@ def ready_next_gap_id(manifest: dict) -> str | None:
                 return gap_id
     return None
 
-
 def compile_matrix_note_row(label: str, root_source: str, coverage: str) -> str:
     return f"- `{label}`: root `{root_source}`, coverage `{coverage}`"
-
 
 def traceability_expected_markers(root: Path) -> tuple[list[str], list[str]]:
     errors: list[str] = []
@@ -256,7 +250,6 @@ def traceability_expected_markers(root: Path) -> tuple[list[str], list[str]]:
             markers.append(f"- blocked gap: `{blocked_gap}`")
     return markers, errors
 
-
 def check_traceability_note(root: Path) -> list[str]:
     traceability_path = root / TRACEABILITY_PATH
     if not traceability_path.exists():
@@ -275,7 +268,6 @@ def check_traceability_note(root: Path) -> list[str]:
                 f"(expected {expected_count}, found {actual_count})"
             )
     return errors
-
 
 def check_compile_matrix(root: Path) -> list[str]:
     errors: list[str] = []
@@ -315,7 +307,6 @@ def check_compile_matrix(root: Path) -> list[str]:
             errors.append(f"missing compile-artifact root in zigux/tests/phase14_build.zig: {root_source}")
     return errors
 
-
 def run_checker(root: Path, rel_path: str, missing_message: str, failure_message: str) -> list[str]:
     checker = root / rel_path
     if not checker.exists():
@@ -337,36 +328,14 @@ def run_checker(root: Path, rel_path: str, missing_message: str, failure_message
         return stdout
     return [failure_message]
 
-
 def check(root: Path) -> list[str]:
     manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
     if not manifest_path.exists():
         return [f"missing file: {manifest_path.as_posix()}"]
     errors: list[str] = []
-    errors.extend(
-        run_checker(
-            root,
-            "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
-            "missing file: scripts/zigux/check-phase14-docs-root-smoke-summary.py",
-            "phase14 docs-root smoke-summary checker failed without output",
-        )
-    )
-    errors.extend(
-        run_checker(
-            root,
-            "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
-            "missing file: scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
-            "phase14 rollback-threshold sequencing checker failed without output",
-        )
-    )
-    errors.extend(
-        run_checker(
-            root,
-            "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
-            "missing file: scripts/zigux/check-phase14-release-boundary-exact-counts.py",
-            "phase14 release-boundary exact-counts checker failed without output",
-        )
-    )
+    errors.extend(run_checker(root, "scripts/zigux/check-phase14-docs-root-smoke-summary.py", "missing file: scripts/zigux/check-phase14-docs-root-smoke-summary.py", "phase14 docs-root smoke-summary checker failed without output"))
+    errors.extend(run_checker(root, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", "missing file: scripts/zigux/check-phase14-rollback-threshold-sequencing.py", "phase14 rollback-threshold sequencing checker failed without output"))
+    errors.extend(run_checker(root, "scripts/zigux/check-phase14-release-boundary-exact-counts.py", "missing file: scripts/zigux/check-phase14-release-boundary-exact-counts.py", "phase14 release-boundary exact-counts checker failed without output"))
     try:
         manifest = load_json_file(manifest_path)
     except json.JSONDecodeError as exc:
@@ -375,11 +344,7 @@ def check(root: Path) -> list[str]:
         errors.append("phase14 shared smoke manifest lane_key drifted from the current shared-lane owner")
     if manifest.get("commands") != REQUIRED_COMMANDS:
         errors.append("phase14 manifest commands drifted from the shared validate/smoke/test packet")
-    surfaces = {
-        surface.get("path"): surface.get("required_marker")
-        for surface in manifest.get("surfaces", [])
-        if isinstance(surface, dict)
-    }
+    surfaces = {surface.get("path"): surface.get("required_marker") for surface in manifest.get("surfaces", []) if isinstance(surface, dict)}
     for path, marker in REQUIRED_SURFACES.items():
         if surfaces.get(path) != marker:
             errors.append(f"manifest surface drift for {path}")
@@ -396,52 +361,19 @@ def check(root: Path) -> list[str]:
     errors.extend(check_traceability_note(root))
     return errors
 
-
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
-        manifest = {
-            "lane_key": EXPECTED_LANE_KEY,
-            "phase": "Phase 14",
-            "packet_name": "phase14_shared_smoke_packet",
-            "focus": "study_only_shared_smoke_packet",
-            "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",
-            "commands": REQUIRED_COMMANDS,
-            "surfaces": [{"path": path, "required_marker": marker} for path, marker in REQUIRED_SURFACES.items()],
-            "blocked_anchors": [
-                "kernel/workqueue.c",
-                "kernel/trace/ring_buffer.c",
-                "kernel/rcu/tree.c",
-                "net/core/skbuff.c",
-            ],
-        }
+        manifest = {"lane_key": EXPECTED_LANE_KEY, "phase": "Phase 14", "packet_name": "phase14_shared_smoke_packet", "focus": "study_only_shared_smoke_packet", "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence", "commands": REQUIRED_COMMANDS, "surfaces": [{"path": path, "required_marker": marker} for path, marker in REQUIRED_SURFACES.items()], "blocked_anchors": ["kernel/workqueue.c", "kernel/trace/ring_buffer.c", "kernel/rcu/tree.c", "net/core/skbuff.c"]}
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         write_text(root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py", f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         write_text(root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         write_text(root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py", f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         anchor_manifests = {
-            "zigux/tests/phase14_ring_buffer_manifest.json": {
-                "lane_key": "P14-L08",
-                "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
-                "gaps": [
-                    {"id": "phase14-ring-buffer-zig-port-blocker", "status": "blocked_on_stay_in_c_evidence"},
-                ],
-            },
-            "zigux/tests/phase14_skbuff_bridge_manifest.json": {
-                "lane_key": "P14-L12",
-                "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
-                "gaps": [{"id": "phase14-skbuff-live-ownership-blocker", "status": "blocked_on_stay_in_c_evidence"}],
-            },
-            "zigux/tests/phase14_rcu_tree_manifest.json": {
-                "lane_key": "P14-L13",
-                "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312",
-                "gaps": [{"id": "phase14-rcu-tree-bridge-blocker", "status": "blocked_on_stay_in_c_evidence"}],
-            },
-            "zigux/tests/phase14_workqueue_bridge_manifest.json": {
-                "lane_key": "P14-L04",
-                "surveyed_commit": "9e278f632d6d5097cb8cfc2dc61744ae105baa8c",
-                "gaps": [{"id": "phase14-workqueue-live-execution-blocker", "status": "blocked_on_stay_in_c_evidence"}],
-            },
+            "zigux/tests/phase14_ring_buffer_manifest.json": {"lane_key": "P14-L08", "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c", "gaps": [{"id": "phase14-ring-buffer-zig-port-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
+            "zigux/tests/phase14_skbuff_bridge_manifest.json": {"lane_key": "P14-L12", "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb", "gaps": [{"id": "phase14-skbuff-live-ownership-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
+            "zigux/tests/phase14_rcu_tree_manifest.json": {"lane_key": "P14-L13", "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312", "gaps": [{"id": "phase14-rcu-tree-bridge-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
+            "zigux/tests/phase14_workqueue_bridge_manifest.json": {"lane_key": "P14-L04", "surveyed_commit": "9e278f632d6d5097cb8cfc2dc61744ae105baa8c", "gaps": [{"id": "phase14-workqueue-live-execution-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
         }
         for rel_path, data in anchor_manifests.items():
             write_text(root / rel_path, json.dumps(data, indent=2) + "\n")
@@ -456,29 +388,12 @@ def run_self_test() -> int:
             if path.exists():
                 continue
             write_text(path, "\n".join(markers) + "\n")
-        matrix_lines = [
-            "# Phase 14 End-to-End Smoke Survey",
-            "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
-            "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py",
-            "Documentation/zigux/phase14-core-boundary-traceability.md",
-            "PHASE14_COMPILE_ARTIFACT_COUNT=5",
-            "PHASE14_FOCUSED_SHARD_COUNT=1",
-            "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
-            "kernel/rcu/tree_bridge.zig",
-        ]
+        matrix_lines = ["# Phase 14 End-to-End Smoke Survey", "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate", "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py", "Documentation/zigux/phase14-core-boundary-traceability.md", "PHASE14_COMPILE_ARTIFACT_COUNT=5", "PHASE14_FOCUSED_SHARD_COUNT=1", "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4", "kernel/rcu/tree_bridge.zig"]
         matrix_lines.extend(compile_matrix_note_row(*row) for row in COMPILE_MATRIX_ROWS)
         write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
-        build_lines = [
-            'const smoke_step = b.step("phase14-smoke", "Run the focused Phase 14 end-to-end smoke survey")',
-            "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
-            "test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
-            "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
-            "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
-            "test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
-            "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
-        ]
+        build_lines = ['const smoke_step = b.step("phase14-smoke", "Run the focused Phase 14 end-to-end smoke survey")', "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);", "test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);", "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);", "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);", "test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);", "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);"]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
-            build_lines.append("b.addTest(.{")
+            build_lines.append("b.addTest(.")
             build_lines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
@@ -490,85 +405,45 @@ def run_self_test() -> int:
                 print(f"- {error}", file=sys.stderr)
             return 1
         broken_smoke_note = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
-        broken_smoke_note.write_text(
-            broken_smoke_note.read_text(encoding="utf-8").replace(
-                compile_matrix_note_row(*COMPILE_MATRIX_ROWS[0]) + "\n", "", 1
-            ),
-            encoding="utf-8",
-        )
+        broken_smoke_note.write_text(broken_smoke_note.read_text(encoding="utf-8").replace(compile_matrix_note_row(*COMPILE_MATRIX_ROWS[0]) + "\n", "", 1), encoding="utf-8")
         errors = check(root)
         if not any("missing compile-matrix row" in error for error in errors):
             print("self-test expected compile-matrix row failure", file=sys.stderr)
             return 1
         write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
         broken_build = root / "zigux/tests/phase14_build.zig"
-        broken_build.write_text(
-            broken_build.read_text(encoding="utf-8").replace(
-                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n",
-                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\nsmoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        broken_build.write_text(broken_build.read_text(encoding="utf-8").replace("smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n", "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\nsmoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);\n", 1), encoding="utf-8")
         errors = check(root)
         if not any("phase14 smoke shard stopped being dedicated" in error for error in errors):
             print("self-test expected dedicated smoke-shard failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         broken_build = root / "zigux/tests/phase14_build.zig"
-        broken_build.write_text(
-            broken_build.read_text(encoding="utf-8").replace(COMPILE_MATRIX_ROWS[0][0] + "\n", "", 1),
-            encoding="utf-8",
-        )
+        broken_build.write_text(broken_build.read_text(encoding="utf-8").replace(COMPILE_MATRIX_ROWS[0][0] + "\n", "", 1), encoding="utf-8")
         errors = check(root)
-        if not any(
-            f"missing compile-artifact label in zigux/tests/phase14_build.zig: {COMPILE_MATRIX_ROWS[0][0]}" in error
-            for error in errors
-        ):
+        if not any(f"missing compile-artifact label in zigux/tests/phase14_build.zig: {COMPILE_MATRIX_ROWS[0][0]}" in error for error in errors):
             print("self-test expected compile-artifact label failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         broken_build = root / "zigux/tests/phase14_build.zig"
-        broken_build.write_text(
-            broken_build.read_text(encoding="utf-8").replace(COMPILE_MATRIX_ROWS[0][1] + "\n", "", 1),
-            encoding="utf-8",
-        )
+        broken_build.write_text(broken_build.read_text(encoding="utf-8").replace(COMPILE_MATRIX_ROWS[0][1] + "\n", "", 1), encoding="utf-8")
         errors = check(root)
-        if not any(
-            f"missing compile-artifact root in zigux/tests/phase14_build.zig: {COMPILE_MATRIX_ROWS[0][1]}" in error
-            for error in errors
-        ):
+        if not any(f"missing compile-artifact root in zigux/tests/phase14_build.zig: {COMPILE_MATRIX_ROWS[0][1]}" in error for error in errors):
             print("self-test expected compile-artifact root failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         broken_traceability = root / TRACEABILITY_PATH
-        broken_traceability.write_text(
-            broken_traceability.read_text(encoding="utf-8").replace("- lane key: `P14-L08`\n", "", 1),
-            encoding="utf-8",
-        )
+        broken_traceability.write_text(broken_traceability.read_text(encoding="utf-8").replace("- lane key: `P14-L08`\n", "", 1), encoding="utf-8")
         errors = check(root)
-        if not any(
-            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - lane key: `P14-L08`" in error
-            for error in errors
-        ):
+        if not any("missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - lane key: `P14-L08`" in error for error in errors):
             print("self-test expected traceability failure", file=sys.stderr)
             return 1
         write_text(root / TRACEABILITY_PATH, "\n".join(expected_traceability_markers) + "\n")
         broken_traceability = root / TRACEABILITY_PATH
         duplicate_traceability_marker = "- validator entrypoint: `make -C zigux phase14-validate`\n"
-        broken_traceability.write_text(
-            broken_traceability.read_text(encoding="utf-8").replace(
-                duplicate_traceability_marker,
-                duplicate_traceability_marker + duplicate_traceability_marker,
-                1,
-            ),
-            encoding="utf-8",
-        )
+        broken_traceability.write_text(broken_traceability.read_text(encoding="utf-8").replace(duplicate_traceability_marker, duplicate_traceability_marker + duplicate_traceability_marker, 1), encoding="utf-8")
         errors = check(root)
-        if not any(
-            "marker count drift in Documentation/zigux/phase14-core-boundary-traceability.md: - validator entrypoint: `make -C zigux phase14-validate` (expected 1, found 2)" in error
-            for error in errors
-        ):
+        if not any("marker count drift in Documentation/zigux/phase14-core-boundary-traceability.md: - validator entrypoint: `make -C zigux phase14-validate` (expected 1, found 2)" in error for error in errors):
             print("self-test expected traceability duplicate-count failure", file=sys.stderr)
             return 1
         write_text(root / TRACEABILITY_PATH, "\n".join(expected_traceability_markers) + "\n")
@@ -580,10 +455,7 @@ def run_self_test() -> int:
         if "missing blocked gap in zigux/tests/phase14_ring_buffer_manifest.json" not in errors:
             print("self-test expected blocked-gap traceability failure", file=sys.stderr)
             return 1
-        write_text(
-            broken_anchor_manifest_path,
-            json.dumps(anchor_manifests["zigux/tests/phase14_ring_buffer_manifest.json"], indent=2) + "\n",
-        )
+        write_text(broken_anchor_manifest_path, json.dumps(anchor_manifests["zigux/tests/phase14_ring_buffer_manifest.json"], indent=2) + "\n")
         broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken_manifest["lane_key"] = "P14-L99"
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
@@ -600,247 +472,44 @@ def run_self_test() -> int:
             print("self-test expected manifest commands failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
-        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
-        broken_manifest["surfaces"] = [
-            surface
-            for surface in broken_manifest["surfaces"]
-            if surface.get("path") != "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
-        ]
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
-        errors = check(root)
-        if not any("manifest surface drift for scripts/zigux/check-phase14-docs-root-smoke-summary.py" in error for error in errors):
-            print("self-test expected manifest surface failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
-        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
-        broken_manifest["surfaces"] = [
-            surface
-            for surface in broken_manifest["surfaces"]
-            if surface.get("path") != "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
-        ]
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
-        errors = check(root)
-        if not any(
-            "manifest surface drift for scripts/zigux/check-phase14-rollback-threshold-sequencing.py" in error
-            for error in errors
-        ):
-            print("self-test expected rollback manifest surface failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
-        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
-        broken_manifest["surfaces"] = [
-            surface
-            for surface in broken_manifest["surfaces"]
-            if surface.get("path") != "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
-        ]
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
-        errors = check(root)
-        if not any(
-            "manifest surface drift for scripts/zigux/check-phase14-release-boundary-exact-counts.py" in error
-            for error in errors
-        ):
-            print("self-test expected release-boundary manifest surface failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
-        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
-        broken_manifest["surfaces"] = [
-            surface
-            for surface in broken_manifest["surfaces"]
-            if surface.get("path") != "zigux/Makefile"
-        ]
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
-        errors = check(root)
-        if not any("manifest surface drift for zigux/Makefile" in error for error in errors):
-            print("self-test expected makefile manifest surface failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        for removed_path, label in [("scripts/zigux/check-phase14-docs-root-smoke-summary.py", "docs-root"), ("scripts/zigux/check-phase14-rollback-threshold-sequencing.py", "rollback"), ("scripts/zigux/check-phase14-release-boundary-exact-counts.py", "release-boundary"), ("zigux/Makefile", "makefile")]:
+            broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+            broken_manifest["surfaces"] = [surface for surface in broken_manifest["surfaces"] if surface.get("path") != removed_path]
+            write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
+            errors = check(root)
+            if not any(f"manifest surface drift for {removed_path}" in error for error in errors):
+                print(f"self-test expected {label} manifest surface failure", file=sys.stderr)
+                return 1
+            write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken_docs_root = root / "Documentation/zigux/README.md"
-        broken_docs_root.write_text(
-            broken_docs_root.read_text(encoding="utf-8").replace("make -C zigux phase14-validate\n", "", 1),
-            encoding="utf-8",
-        )
+        broken_docs_root.write_text(broken_docs_root.read_text(encoding="utf-8").replace("make -C zigux phase14-validate\n", "", 1), encoding="utf-8")
         errors = check(root)
         if not any("missing marker in Documentation/zigux/README.md: make -C zigux phase14-validate" in error for error in errors):
             print("self-test expected docs-root marker failure", file=sys.stderr)
             return 1
         write_text(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/README.md"]) + "\n")
         broken_tests_root = root / "zigux/tests/README.md"
-        broken_tests_root.write_text(
-            broken_tests_root.read_text(encoding="utf-8").replace("make -C zigux phase14-smoke\n", "", 1),
-            encoding="utf-8",
-        )
+        broken_tests_root.write_text(broken_tests_root.read_text(encoding="utf-8").replace("make -C zigux phase14-smoke\n", "", 1), encoding="utf-8")
         errors = check(root)
         if not any("missing marker in zigux/tests/README.md: make -C zigux phase14-smoke" in error for error in errors):
             print("self-test expected tests-root marker failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/README.md", "\n".join(REQUIRED_FILE_MARKERS["zigux/tests/README.md"]) + "\n")
-        broken_checker = root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
-        broken_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            f"\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\n"
-            "import sys\n"
-            "print('phase14 docs-root smoke summary checker forced failure', file=sys.stderr)\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
-        )
+        broken_makefile = root / "zigux/Makefile"
+        broken_makefile.write_text(broken_makefile.read_text(encoding="utf-8").replace("phase14-smoke:\n", "", 1), encoding="utf-8")
         errors = check(root)
-        if "phase14 docs-root smoke summary checker forced failure" not in errors:
-            print("self-test expected docs-root checker subprocess failure", file=sys.stderr)
+        if not any("missing marker in zigux/Makefile: phase14-smoke:" in error for error in errors):
+            print("self-test expected makefile smoke-target marker failure", file=sys.stderr)
             return 1
-        broken_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            f"\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\n"
-            "print('phase14 docs-root smoke summary checker stdout-only failure')\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
-        )
+        write_text(root / "zigux/Makefile", "\n".join(REQUIRED_FILE_MARKERS["zigux/Makefile"]) + "\n")
+        broken_makefile = root / "zigux/Makefile"
+        broken_makefile.write_text(broken_makefile.read_text(encoding="utf-8").replace("phase14-test:\n", "", 1), encoding="utf-8")
         errors = check(root)
-        if "phase14 docs-root smoke summary checker stdout-only failure" not in errors:
-            print("self-test expected docs-root checker stdout-only subprocess failure", file=sys.stderr)
+        if not any("missing marker in zigux/Makefile: phase14-test:" in error for error in errors):
+            print("self-test expected makefile test-target marker failure", file=sys.stderr)
             return 1
-        broken_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            f"\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 docs-root smoke-summary checker failed without output" not in errors:
-            print("self-test expected docs-root checker silent subprocess failure", file=sys.stderr)
-            return 1
-        broken_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            "\"\"\"phase14 docs-root smoke summary checker missing marker\"\"\"\n"
-            "raise SystemExit(0)\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any(
-            f"missing marker in scripts/zigux/check-phase14-docs-root-smoke-summary.py: {DOCS_ROOT_CHECKER_MARKER}" in error
-            for error in errors
-        ):
-            print("self-test expected docs-root checker marker failure", file=sys.stderr)
-            return 1
-        write_text(root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py", f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
-        broken_rollback_checker = root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
-        broken_rollback_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            f"\"\"\"{CHECKER_MARKER}\"\"\"\n"
-            "import sys\n"
-            "print('phase14 rollback-threshold sequencing checker forced failure', file=sys.stderr)\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 rollback-threshold sequencing checker forced failure" not in errors:
-            print("self-test expected rollback-threshold checker subprocess failure", file=sys.stderr)
-            return 1
-        broken_rollback_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            f"\"\"\"{CHECKER_MARKER}\"\"\"\n"
-            "print('phase14 rollback-threshold sequencing checker stdout-only failure')\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 rollback-threshold sequencing checker stdout-only failure" not in errors:
-            print("self-test expected rollback-threshold checker stdout-only subprocess failure", file=sys.stderr)
-            return 1
-        broken_rollback_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            f"\"\"\"{CHECKER_MARKER}\"\"\"\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 rollback-threshold sequencing checker failed without output" not in errors:
-            print("self-test expected rollback-threshold checker silent subprocess failure", file=sys.stderr)
-            return 1
-        broken_rollback_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            "\"\"\"phase14 rollback-threshold sequencing checker missing marker\"\"\"\n"
-            "raise SystemExit(0)\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any(
-            f"missing marker in scripts/zigux/check-phase14-rollback-threshold-sequencing.py: {CHECKER_MARKER}" in error
-            for error in errors
-        ):
-            print("self-test expected rollback-threshold checker marker failure", file=sys.stderr)
-            return 1
-        write_text(root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
-        broken_release_boundary_checker = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
-        broken_release_boundary_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            f"\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\n"
-            "import sys\n"
-            "print('phase14 release-boundary exact-counts checker forced failure', file=sys.stderr)\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 release-boundary exact-counts checker forced failure" not in errors:
-            print("self-test expected release-boundary checker subprocess failure", file=sys.stderr)
-            return 1
-        broken_release_boundary_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            f"\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\n"
-            "print('phase14 release-boundary exact-counts checker stdout-only failure')\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 release-boundary exact-counts checker stdout-only failure" not in errors:
-            print("self-test expected release-boundary checker stdout-only subprocess failure", file=sys.stderr)
-            return 1
-        broken_release_boundary_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            f"\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\n"
-            "raise SystemExit(1)\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if "phase14 release-boundary exact-counts checker failed without output" not in errors:
-            print("self-test expected release-boundary checker silent subprocess failure", file=sys.stderr)
-            return 1
-        broken_release_boundary_checker.write_text(
-            "#!/usr/bin/env python3\n"
-            "\"\"\"phase14 release-boundary checker missing marker\"\"\"\n"
-            "raise SystemExit(0)\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any(
-            f"missing marker in scripts/zigux/check-phase14-release-boundary-exact-counts.py: {RELEASE_BOUNDARY_CHECKER_MARKER}" in error
-            for error in errors
-        ):
-            print("self-test expected release-boundary checker marker failure", file=sys.stderr)
-            return 1
-        write_text(root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py", f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
-        docs_root_checker = root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
-        docs_root_checker.unlink()
-        errors = check(root)
-        if "missing file: scripts/zigux/check-phase14-docs-root-smoke-summary.py" not in errors:
-            print("self-test expected docs-root checker missing-file failure", file=sys.stderr)
-            return 1
-        write_text(docs_root_checker, f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
-        rollback_checker = root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
-        rollback_checker.unlink()
-        errors = check(root)
-        if "missing file: scripts/zigux/check-phase14-rollback-threshold-sequencing.py" not in errors:
-            print("self-test expected rollback-threshold checker missing-file failure", file=sys.stderr)
-            return 1
-        write_text(rollback_checker, f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
-        release_boundary_checker = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
-        release_boundary_checker.unlink()
-        errors = check(root)
-        if "missing file: scripts/zigux/check-phase14-release-boundary-exact-counts.py" not in errors:
-            print("self-test expected release-boundary checker missing-file failure", file=sys.stderr)
-            return 1
-        write_text(release_boundary_checker, f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
-    return 0
-
+        write_text(root / "zigux/Makefile", "\n".join(REQUIRED_FILE_MARKERS["zigux/Makefile"]) + "\n")
+        return 0
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -855,7 +524,6 @@ def main() -> int:
         return 1
     print("phase14 shared smoke packet validated")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
