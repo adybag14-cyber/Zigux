@@ -27,7 +27,11 @@ ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
-SELF_TEST_CASE_COUNT = 5
+SELF_TEST_CASE_COUNT = 7
+MMIO_POINTER_AT_CALL_COUNT = 8
+MMIO_FORBIDDEN_RAW_POINTER_TOKENS = (
+    "@ptrFromInt",
+)
 
 ABI_MANIFEST_REQUIRED_FILES = (
     "include/zigux/abi.h",
@@ -238,6 +242,30 @@ def require_tokens(issues: list[str], text: str, prefix: str, tokens: tuple[str,
             issues.append(f"{prefix}:{token}")
 
 
+def require_token_count(issues: list[str], text: str, prefix: str, token: str, expected: int) -> None:
+    count = text.count(token)
+    if count != expected:
+        issues.append(f"{prefix}:{token}:{count}!={expected}")
+
+
+def validate_mmio_pointer_bridge(root: Path, issues: list[str]) -> None:
+    path = root / MMIO_REL
+    if not path.exists():
+        issues.append(f"missing_file:{MMIO_REL}")
+        return
+    source = path.read_text(encoding="utf-8")
+    require_token_count(
+        issues,
+        source,
+        f"mmio_pointer_bridge_count:{MMIO_REL}",
+        "narrow.pointerAt(",
+        MMIO_POINTER_AT_CALL_COUNT,
+    )
+    for token in MMIO_FORBIDDEN_RAW_POINTER_TOKENS:
+        if token in source:
+            issues.append(f"mmio_forbidden_raw_pointer_token:{MMIO_REL}:{token}")
+
+
 def load_manifest(root: Path, issues: list[str]) -> list[str] | None:
     path = root / ABI_MANIFEST_REL
     try:
@@ -317,6 +345,8 @@ def validate(root: Path) -> list[str]:
             continue
         require_tokens(issues, path.read_text(encoding="utf-8"), f"missing_token:{rel}", tokens)
 
+    validate_mmio_pointer_bridge(root, issues)
+
     files = load_manifest(root, issues)
     if files is not None:
         for rel in ABI_MANIFEST_REQUIRED_FILES:
@@ -368,6 +398,46 @@ def build_self_test_doc(root: Path) -> str:
     return "\n".join(lines) + "\n"
 
 
+def build_self_test_mmio_source() -> str:
+    return "\n".join(
+        (
+            "pub fn range() void {}",
+            "pub fn read8(base_addr: usize, offset: usize) u8 {",
+            "    const ptr = narrow.pointerAt(u8, base_addr, offset);",
+            "    return ptr.*;",
+            "}",
+            "pub fn write8(base_addr: usize, offset: usize, value: u8) void {",
+            "    const ptr = narrow.pointerAt(u8, base_addr, offset);",
+            "    ptr.* = value;",
+            "}",
+            "pub fn read16(base_addr: usize, offset: usize) u16 {",
+            "    const ptr = narrow.pointerAt(u16, base_addr, offset);",
+            "    return ptr.*;",
+            "}",
+            "pub fn write16(base_addr: usize, offset: usize, value: u16) void {",
+            "    const ptr = narrow.pointerAt(u16, base_addr, offset);",
+            "    ptr.* = value;",
+            "}",
+            "pub fn read32(base_addr: usize, offset: usize) u32 {",
+            "    const ptr = narrow.pointerAt(u32, base_addr, offset);",
+            "    return ptr.*;",
+            "}",
+            "pub fn write32(base_addr: usize, offset: usize, value: u32) void {",
+            "    const ptr = narrow.pointerAt(u32, base_addr, offset);",
+            "    ptr.* = value;",
+            "}",
+            "pub fn read64(base_addr: usize, offset: usize) u64 {",
+            "    const ptr = narrow.pointerAt(u64, base_addr, offset);",
+            "    return ptr.*;",
+            "}",
+            "pub fn write64(base_addr: usize, offset: usize, value: u64) void {",
+            "    const ptr = narrow.pointerAt(u64, base_addr, offset);",
+            "    ptr.* = value;",
+            "}",
+        )
+    ) + "\n"
+
+
 def build_valid_workspace(root: Path) -> None:
     for rel in ABI_MANIFEST_REQUIRED_FILES + (DOC_REL, ABI_MANIFEST_REL, ABI_HARNESS_REL, ABI_SLICE_DOC_REL):
         path = root / rel
@@ -377,7 +447,7 @@ def build_valid_workspace(root: Path) -> None:
 
     write(root / ATOMIC_REL, "\n".join(TOKEN_CHECKS[ATOMIC_REL]) + "\n")
     write(root / BARRIER_REL, "\n".join(TOKEN_CHECKS[BARRIER_REL]) + "\n")
-    write(root / MMIO_REL, "\n".join(TOKEN_CHECKS[MMIO_REL]) + "\n")
+    write(root / MMIO_REL, build_self_test_mmio_source())
     write(root / NARROW_REL, "\n".join(TOKEN_CHECKS[NARROW_REL]) + "\n")
     write(root / LOW_LEVEL_TEST_REL, "\n".join(TOKEN_CHECKS[LOW_LEVEL_TEST_REL]) + "\n")
     write(root / ABI_TEST_REL, "\n".join(TOKEN_CHECKS[ABI_TEST_REL]) + "\n")
@@ -438,6 +508,25 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             "missing_token:zigux/unsafe/narrow.zig:pub fn scopeFromInteropPolicyBytes" in issues
+        ), issues
+
+        build_valid_workspace(root)
+        write(root / MMIO_REL, (root / MMIO_REL).read_text(encoding="utf-8").replace(
+            "narrow.pointerAt(", "pointerAt(", 1
+        ))
+        issues = validate(root)
+        assert (
+            f"mmio_pointer_bridge_count:{MMIO_REL}:narrow.pointerAt(:7!={MMIO_POINTER_AT_CALL_COUNT}" in issues
+        ), issues
+
+        build_valid_workspace(root)
+        write(
+            root / MMIO_REL,
+            (root / MMIO_REL).read_text(encoding="utf-8") + "const raw = @ptrFromInt(0);\n",
+        )
+        issues = validate(root)
+        assert (
+            f"mmio_forbidden_raw_pointer_token:{MMIO_REL}:@ptrFromInt" in issues
         ), issues
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
