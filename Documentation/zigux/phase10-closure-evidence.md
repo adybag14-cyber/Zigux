@@ -11,7 +11,7 @@ This document records the bounded shared closure packet for the active Phase 10 
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
-- scope: one shared closure note for the shipped virtio core, ring, input, and MMIO lab slices plus their current manifest-backed checker, 12-file tests-root build packet, four driver-local verifier replays, and Linux-style replay routes
+- scope: one shared closure note for the shipped virtio core, ring, input, and MMIO lab slices plus their current manifest-backed checker, 14-file tests-root build packet, four driver-local verifier replays, and Linux-style replay routes
 
 ## Why this note exists
 
@@ -73,6 +73,8 @@ The shared Phase 10 closure packet currently stays inside:
 - `zigux/tests/phase10_virtio_ring_survey.zig`
 - `zigux/tests/phase10_virtio_input.zig`
 - `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
+- `zigux/tests/phase10_virtio_input_registration_preflight.zig`
+- `zigux/tests/phase10_virtio_input_teardown_observation.zig`
 - `zigux/tests/phase10_virtio_input_status_drain.zig`
 - `zigux/tests/phase10_virtio_input_survey.zig`
 - `zigux/tests/phase10_virtio_mmio.zig`
@@ -107,7 +109,7 @@ The honest shared closure gates on current `master` are:
 The shared Phase 10 closure packet now keeps two adjacent parity-scoreboard buckets explicit so reviewers do not overcount non-Phase-10 evidence as virtio closure progress.
 
 - `reference_samples` stays `out_of_scope`; its evidence remains `samples/zigux`, `zigux/tests/phase5_build.zig`, and `Documentation/zigux/review-checklist.md`. Those files prove the landed Phase 5 sample packet is real, but they do not widen the active Phase 10 virtio closure claim.
-- `runtime_starters` stays `out_of_scope`; its evidence remains `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_trace_events_manifest.json`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/helpers/allocator_policy.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, and `samples/zigux/runtime_trace_events_loader.zig`. Those files prove the bounded Phase 9 runtime-starter packet is real, but they do not widen the active Phase 10 risky-transport closure claim.
+- `runtime_starters` stays `out_of_scope`; its evidence remains `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_trace_events_manifest.json`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/helpers/allocator_policy.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `samples/zigux/runtime_trace_events_loader.zig`, and `samples/zigux/runtime_trace_events.zig`. Those files prove the bounded Phase 9 runtime-starter packet is real, but they do not widen the active Phase 10 risky-transport closure claim.
 
 ## Parked Boundary
 
@@ -127,4 +129,4 @@ Reviewers should treat any future claim that the active Phase 10 tranche already
 
 ## Next bounded step
 
-Keep the shared Phase 10 tranche parked unless fresh inspection finds another equally small closure-note, manifest, checker, or shared-scoreboard truthfulness gap inside the already-landed virtio lab packet. Fresh live readback on `master` now shows `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/README.md`, and `zigux/tests/phase10_closure_manifest.json` already keep the shared verifier packet, the dedicated input queue-callback-preflight replay, the MMIO freeze-boundary contract, and the shared closure manifest explicit. `Documentation/zigux/review-checklist.md` still flattens that same input shard by naming the input verify and status-drain replays without also keeping `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig` explicit. The next same-lane follow-through should therefore stay inside that remaining shared checklist note only rather than reopening settled driver-local helper, manifest, or survey work.
+Keep the shared Phase 10 tranche parked unless fresh inspection finds another equally small closure-note, manifest, checker, or shared-scoreboard truthfulness gap inside the already-landed virtio lab packet. Fresh live readback on `master` now shows `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/README.md`, and `zigux/tests/phase10_closure_manifest.json` keep the shared verifier packet, the dedicated input queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, and the MMIO freeze-boundary contract explicit. The remaining same-family follow-through is broader shared-summary work: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` still compress that landed input shard in places, so any future follow-up should stay inside those shared reviewer summaries only rather than reopening settled driver-local helper, manifest, or survey work.
