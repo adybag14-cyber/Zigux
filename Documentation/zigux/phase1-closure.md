@@ -120,6 +120,7 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 - `make -C zigux phase1-bench`
 - `make -C zigux phase1`
 - `python3 scripts/zigux/install-zig.py --self-test`
+- `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`
 - `python3 scripts/zigux/validate-phase1-closure.py`
 
 Reviewers should treat drift across those packet summaries, the committed helper and benchmark fixtures, the shared tests-root entrypoints, the bootstrap workflow replay, and the validator-first plus Linux-style replay routes as a closure regression even when the helper code itself is unchanged.
