@@ -44,7 +44,7 @@
       "status": "ready_next",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/atomic64_diff.zig",
-      "why_now": "Now that the shared tests-root summary names the landed local perf packet, the atomic64 rollback gate is still correctness-only, so the next bounded same-lane perf promotion is one benchmark command plus one acceptable limit for the existing atomic64 replay before Phase 4 claims perf coverage."
+      "why_now": "Now that the shared tests-root summary names the landed local perf packet, the atomic64 rollback gate is still correctness-only, so the next bounded same-lane perf promotion is one benchmark command plus one acceptable limit for the existing atomic64 replay before Phase 4 claims perf coverage. The current local benchmark candidate remains `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig`, and the existing deterministic threshold batch in `zigux/tests/atomic64_diff.zig` already pins `runThresholdReplay(1)` to checksum `3626254113632800175` with final counter `130322557735600377` plus `runThresholdReplay(4)` to checksum `9210681150676220922` with final counter `130322557735600376`, so the next slot can promote that evidence without pretending the acceptable limit is approved yet."
     },
     {
       "id": "phase4-perf-baseline-bitmap-command",
