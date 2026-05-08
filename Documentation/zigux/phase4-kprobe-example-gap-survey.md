@@ -29,7 +29,6 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/kpr
 - the live Linux replay path remains `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`
 - the dedicated local survey wrapper now reruns this parked packet through `make -C zigux phase4-kprobe-example-survey` while the direct validation entrypoint stays `zig test zigux/tests/phase4_kprobe_example_survey.zig`
 - `samples/zigux/kprobe_example.zig` is still absent on current `master`
-- the dedicated parked gap packet already spans this note, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig`, and the shared gate-evidence note now names that same survey note, manifest, and replay command as adjacent evidence without claiming that a shipped Zig starter exists
 - the dedicated parked gap packet already spans this note, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig`, and the shared gate-evidence note now names that same survey note, manifest, replay command, and local survey wrapper as adjacent evidence without claiming that a shipped Zig starter exists
 
 ## Non-Goals
@@ -40,4 +39,4 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/kpr
 
 ## Next Bounded Step
 
-keep this parked packet adjacent to the shared gate-evidence note and the dedicated local survey wrapper until a future bounded lane intentionally opens either the Zig starter or a broader validation-surface promotion. Land one manifest-backed Phase 4 test_fsmount gap survey packet that keeps the current C anchor, replay command, owner, and rollback owner reviewable without claiming a shipped Zig starter.
+keep this parked packet adjacent to the shared gate-evidence note and the dedicated local survey wrapper until a future bounded lane intentionally opens either the Zig starter or a broader validation-surface promotion.
