@@ -5,12 +5,12 @@ This document records the bounded Phase 15 governance lane around the Architectu
 ## Status
 
 - `PHASE15_STATUS=review_process_slice_landed`
-- `PHASE15_SLICE=architecture-council-review-process-reopen-trigger-catalog`
+- `PHASE15_SLICE=architecture-council-review-process-verified-master-head-provenance-sync`
 - `PHASE15_LANE_KEY=P15-L06`
-- `PHASE15_PROVENANCE_MODE=dated_master_readback_marker`
+- `PHASE15_PROVENANCE_MODE=verified_master_head`
 - scope: one review-process note, one dedicated manifest and Zig test, the focused lane-owner vocabulary alignment replay already shipped in the shared Phase 15 build, the focused indefinite-C blocker-evidence replay already shipped in the shared Phase 15 build, the shared governance-lane sequencing replay already shipped in the shared Phase 15 build, the shared Phase 15 build wiring, and a small review-checklist update that now also names the retained stay-in-C closeout state and reopen triggers
-- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-08` on 2026-05-08 because this review-process packet does not yet record an exact verified `master` head SHA
-- exact branch-head parity is not yet recorded for this packet; the current survey therefore uses an explicit dated readback marker instead of implying exact-head provenance
+- survey provenance refreshed against verified `master` head `4fc891b380cdd2991dff7676ade7f844df1b55fd`
+- exact branch-head parity is now recorded for this packet; the current survey keeps that verified-head provenance explicit instead of relying on a dated readback marker
 - maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires or the deep-core blocker posture changes
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
@@ -103,9 +103,9 @@ The bounded outcomes for this review process are:
 
 The bounded reopen-trigger catalog for a retired stay-in-C packet is:
 
-- `narrower_followup_answers_blocker`: a narrower seam inventory or follow-up now answers the latest blocker disposition without widening the approved boundary
-- `evidence_packet_stale_or_contradictory`: linked validation, benchmark, survey, or blocker evidence has become stale or contradictory enough that the closed packet no longer stands on its own
-- `ownership_or_validation_changed`: rollback ownership, lane ownership, or validation gates changed enough to invalidate the closed stay-in-C packet
+- `narrower_followup_answers_blocker`
+- `evidence_packet_stale_or_contradictory`
+- `ownership_or_validation_changed`
 
 Every retained stay-in-C closeout must cite at least one of these catalog items in its evidence archive so the scorecard, review-process note, and future reopen requests keep the same reopen vocabulary.
 
@@ -146,9 +146,9 @@ The current lane state is:
 - landed `phase15-approver-set-field-sync`
 - landed `phase15-workflow-replay-anchor-visible`
 - landed `phase15-dedicated-make-test-replay-visible`
-- landed `phase15-degraded-provenance-mode-visible`
+- landed `phase15-verified-master-head-provenance-sync`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, restores the explicit indefinite-C policy linkage for stay-in-C requests, keeps the rollback-threshold gate explicit when evidence is weak or contradictory, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, keeps the roadmap-minimum `phase`, status-bucket, approver-set, and validation-gate evidence explicit in the parked packet, makes the workflow-backed replay anchor explicit beside the validator-first, dedicated `make -C zigux phase15-test`, direct-build, and full make-route replays, makes the already-landed lane-owner vocabulary alignment, indefinite-C blocker-evidence, and governance-lane sequencing replays visible inside the same governance boundary, and now names the packet's degraded dated-readback provenance explicitly instead of implying exact-head parity it does not yet carry, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, restores the explicit indefinite-C policy linkage for stay-in-C requests, keeps the rollback-threshold gate explicit when evidence is weak or contradictory, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, keeps the roadmap-minimum `phase`, status-bucket, approver-set, and validation-gate evidence explicit in the parked packet, makes the workflow-backed replay anchor explicit beside the validator-first, dedicated `make -C zigux phase15-test`, direct-build, and full make-route replays, makes the already-landed lane-owner vocabulary alignment, indefinite-C blocker-evidence, and governance-lane sequencing replays visible inside the same governance boundary, and now keeps the exact verified `master` head explicit in both the note and the manifest instead of the older degraded dated-readback marker, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
