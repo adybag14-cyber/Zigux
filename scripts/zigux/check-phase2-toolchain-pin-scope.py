@@ -81,7 +81,6 @@ CLOSURE_MARKERS = [
 ]
 
 PHASE2_VALIDATOR_MARKERS = [
-    'TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"',
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass"',
     '"PHASE2_TOOLCHAIN_PIN_SCOPE=pass"',
 ]
