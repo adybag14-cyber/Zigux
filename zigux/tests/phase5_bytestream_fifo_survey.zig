@@ -52,7 +52,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
