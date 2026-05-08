@@ -188,6 +188,7 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch mutable typed lookup supports write-through"',
         'test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection"',
         'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers"',
+        'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers"',
         'test "phase 6 bsearch mutable raw c abi lookup supports write-through"',
         'test "phase 6 bsearch keeps representative lookup work inside a binary-search budget"',
         'test "phase 6 bsearch keeps descending lookup work inside a binary-search budget"',
@@ -553,6 +554,12 @@ def run_self_test() -> None:
             "zigux/tests/README.md",
             "  * `zigux/tests/phase6_base64_perf.zig`",
             "  * `zigux/tests/phase6_base64_bench.zig`",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_bsearch.zig",
+            'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers"',
+            'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers"',
         )
         assert_failure(
             root,
