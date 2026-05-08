@@ -226,6 +226,10 @@ PHASE4_RUNTIME_ATOMIC64_REQUIRED_FIELD_MARKERS = {
         "zigux/tests/phase4_perf_baseline_survey.zig",
     ],
     "reversible_delivery_evidence": [
+        "zigux/tests/atomic64_diff.zig",
+        "zigux/tests/runtime_atomic64_diff.zig",
+        "zigux/tests/phase4_build.zig",
+        "scripts/zigux/validate-phase4.py",
         "Documentation/zigux/phase4-gate-evidence.md",
         "Documentation/zigux/review-checklist.md",
         "Documentation/zigux/phase4-validation-matrix.md",
@@ -868,6 +872,26 @@ def run_self_test() -> int:
         failures = run_phase4_runtime_atomic64_packet_check(bad_root5)
         assert failures == [
             "runtime_atomic64_manifest_marker:ready_next:Documentation/zigux/phase4-gate-evidence.md"
+        ], failures
+
+        bad_root5b = Path(tmp_dir) / "bad5b"
+        build_fixture_tree(bad_root5b)
+        runtime_manifest_path = bad_root5b / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json"
+        runtime_manifest = json.loads(runtime_manifest_path.read_text(encoding="utf-8"))
+        runtime_manifest["reversible_delivery_evidence"] = runtime_manifest[
+            "reversible_delivery_evidence"
+        ].replace(
+            "zigux/tests/runtime_atomic64_diff.zig, ",
+            "",
+            1,
+        )
+        runtime_manifest_path.write_text(
+            json.dumps(runtime_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        failures = run_phase4_runtime_atomic64_packet_check(bad_root5b)
+        assert failures == [
+            "runtime_atomic64_manifest_marker:reversible_delivery_evidence:zigux/tests/runtime_atomic64_diff.zig"
         ], failures
 
         bad_root6 = Path(tmp_dir) / "bad6"
