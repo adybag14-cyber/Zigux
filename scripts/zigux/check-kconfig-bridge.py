@@ -46,6 +46,7 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge ignores empty CONFIG symbol names",
     "confdata bridge keeps trailing escaped backslashes in quoted strings",
     "confdata bridge emits no entries for empty CONFIG symbol names",
+    "confdata bridge keeps only the last assignment for duplicate symbols",
 ]
 
 REQUIRED_CONF_CASE_MODES = [
@@ -213,7 +214,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("CONF_CASE_MODE_ORDER_EXPECTED", ",".join(expected_mode_order)))
 
     confdata_cases = cases["confdata_cases"]
-    manifest_confdata_case_order = [str(case["name"]) for case in confdata_cases]
+    manifest_confdata_case_order = [str(case["name"] ) for case in confdata_cases]
     if manifest_confdata_case_order != REQUIRED_CONFDATA_CASES:
         issues.append(("CONFDATA_CASE_ORDER_ACTUAL", ",".join(manifest_confdata_case_order)))
         issues.append(("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)))
@@ -646,7 +647,7 @@ def main() -> int:
 
         for case in cases["confdata_cases"]:
             actual = tmp_dir / f"{case['name']}.actual.json"
-            result = run([str(confdata_exe), str(FIXTURE_DIR / case["input"])], cwd=str(ROOT), capture_output=True)
+            result = run([str(confdata_exe), str(FIXTURE_DIR / case["input"] )], cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding="utf-8", newline="\n")
             run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(FIXTURE_DIR / case["expected"]), str(actual)], cwd=str(ROOT))
 
