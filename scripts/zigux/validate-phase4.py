@@ -16,6 +16,7 @@ ROOT = SCRIPT_PATH.parent
 REQUIRED_FILES = [
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-artifact-diff-contract.py",
+    "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "scripts/zigux/check-phase4-gate-evidence.py",
     "scripts/zigux/validate-phase4.py",
     "Documentation/zigux/artifact-diff.md",
@@ -47,6 +48,8 @@ REQUIRED_MAKE_MARKERS = [
     "scripts/zigux/validate-phase4.py --self-test",
     "scripts/zigux/validate-phase4.py",
     "scripts/zigux/check-artifact-diff-contract.py",
+    "scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "phase4-bitmap-diff-survey:",
     "zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig",
     "phase4-bitmap-live-helper-replay:",
@@ -267,6 +270,17 @@ EXPECTED_ARTIFACT_DIFF_CONTRACT_LINES = [
     "ARTIFACT_DIFF_CONTRACT_CASES=helper_self_test,helper_self_test_repeat,cli_help_output,cli_help_output_repeat,cli_missing_required_args,cli_missing_actual_operand,cli_invalid_mode,text_pass,text_pass_repeat,text_mismatch,text_missing_expected,text_missing_actual,text_missing_both,json_pass,json_mismatch,json_mismatch_repeat,json_missing_expected,json_missing_actual,json_missing_both,json_invalid_expected,json_invalid_actual,json_invalid_both,sha256_pass,sha256_missing_expected,sha256_missing_actual,sha256_missing_both,sha256_drift,sha256_drift_repeat",
 ]
 
+EXPECTED_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_LINES = [
+    "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass",
+]
+
+EXPECTED_ARTIFACT_DIFF_DETERMINISM_LINES = [
+    "PHASE4_ARTIFACT_DIFF_DETERMINISM=pass",
+    "PHASE4_ARTIFACT_DIFF_HELPER_CASE_COUNT=19",
+    "PHASE4_ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28",
+    "PHASE4_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat",
+]
+
 
 def _missing_files(root: Path) -> list[str]:
     return [path for path in REQUIRED_FILES if not (root / path).exists()]
@@ -382,6 +396,35 @@ def run_artifact_diff_contract_self_test_check(root: Path) -> list[str]:
         "artifact_diff_contract_self_test",
         lines,
         EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_LINES,
+    )
+
+
+def run_phase4_artifact_diff_determinism_check(root: Path) -> list[str]:
+    code, lines = _run_python_script(
+        root,
+        "scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    )
+    if code != 0:
+        return [f"phase4_artifact_diff_determinism:exit:{code}"]
+    return _expect_exact_output(
+        "phase4_artifact_diff_determinism",
+        lines,
+        EXPECTED_ARTIFACT_DIFF_DETERMINISM_LINES,
+    )
+
+
+def run_phase4_artifact_diff_determinism_self_test_check(root: Path) -> list[str]:
+    code, lines = _run_python_script(
+        root,
+        "scripts/zigux/check-phase4-artifact-diff-determinism.py",
+        "--self-test",
+    )
+    if code != 0:
+        return [f"phase4_artifact_diff_determinism_self_test:exit:{code}"]
+    return _expect_exact_output(
+        "phase4_artifact_diff_determinism_self_test",
+        lines,
+        EXPECTED_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_LINES,
     )
 
 
@@ -534,6 +577,25 @@ def build_fixture_tree(root: Path) -> None:
                 "        print(line)",
                 "else:",
                 "    for line in CONTRACT_LINES:",
+                "        print(line)",
+            ]
+        )
+        + "\n",
+    )
+    _write(
+        root,
+        "scripts/zigux/check-phase4-artifact-diff-determinism.py",
+        "\n".join(
+            [
+                "#!/usr/bin/env python3",
+                "import sys",
+                f"SELF_TEST_LINES = {EXPECTED_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_LINES!r}",
+                f"CHECK_LINES = {EXPECTED_ARTIFACT_DIFF_DETERMINISM_LINES!r}",
+                "if '--self-test' in sys.argv:",
+                "    for line in SELF_TEST_LINES:",
+                "        print(line)",
+                "else:",
+                "    for line in CHECK_LINES:",
                 "        print(line)",
             ]
         )
@@ -723,7 +785,7 @@ def build_fixture_tree(root: Path) -> None:
         {
             "roadmap_gap_summary": "zigux/tests/atomic64_diff.zig and zigux/tests/phase4_perf_baseline_manifest.json plus zigux/tests/phase4_perf_baseline_survey.zig remain explicit in the bounded Phase 4 packet.",
             "reversible_delivery_evidence": "Documentation/zigux/phase4-gate-evidence.md with Documentation/zigux/review-checklist.md and Documentation/zigux/phase4-validation-matrix.md stays aligned with zigux/tests/phase4_perf_baseline_manifest.json and zigux/tests/phase4_perf_baseline_survey.zig.",
-            "ready_next": "Keep Documentation/zigux/phase4-gate-evidence.md and Documentation/zigux/phase4-validation-matrix.md aligned with zigux/tests/phase4_perf_baseline_manifest.json and zigux/tests/phase4_perf_baseline_survey.zig.",
+            "ready_next": "Keep Documentation/zigux/phase4-gate-evidence.md aligned with Documentation/zigux/phase4-validation-matrix.md plus zigux/tests/phase4_perf_baseline_manifest.json and zigux/tests/phase4_perf_baseline_survey.zig.",
         }
     )
     _write(
@@ -808,6 +870,8 @@ def run_self_test() -> int:
         assert validate_root(root) == []
         assert run_artifact_diff_contract_check(root) == []
         assert run_artifact_diff_contract_self_test_check(root) == []
+        assert run_phase4_artifact_diff_determinism_check(root) == []
+        assert run_phase4_artifact_diff_determinism_self_test_check(root) == []
         assert run_phase4_gate_evidence_check(root) == []
         assert run_phase4_gate_evidence_self_test_check(root) == []
         assert run_phase4_runtime_atomic64_packet_check(root) == []
@@ -934,6 +998,19 @@ def run_self_test() -> int:
             "artifact_doc_tooling_note:- fallback rule: if `scripts/zigux/artifact_diff.py` regresses, keep the committed expected artifact plus the current authoritative C or documented replay command as the source of truth until the helper contract is repaired"
         ]
 
+        bad_root9 = Path(tmp_dir) / "bad9"
+        build_fixture_tree(bad_root9)
+        determinism_checker = bad_root9 / "scripts/zigux/check-phase4-artifact-diff-determinism.py"
+        determinism_checker.write_text(
+            determinism_checker.read_text(encoding="utf-8").replace(
+                "PHASE4_ARTIFACT_DIFF_HELPER_CASE_COUNT=19",
+                "PHASE4_ARTIFACT_DIFF_HELPER_CASE_COUNT=18",
+            ),
+            encoding="utf-8",
+        )
+        failures = run_phase4_artifact_diff_determinism_check(bad_root9)
+        assert failures and failures[0] == "phase4_artifact_diff_determinism:unexpected_output", failures
+
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
 
@@ -967,6 +1044,8 @@ def main() -> int:
     for label, failures in [
         ("ARTIFACT_DIFF_CONTRACT_CHECK", run_artifact_diff_contract_check(ROOT)),
         ("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CHECK", run_artifact_diff_contract_self_test_check(ROOT)),
+        ("PHASE4_ARTIFACT_DIFF_DETERMINISM_CHECK", run_phase4_artifact_diff_determinism_check(ROOT)),
+        ("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CHECK", run_phase4_artifact_diff_determinism_self_test_check(ROOT)),
         ("PHASE4_GATE_EVIDENCE_CHECK", run_phase4_gate_evidence_check(ROOT)),
         ("PHASE4_GATE_EVIDENCE_SELF_TEST_CHECK", run_phase4_gate_evidence_self_test_check(ROOT)),
         ("PHASE4_RUNTIME_ATOMIC64_PACKET_CHECK", run_phase4_runtime_atomic64_packet_check(ROOT)),
