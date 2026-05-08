@@ -196,6 +196,14 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     );
     defer std.testing.allocator.free(note);
 
+    const freeze_map = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/freeze-map.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(freeze_map);
+
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, lane_key_marker));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, surveyed_commit_marker));
     try std.testing.expect(std.mem.indexOf(u8, note, "PHASE9_LANE_KEY=P9-L08") != null);
@@ -215,6 +223,10 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     try std.testing.expect(std.mem.indexOf(u8, note, "copy and selftest path: a second initialized sample can mirror the mutated bitmap, `runSelftest()` still reports the four ordered operation families `clear_set`, `copy`, `summary`, and `lifecycle`, and selftest leaves the bitmap summary unchanged") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "loader snapshot stability: after `prepare()` captures the `0,5,64,70` bitmap summary, later sample mutation still leaves the pending loader handoff at `first_set=0`, `first_zero=1`, and `weight=4` even while the live sample moves to `first_set=5`, `first_zero=0`, and `weight=7` before `requestRuntimeLoad()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "shared-loader contract replay: the loader still imports `runtime_loader`, maps initialized and selftest-complete sample stages into the shared handoff flow, fixes `allocator_handoff=.arena`, keeps `init_runs=1` and `exit_runs=0`, and rejects snapshot drift in module name, allocator handoff, handoff stage, or selftest count") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "the shared `zigux/kernel/runtime_loader.zig` facade remains a review-only Phase 9 packet under the freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary, so this lane keeps the bitmap handoff reviewable without claiming scheduler-facing substrate closure or a freeze-map status change.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "`kernel/workqueue.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "`kernel/trace/ring_buffer.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "shared-loader drift guards: the loader also keeps prepared shared-request snapshots stable across later selftest activity, rejects shared-plan or prepared-request drift in `provides_selftest_hook`, and preserves loader-versus-shared-request state synchronization when `releaseSharedWithoutSubstrate()` is attempted before the shared request reaches `waiting_on_runtime_substrate`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "top-bit boundary replay: the focused companion contract still proves that bit `127` is the highest valid bit") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "make -C zigux phase9-runtime-bitmap-top-bit-test") != null);
