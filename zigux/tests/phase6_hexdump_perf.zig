@@ -122,6 +122,9 @@ fn validatePerfMatrix() !void {
             return error.HexdumpPerfMatrixMismatch;
         }
 
+        if (std.mem.eql(u8, case.label, "16B-plain-g1")) {
+            try validateBoundaryBuffers(case, 48);
+        }
         if (std.mem.eql(u8, case.label, "32B-ascii-g2")) {
             try validateBoundaryBuffers(case, 114);
         }
