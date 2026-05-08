@@ -139,6 +139,15 @@ REQUIRED_SURVEY_REPLAY_MARKERS = [
     'layout_assert.assertOffset(HvOps, "dtr_rts", 64);',
 ]
 
+REQUIRED_CLEANUP_REPLAY_MARKERS = [
+    'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable"',
+    "final_cleanup.tty_port_put_requested",
+    "hangup_cleanup.close_skipped",
+    "error.CleanupRequiresFinalCloseOrHangup",
+    "error.CleanupRequiresTtyPortReference",
+    "error.ConsoleUnavailable",
+]
+
 REQUIRED_MANIFEST_MARKERS = [
     '"lane_key": "P11-L16"',
     '"winsize_layout_assert_present": true',
@@ -171,7 +180,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 59
+SELF_TEST_CASE_COUNT = 65
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -214,6 +223,7 @@ def validate(root: Path) -> list[str]:
     shared_replay_contract = read_text(root, SHARED_REPLAY_CONTRACT_PATH)
     verify_replay = read_text(root, VERIFY_REPLAY_PATH)
     survey_replay = read_text(root, SURVEY_REPLAY_PATH)
+    cleanup_replay = read_text(root, CLEANUP_REPLAY_PATH)
     manifest = read_text(root, MANIFEST_PATH)
     build_file = read_text(root, BUILD_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
@@ -240,6 +250,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_SURVEY_REPLAY_MARKERS:
         if marker not in survey_replay:
             failures.append(f"survey_replay:{marker}")
+    for marker in REQUIRED_CLEANUP_REPLAY_MARKERS:
+        if marker not in cleanup_replay:
+            failures.append(f"cleanup_replay:{marker}")
     for marker in REQUIRED_MANIFEST_MARKERS:
         if marker not in manifest:
             failures.append(f"manifest:{marker}")
@@ -427,8 +440,29 @@ test "phase11 hvc console survey keeps a bounded hv_ops layout proof" {
     write_text(
         root / CLEANUP_REPLAY_PATH,
         """const std = @import("std");
-test "synthetic hvc cleanup replay" {
-    try std.testing.expect(true);
+const hvc_console = @import("hvc_console");
+
+test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(5);
+    _ = console.instantiate(0x55);
+
+    const final_cleanup = try console.summarizeCleanupHandoff(.{});
+    try std.testing.expect(final_cleanup.tty_port_put_requested);
+
+    const hangup_cleanup = try console.summarizeCleanupHandoff(.{
+        .hung_up = true,
+    });
+    try std.testing.expect(hangup_cleanup.close_skipped);
+
+    try std.testing.expectError(error.CleanupRequiresFinalCloseOrHangup, console.summarizeCleanupHandoff(.{
+        .final_close = false,
+    }));
+    try std.testing.expectError(error.CleanupRequiresTtyPortReference, console.summarizeCleanupHandoff(.{
+        .tty_port_reference_live = false,
+    }));
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeCleanupHandoff(.{}));
 }
 """,
     )
@@ -840,6 +874,42 @@ def run_self_test() -> int:
                 SURVEY_REPLAY_PATH,
                 'layout_assert.assertSize(HvOps, 72);',
                 'survey_replay:layout_assert.assertSize(HvOps, 72);',
+            )
+            expect_failure(
+                root,
+                CLEANUP_REPLAY_PATH,
+                'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable"',
+                'cleanup_replay:test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable"',
+            )
+            expect_failure(
+                root,
+                CLEANUP_REPLAY_PATH,
+                "final_cleanup.tty_port_put_requested",
+                "cleanup_replay:final_cleanup.tty_port_put_requested",
+            )
+            expect_failure(
+                root,
+                CLEANUP_REPLAY_PATH,
+                "hangup_cleanup.close_skipped",
+                "cleanup_replay:hangup_cleanup.close_skipped",
+            )
+            expect_failure(
+                root,
+                CLEANUP_REPLAY_PATH,
+                "error.CleanupRequiresFinalCloseOrHangup",
+                "cleanup_replay:error.CleanupRequiresFinalCloseOrHangup",
+            )
+            expect_failure(
+                root,
+                CLEANUP_REPLAY_PATH,
+                "error.CleanupRequiresTtyPortReference",
+                "cleanup_replay:error.CleanupRequiresTtyPortReference",
+            )
+            expect_failure(
+                root,
+                CLEANUP_REPLAY_PATH,
+                "error.ConsoleUnavailable",
+                "cleanup_replay:error.ConsoleUnavailable",
             )
             expect_failure(
                 root,
