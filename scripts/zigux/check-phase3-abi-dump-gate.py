@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 from pathlib import Path
 import tempfile
@@ -192,12 +193,20 @@ def validate(root: Path) -> list[str]:
         issues.append(f"missing_manifest:{MANIFEST_REL}")
     else:
         files = manifest.get("files")
-        if not isinstance(files, list) or DUMP_REL not in files:
-            issues.append(f"manifest_missing_file:{DUMP_REL}")
-        if not isinstance(files, list) or EXPORT_SHIM_REL not in files:
-            issues.append(f"manifest_missing_file:{EXPORT_SHIM_REL}")
-        if not isinstance(files, list) or UAPI_VERSION_REL not in files:
-            issues.append(f"manifest_missing_file:{UAPI_VERSION_REL}")
+        if not isinstance(files, list) or not all(isinstance(item, str) for item in files):
+            issues.append(f"invalid_manifest_files:{MANIFEST_REL}")
+        else:
+            if manifest.get("file_count") != len(files):
+                issues.append(
+                    f"stale_manifest_file_count:{MANIFEST_REL}:{manifest.get('file_count')}!={len(files)}"
+                )
+            counts = Counter(files)
+            for rel, count in sorted(counts.items()):
+                if count > 1:
+                    issues.append(f"manifest_duplicate_file:{rel}:{count}")
+            for rel in (DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL):
+                if rel not in counts:
+                    issues.append(f"manifest_missing_file:{rel}")
 
     return issues
 
@@ -269,7 +278,7 @@ def run_self_test() -> int:
         (root / EXPORT_SHIM_REL).write_text("// export shim\n", encoding="utf-8", newline="\n")
         (root / UAPI_VERSION_REL).write_text("// uapi version\n", encoding="utf-8", newline="\n")
         (root / MANIFEST_REL).write_text(
-            json.dumps({"files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL]}),
+            json.dumps({"file_count": 3, "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL]}),
             encoding="utf-8",
             newline="\n",
         )
@@ -379,7 +388,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (root / MANIFEST_REL).write_text(
-            json.dumps({"files": [DUMP_REL, EXPORT_SHIM_REL]}),
+            json.dumps({"file_count": 2, "files": [DUMP_REL, EXPORT_SHIM_REL]}),
             encoding="utf-8",
             newline="\n",
         )
@@ -431,7 +440,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (root / MANIFEST_REL).write_text(
-            json.dumps({"files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL]}),
+            json.dumps({"file_count": 3, "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL]}),
             encoding="utf-8",
             newline="\n",
         )
@@ -466,8 +475,50 @@ def run_self_test() -> int:
             f"missing_wrapper_marker:{ABI_WRAPPER_REL}:validate-phase3-abi-bindings-syntax.py" in issues
         )
 
+        (root / ABI_WRAPPER_REL).write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "from phase3_check_lib import run_from_wrapper",
+                    "",
+                    'SYNTAX_CHECKER = ROOT / "scripts" / "zigux" / "validate-phase3-abi-bindings-syntax.py"',
+                    'raise SystemExit(run_from_wrapper(__file__))',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / MANIFEST_REL).write_text(
+            json.dumps(
+                {
+                    "file_count": 2,
+                    "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL],
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert f"stale_manifest_file_count:{MANIFEST_REL}:2!=3" in issues
+
+        (root / MANIFEST_REL).write_text(
+            json.dumps(
+                {
+                    "file_count": 4,
+                    "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL, DUMP_REL],
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert f"manifest_duplicate_file:{DUMP_REL}:2" in issues
+
     print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")
-    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=6")
+    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
