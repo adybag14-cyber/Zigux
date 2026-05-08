@@ -23,6 +23,7 @@ SCRIPT_PATH = "scripts/zigux/check-phase11-bcm2835-wdt-packet.py"
 
 REQUIRED_SURVEY_NOTE_MARKERS = [
     "`P11-L08` packet identity",
+    "`P11-L10`",
     "`zigux/tests/phase11_bcm2835_wdt_manifest.json`",
     "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
     "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
@@ -44,6 +45,7 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "`phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`",
     "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
     "`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`",
+    "`P11-L10`",
 ]
 
 REQUIRED_SHARED_CONTRACT_MARKERS = [
@@ -76,7 +78,7 @@ REQUIRED_BUILD_MARKERS = [
     '.name = "phase11-bcm2835-wdt-survey-tests"',
 ]
 
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 16
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -139,7 +141,7 @@ def write_fixture_tree(root: Path) -> None:
         root / SURVEY_NOTE_PATH,
         """# Phase 11 BCM2835 Watchdog Survey
 
-This archival watchdog note now keeps `P11-L08` packet identity explicit beside the current bcm2835 review surface.
+This archival watchdog note now keeps `P11-L08` packet identity explicit beside the current bcm2835 review surface, while current scheduled continuity is tracked through `P11-L10`.
 
 - `zigux/tests/phase11_bcm2835_wdt_manifest.json`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
@@ -169,6 +171,7 @@ This archival watchdog note now keeps `P11-L08` packet identity explicit beside 
 - `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`
 - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
 - `python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`
+- current scheduled continuity is tracked through `P11-L10`
 """,
     )
     write_text(
@@ -264,9 +267,11 @@ def run_self_test() -> int:
             return 1
         checks = [
             (SURVEY_NOTE_PATH, "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`", "survey_note:`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`"),
+            (SURVEY_NOTE_PATH, "`P11-L10`", "survey_note:`P11-L10`"),
             (SURVEY_NOTE_PATH, "`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`", "survey_note:`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`"),
             (SLICE_NOTE_PATH, "tiny registration-outcome summary", "slice_note:tiny registration-outcome summary"),
             (VALIDATION_MATRIX_PATH, "`drivers/watchdog/bcm2835_wdt_verify.zig`", "validation_matrix:`drivers/watchdog/bcm2835_wdt_verify.zig`"),
+            (VALIDATION_MATRIX_PATH, "`P11-L10`", "validation_matrix:`P11-L10`"),
             (VALIDATION_MATRIX_PATH, "`phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`", "validation_matrix:`phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`"),
             (SHARED_CONTRACT_PATH, "The dedicated archival bcm2835 evidence also stays explicit beside that shared route:", "shared_contract:The dedicated archival bcm2835 evidence also stays explicit beside that shared route:"),
             (SHARED_CONTRACT_PATH, "`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py`", "shared_contract:`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py`"),
