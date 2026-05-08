@@ -19,7 +19,10 @@ TOOL_MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 CONF_PACKET_PATH = "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json"
 CONFDATA_PACKET_PATH = "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"
 CONFDATA_MANIFEST = Path(CONFDATA_PACKET_PATH)
-REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHOR = "confdata bridge keeps only the last assignment for duplicate symbols"
+REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS = (
+    "confdata bridge keeps only the last assignment for duplicate symbols",
+    "confdata bridge keeps only the last state across unset and set transitions",
+)
 
 REQUIRED_CHECKER_MARKERS = (
     "REQUIRED_CONF_CASE_MODES = [",
@@ -88,7 +91,7 @@ REQUIRED_CLOSURE_EXACT_COUNTS = {
     f"`PHASE2_KCONFIG_BRIDGE_CONFDATA_PACKET={CONFDATA_PACKET_PATH}`": 1,
     "`kconfig_confdata_bridge_packet`": 1,
 }
-EXPECTED_SELF_TEST_CASE_COUNT = 51
+EXPECTED_SELF_TEST_CASE_COUNT = 52
 
 
 def read_text(path: Path) -> str:
@@ -162,11 +165,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if not isinstance(helper_local_anchors, list):
         issues.append(("INVALID_CONFDATA_MANIFEST_HELPER_LOCAL_ANCHORS", f"helper_local_anchors={helper_local_anchors!r}"))
     else:
-        anchor_count = helper_local_anchors.count(REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHOR)
-        if anchor_count == 0:
-            issues.append(("MISSING_CONFDATA_MANIFEST_HELPER_ANCHORS", REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHOR))
-        elif anchor_count != 1:
-            issues.append(("DUPLICATE_CONFDATA_MANIFEST_HELPER_ANCHORS", f"{REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHOR}:count={anchor_count}"))
+        for anchor in REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS:
+            anchor_count = helper_local_anchors.count(anchor)
+            if anchor_count == 0:
+                issues.append(("MISSING_CONFDATA_MANIFEST_HELPER_ANCHORS", anchor))
+            elif anchor_count != 1:
+                issues.append(("DUPLICATE_CONFDATA_MANIFEST_HELPER_ANCHORS", f"{anchor}:count={anchor_count}"))
 
     if tool_manifest.get("kconfig_conf_bridge_packet") != CONF_PACKET_PATH:
         issues.append(("INVALID_TOOL_MANIFEST_CONF_PACKET", f"kconfig_conf_bridge_packet={tool_manifest.get('kconfig_conf_bridge_packet')!r}"))
@@ -322,7 +326,8 @@ def build_self_test_root(root: Path) -> None:
                 "tool": "scripts/zigux/kconfig/confdata_bridge.zig",
                 "helper_local_anchors": [
                     "confdata bridge emits bounded json output",
-                    REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHOR,
+                    REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS[0],
+                    REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS[1],
                 ],
             },
             indent=2,
@@ -688,7 +693,8 @@ def run_self_test() -> int:
         payload["helper_local_anchors"] = ["confdata bridge emits bounded json output"]
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("MISSING_CONFDATA_MANIFEST_HELPER_ANCHORS", REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHOR) in issues
+        assert ("MISSING_CONFDATA_MANIFEST_HELPER_ANCHORS", REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS[0]) in issues
+        assert ("MISSING_CONFDATA_MANIFEST_HELPER_ANCHORS", REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS[1]) in issues
         cases += 1
 
         build_self_test_root(root)
@@ -696,12 +702,27 @@ def run_self_test() -> int:
         payload = json.loads(path.read_text(encoding="utf-8"))
         payload["helper_local_anchors"] = [
             "confdata bridge emits bounded json output",
-            REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHOR,
-            REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHOR,
+            REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS[0],
+            REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS[0],
         ]
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("DUPLICATE_CONFDATA_MANIFEST_HELPER_ANCHORS", f"{REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHOR}:count=2") in issues
+        assert ("DUPLICATE_CONFDATA_MANIFEST_HELPER_ANCHORS", f"{REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS[0]}:count=2") in issues
+        assert ("MISSING_CONFDATA_MANIFEST_HELPER_ANCHORS", REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS[1]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CONFDATA_MANIFEST
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["helper_local_anchors"] = [
+            "confdata bridge emits bounded json output",
+            REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS[0],
+            REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS[1],
+            REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS[1],
+        ]
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_CONFDATA_MANIFEST_HELPER_ANCHORS", f"{REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS[1]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
@@ -738,7 +759,7 @@ def main() -> int:
     print(f"PHASE2_KCONFIG_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_CLOSURE_MARKER_COUNT={len(REQUIRED_CLOSURE_MARKERS)}")
-    print("PHASE2_KCONFIG_ALIGNMENT_CONFDATA_HELPER_ANCHOR_COUNT=1")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_CONFDATA_HELPER_ANCHOR_COUNT={len(REQUIRED_CONFDATA_MANIFEST_HELPER_ANCHORS)}")
     return 0
 
 
