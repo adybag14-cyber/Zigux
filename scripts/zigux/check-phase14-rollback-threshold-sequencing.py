@@ -66,6 +66,8 @@ def read_text(path: Path) -> str:
 
 def check(root: Path) -> list[str]:
     errors: list[str] = []
+    if MARKER not in read_text(Path(__file__)):
+        errors.append("checker marker missing from checker source")
     for rel_path, markers in REQUIRED_FILE_MARKERS.items():
         path = root / rel_path
         if not path.exists():
@@ -86,6 +88,8 @@ def write_text(path: Path, text: str) -> None:
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
+        current_checker_path = Path(__file__)
+        original_checker_source = current_checker_path.read_text(encoding="utf-8")
         write_text(
             root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
             MARKER + "\nraise SystemExit(0)\n",
@@ -172,6 +176,27 @@ def run_self_test() -> int:
         ):
             print("self-test expected failure when the attached-toolchain scope boundary drifted", file=sys.stderr)
             return 1
+
+        for rel_path in REQUIRED_FILE_MARKERS:
+            broken_file = root / rel_path
+            broken_file.unlink()
+            errors = check(root)
+            expected_error = f"missing file: {rel_path}"
+            if expected_error not in errors:
+                print(f"self-test expected missing-file failure for {rel_path}", file=sys.stderr)
+                return 1
+            write_text(broken_file, "\n".join(REQUIRED_FILE_MARKERS[rel_path]) + "\n")
+
+        current_checker_path.write_text(
+            original_checker_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "checker marker missing from checker source" not in errors:
+            print("self-test expected checker-marker failure", file=sys.stderr)
+            current_checker_path.write_text(original_checker_source, encoding="utf-8")
+            return 1
+        current_checker_path.write_text(original_checker_source, encoding="utf-8")
 
     return 0
 
