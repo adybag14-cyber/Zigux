@@ -12,6 +12,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 SURVEY_NOTE_PATH = "Documentation/zigux/phase11-hvc-console-survey.md"
+SLICE_NOTE_PATH = "Documentation/zigux/phase11-hvc-console-slice.md"
 TEARDOWN_NOTE_PATH = "Documentation/zigux/phase11-hvc-console-teardown-note.md"
 VALIDATION_MATRIX_PATH = "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
 SHARED_REPLAY_CONTRACT_PATH = "Documentation/zigux/phase11-shared-replay-contract.md"
@@ -39,6 +40,17 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
     "khvcd polling-contract follow-through",
     "`hvc_hangup()` disconnect boundary",
     "stale hangup short-circuit",
+]
+
+REQUIRED_SLICE_NOTE_MARKERS = [
+    "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+    "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "tiny cleanup handoff summary",
+    "tiny remove-path handoff summary",
+    "tiny khvcd polling-contract summary",
+    "tiny `hvc_hangup()` disconnect summary",
+    "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+    "shared-versus-dedicated HVC review packet",
 ]
 
 REQUIRED_TEARDOWN_NOTE_MARKERS = [
@@ -122,7 +134,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 33
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -139,6 +151,7 @@ def validate(root: Path) -> list[str]:
 
     for rel_path in [
         SURVEY_NOTE_PATH,
+        SLICE_NOTE_PATH,
         TEARDOWN_NOTE_PATH,
         VALIDATION_MATRIX_PATH,
         SHARED_REPLAY_CONTRACT_PATH,
@@ -157,6 +170,7 @@ def validate(root: Path) -> list[str]:
         return failures
 
     survey_note = read_text(root, SURVEY_NOTE_PATH)
+    slice_note = read_text(root, SLICE_NOTE_PATH)
     teardown_note = read_text(root, TEARDOWN_NOTE_PATH)
     validation_matrix = read_text(root, VALIDATION_MATRIX_PATH)
     shared_replay_contract = read_text(root, SHARED_REPLAY_CONTRACT_PATH)
@@ -169,6 +183,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_SURVEY_NOTE_MARKERS:
         if marker not in survey_note:
             failures.append(f"survey_note:{marker}")
+    for marker in REQUIRED_SLICE_NOTE_MARKERS:
+        if marker not in slice_note:
+            failures.append(f"slice_note:{marker}")
     for marker in REQUIRED_TEARDOWN_NOTE_MARKERS:
         if marker not in teardown_note:
             failures.append(f"teardown_note:{marker}")
@@ -217,6 +234,20 @@ The live archival packet now belongs to lane `P11-L16`.
 - current `master` now also carries the bounded khvcd polling-contract follow-through
 - current `master` also keeps the bounded `hvc_hangup()` disconnect boundary explicit beside the same archival packet
 - the archived note still names the stale hangup short-circuit so buffered-write state does not get overstated when port count is already zero
+""",
+    )
+    write_text(
+        root / SLICE_NOTE_PATH,
+        """# Phase 11 HVC Console Slice
+
+- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-teardown-note.md`
+- adds a tiny cleanup handoff summary
+- adds a tiny remove-path handoff summary
+- adds a tiny khvcd polling-contract summary
+- adds a tiny `hvc_hangup()` disconnect summary
+- `scripts/zigux/check-phase11-hvc-survey-packet.py`
+- keep that shared-versus-dedicated HVC review packet explicit
 """,
     )
     write_text(
@@ -434,6 +465,24 @@ def run_self_test() -> int:
             )
             expect_failure(
                 root,
+                SLICE_NOTE_PATH,
+                "tiny cleanup handoff summary",
+                "slice_note:tiny cleanup handoff summary",
+            )
+            expect_failure(
+                root,
+                SLICE_NOTE_PATH,
+                "tiny khvcd polling-contract summary",
+                "slice_note:tiny khvcd polling-contract summary",
+            )
+            expect_failure(
+                root,
+                SLICE_NOTE_PATH,
+                "shared-versus-dedicated HVC review packet",
+                "slice_note:shared-versus-dedicated HVC review packet",
+            )
+            expect_failure(
+                root,
                 TEARDOWN_NOTE_PATH,
                 "`tty_port_put()`",
                 "teardown_note:tty_port_put()",
@@ -564,6 +613,7 @@ def run_self_test() -> int:
                 "$(PYTHON) scripts/zigux/check-phase11-hvc-survey-packet.py",
                 "makefile:$(PYTHON) scripts/zigux/check-phase11-hvc-survey-packet.py",
             )
+            expect_missing_file(root, SLICE_NOTE_PATH)
             expect_missing_file(root, VERIFY_REPLAY_PATH)
             expect_missing_file(root, CLEANUP_REPLAY_PATH)
             expect_missing_file(root, MANIFEST_PATH)
