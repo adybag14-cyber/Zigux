@@ -24,6 +24,8 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-argv-split-slice.md": [
         "null-terminated pointer-vector access through `cArgv()`",
         "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`",
+        "allocator-failure cleanup when intermediate setup work is interrupted",
+        "overflow rejection before sizing the exported null-terminated argv vector",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
     ],
     "scripts/zigux/check-phase7-argv-split-packet.py": [
@@ -254,6 +256,30 @@ def run_self_test() -> None:
             "argv_split_slice_packet_checker_marker",
             tmp_root,
             "Documentation/zigux/phase7-argv-split-slice.md: python3 scripts/zigux/check-phase7-argv-split-packet.py",
+        )
+        case_count += 1
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
+            original_slice.replace("allocator-failure cleanup when intermediate setup work is interrupted", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_slice_allocator_failure_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: allocator-failure cleanup when intermediate setup work is interrupted",
+        )
+        case_count += 1
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
+            original_slice.replace("overflow rejection before sizing the exported null-terminated argv vector", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_slice_overflow_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: overflow rejection before sizing the exported null-terminated argv vector",
         )
         case_count += 1
         slice_path.write_text(original_slice, encoding="utf-8")
