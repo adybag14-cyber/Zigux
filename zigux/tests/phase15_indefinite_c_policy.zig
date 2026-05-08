@@ -14,6 +14,14 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const ExceptionPosture = struct {
+    silent_exception_path: []const u8,
+    only_allowed_exception: []const u8,
+    retained_closeout_state: []const u8,
+    blocker_requirement: []const u8,
+    required_reopen_inputs: []const []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -22,6 +30,7 @@ const Manifest = struct {
     anchors: []const []const u8,
     supporting_artifacts: []const []const u8,
     indefinite_c_requirements: []const Requirement,
+    exception_posture: ExceptionPosture,
     gaps: []const Gap,
 };
 
@@ -73,7 +82,12 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.supporting_artifacts.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.indefinite_c_requirements.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
+    try std.testing.expectEqualStrings("forbidden", manifest.exception_posture.silent_exception_path);
+    try std.testing.expectEqualStrings("architecture_council_reopen_request", manifest.exception_posture.only_allowed_exception);
+    try std.testing.expectEqualStrings("retired_from_active_discussion", manifest.exception_posture.retained_closeout_state);
+    try std.testing.expectEqualStrings("existing_blocker_remains_recorded_until_reopen_approved", manifest.exception_posture.blocker_requirement);
+    try std.testing.expectEqual(@as(usize, 4), manifest.exception_posture.required_reopen_inputs.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.anchors[0]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.supporting_artifacts[3]);
@@ -87,6 +101,11 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     try std.testing.expectEqualStrings("zigux/tests/phase15_build.zig", manifest.supporting_artifacts[12]);
     try std.testing.expectEqualStrings("zigux/tests/phase15_indefinite_c_blocker_evidence.zig", manifest.supporting_artifacts[13]);
     try std.testing.expectEqualStrings("zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig", manifest.supporting_artifacts[14]);
+
+    try std.testing.expectEqualStrings("new bounded seam inventory", manifest.exception_posture.required_reopen_inputs[0]);
+    try std.testing.expectEqualStrings("updated validation plan", manifest.exception_posture.required_reopen_inputs[1]);
+    try std.testing.expectEqualStrings("fresh linked evidence", manifest.exception_posture.required_reopen_inputs[2]);
+    try std.testing.expectEqualStrings("Architecture Council review request", manifest.exception_posture.required_reopen_inputs[3]);
 
     var saw_source_of_truth = false;
     var saw_recordkeeping = false;
@@ -188,6 +207,11 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
         "no silent exception path",
         "Architecture Council reopen request",
         "existing blocker remains recorded",
+        "silent exception path: `forbidden`",
+        "only allowed exception: `architecture_council_reopen_request`",
+        "retained closeout state: `retired_from_active_discussion`",
+        "blocker requirement: `existing_blocker_remains_recorded_until_reopen_approved`",
+        "These reopen inputs are the only machine-checkable path out of the retained stay-in-C closeout.",
         "retired_from_active_discussion",
         "narrower_followup_answers_blocker",
         "evidence_packet_stale_or_contradictory",
@@ -372,6 +396,7 @@ test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
     var saw_test = false;
     var saw_build = false;
     var saw_sync_followup = false;
+    var saw_exception_followup = false;
     var saw_blocker = false;
 
     for (parsed.value.gaps, 0..) |gap, i| {
@@ -407,6 +432,13 @@ test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reopen-trigger catalog") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blocker-evidence replay") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lane-owner-alignment replay") != null);
+        } else if (std.mem.eql(u8, gap.id, "phase15-indefinite-c-exception-posture-manifest-sync")) {
+            saw_exception_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase15_indefinite_c_policy.json", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "no-silent-exception") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "retained closeout") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "retained-blocker") != null);
         } else if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -418,7 +450,7 @@ test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 5), landed_count);
+    try std.testing.expectEqual(@as(usize, 6), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_note);
@@ -426,5 +458,6 @@ test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
     try std.testing.expect(saw_test);
     try std.testing.expect(saw_build);
     try std.testing.expect(saw_sync_followup);
+    try std.testing.expect(saw_exception_followup);
     try std.testing.expect(saw_blocker);
 }
