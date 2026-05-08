@@ -234,7 +234,7 @@ pub fn commandNameFromEntry(filename: []const u8, prefix: []const u8) ?[]const u
     if (hasExtension(filename, ".exe")) {
         end -= 4;
     }
-    if (end <= prefix.len) {
+    if (end < prefix.len) {
         return null;
     }
 
@@ -586,8 +586,9 @@ test "splitPathEntries preserves empty PATH segments and owns copied slices" {
 test "command entry helpers filter prefixes and strip windows executable suffixes" {
     try std.testing.expectEqualStrings("trace", commandNameFromEntry("perf-trace", "perf-").?);
     try std.testing.expectEqualStrings("report", commandNameFromEntry("perf-report.exe", "perf-").?);
+    try std.testing.expectEqualStrings("", commandNameFromEntry("perf-", "perf-").?);
+    try std.testing.expectEqualStrings("", commandNameFromEntry("perf-.exe", "perf-").?);
     try std.testing.expectEqual(@as(?[]const u8, null), commandNameFromEntry("trace", "perf-"));
-    try std.testing.expectEqual(@as(?[]const u8, null), commandNameFromEntry("perf-.exe", "perf-"));
     try std.testing.expect(hasExtension("perf-report.exe", ".exe"));
     try std.testing.expect(!hasExtension("perf-report", ".exe"));
 }
@@ -598,14 +599,16 @@ test "addExecutableEntry models load_command_list filtering without directory I/
 
     try std.testing.expect(try addExecutableEntry(&cmds, "perf-report", "perf-", true));
     try std.testing.expect(try addExecutableEntry(&cmds, "perf-stat.exe", "perf-", true));
+    try std.testing.expect(try addExecutableEntry(&cmds, "perf-.exe", "perf-", true));
     try std.testing.expect(!(try addExecutableEntry(&cmds, "README.txt", "perf-", true)));
     try std.testing.expect(!(try addExecutableEntry(&cmds, "perf-script", "perf-", false)));
 
     cmds.sort();
 
-    try std.testing.expectEqual(@as(usize, 2), cmds.count());
-    try std.testing.expectEqualStrings("report", cmds.names.items[0].name);
-    try std.testing.expectEqualStrings("stat", cmds.names.items[1].name);
+    try std.testing.expectEqual(@as(usize, 3), cmds.count());
+    try std.testing.expectEqualStrings("", cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("report", cmds.names.items[1].name);
+    try std.testing.expectEqualStrings("stat", cmds.names.items[2].name);
 }
 
 test "loadCommandListsFromSource keeps exec-path priority and filters duplicates across PATH" {
