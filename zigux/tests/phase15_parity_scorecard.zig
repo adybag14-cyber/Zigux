@@ -142,12 +142,12 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("4fc891b380cdd2991dff7676ade7f844df1b55fd", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
-    try std.testing.expectEqual(@as(usize, 19), manifest.review_process.required_record_field_count);
+    try std.testing.expectEqual(@as(usize, 20), manifest.review_process.required_record_field_count);
     try std.testing.expectEqual(manifest.review_process.required_record_field_count, manifest.review_process.required_record_fields.len);
-    try std.testing.expectEqual(@as(usize, 19), manifest.review_process.required_record_fields.len);
-    try std.testing.expectEqual(@as(usize, 14), manifest.review_process.ownership_evidence_field_count);
+    try std.testing.expectEqual(@as(usize, 20), manifest.review_process.required_record_fields.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.review_process.ownership_evidence_field_count);
     try std.testing.expectEqual(manifest.review_process.ownership_evidence_field_count, manifest.review_process.ownership_evidence_fields.len);
-    try std.testing.expectEqual(@as(usize, 14), manifest.review_process.ownership_evidence_fields.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.review_process.ownership_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.review_process.retirement_rule, "active discussion") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.review_process.retirement_rule, "evidence archive path") != null);
@@ -185,8 +185,8 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expectEqual(@as(usize, 2), manifest.metrics.specialist_lane_owned_anchor_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.metrics.reserved_decision_record_template_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.metrics.blocked_status_change_anchor_count);
-    try std.testing.expectEqual(@as(usize, 19), manifest.metrics.review_packet_field_count);
-    try std.testing.expectEqual(@as(usize, 14), manifest.metrics.ownership_evidence_field_count);
+    try std.testing.expectEqual(@as(usize, 20), manifest.metrics.review_packet_field_count);
+    try std.testing.expectEqual(@as(usize, 15), manifest.metrics.ownership_evidence_field_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expect(manifest.repo_evidence.freeze_map_present);
     try std.testing.expect(manifest.repo_evidence.review_checklist_present);
@@ -201,18 +201,20 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expectEqualStrings("linux anchor path", manifest.review_process.required_record_fields[0]);
     try std.testing.expectEqualStrings("owner", manifest.review_process.required_record_fields[5]);
-    try std.testing.expectEqualStrings("benchmark notes", manifest.review_process.required_record_fields[10]);
-    try std.testing.expectEqualStrings("replay command", manifest.review_process.required_record_fields[11]);
-    try std.testing.expectEqualStrings("rollback threshold", manifest.review_process.required_record_fields[12]);
-    try std.testing.expectEqualStrings("parity scorecard link or blocker record", manifest.review_process.required_record_fields[15]);
-    try std.testing.expectEqualStrings("indefinite-C policy link or non-applicability note", manifest.review_process.required_record_fields[16]);
-    try std.testing.expectEqualStrings("explicit non-goals", manifest.review_process.required_record_fields[17]);
-    try std.testing.expectEqualStrings("written rationale", manifest.review_process.required_record_fields[18]);
+    try std.testing.expectEqualStrings("required approver set", manifest.review_process.required_record_fields[7]);
+    try std.testing.expectEqualStrings("benchmark notes", manifest.review_process.required_record_fields[11]);
+    try std.testing.expectEqualStrings("replay command", manifest.review_process.required_record_fields[12]);
+    try std.testing.expectEqualStrings("rollback threshold", manifest.review_process.required_record_fields[13]);
+    try std.testing.expectEqualStrings("parity scorecard link or blocker record", manifest.review_process.required_record_fields[16]);
+    try std.testing.expectEqualStrings("indefinite-C policy link or non-applicability note", manifest.review_process.required_record_fields[17]);
+    try std.testing.expectEqualStrings("explicit non-goals", manifest.review_process.required_record_fields[18]);
+    try std.testing.expectEqualStrings("written rationale", manifest.review_process.required_record_fields[19]);
     try std.testing.expectEqualStrings("phase", manifest.review_process.ownership_evidence_fields[0]);
     try std.testing.expectEqualStrings("current status bucket", manifest.review_process.ownership_evidence_fields[1]);
-    try std.testing.expectEqualStrings("indefinite-C policy link or non-applicability note", manifest.review_process.ownership_evidence_fields[5]);
-    try std.testing.expectEqualStrings("rollback threshold", manifest.review_process.ownership_evidence_fields[10]);
-    try std.testing.expectEqualStrings("parity scorecard link or blocker record", manifest.review_process.ownership_evidence_fields[13]);
+    try std.testing.expectEqualStrings("required approver set", manifest.review_process.ownership_evidence_fields[4]);
+    try std.testing.expectEqualStrings("indefinite-C policy link or non-applicability note", manifest.review_process.ownership_evidence_fields[6]);
+    try std.testing.expectEqualStrings("rollback threshold", manifest.review_process.ownership_evidence_fields[11]);
+    try std.testing.expectEqualStrings("parity scorecard link or blocker record", manifest.review_process.ownership_evidence_fields[14]);
     try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
 
     var saw_sched = false;
@@ -414,7 +416,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     try std.testing.expect(saw_archive_reporting);
     try std.testing.expect(saw_template_followup);
     try std.testing.expect(saw_sync_followup);
-    try std.testing.expect(saw_anchor_owner_tracking);
+    try std.testing.expect(saw_anchor_ownerTracking);
     try std.testing.expect(saw_retirement_rule);
     try std.testing.expect(saw_reopen_trigger_followup);
     try std.testing.expect(saw_roadmap_handoff_followup);
@@ -455,8 +457,8 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "required review-process review-packet fields tracked in the manifest: `19`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "required review-process ownership-evidence fields tracked in the manifest: `14`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "required review-process review-packet fields tracked in the manifest: `20`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "required review-process ownership-evidence fields tracked in the manifest: `15`") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Architecture Council Review Gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reopen Trigger Catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Evidence Archive Reporting Standard") != null);
@@ -466,8 +468,8 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "31,437") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-review-process-field-coverage-metrics") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-aggregate-scorecard-metrics") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "review-packet fields mirrored from the Architecture Council packet: `19`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ownership-evidence fields mirrored from the Architecture Council packet: `14`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "review-packet fields mirrored from the Architecture Council packet: `20`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ownership-evidence fields mirrored from the Architecture Council packet: `15`") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "Full-Parity Blockers and Long-Term Governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
@@ -495,7 +497,7 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "leaves active discussion only after") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "check-phase15-scripts-readme-alignment.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "check-phase15-review-process-handoff.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "decision record ID, lane owner, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, parity scorecard link or blocker record, indefinite-C policy link or non-applicability note, explicit non-goals, and written rationale explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "current lane owner responsible for keeping that blocked evidence packet up to date") != null);
 
     for (parsed.value.review_process.required_record_fields) |field| {
