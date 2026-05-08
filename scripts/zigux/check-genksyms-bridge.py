@@ -29,6 +29,7 @@ EXPECTED_HELPER_LOCAL_ANCHORS = [
     'genksyms bridge accepts explicit option terminator',
     'genksyms bridge reports invalid short option in getopt style',
     'genksyms bridge reports missing short option argument in getopt style',
+    'genksyms bridge rejects more than sixteen reference files like the C harness',
     'genksyms bridge renders normalized invocation plan',
     'genksyms bridge ignores positional args while still parsing later options',
 ]
