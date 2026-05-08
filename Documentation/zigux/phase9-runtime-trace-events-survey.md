@@ -16,6 +16,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
   - `zigux/tests/runtime_trace_events_manifest.json`
   - `zigux/tests/runtime_trace_events_survey.zig`
   - `zigux/tests/phase9_build.zig`
+  - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
   - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
 
 ## Why this slice exists
