@@ -88,7 +88,9 @@ The current tests check:
 - copied-buffer ownership so later source mutation does not affect split results
 - copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated
 - separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results
+- tearing down one non-blank result does not disturb another caller's owned storage or exported C-argv view
 - blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`
+- blank-input teardown on one caller keeps the shared empty storage and exported argv sentinels stable for another caller
 - exported storage and argv views resetting back to the canonical empty sentinels after teardown
 - allocator-failure cleanup when intermediate setup work is interrupted
 - overflow rejection before sizing the exported null-terminated argv vector
