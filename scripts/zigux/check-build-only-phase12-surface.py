@@ -134,6 +134,7 @@ REQUIRED_FILE_MARKERS = {
         "The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order used by the PMO sequencing and closure companion notes.",
         "PHASE12_SHARED_SMOKE_SURFACE_COUNT=6",
         "current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
         "`make -C zigux phase12-smoke`",
         "`make -C zigux phase12`",
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
@@ -153,6 +154,7 @@ REQUIRED_FILE_MARKERS = {
         "shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
         "driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "freeze-boundary authority: `Documentation/zigux/freeze-map.md`",
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
         "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2",
         "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
         "PHASE12_SHARED_SMOKE_SURFACE_COUNT=6",
@@ -287,6 +289,7 @@ EXACT_COUNT_FILE_MARKERS = {
     PHASE12_RAW_GITHUB_COVERAGE_PATH: {
         "PHASE12_SHARED_SMOKE_SURFACE_COUNT=6": 1,
         "current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`": 1,
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`": 1,
         "`make -C zigux phase12-smoke`": 1,
         "`make -C zigux phase12`": 1,
     },
