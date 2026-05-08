@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-perf-buffer-poll`
-- scope: observed wait-result normalization, ready-buffer bookkeeping, bounded buffer-fd and buffer-window lookup plus return shaping, and ordered record-processing summaries only
+- scope: observed wait-result normalization, ready-buffer bookkeeping, bounded buffer-fd and buffer-window lookup plus return shaping, signaled-buffer ordinal lookup plus return shaping, and ordered record-processing summaries only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `zigux/tests/phase8_perf_buffer_poll.zig`
@@ -56,6 +56,8 @@ The current bounded helper covers:
 - return shaping for valid buffer fds, invalid indices, and missing buffer fds
 - explicit `perf_buffer__buffer(buf_idx)` slot lookup classification
 - return shaping for valid buffer windows, invalid indices, and missing buffers while preserving the caller-provided mmap size
+- explicit signaled-buffer ordinal lookup classification across ready and error-bearing buffer observations
+- return shaping for valid signal ordinals and out-of-range ordinals
 - ready-buffer processing attempts cannot exceed observed ready events
 - ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch
 - non-ready wait observations cannot claim record processing
@@ -71,6 +73,7 @@ The current tests check:
 - return-path helpers that preserve the successful ready count until the first processing failure wins instead
 - buffer-fd slot lookups and errno-shaped invalid-index or missing-fd returns
 - buffer-window slot lookups and return shaping for valid buffer windows, invalid indices, and missing buffers
+- signaled-buffer ordinal lookup and return shaping for valid signaled slots and out-of-range ordinals
 - impossible processing paths that overrun the observed ready-event budget
 - the narrower counted-ready-buffer guard trips before any broader observed-ready-event mismatch
 - impossible post-wait buffer state combinations that must stay rejected
