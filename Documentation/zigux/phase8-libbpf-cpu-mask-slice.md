@@ -10,6 +10,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - product boundary:
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
   - `zigux/tests/phase8_cpu_mask.zig`
+  - `zigux/tests/phase8_cpu_mask_only_build.zig`
   - `zigux/tests/phase8_build.zig`
   - `tools/lib/bpf/zigux_segments/manifest.json`
 
@@ -24,10 +25,13 @@ The Phase 8 roadmap explicitly names `tools/lib/bpf/libbpf.c` as a tooling ancho
 1. run the focused Zig module tests
 - `zig test tools/lib/bpf/zigux_segments/cpu_mask.zig`
 
-2. run the dedicated Phase 8 tooling gate
+2. run the focused cpu-mask build shard
+- `zig build test --build-file zigux/tests/phase8_cpu_mask_only_build.zig --summary all`
+
+3. run the dedicated Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig`
 
-3. run the convenience target
+4. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
