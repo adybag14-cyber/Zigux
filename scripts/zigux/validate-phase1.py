@@ -241,6 +241,7 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
     },
     "tools/lib/string.zig": {
         "helper_test_anchors": [
+            'test "sysfsStreq treats trailing newline and NUL as equivalent"',
             'test "memparse applies suffixes before signed clamping"',
             'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
         ],
@@ -478,7 +479,7 @@ def run_self_test() -> None:
         tmp_root = Path(tmp)
         make_fixture_root(tmp_root)
         (tmp_root / "Documentation" / "zigux" / "README.md").write_text(DOC_MARKERS["docs_root_phase1_packet"][0] + "\n" + DOC_MARKERS["docs_root_phase1_packet"][1] + "\n", encoding="utf-8")
-        (tmp_root / "zigux" / "tests" / "README.md").write_text(DOC_MARKERS["tests_root_phase1_packet"][0] + "\n" + DOC_MARKERS["tests_root_phase1_packet"][1] + "\n", encoding="utf-8")
+        (tmp_root / "zigux" / "tests" / "README.md").writeText(DOC_MARKERS["tests_root_phase1_packet"][0] + "\n" + DOC_MARKERS["tests_root_phase1_packet"][1] + "\n", encoding="utf-8")
         (tmp_root / "Documentation" / "zigux" / "review-checklist.md").write_text(DOC_MARKERS["review_checklist_phase1_packet"][0] + "\n" + DOC_MARKERS["review_checklist_phase1_packet"][1] + "\n", encoding="utf-8")
         (tmp_root / "tools" / "lib" / "bitmap.zig").write_text('\n'.join(SOURCE_MARKERS["bitmap_test_anchor"][1]) + '\n', encoding="utf-8")
         (tmp_root / "tools" / "lib" / "find_bit.zig").write_text('\n'.join(SOURCE_MARKERS["find_bit_test_anchor"][1]) + '\n', encoding="utf-8")
