@@ -127,10 +127,11 @@ The strongest current Phase 15 sequencing rule is simple:
 - keep shared summaries compact while packet-local replay inventories stay in the sequencing note, readiness note, handoff note, or dedicated replay guards
 - use `P15-Y06` only for shared summaries or shared build wiring
 - keep every Phase 15 governance run parked unless a named reopen trigger fires or the deep-core blocker posture changes
+- current `master` already closed the older shared tests-root follow-through: `zigux/tests/README.md` explicitly carries both `zigux/tests/phase15_indefinite_c_blocker_evidence.zig` and `zigux/tests/phase15_governance_lane_sequencing.zig`, so future `P15-Y06` runs should not reopen that tests-root touch unless one of those anchors disappears again
 
 ## Recommended next-step order
 
-1. shared summary and build-wiring lane only when the owner split itself drifts
+1. shared summary and build-wiring lane only when the owner split itself drifts; on current `master`, the next honest shared-summary candidate is the docs-root Phase 15 summary explicitly naming `.github/workflows/zigux-bootstrap.yml` if that workflow pointer still needs to stay visible there beside the checker-backed and build-backed replay routes
 2. the owning packet lane when one note, manifest, checker, or replay route stops matching current `master`
 3. no deep-core status-change work until the blocker posture changes enough to justify a fresh Architecture Council slice
 
