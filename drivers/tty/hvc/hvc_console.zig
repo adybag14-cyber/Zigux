@@ -5,6 +5,10 @@ pub const outbuf_capacity: usize = 16;
 pub const removed_vtermno: u32 = std.math.maxInt(u32);
 pub const eagain: isize = -11;
 pub const close_wait_hz_divisor: usize = 100;
+pub const min_timeout_ms: u32 = 10;
+pub const max_timeout_ms: u32 = 2000;
+pub const hvc_poll_read: u32 = 0x00000001;
+pub const hvc_poll_write: u32 = 0x00000002;
 
 pub const FlushIntent = enum {
     none,
@@ -219,6 +223,35 @@ pub const KhvcdPollingContractSnapshot = struct {
     khvcd_polling_pending: bool,
     bounded_reschedule_pending: bool,
     teardown_host_io_pending: bool,
+};
+
+pub const KhvcdWorkerEntryRequest = struct {
+    polling: KhvcdPollingContractRequest = .{},
+    xmon_active: bool = false,
+    hvc_kicked_after_poll: bool = false,
+    timeout_ms: u32 = min_timeout_ms,
+};
+
+pub const KhvcdWorkerEntrySnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    final_close_wait_required: bool,
+    clears_port_initialized_on_final_close: bool,
+    keeps_console_binding: bool,
+    tty_registration_pending: bool,
+    khvcd_polling_pending: bool,
+    poll_read_pending: bool,
+    poll_write_pending: bool,
+    poll_mask: u32,
+    xmon_forces_read_poll: bool,
+    wakeup_short_circuited_by_kick: bool,
+    sleeps_without_timeout: bool,
+    sleeps_with_timeout: bool,
+    timeout_ms_before_sleep: u32,
+    timeout_ms_after_backoff: u32,
+    backend_handoff_pending: bool,
 };
 
 pub const HangupDisconnectRequest = struct {
@@ -542,6 +575,43 @@ pub const HvcConsoleLab = struct {
         };
     }
 
+    pub fn summarizeKhvcdWorkerEntry(
+        self: *const Self,
+        request: KhvcdWorkerEntryRequest,
+    ) !KhvcdWorkerEntrySnapshot {
+        const polling = try self.summarizeKhvcdPollingContract(request.polling);
+        const poll_read_pending = request.xmon_active or polling.read_poll_pending;
+        const poll_write_pending = polling.write_poll_pending;
+        var poll_mask: u32 = 0;
+        if (poll_read_pending) poll_mask |= hvc_poll_read;
+        if (poll_write_pending) poll_mask |= hvc_poll_write;
+
+        const sleeps_without_timeout = !request.hvc_kicked_after_poll and poll_mask == 0;
+        const sleeps_with_timeout = !request.hvc_kicked_after_poll and poll_mask != 0;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = polling.slot_index,
+            .vtermno = polling.vtermno,
+            .adapter_present = polling.adapter_present,
+            .final_close_wait_required = polling.final_close_wait_required,
+            .clears_port_initialized_on_final_close = polling.clears_port_initialized_on_final_close,
+            .keeps_console_binding = polling.keeps_console_binding,
+            .tty_registration_pending = polling.tty_registration_pending,
+            .khvcd_polling_pending = polling.khvcd_polling_pending,
+            .poll_read_pending = poll_read_pending,
+            .poll_write_pending = poll_write_pending,
+            .poll_mask = poll_mask,
+            .xmon_forces_read_poll = request.xmon_active,
+            .wakeup_short_circuited_by_kick = request.hvc_kicked_after_poll,
+            .sleeps_without_timeout = sleeps_without_timeout,
+            .sleeps_with_timeout = sleeps_with_timeout,
+            .timeout_ms_before_sleep = request.timeout_ms,
+            .timeout_ms_after_backoff = if (sleeps_with_timeout) nextWorkerTimeoutMs(request.timeout_ms) else request.timeout_ms,
+            .backend_handoff_pending = polling.teardown_host_io_pending or poll_mask != 0,
+        };
+    }
+
     pub fn summarizeHangupDisconnect(
         self: *const Self,
         request: HangupDisconnectRequest,
@@ -646,6 +716,13 @@ fn summarizeFlushProgress(
         .flush_progress = if (remaining_len == 0) .fully_written else .partial_write,
         .dropped_on_error = false,
     };
+}
+
+fn nextWorkerTimeoutMs(timeout_ms: u32) u32 {
+    if (timeout_ms >= max_timeout_ms) return max_timeout_ms;
+
+    const bumped = timeout_ms + (timeout_ms >> 6) + 1;
+    return @min(max_timeout_ms, bumped);
 }
 
 fn frameConsoleWrite(input: []const u8, output: *[outbuf_capacity * 2]u8) !usize {
