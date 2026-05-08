@@ -34,7 +34,7 @@ It is to make the blocked state reviewable and record the first stay-in-C checkl
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live source still carries explicit nesting state through `MAX_NEST`, `current_context`, `committing`, `commits`, and `nest` on `struct ring_buffer_per_cpu`, which means the roadmap's requested concurrency audit should keep nested-writer sequencing reviewable instead of reducing this lane to a size-only survey.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
-- the survey manifest now records a landed decision checklist plus the nested-writer, overwrite, tracefs reader-serialization, remote-reader metadata, wakeup or mmap, tracefs mapping limitation, mapped-reader ioctl, reader-page consume, exported-page copy-path, and mapped-reader lifetime audits so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
+- the survey manifest now records a landed decision checklist plus the nested-writer, overwrite, tracefs reader-serialization, remote-reader metadata, wakeup or mmap, tracefs mapping limitation, mapped-reader ioctl, reader-page consume, exported-page copy-path, mapped-reader lifetime, and concurrent mapped-reader governance audits so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
 - the mapping docs already allow multiple mapped readers but call their output unpredictable, which means reader-competition governance should stay explicit in this survey note rather than hide as a side remark inside the ioctl path.
 
 ## Decision checklist
@@ -193,6 +193,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-reader-page-consume-followup`
 - landed `phase14-ring-buffer-read-page-copy-followup`
 - landed `phase14-ring-buffer-mapped-reader-lifetime-followup`
+- landed `phase14-ring-buffer-concurrent-mapped-reader-governance-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
