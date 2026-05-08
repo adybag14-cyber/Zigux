@@ -36,6 +36,7 @@ def execute_slices(entries: list[object], fail_fast: bool, runner) -> list[str]:
 
 
 def run_self_test() -> int:
+    case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_runner_selftest_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         alpha = tmp_dir / "check-phase3-alpha.py"
@@ -48,13 +49,16 @@ def run_self_test() -> int:
         ]
 
         assert [entry.slug for entry in select_slices(entries, [])] == ["alpha", "beta", "gamma"]
+        case_count += 1
         assert [entry.slug for entry in select_slices(entries, ["beta"])] == ["beta"]
+        case_count += 1
         try:
             select_slices(entries, ["missing"])
         except SystemExit as exc:
             assert str(exc) == "unknown Phase 3 slugs: missing"
         else:
             raise AssertionError("expected missing slug to fail")
+        case_count += 1
 
         calls: list[tuple[str, str, str]] = []
 
@@ -69,6 +73,7 @@ def run_self_test() -> int:
             ("beta", "beta", "phase3-beta-dump"),
             ("gamma", "gamma", "phase3-gamma-dump"),
         ]
+        case_count += 1
 
         calls.clear()
         failures = execute_slices(select_slices(entries, []), fail_fast=True, runner=fake_runner)
@@ -77,8 +82,10 @@ def run_self_test() -> int:
             ("alpha", "alpha", "phase3-alpha-dump"),
             ("beta", "beta", "phase3-beta-dump"),
         ]
+        case_count += 1
 
     print("PHASE3_RUNNER_SELF_TEST=pass")
+    print(f"PHASE3_RUNNER_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
