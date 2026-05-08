@@ -175,6 +175,8 @@ SOURCE_MARKERS = {
         "tools/lib/string.zig",
         [
             'test "memparse applies suffixes before signed clamping"',
+            'test "memchrInv follows the earliest dirty byte as long buffers change"',
+            'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
             'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
         ],
     ),
@@ -268,6 +270,8 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
     "tools/lib/string.zig": {
         "helper_test_anchors": [
             'test "memparse applies suffixes before signed clamping"',
+            'test "memchrInv follows the earliest dirty byte as long buffers change"',
+            'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
             'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
         ],
         "memparse_review_anchors": [
