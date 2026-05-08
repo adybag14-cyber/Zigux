@@ -42,6 +42,7 @@ REQUIRED_REVIEW_PACKET_FIELDS = (
     "decision record ID",
     "owner",
     "rollback owner",
+    "required approver set",
     "validation gate summary",
     "evidence archive path",
     "latest blocker disposition",
@@ -425,6 +426,13 @@ def run_self_test() -> int:
         case_count += 1
 
         manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["required_review_packet_fields"].remove("required approver set")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest_required_review_packet_fields:required approver set"], "missing_required_approver_set_review_field")
+        write_fixture_tree(root)
+        case_count += 1
+
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["required_review_packet_fields"].remove("rollback threshold")
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
