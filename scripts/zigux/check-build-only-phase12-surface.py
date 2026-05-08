@@ -162,7 +162,7 @@ REQUIRED_FILE_MARKERS = {
     ],
     LIBBPF_SURVEY_PATH: [
         "public fallback posture: shared-tree-only anchor",
-        "Documentation/zigux/phase12-release-closure-checklist.md",
+        "Documentation/zigux/phase12-release-closure-checklist.md`",
         "the older segment catalog still leaves two bounded shared-bridge helpers explicitly nearer than the object-model wall",
     ],
     SCRIPTS_README_PATH: [
@@ -184,6 +184,7 @@ REQUIRED_FILE_MARKERS = {
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
+        "`zigux/tests/phase12_virtio_net_manifest.json`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`scripts/zigux/check-build-only-phase12-surface.py`",
