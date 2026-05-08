@@ -173,6 +173,45 @@ def run_self_test() -> int:
 
         write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
 
+        broken_manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
+        broken_manifest_path.write_text(
+            broken_manifest_path.read_text(encoding="utf-8").replace(
+                '"rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence"\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            'missing marker in zigux/tests/phase14_end_to_end_smoke_manifest.json: "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence"'
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the shared smoke manifest lost the rollback-owner marker", file=sys.stderr)
+            return 1
+
+        write_text(broken_manifest_path, required_text("zigux/tests/phase14_end_to_end_smoke_manifest.json"))
+
+        broken_manifest_path.write_text(
+            broken_manifest_path.read_text(encoding="utf-8").replace(
+                '"net/core/skbuff.c"\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            'missing marker in zigux/tests/phase14_end_to_end_smoke_manifest.json: "net/core/skbuff.c"'
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the shared smoke manifest lost a blocked anchor marker", file=sys.stderr)
+            return 1
+
+        write_text(broken_manifest_path, required_text("zigux/tests/phase14_end_to_end_smoke_manifest.json"))
+
         broken_smoke_path.write_text(
             broken_smoke_path.read_text(encoding="utf-8").replace(
                 "- `make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig`\n",
