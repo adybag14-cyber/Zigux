@@ -249,7 +249,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("INVALID_CONF_CASE_SYNCCONFIG_FIELDS", f"{name}:nosilentupdate"))
 
         if mode not in ALLCONFIG_OVERRIDE_MODES and "allconfig" in case:
-            issues.append(("INVALID_CONF_CASE_ALLCONFIG_FIELDS", f"{name}:allconfig}"))
+            issues.append(("INVALID_CONF_CASE_ALLCONFIG_FIELDS", f"{name}:allconfig"))
 
         rel_path = case["expected"]
         if not (fixture_dir / rel_path).exists():
