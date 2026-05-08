@@ -55,6 +55,8 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "`zigux/tests/phase11_hvc_cleanup.zig`",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
     "cleanup-prerequisite failure replays in `drivers/tty/hvc/hvc_console_verify.zig`",
+    "targetless-dispatch and no-dispatch notifier-deferral replays in `drivers/tty/hvc/hvc_console_verify.zig`",
+    "notifier prerequisite, never-registered, targetless, and targetless-sysrq failure-mode replays in `drivers/tty/hvc/hvc_console_verify.zig`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`zigux/Makefile`",
     "`.github/workflows/zigux-bootstrap.yml`",
@@ -75,7 +77,16 @@ REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS = [
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`make -C zigux phase11-hvc-survey`",
     "`zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff",
-    "`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close",
+    "`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet",
+]
+
+REQUIRED_VERIFY_REPLAY_MARKERS = [
+    'test "hvc_console verify keeps cleanup prerequisite failures explicit"',
+    'test "hvc_console verify keeps open notifier-state failures explicit"',
+    'test "hvc_console verify keeps notifier prerequisite failures explicit"',
+    'test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces"',
+    'test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks"',
+    'test "hvc_console verify keeps sysrq notifier deferral false without dispatch"',
 ]
 
 REQUIRED_MANIFEST_MARKERS = [
@@ -106,7 +117,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 24
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -144,6 +155,7 @@ def validate(root: Path) -> list[str]:
     teardown_note = read_text(root, TEARDOWN_NOTE_PATH)
     validation_matrix = read_text(root, VALIDATION_MATRIX_PATH)
     shared_replay_contract = read_text(root, SHARED_REPLAY_CONTRACT_PATH)
+    verify_replay = read_text(root, VERIFY_REPLAY_PATH)
     manifest = read_text(root, MANIFEST_PATH)
     build_file = read_text(root, BUILD_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
@@ -161,6 +173,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS:
         if marker not in shared_replay_contract:
             failures.append(f"shared_replay_contract:{marker}")
+    for marker in REQUIRED_VERIFY_REPLAY_MARKERS:
+        if marker not in verify_replay:
+            failures.append(f"verify_replay:{marker}")
     for marker in REQUIRED_MANIFEST_MARKERS:
         if marker not in manifest:
             failures.append(f"manifest:{marker}")
@@ -219,6 +234,8 @@ The live archival packet now belongs to lane `P11-L16`.
 - `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_manifest.json`
 - keeps the compile-local final-close, hung-up cleanup, and cleanup-prerequisite failure replays in `drivers/tty/hvc/hvc_console_verify.zig` explicit inside the shared packet
+- keeps the compile-local targetless-dispatch and no-dispatch notifier-deferral replays in `drivers/tty/hvc/hvc_console_verify.zig` explicit inside the shared packet
+- keeps the compile-local notifier prerequisite, never-registered, targetless, and targetless-sysrq failure-mode replays in `drivers/tty/hvc/hvc_console_verify.zig` explicit inside the shared packet
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
@@ -244,13 +261,28 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 - `make -C zigux phase11-hvc-survey`
 
 `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff reviewable without implying live tty teardown.
-`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up cleanup, and notifier-facing failure-mode replays beside the shared packet.
+`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet.
 """,
     )
     write_text(
         root / VERIFY_REPLAY_PATH,
         """const std = @import("std");
-test "synthetic hvc verify replay" {
+test "hvc_console verify keeps cleanup prerequisite failures explicit" {
+    try std.testing.expect(true);
+}
+test "hvc_console verify keeps open notifier-state failures explicit" {
+    try std.testing.expect(true);
+}
+test "hvc_console verify keeps notifier prerequisite failures explicit" {
+    try std.testing.expect(true);
+}
+test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces" {
+    try std.testing.expect(true);
+}
+test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks" {
+    try std.testing.expect(true);
+}
+test "hvc_console verify keeps sysrq notifier deferral false without dispatch" {
     try std.testing.expect(true);
 }
 """,
@@ -393,6 +425,18 @@ def run_self_test() -> int:
             expect_failure(
                 root,
                 VALIDATION_MATRIX_PATH,
+                "targetless-dispatch and no-dispatch notifier-deferral replays in `drivers/tty/hvc/hvc_console_verify.zig`",
+                "validation_matrix:targetless-dispatch and no-dispatch notifier-deferral replays in `drivers/tty/hvc/hvc_console_verify.zig`",
+            )
+            expect_failure(
+                root,
+                VALIDATION_MATRIX_PATH,
+                "notifier prerequisite, never-registered, targetless, and targetless-sysrq failure-mode replays in `drivers/tty/hvc/hvc_console_verify.zig`",
+                "validation_matrix:notifier prerequisite, never-registered, targetless, and targetless-sysrq failure-mode replays in `drivers/tty/hvc/hvc_console_verify.zig`",
+            )
+            expect_failure(
+                root,
+                VALIDATION_MATRIX_PATH,
                 "`make -C zigux phase11-hvc-survey`",
                 "validation_matrix:`make -C zigux phase11-hvc-survey`",
             )
@@ -449,6 +493,30 @@ def run_self_test() -> int:
                 SHARED_REPLAY_CONTRACT_PATH,
                 "`zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff",
                 "shared_replay_contract:`zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff",
+            )
+            expect_failure(
+                root,
+                SHARED_REPLAY_CONTRACT_PATH,
+                "`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet",
+                "shared_replay_contract:`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet",
+            )
+            expect_failure(
+                root,
+                VERIFY_REPLAY_PATH,
+                'test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces"',
+                'verify_replay:test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces"',
+            )
+            expect_failure(
+                root,
+                VERIFY_REPLAY_PATH,
+                'test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks"',
+                'verify_replay:test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks"',
+            )
+            expect_failure(
+                root,
+                VERIFY_REPLAY_PATH,
+                'test "hvc_console verify keeps sysrq notifier deferral false without dispatch"',
+                'verify_replay:test "hvc_console verify keeps sysrq notifier deferral false without dispatch"',
             )
             expect_failure(
                 root,
