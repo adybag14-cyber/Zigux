@@ -11,7 +11,7 @@ This document records the bounded shared closure packet for the active Phase 10 
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
-- scope: one shared closure note for the shipped virtio core, ring, input, and MMIO lab slices plus their current manifest-backed checker, 14-file tests-root build packet, four driver-local verifier replays, and Linux-style replay routes
+- scope: one shared closure note for the shipped virtio core, ring, input, and MMIO lab slices, the bounded core-side `virtio_driver_id` helper, their current manifest-backed checker, 14-file tests-root build packet, four driver-local verifier replays, and Linux-style replay routes
 
 ## Why this note exists
 
@@ -42,6 +42,7 @@ The shared Phase 10 closure packet currently stays inside:
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `zigux/tests/README.md`
 - `drivers/virtio/virtio.zig`
+- `drivers/virtio/virtio_driver_id.zig`
 - `drivers/virtio/virtio_verify.zig`
 - `drivers/virtio/virtio_ring.zig`
 - `drivers/virtio/virtio_ring_verify.zig`
