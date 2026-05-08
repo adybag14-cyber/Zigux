@@ -70,9 +70,12 @@ EXPECTED_COMPONENTS = {
         "blocked_gap": "phase10-core-probe-remove-lifecycle",
         "landed_helper_key": "landed_core_helper_evidence",
         "landed_helper_evidence": [
-            "phase10-config-generation-summary-helper",
-            "phase10-config-delivery-disposition-helper",
-            "phase10-config-driver-toggle-guard-helper",
+            "phase10-queue-shape-bookkeeping-helper",
+            "phase10-config-generation-bookkeeping-helper",
+            "phase10-interrupt-ack-bookkeeping-helper",
+            "phase10-lifecycle-guard-bookkeeping-helper",
+            "phase10-driver-validation-narrowing-helper",
+            "phase10-reset-replay-bookkeeping-helper",
         ],
     },
     "ring": {
@@ -491,6 +494,14 @@ def run_self_test() -> int:
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
 
         drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
+        drifted["landed_core_helper_evidence"][CORE_MANIFEST_PATH] = ["phase10-queue-shape-bookkeeping-helper"]
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
+        _, missing_markers = validate(tmp_root)
+        if f"closure_manifest:landed_core_helper_evidence.{CORE_MANIFEST_PATH}" not in missing_markers:
+            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_core_helper_marker_missing")
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
+
+        drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
         drifted["landed_ring_helper_evidence"][RING_MANIFEST_PATH] = ["phase10-virtqueue-shape-helper"]
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
         _, missing_markers = validate(tmp_root)
@@ -554,7 +565,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_phase14_boundary_policy_marker_missing")
 
     print("PHASE10_MMIO_FREEZE_BOUNDARY=pass")
-    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
