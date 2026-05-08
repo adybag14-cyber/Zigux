@@ -19,7 +19,7 @@ PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 6
 BASELINE_CONSTANTS = (
     ("ZIGUX_FACILITY_KERNEL", "FACILITY_KERNEL", "facility_kernel", 1),
     ("ZIGUX_STATUS_FLAG_ERROR", "STATUS_FLAG_ERROR", "status_flag_error", 1),
-    ("ZIGUX_PANIC_ABORT", "Panic_ABORT", "panic_abort", 0),
+    ("ZIGUX_PANIC_ABORT", "PANIC_ABORT", "panic_abort", 0),
     ("ZIGUX_ALLOC_CALLER_PROVIDED", "ALLOC_CALLER_PROVIDED", "allocator_caller_provided", 0),
     ("ZIGUX_UNSAFE_RAW_POINTER_BRIDGE", "UNSAFE_RAW_POINTER_BRIDGE", "unsafe_scope_raw_pointer_bridge", 2),
 )
