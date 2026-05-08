@@ -325,6 +325,12 @@ jobs:
       - name: Run focused Phase 8 exec-cmd tests
         run: make -C zigux phase8-exec-cmd-test
 
+      - name: Run focused Phase 8 help tests
+        run: make -C zigux phase8-help-test
+
+      - name: Run focused Phase 8 kallsyms tests
+        run: make -C zigux phase8-kallsyms-test
+
       - name: Run focused Phase 8 help and kallsyms tests
         run: make -C zigux phase8-help-kallsyms-test
 
