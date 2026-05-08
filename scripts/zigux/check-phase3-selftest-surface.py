@@ -596,6 +596,11 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/validate_phase3_selftest.py" in issues
 
         build_self_test_root(root)
+        (root / "scripts/zigux/check-phase3-readme-tooling-inventory.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/check-phase3-readme-tooling-inventory.py" in issues
+
+        build_self_test_root(root)
         (root / "scripts/zigux/check-phase3-abi-dump-gate.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/check-phase3-abi-dump-gate.py" in issues
@@ -616,7 +621,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=32")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
