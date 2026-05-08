@@ -47,6 +47,8 @@ These files are shipped adjacent release-surface evidence on `master`, but they 
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+- `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `zigux/tests/phase13_libfs_addressability.zig`
@@ -56,6 +58,8 @@ These files are shipped adjacent release-surface evidence on `master`, but they 
 - `zigux/bindings/notifier_abi.zig`
 - `include/zigux/notifier_abi.h`
 - `zigux/helpers/notifier_chain_view.zig`
+
+The helper-owned Landlock boundary notes stay in the broader shipped release packet because they record the current ruleset ownership and syscall-governance limits that still block tranche closure, but they do not add extra shared replay steps beyond the eight-test route above.
 
 ## Current blocker posture
 
@@ -67,6 +71,14 @@ It remains an active helper-first release packet while these boundaries stay exp
 - `lib/devres.zig` does not claim live DMA-backed mapping beyond the bounded coherent replay or scatterlist ownership
 - `lib/devres.zig` does not claim live arch memtype state mutation
 - the notifier survey, dedicated notifier packet checker, manifest, reviewability replay, ABI-helper surfaces, and the focused `libfs` plus `landlock syscalls` direct-evidence shards remain adjacent release evidence rather than extra shared replay steps
+
+## Tranche-closure posture
+
+The current Phase 13 packet still ships with no dedicated `Documentation/zigux/phase13-closure.md` note on `master`.
+
+That absence is intentional: the release-facing helper tranche remains active until the shared replay, the adjacent helper-owned Landlock boundary notes, and the remaining blocker posture all say the same thing.
+
+`Documentation/zigux/phase13-release-notes-survey.md` and `Documentation/zigux/phase13-roadmap-traceability.md` therefore carry the current release-facing closure posture for the existing work instead of implying that a closed tranche record already exists.
 
 ## Replay commands
 
