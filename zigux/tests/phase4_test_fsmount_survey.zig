@@ -168,6 +168,13 @@ test "phase4 test_fsmount survey build replay stays aligned with the parked pack
     try std.testing.expect(
         std.mem.indexOf(
             u8,
+            phase4_build,
+            "test_step.dependOn(&run_test_fsmount_survey_tests.step);",
+        ) == null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
             note,
             "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
         ) != null,
