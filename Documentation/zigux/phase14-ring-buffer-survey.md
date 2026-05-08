@@ -35,6 +35,7 @@ It is to make the blocked state reviewable and record the first stay-in-C checkl
 - the live source still carries explicit nesting state through `MAX_NEST`, `current_context`, `committing`, `commits`, and `nest` on `struct ring_buffer_per_cpu`, which means the roadmap's requested concurrency audit should keep nested-writer sequencing reviewable instead of reducing this lane to a size-only survey.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
 - the survey manifest now records a landed decision checklist plus the nested-writer, overwrite, tracefs reader-serialization, remote-reader metadata, wakeup or mmap, tracefs mapping limitation, mapped-reader ioctl, reader-page consume, exported-page copy-path, and mapped-reader lifetime audits so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
+- the mapping docs already allow multiple mapped readers but call their output unpredictable, which means reader-competition governance should stay explicit in this survey note rather than hide as a side remark inside the ioctl path.
 
 ## Decision checklist
 
@@ -161,6 +162,17 @@ Intermediate unmaps simply decrement the shared counters through `__rb_inc_dec_m
 - The same shared contract also explains why this lane stays study-only.
 Because duplicated mappings, last-user teardown, and meta-page lifetime all remain serialized with the existing reader and buffer locks, Phase 14 should record the lifetime choreography rather than imply that Zigux can safely own one isolated helper in the middle of it.
 
+## Concurrent mapped-reader governance note
+
+- The mapping docs do not ban concurrent readers, but they do treat them as deliberately unstable for predictable output.
+Multiple mapped consumers compete for the same ring buffer, and `Documentation/trace/ring-buffer-map.rst` warns that the resulting output is allowed but not recommended because reader competition stays visible to user space.
+- The live implementation keeps that warning backed by shared state instead of per-reader ownership.
+`ring_buffer_map_dup()` preserves `user_mapped`, `tracing_buffers_ioctl()` routes `TRACE_MMAP_IOCTL_GET_READER` through the existing mapped-reader handoff, and `ring_buffer_map_get_reader()` serializes page advancement under `reader_lock`, so competing mappings still share one reader-visible arbitration point.
+- That means there is no wrapper-sized concurrency seam hiding inside the ioctl path.
+Even when each individual reader transition is serialized, the product-visible rule for who advances, who observes lost events first, and when output becomes unpredictable still depends on the same shared mapping state, reader lock choreography, and meta-page publication described in the adjacent mmap and lifetime audits.
+- The Phase 14 study-only decision is therefore explicit here.
+Concurrent mapped-reader governance stays in C beside the existing wait, ioctl, and mapping-lifetime contracts, and Zigux should record that caution as boundary evidence rather than imply a new helper or bridge around reader competition.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -194,6 +206,7 @@ This survey slice does not claim:
 - reader-page handoff parity for `rb_get_reader_page()`
 - remote-reader metadata parity for `rb_read_remote_meta_page()` and `__rb_get_reader_page_from_remote()`
 - consuming or non-consuming read parity for `ring_buffer_consume()` and `ring_buffer_read_start()`
+- concurrent mapped-reader arbitration ownership
 - overwrite, wakeup, resize, snapshot, reset, or mapped-reader teardown ownership
 - mmap or splice ownership for the tracefs ring-buffer interfaces
 
@@ -206,4 +219,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Leave this ring-buffer survey lane parked unless a later Phase 14 traceability or release-boundary refresh needs to restate the current writer-stack, tracefs reader-serialization, reader-page, remote-reader, mapped-reader, exported-page, or mapped-reader lifetime stay-in-C boundary after another anchor-local survey change. Any future ring-buffer work here should stay on the study-only side of writer-stack, tracefs reader serialization, reader, wakeup, mapping, remote-reader, exported-page, or mapping-lifetime boundary evidence rather than reopening a bridge or port claim.
+Leave this ring-buffer survey lane parked unless a later Phase 14 traceability or release-boundary refresh needs to restate the current concurrent-reader, writer-stack, tracefs reader-serialization, reader-page, remote-reader, mapped-reader, exported-page, or mapped-reader lifetime stay-in-C boundary after another anchor-local survey change. Any future ring-buffer work here should stay on the study-only side of writer-stack, concurrent-reader governance, reader, wakeup, mapping, remote-reader, exported-page, or mapping-lifetime boundary evidence rather than reopening a bridge or port claim.
