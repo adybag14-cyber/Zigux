@@ -19,6 +19,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+    "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-genksyms-crc-diff.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
@@ -34,6 +35,7 @@ REQUIRED_FILES = [
     "scripts/zigux/fixdep.zig",
     "scripts/zigux/genksyms.zig",
     "scripts/zigux/genksyms_crc.zig",
+    "scripts/zigux/check-mk-elfconfig-diff.py",
     "scripts/zigux/mk_elfconfig.zig",
     "scripts/zigux/kconfig/conf_bridge.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig",
@@ -232,11 +234,13 @@ FILE_MARKERS = {
 
 MISSING_FILE_CASES = [
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+    "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-genksyms-crc-diff.py",
     "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "scripts/zigux/genksyms_crc.zig",
     "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-mk-elfconfig-diff.py",
 ]
 
 
@@ -346,7 +350,7 @@ def run_self_test() -> int:
             assert f"missing_file:{rel_path}" in issues
             case_count += 1
 
-    assert case_count == 97
+    assert case_count == 99
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
