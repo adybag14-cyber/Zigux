@@ -95,6 +95,13 @@ ABSENT_VALIDATE_TARGETS = (
     "phase12-validate",
 )
 
+PHASE2_TOOLCHAIN_TARGET = "phase2-toolchain"
+PHASE2_TOOLCHAIN_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+)
+
 PHASE3_VALIDATE_TARGET = "phase3-validate"
 PHASE3_VALIDATE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py",
@@ -227,6 +234,16 @@ def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
         issues.append("missing_readme_helper_entries")
     return entries, issues
 
+def _is_makefile_target_header(raw: str) -> bool:
+    if raw.startswith((" ", "\t")):
+        return False
+    stripped = raw.strip()
+    if not stripped or stripped.startswith("#"):
+        return False
+    if ":=" in stripped or "?=" in stripped or "+=" in stripped or "!=" in stripped:
+        return False
+    return ":" in stripped
+
 def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | None:
     in_target = False
     lines: list[str] = []
@@ -234,10 +251,10 @@ def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | No
     for raw in makefile.splitlines():
         stripped = raw.strip()
         if not in_target:
-            if stripped == target_header:
+            if stripped.startswith(target_header):
                 in_target = True
             continue
-        if stripped.endswith(":") and not raw.startswith((" ", "\t")):
+        if _is_makefile_target_header(raw):
             break
         lines.append(raw)
     return lines if in_target else None
@@ -337,6 +354,7 @@ def validate(root: Path) -> list[str]:
     for target in ABSENT_VALIDATE_TARGETS:
         if _collect_makefile_target_lines(makefile, target) is not None:
             issues.append(f"unexpected_makefile_target:{target}")
+    _validate_target_commands(issues, makefile, PHASE2_TOOLCHAIN_TARGET, PHASE2_TOOLCHAIN_COMMANDS)
     _validate_target_commands(issues, makefile, PHASE3_VALIDATE_TARGET, PHASE3_VALIDATE_COMMANDS)
     _validate_target_helpers(issues, makefile, PHASE6_VALIDATE_TARGET, PHASE6_VALIDATE_HELPERS)
     _validate_target_commands(issues, makefile, PHASE7_VALIDATE_TARGET, PHASE7_VALIDATE_COMMANDS)
@@ -592,6 +610,19 @@ def run_self_test() -> int:
             "missing_phase2_fixdep_gate_readme_guard_failed",
         )
         _write(root / README_REL, baseline_readme)
+        case_count += 1
+
+        cmd = "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py\n"
+        _write(root / MAKEFILE_REL, baseline_makefile.replace(cmd, "", 1))
+        _assert_only(
+            validate(root),
+            [
+                f"missing_makefile_command:{PHASE2_TOOLCHAIN_TARGET}:{cmd.strip()}",
+                f"makefile_command_order_drift:{PHASE2_TOOLCHAIN_TARGET}",
+            ],
+            "missing_phase2_toolchain_pin_scope_live_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
 
         path = root / "scripts" / "zigux" / "check-phase6-shared-surface.py"
