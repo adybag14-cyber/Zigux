@@ -12,7 +12,7 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 13
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 14
 
 
 @dataclass(frozen=True)
@@ -173,9 +173,36 @@ def _populate_root(root: Path) -> None:
         write_script(root / target.relpath, target.marker or "PASS", extra_markers=target.extra_markers)
 
 
+def _require_target(
+    relpath: str,
+    marker: str,
+    *,
+    extra_markers: tuple[str, ...] = (),
+    targets: tuple[SelfTestTarget, ...] = SELF_TEST_TARGETS,
+) -> None:
+    matches = [target for target in targets if target.relpath == relpath]
+    assert len(matches) == 1, f"expected exactly one self-test target for {relpath}"
+    target = matches[0]
+    assert target.marker == marker, f"unexpected pass marker for {relpath}: {target.marker!r}"
+    assert target.extra_markers == extra_markers, (
+        f"unexpected aux markers for {relpath}: {target.extra_markers!r}"
+    )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_selftest_runner_") as tmp_dir:
         tmp_root = Path(tmp_dir)
+
+        _require_target(
+            "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+            "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",
+            extra_markers=("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=",),
+        )
+        _require_target(
+            "scripts/zigux/check-phase3-policy-byte-guards.py",
+            "PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass",
+            extra_markers=("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=",),
+        )
 
         success_root = tmp_root / "success"
         _populate_root(success_root)
