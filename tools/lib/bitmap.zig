@@ -177,6 +177,9 @@ pub fn andBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return false;
+    }
 
     const lim = nbits / bits_per_long;
     var result: Word = 0;
@@ -203,6 +206,9 @@ pub fn andNotBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: us
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return false;
+    }
 
     const lim = nbits / bits_per_long;
     var result: Word = 0;
@@ -228,6 +234,9 @@ pub fn bitmap_andnot(dst: []Word, src1: []const Word, src2: []const Word, nbits:
 pub fn equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return true;
+    }
 
     const lim = nbits / bits_per_long;
     for (0..lim) |idx| {
@@ -253,6 +262,9 @@ pub fn bitmap_equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
 pub fn intersects(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return false;
+    }
 
     const lim = nbits / bits_per_long;
     for (0..lim) |idx| {
@@ -278,6 +290,9 @@ pub fn bitmap_intersects(src1: []const Word, src2: []const Word, nbits: usize) b
 pub fn subset(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return true;
+    }
 
     const lim = nbits / bits_per_long;
     for (0..lim) |idx| {
@@ -775,6 +790,23 @@ test "bitmap zero-bit helpers stay explicit no-ops" {
     const rendered = scnprintf(&[_]Word{}, 0, &buffer);
     try std.testing.expectEqual(@as(usize, 0), rendered);
     try std.testing.expectEqual(@as(u8, 0xaa), buffer[0]);
+}
+
+test "bitmap zero-bit binary helpers stay explicit identity operations" {
+    var dst = [_]Word{0x55aa55aa55aa55aa};
+    const src1 = [_]Word{0xffff0000ffff0000};
+    const src2 = [_]Word{0x0000ffff0000ffff};
+    const before = dst[0];
+
+    try std.testing.expect(!andBits(dst[0..0], src1[0..0], src2[0..0], 0));
+    try std.testing.expectEqual(before, dst[0]);
+
+    try std.testing.expect(!andNotBits(dst[0..0], src1[0..0], src2[0..0], 0));
+    try std.testing.expectEqual(before, dst[0]);
+
+    try std.testing.expect(equal(src1[0..0], src2[0..0], 0));
+    try std.testing.expect(!intersects(src1[0..0], src2[0..0], 0));
+    try std.testing.expect(subset(src1[0..0], src2[0..0], 0));
 }
 
 test "bitmap Linux-style aliases mirror the primary helper surface" {
