@@ -279,6 +279,15 @@ That means `test "bitmap zero-bit helpers stay explicit no-ops"` stays present a
 
 - `PHASE1_BITMAP_ZERO_BIT_NOOP_REVIEW=helper-local bitmap zero-bit no-op proof stays explicit through the direct bitmap test anchor so zero-bit windows keep mutating helpers, boolean queries, and the rendered empty-window path from touching caller-visible storage or writing hidden bytes`
 
+The helper-local zero-bit binary identity proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+
+That means `test "bitmap zero-bit binary helpers stay explicit identity operations"` stays present and review-visible whenever `andBits()`, `andNotBits()`, `equal()`, `intersects()`, or `subset()` changes. This helper-local test is the bounded proof that zero-bit binary helpers keep caller storage untouched and report the empty-window identity results instead of treating a zero-bit window as live data. The Phase 1 helper manifest keeps that direct anchor explicit too, so the helper-local review inventory and the direct-anchor packet do not silently drift apart when zero-bit binary semantics reopen.
+
+- `PHASE1_BITMAP_ZERO_BIT_BINARY_IDENTITY_REVIEW=helper-local bitmap zero-bit binary identity proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so andBits, andNotBits, equal, intersects, and subset keep empty-window identity semantics without treating zero-bit windows as live data`
+
 The helper-local Linux-style alias proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
