@@ -162,6 +162,39 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     try expectMarker(phase4_runtime_atomic64_manifest_source, "shared runtime replay body");
 }
 
+test "atomic64 diff wrapper keeps reversible delivery and next-step evidence explicit" {
+    try expectOrderedMarkersInSection(
+        phase4_runtime_atomic64_manifest_source,
+        "\"reversible_delivery_evidence\": \"",
+        "\",\n  \"ready_next\": \"",
+        &.{
+            "zigux/tests/atomic64_diff.zig",
+            "zigux/tests/runtime_atomic64_diff.zig",
+            "zigux/tests/phase4_build.zig",
+            "scripts/zigux/validate-phase4.py",
+            "Documentation/zigux/phase4-gate-evidence.md",
+            "Documentation/zigux/review-checklist.md",
+            "Documentation/zigux/phase4-validation-matrix.md",
+            "zigux/tests/phase4_perf_baseline_manifest.json",
+            "zigux/tests/phase4_perf_baseline_survey.zig",
+        },
+    );
+    try expectOrderedMarkersInSection(
+        phase4_runtime_atomic64_manifest_source,
+        "\"ready_next\": \"",
+        "\",\n  \"owner\": \"",
+        &.{
+            "benchmark command",
+            "acceptable limit",
+            "Documentation/zigux/phase4-validation-matrix.md",
+            "Documentation/zigux/phase4-gate-evidence.md",
+            "zigux/tests/phase4_perf_baseline_manifest.json",
+            "zigux/tests/phase4_perf_baseline_survey.zig",
+            "correctness-only replay routes",
+        },
+    );
+}
+
 test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing explicit" {
     try expectMarker(phase4_build_source, ".root_source_file = b.path(\"atomic64_diff.zig\")");
     try expectMarker(
