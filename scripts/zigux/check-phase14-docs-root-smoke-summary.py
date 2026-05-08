@@ -66,6 +66,7 @@ REQUIRED_SMOKE_SURVEY_MARKERS = [
 ]
 SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     CHECKER_PATH,
+    "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.",
     "make -C zigux phase14-validate ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig",
@@ -298,6 +299,29 @@ def run_self_test() -> int:
         ):
             print(
                 "self-test expected failure when the shared smoke survey lost the attached-toolchain scope guard",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
+
+        broken_smoke_path.write_text(
+            good_smoke_text.replace(
+                "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.\n",
+                "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.\n"
+                "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
+            "Use the attached-toolchain fallback only when `zig` is not already on `PATH`. "
+            "(expected 1, found 2)" in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when the shared smoke survey duplicated the attached-toolchain scope guard",
                 file=sys.stderr,
             )
             return 1
