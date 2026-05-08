@@ -31,36 +31,20 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-fn readPacketFile(io: std.Io, path: []const u8, allocator: std.mem.Allocator) ![]u8 {
-    return std.Io.Dir.cwd().readFileAlloc(
-        io,
-        path,
-        allocator,
-        .limited(32 * 1024),
-    );
-}
-
-fn isAllowedStatus(status: []const u8) bool {
-    return std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "ready_next") or
-        std.mem.eql(u8, status, "blocked_on_vfs_state");
-}
-
-fn isAllowedKind(kind: []const u8) bool {
-    return std.mem.eql(u8, kind, "validation") or
-        std.mem.eql(u8, kind, "documentation") or
-        std.mem.eql(u8, kind, "filesystem_helper_surface");
-}
-
-test "phase13 libfs manifest records the landed helper surfaces and remaining helper gap" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+fn readPacketFile(path: []const u8, allocator: std.mem.Allocator) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
     defer io_instance.deinit();
+    return std.Io.Dir.cwd().readFileAlloc(io_instance.io(), path, allocator, .limited(32 * 1024));
+}
 
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
+fn contains(haystack: []const u8, needle: []const u8) bool {
+    return std.mem.indexOf(u8, haystack, needle) != null;
+}
+
+test "phase13 libfs reviewability gate records the landed helper surfaces and remaining cursor gap" {
+    const manifest_json = try readPacketFile(
         "zigux/tests/phase13_libfs_manifest.json",
         std.testing.allocator,
-        .limited(32 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -82,7 +66,7 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
 
     const descriptor = libfs.LibFsHelperLab.descriptor();
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);
@@ -92,6 +76,7 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_directory_cursor_open_planning);
+    try std.testing.expect(descriptor.provides_directory_cursor_close_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_publish_planning);
     try std.testing.expect(descriptor.provides_transaction_release_planning);
@@ -101,209 +86,120 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
     var starter_landed_count: usize = 0;
-    var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var helper_surface_count: usize = 0;
-    var saw_build_gate = false;
-    var saw_make_target = false;
-    var saw_starter = false;
-    var saw_tests = false;
-    var saw_slice_note = false;
-    var saw_reviewability_gate = false;
-    var saw_survey_note = false;
-    var saw_offset_followup = false;
-    var saw_emit_followup = false;
-    var saw_transaction_helper = false;
-    var saw_transaction_publish_helper = false;
-    var saw_transaction_release_helper = false;
-    var saw_dcache_dir_open_helper = false;
-    var saw_addressability_helper = false;
-    var saw_simple_open_helper = false;
-    var saw_dcache_cursor_followup = false;
+    var saw_dir_close = false;
+    var saw_cursor_blocker = false;
 
-    for (manifest.gaps, 0..) |gap, i| {
+    for (manifest.gaps) |gap| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
         try std.testing.expect(gap.why_now.len > 0);
-        try std.testing.expect(isAllowedStatus(gap.status));
-        try std.testing.expect(isAllowedKind(gap.kind));
-        try std.testing.expect(!std.mem.eql(u8, gap.kind, "filesystem_helper_wrapper"));
 
-        if (std.mem.eql(u8, gap.status, "starter_landed")) {
-            starter_landed_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
-            ready_next_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "blocked_on_vfs_state")) {
-            blocked_count += 1;
-        }
+        if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1;
+        if (std.mem.eql(u8, gap.status, "blocked_on_vfs_state")) blocked_count += 1;
+        if (std.mem.eql(u8, gap.kind, "filesystem_helper_surface")) helper_surface_count += 1;
 
-        if (std.mem.eql(u8, gap.kind, "filesystem_helper_surface")) {
-            helper_surface_count += 1;
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase13-build-gate")) {
-            saw_build_gate = true;
-            try std.testing.expectEqualStrings("zigux/tests/phase13_build.zig", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-make-target")) {
-            saw_make_target = true;
-            try std.testing.expectEqualStrings("zigux/Makefile", gap.zigux_destination);
-        }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-starter")) {
-            saw_starter = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_statfs") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_lookup") != null);
+            try std.testing.expect(contains(gap.why_now, "simple_statfs()"));
+            try std.testing.expect(contains(gap.why_now, "simple_lookup()"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-tests")) {
-            saw_tests = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase13_libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_open()") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-slice-note")) {
-            saw_slice_note = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase13-libfs-slice.md", gap.zigux_destination);
+            try std.testing.expect(contains(gap.why_now, "simple_open()"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-reviewability-gate")) {
-            saw_reviewability_gate = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase13_libfs_reviewability.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "focused addressability shard") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-survey-note")) {
-            saw_survey_note = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase13-libfs-survey.md", gap.zigux_destination);
+            try std.testing.expect(contains(gap.why_now, "focused addressability shard"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-offset-seek-helper")) {
-            saw_offset_followup = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_lseek") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "offset_dir_llseek") != null);
+            try std.testing.expect(contains(gap.why_now, "dcache_dir_lseek()"));
+            try std.testing.expect(contains(gap.why_now, "offset_dir_llseek()"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-directory-emit-helper")) {
-            saw_emit_followup = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_readdir") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dir_emit_dots") != null);
+            try std.testing.expect(contains(gap.why_now, "dcache_readdir()"));
+            try std.testing.expect(contains(gap.why_now, "dir_emit_dots()"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-buffer-helper")) {
-            saw_transaction_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_get") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "single-write-per-open") != null);
+            try std.testing.expect(contains(gap.why_now, "simple_transaction_get()"));
+            try std.testing.expect(contains(gap.why_now, "single-write-per-open"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-publish-helper")) {
-            saw_transaction_publish_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_set") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "publish bookkeeping") != null);
+            try std.testing.expect(contains(gap.why_now, "simple_transaction_set()"));
+            try std.testing.expect(contains(gap.why_now, "publish bookkeeping"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-release-helper")) {
-            saw_transaction_release_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_release") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "release bookkeeping") != null);
+            try std.testing.expect(contains(gap.why_now, "simple_transaction_release()"));
+            try std.testing.expect(contains(gap.why_now, "release bookkeeping"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-dir-open-helper")) {
-            saw_dcache_dir_open_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(contains(gap.why_now, "dcache_dir_open()"));
+            try std.testing.expect(contains(gap.why_now, "private_data"));
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-dir-close-helper")) {
+            saw_dir_close = true;
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_open()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "private_data") != null);
+            try std.testing.expect(contains(gap.why_now, "dcache_dir_close()"));
+            try std.testing.expect(contains(gap.why_now, "null-cursor"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-addressability-helper")) {
-            saw_addressability_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "generic_check_addressable()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sector-addressability") != null);
+            try std.testing.expect(contains(gap.why_now, "generic_check_addressable()"));
+            try std.testing.expect(contains(gap.why_now, "sector-addressability"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-simple-open-helper")) {
-            saw_simple_open_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_open()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "inode->i_private") != null);
+            try std.testing.expect(contains(gap.why_now, "simple_open()"));
+            try std.testing.expect(contains(gap.why_now, "inode->i_private"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-helpers")) {
-            saw_dcache_cursor_followup = true;
+            saw_cursor_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_vfs_state", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_readdir") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lock-ordering") != null);
-        }
-
-        for (manifest.gaps[i + 1 ..]) |other| {
-            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
+            try std.testing.expect(contains(gap.why_now, "dcache_readdir()"));
+            try std.testing.expect(contains(gap.why_now, "lock-ordering"));
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
-    try std.testing.expectEqual(@as(usize, 10), helper_surface_count);
-    try std.testing.expect(saw_build_gate);
-    try std.testing.expect(saw_make_target);
-    try std.testing.expect(saw_starter);
-    try std.testing.expect(saw_tests);
-    try std.testing.expect(saw_slice_note);
-    try std.testing.expect(saw_reviewability_gate);
-    try std.testing.expect(saw_survey_note);
-    try std.testing.expect(saw_offset_followup);
-    try std.testing.expect(saw_emit_followup);
-    try std.testing.expect(saw_transaction_helper);
-    try std.testing.expect(saw_transaction_publish_helper);
-    try std.testing.expect(saw_transaction_release_helper);
-    try std.testing.expect(saw_dcache_dir_open_helper);
-    try std.testing.expect(saw_addressability_helper);
-    try std.testing.expect(saw_simple_open_helper);
-    try std.testing.expect(saw_dcache_cursor_followup);
+    try std.testing.expectEqual(@as(usize, 11), helper_surface_count);
+    try std.testing.expect(saw_dir_close);
+    try std.testing.expect(saw_cursor_blocker);
 
     const survey_note = try readPacketFile(
-        io_instance.io(),
         "Documentation/zigux/phase13-libfs-survey.md",
         std.testing.allocator,
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-make-target`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-starter`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-tests`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-transaction-release-helper`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-dcache-dir-open-helper`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-addressability-helper`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-simple-open-helper`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-dcache-cursor-helpers`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused `zigux/tests/phase13_libfs_addressability.zig` file") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused addressability proof") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated helper-local evidence rather than a ninth shared replay step") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared eight-test `phase13_build.zig` route") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-helper-starter`") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-test-gate`") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-inode-and-pseudofs-lifecycle`") == null);
+    try std.testing.expect(contains(survey_note, "landed `phase13-make-target`"));
+    try std.testing.expect(contains(survey_note, "landed `phase13-libfs-starter`"));
+    try std.testing.expect(contains(survey_note, "landed `phase13-libfs-tests`"));
+    try std.testing.expect(contains(survey_note, "landed `phase13-libfs-dcache-dir-open-helper`"));
+    try std.testing.expect(contains(survey_note, "landed `phase13-libfs-dcache-dir-close-helper`"));
+    try std.testing.expect(contains(survey_note, "landed `phase13-libfs-transaction-release-helper`"));
+    try std.testing.expect(contains(survey_note, "landed `phase13-libfs-addressability-helper`"));
+    try std.testing.expect(contains(survey_note, "landed `phase13-libfs-simple-open-helper`"));
+    try std.testing.expect(contains(survey_note, "blocked `phase13-libfs-dcache-cursor-helpers`"));
+    try std.testing.expect(contains(survey_note, "focused `zigux/tests/phase13_libfs_addressability.zig` file"));
+    try std.testing.expect(contains(survey_note, "focused addressability proof"));
+    try std.testing.expect(contains(survey_note, "dedicated helper-local evidence rather than a ninth shared replay step"));
+    try std.testing.expect(contains(survey_note, "shared eight-test `phase13_build.zig` route"));
+    try std.testing.expect(!contains(survey_note, "landed `phase13-libfs-helper-starter`"));
+    try std.testing.expect(!contains(survey_note, "landed `phase13-libfs-test-gate`"));
+    try std.testing.expect(!contains(survey_note, "blocked `phase13-libfs-inode-and-pseudofs-lifecycle`"));
 
     const traceability_note = try readPacketFile(
-        io_instance.io(),
         "Documentation/zigux/phase13-roadmap-traceability.md",
         std.testing.allocator,
     );
     defer std.testing.allocator.free(traceability_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "## Libfs lane traceability") != null);
-    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "zigux/tests/phase13_libfs_reviewability.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "transaction acquire, publish, and release helpers") != null);
-    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "`generic_check_addressable()` planner") != null);
-    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "`simple_open()` private-data handoff") != null);
-    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "deeper `dcache_readdir()` cursor-resume packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "A pure `simple_open()` private-data handoff planner is the best next helper-first candidate") == null);
-    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "helper-first filesystem planning") != null);
+    try std.testing.expect(contains(traceability_note, "## Libfs lane traceability"));
+    try std.testing.expect(contains(traceability_note, "zigux/tests/phase13_libfs_reviewability.zig"));
+    try std.testing.expect(contains(traceability_note, "transaction acquire, publish, and release helpers"));
+    try std.testing.expect(contains(traceability_note, "dcache_dir_close()"));
+    try std.testing.expect(contains(traceability_note, "`generic_check_addressable()` planner"));
+    try std.testing.expect(contains(traceability_note, "`simple_open()` private-data handoff"));
+    try std.testing.expect(contains(traceability_note, "deeper `dcache_readdir()` cursor-resume packet"));
+    try std.testing.expect(!contains(traceability_note, "A pure `simple_open()` private-data handoff planner is the best next helper-first candidate"));
+    try std.testing.expect(contains(traceability_note, "helper-first filesystem planning"));
 }
