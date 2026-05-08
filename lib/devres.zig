@@ -9,6 +9,7 @@ pub const ModuleDescriptor = struct {
     provides_ioremap_wc_wrapper_planning: bool,
     provides_release_pointer_match: bool,
     provides_iounmap_call_planning: bool,
+    provides_ioport_unmap_call_planning: bool,
     provides_ioremap_resource_planning: bool,
     provides_ioremap_resource_plain_wrapper_planning: bool,
     provides_ioremap_resource_wc_wrapper_planning: bool,
@@ -50,6 +51,14 @@ pub const ManagedIoremapAcquireResult = struct {
 };
 
 pub const ManagedIounmapPlan = struct {
+    anchor: []const u8,
+    tracked_address: usize,
+    candidate_address: usize,
+    release_matches: bool,
+    warns_on_release_miss: bool,
+};
+
+pub const ManagedIoportUnmapPlan = struct {
     anchor: []const u8,
     tracked_address: usize,
     candidate_address: usize,
@@ -274,6 +283,7 @@ pub const DevresHelperLab = struct {
             .provides_ioremap_wc_wrapper_planning = true,
             .provides_release_pointer_match = true,
             .provides_iounmap_call_planning = true,
+            .provides_ioport_unmap_call_planning = true,
             .provides_ioremap_resource_planning = true,
             .provides_ioremap_resource_plain_wrapper_planning = true,
             .provides_ioremap_resource_wc_wrapper_planning = true,
@@ -340,6 +350,21 @@ pub const DevresHelperLab = struct {
 
     pub fn planManagedIounmap(tracked_address: usize, candidate_address: usize) ManagedIounmapPlan {
         const release_matches = ioremapReleaseMatches(tracked_address, candidate_address);
+        return .{
+            .anchor = descriptor().anchor,
+            .tracked_address = tracked_address,
+            .candidate_address = candidate_address,
+            .release_matches = release_matches,
+            .warns_on_release_miss = !release_matches,
+        };
+    }
+
+    pub fn ioportReleaseMatches(tracked_address: usize, candidate_address: usize) bool {
+        return tracked_address == candidate_address;
+    }
+
+    pub fn planManagedIoportUnmap(tracked_address: usize, candidate_address: usize) ManagedIoportUnmapPlan {
+        const release_matches = ioportReleaseMatches(tracked_address, candidate_address);
         return .{
             .anchor = descriptor().anchor,
             .tracked_address = tracked_address,
@@ -635,3 +660,31 @@ pub const DevresHelperLab = struct {
         };
     }
 };
+
+test "devres descriptor keeps ioport unmap planning explicit" {
+    const descriptor = DevresHelperLab.descriptor();
+
+    try std.testing.expectEqualStrings("devres_helper_lab", descriptor.name);
+    try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
+    try std.testing.expect(descriptor.provides_iounmap_call_planning);
+    try std.testing.expect(descriptor.provides_ioport_unmap_call_planning);
+}
+
+test "managed ioport unmap success is not warnable" {
+    const plan = DevresHelperLab.planManagedIoportUnmap(0xf000, 0xf000);
+
+    try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+    try std.testing.expectEqual(@as(usize, 0xf000), plan.tracked_address);
+    try std.testing.expectEqual(@as(usize, 0xf000), plan.candidate_address);
+    try std.testing.expect(plan.release_matches);
+    try std.testing.expect(!plan.warns_on_release_miss);
+}
+
+test "managed ioport unmap release misses are warnable" {
+    const plan = DevresHelperLab.planManagedIoportUnmap(0xf000, 0xf010);
+
+    try std.testing.expectEqual(@as(usize, 0xf000), plan.tracked_address);
+    try std.testing.expectEqual(@as(usize, 0xf010), plan.candidate_address);
+    try std.testing.expect(!plan.release_matches);
+    try std.testing.expect(plan.warns_on_release_miss);
+}
