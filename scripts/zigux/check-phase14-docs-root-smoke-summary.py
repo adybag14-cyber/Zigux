@@ -193,7 +193,6 @@ def run_self_test() -> int:
         write_text(root / DOCS_ROOT_PATH, good_text)
 
         broken_smoke_path = root / SMOKE_SURVEY_PATH
-        broken_smoke_path.writeText = None
         broken_smoke_path.write_text(
             good_smoke_text.replace(
                 "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig\n",
@@ -283,7 +282,6 @@ def run_self_test() -> int:
                 file=sys.stderr,
             )
             return 1
-        writeText = None
         write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
 
         broken_manifest_path = root / MANIFEST_PATH
