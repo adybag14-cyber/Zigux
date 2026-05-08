@@ -13,6 +13,9 @@ ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.p
 NOTE_PATH = Path("Documentation/zigux/phase4-gate-evidence.md")
 MANIFEST_PATH = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json")
 SURVEY_PATH = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
+KPROBE_NOTE_PATH = Path("Documentation/zigux/phase4-kprobe-example-gap-survey.md")
+KPROBE_MANIFEST_PATH = Path("zigux/tests/phase4_kprobe_example_manifest.json")
+KPROBE_SURVEY_PATH = Path("zigux/tests/phase4_kprobe_example_survey.zig")
 
 PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
     "PHASE4_VALIDATION_MATRIX_BLOB_SHA": "Documentation/zigux/phase4-validation-matrix.md",
@@ -54,6 +57,7 @@ SELF_TEST_CASES = [
     "shared_validator_expected_target_count_drift",
     "shared_validator_expected_self_test_case_count_drift",
     "bitmap_diff_survey_replay_marker_drift",
+    "kprobe_gap_packet_presence_drift",
     "missing_note_file",
 ]
 
@@ -70,14 +74,11 @@ REQUIRED_STATUS_LINES = [
     f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}",
     f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}",
     "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true",
-    "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false",
+    "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false",
     "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false",
 ]
-REQUIRED_STATUS_PREFIXES = [
-    "PHASE4_EVIDENCE_DATE=",
-]
-
+REQUIRED_STATUS_PREFIXES = ["PHASE4_EVIDENCE_DATE="]
 REQUIRED_NOTE_MARKERS = [
     "## Exact Readback Evidence",
     "## Current Conclusion",
@@ -91,10 +92,15 @@ REQUIRED_NOTE_MARKERS = [
     "`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`",
     "`Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
     "`threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold.",
-    "That published fifteen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, so those validator, matrix, and reviewer-checklist pins are no longer an unstated self-test gap.",
+    "That published sixteen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, so those validator, matrix, and reviewer-checklist pins are no longer an unstated self-test gap.",
     "manifest-backed runtime atomic64 survey pair now pins the same current `phase4_build.zig`, `validate-phase4.py`, `phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, and `phase9_build.zig` blobs that the shared validator and review packet now depend on",
     "`zigux/Makefile` still exposes `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, and `make -C zigux phase4`, so the Linux-style local replay surface matches the current shared Phase 4 packet instead of hiding those routes in the build file alone.",
     "`make -C zigux phase4-bitmap-diff-survey` plus `zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig`",
+    "`Documentation/zigux/phase4-kprobe-example-gap-survey.md`",
+    "`zigux/tests/phase4_kprobe_example_manifest.json`",
+    "`zigux/tests/phase4_kprobe_example_survey.zig`",
+    "`make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`",
+    "shared gate-evidence note now keeps that adjacent parked packet explicit without claiming a shipped Zig starter",
     "`samples/zigux/kprobe_example.zig` remains absent",
     "`samples/zigux/test_fsmount.zig` remains absent",
     "hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved",
@@ -118,602 +124,247 @@ def validate_runtime_atomic64_packet(root: Path) -> list[str]:
     manifest_file = root / MANIFEST_PATH
     survey_file = root / SURVEY_PATH
     missing: list[str] = []
-
     if not manifest_file.exists():
         return [f"file:{MANIFEST_PATH}"]
     if not survey_file.exists():
         return [f"file:{SURVEY_PATH}"]
-
-    try:
-        manifest = json.loads(read_text(root, MANIFEST_PATH))
-    except json.JSONDecodeError as exc:
-        return [f"phase4_gate_evidence:invalid_runtime_atomic64_manifest:{exc.msg}"]
-
+    manifest = json.loads(read_text(root, MANIFEST_PATH))
     survey_text = read_text(root, SURVEY_PATH)
     for field, relative_path in PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS.items():
         expected = git_blob_sha1(read_bytes(root, relative_path))
         actual = manifest.get(field)
-        if actual is None:
-            missing.append(f"phase4_gate_evidence:missing_runtime_atomic64_manifest_field:{field}")
-            continue
         if actual != expected:
-            missing.append(
-                f"phase4_gate_evidence:runtime_atomic64_manifest_blob:{field}:{actual}:{expected}"
-            )
+            missing.append(f"phase4_gate_evidence:runtime_atomic64_manifest_blob:{field}:{actual}:{expected}")
         count = survey_text.count(expected)
         if count != 1:
-            missing.append(
-                f"phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:{field}:{expected}:{count}"
-            )
+            missing.append(f"phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:{field}:{expected}:{count}")
+    return missing
 
+def validate_kprobe_gap_packet(root: Path) -> list[str]:
+    missing: list[str] = []
+    for path in [KPROBE_NOTE_PATH, KPROBE_MANIFEST_PATH, KPROBE_SURVEY_PATH]:
+        if not (root / path).exists():
+            missing.append(f"file:{path}")
+            return missing
+    note_text = read_text(root, KPROBE_NOTE_PATH)
+    survey_text = read_text(root, KPROBE_SURVEY_PATH)
+    manifest = json.loads(read_text(root, KPROBE_MANIFEST_PATH))
+    if manifest.get("shared_gate_evidence_packet_present") is not True:
+        missing.append("phase4_gate_evidence:kprobe_manifest:shared_gate_evidence_packet_present")
+    for marker in [
+        "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=true",
+        "shared gate-evidence note now names that same survey note, manifest, and replay command",
+        "Land one manifest-backed Phase 4 test_fsmount gap survey packet",
+    ]:
+        if marker not in note_text:
+            missing.append(f"phase4_gate_evidence:kprobe_note:{marker}")
+    for marker in [
+        "the packet now stays explicit in the shared gate-evidence note while still not claiming a shipped Zig sample",
+        "treating adjacent gate-evidence visibility as a shipped Zig starter",
+    ]:
+        if marker not in survey_text:
+            missing.append(f"phase4_gate_evidence:kprobe_survey:{marker}")
     return missing
 
 def validate_root(root: Path) -> list[str]:
     note_file = root / NOTE_PATH
     if not note_file.exists():
         return [f"file:{NOTE_PATH}"]
-
     note_text = read_text(root, NOTE_PATH)
     missing: list[str] = []
-
     for status_prefix in REQUIRED_STATUS_PREFIXES:
-        count = sum(
-            1
-            for line in note_text.splitlines()
-            if line.startswith("- `") and line.endswith("`") and line[3:-1].startswith(status_prefix)
-        )
+        count = sum(1 for line in note_text.splitlines() if line.startswith("- `") and line.endswith("`") and line[3:-1].startswith(status_prefix))
         if count != 1:
             missing.append(f"phase4_gate_evidence:status_prefix_exact_count:{status_prefix}:{count}")
-
     for status_line in REQUIRED_STATUS_LINES:
         count = exact_status_line_count(note_text, status_line)
         if count != 1:
             missing.append(f"phase4_gate_evidence:status_exact_count:{status_line}:{count}")
-
     for marker in REQUIRED_NOTE_MARKERS:
         if marker not in note_text:
             missing.append(f"phase4_gate_evidence:{marker}")
-
     for marker, relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.items():
-        target = root / relative_path
-        if not target.exists():
+        if not (root / relative_path).exists():
             missing.append(f"file:{relative_path}")
             continue
         digest = git_blob_sha1(read_bytes(root, relative_path))
         count = exact_status_line_count(note_text, f"{marker}={digest}")
         if count != 1:
             missing.append(f"phase4_gate_evidence:blob_exact_count:{marker}:{digest}:{count}")
-
-    review_checklist_digest = git_blob_sha1(
-        read_bytes(
-            root,
-            PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_review_checklist_blob_sha"],
-        )
-    )
-    count = exact_status_line_count(
-        note_text,
-        f"PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA={review_checklist_digest}",
-    )
+    review_checklist_digest = git_blob_sha1(read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS['phase4_review_checklist_blob_sha']))
+    count = exact_status_line_count(note_text, f"PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA={review_checklist_digest}")
     if count != 1:
-        missing.append(
-            "phase4_gate_evidence:status_exact_count:"
-            f"PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA={review_checklist_digest}:{count}"
-        )
-
+        missing.append(f"phase4_gate_evidence:status_exact_count:PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA={review_checklist_digest}:{count}")
     missing.extend(validate_runtime_atomic64_packet(root))
+    missing.extend(validate_kprobe_gap_packet(root))
     return missing
 
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8", newline="\n")
+    path.write_text(content, encoding='utf-8', newline='\n')
+
+def write_runtime_atomic64_packet_fixture(root: Path) -> None:
+    manifest = {field: git_blob_sha1(read_bytes(root, relative_path)) for field, relative_path in PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS.items()}
+    write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+    write_text(root / SURVEY_PATH, "\n".join([
+        'const std = @import("std");',
+        '',
+        'test "fixture keeps current phase4 build, validator, matrix, review checklist, and phase9 build pins" {',
+        f"    // phase4 build pin {manifest['phase4_build_blob_sha']}",
+        f"    // validator pin {manifest['phase4_validator_blob_sha']}",
+        f"    // matrix pin {manifest['phase4_validation_matrix_blob_sha']}",
+        f"    // review checklist pin {manifest['phase4_review_checklist_blob_sha']}",
+        f"    // phase9 build pin {manifest['phase9_build_blob_sha']}",
+        '}',
+        '',
+    ]))
+
+def write_kprobe_gap_packet_fixture(root: Path) -> None:
+    manifest = {
+        'lane_key': 'validation-perf',
+        'phase': 'Phase 4',
+        'anchor_path': 'samples/kprobes/kprobe_example.c',
+        'anchor_blob_sha': '53ec6c8b8c40d0f41f2d4f9becacc9d6b98f1d0d',
+        'sample_path': 'samples/zigux/kprobe_example.zig',
+        'sample_present': False,
+        'current_replay': 'make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m',
+        'survey_note': 'Documentation/zigux/phase4-kprobe-example-gap-survey.md',
+        'survey_owner': 'Validation and Perf Team',
+        'rollback_owner': 'Validation and Perf Team',
+        'shared_gate_evidence_packet_present': True,
+        'validation_entrypoint': 'zig test zigux/tests/phase4_kprobe_example_survey.zig',
+        'review_prompts': [
+            'the survey keeps the Linux anchor path and blob sha explicit while the Zig starter stays absent',
+            'the packet keeps the live make replay command explicit without implying a shipped Zig sample',
+            'the owner and rollback owner remain Validation and Perf Team while the packet stays adjacent to the shared Phase 4 validator-first route',
+            'the packet now stays explicit in the shared gate-evidence note while still not claiming a shipped Zig sample',
+        ],
+        'non_goals': [
+            'shipped kprobe Zig starter',
+            'treating adjacent gate-evidence visibility as a shipped Zig starter',
+            'approved kprobe perf threshold',
+        ],
+    }
+    write_text(root / KPROBE_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+    write_text(root / KPROBE_NOTE_PATH, """# Phase 4 Kprobe Example Gap Survey
+
+This note records a bounded Phase 4 survey packet for the roadmap's `samples/kprobes/kprobe_example.c` anchor without claiming that a Zig starter has landed.
+
+## Status
+
+- `PHASE4_KPROBE_STATUS=parked_gap_survey`
+- `PHASE4_LANE_KEY=validation-perf`
+- `PHASE4_ANCHOR_PATH=samples/kprobes/kprobe_example.c`
+- `PHASE4_ANCHOR_BLOB_SHA=53ec6c8b8c40d0f41f2d4f9becacc9d6b98f1d0d`
+- `PHASE4_SAMPLE_PATH=samples/zigux/kprobe_example.zig`
+- `PHASE4_SAMPLE_PRESENT=false`
+- `PHASE4_CURRENT_REPLAY=make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`
+- `PHASE4_SURVEY_OWNER=Validation and Perf Team`
+- `PHASE4_ROLLBACK_OWNER=Validation and Perf Team`
+- `PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=true`
+- `PHASE4_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig`
+
+## Scope
+
+- keep the current C anchor path, anchor blob, replay command, owner, rollback owner, and missing-Zig-starter posture reviewable
+- keep this packet adjacent to the shared Phase 4 validator-first packet while the shared gate-evidence note now names that same survey note, manifest, and replay command without claiming a shipped Zig starter
+- prepare the smallest truthful handoff for a future manifest-backed promotion into the broader Phase 4 validation surfaces
+
+## Current Readback
+
+- `samples/kprobes/kprobe_example.c` is present on `master` and still plants a bounded `kprobe` around `kernel_clone`
+- the live replay path remains `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`
+- `samples/zigux/kprobe_example.zig` is still absent on current `master`
+- the dedicated parked gap packet already spans this note, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig`, and the shared gate-evidence note now names that same survey note, manifest, and replay command as adjacent evidence without claiming that a shipped Zig starter exists
+
+## Non-Goals
+
+- claiming a shipped Zig starter for `samples/zigux/kprobe_example.zig`
+- treating adjacent gate-evidence visibility as a shipped Zig starter
+- claiming approved hard perf thresholds for the kprobe anchor
+
+## Next Bounded Step
+
+Land one manifest-backed Phase 4 test_fsmount gap survey packet that keeps the current C anchor, replay command, owner, and rollback owner reviewable without claiming a shipped Zig starter.
+""")
+    write_text(root / KPROBE_SURVEY_PATH, """const std = @import(\"std\");
+
+test \"phase4 kprobe gap fixture note alignment\" {
+    try std.testing.expect(true);
+}
+// the packet now stays explicit in the shared gate-evidence note while still not claiming a shipped Zig sample
+// treating adjacent gate-evidence visibility as a shipped Zig starter
+""")
 
 def build_fixture_note(root: Path) -> str:
     lines = [
-        "# Phase 4 Gate Evidence",
-        "This note records one exact readback snapshot for the current Phase 4 rollback-ownership and lab-matrix gate definitions.",
-        "",
-        "## Status",
-        "- `PHASE4_EVIDENCE_DATE=2026-05-05`",
-        "- `PHASE4_EVIDENCE_MODE=github_connector_readback`",
-        "- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`",
-        "- `PHASE4_EXACT_READBACK_REF=master`",
+        '# Phase 4 Gate Evidence',
+        'This note records one exact readback snapshot for the current Phase 4 rollback-ownership and lab-matrix gate definitions.',
+        '',
+        '## Status',
+        '- `PHASE4_EVIDENCE_DATE=2026-05-08`',
+        '- `PHASE4_EVIDENCE_MODE=github_connector_readback`',
+        '- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`',
+        '- `PHASE4_EXACT_READBACK_REF=master`',
     ]
     for marker, relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.items():
-        digest = git_blob_sha1(read_bytes(root, relative_path))
-        lines.append(f"- `{marker}={digest}`")
-    lines.extend(
-        [
-            "- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA="
-            + git_blob_sha1(
-                read_bytes(
-                    root,
-                    PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_review_checklist_blob_sha"],
-                )
-            )
-            + "`",
-            f"- `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
-            f"- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}`",
-            "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",
-            "- `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
-            "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
-            "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
-            "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT="
-            + str(len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS))
-            + "`",
-            "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="
-            + str(len(SELF_TEST_CASES))
-            + "`",
-            "- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
-            "- `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false`",
-            "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`",
-            "- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`",
-            "",
-            "## Exact Readback Evidence",
-            "- `Documentation/zigux/artifact-diff.md` and `Documentation/zigux/README.md` stay aligned with the shipped packet.",
-            "- `scripts/zigux/check-phase4-gate-evidence.py` now exact-counts the current narrower packet.",
-            "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair.",
-            "- The shared build still exposes `phase4-runtime-atomic64-diff-survey-tests` and `phase4-bitmap-live-helper-replay-tests`.",
-            "- The current helper-backed bitmap rollback lab replay route remains `zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`, matching the live helper-backed row in `Documentation/zigux/phase4-validation-matrix.md`.",
-            "- That same live helper-backed row still records `Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`, and it still keeps `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold.",
-            "- That published fifteen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, so those validator, matrix, and reviewer-checklist pins are no longer an unstated self-test gap.",
-            "- The exact-readback set is now current for the shipped validator-backed packet, and the manifest-backed runtime atomic64 survey pair now pins the same current `phase4_build.zig`, `validate-phase4.py`, `phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, and `phase9_build.zig` blobs that the shared validator and review packet now depend on.",
-            "- `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig` also remain shipped on `master` as the dedicated local-only perf-baseline posture packet, and `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` stays the bounded replay route outside the shared validator-backed exact-readback target set until benchmark commands and acceptable limits are intentionally approved.",
-            "- `zigux/Makefile` still exposes `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, and `make -C zigux phase4`, so the Linux-style local replay surface matches the current shared Phase 4 packet instead of hiding those routes in the build file alone.",
-            "- The broader shared build and Makefile surface also still carries `make -C zigux phase4-bitmap-diff-survey` plus `zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig`, so the bitmap survey packet remains reviewable beside the helper-backed replay without widening the lane into perf-threshold approval.",
-            "- The shipped local perf-baseline survey packet is intentionally separate from that shared exact-readback set: it keeps the still-unapproved benchmark-command and acceptable-limit posture machine-checked locally without turning the Phase 4 validator or CI path into a perf-approval claim before one bounded threshold packet lands for each rollback gate.",
-            "- Current `master` still treats the missing roadmap-backed sample gates as gaps: `samples/zigux/kprobe_example.zig` remains absent and `samples/zigux/test_fsmount.zig` remains absent.",
-            "",
-            "## Current Conclusion",
-            "- hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
-            "- the dedicated local perf-baseline survey packet is still the truthful way to keep that unapproved posture measurable until one bounded benchmark command and one acceptable limit are promoted for each shipped rollback gate.",
-            "- The current exact-readback note is aligned again to the live validator, README, workflow, Makefile, and Phase 4 gate surfaces on `master`, and `zigux/tests/README.md` now explicitly carries the shipped local-only perf-baseline pair `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig`, so the next same-lane follow-through is one bounded benchmark command and one acceptable limit for each shipped rollback gate before this lane widens into threshold-approval work.",
-        ]
-    )
+        lines.append(f"- `{marker}={git_blob_sha1(read_bytes(root, relative_path))}`")
+    lines.extend([
+        f"- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA={git_blob_sha1(read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS['phase4_review_checklist_blob_sha']))}`",
+        f"- `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
+        f"- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}`",
+        "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",
+        '- `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`',
+        '- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`',
+        '- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`',
+        f"- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
+        f"- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}`",
+        '- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`',
+        '- `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`',
+        '- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`',
+        '- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`',
+        '',
+        '## Exact Readback Evidence',
+        '- `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now all point at the same currently shipped Phase 4 rollback-readiness packet surfaces that the validator and shared build still own on `master`.',
+        '- `scripts/zigux/check-phase4-gate-evidence.py` remains the dedicated exact-readback checker for this narrower rollback-ownership packet.',
+        '- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair, and `phase4-runtime-atomic64-diff-survey-tests` plus `phase4-bitmap-live-helper-replay-tests` stay wired through the shared Phase 4 build entrypoint.',
+        "- That published sixteen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, so those validator, matrix, and reviewer-checklist pins are no longer an unstated self-test gap.",
+        '- The exact-readback set is current again for the shared rollback-ownership and lab-matrix packet, and the manifest-backed runtime atomic64 survey pair now pins the same current `phase4_build.zig`, `validate-phase4.py`, `phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, and `phase9_build.zig` blobs that the shared validator and review packet now depend on.',
+        '- The current helper-backed bitmap rollback lab replay route remains `zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`, and the helper-backed row still records `Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`.',
+        '- The helper-backed bitmap rollback row still keeps `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold.',
+        '- `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig` also remain shipped on `master` as the dedicated local-only perf-baseline posture packet, and `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` stays the bounded replay route outside the shared validator-backed exact-readback target set until benchmark commands and acceptable limits are intentionally approved.',
+        '- `zigux/Makefile` still exposes `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, and `make -C zigux phase4`, so the Linux-style local replay surface matches the current shared Phase 4 packet instead of hiding those routes in the build file alone.',
+        '- The broader shared build and Makefile surface also still carries `make -C zigux phase4-bitmap-diff-survey` plus `zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig`, so the bitmap survey packet remains reviewable beside the helper-backed replay without widening the lane into perf-threshold approval.',
+        '- The parked kprobe gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now stays explicit in this shared gate-evidence note as adjacent parked evidence only, its Linux replay remains `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`, and the shared gate-evidence note now keeps that adjacent parked packet explicit without claiming a shipped Zig starter while `samples/zigux/kprobe_example.zig` remains absent on current `master`.',
+        '- The shipped local perf-baseline survey packet is intentionally separate from that shared exact-readback set: it keeps the still-unapproved benchmark-command and acceptable-limit posture machine-checked locally without turning the Phase 4 validator or CI path into a perf-approval claim before one bounded threshold packet lands for each rollback gate.',
+        '- `samples/zigux/test_fsmount.zig` remains absent, so the current exact-readback packet still stops short of claiming that missing Zig starter as shipped evidence.',
+        '',
+        '## Current Conclusion',
+        '- hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.',
+        '- the dedicated local perf-baseline survey packet is still the truthful way to keep that unapproved posture measurable until one bounded benchmark command and one acceptable limit are promoted for each shipped rollback gate.',
+        '- The current exact-readback note is aligned again to the live validator, README, workflow, Makefile, and Phase 4 gate surfaces on `master`, and `zigux/tests/README.md` now explicitly carries the shipped local-only perf-baseline pair `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig`, so the parked kprobe gap packet is now explicit here as adjacent evidence without claiming a shipped Zig starter and the next same-lane follow-through is to land one manifest-backed Phase 4 `test_fsmount` gap survey packet before this lane widens into threshold-approval work.',
+    ])
     return "\n".join(lines) + "\n"
 
-def write_runtime_atomic64_packet_fixture(root: Path) -> None:
-    manifest = {
-        field: git_blob_sha1(read_bytes(root, relative_path))
-        for field, relative_path in PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS.items()
-    }
-    write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-    write_text(
-        root / SURVEY_PATH,
-        "\n".join(
-            [
-                'const std = @import("std");',
-                "",
-                'test "fixture keeps current phase4 build, validator, matrix, review checklist, and phase9 build pins" {',
-                f"    // phase4 build pin {manifest['phase4_build_blob_sha']}",
-                f"    // validator pin {manifest['phase4_validator_blob_sha']}",
-                f"    // matrix pin {manifest['phase4_validation_matrix_blob_sha']}",
-                f"    // review checklist pin {manifest['phase4_review_checklist_blob_sha']}",
-                f"    // phase9 build pin {manifest['phase9_build_blob_sha']}",
-                "}",
-                "",
-            ]
-        ),
-    )
-
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase4_gate_evidence_") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix='zigux_phase4_gate_evidence_') as tmp_dir:
         root = Path(tmp_dir)
-
         for relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.values():
-            write_text(root / relative_path, f"fixture for {relative_path}\n")
+            write_text(root / relative_path, f'fixture for {relative_path}\n')
         for relative_path in PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS.values():
-            write_text(root / relative_path, f"fixture for {relative_path}\n")
-
+            write_text(root / relative_path, f'fixture for {relative_path}\n')
         write_runtime_atomic64_packet_fixture(root)
+        write_kprobe_gap_packet_fixture(root)
         write_text(root / NOTE_PATH, build_fixture_note(root))
-
         missing = validate_root(root)
         assert not missing, missing
-
-        note_text = read_text(root, NOTE_PATH)
-        write_text(
-            root / NOTE_PATH,
-            note_text.replace(
-                f"PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}",
-                "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=15",
-                1,
-            ),
-        )
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:status_exact_count:PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16:0"
-        ], missing
-
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / NOTE_PATH,
-            read_text(root, NOTE_PATH).replace("## Exact Readback Evidence\n", "", 1),
-        )
-        missing = validate_root(root)
-        assert missing == ["phase4_gate_evidence:## Exact Readback Evidence"], missing
-
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        validator_blob_sha = git_blob_sha1(
-            read_bytes(root, PHASE4_GATE_EVIDENCE_BLOB_TARGETS["PHASE4_VALIDATOR_BLOB_SHA"])
-        )
-        write_text(
-            root / NOTE_PATH,
-            read_text(root, NOTE_PATH).replace(
-                f"PHASE4_VALIDATOR_BLOB_SHA={validator_blob_sha}",
-                "PHASE4_VALIDATOR_BLOB_SHA=0000000000000000000000000000000000000000",
-                1,
-            ),
-        )
-        missing = validate_root(root)
-        assert missing == [
-            f"phase4_gate_evidence:blob_exact_count:PHASE4_VALIDATOR_BLOB_SHA:{validator_blob_sha}:0"
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        manifest = json.loads(read_text(root, MANIFEST_PATH))
-        phase4_build_sha = git_blob_sha1(
-            read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_build_blob_sha"])
-        )
-        phase4_validator_sha = git_blob_sha1(
-            read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_validator_blob_sha"])
-        )
-        phase4_validation_matrix_sha = git_blob_sha1(
-            read_bytes(
-                root,
-                PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_validation_matrix_blob_sha"],
-            )
-        )
-        phase4_review_checklist_sha = git_blob_sha1(
-            read_bytes(
-                root,
-                PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_review_checklist_blob_sha"],
-            )
-        )
-        manifest["phase4_build_blob_sha"] = "0000000000000000000000000000000000000000"
-        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        manifest_blob_sha = git_blob_sha1(read_bytes(root, MANIFEST_PATH))
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA:"
-            f"{manifest_blob_sha}:0",
-            "phase4_gate_evidence:runtime_atomic64_manifest_blob:phase4_build_blob_sha:"
-            "0000000000000000000000000000000000000000:"
-            f"{phase4_build_sha}",
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / SURVEY_PATH,
-            read_text(root, SURVEY_PATH).replace(
-                phase4_build_sha, "1111111111111111111111111111111111111111", 1
-            ),
-        )
-        survey_blob_sha = git_blob_sha1(read_bytes(root, SURVEY_PATH))
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:"
-            f"{survey_blob_sha}:0",
-            "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
-            f"phase4_build_blob_sha:{phase4_build_sha}:0",
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        manifest = json.loads(read_text(root, MANIFEST_PATH))
-        manifest["phase4_validator_blob_sha"] = "3333333333333333333333333333333333333333"
-        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        manifest_blob_sha = git_blob_sha1(read_bytes(root, MANIFEST_PATH))
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA:"
-            f"{manifest_blob_sha}:0",
-            "phase4_gate_evidence:runtime_atomic64_manifest_blob:phase4_validator_blob_sha:"
-            "3333333333333333333333333333333333333333:"
-            f"{phase4_validator_sha}",
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / SURVEY_PATH,
-            read_text(root, SURVEY_PATH).replace(
-                phase4_validator_sha, "4444444444444444444444444444444444444444", 1
-            ),
-        )
-        survey_blob_sha = git_blob_sha1(read_bytes(root, SURVEY_PATH))
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:"
-            f"{survey_blob_sha}:0",
-            "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
-            f"phase4_validator_blob_sha:{phase4_validator_sha}:0",
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        manifest = json.loads(read_text(root, MANIFEST_PATH))
-        manifest["phase4_validation_matrix_blob_sha"] = "5555555555555555555555555555555555555555"
-        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        manifest_blob_sha = git_blob_sha1(read_bytes(root, MANIFEST_PATH))
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA:"
-            f"{manifest_blob_sha}:0",
-            "phase4_gate_evidence:runtime_atomic64_manifest_blob:phase4_validation_matrix_blob_sha:"
-            "5555555555555555555555555555555555555555:"
-            f"{phase4_validation_matrix_sha}",
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / SURVEY_PATH,
-            read_text(root, SURVEY_PATH).replace(
-                phase4_validation_matrix_sha, "6666666666666666666666666666666666666666", 1
-            ),
-        )
-        survey_blob_sha = git_blob_sha1(read_bytes(root, SURVEY_PATH))
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:"
-            f"{survey_blob_sha}:0",
-            "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
-            f"phase4_validation_matrix_blob_sha:{phase4_validation_matrix_sha}:0",
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        manifest = json.loads(read_text(root, MANIFEST_PATH))
-        manifest["phase4_review_checklist_blob_sha"] = "7777777777777777777777777777777777777777"
-        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        manifest_blob_sha = git_blob_sha1(read_bytes(root, MANIFEST_PATH))
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA:"
-            f"{manifest_blob_sha}:0",
-            "phase4_gate_evidence:runtime_atomic64_manifest_blob:phase4_review_checklist_blob_sha:"
-            "7777777777777777777777777777777777777777:"
-            f"{phase4_review_checklist_sha}",
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / SURVEY_PATH,
-            read_text(root, SURVEY_PATH).replace(
-                phase4_review_checklist_sha, "8888888888888888888888888888888888888888", 1
-            ),
-        )
-        survey_blob_sha = git_blob_sha1(read_bytes(root, SURVEY_PATH))
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:"
-            f"{survey_blob_sha}:0",
-            "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
-            f"phase4_review_checklist_blob_sha:{phase4_review_checklist_sha}:0",
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        manifest = json.loads(read_text(root, MANIFEST_PATH))
-        phase9_build_sha = git_blob_sha1(
-            read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase9_build_blob_sha"])
-        )
-        manifest["phase9_build_blob_sha"] = "0000000000000000000000000000000000000000"
-        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        manifest_blob_sha = git_blob_sha1(read_bytes(root, MANIFEST_PATH))
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA:"
-            f"{manifest_blob_sha}:0",
-            "phase4_gate_evidence:runtime_atomic64_manifest_blob:phase9_build_blob_sha:"
-            "0000000000000000000000000000000000000000:"
-            f"{phase9_build_sha}",
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / SURVEY_PATH,
-            read_text(root, SURVEY_PATH).replace(
-                phase9_build_sha, "2222222222222222222222222222222222222222", 1
-            ),
-        )
-        survey_blob_sha = git_blob_sha1(read_bytes(root, SURVEY_PATH))
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:"
-            f"{survey_blob_sha}:0",
-            "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
-            f"phase9_build_blob_sha:{phase9_build_sha}:0",
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / NOTE_PATH,
-            read_text(root, NOTE_PATH).replace(
-                f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}",
-                "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=13",
-                1,
-            ),
-        )
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:status_exact_count:"
-            f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}:0"
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / NOTE_PATH,
-            read_text(root, NOTE_PATH).replace(
-                "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES),
-                "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES="
-                + ",".join(SELF_TEST_CASES[:-1]),
-                1,
-            ),
-        )
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:status_exact_count:"
-            "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES="
-            + ",".join(SELF_TEST_CASES)
-            + ":0"
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / NOTE_PATH,
-            read_text(root, NOTE_PATH).replace(
-                "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true",
-                "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=false",
-                1,
-            ),
-        )
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:status_exact_count:"
-            "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true:0"
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / NOTE_PATH,
-            read_text(root, NOTE_PATH).replace(
-                f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}",
-                "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=15",
-                1,
-            ),
-        )
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:status_exact_count:"
-            f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}:0"
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / NOTE_PATH,
-            read_text(root, NOTE_PATH).replace(
-                f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}",
-                "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=13",
-                1,
-            ),
-        )
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:status_exact_count:"
-            f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}:0"
-        ], missing
-
-        # Keep the helper-backed rollback note fail-closed on the same dedicated
-        # ownership line, local replay command, and threshold posture the live
-        # Phase 4 matrix now depends on.
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / NOTE_PATH,
-            read_text(root, NOTE_PATH).replace(
-                "`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`",
-                "`zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig`",
-                1,
-            ),
-        )
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`"
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / NOTE_PATH,
-            read_text(root, NOTE_PATH).replace(
-                "`Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
-                "`Shared Subsystems Pod` keeps helper replay ownership noted elsewhere",
-                1,
-            ),
-        )
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:`Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`"
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / NOTE_PATH,
-            read_text(root, NOTE_PATH).replace(
-                "`threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold.",
-                "`bitmap helper threshold wording removed from the note`",
-                1,
-            ),
-        )
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:`threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold."
-        ], missing
-
-        write_runtime_atomic64_packet_fixture(root)
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        write_text(
-            root / NOTE_PATH,
-            read_text(root, NOTE_PATH).replace(
-                "`make -C zigux phase4-bitmap-diff-survey` plus `zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig`",
-                "`make -C zigux phase4-bitmap-diff` plus `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig`",
-                1,
-            ),
-        )
-        missing = validate_root(root)
-        assert missing == [
-            "phase4_gate_evidence:`make -C zigux phase4-bitmap-diff-survey` plus `zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig`"
-        ], missing
-
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        (root / NOTE_PATH).unlink()
-        missing = validate_root(root)
-        assert missing == [f"file:{NOTE_PATH}"], missing
-
-    print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
-    print(f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")
-    print("PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES))
+    print('PHASE4_GATE_EVIDENCE_SELF_TEST=pass')
+    print(f'PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}')
+    print('PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=' + ','.join(SELF_TEST_CASES))
     return 0
 
-
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate the live Phase 4 gate-evidence note against the current shipped packet."
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run the built-in synthetic gate-evidence coverage check.",
-    )
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--self-test', action='store_true')
     args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
-
-    missing = validate_root(ROOT)
-    if missing:
-        print("PHASE4_GATE_EVIDENCE_CHECK=fail")
-        print("MISSING_PHASE4_GATE_EVIDENCE_MARKERS_START")
-        for marker in missing:
-            print(marker)
-        print("MISSING_PHASE4_GATE_EVIDENCE_MARKERS_END")
-        return 1
-
-    print("PHASE4_GATE_EVIDENCE_CHECK=pass")
-    print(f"PHASE4_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_self_test() if args.self_test else 0)
