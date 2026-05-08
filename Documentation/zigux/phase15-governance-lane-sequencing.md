@@ -128,10 +128,11 @@ The strongest current Phase 15 sequencing rule is simple:
 - use `P15-Y06` only for shared summaries or shared build wiring
 - keep every Phase 15 governance run parked unless a named reopen trigger fires or the deep-core blocker posture changes
 - current `master` already closed the older shared tests-root follow-through: `zigux/tests/README.md` explicitly carries both `zigux/tests/phase15_indefinite_c_blocker_evidence.zig` and `zigux/tests/phase15_governance_lane_sequencing.zig`, so future `P15-Y06` runs should not reopen that tests-root touch unless one of those anchors disappears again
+- current `master` also already closed the earlier docs-root workflow follow-through: `Documentation/zigux/README.md` explicitly carries `.github/workflows/zigux-bootstrap.yml` beside the checker-backed and build-backed replay routes, so future `P15-Y06` runs should not reopen that docs-root touch unless the workflow pointer or the shared owner split drifts again
 
 ## Recommended next-step order
 
-1. shared summary and build-wiring lane only when the owner split itself drifts; on current `master`, the next honest shared-summary candidate is the docs-root Phase 15 summary explicitly naming `.github/workflows/zigux-bootstrap.yml` if that workflow pointer still needs to stay visible there beside the checker-backed and build-backed replay routes
+1. shared summary and build-wiring lane only when the owner split itself drifts; on current `master`, there is no open shared-summary Phase 15 follow-through because `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` already keep the workflow-backed replay and parked governance owner map explicit enough for the current packet
 2. the owning packet lane when one note, manifest, checker, or replay route stops matching current `master`
 3. no deep-core status-change work until the blocker posture changes enough to justify a fresh Architecture Council slice
 
