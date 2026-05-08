@@ -13,13 +13,13 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/kpr
 - `PHASE4_CURRENT_REPLAY=make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`
 - `PHASE4_SURVEY_OWNER=Validation and Perf Team`
 - `PHASE4_ROLLBACK_OWNER=Validation and Perf Team`
-- `PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false`
+- `PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=true`
 - `PHASE4_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig`
 
 ## Scope
 
 - keep the current C anchor path, anchor blob, replay command, owner, rollback owner, and missing-Zig-starter posture reviewable
-- keep this packet adjacent to the shared Phase 4 validator-first packet instead of pretending the exact-readback gate already owns it
+- keep this packet adjacent to the shared Phase 4 validator-first packet while the shared gate-evidence note now names that same survey note, manifest, and replay command without claiming a shipped Zig starter
 - prepare the smallest truthful handoff for a future manifest-backed promotion into the broader Phase 4 validation surfaces
 
 ## Current Readback
@@ -27,14 +27,14 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/kpr
 - `samples/kprobes/kprobe_example.c` is present on `master` and still plants a bounded `kprobe` around `kernel_clone`
 - the live replay path remains `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`
 - `samples/zigux/kprobe_example.zig` is still absent on current `master`
-- the dedicated parked gap packet already spans this note, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig`, so the kprobe follow-through is no longer matrix prose alone even while it stays outside the shared gate-evidence packet
+- the dedicated parked gap packet already spans this note, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig`, and the shared gate-evidence note now names that same survey note, manifest, and replay command as adjacent evidence without claiming that a shipped Zig starter exists
 
 ## Non-Goals
 
 - claiming a shipped Zig starter for `samples/zigux/kprobe_example.zig`
-- claiming that the shared Phase 4 exact-readback gate already carries this packet
+- treating adjacent gate-evidence visibility as a shipped Zig starter
 - claiming approved hard perf thresholds for the kprobe anchor
 
 ## Next Bounded Step
 
-Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet about this same survey note, manifest, and replay command once the adjacent packet has been reread and accepted as the truthful current boundary.
+Land one manifest-backed Phase 4 test_fsmount gap survey packet that keeps the current C anchor, replay command, owner, and rollback owner reviewable without claiming a shipped Zig starter.
