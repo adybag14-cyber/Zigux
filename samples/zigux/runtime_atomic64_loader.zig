@@ -588,6 +588,22 @@ test "runtime atomic64 loader surfaces prepared shared selftest-hook drift befor
     ));
 }
 
+test "runtime atomic64 loader rejects non-prepared shared requests before any local runtime handoff" {
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(0x1111_1111_2222_2222);
+    _ = try module.runSelftest();
+
+    var loader = RuntimeAtomic64Loader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    _ = try shared_request.requestRuntimeLoad();
+
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expectError(error.InvalidLoaderState, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+}
+
 test "runtime atomic64 loader rejects shared selftest-hook drift before any live atomic64 claim" {
     var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
     try module.init(9);
