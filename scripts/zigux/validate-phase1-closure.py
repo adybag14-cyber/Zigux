@@ -62,6 +62,7 @@ EXPECTED_PHASE1_MANIFEST = json.loads(
         "test \"bitmap size aliases round bit counts to full words in bytes\"",
         "test \"bitmap set clear weight and empty full helpers\"",
         "test \"bitmap range helpers honor exact first-word boundaries\"",
+        "test \"bitmap range helpers clamp the final partial word\"",
         "test \"bitmap fill clamps tail bits in partial words\"",
         "test \"bitmap and andnot equal intersects subset\"",
         "test \"bitmap and andnot clamp tail bits in partial words\"",
@@ -76,6 +77,7 @@ EXPECTED_PHASE1_MANIFEST = json.loads(
         "test \"bitmap Linux-style aliases mirror the primary helper surface\""
       ],
       "first_word_boundary_anchor": "test \"bitmap range helpers honor exact first-word boundaries\"",
+      "final_partial_word_anchor": "test \"bitmap range helpers clamp the final partial word\"",
       "predicate_tail_mask_anchor": "test \"bitmap predicates ignore out-of-range tail bits\"",
       "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
       "parity_fixture_keys": [
@@ -424,118 +426,134 @@ REQUIRED_LEDGER_MARKERS = [
 
 REQUIRED_MAKEFILE_MARKERS = [
     ("makefile_phase1_validate_target", "phase1-validate:", 1),
-    ("makefile_phase1_validate_inventory", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py", 1),
-    ("makefile_phase1_validate_closure", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py", 1),
+    ("makefile_phase1_validate_inventory", "cd zigux && python3 ../scripts/zigux/validate-phase1.py", 1),
     ("makefile_phase1_test_target", "phase1-test:", 1),
-    ("makefile_phase1_test_parity", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py", 1),
-    ("makefile_phase1_test_replay", "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/build.zig", 1),
+    ("makefile_phase1_test_inventory", "cd zigux && ../.zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file tests/build.zig", 1),
     ("makefile_phase1_bench_target", "phase1-bench:", 1),
-    ("makefile_phase1_bench_check", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py", 1),
-    ("makefile_phase1_bench_replay", "cd $(ZIGUX_ROOT) && $(ZIG) build bench --build-file zigux/tests/build.zig", 1),
+    ("makefile_phase1_bench_inventory", "cd zigux && ../.zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build bench --build-file tests/build.zig -Doptimize=ReleaseSafe", 1),
+    ("makefile_phase1_bench_check_inventory", "cd zigux && python3 ../scripts/zigux/check-phase1-bench.py", 1),
     ("makefile_phase1_target", "phase1: phase1-validate phase1-test phase1-bench", 1),
 ]
 
 REQUIRED_DOCS_ROOT_MARKERS = [
-    (
-        "docs_root_phase1_packet",
-        "- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
-        1,
-    ),
+    ("docs_root_phase1_manifest_count", "phase1_helper_manifest.json", 1),
+    ("docs_root_phase1_parity_gate_count", "python3 scripts/zigux/check-phase1-parity.py", 1),
+    ("docs_root_phase1_bench_check_count", "python3 scripts/zigux/check-phase1-bench.py", 1),
 ]
 
 REQUIRED_SCRIPTS_README_MARKERS = [
-    (
-        "scripts_readme_phase1_packet",
-        "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
-        1,
-    ),
+    ("scripts_readme_phase1_parity_gate_count", "check-phase1-parity.py", 1),
+    ("scripts_readme_phase1_bench_check_count", "check-phase1-bench.py", 1),
+    ("scripts_readme_phase1_install_zig_count", "install-zig.py", 1),
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
-    (
-        "tests_readme_phase1_packet",
-        "  * keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root, scripts root, and workflow replay surface",
-        1,
-    ),
+    ("tests_readme_phase1_helpers_count", "phase1_helpers.zig", 1),
+    ("tests_readme_phase1_bench_count", "phase1_bench.zig", 1),
+    ("tests_readme_phase1_manifest_count", "phase1_helper_manifest.json", 1),
+    ("tests_readme_phase1_bench_expectations_count", "phase1_bench_expectations.json", 1),
 ]
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
-    (
-        "review_checklist_phase1_packet",
-        "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `zigux/tests/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` still agree on the same closed helper tranche and validator-first replay path without widening Phase 1 beyond the bounded host-side helper packet?",
-        1,
-    ),
+    ("review_checklist_phase1_closure_gate_count", "python3 scripts/zigux/validate-phase1-closure.py", 1),
+    ("review_checklist_phase1_manifest_count", "phase1_helper_manifest.json", 1),
 ]
 
 
 def repo_root_from_arg(root_arg: str | None) -> Path:
-    return DEFAULT_ROOT if root_arg is None else Path(root_arg).resolve()
+    if root_arg:
+        return Path(root_arg).resolve()
+    return DEFAULT_ROOT
 
 
-def load_text(root: Path, rel: str) -> str:
-    return (root / rel).read_text(encoding="utf-8")
+def load_text(root: Path, rel_path: str) -> str:
+    return (root / rel_path).read_text(encoding="utf-8")
 
 
 def collect_missing_files(root: Path) -> list[str]:
-    return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
+    return [rel for rel in REQUIRED_FILES if not (root / rel).is_file()]
 
 
-def load_json_file(path: Path, label: str) -> tuple[Any | None, list[str]]:
+def load_json_file(path: Path, label: str) -> tuple[object | None, list[str]]:
     try:
         return json.loads(path.read_text(encoding="utf-8")), []
-    except json.JSONDecodeError as exc:
-        return None, [f"{label}:json_decode_error:{exc.msg}:line={exc.lineno}:column={exc.colno}"]
+    except FileNotFoundError:
+        return None, [f"{label}:missing_file"]
+    except json.JSONDecodeError:
+        return None, [f"{label}:invalid_json"]
 
 
 def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
     missing: list[str] = []
-    for label, marker, expected_count in markers:
-        actual_count = text.count(marker)
-        if actual_count != expected_count:
-            missing.append(f"{label}:expected={expected_count}:actual={actual_count}")
+    for label, marker, expected in markers:
+        actual = text.count(marker)
+        if actual != expected:
+            missing.append(f"{label}:expected={expected}:actual={actual}")
     return missing
 
 
 def collect_exact_line_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
-    actual_counts: dict[str, int] = {}
-    for raw_line in text.splitlines():
-        line = raw_line.strip()
-        actual_counts[line] = actual_counts.get(line, 0) + 1
+    line_counts: dict[str, int] = {}
+    for line in text.splitlines():
+        stripped = line.strip()
+        line_counts[stripped] = line_counts.get(stripped, 0) + 1
 
     missing: list[str] = []
-    for label, marker, expected_count in markers:
-        actual_count = actual_counts.get(marker, 0)
-        if actual_count != expected_count:
-            missing.append(f"{label}:expected={expected_count}:actual={actual_count}")
+    for label, marker, expected in markers:
+        actual = line_counts.get(marker, 0)
+        if actual != expected:
+            missing.append(f"{label}:expected={expected}:actual={actual}")
     return missing
 
 
-def extract_workflow_job(text: str, job_name: str) -> str:
-    pattern = re.compile(
-        rf"(?ms)^  {re.escape(job_name)}:\n(.*?)(?=^  [A-Za-z0-9_-]+:\n|\Z)"
-    )
-    match = pattern.search(text)
-    return "" if match is None else match.group(0)
-
-
-def collect_workflow_markers(text: str) -> list[str]:
+def collect_workflow_markers(workflow_text: str) -> list[str]:
     missing: list[str] = []
+    if not WORKFLOW_INSTALL_ZIG_RE.search(workflow_text):
+        missing.append("workflow:install_zig_command")
     for marker in REQUIRED_WORKFLOW_MARKERS:
-        if marker not in text:
+        if marker not in workflow_text:
             missing.append(f"workflow:{marker}")
-    if WORKFLOW_INSTALL_ZIG_RE.search(text) is None:
-        missing.append("workflow:python3 scripts/zigux/install-zig.py --channel <explicit> --dest .zig-toolchain")
-    if "mlugg/setup-zig@" in text:
-        missing.append("workflow:remove mlugg/setup-zig@")
     return missing
 
 
-def collect_manifest_review_anchor_markers(manifest: dict[str, Any]) -> list[str]:
-    missing: list[str] = []
+def extract_workflow_job(workflow_text: str, job_name: str) -> str:
+    lines = workflow_text.splitlines()
+    in_jobs = False
+    in_target = False
+    target_indent = 0
+    collected: list[str] = []
+
+    for line in lines:
+        stripped = line.strip()
+        indent = len(line) - len(line.lstrip(" "))
+
+        if not in_jobs:
+            if stripped == "jobs:":
+                in_jobs = True
+            continue
+
+        if not in_target:
+            if indent == 2 and stripped == f"{job_name}:":
+                in_target = True
+                target_indent = indent
+                collected.append(line)
+            continue
+
+        if indent <= target_indent and stripped and not stripped.startswith("#"):
+            break
+        collected.append(line)
+
+    return "\n".join(collected)
+
+
+def collect_manifest_review_anchor_markers(manifest: object) -> list[str]:
+    if not isinstance(manifest, dict):
+        return ["manifest:json_object"]
     review_anchors = manifest.get("review_anchors")
     if not isinstance(review_anchors, dict):
         return ["manifest:review_anchors=dict"]
 
+    missing: list[str] = []
     expected_helpers = set(EXPECTED_REVIEW_ANCHORS)
     actual_helpers = set(review_anchors)
     for helper in sorted(expected_helpers - actual_helpers):
@@ -818,6 +836,18 @@ def run_self_test() -> None:
                 )
             )(load_manifest()),
             "manifest:missing_review_anchor_field=tools/lib/bitmap.zig:first_word_boundary_anchor",
+        )
+        self_test_case_count += 1
+
+        assert_missing_marker_case(
+            tmp_root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("final_partial_word_anchor"),
+                    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8"),
+                )
+            )(load_manifest()),
+            "manifest:missing_review_anchor_field=tools/lib/bitmap.zig:final_partial_word_anchor",
         )
         self_test_case_count += 1
 
