@@ -70,6 +70,10 @@ SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     "- `zigux/tests/phase14_ring_buffer_manifest.json`",
     "- `zigux/tests/phase14_rcu_tree_manifest.json`",
 ]
+REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = [
+    "if the change touches the shared Phase 14 smoke packet",
+    "same study-only stay-in-C posture without implying an active deep-core port claim?",
+]
 
 
 def repo_root() -> Path:
@@ -107,6 +111,16 @@ def check(root: Path) -> list[str]:
             if actual_count != 1:
                 errors.append(
                     f"marker count drift in {SMOKE_SURVEY_PATH}: {marker} (expected 1, found {actual_count})"
+                )
+    review_checklist_path = root / "Documentation/zigux/review-checklist.md"
+    if review_checklist_path.exists():
+        review_checklist_text = read_text(review_checklist_path)
+        for marker in REVIEW_CHECKLIST_EXACT_COUNT_MARKERS:
+            actual_count = review_checklist_text.count(marker)
+            if actual_count != 1:
+                errors.append(
+                    "marker count drift in Documentation/zigux/review-checklist.md: "
+                    f"{marker} (expected 1, found {actual_count})"
                 )
     return errors
 
@@ -467,6 +481,46 @@ def run_self_test() -> int:
             for error in errors
         ):
             print("self-test expected failure when the review-checklist stay-in-C prompt drifted", file=sys.stderr)
+            return 1
+
+        write_text(broken_checklist_path, required_text("Documentation/zigux/review-checklist.md"))
+
+        broken_checklist_path.write_text(
+            broken_checklist_path.read_text(encoding="utf-8").replace(
+                "if the change touches the shared Phase 14 smoke packet\n",
+                "if the change touches the shared Phase 14 smoke packet\n"
+                "if the change touches the shared Phase 14 smoke packet\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/review-checklist.md: if the change touches the shared Phase 14 smoke packet (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the review-checklist packet prompt duplicated", file=sys.stderr)
+            return 1
+
+        write_text(broken_checklist_path, required_text("Documentation/zigux/review-checklist.md"))
+
+        broken_checklist_path.write_text(
+            broken_checklist_path.read_text(encoding="utf-8").replace(
+                "same study-only stay-in-C posture without implying an active deep-core port claim?\n",
+                "same study-only stay-in-C posture without implying an active deep-core port claim?\n"
+                "same study-only stay-in-C posture without implying an active deep-core port claim?\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/review-checklist.md: same study-only stay-in-C posture without implying an active deep-core port claim? (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the review-checklist stay-in-C prompt duplicated", file=sys.stderr)
             return 1
 
         write_text(broken_checklist_path, required_text("Documentation/zigux/review-checklist.md"))
