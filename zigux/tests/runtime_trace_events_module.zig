@@ -10,7 +10,7 @@ test "runtime trace-events sample advertises the bounded pilot-module contract" 
     try std.testing.expect(descriptor.provides_selftest_hook);
 }
 
-test "runtime trace-events sample enforces lifecycle transitions and bounded event emission" {
+test "runtime trace-events sample enforces lifecycle transitions and bounded event emission through the stable summary surface" {
     var module = sample.RuntimeTraceEventsSample{};
 
     try std.testing.expectEqual(sample.ModuleStage.cold, module.stage());
@@ -20,17 +20,19 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
         break :blk module.emitFunctionIteration(0);
     });
 
-    try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    const initialized = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized.init_runs);
 
     const main_events = try module.emitMainIteration(7);
     try std.testing.expectEqual(@as(usize, 6), main_events);
-    try std.testing.expectEqual(@as(usize, 1), module.main_iterations);
-    try std.testing.expectEqual(@as(i32, 7), module.last_main_count);
-    try std.testing.expect(module.saw_vararg_payload);
-    try std.testing.expect(module.saw_rel_loc_payload);
-    try std.testing.expect(module.saw_conditional_path);
-    const main_payload = module.last_main_payload orelse return error.ExpectedMainPayload;
+    const after_main = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), after_main.main_iterations);
+    try std.testing.expectEqual(@as(i32, 7), after_main.last_main_count);
+    try std.testing.expect(after_main.saw_vararg_payload);
+    try std.testing.expect(after_main.saw_rel_loc_payload);
+    try std.testing.expect(after_main.saw_conditional_path);
+    const main_payload = after_main.last_main_payload orelse return error.ExpectedMainPayload;
     try std.testing.expectEqualStrings("hello", main_payload.foo_bar_message);
     try std.testing.expectEqualStrings("HELLO", main_payload.template_message);
     try std.testing.expectEqualStrings("Some times print", main_payload.conditional_message);
@@ -41,43 +43,48 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
 
     try module.registerFunctionThread();
     try module.registerFunctionThread();
-    try std.testing.expectEqual(@as(usize, 2), module.registration_depth);
-    try std.testing.expectEqual(@as(usize, 1), module.registration_start_runs);
+    try std.testing.expectEqual(@as(usize, 2), module.summary().registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_start_runs);
     const fn_events = try module.emitFunctionIteration(9);
     try std.testing.expectEqual(@as(usize, 2), fn_events);
-    try std.testing.expectEqual(@as(usize, 1), module.fn_iterations);
-    try std.testing.expectEqual(@as(i32, 9), module.last_fn_count);
-    const fn_payload = module.last_function_payload orelse return error.ExpectedFunctionPayload;
+    const after_function = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), after_function.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 2), after_function.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), after_function.total_events);
+    try std.testing.expectEqual(@as(i32, 9), after_function.last_fn_count);
+    const fn_payload = after_function.last_function_payload orelse return error.ExpectedFunctionPayload;
     try std.testing.expectEqualStrings("Look at me", fn_payload.foo_bar_message);
     try std.testing.expectEqualStrings("Look at me too", fn_payload.template_message);
     try module.unregisterFunctionThread();
-    try std.testing.expectEqual(@as(usize, 1), module.registration_depth);
-    try std.testing.expectEqual(@as(usize, 0), module.registration_stop_runs);
+    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), module.summary().registration_stop_runs);
     try module.unregisterFunctionThread();
-    try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
-    try std.testing.expectEqual(@as(usize, 1), module.registration_stop_runs);
+    try std.testing.expectEqual(@as(usize, 0), module.summary().registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_stop_runs);
 
-    const summary = try module.runSelftest();
-    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
-    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", summary.anchor);
-    try std.testing.expectEqual(@as(usize, 5), summary.event_families.len);
-    try std.testing.expectEqual(@as(usize, 12), summary.main_thread_events);
-    try std.testing.expectEqual(@as(usize, 4), summary.fn_thread_events);
-    try std.testing.expectEqual(@as(usize, 16), summary.total_events);
-    try std.testing.expect(summary.conditional_paths_checked);
-    try std.testing.expect(summary.registration_paths_checked);
-    try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
-    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 3), module.register_runs);
-    try std.testing.expectEqual(@as(usize, 3), module.unregister_runs);
-    try std.testing.expectEqual(@as(usize, 2), module.registration_start_runs);
-    try std.testing.expectEqual(@as(usize, 2), module.registration_stop_runs);
+    const selftest_summary = try module.runSelftest();
+    const post_selftest = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, post_selftest.stage);
+    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", selftest_summary.anchor);
+    try std.testing.expectEqual(@as(usize, 5), selftest_summary.event_families.len);
+    try std.testing.expectEqual(@as(usize, 12), selftest_summary.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 4), selftest_summary.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 16), selftest_summary.total_events);
+    try std.testing.expect(selftest_summary.conditional_paths_checked);
+    try std.testing.expect(selftest_summary.registration_paths_checked);
+    try std.testing.expectEqual(@as(usize, 0), post_selftest.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), post_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 3), post_selftest.register_runs);
+    try std.testing.expectEqual(@as(usize, 3), post_selftest.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 2), post_selftest.registration_start_runs);
+    try std.testing.expectEqual(@as(usize, 2), post_selftest.registration_stop_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
 
     try module.exit();
-    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    const exited = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, exited.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
