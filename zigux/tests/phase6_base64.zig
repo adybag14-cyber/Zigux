@@ -178,6 +178,26 @@ test "phase 6 base64 invalid decode vectors leave destination bytes untouched" {
     }
 }
 
+test "phase 6 base64 foreign alphabet rejection leaves destination bytes untouched" {
+    const cases = [_]struct {
+        input: []const u8,
+        padding: bool,
+        variant: base64.Variant,
+    }{
+        .{ .input = "APv_f4A", .padding = false, .variant = .std },
+        .{ .input = "APv/f4A", .padding = false, .variant = .urlsafe },
+        .{ .input = "APv/f4A=", .padding = true, .variant = .imap },
+        .{ .input = "APv,f4A=", .padding = true, .variant = .std },
+    };
+
+    for (cases) |case| {
+        var decoded = [_]u8{0xdd} ** 8;
+        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.bytes(case.input, case.padding, case.variant));
+        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.decode(decoded[0..], case.input, case.padding, case.variant));
+        try std.testing.expectEqualSlices(u8, &([_]u8{0xdd} ** 8), decoded[0..]);
+    }
+}
+
 test "phase 6 base64 successful decode leaves caller bytes past the returned payload untouched" {
     const cases = [_]DecodeCase{
         .{ .input = "Zg==", .expected = "f", .padding = true, .variant = .std },
