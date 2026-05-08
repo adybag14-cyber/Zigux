@@ -153,6 +153,7 @@ REQUIRED_FILE_MARKERS = {
         "adjacent release-readiness note: `Documentation/zigux/phase12-release-readiness-survey.md`",
         "shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
         "driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
+        "shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "freeze-boundary authority: `Documentation/zigux/freeze-map.md`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
         "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2",
