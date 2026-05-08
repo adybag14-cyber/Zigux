@@ -121,6 +121,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
 - `PHASE2_TOOL_MANIFEST_PACKET_SELF_TEST=python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`
 - `PHASE2_TOOL_MANIFEST_PACKET_GATE=python3 scripts/zigux/check-phase2-tool-manifest-packets.py`
+- `PHASE2_ARTIFACT_TOOLS_PACKET=zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
 - `PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`
 - `PHASE2_TESTS_README_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
 - `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
@@ -196,6 +197,7 @@ The bounded Phase 2 bootstrap archive pin stays separate from the cross-target c
 - `scripts/zigux/zig-toolchain-policy.json` keeps the current bootstrap archive pin limited to `x86_64-linux` until new runner evidence lands.
 - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` keep that pinning note tied to the same shared validator and closure packet instead of leaving it as stand-alone reference text.
 - `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed tool-local packets for `fixdep`, `genksyms`, `artifact_tools` (`genksyms_crc` plus `mk_elfconfig`), `kconfig`, and `confdata` instead of leaving that manifest linkage implicit inside the broader validator stack.
+- `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` keeps the committed `genksyms_crc` plus `mk_elfconfig` artifact-backed packet explicit inside the shared closure record instead of leaving that packet visible only through the aggregate tool manifest or the bootstrap note.
 - `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-tests-readme-alignment.py` keep the shared docs, tests, review, Makefile, and workflow route inventory aligned before the broader Phase 2 replay packet runs.
 
 ## Linux-Style Entry Point
