@@ -14,6 +14,7 @@ const SurveySummary = struct {
     benchmark_command_unapproved: bool,
     acceptable_limit_unapproved: bool,
     atomic64_benchmark_command_approved: bool,
+    atomic64_acceptable_limit_approved: bool,
 };
 
 const DeterministicReplay = struct {
@@ -26,6 +27,10 @@ const Atomic64CommandEvidence = struct {
     evidence_status: []const u8,
     benchmark_command: []const u8,
     acceptable_limit_status: []const u8,
+    acceptable_limit_metric: []const u8,
+    acceptable_limit_iterations: usize,
+    acceptable_limit_sample_count: usize,
+    acceptable_limit_max_elapsed_ns: u64,
     deterministic_replays: []const DeterministicReplay,
 };
 
@@ -91,7 +96,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.owner);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
     try std.testing.expectEqual(@as(usize, 2), manifest.surveyed_gates.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     try std.testing.expectEqualStrings(
         "zigux/tests/atomic64_diff.zig",
@@ -132,6 +137,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try std.testing.expect(!manifest.survey_summary.benchmark_command_unapproved);
     try std.testing.expect(manifest.survey_summary.acceptable_limit_unapproved);
     try std.testing.expect(manifest.survey_summary.atomic64_benchmark_command_approved);
+    try std.testing.expect(manifest.survey_summary.atomic64_acceptable_limit_approved);
 
     try std.testing.expectEqualStrings(
         "benchmark_command_approved",
@@ -142,9 +148,16 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
         manifest.command_evidence.atomic64.benchmark_command,
     );
     try std.testing.expectEqualStrings(
-        "still_unapproved",
+        "approved_local_only",
         manifest.command_evidence.atomic64.acceptable_limit_status,
     );
+    try std.testing.expectEqualStrings(
+        "median_elapsed_ns",
+        manifest.command_evidence.atomic64.acceptable_limit_metric,
+    );
+    try std.testing.expectEqual(@as(usize, 4), manifest.command_evidence.atomic64.acceptable_limit_iterations);
+    try std.testing.expectEqual(@as(usize, 7), manifest.command_evidence.atomic64.acceptable_limit_sample_count);
+    try std.testing.expectEqual(@as(u64, 8192), manifest.command_evidence.atomic64.acceptable_limit_max_elapsed_ns);
     try std.testing.expectEqual(@as(usize, 2), manifest.command_evidence.atomic64.deterministic_replays.len);
     try std.testing.expectEqual(@as(usize, 1), manifest.command_evidence.atomic64.deterministic_replays[0].iterations);
     try std.testing.expectEqual(@as(u64, 3626254113632800175), manifest.command_evidence.atomic64.deterministic_replays[0].checksum);
@@ -186,7 +199,8 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     var saw_atomic64_command_gap = false;
     var saw_atomic64_acceptable_limit_gap = false;
     var saw_bitmap_command_evidence_gap = false;
-    var saw_bitmap_gap = false;
+    var saw_bitmap_command_gap = false;
+    var saw_bitmap_acceptable_limit_gap = false;
 
     for (manifest.gaps) |gap| {
         try std.testing.expect(gap.id.len > 0);
@@ -231,7 +245,6 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runThresholdReplay(4)") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "9210681150676220922") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "130322557735600376") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-atomic64-command")) {
@@ -243,20 +256,17 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
                 gap.benchmark_command.?,
             );
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "approved for local Phase 4 perf review") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit remains explicitly unapproved") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared validator-first packet") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit remained explicitly unapproved") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-atomic64-acceptable-limit")) {
             saw_atomic64_acceptable_limit_gap = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", gap.zigux_destination);
             try std.testing.expect(gap.benchmark_command == null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "next honest bounded Phase 4 perf step") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "local-only acceptable limit") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runThresholdReplay(1)") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runThresholdReplay(4)") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared CI ownership") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "8192") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "seven monotonic samples") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "attached Zig toolchain") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-bitmap-command-evidence")) {
@@ -274,11 +284,10 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "final nth-seven `123`") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runThresholdReplay(4)") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "7942141539243507472") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-bitmap-command")) {
-            saw_bitmap_gap = true;
+            saw_bitmap_command_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings(
@@ -287,11 +296,19 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
             );
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "approved for local Phase 4 perf review") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit remains explicitly unapproved") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared validator-first packet") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-bitmap-acceptable-limit")) {
+            saw_bitmap_acceptable_limit_gap = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", gap.zigux_destination);
+            try std.testing.expect(gap.benchmark_command == null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "next honest bounded Phase 4 perf step") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "explicit median nanosecond budget") != null);
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_manifest_gap);
     try std.testing.expect(saw_gate_gap);
@@ -299,5 +316,6 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try std.testing.expect(saw_atomic64_command_gap);
     try std.testing.expect(saw_atomic64_acceptable_limit_gap);
     try std.testing.expect(saw_bitmap_command_evidence_gap);
-    try std.testing.expect(saw_bitmap_gap);
+    try std.testing.expect(saw_bitmap_command_gap);
+    try std.testing.expect(saw_bitmap_acceptable_limit_gap);
 }
