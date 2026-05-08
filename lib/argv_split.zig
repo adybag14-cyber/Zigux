@@ -267,6 +267,22 @@ test "argvSplit tokens stay inside the owned storage copy" {
     }
 }
 
+test "argvSplit keeps the exported C argv vector sized to argc plus one sentinel" {
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argvSplitWithArgc(std.testing.allocator, "console=ttyS0 root=/dev/vda rw", &argc);
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(argc, split.argv.len);
+    try std.testing.expectEqual(argc + 1, split.argv_null_terminated.len);
+    try std.testing.expect(split.cArgv() == split.argv_null_terminated.ptr);
+
+    for (split.argv, 0..) |token, index| {
+        try std.testing.expectEqual(@intFromPtr(token.ptr), @intFromPtr(split.argv_null_terminated[index].?));
+    }
+
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.argv_null_terminated[argc]);
+}
+
 test "argvSplit zeroes copied whitespace separators across the tokenized buffer" {
     var split = try argvSplit(std.testing.allocator, " alpha  beta\tgamma\n");
     defer split.deinit(std.testing.allocator);
