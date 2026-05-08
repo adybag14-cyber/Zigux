@@ -75,7 +75,7 @@ REQUIRED_FILES = [
 
 DOC_MARKERS = {
     "docs_root_phase1_packet": [
-        "Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `scripts/zigux/install-zig.py` - `scripts/zigux/check-phase1-installer-review-surfaces.py`",
+        "Phase 1 notes\n- `Documentation/zigux/phase1-closure.md`\n- `scripts/zigux/README.md`\n- `scripts/zigux/install-zig.py`\n- `scripts/zigux/check-phase1-installer-review-surfaces.py`",
         "keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root",
     ],
     "tests_root_phase1_packet": [
