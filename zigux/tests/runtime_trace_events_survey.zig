@@ -316,6 +316,14 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     );
     defer std.testing.allocator.free(freeze_map);
 
+    const sequencing_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(sequencing_note);
+
     const loader_source = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "samples/zigux/runtime_trace_events_loader.zig",
@@ -331,6 +339,14 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(sample_source);
+
+    const samples_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(samples_readme);
 
     const phase9_build = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -377,6 +393,12 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "the four `samples/zigux/runtime_*_loader.zig` scaffolds keep the bounded loader handoff explicit without implying scheduler-facing substrate closure or a freeze-map status change") != null);
 
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "### Trace-events pilot lane") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "`samples/zigux/runtime_trace_events.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "`samples/zigux/runtime_trace_events_loader.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "the `phase9-runtime-trace-events-tests` step in `zigux/tests/phase9_build.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "trace-events pilot lane: `make -C zigux phase9-runtime-trace-events-test`") != null);
+
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".entry_symbol = \"zigux_runtime_trace_events_init\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".exit_symbol = \"zigux_runtime_trace_events_exit\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".register_api = \"tracepoint_probe_register\"") != null);
@@ -389,6 +411,10 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
 
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".provides_selftest_hook = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "pub fn runSelftest(self: *Self) !EmissionSummary") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "`samples/zigux/runtime_trace_events.zig` and `samples/zigux/runtime_trace_events_loader.zig` keep the runtime trace-events pilot separate from the approved non-runtime `samples/zigux/trace_events_sample.zig` reference sample") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map for the `runtime_loader` lane versus the four pilot-family packets") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "the Phase 9 loader packet remains a metadata-only handoff and should not be read as shipped runtime command or environment activation control on current `master`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_loader_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-loader-tests") != null);
