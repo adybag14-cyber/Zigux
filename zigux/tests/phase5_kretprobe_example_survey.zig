@@ -220,6 +220,13 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         .{manifest.lane_key},
     );
 
+    var review_gate_marker_buf: [160]u8 = undefined;
+    const review_gate_marker = try std.fmt.bufPrint(
+        review_gate_marker_buf[0..],
+        "samples/kprobes/kretprobe_example.c|PHASE5_LANE_KEY={s}|PHASE5_SURVEYED_COMMIT={s}|Phase 5",
+        .{ manifest.lane_key, manifest.surveyed_commit },
+    );
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase5-kretprobe-sample-survey.md",
@@ -232,7 +239,6 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "PHASE5_STATUS=parked",
         "PHASE5_SLICE=kretprobe-reference-sample-starter",
         "Documentation/zigux/phase5-sample-review-guide.md",
-        "samples/kprobes/kretprobe_example.c|PHASE5_LANE_KEY=P5-L18|PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231|Phase 5",
         "phase5_build.zig",
         "make -C zigux phase5-test",
         "make -C zigux phase5",
@@ -287,6 +293,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
     }
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, review_gate_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, lane_key_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "one bounded self-check through `runAnchorReplay()`") == null);
