@@ -40,6 +40,7 @@ PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
 ]
 PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
+    "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "PHASE2_TESTS_README_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
 ]
 
@@ -53,6 +54,7 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test": 1,
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1,
     "scripts/zigux/validate-phase2-closure.py": 1,
+    "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
     "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
     "scripts/zigux/check-phase2-tool-manifest-packets.py --self-test": 1,
     "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
@@ -94,6 +96,7 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1,
     "python3 scripts/zigux/validate-phase2-closure.py": 1,
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
     "python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
@@ -126,6 +129,8 @@ PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS = [
     "scripts/zigux/zig-toolchain-policy.json",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     "python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
     "python3 scripts/zigux/check-zig-toolchain.py",
     "current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`",
@@ -299,6 +304,7 @@ def make_ok_text() -> str:
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tool-manifest-packets.py",
@@ -341,6 +347,7 @@ def workflow_ok_text() -> str:
                 "run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
                 "run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
                 "run: python3 scripts/zigux/validate-phase2-closure.py",
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
                 "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
                 "run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
                 "run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
@@ -377,6 +384,8 @@ def toolchain_notes_ok_text() -> str:
                 "- policy file: `scripts/zigux/zig-toolchain-policy.json`",
                 "- guard self-test: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
                 "- guard: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+                "- shared tests README alignment self-test: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`",
+                "- shared tests README alignment gate: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`",
                 "- workflow install path: `python3 scripts/zigux/install-zig.py --dest .zig-toolchain`",
                 "- workflow verification path: `python3 scripts/zigux/check-zig-toolchain.py`",
                 "- current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`",
@@ -428,7 +437,7 @@ def main_validation(root: Path) -> list[str]:
             return [f"missing_file:{abs_path.relative_to(root)}"]
 
     closure = (root / "Documentation/zigux/phase2-closure.md").read_text(encoding="utf-8")
-    workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
+    workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
     ledger = (root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts" / "zigux/README.md").read_text(encoding="utf-8")
     artifact_doc = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
@@ -516,6 +525,7 @@ def main_validation(root: Path) -> list[str]:
         "python3 scripts/zigux/check-kconfig-bridge.py --self-test",
         "python3 scripts/zigux/check-kconfig-bridge.py",
         "python3 scripts/zigux/check-mk-elfconfig-diff.py",
+        "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
         "python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
         "python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
@@ -564,6 +574,7 @@ def main_validation(root: Path) -> list[str]:
         "phase2-kconfig:",
         "phase2-cross:",
         "check-zig-toolchain.py",
+        "check-phase2-tests-readme-alignment.py --self-test",
         "check-phase2-tests-readme-alignment.py",
         "check-phase2-tool-manifest-packets.py",
         "check-phase2-cross-selftest-alignment.py --self-test",
@@ -661,6 +672,7 @@ def run_self_test() -> int:
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-genksyms-crc-diff.py",
+        "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
     ]
     for command in make_duplicate_cases:
@@ -693,6 +705,7 @@ def run_self_test() -> int:
         "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
         "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "python3 scripts/zigux/check-genksyms-crc-diff.py",
+        "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     ]
     for command in workflow_duplicate_cases:
