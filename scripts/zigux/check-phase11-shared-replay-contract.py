@@ -156,7 +156,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 51
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 55
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -223,6 +223,13 @@ SELF_TEST_CASES = [
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[34], REQUIRED_CONTRACT_MARKERS[34]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[35], REQUIRED_CONTRACT_MARKERS[35]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[37], REQUIRED_CONTRACT_MARKERS[37]),
+]
+
+FORBIDDEN_SELF_TEST_CASES = [
+    (PHASE11_CONTRACT_PATH, FORBIDDEN_CONTRACT_MARKERS[0]),
+    (PHASE11_CONTRACT_PATH, FORBIDDEN_CONTRACT_MARKERS[1]),
+    (SCRIPTS_README_PATH, FORBIDDEN_CONTRACT_MARKERS[0]),
+    (SCRIPTS_README_PATH, FORBIDDEN_CONTRACT_MARKERS[1]),
 ]
 
 FIXTURE_CONTENT = {
@@ -297,6 +304,15 @@ def expect_exact_count_failure(root: Path, rel_path: str, marker: str, label: st
     if not any(failure.startswith(expected_prefix) for failure in failures):
         raise AssertionError(f"missing expected exact-count failure {expected_prefix!r}; got {failures!r}")
 
+def expect_forbidden_failure(root: Path, rel_path: str, marker: str) -> None:
+    path = root / rel_path
+    original = path.read_text(encoding="utf-8")
+    path.write_text(original + marker + "\n", encoding="utf-8")
+    failures = validate(root)
+    expected_failure = f"forbidden_marker:{marker}"
+    if expected_failure not in failures:
+        raise AssertionError(f"missing expected forbidden-marker failure {expected_failure!r}; got {failures!r}")
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase11_contract_") as tmpdir:
         root = Path(tmpdir)
@@ -317,6 +333,13 @@ def run_self_test() -> int:
             write_fixture_tree(root)
             try:
                 expect_exact_count_failure(root, rel_path, marker, label)
+            except AssertionError as exc:
+                print(exc, file=sys.stderr)
+                return 1
+        for rel_path, marker in FORBIDDEN_SELF_TEST_CASES:
+            write_fixture_tree(root)
+            try:
+                expect_forbidden_failure(root, rel_path, marker)
             except AssertionError as exc:
                 print(exc, file=sys.stderr)
                 return 1
