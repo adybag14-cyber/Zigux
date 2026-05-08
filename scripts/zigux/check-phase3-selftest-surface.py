@@ -15,6 +15,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase3-abi-slice.md",
     "scripts/zigux/README.md",
+    "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
@@ -547,6 +548,11 @@ def run_self_test() -> int:
         )
 
         build_self_test_root(root)
+        (root / "scripts/zigux/validate-phase3.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/validate-phase3.py" in issues
+
+        build_self_test_root(root)
         (root / "scripts/zigux/validate_phase3_selftest.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/validate_phase3_selftest.py" in issues
@@ -577,7 +583,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=35")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=36")
     return 0
 
 
