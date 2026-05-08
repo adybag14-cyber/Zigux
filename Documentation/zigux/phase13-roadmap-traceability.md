@@ -39,6 +39,8 @@ Current `master` keeps that anchor reviewable through:
   * `zigux/tests/phase13_libfs_addressability.zig`
   * `zigux/tests/phase13_libfs_reviewability.zig`
 
+Inside that packet, the active shared replay keeps `zigux/tests/phase13_libfs.zig` and `zigux/tests/phase13_libfs_reviewability.zig` inside the same eight-test helper route while `zigux/tests/phase13_libfs_addressability.zig` stays shipped focused direct helper evidence rather than a ninth shared replay step.
+
 That packet is truthful to the roadmap because it exposes only reviewable helper planning and explicit next-step posture. It currently covers the landed statfs, lookup, buffer-copy, seek-policy, directory-emit, `dcache_dir_open()` setup, `dcache_dir_close()` cursor-release, cursor-reposition bookkeeping, transaction acquire, publish, and release helpers, the `generic_check_addressable()` planner around shift overflow, zero-block passthrough, minimum block size, and explicit sector or page-index caps, and the bounded `simple_open()` private-data handoff without implying live file lifecycle, cursor dentry ownership, inode state, or pseudo-filesystem mounting. Keep this packet parked unless a future same-lane step can stay equally small; the deeper `dcache_readdir()` cursor-resume packet still needs sibling-list traversal, reschedule-aware cursor movement, and lock-ordering boundaries called out before the helper-first boundary can move.
 
 ## Devres lane traceability
@@ -141,7 +143,7 @@ The honest current roadmap read is:
 
   * Phase 13 is active, not closed
   * the shared replay packet is real and build-backed
-  * `libfs` remains bounded to helper-first filesystem planning
+  * `libfs` remains bounded to helper-first filesystem planning with one focused addressability shard still outside the shared replay count
   * `devres` remains bounded to helper-first MMIO-adjacent planning
   * `landlock ruleset` remains bounded to helper-first ruleset planning with live-tree state still explicitly blocked
   * `landlock syscalls` remains bounded to helper-first syscall planning with the release-side handoff now explicitly shipped and the packet otherwise parked
