@@ -26,6 +26,8 @@ const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     surveyed_commit: []const u8,
+    surveyed_commit_mode: []const u8,
+    surveyed_commit_mode_reason: []const u8,
     roadmap_requirement: []const u8,
     anchors: []const []const u8,
     supporting_artifacts: []const []const u8,
@@ -77,7 +79,12 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("2359c03fa82626b7359467c9b8bc9d0b092de5aa", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-08", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
+    try std.testing.expectEqualStrings(
+        "The indefinite-C policy packet reports current stay-in-C governance posture at the bounded packet level, so it now uses an explicit dated master-readback marker instead of implying exact post-commit branch-head parity.",
+        manifest.surveyed_commit_mode_reason,
+    );
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.supporting_artifacts.len);
@@ -87,7 +94,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     try std.testing.expectEqualStrings("retired_from_active_discussion", manifest.exception_posture.retained_closeout_state);
     try std.testing.expectEqualStrings("existing_blocker_remains_recorded_until_reopen_approved", manifest.exception_posture.blocker_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.exception_posture.required_reopen_inputs.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.anchors[0]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.supporting_artifacts[3]);
@@ -175,7 +182,9 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
 
     try expectContains(io_instance.io(), "Documentation/zigux/phase15-indefinite-c-policy.md", &.{
         "PHASE15_LANE_KEY=P15-L16",
-        "survey provenance refreshed against verified `master` head `2359c03fa82626b7359467c9b8bc9d0b092de5aa`",
+        "PHASE15_PROVENANCE_MODE=dated_master_readback",
+        "survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-08` on 2026-05-08 because this policy packet reports current stay-in-C governance posture at the bounded packet level instead of implying exact post-commit branch-head parity",
+        "exact branch-head parity is not recorded for this packet; the current policy packet therefore uses an explicit dated readback marker instead of implying exact-head provenance",
         "the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build",
         "scripts/zigux/README.md",
         "scripts/zigux/check-phase15-scripts-readme-alignment.py",
@@ -397,6 +406,7 @@ test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
     var saw_build = false;
     var saw_sync_followup = false;
     var saw_exception_followup = false;
+    var saw_provenance_followup = false;
     var saw_blocker = false;
 
     for (parsed.value.gaps, 0..) |gap, i| {
@@ -439,6 +449,12 @@ test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "no-silent-exception") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "retained closeout") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "retained-blocker") != null);
+        } else if (std.mem.eql(u8, gap.id, "phase15-indefinite-c-readback-provenance-sync")) {
+            saw_provenance_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase15-indefinite-c-policy.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "older exact-head provenance claim") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dated master-readback marker") != null);
         } else if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -450,7 +466,7 @@ test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), landed_count);
+    try std.testing.expectEqual(@as(usize, 7), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_note);
@@ -459,5 +475,6 @@ test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
     try std.testing.expect(saw_build);
     try std.testing.expect(saw_sync_followup);
     try std.testing.expect(saw_exception_followup);
+    try std.testing.expect(saw_provenance_followup);
     try std.testing.expect(saw_blocker);
 }
