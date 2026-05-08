@@ -53,6 +53,19 @@ pub fn build(b: *std.Build) void {
     });
     const run_bsearch_tests = b.addRunArtifact(bsearch_tests);
 
+    const bsearch_lower_bound_c_abi_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_bsearch_lower_bound_c_abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bsearch_lower_bound_c_abi_root_module.addImport("bsearch", bsearch_module);
+
+    const bsearch_lower_bound_c_abi_tests = b.addTest(.{
+        .name = "phase6-bsearch-lower-bound-c-abi-tests",
+        .root_module = bsearch_lower_bound_c_abi_root_module,
+    });
+    const run_bsearch_lower_bound_c_abi_tests = b.addRunArtifact(bsearch_lower_bound_c_abi_tests);
+
     const checksum_module = b.createModule(.{
         .root_source_file = b.path("../../lib/checksum.zig"),
         .target = target,
@@ -128,6 +141,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run Phase 6 leaf helper tests");
     test_step.dependOn(&run_base64_tests.step);
     test_step.dependOn(&run_bsearch_tests.step);
+    test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);
     test_step.dependOn(&run_checksum_tests.step);
     test_step.dependOn(&run_hexdump_tests.step);
 
