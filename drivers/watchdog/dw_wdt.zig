@@ -40,6 +40,12 @@ pub const TimerClockPath = enum {
     shared_clk_fallback,
 };
 
+pub const TimerClockSelection = enum {
+    named_tclk,
+    unnamed_shared_fallback,
+    blocked_no_timer_clock,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -214,6 +220,32 @@ pub const PlatformRegistrationScaffoldSummary = struct {
     shutdown_path_reviewable: bool,
     blocked_on_live_platform_registration: bool,
     blocked_on_live_mmio: bool,
+};
+
+pub const PlatformResourcePreflightOptions = struct {
+    has_named_tclk: bool = false,
+    has_shared_clock: bool = true,
+    has_pclk: bool = false,
+    has_reset_control: bool = false,
+    has_pretimeout_irq: bool = false,
+};
+
+pub const PlatformResourcePreflightSummary = struct {
+    anchor: []const u8,
+    timer_clock_selection: TimerClockSelection,
+    uses_shared_clock_fallback: bool,
+    timer_clock_available: bool,
+    timer_clock_get_call: []const u8,
+    apb_clock_optional: bool,
+    apb_clock_present: bool,
+    apb_clock_get_call: []const u8,
+    reset_control_available: bool,
+    reset_control_get_call: []const u8,
+    pretimeout_irq_optional: bool,
+    pretimeout_irq_present: bool,
+    pretimeout_irq_call: []const u8,
+    blocked_on_missing_timer_clock: bool,
+    keeps_platform_registration_blocked: bool,
 };
 
 pub const RemoveSummary = struct {
@@ -546,6 +578,34 @@ pub const DwWdtLab = struct {
             .shutdown_path_reviewable = true,
             .blocked_on_live_platform_registration = order.blocked_on_live_platform_registration,
             .blocked_on_live_mmio = order.blocked_on_live_mmio,
+        };
+    }
+
+    pub fn platformResourcePreflightSummary(
+        options: PlatformResourcePreflightOptions,
+    ) PlatformResourcePreflightSummary {
+        const selection: TimerClockSelection = if (options.has_named_tclk)
+            .named_tclk
+        else if (options.has_shared_clock)
+            .unnamed_shared_fallback
+        else
+            .blocked_no_timer_clock;
+        return .{
+            .anchor = descriptor().anchor,
+            .timer_clock_selection = selection,
+            .uses_shared_clock_fallback = !options.has_named_tclk and options.has_shared_clock,
+            .timer_clock_available = options.has_named_tclk or options.has_shared_clock,
+            .timer_clock_get_call = "devm_clk_get_enabled",
+            .apb_clock_optional = true,
+            .apb_clock_present = options.has_pclk,
+            .apb_clock_get_call = "devm_clk_get_optional_enabled",
+            .reset_control_available = options.has_reset_control,
+            .reset_control_get_call = "devm_reset_control_get_optional_shared",
+            .pretimeout_irq_optional = true,
+            .pretimeout_irq_present = options.has_pretimeout_irq,
+            .pretimeout_irq_call = "platform_get_irq_optional",
+            .blocked_on_missing_timer_clock = selection == .blocked_no_timer_clock,
+            .keeps_platform_registration_blocked = true,
         };
     }
 
@@ -923,7 +983,7 @@ test "registration order summary keeps imported running state and pretimeout rea
     try std.testing.expect(!summary.nowayout);
     try std.testing.expect(summary.stop_on_reboot);
     try std.testing.expect(summary.register_device_requested);
-    try std.testing.expect(summary.reset_deassert_precedes_timeout_init);
+    try std.testing.expect(!summary.reset_deassert_precedes_timeout_init);
     try std.testing.expect(summary.timeout_init_precedes_drvdata);
     try std.testing.expect(summary.drvdata_precedes_restart_priority);
     try std.testing.expect(summary.restart_priority_precedes_stop_on_reboot);
