@@ -90,7 +90,7 @@ pub fn getOptions(str: []const u8, nints: usize, ints: []i32) []const u8 {
 }
 
 pub fn memparse(ptr: []const u8, ret_index: ?*usize) u64 {
-    const parsed = parseUnsignedPrefix(ptr);
+    const parsed = parseUnsignedPrefix(ptr) orelse parseMemparseZeroPrefix(ptr);
     var value: u64 = 0;
     var index: usize = 0;
     if (parsed) |result| {
@@ -286,6 +286,26 @@ fn parseUnsignedPrefix(s: []const u8) ?struct { value: u64, len: usize } {
     };
 }
 
+fn parseMemparseZeroPrefix(s: []const u8) ?struct { value: u64, len: usize } {
+    if (s.len == 0) {
+        return null;
+    }
+
+    var start: usize = 0;
+    if (s[0] == '+') {
+        start = 1;
+        if (s.len == 1) {
+            return null;
+        }
+    }
+
+    if (s.len >= start + 2 and s[start] == '0' and (s[start + 1] == 'x' or s[start + 1] == 'X')) {
+        return .{ .value = 0, .len = start + 1 };
+    }
+
+    return null;
+}
+
 fn parseSignedPrefix(s: []const u8) ?struct { value: i64, len: usize } {
     if (s.len == 0) {
         return null;
@@ -417,6 +437,9 @@ test "memparse handles size suffixes, accepts leading plus, and reports where pa
 
     try std.testing.expectEqual(@as(u64, 16 * 1024), memparse("0x10Krest", &index));
     try std.testing.expectEqual(@as(usize, 5), index);
+
+    try std.testing.expectEqual(@as(u64, 0), memparse("0xK", &index));
+    try std.testing.expectEqual(@as(usize, 1), index);
 
     try std.testing.expectEqual(@as(u64, 1024), memparse("+1K", &index));
     try std.testing.expectEqual(@as(usize, 3), index);
