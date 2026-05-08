@@ -266,6 +266,16 @@ test "phase3 mmio wrapper uses bounded volatile access" {
     try std.testing.expectEqual(@as(u32, 24), desc.length);
     try std.testing.expectEqual(@as(u32, 1), desc.stride);
 
+    const halfword_desc = range(base, 24, 2);
+    try std.testing.expectEqual(base, halfword_desc.base_addr);
+    try std.testing.expectEqual(@as(u32, 24), halfword_desc.length);
+    try std.testing.expectEqual(@as(u32, 2), halfword_desc.stride);
+
+    const word_desc = range(base, 24, 4);
+    try std.testing.expectEqual(base, word_desc.base_addr);
+    try std.testing.expectEqual(@as(u32, 24), word_desc.length);
+    try std.testing.expectEqual(@as(u32, 4), word_desc.stride);
+
     const dword_desc = range(base, 24, 8);
     try std.testing.expectEqual(base, dword_desc.base_addr);
     try std.testing.expectEqual(@as(u32, 24), dword_desc.length);
