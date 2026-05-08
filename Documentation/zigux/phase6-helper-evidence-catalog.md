@@ -13,6 +13,17 @@ This note records the current helper-evidence survey for the Phase 6 leaf-helper
 
 The four Phase 6 slice notes stay useful for helper-local detail, but they do not gather the roadmap anchor, the landed Zig helper, and the current reviewable evidence row in one place. This catalog closes that narrower review gap without widening the Phase 6 packet into new perf policy or validator work.
 
+## Shared packet surfaces
+
+The shared Phase 6 packet currently stays reviewable through:
+
+- `Documentation/zigux/review-checklist.md`
+- `zigux/tests/README.md`
+- `scripts/zigux/README.md`
+- `scripts/zigux/check-phase6-shared-surface.py`
+- `zigux/tests/phase6_build.zig`
+- `zigux/Makefile`
+
 ## Current helper-evidence rows
 
 ### base64
@@ -24,7 +35,7 @@ The four Phase 6 slice notes stay useful for helper-local detail, but they do no
 - committed fixture surface: `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - shared build route: `zigux/tests/phase6_build.zig`
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
-- current review posture: helper parity plus the shipped `make -C zigux phase6-base64-perf` slowdown gate
+- current review posture: helper parity plus the shipped `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig` and `make -C zigux phase6-base64-perf` slowdown gates
 
 ### bsearch
 
@@ -44,7 +55,7 @@ The four Phase 6 slice notes stay useful for helper-local detail, but they do no
 - committed fixture surface: `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - shared build route: `zigux/tests/phase6_build.zig`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
-- current review posture: helper parity plus the shipped `make -C zigux phase6-checksum-perf` slowdown gate
+- current review posture: helper parity plus the shipped `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe` and `make -C zigux phase6-checksum-perf` slowdown gates
 
 ### hexdump
 
@@ -55,14 +66,20 @@ The four Phase 6 slice notes stay useful for helper-local detail, but they do no
 - committed fixture surface: `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - shared build route: `zigux/tests/phase6_build.zig`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
-- current review posture: helper parity plus the shipped `make -C zigux phase6-hexdump-perf` formatter-sensitive perf gate
+- current review posture: helper parity plus the shipped `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`, `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`, and `make -C zigux phase6-hexdump-perf` formatter-sensitive replay routes
 
 ## Shared replay reminders
 
+- `python3 scripts/zigux/check-phase6-shared-surface.py`
+- `zig build test --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-validate`
 - `make -C zigux phase6`
+- `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-base64-perf`
+- `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
 - `make -C zigux phase6-checksum-perf`
+- `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`
+- `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
 - `make -C zigux phase6-hexdump-perf`
 
 Reopen this catalog only when one of the four roadmap anchors gains or loses a reviewable helper-evidence row on `master`.
