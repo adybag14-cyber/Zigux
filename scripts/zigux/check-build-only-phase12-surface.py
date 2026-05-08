@@ -101,6 +101,7 @@ REQUIRED_FILE_MARKERS = {
         "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
         "build-only contract drift still fails closed when the local runtime needs the fallback path.",
         "the compact release-coordination matrix",
+        "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
@@ -238,7 +239,7 @@ REQUIRED_FILE_MARKERS = {
         'try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);',
         'if (std.mem.eql(u8, gap.id, "phase12-virtio-net-syntax-lab-gate")) {',
         'try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_syntax_lab.zig", gap.zigux_destination);',
-        'if (std.mem.eql(u8, gap.id, "phase12-virtio-net-segmented-rollout-boundary")) {',
+        'if (std.mem.eql(u8, "phase12-virtio-net-segmented-rollout-boundary")) {',
     ],
     PHASE12_BUILD_PATH: [
         'const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");',
