@@ -119,7 +119,7 @@ REQUIRED_FILE_MARKERS = {
         "shared-tree-only anchors:",
         "freeze-boundary guard: `Documentation/zigux/freeze-map.md`; queueing, throughput, rollback, and recovery wording in this shared fallback overview must stay below active delivery claims against frozen `net/core/skbuff.c` and below boundary-study-only `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c`",
         "The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order used by the PMO sequencing and closure companion notes.",
-        "current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
+        "current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion",
