@@ -128,6 +128,22 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-backed queue discovery, IRQ acknowledgement, queue reset execution, and probe/remove lifecycle behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Do not reopen MMIO helper growth, DMA, interrupt delivery, queue discovery, reset execution, or probe/remove lifecycle work from this note.") != null);
 
+    const verify_replay = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/virtio/virtio_ring_verify.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(verify_replay);
+
+    try std.testing.expect(std.mem.indexOf(u8, verify_replay, "test \"virtio ring clearBroken exposes the next reset blocker instead of hiding queue debt\" {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, verify_replay, "_ = try lab.clearBroken(4);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, verify_replay, "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpublished_chains, readiness.blocker.?);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, verify_replay, "_ = try lab.clearBroken(5);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, verify_replay, "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.outstanding_chains, readiness.blocker.?);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, verify_replay, "_ = try lab.clearBroken(6);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, verify_replay, "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, readiness.blocker.?);") != null);
+
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
