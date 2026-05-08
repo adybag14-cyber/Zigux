@@ -83,6 +83,8 @@ The current tests check:
 - separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results
 - blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`
 - exported storage and argv views resetting back to the canonical empty sentinels after teardown
+- allocator-failure cleanup when intermediate setup work is interrupted
+- overflow rejection before sizing the exported null-terminated argv vector
 
 The dedicated Phase 7 survey gate now imports the committed manifest under `zigux/tests/phase7_argv_split_manifest.json`, while the dedicated packet checker keeps that survey, the slice note, the focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, and the helper test entrypoint aligned. The shared `validate-phase7.py`, `check-phase7-build-wiring.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep that same parked ownership-preserving packet reviewable through the validator-first and Linux-style replay surfaces instead of leaving the shared Phase 7 packet implicit.
 
