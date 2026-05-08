@@ -4,6 +4,10 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectCount(haystack: []const u8, needle: []const u8, expected: usize) !void {
+    try std.testing.expectEqual(expected, std.mem.count(u8, haystack, needle));
+}
+
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
@@ -27,6 +31,8 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination");
     try expectContains(slice_note, "caller-owned buffer discipline for `next_arg()`: `nextArg()` writes NUL sentinels into the supplied mutable buffer and returns borrowed `param`, `value`, and `rest` slices into that same storage");
     try expectContains(slice_note, "the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `check-phase7-build-wiring.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice");
+    try expectCount(slice_note, "exact bare-option matching for comma-delimited flags, including leading and doubled-comma empty-option acceptance plus trailing-comma rejection", 1);
+    try expectCount(slice_note, "caller-owned buffer discipline for `next_arg()`: `nextArg()` writes NUL sentinels into the supplied mutable buffer and returns borrowed `param`, `value`, and `rest` slices into that same storage", 1);
 
     const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
     defer allocator.free(docs_root);
@@ -40,6 +46,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(docs_root, "`make -C zigux phase7-validate`");
     try expectContains(docs_root, "`make -C zigux phase7`");
     try expectContains(docs_root, "scripts/zigux/check-phase7-build-wiring.py");
+    try expectCount(docs_root, "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample", 1);
 
     const review_checklist = try readRepoFile(allocator, "Documentation/zigux/review-checklist.md");
     defer allocator.free(review_checklist);
@@ -106,6 +113,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(samples_root, "zigux/tests/phase7_cmdline.zig");
     try expectContains(samples_root, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(samples_root, "zigux/tests/phase7_build.zig");
+    try expectCount(samples_root, "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;", 1);
 
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
@@ -114,6 +122,11 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(build_file, "\"phase7-cmdline-tests\"");
     try expectContains(build_file, "\"phase7-cmdline-survey-tests\"");
     try expectContains(build_file, "run_cmdline_survey_tests.setCwd(b.path(\"../..\"));");
+    try expectCount(build_file, "\"phase7_cmdline.zig\"", 1);
+    try expectCount(build_file, "\"phase7_cmdline_survey.zig\"", 1);
+    try expectCount(build_file, "\"phase7-cmdline-tests\"", 1);
+    try expectCount(build_file, "\"phase7-cmdline-survey-tests\"", 1);
+    try expectCount(build_file, "run_cmdline_survey_tests.setCwd(b.path(\"../..\"));", 1);
 
     const helper_impl = try readRepoFile(allocator, "lib/cmdline.zig");
     defer allocator.free(helper_impl);
@@ -132,6 +145,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(helper_impl, "test \"nextArg keeps embedded equals inside quoted values\"");
     try expectContains(helper_impl, "test \"nextArg keeps param, value, and rest borrowed from the caller buffer\"");
     try expectContains(helper_impl, "test \"nextArg does not treat a leading equals sign as a value separator\"");
+    try expectCount(helper_impl, "test \"nextArg keeps param, value, and rest borrowed from the caller buffer\"", 1);
 
     const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
     defer allocator.free(tests_root);
@@ -172,6 +186,9 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(cmdline_tests, "phase 7 nextArg matches serialized edge fixtures");
     try expectContains(cmdline_tests, "for (next_arg_vectors.next_arg_cases) |fixture| {");
     try expectContains(cmdline_tests, "cmdline.nextArg");
+    try expectCount(cmdline_tests, "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");", 1);
+    try expectCount(cmdline_tests, "phase 7 getOption preserves validator-only numeric acceptance", 1);
+    try expectCount(cmdline_tests, "phase 7 nextArg matches serialized edge fixtures", 1);
 
     const next_arg_fixture = try readRepoFile(allocator, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
     defer allocator.free(next_arg_fixture);
@@ -190,4 +207,6 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(next_arg_fixture, ".expected_value = \"value\",");
     try expectContains(next_arg_fixture, ".expected_param = \"=bad\",");
     try expectContains(next_arg_fixture, ".expected_value = \"alpha=beta\",");
+    try expectCount(next_arg_fixture, ".name = \"leading equals sign stays in the parameter token\",", 1);
+    try expectCount(next_arg_fixture, ".expected_param = \"=bad\",", 1);
 }
