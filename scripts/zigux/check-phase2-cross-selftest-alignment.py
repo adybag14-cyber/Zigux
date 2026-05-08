@@ -61,7 +61,7 @@ VALIDATE_PHASE2_MARKERS = [
 ]
 
 VALIDATE_PHASE2_CLOSURE_MARKERS = [
-    "CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'",
+    'CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"',
     "PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test",
     "PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py",
     "PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
@@ -318,7 +318,7 @@ def run_self_test() -> int:
         write_text(abspath(root, VALIDATE_PHASE2_CLOSURE), "PHASE2_CROSS_ALIGNMENT_GATE\n")
         issues = validate_root(root)
         assert (
-            "validate_phase2_closure:CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'"
+            'validate_phase2_closure:CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"'
             in issues
         )
 
