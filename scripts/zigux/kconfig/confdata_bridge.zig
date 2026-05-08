@@ -622,3 +622,25 @@ test "confdata bridge emits no entries for empty CONFIG symbol names" {
         capture.list.items,
     );
 }
+
+test "confdata bridge keeps only the last assignment for duplicate symbols" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA=y
+        \\CONFIG_BETA=7
+        \\CONFIG_ALPHA="final"
+        \\CONFIG_BETA=m
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("final", summary.entries[0].value);
+    try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[1].name);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("m", summary.entries[1].value);
+}
