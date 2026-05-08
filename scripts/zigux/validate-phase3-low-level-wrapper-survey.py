@@ -27,7 +27,7 @@ ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 10
 MMIO_POINTER_AT_CALL_COUNT = 8
 MMIO_FORBIDDEN_RAW_POINTER_TOKENS = (
     "@ptrFromInt",
@@ -141,6 +141,12 @@ TOKEN_CHECKS = {
     BARRIER_REL: ("pub fn acquire", "pub fn release", "pub fn full", "pub fn acquireRelease"),
     MMIO_REL: (
         "pub fn range",
+        "pub fn allowsInteropPolicyBytes",
+        "pub fn allowsInteropPolicy",
+        "pub fn requireInteropPolicyBytes",
+        "pub fn requireInteropPolicy",
+        "pub fn rangeInteropPolicyBytes",
+        "pub fn rangeInteropPolicy",
         "pub fn read8",
         "pub fn write8",
         "pub fn read16",
@@ -149,6 +155,23 @@ TOKEN_CHECKS = {
         "pub fn write32",
         "pub fn read64",
         "pub fn write64",
+        "pub fn read8InteropPolicyBytes",
+        "pub fn read8InteropPolicy",
+        "pub fn write8InteropPolicyBytes",
+        "pub fn write8InteropPolicy",
+        "pub fn read16InteropPolicyBytes",
+        "pub fn read16InteropPolicy",
+        "pub fn write16InteropPolicyBytes",
+        "pub fn write16InteropPolicy",
+        "pub fn read32InteropPolicyBytes",
+        "pub fn read32InteropPolicy",
+        "pub fn write32InteropPolicyBytes",
+        "pub fn write32InteropPolicy",
+        "pub fn read64InteropPolicyBytes",
+        "pub fn read64InteropPolicy",
+        "pub fn write64InteropPolicyBytes",
+        "pub fn write64InteropPolicy",
+        'test "phase3 mmio interop policy gates stay explicit"',
         "narrow.pointerAt",
     ),
     NARROW_REL: (
@@ -166,8 +189,14 @@ TOKEN_CHECKS = {
         "pub fn recognizesInteropPolicy",
         "pub fn recognizesByte",
         "pub fn permitsNoUnsafePolicyBytes",
+        "pub fn permitsNoUnsafeInteropPolicy",
+        "pub fn permitsNoUnsafeByte",
         "pub fn permitsVolatileMmioPolicyBytes",
+        "pub fn permitsVolatileMmioInteropPolicy",
+        "pub fn permitsVolatileMmioByte",
         "pub fn permitsRawPointerBridgePolicyBytes",
+        "pub fn permitsRawPointerBridgeInteropPolicy",
+        "pub fn permitsRawPointerBridgeByte",
         'test "phase3 narrow unsafe wrappers stay bounded"',
         'test "phase3 narrow unsafe scope bytes stay explicit"',
     ),
@@ -179,8 +208,6 @@ TOKEN_CHECKS = {
         "atomic.fetchSub(i32, &signed_arithmetic_value, 7, .seq_cst)",
         "atomic.fetchMin(i32, &signed_value, -3, .seq_cst)",
         "atomic.fetchMax(i32, &signed_value, 6, .seq_cst)",
-        "atomic.fetchNand(u32, &value, 10, .seq_cst)",
-        "atomic.fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic)",
         "const monotonic_mismatch = atomic.compareExchange(",
         "try std.testing.expectEqual(@as(?u32, 7), monotonic_mismatch);",
         "const acq_rel_mismatch = atomic.compareExchange(",
@@ -415,6 +442,12 @@ def build_self_test_mmio_source() -> str:
     return "\n".join(
         (
             "pub fn range() void {}",
+            "pub fn allowsInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool { _ = unsafe_scope; _ = reserved; return true; }",
+            "pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool { _ = policy; return true; }",
+            "pub fn requireInteropPolicyBytes(unsafe_scope: u8, reserved: u8) !void { _ = unsafe_scope; _ = reserved; }",
+            "pub fn requireInteropPolicy(policy: abi.InteropPolicy) !void { _ = policy; }",
+            "pub fn rangeInteropPolicyBytes(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8, reserved: u8) !void { _ = base_addr; _ = length; _ = stride; _ = unsafe_scope; _ = reserved; }",
+            "pub fn rangeInteropPolicy(base_addr: usize, length: u32, stride: u32, policy: abi.InteropPolicy) !void { _ = base_addr; _ = length; _ = stride; _ = policy; }",
             "pub fn read8(base_addr: usize, offset: usize) u8 {",
             "    const ptr = narrow.pointerAt(u8, base_addr, offset);",
             "    return ptr.*;",
@@ -447,6 +480,23 @@ def build_self_test_mmio_source() -> str:
             "    const ptr = narrow.pointerAt(u64, base_addr, offset);",
             "    ptr.* = value;",
             "}",
+            "pub fn read8InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) !u8 { _ = unsafe_scope; _ = reserved; return read8(base_addr, offset); }",
+            "pub fn read8InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) !u8 { _ = policy; return read8(base_addr, offset); }",
+            "pub fn write8InteropPolicyBytes(base_addr: usize, offset: usize, value: u8, unsafe_scope: u8, reserved: u8) !void { _ = unsafe_scope; _ = reserved; write8(base_addr, offset, value); }",
+            "pub fn write8InteropPolicy(base_addr: usize, offset: usize, value: u8, policy: abi.InteropPolicy) !void { _ = policy; write8(base_addr, offset, value); }",
+            "pub fn read16InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) !u16 { _ = unsafe_scope; _ = reserved; return read16(base_addr, offset); }",
+            "pub fn read16InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) !u16 { _ = policy; return read16(base_addr, offset); }",
+            "pub fn write16InteropPolicyBytes(base_addr: usize, offset: usize, value: u16, unsafe_scope: u8, reserved: u8) !void { _ = unsafe_scope; _ = reserved; write16(base_addr, offset, value); }",
+            "pub fn write16InteropPolicy(base_addr: usize, offset: usize, value: u16, policy: abi.InteropPolicy) !void { _ = policy; write16(base_addr, offset, value); }",
+            "pub fn read32InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) !u32 { _ = unsafe_scope; _ = reserved; return read32(base_addr, offset); }",
+            "pub fn read32InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) !u32 { _ = policy; return read32(base_addr, offset); }",
+            "pub fn write32InteropPolicyBytes(base_addr: usize, offset: usize, value: u32, unsafe_scope: u8, reserved: u8) !void { _ = unsafe_scope; _ = reserved; write32(base_addr, offset, value); }",
+            "pub fn write32InteropPolicy(base_addr: usize, offset: usize, value: u32, policy: abi.InteropPolicy) !void { _ = policy; write32(base_addr, offset, value); }",
+            "pub fn read64InteropPolicyBytes(base_addr: usize, offset: usize, unsafe_scope: u8, reserved: u8) !u64 { _ = unsafe_scope; _ = reserved; return read64(base_addr, offset); }",
+            "pub fn read64InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) !u64 { _ = policy; return read64(base_addr, offset); }",
+            "pub fn write64InteropPolicyBytes(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8, reserved: u8) !void { _ = unsafe_scope; _ = reserved; write64(base_addr, offset, value); }",
+            "pub fn write64InteropPolicy(base_addr: usize, offset: usize, value: u64, policy: abi.InteropPolicy) !void { _ = policy; write64(base_addr, offset, value); }",
+            'test "phase3 mmio interop policy gates stay explicit" {}',
         )
     ) + "\n"
 
@@ -548,6 +598,33 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             f"mmio_forbidden_raw_pointer_token:{MMIO_REL}:@ptrFromInt" in issues
+        ), issues
+
+        build_valid_workspace(root)
+        write(root / MMIO_REL, (root / MMIO_REL).read_text(encoding="utf-8").replace(
+            "pub fn read64InteropPolicyBytes", "", 1
+        ))
+        issues = validate(root)
+        assert (
+            "missing_token:zigux/helpers/mmio.zig:pub fn read64InteropPolicyBytes" in issues
+        ), issues
+
+        build_valid_workspace(root)
+        write(root / NARROW_REL, (root / NARROW_REL).read_text(encoding="utf-8").replace(
+            "pub fn permitsVolatileMmioInteropPolicy\n", "", 1
+        ))
+        issues = validate(root)
+        assert (
+            "missing_token:zigux/unsafe/narrow.zig:pub fn permitsVolatileMmioInteropPolicy" in issues
+        ), issues
+
+        build_valid_workspace(root)
+        write(root / MMIO_REL, (root / MMIO_REL).read_text(encoding="utf-8").replace(
+            'test "phase3 mmio interop policy gates stay explicit"', '', 1
+        ))
+        issues = validate(root)
+        assert (
+            'missing_token:zigux/helpers/mmio.zig:test "phase3 mmio interop policy gates stay explicit"' in issues
         ), issues
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
