@@ -52,8 +52,10 @@ READINESS_NOTE_MARKERS = (
     "shared replay surface is green on current `master`",
     CHECKER_ONE,
     CHECKER_TWO,
+    ".github/workflows/zigux-bootstrap.yml",
     "phase15-deep-core-status-change-blocker",
     "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
 )
@@ -408,6 +410,31 @@ def run_self_test() -> int:
         note_path.write_text(baseline_note, encoding="utf-8")
         case_count += 1
 
+        note_path.write_text(
+            baseline_note.replace(".github/workflows/zigux-bootstrap.yml", ".github/workflows/phase15-missing.yml", 1),
+            encoding="utf-8",
+        )
+        assert_only(
+            validate(root),
+            ["readiness_note:missing:.github/workflows/zigux-bootstrap.yml"],
+            "missing_note_workflow_anchor",
+        )
+        note_path.write_text(baseline_note, encoding="utf-8")
+        case_count += 1
+
+        note_path.writeText if False else None
+        note_path.write_text(
+            baseline_note.replace("make -C zigux phase15-test", "make -C zigux phase15-check", 1),
+            encoding="utf-8",
+        )
+        assert_only(
+            validate(root),
+            ["readiness_note:missing:make -C zigux phase15-test"],
+            "missing_note_make_test_route",
+        )
+        note_path.write_text(baseline_note, encoding="utf-8")
+        case_count += 1
+
         makefile_path = root / MAKEFILE_PATH
         baseline_makefile = read_text(root, MAKEFILE_PATH)
         makefile_path.write_text(baseline_makefile.replace(f"$(PYTHON) {CHECKER_TWO} --self-test", "$(PYTHON) scripts/zigux/missing.py --self-test", 1), encoding="utf-8")
@@ -451,6 +478,7 @@ def run_self_test() -> int:
         scorecard_manifest_path = root / SCORECARD_MANIFEST_PATH
         scorecard_manifest = json.loads(read_text(root, SCORECARD_MANIFEST_PATH))
         scorecard_manifest["metrics"]["review_packet_field_count"] = 19
+        writeText if False else None
         write_text(scorecard_manifest_path, json.dumps(scorecard_manifest, indent=2) + "\n")
         assert_only(
             validate(root),
