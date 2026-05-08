@@ -22,6 +22,7 @@ RELEASE_BOUNDARY_CHECKER_MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_c
 EXPECTED_LANE_KEY = "P14-L07"
 TRACEABILITY_PATH = "Documentation/zigux/phase14-core-boundary-traceability.md"
 TRACEABILITY_TITLE = "# Phase 14 Core Boundary Traceability"
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 TRACEABILITY_MANIFEST_PATHS = [
     "zigux/tests/phase14_workqueue_bridge_manifest.json",
     "zigux/tests/phase14_ring_buffer_manifest.json",
@@ -42,6 +43,22 @@ COMPILE_MATRIX_ROWS = [
     ("phase14-ring-buffer-survey-tests", "phase14_ring_buffer_survey.zig", "full_bundle_only"),
     ("phase14-rcu-tree-survey-tests", "phase14_rcu_tree_survey.zig", "full_bundle_only"),
     ("phase14-end-to-end-smoke-tests", "phase14_end_to_end_smoke_survey.zig", "focused_and_full_bundle"),
+]
+WORKFLOW_WRAPPER_COUNT_MESSAGES = {
+    "run: make -C zigux phase14-validate": "phase14 workflow validate wrapper count drifted from the current one-step packet",
+    "run: make -C zigux phase14-smoke": "phase14 workflow smoke wrapper count drifted from the current one-step packet",
+    "run: make -C zigux phase14-test": "phase14 workflow full-bundle wrapper count drifted from the current one-step packet",
+}
+REQUIRED_WORKFLOW_STEP_NAMES = [
+    "Validate Phase 14 shared smoke packet",
+    "Run focused Phase 14 smoke shard",
+    "Run Phase 14 internal bridge tests",
+]
+FORBIDDEN_DIRECT_WORKFLOW_RUNS = [
+    "run: python3 scripts/zigux/validate-phase14.py",
+    "run: zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+    "run: zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "run: zig build test --build-file zigux/tests/phase14_build.zig",
 ]
 REQUIRED_SURFACES = {
     "Documentation/zigux/README.md": "Phase 14 notes",
@@ -68,7 +85,7 @@ REQUIRED_SURFACES = {
     "zigux/tests/phase14_ring_buffer_survey.zig": "phase 14 ring-buffer survey manifest records the study-only gap without inventing a port",
     "zigux/tests/phase14_rcu_tree_manifest.json": "phase14-rcu-tree-bridge-blocker",
     "zigux/tests/phase14_rcu_tree_survey.zig": "phase 14 rcu tree survey manifest records the freeze-boundary gap without inventing a bridge",
-    ".github/workflows/zigux-bootstrap.yml": "Run focused Phase 14 smoke shard",
+    WORKFLOW_PATH: "Run focused Phase 14 smoke shard",
     "kernel/workqueue_bridge.zig": "pub const WorkqueueBridgeLab",
     "net/core/skbuff_bridge.zig": "pub const SkbuffBridgeLab",
     "kernel/rcu/tree_bridge.zig": "pub const RcuTreeBridgeLab",
@@ -166,11 +183,11 @@ REQUIRED_FILE_MARKERS = {
         "phase14-test:",
         "phase14: phase14-validate phase14-smoke phase14-test",
     ],
-    ".github/workflows/zigux-bootstrap.yml": [
+    WORKFLOW_PATH: [
         "Validate Phase 14 shared smoke packet",
         "Run focused Phase 14 smoke shard",
-        "make -C zigux phase14-validate",
-        "make -C zigux phase14-smoke",
+        "run: make -C zigux phase14-validate",
+        "run: make -C zigux phase14-smoke",
     ],
     "kernel/workqueue_bridge.zig": ["pub const WorkqueueBridgeLab"],
     "net/core/skbuff_bridge.zig": ["pub const SkbuffBridgeLab"],
@@ -283,12 +300,16 @@ def check_compile_matrix(root: Path) -> list[str]:
     errors: list[str] = []
     smoke_note_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
     build_path = root / "zigux/tests/phase14_build.zig"
+    workflow_path = root / WORKFLOW_PATH
     if not smoke_note_path.exists():
         return [f"missing file: {smoke_note_path.relative_to(root).as_posix()}"]
     if not build_path.exists():
         return [f"missing file: {build_path.relative_to(root).as_posix()}"]
+    if not workflow_path.exists():
+        return [f"missing file: {workflow_path.relative_to(root).as_posix()}"]
     smoke_note_text = read_text(smoke_note_path)
     build_text = read_text(build_path)
+    workflow_text = read_text(workflow_path)
     if smoke_note_text.count("coverage `focused_and_full_bundle`") != 1:
         errors.append("phase14 smoke note focused compile-shard count drifted from the current one-shard packet")
     if smoke_note_text.count("coverage `full_bundle_only`") != 4:
@@ -307,6 +328,14 @@ def check_compile_matrix(root: Path) -> list[str]:
         if marker in build_text:
             errors.append("phase14 smoke shard stopped being dedicated to the shared end-to-end smoke survey")
             break
+    for step_name in REQUIRED_WORKFLOW_STEP_NAMES:
+        if workflow_text.count(step_name) != 1:
+            errors.append(f"phase14 workflow step count drifted for {step_name}")
+    for run_marker, error_message in WORKFLOW_WRAPPER_COUNT_MESSAGES.items():
+        if workflow_text.count(run_marker) != 1:
+            errors.append(error_message)
+    if any(marker in workflow_text for marker in FORBIDDEN_DIRECT_WORKFLOW_RUNS):
+        errors.append("phase14 workflow reintroduced direct phase14 validator or zig-build commands outside the wrapper routes")
     for label, root_source, coverage in COMPILE_MATRIX_ROWS:
         row = compile_matrix_note_row(label, root_source, coverage)
         if row not in smoke_note_text:
@@ -575,6 +604,37 @@ def run_self_test() -> int:
             print("self-test expected forbidden smoke dependency failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
+
+        workflow_path = root / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "run: make -C zigux phase14-smoke\n",
+                "run: make -C zigux phase14-smoke\n"
+                "run: make -C zigux phase14-smoke\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 workflow smoke wrapper count drifted from the current one-step packet" not in errors:
+            print("self-test expected duplicate smoke-wrapper workflow failure", file=sys.stderr)
+            return 1
+        write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_FILE_MARKERS[WORKFLOW_PATH]) + "\n")
+
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "run: make -C zigux phase14-smoke\n",
+                "run: make -C zigux phase14-smoke\n"
+                "run: zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 workflow reintroduced direct phase14 validator or zig-build commands outside the wrapper routes" not in errors:
+            print("self-test expected forbidden direct workflow command failure", file=sys.stderr)
+            return 1
+        write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_FILE_MARKERS[WORKFLOW_PATH]) + "\n")
         return 0
 
 
