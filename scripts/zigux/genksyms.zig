@@ -443,6 +443,102 @@ pub fn main(init: std.process.Init) !void {
 
 const testing = std.testing;
 
+test "genksyms bridge parses repeated short flags and arguments" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
+    const args = [_][]const u8{ "-d", "-d", "-D", "-w", "-p", "-r", "foo.symref", "-r", "bar.symref", "-T", "out.symtypes" };
+    const outcome = try parseArgs(arena_state.allocator(), &args);
+
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                try testing.expectEqual(@as(usize, 2), request.debug_level);
+                try testing.expect(request.warnings);
+                try testing.expect(request.dump_defs);
+                try testing.expect(request.preserve);
+                try testing.expectEqual(@as(usize, 2), request.reference_files.len);
+                try testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+                try testing.expectEqualStrings("bar.symref", request.reference_files[1]);
+                try testing.expectEqualStrings("out.symtypes", request.dump_types_file.?);
+                try testing.expectEqualSlices([]const u8, &args, request.rendered_args);
+            },
+            else => return error.ExpectedRequestCommand,
+        },
+        else => return error.ExpectedRequestCommand,
+    }
+}
+
+test "genksyms bridge parses long options and quiet override" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
+    const args = [_][]const u8{ "--debug", "--warnings", "--quiet", "--reference=foo.symref", "--dump-types", "types.symtypes", "--preserve" };
+    const outcome = try parseArgs(arena_state.allocator(), &args);
+
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                try testing.expectEqual(@as(usize, 1), request.debug_level);
+                try testing.expect(!request.warnings);
+                try testing.expect(!request.dump_defs);
+                try testing.expect(request.preserve);
+                try testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+                try testing.expectEqualStrings("types.symtypes", request.dump_types_file.?);
+                try testing.expectEqualSlices([]const u8, &args, request.rendered_args);
+            },
+            else => return error.ExpectedRequestCommand,
+        },
+        else => return error.ExpectedRequestCommand,
+    }
+}
+
+test "genksyms bridge keeps version as a side effect while parsing later options" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
+    const args = [_][]const u8{ "-Vd", "--reference", "foo.symref" };
+    const outcome = try parseArgs(arena_state.allocator(), &args);
+
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                try testing.expectEqual(@as(usize, 1), request.version_count);
+                try testing.expectEqual(@as(usize, 1), request.debug_level);
+                try testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+            },
+            else => return error.ExpectedRequestCommand,
+        },
+        else => return error.ExpectedRequestCommand,
+    }
+}
+
+test "genksyms bridge accepts unambiguous abbreviated long options" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
+    const args = [_][]const u8{ "--deb", "--warn", "--qui", "--ref=foo.symref", "--dump-t", "types.symtypes", "--pres" };
+    const outcome = try parseArgs(arena_state.allocator(), &args);
+
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                try testing.expectEqual(@as(usize, 1), request.debug_level);
+                try testing.expect(!request.warnings);
+                try testing.expect(request.preserve);
+                try testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+                try testing.expectEqualStrings("types.symtypes", request.dump_types_file.?);
+                try testing.expectEqualSlices([]const u8, &args, request.rendered_args);
+            },
+            else => return error.ExpectedRequestCommand,
+        },
+        else => return error.ExpectedRequestCommand,
+    }
+}
+
 test "parseArgs reports ambiguous abbreviated long options" {
     var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena_state.deinit();
@@ -459,19 +555,6 @@ test "parseArgs reports ambiguous abbreviated long options" {
     }
 }
 
-test "genksyms bridge keeps version side effect before short help" {
-    const args = [_][]const u8{"-Vh"};
-    const outcome = try parseArgs(testing.allocator, &args);
-
-    switch (outcome) {
-        .command => |command| switch (command) {
-            .help => |version_count| try testing.expectEqual(@as(usize, 1), version_count),
-            else => return error.ExpectedHelpCommand,
-        },
-        else => return error.ExpectedCommand,
-    }
-}
-
 test "genksyms bridge keeps version side effect before long help" {
     const args = [_][]const u8{ "-V", "--help" };
     const outcome = try parseArgs(testing.allocator, &args);
@@ -485,26 +568,84 @@ test "genksyms bridge keeps version side effect before long help" {
     }
 }
 
-test "genksyms bridge preserves the consumed argv entry when clustered short options take the next argument" {
+test "genksyms bridge canonicalizes unexpected long option argument failures" {
+    const args = [_][]const u8{"--help=extra"};
+    const outcome = try parseArgs(testing.allocator, &args);
+
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .unexpected_option_argument => |option| try testing.expectEqualStrings("--help", option),
+            else => return error.UnexpectedParseFailure,
+        },
+        else => return error.TestExpectedFailure,
+    }
+}
+
+test "genksyms bridge treats lone dash as positional passthrough" {
     var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena_state.deinit();
 
-    const args = [_][]const u8{ "-dr", "foo.symref" };
+    const args = [_][]const u8{ "-", "-d" };
     const outcome = try parseArgs(arena_state.allocator(), &args);
 
     switch (outcome) {
         .command => |command| switch (command) {
             .request => |request| {
                 try testing.expectEqual(@as(usize, 1), request.debug_level);
-                try testing.expectEqual(@as(usize, 1), request.reference_files.len);
-                try testing.expectEqualStrings("foo.symref", request.reference_files[0]);
                 try testing.expectEqual(@as(usize, 2), request.rendered_args.len);
-                try testing.expectEqualStrings("-dr", request.rendered_args[0]);
-                try testing.expectEqualStrings("foo.symref", request.rendered_args[1]);
+                try testing.expectEqualStrings("-d", request.rendered_args[0]);
+                try testing.expectEqualStrings("-", request.rendered_args[1]);
             },
             else => return error.ExpectedRequestCommand,
         },
         else => return error.ExpectedRequestCommand,
+    }
+}
+
+test "genksyms bridge accepts explicit option terminator" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
+    const args = [_][]const u8{ "--", "--leftover", "positional" };
+    const outcome = try parseArgs(arena_state.allocator(), &args);
+
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                try testing.expectEqual(@as(usize, 3), request.rendered_args.len);
+                try testing.expectEqualStrings("--", request.rendered_args[0]);
+                try testing.expectEqualStrings("--leftover", request.rendered_args[1]);
+                try testing.expectEqualStrings("positional", request.rendered_args[2]);
+            },
+            else => return error.ExpectedRequestCommand,
+        },
+        else => return error.ExpectedRequestCommand,
+    }
+}
+
+test "genksyms bridge reports invalid short option in getopt style" {
+    const args = [_][]const u8{"-x"};
+    const outcome = try parseArgs(testing.allocator, &args);
+
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .invalid_option => |option| try testing.expectEqualStrings("x", option),
+            else => return error.UnexpectedParseFailure,
+        },
+        else => return error.TestExpectedFailure,
+    }
+}
+
+test "genksyms bridge reports missing short option argument in getopt style" {
+    const args = [_][]const u8{"-T"};
+    const outcome = try parseArgs(testing.allocator, &args);
+
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .missing_option_argument => |option| try testing.expectEqualStrings("T", option),
+            else => return error.UnexpectedParseFailure,
+        },
+        else => return error.TestExpectedFailure,
     }
 }
 
@@ -524,15 +665,51 @@ test "genksyms bridge rejects more than sixteen reference files like the C harne
     }
 }
 
-test "genksyms bridge reports missing short dump-types argument in getopt style" {
-    const args = [_][]const u8{ "-T" };
-    const outcome = try parseArgs(testing.allocator, &args);
+test "genksyms bridge renders normalized invocation plan" {
+    const rendered_args = [_][]const u8{ "-d", "-r", "foo.symref" };
+    const reference_files = [_][]const u8{"foo.symref"};
+    const request = Request{
+        .raw_args = &rendered_args,
+        .rendered_args = &rendered_args,
+        .debug_level = 1,
+        .warnings = false,
+        .dump_defs = false,
+        .preserve = false,
+        .reference_files = &reference_files,
+        .dump_types_file = null,
+    };
+
+    var output: std.Io.Writer.Allocating = .init(testing.allocator);
+    defer output.deinit();
+    try renderGenksymsBridge(&output.writer, request);
+    try testing.expectEqualStrings(
+        "{\"tool\":\"scripts/genksyms/genksyms\",\"stdin\":\"cpp-stream\",\"stdout\":\"symversions\",\"argv\":[\"scripts/genksyms/genksyms\",\"-d\",\"-r\",\"foo.symref\"],\"options\":{\"debug_level\":1,\"warnings\":false,\"dump_defs\":false,\"preserve\":false,\"reference_files\":[\"foo.symref\"],\"dump_types_file\":null}}\n",
+        output.written(),
+    );
+}
+
+test "genksyms bridge ignores positional args while still parsing later options" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
+    const args = [_][]const u8{ "leftover.c", "-d", "rightover.h", "-r", "foo.symref" };
+    const outcome = try parseArgs(arena_state.allocator(), &args);
 
     switch (outcome) {
-        .failure => |failure| switch (failure) {
-            .missing_option_argument => |option| try testing.expectEqualStrings("T", option),
-            else => return error.UnexpectedParseFailure,
+        .command => |command| switch (command) {
+            .request => |request| {
+                try testing.expectEqual(@as(usize, 1), request.debug_level);
+                try testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+                try testing.expectEqual(@as(usize, 5), request.rendered_args.len);
+                try testing.expectEqualStrings("-d", request.rendered_args[0]);
+                try testing.expectEqualStrings("-r", request.rendered_args[1]);
+                try testing.expectEqualStrings("foo.symref", request.rendered_args[2]);
+                try testing.expectEqualStrings("leftover.c", request.rendered_args[3]);
+                try testing.expectEqualStrings("rightover.h", request.rendered_args[4]);
+            },
+            else => return error.ExpectedRequestCommand,
         },
-        else => return error.TestExpectedFailure,
+        else => return error.ExpectedRequestCommand,
     }
 }
