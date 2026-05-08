@@ -6,7 +6,7 @@ The current driver-local teardown surface is intentionally small and host-free:
 
 - `summarizeCloseBoundary()` owns the close-side decision about whether the current call is a hung-up short circuit, a non-final close, or the final-close path that carries the `HVC_CLOSE_WAIT`-shaped wait intent.
 - `summarizeCleanupHandoff()` owns the follow-on `hvc_cleanup()` handoff where `tty_port_put()` must still be requested for a live tty-port reference, including the hangup-driven path, while final destruction remains deferred to the tty-port lifecycle.
-- `summarizeRemoveHandoff()` owns the `hvc_remove()` handoff where the console-slot binding is cleared, IRQ ownership stays preserved for the later hangup path, and `tty_vhangup()` then `tty_kref_put()` ordering only becomes relevant when a tty is still present.
+- `summarizeRemoveHandoff()` owns the `hvc_remove()` handoff where it decides whether the console-slot binding still needs clearing, keeps IRQ ownership preserved for the later hangup path when a tty is still present, and leaves `tty_vhangup()` then `tty_kref_put()` ordering relevant only for the tty-present branch.
 
 ## Teardown Ownership
 
@@ -14,7 +14,7 @@ The current driver-local teardown surface is intentionally small and host-free:
 | --- | --- | --- | --- |
 | close boundary | `summarizeCloseBoundary()` | final-close detection, hung-up short-circuiting, `port_initialized` clearing, and `HVC_CLOSE_WAIT`-shaped wait intent | live tty close timing, backend drain timing, and khvcd wakeups |
 | cleanup handoff | `summarizeCleanupHandoff()` | final-close versus hangup-driven `tty_port_put()` release, missing-reference failure, and deferred final destruction | real tty-port destructor timing, notifier callback execution, and host-backed teardown |
-| remove handoff | `summarizeRemoveHandoff()` | console-slot clearing, preserved IRQ handoff, `tty_port_put()` release, and conditional `tty_vhangup()` then `tty_kref_put()` ordering | live tty removal, notifier callback execution, and host-backed hypervisor teardown |
+| remove handoff | `summarizeRemoveHandoff()` | console-slot clearing versus already-detached binding, preserved IRQ handoff, `tty_port_put()` release, and conditional `tty_vhangup()` then `tty_kref_put()` ordering | live tty removal, notifier callback execution, and host-backed hypervisor teardown |
 
 ## Review Guardrails
 
