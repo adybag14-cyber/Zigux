@@ -73,6 +73,29 @@ REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS = [
     "samples/zigux/runtime_kretprobe_loader.zig",
 ]
 
+REQUIRED_PHASE9_SAMPLE_PATHS = [
+    "samples/zigux/runtime_atomic64.zig",
+    "samples/zigux/runtime_bitmap.zig",
+    "samples/zigux/runtime_trace_events.zig",
+    "samples/zigux/runtime_kretprobe.zig",
+]
+
+REQUIRED_PHASE9_TEST_PACKET_PATHS = [
+    "zigux/tests/runtime_loader_allocator_init_flow.zig",
+    "zigux/tests/runtime_atomic64_module.zig",
+    "zigux/tests/runtime_atomic64_diff.zig",
+    "zigux/tests/runtime_atomic64_survey.zig",
+    "zigux/tests/runtime_bitmap_module.zig",
+    "zigux/tests/runtime_bitmap_diff.zig",
+    "zigux/tests/runtime_bitmap_survey.zig",
+    "zigux/tests/runtime_trace_events_module.zig",
+    "zigux/tests/runtime_trace_events_diff.zig",
+    "zigux/tests/runtime_trace_events_survey.zig",
+    "zigux/tests/runtime_kretprobe_module.zig",
+    "zigux/tests/runtime_kretprobe_diff.zig",
+    "zigux/tests/runtime_kretprobe_survey.zig",
+]
+
 PHASE9_NON_OWNER_BOUNDARY_MARKER = (
     "- the same shared Phase 9 summary should keep the older non-owner boundaries explicit: "
     "`scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain "
@@ -419,6 +442,8 @@ def validate(root: Path) -> list[str]:
         RUNTIME_LOADER_CONTRACT_PATH,
         *REQUIRED_PHASE9_NOTE_PATHS,
         *REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS,
+        *REQUIRED_PHASE9_SAMPLE_PATHS,
+        *REQUIRED_PHASE9_TEST_PACKET_PATHS,
     ]:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
@@ -525,6 +550,10 @@ def write_fixture_tree(root: Path) -> None:
         write_text(root / rel_path, "# phase9 note placeholder\n")
     for rel_path in REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS:
         write_text(root / rel_path, "// loader scaffold placeholder\n")
+    for rel_path in REQUIRED_PHASE9_SAMPLE_PATHS:
+        write_text(root / rel_path, "// runtime pilot sample placeholder\n")
+    for rel_path in REQUIRED_PHASE9_TEST_PACKET_PATHS:
+        write_text(root / rel_path, "// runtime pilot test packet placeholder\n")
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -553,6 +582,7 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.writeText = None
         checklist_path.write_text(
             checklist + PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER + "\n",
             encoding="utf-8",
@@ -652,8 +682,18 @@ def run_self_test() -> int:
             "makefile_exact_count:phase9-runtime-loader-shared-tests::expected=1:actual=2",
         )
 
+        write_fixture_tree(base)
+        sample_path = base / REQUIRED_PHASE9_SAMPLE_PATHS[2]
+        sample_path.unlink()
+        expect_failure(base, f"missing_file:{REQUIRED_PHASE9_SAMPLE_PATHS[2]}")
+
+        write_fixture_tree(base)
+        test_packet_path = base / REQUIRED_PHASE9_TEST_PACKET_PATHS[0]
+        test_packet_path.unlink()
+        expect_failure(base, f"missing_file:{REQUIRED_PHASE9_TEST_PACKET_PATHS[0]}")
+
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=10")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=12")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
