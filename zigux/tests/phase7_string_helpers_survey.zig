@@ -38,7 +38,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(slice_note, "in-place unescape behavior and bounded destination termination");
     try expectContains(slice_note, "exact-fit, terminator-only, and zero-capacity destination handling for `string_unescape()` so the helper's bounded write discipline stays reviewable");
     try expectContains(slice_note, "zero-capacity escape-destination accounting that still reports the full would-be escaped length without promising an appended terminator");
-    try expectContains(slice_note, "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.");
+    try expectContains(slice_note, "If the string-helper family reopens, prefer one tiny helper-local parity, survey, manifest, or validation sync inside the now-landed whitespace, size-rendering, quoting, escape, string-array, and no-sample boundary packet before widening into `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()`.");
 
     const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
     defer allocator.free(docs_root);
