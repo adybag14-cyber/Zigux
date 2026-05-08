@@ -99,6 +99,10 @@ Keep this packet parked unless a future same-lane step can add another equally b
 The broader shipped Phase 13 release surface also includes adjacent evidence that stays outside the shared replay count:
 
   * `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+  * `Documentation/zigux/phase13-contributor-workflow-guide.md`
+  * `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+  * `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+  * `Documentation/zigux/review-checklist.md`
   * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
   * `Documentation/zigux/phase13-release-notes-survey.md`
   * `scripts/zigux/check-phase13-notifier-packet.py`
@@ -112,6 +116,8 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
 The direct `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard stays in that adjacent release-evidence set for the same reason already recorded in the syscall lane section and the release-notes packet: it is shipped focused direct evidence on current `master`, but it does not expand the shared replay beyond the eight build-backed tests.
 
 `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` stays in that same adjacent evidence set as the owner-map note for the active `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` helper families. It keeps the shared validator-first route and adjacent notifier evidence from collapsing into one ownerless packet, but it does not add a ninth replay step or change which helper lane owns which backlog.
+
+The contributor workflow guide, contributor-surface sync note, compact tests-root companion, and shared review checklist stay in that same adjacent evidence set too. They keep the broader contributor-facing Phase 13 packet honest beside the validator-first route, but they do not promote those reminder surfaces into extra replay steps or move ownership away from the helper-family lanes.
 
 The shipped `scripts/zigux/check-phase13-notifier-packet.py` route stays in that same adjacent evidence set: it fail-closes the notifier survey, manifest, reviewability replay, ABI header, and helper footholds without promoting that adjacent packet into a ninth shared replay step.
 
