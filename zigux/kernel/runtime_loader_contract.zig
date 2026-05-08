@@ -620,6 +620,7 @@ test "shared runtime loader contract keeps command, environment, registration-su
     try std.testing.expect(!@hasField(LoadPlan, "modules_builtin_path"));
     try std.testing.expect(!@hasField(LoadPlan, "depmod_script"));
     try std.testing.expect(!@hasField(LoadPlan, "depmod_manifest"));
+    try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));
     try std.testing.expect(!@hasField(LoadPlan, "task_struct"));
     try std.testing.expect(!@hasField(LoadPlan, "work_struct"));
     try std.testing.expect(!@hasField(LoadPlan, "delayed_work"));
