@@ -428,6 +428,39 @@ test "hexdump grouped-2 ascii output stays exact at full buffer capacity" {
     try std.testing.expectEqual(@as(u8, 0), exact[required]);
 }
 
+test "hexdump 32-byte grouped-2 ascii fast-path boundary stays exact and truncated correctly" {
+    const input = [_]u8{
+        0xbe, 0x32, 0xdb, 0x7b,
+        0x0a, 0x18, 0x93, 0xb2,
+        0x70, 0xba, 0xc4, 0x24,
+        0x7d, 0x83, 0x34, 0x9b,
+        0xa6, 0x9c, 0x31, 0xad,
+        0x9c, 0x0f, 0xac, 0xe9,
+        0x4c, 0xd1, 0x19, 0x99,
+        0x43, 0xb1, 0xaf, 0x0c,
+    };
+    const expected = if (builtin.cpu.arch.endian() == .big)
+        "be32 db7b 0a18 93b2 70ba c424 7d83 349b a69c 31ad 9c0f ace9 4cd1 1999 43b1 af0c  .2.{....p..$}.4...1.....L...C..."
+    else
+        "32be 7bdb 180a b293 ba70 24c4 837d 9b34 9ca6 ad31 0f9c e9ac d14c 9919 b143 0caf  .2.{....p..$}.4...1.....L...C...";
+
+    const required = hexDumpLineLength(input.len, 32, 2, true);
+    try std.testing.expectEqual(@as(usize, expected.len), required);
+    try std.testing.expectEqual(@as(usize, 113), required);
+
+    var exact: [114]u8 = undefined;
+    const exact_written = hexDumpToBuffer(&input, 32, 2, exact[0..], true);
+    try std.testing.expectEqual(required, exact_written);
+    try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(exact[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), exact[required]);
+
+    var truncated: [113]u8 = [_]u8{0xaa} ** 113;
+    const truncated_written = hexDumpToBuffer(&input, 32, 2, truncated[0..], true);
+    try std.testing.expectEqual(required, truncated_written);
+    try std.testing.expectEqualSlices(u8, expected[0 .. required - 1], std.mem.sliceTo(truncated[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), truncated[required - 1]);
+}
+
 test "hexdump grouped ascii path reports the same required length for exact and truncated buffers" {
     const input = [_]u8{
         0xbe, 0x32, 0xdb, 0x7b,
