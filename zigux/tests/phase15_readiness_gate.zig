@@ -10,6 +10,7 @@ const RepoEvidence = struct {
     phase15_build_present: bool,
     phase15_make_target_present: bool,
     phase15_validate_target_present: bool,
+    phase15_test_target_present: bool,
     phase15_scripts_alignment_checker_present: bool,
     phase15_review_process_handoff_checker_present: bool,
     shared_ci_phase15_present: bool,
@@ -91,6 +92,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expect(manifest.repo_evidence.phase15_build_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.phase15_validate_target_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_test_target_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scripts_alignment_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_review_process_handoff_checker_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
@@ -144,6 +146,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "maintenance mode") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "four recorded deep-core blocker dispositions") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "two dedicated `phase15-validate` checker routes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "make -C zigux phase15-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "make -C zigux phase15") != null);
 }
 
@@ -185,6 +188,7 @@ test "phase 15 readiness note keeps the roadmap, ledger, and current blocker inv
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "PHASE15_LANE_KEY=P15-L01") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "shared replay surface is green on current `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-validate` checker stack") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "maintenance-mode ready") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-readiness-gate-survey.md") != null);
