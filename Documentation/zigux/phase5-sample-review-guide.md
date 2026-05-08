@@ -126,7 +126,7 @@ Keep explicit
 - the public `runConditionalBoundaryReplay()` helper plus the count-0 `Mother Goose` branch, `iter=%d` replay, `0xdeadbeef` bitmask cue, and six main-thread family counts without private sample-state reads
 - vararg-payload and relative-location markers in the public replay summary
 - the exact `checked_focus` order
-- the public `runCallbackBoundaryReplay()` helper plus the explicit callback-path replay, balanced register-then-unregister callback flow, restored registration balance, and the bounded `init()` -> replay helpers -> `exit()` ownership path
+- the public `runCallbackBoundaryReplay()` helper plus the explicit callback-path replay, the registration depth rising to `1` after register and returning to `0` after unregister, and the bounded `init()` -> replay helpers -> `exit()` ownership path
 - `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection
 - post-exit replay and callback-registration rejection so the sample stays a bounded ownership-and-lifetime example instead of only a tracing example
 - the docs-root and sample-root contributor surfaces in `Documentation/zigux/README.md` and `samples/zigux/README.md` should keep those same formatting, conditional-family, callback-boundary, ownership-lifetime, and Phase 5-versus-Phase 9 cues aligned, while `scripts/zigux/README.md` and `zigux/tests/README.md` should keep the shared replay route, sample-backed packet, and Phase 5-versus-Phase 9 split explicit instead of leaving the trace-events packet isolated to this note
