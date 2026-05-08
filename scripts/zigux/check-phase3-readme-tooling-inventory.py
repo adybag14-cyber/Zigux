@@ -433,6 +433,18 @@ def run_self_test() -> int:
         assert validate(root) == []
         case_count += 1
 
+        tests = _baseline_tests_readme().replace("scripts/zigux/check-phase3-selftest-surface.py\n", "", 1)
+        _write(root / TESTS_README_REL, tests)
+        assert validate(root) == ["missing_tests_readme_phase3_marker:scripts/zigux/check-phase3-selftest-surface.py"]
+        _write(root / TESTS_README_REL, _baseline_tests_readme())
+        case_count += 1
+
+        tests = _baseline_tests_readme().replace("scripts/zigux/check-phase3-readme-tooling-inventory.py\n", "", 1)
+        _write(root / TESTS_README_REL, tests)
+        assert validate(root) == ["missing_tests_readme_phase3_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py"]
+        _write(root / TESTS_README_REL, _baseline_tests_readme())
+        case_count += 1
+
         tests = _baseline_tests_readme().replace("scripts/zigux/phase3_catalog.py --self-test\n", "", 1)
         _write(root / TESTS_README_REL, tests)
         assert validate(root) == ["missing_tests_readme_phase3_marker:scripts/zigux/phase3_catalog.py --self-test"]
