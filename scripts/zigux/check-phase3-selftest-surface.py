@@ -42,11 +42,17 @@ DOCS_ROOT_MARKERS = [
     "scripts/zigux/check-phase3-abi-dump-gate.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/check-phase3-policy-byte-guards.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/phase3_check_lib.py",
+    "scripts/zigux/generate-phase3-check-wrappers.py",
+    "python3 scripts/zigux/validate-phase3.py --slug abi",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
+    "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "phase3_catalog.py --self-test",
+    "make -C zigux phase3-validate",
     "make -C zigux phase3-selftest",
     "without duplicating the default `phase3-validate` route",
 ]
@@ -252,21 +258,27 @@ def run_self_test() -> int:
         assert "docs_root:scripts/zigux/check-phase3-abi-dump-gate.py" in issues
         assert "docs_root:scripts/zigux/check-phase3-catalog-selftest.py" in issues
         assert "docs_root:scripts/zigux/validate-phase3-policy-unsafe-survey.py" in issues
+        assert "docs_root:scripts/zigux/check-phase3-policy-byte-guards.py" in issues
         assert "docs_root:scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in issues
         assert "docs_root:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
         assert "docs_root:scripts/zigux/validate-phase3-abi-bindings-syntax.py" in issues
+        assert "docs_root:scripts/zigux/phase3_check_lib.py" in issues
+        assert "docs_root:scripts/zigux/generate-phase3-check-wrappers.py" in issues
+        assert "docs_root:python3 scripts/zigux/validate-phase3.py --slug abi" in issues
         assert "docs_root:python3 scripts/zigux/phase3_catalog.py --audit-doc-sync" in issues
+        assert "docs_root:python3 scripts/zigux/run-phase3-checks.py --slug abi" in issues
         assert "docs_root:phase3_catalog.py --self-test" in issues
+        assert "docs_root:make -C zigux phase3-validate" in issues
         assert "docs_root:without duplicating the default `phase3-validate` route" in issues
 
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/README.md",
-            "\n".join(DOCS_ROOT_MARKERS + [DOCS_ROOT_MARKERS[0]]) + "\n",
+            "\n".join(DOCS_ROOT_MARKERS + [DOCS_ROOT_MARKERS[1]]) + "\n",
         )
         issues = validate_root(root)
         assert (
-            "duplicate_docs_root_marker:2:scripts/zigux/validate_phase3_selftest.py"
+            "duplicate_docs_root_marker:2:scripts/zigux/check-phase3-selftest-surface.py"
             in issues
         )
 
