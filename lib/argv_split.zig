@@ -58,8 +58,7 @@ pub fn argvSplitWithArgc(
     argcp: ?*usize,
 ) !ArgvSplitResult {
     const current = cStringPrefix(text);
-    const argc = countArgc(current);
-    if (argc == 0) {
+    if (countArgc(current) == 0) {
         if (argcp) |count_out| {
             count_out.* = 0;
         }
@@ -70,8 +69,43 @@ pub fn argvSplitWithArgc(
         };
     }
 
-    var storage = try allocator.dupeZ(u8, current);
+    const storage = try allocator.dupeZ(u8, current);
+    return initSplitResultFromOwnedStorage(allocator, storage, argcp);
+}
+
+pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {
+    result.deinit(allocator);
+}
+
+fn cStringPrefix(text: []const u8) []const u8 {
+    return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
+}
+
+fn ownedStoragePrefix(storage: [:0]u8) []u8 {
+    const prefix_len = cStringPrefix(storage[0..storage.len]).len;
+    return storage[0..prefix_len];
+}
+
+fn initSplitResultFromOwnedStorage(
+    allocator: std.mem.Allocator,
+    storage: [:0]u8,
+    argcp: ?*usize,
+) !ArgvSplitResult {
     errdefer allocator.free(storage);
+
+    const mutable_storage = ownedStoragePrefix(storage);
+    const argc = countArgc(mutable_storage);
+    if (argc == 0) {
+        allocator.free(storage);
+        if (argcp) |count_out| {
+            count_out.* = 0;
+        }
+        return .{
+            .storage = empty_storage_view,
+            .argv = &.{},
+            .argv_null_terminated = empty_argv_null_terminated,
+        };
+    }
 
     var argv = try allocator.alloc([:0]u8, argc);
     errdefer allocator.free(argv);
@@ -81,7 +115,6 @@ pub fn argvSplitWithArgc(
 
     var arg_index: usize = 0;
     var cursor: usize = 0;
-    const mutable_storage = storage[0..storage.len];
 
     while (nextSplitArgSpan(mutable_storage, &cursor)) |span| {
         argv[arg_index] = storage[span.start..span.end :0];
@@ -99,14 +132,6 @@ pub fn argvSplitWithArgc(
         .argv = argv,
         .argv_null_terminated = argv_null_terminated,
     };
-}
-
-pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {
-    result.deinit(allocator);
-}
-
-fn cStringPrefix(text: []const u8) []const u8 {
-    return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
 }
 
 fn nextArgSpan(text: []const u8, cursor: *usize) ?ArgSpan {
@@ -245,6 +270,20 @@ test "argvSplit duplicates the input before tokenizing" {
 
     try std.testing.expectEqualStrings("one", split.argv[0]);
     try std.testing.expectEqualStrings("two", split.argv[1]);
+}
+
+test "argvSplit sizes argc and tokens from the owned copy prefix when copied storage contains an early NUL" {
+    var owned_storage = try std.testing.allocator.dupeZ(u8, "alpha\x00beta gamma");
+    var argc: usize = std.math.maxInt(usize);
+    var split = try initSplitResultFromOwnedStorage(std.testing.allocator, owned_storage, &argc);
+    owned_storage = empty_storage_view;
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 1), argc);
+    try std.testing.expectEqual(@as(usize, 1), split.argv.len);
+    try std.testing.expectEqualStrings("alpha", split.argv[0]);
+    try std.testing.expectEqualStrings("alpha", std.mem.span(split.cArgv()[0].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[1]);
 }
 
 test "argvSplit tokens stay inside the owned storage copy" {
