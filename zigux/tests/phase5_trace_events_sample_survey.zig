@@ -298,7 +298,7 @@ test "phase 5 trace-events survey packet stays repo-local and keeps shared revie
         "make -C zigux phase5",
         "runtime_trace_events",
         "## Latest verification snapshot",
-        "`zig fmt --check Documentation/zigux/phase5-trace-events-sample-survey.md zigux/tests/phase5_trace_events_sample_survey.zig`",
+        "`zig fmt --check zigux/tests/phase5_trace_events_sample_survey.zig`",
         "`zig test --test-no-exec zigux/tests/phase5_trace_events_sample_survey.zig`",
         "compile-only recheck of the manifest-backed survey gate",
         "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample",
