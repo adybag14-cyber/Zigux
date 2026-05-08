@@ -363,8 +363,28 @@ def run_self_test() -> int:
     print('PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=' + ','.join(SELF_TEST_CASES))
     return 0
 
-if __name__ == '__main__':
+
+def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--self-test', action='store_true')
     args = parser.parse_args()
-    raise SystemExit(run_self_test() if args.self_test else 0)
+
+    if args.self_test:
+        return run_self_test()
+
+    missing = validate_root(ROOT)
+    if missing:
+        print('PHASE4_GATE_EVIDENCE_CHECK=fail')
+        print('PHASE4_GATE_EVIDENCE_TARGETS_START')
+        for item in missing:
+            print(item)
+        print('PHASE4_GATE_EVIDENCE_TARGETS_END')
+        return 1
+
+    print('PHASE4_GATE_EVIDENCE_CHECK=pass')
+    print(f'PHASE4_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}')
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
