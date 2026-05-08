@@ -284,8 +284,7 @@ def run_self_test() -> int:
         ):
             print("self-test expected duplicate workqueue lane-key failure", file=sys.stderr)
             return 1
-        writeText = write_text
-        writeText(broken_traceability_path, required_text(root, TRACEABILITY_PATH))
+        write_text(broken_traceability_path, required_text(root, TRACEABILITY_PATH))
 
         broken_release_path = root / RELEASE_BOUNDARY_PATH
         broken_release_path.write_text("`PHASE14_STUDY_ONLY_ANCHOR_COUNT=1`\n", encoding="utf-8")
