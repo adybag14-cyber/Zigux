@@ -93,7 +93,7 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
     try std.testing.expect(containsString(manifest.forbidden_transport_claims, "probe_remove_lifecycle"));
     try std.testing.expect(manifest.architecture_council_reopen_required);
     try std.testing.expect(!manifest.architecture_council_reopen_attached);
-    try std.testing.expectEqualStrings("P10-L10", manifest.freeze_boundary_owner_lane);
+    try std.testing.expectEqualStrings("P10-L18", manifest.freeze_boundary_owner_lane);
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_anchors.len);
     try std.testing.expect(containsString(manifest.study_only_anchors, "kernel/workqueue.c"));
     try std.testing.expect(containsString(manifest.study_only_anchors, "kernel/trace/ring_buffer.c"));
@@ -124,7 +124,7 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-local ring foothold") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`drivers/virtio/virtio_ring_verify.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-ring-lab-driver-bridge") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "owned by the adjacent `P10-L10` MMIO packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "owned by the adjacent `P10-L18` MMIO packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-backed queue discovery, IRQ acknowledgement, queue reset execution, and probe/remove lifecycle behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Do not reopen MMIO helper growth, DMA, interrupt delivery, queue discovery, reset execution, or probe/remove lifecycle work from this note.") != null);
 
