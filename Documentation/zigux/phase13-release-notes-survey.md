@@ -44,8 +44,10 @@ The shipped `lib/devres.zig` lab plus the paired `zigux/tests/phase13_devres.zig
 These files are shipped adjacent release-surface evidence on `master`, but they do not add extra shared replay steps beyond the eight-test route above:
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-packet.py`
+- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
