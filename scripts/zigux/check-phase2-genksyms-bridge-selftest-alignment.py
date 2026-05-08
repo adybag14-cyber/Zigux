@@ -12,6 +12,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 BRIDGE_CHECKER = Path("scripts/zigux/check-genksyms-bridge.py")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
+MAKEFILE = Path("zigux/Makefile")
 BRIDGE_CASES = Path("zigux/tests/fixtures/genksyms_bridge/cases.json")
 BRIDGE_MANIFEST = Path("zigux/tests/fixtures/genksyms_bridge/manifest.json")
 PHASE2_TOOL_MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
@@ -42,6 +43,13 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: zig test scripts/zigux/genksyms.zig",
+)
+REQUIRED_MAKEFILE_LINES = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
 )
 
 
@@ -193,6 +201,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     bridge_text = read_text(root / BRIDGE_CHECKER)
     workflow_text = read_text(root / WORKFLOW)
+    makefile_text = read_text(root / MAKEFILE)
 
     for marker in REQUIRED_BRIDGE_MARKERS:
         if marker not in bridge_text:
@@ -204,6 +213,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_HOOKS", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
+
+    for marker in REQUIRED_MAKEFILE_LINES:
+        count = count_exact_lines(makefile_text, marker)
+        if count == 0:
+            issues.append(("MISSING_MAKEFILE_HOOKS", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count={count}"))
 
     manifest_path = root / BRIDGE_MANIFEST
     cases_path = root / BRIDGE_CASES
@@ -324,6 +340,21 @@ def build_self_test_root(root: Path) -> None:
         ),
     )
     write_text(
+        root / MAKEFILE,
+        "\n".join(
+            (
+                "phase2-validate:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
+                "phase2-tools:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+                "",
+            )
+        ),
+    )
+    write_text(
         root / BRIDGE_CASES,
         json.dumps(
             {
@@ -416,6 +447,33 @@ def run_self_test() -> int:
         cases += 1
 
         build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[0], "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/other.py --self-test"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_MAKEFILE_HOOKS", REQUIRED_MAKEFILE_LINES[0]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[1]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{REQUIRED_MAKEFILE_LINES[1]}:count=2") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[4], "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/other.zig"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_MAKEFILE_HOOKS", REQUIRED_MAKEFILE_LINES[4]) in issues
+        cases += 1
+
+        build_self_test_root(root)
         path = root / PHASE2_TOOL_MANIFEST
         path.write_text(json.dumps({"genksyms_bridge_packet": "zigux/tests/fixtures/other.json"}, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
@@ -498,7 +556,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 2 genksyms bridge self-test surface stays wired into CI."
+        description="Check that the Phase 2 genksyms bridge self-test surface stays wired into CI and make routes."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
@@ -514,6 +572,7 @@ def main() -> int:
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_BRIDGE_MARKER_COUNT={len(REQUIRED_BRIDGE_MARKERS)}")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
+    print(f"PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_MANIFEST_PATH=" + BRIDGE_MANIFEST_PATH)
     return 0
 
