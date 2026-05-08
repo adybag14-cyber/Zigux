@@ -21,19 +21,22 @@ This document records the first bounded hardware-validation matrix for the Zigux
   - `Documentation/zigux/phase11-driver-lane-sequencing.md`
   - `Documentation/zigux/phase11-shared-replay-contract.md`
   - `Documentation/zigux/phase11-closure-note.md`
+  - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
   - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
   - `scripts/zigux/README.md`
   - `scripts/zigux/check-phase11-shared-replay-contract.py`
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
+  - `zigux/tests/phase11_uapi_header_parity_manifest.json`
+  - `zigux/tests/phase11_uapi_header_parity_survey.zig`
   - `zigux/tests/README.md`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
 
 ## Why This Exists
 
-The bounded starter now covers watchdog metadata, timeout encoding, running-bit detection, start and stop register-image transitions, restart intent, halt-partition bookkeeping, probe-time watchdog-core bookkeeping, registration-facing poweroff ownership outcomes, a tiny registration-outcome summary for register-device success-versus-failure and probe-error blocking, a tiny platform-registration and PM-base handoff summary, a tiny poweroff-path summary, and remove-time teardown summaries. The live shared Phase 11 packet already couples those bcm2835-specific replays to `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, which keep the shared replay route, the shared closure checkpoint, the bcm2835 packet checker, the focused shared header-boundary packet, and the dedicated archival bcm2835 packet explicit beside this watchdog-local matrix. The live repo still needs one reviewable note that explains:
+The bounded starter now covers watchdog metadata, timeout encoding, running-bit detection, start and stop register-image transitions, restart intent, halt-partition bookkeeping, probe-time watchdog-core bookkeeping, registration-facing poweroff ownership outcomes, a tiny registration-outcome summary for register-device success-versus-failure and probe-error blocking, a tiny platform-registration and PM-base handoff summary, a tiny poweroff-path summary, and remove-time teardown summaries. The live shared Phase 11 packet already couples those bcm2835-specific replays to `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, which keep the shared replay route, the shared closure checkpoint, the bcm2835 packet checker, the focused shared header-boundary packet, and the dedicated archival bcm2835 packet explicit beside this watchdog-local matrix. The live repo still needs one reviewable note that explains:
 
 - which parts of the lane are already exercised by the shared Phase 11 gate
 - which platform-facing and hardware-facing checkpoints are the next follow-up rather than live behavior
