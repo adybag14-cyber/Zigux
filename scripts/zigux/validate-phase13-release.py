@@ -29,6 +29,7 @@ REQUIRED_FILES = [
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/phase13_build.zig",
     "zigux/tests/phase13_libfs.zig",
     "zigux/tests/phase13_devres.zig",
@@ -358,6 +359,20 @@ MAKE_FORBIDDEN_LINES = [
     "scripts/zigux/check-phase13-release-replay-exact-counts.py",
 ]
 
+WORKFLOW_REQUIRED_MARKERS = [
+    "Validate Phase 13 release-discipline packet",
+    "run: make -C zigux phase13-validate",
+    "Run Phase 13 shared helper tests",
+    "run: make -C zigux phase13-test",
+]
+
+WORKFLOW_EXACT_COUNTS = {
+    "Validate Phase 13 release-discipline packet": 1,
+    "run: make -C zigux phase13-validate": 1,
+    "Run Phase 13 shared helper tests": 1,
+    "run: make -C zigux phase13-test": 1,
+}
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -389,8 +404,21 @@ def _repeat_markers(markers: list[str], exact_counts: dict[str, int]) -> str:
             entries.extend([needle] * extra)
     return "\n".join(entries) + "\n"
 
+
 def _baseline_scripts_readme() -> str:
     return _repeat_markers(SCRIPTS_REQUIRED_MARKERS, SCRIPTS_EXACT_COUNTS)
+
+
+def _baseline_workflow() -> str:
+    return "\n".join(
+        (
+            "- name: Validate Phase 13 release-discipline packet",
+            "  run: make -C zigux phase13-validate",
+            "- name: Run Phase 13 shared helper tests",
+            "  run: make -C zigux phase13-test",
+            "",
+        )
+    )
 
 
 def validate(root: Path) -> list[str]:
@@ -410,6 +438,7 @@ def validate(root: Path) -> list[str]:
     scripts_readme = _read(root / "scripts/zigux/README.md")
     tests_readme = _read(root / "zigux/tests/README.md")
     makefile = _read(root / "zigux/Makefile")
+    workflow = _read(root / ".github/workflows/zigux-bootstrap.yml")
     phase13_build = _read(root / "zigux/tests/phase13_build.zig")
 
     issues.extend(_collect_missing_markers(docs_readme, DOC_REQUIRED_MARKERS, "docs-readme"))
@@ -427,6 +456,8 @@ def validate(root: Path) -> list[str]:
     issues.extend(_collect_missing_markers(tests_readme, TESTS_REQUIRED_MARKERS, "tests-readme"))
     issues.extend(_collect_exact_count_issues(tests_readme, TESTS_EXACT_COUNTS, "tests-readme-exact"))
     issues.extend(_collect_missing_markers(makefile, MAKE_REQUIRED_LINES, "makefile"))
+    issues.extend(_collect_missing_markers(workflow, WORKFLOW_REQUIRED_MARKERS, "workflow"))
+    issues.extend(_collect_exact_count_issues(workflow, WORKFLOW_EXACT_COUNTS, "workflow-exact"))
     issues.extend(_collect_exact_count_issues(phase13_build, PHASE13_BUILD_EXACT_COUNTS, "phase13-build"))
     issues.extend(_collect_missing_markers(phase13_build, PHASE13_BUILD_REQUIRED_MARKERS, "phase13-build-marker"))
     for forbidden in MAKE_FORBIDDEN_LINES:
@@ -545,6 +576,8 @@ def run_self_test() -> int:
                 _write(path, _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
             elif rel == "zigux/Makefile":
                 _write(path, _baseline_makefile())
+            elif rel == ".github/workflows/zigux-bootstrap.yml":
+                _write(path, _baseline_workflow())
             elif rel == "zigux/tests/phase13_build.zig":
                 _write(path, _baseline_phase13_build())
             elif rel.endswith(".json"):
@@ -678,6 +711,45 @@ def run_self_test() -> int:
         _write(root / "zigux/Makefile", _baseline_makefile())
         case_count += 1
 
+        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_path.write_text(
+            _baseline_workflow().replace(
+                "run: make -C zigux phase13-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            [
+                "workflow:run: make -C zigux phase13-test",
+                "workflow-exact:run: make -C zigux phase13-test:expected=1:actual=0",
+            ],
+            "missing_workflow_phase13_test_route_failed",
+        )
+        _write(workflow_path, _baseline_workflow())
+        case_count += 1
+
+        workflow_path.write_text(
+            _baseline_workflow().replace(
+                "Validate Phase 13 release-discipline packet",
+                "Validate Phase 13 release packet",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            [
+                "workflow:Validate Phase 13 release-discipline packet",
+                "workflow-exact:Validate Phase 13 release-discipline packet:expected=1:actual=0",
+            ],
+            "missing_workflow_phase13_validate_step_failed",
+        )
+        _write(workflow_path, _baseline_workflow())
+        case_count += 1
+
         phase13_build_path = root / "zigux/tests/phase13_build.zig"
         phase13_build_path.write_text(
             _baseline_phase13_build().replace(
@@ -806,6 +878,8 @@ def main() -> int:
         + len(TESTS_REQUIRED_MARKERS)
         + len(TESTS_EXACT_COUNTS)
         + len(MAKE_REQUIRED_LINES)
+        + len(WORKFLOW_REQUIRED_MARKERS)
+        + len(WORKFLOW_EXACT_COUNTS)
         + len(PHASE13_BUILD_EXACT_COUNTS)
         + len(PHASE13_BUILD_REQUIRED_MARKERS)
     )
