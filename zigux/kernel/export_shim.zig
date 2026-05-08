@@ -55,6 +55,14 @@ pub fn canonicalizeHeader(header_value: Header) ?Header {
     return uapi_version.canonicalizeHeader(header_value);
 }
 
+pub fn compatibilityStatus(
+    header_value: Header,
+    incompatible_code: i32,
+    facility: abi.Facility,
+) abi.ExportStatus {
+    return if (isCompatibleHeader(header_value)) ok(facility) else errno(incompatible_code, facility);
+}
+
 pub fn ok(facility: abi.Facility) abi.ExportStatus {
     return normalize(.{
         .code = 0,
@@ -114,4 +122,33 @@ test "phase3 export shim reuses the shared boundary-header compatibility rules" 
     try std.testing.expect(headerCompatibility(mismatched_version) == null);
     try std.testing.expect(!isCompatibleHeader(mismatched_version));
     try std.testing.expect(canonicalizeHeader(mismatched_version) == null);
+}
+
+test "phase3 export shim relays compatibility through explicit status packets" {
+    const canonical = boundaryHeader(0x33);
+    const future_compatible = compatibleHeader(header_size + 16, 0x33);
+    const undersized = compatibleHeader(header_size - 1, 0x33);
+    const mismatched_version = versionedHeader(header_size, abi_version + 1, 0x33);
+
+    const canonical_status = compatibilityStatus(canonical, -22, .kernel);
+    try std.testing.expect(isOk(canonical_status));
+    try std.testing.expectEqual(@as(i32, 0), canonical_status.code);
+    try std.testing.expectEqual(@intFromEnum(abi.Facility.kernel), canonical_status.facility);
+
+    const future_status = compatibilityStatus(future_compatible, -75, .helpers);
+    try std.testing.expect(isOk(future_status));
+    try std.testing.expectEqual(@as(i32, 0), future_status.code);
+    try std.testing.expectEqual(@intFromEnum(abi.Facility.helpers), future_status.facility);
+
+    const undersized_status = compatibilityStatus(undersized, -22, .drivers);
+    try std.testing.expect(!isOk(undersized_status));
+    try std.testing.expectEqual(@as(i32, -22), undersized_status.code);
+    try std.testing.expectEqual(@intFromEnum(abi.Facility.drivers), undersized_status.facility);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), undersized_status.flags);
+
+    const mismatched_status = compatibilityStatus(mismatched_version, -71, .kernel);
+    try std.testing.expect(!isOk(mismatched_status));
+    try std.testing.expectEqual(@as(i32, -71), mismatched_status.code);
+    try std.testing.expectEqual(@intFromEnum(abi.Facility.kernel), mismatched_status.facility);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), mismatched_status.flags);
 }
