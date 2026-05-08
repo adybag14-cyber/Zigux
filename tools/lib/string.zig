@@ -283,18 +283,25 @@ pub fn memparse(text: []const u8) MemparseResult {
     return .{ .value = result, .rest = text[idx..] };
 }
 
-pub fn strHasPrefix(str: []const u8, prefix: []const u8) bool {
+pub fn strHasPrefixLen(str: []const u8, prefix: []const u8) usize {
     const prefix_len = cStringLen(prefix);
     const str_len = cStringLen(str);
     if (prefix_len > str_len) {
-        return false;
+        return 0;
+    }
+    if (!std.mem.eql(u8, str[0..prefix_len], prefix[0..prefix_len])) {
+        return 0;
     }
 
-    return std.mem.eql(u8, str[0..prefix_len], prefix[0..prefix_len]);
+    return prefix_len;
 }
 
-pub fn str_has_prefix(str: []const u8, prefix: []const u8) bool {
-    return strHasPrefix(str, prefix);
+pub fn strHasPrefix(str: []const u8, prefix: []const u8) bool {
+    return strHasPrefixLen(str, prefix) != 0;
+}
+
+pub fn str_has_prefix(str: []const u8, prefix: []const u8) usize {
+    return strHasPrefixLen(str, prefix);
 }
 
 pub fn strstarts(str: []const u8, prefix: []const u8) bool {
@@ -401,13 +408,15 @@ test "strreplace mirrors replaceChar C-string semantics" {
 
 test "strHasPrefix honors C-string boundaries" {
     try std.testing.expect(strHasPrefix("prefix", "pre"));
-    try std.testing.expect(str_has_prefix("prefix", "prefix"));
-    try std.testing.expect(!strHasPrefix("prefix", "suffix"));
-    try std.testing.expect(!strHasPrefix("pre", "prefix"));
+    try std.testing.expectEqual(@as(usize, 6), str_has_prefix("prefix", "prefix"));
+    try std.testing.expectEqual(@as(usize, 3), str_has_prefix("prefix", "pre"));
+    try std.testing.expectEqual(@as(usize, 0), str_has_prefix("prefix", "suffix"));
+    try std.testing.expectEqual(@as(usize, 0), str_has_prefix("pre", "prefix"));
 
     const cstr = [_]u8{ 'a', 'b', 0, 'x' };
     const embedded_prefix = [_]u8{ 'a', 'b', 0, 'y' };
     try std.testing.expect(strHasPrefix(&cstr, &embedded_prefix));
+    try std.testing.expectEqual(@as(usize, 2), str_has_prefix(&cstr, &embedded_prefix));
 }
 
 test "strstarts mirrors the header-level prefix helper" {
