@@ -60,16 +60,16 @@ The sample intentionally stays small:
 The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
 - the in-memory sample keeps `kernel_clone` as the default symbol name while allowing pre-init retargeting
-- `runRetargetReplay()` keeps empty-symbol rejection, pre-init retargeting to `do_sys_openat2`, and post-init retarget rejection explicit while leaving symbol choice in-memory-only
+- `runRetargetReplay()` keeps empty-symbol rejection, pre-init retargeting to `do_sys_openat2`, initialized post-retarget state, and post-init retarget rejection explicit while leaving symbol choice in-memory-only
 - `runAnchorReplay()` checks that an entry with no `current->mm` is skipped instead of arming a tracked instance
 - the in-memory sample keeps a single private entry-timestamp record so the Linux `struct my_data` anchor shape stays explicit as one `i64`-sized word
 - the replay records return value `42` and duration `75 ns` after an entry timestamp of `100` and a return timestamp of `175`
 - `maxactiveBudget()` keeps the fixed review-only budget at `20` without implying runtime registration-pressure handling
 - the replay records one missed instance so the exit-side `nmissed` summary stays reviewable without claiming registration-pressure parity
 - `ownershipSummary()` keeps `cold`, `initialized`, `armed`, `replay_complete`, and `exited` snapshots explicit with active-instance and entry-timestamp state
-- `runLifecycleGuardReplay()` keeps pre-init rejection, double-init rejection, and post-init retarget rejection explicit without implying runtime registration parity
-- `runRecoveryReplay()` keeps direct retargeting, exit rejection while armed, invalid timestamp recovery, and the recovered duration `60 ns` explicit until `retHandler()` clears the tracked instance
-- after `exit()` the sample rejects later summary or handler calls, with `runRecoveryReplay()` keeping that post-exit packet explicit too
+- `runLifecycleGuardReplay()` keeps the pre-init anchor and exit rejections, double-init rejection, post-init retarget rejection, and initialized post-init state explicit without implying runtime registration parity
+- `runRecoveryReplay()` keeps direct retargeting, exit rejection while armed, invalid timestamp rejection and recovery, the recovered duration `60 ns`, and post-`exit()` `recordMissedInstance()`, `entryHandler()`, and `retHandler()` rejection explicit until `retHandler()` clears the tracked instance
+- after `exit()` the sample rejects later `recordMissedInstance()`, `entryHandler()`, and `retHandler()` calls, with `runRecoveryReplay()` keeping that post-exit packet explicit too
 
 ## Latest verification snapshot
 
