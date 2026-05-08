@@ -27,6 +27,7 @@ What it does not ship is equally important:
 - there is no dedicated `scripts/zigux/validate-phase10.py`
 - there is no dedicated `scripts/zigux/validate-phase10-closure.py`
 - there is no broader `scripts/zigux/check-phase10-harness-coverage.py`
+- there is no dedicated `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`; current `zigux-alpha/` on `master` only carries the bootstrap `README.md`, `ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`, and `BOOTSTRAP_COMMIT_LEDGER.md`
 - there is no `make -C zigux phase10-validate` surface on `master`
 
 This note closes that truthfulness gap at the shared closure layer so reviewers can tell which closure surfaces are real and which ones are not currently part of the Phase 10 packet.
@@ -121,7 +122,7 @@ This note does not claim:
 
 ## Review Rule
 
-Reviewers should treat any future claim that the active Phase 10 tranche already ships a dedicated closure validator, a harness-coverage checker, or a `phase10-validate` make surface as closure drift unless those surfaces are added to `master` and then linked from this note, the docs root, and the shared manifest packet.
+Reviewers should treat any future claim that the active Phase 10 tranche already ships a dedicated closure validator, a harness-coverage checker, a separate `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, or a `phase10-validate` make surface as closure drift unless those surfaces are added to `master` and then linked from this note, the docs root, and the shared manifest packet.
 
 ## Next bounded step
 
