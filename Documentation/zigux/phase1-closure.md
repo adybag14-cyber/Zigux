@@ -166,6 +166,14 @@ That means `test "zero-bit windows return without reading bitmap words"` stays p
 
 - `PHASE1_FIND_BIT_ZERO_WINDOW_REVIEW=helper-local zero-bit-window proof stays explicit through the direct find_bit test anchor so first-scan entrypoints return the empty-window boundary without reading bitmap words`
 
+For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local zero-sized short-circuit proof explicit through:
+
+- `tools/lib/find_bit.zig`
+
+That means `test "zero-sized scans ignore populated backing words"` stays present and review-visible whenever `findFirstBit()`, `findFirstZeroBit()`, `findFirstAndBit()`, `findNextBit()`, `findNextZeroBit()`, `findNextAndBit()`, or `findLastBit()` changes. This helper-local test is the bounded proof that zero-sized windows still return the caller-visible boundary even when backing words are populated, instead of dereferencing or reporting bits from storage outside the declared live range.
+
+- `PHASE1_FIND_BIT_ZERO_SIZED_REVIEW=helper-local zero-sized short-circuit proof stays explicit through the direct find_bit test anchor so zero-sized windows ignore populated backing words and return the caller-visible boundary without dereferencing live data`
+
 For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local past-`nbits` short-circuit proof explicit through:
 
 - `tools/lib/find_bit.zig`
@@ -173,6 +181,14 @@ For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local past-`nb
 That means `test "next scans past nbits return without reading bitmap words"` stays present and review-visible whenever `findNextBit()`, `findNextZeroBit()`, or `findNextAndBit()` changes. This helper-local test is the bounded proof that scans starting at or beyond the declared limit still short-circuit to `nbits` without reading bitmap words outside the caller-visible window.
 
 - `PHASE1_FIND_BIT_PAST_NBITS_REVIEW=helper-local past-nbits short-circuit proof stays explicit through the direct find_bit test anchor so next scans starting at or beyond nbits return the boundary without reading bitmap words outside the caller-visible window`
+
+For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local tail-word next-set skip proof explicit through:
+
+- `tools/lib/find_bit.zig`
+
+That means `test "tail-word next set scans skip earlier in-range matches before clamping"` stays present and review-visible whenever `findNextBit()` changes. This helper-local test is the bounded proof that tail-word next set scans still skip earlier in-range matches from the same last word before clamping to `nbits`, instead of returning a stale earlier match when the caller starts later in that tail word.
+
+- `PHASE1_FIND_BIT_TAIL_WORD_SET_SKIP_REVIEW=helper-local tail-word next-set skip proof stays explicit through the direct find_bit test anchor so tail-word next set scans skip earlier in-range matches before clamping to nbits`
 
 For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local tail-word skip proof explicit through:
 
