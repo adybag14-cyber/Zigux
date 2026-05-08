@@ -258,6 +258,18 @@ SCRIPTS_REQUIRED_MARKERS = [
     "adjacent review evidence instead of adding extra shared replay steps on `master`",
 ]
 
+SCRIPTS_EXACT_COUNTS = {
+    "Documentation/zigux/phase13-notifier-list-survey.md": 1,
+    "zigux/tests/phase13_notifier_list_manifest.json": 1,
+    "zigux/tests/phase13_notifier_list_reviewability.zig": 1,
+    "zigux/bindings/notifier_abi.zig": 1,
+    "include/zigux/notifier_abi.h": 1,
+    "zigux/helpers/notifier_chain_view.zig": 1,
+    "phase13_devres_boundary_evidence.zig": 1,
+    "the eight-test shared helper replay": 1,
+    "adjacent review evidence instead of adding extra shared replay steps on `master`": 1,
+}
+
 TESTS_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
@@ -372,6 +384,9 @@ def _repeat_markers(markers: list[str], exact_counts: dict[str, int]) -> str:
             entries.extend([needle] * extra)
     return "\n".join(entries) + "\n"
 
+def _baseline_scripts_readme() -> str:
+    return _repeat_markers(SCRIPTS_REQUIRED_MARKERS, SCRIPTS_EXACT_COUNTS)
+
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
@@ -403,6 +418,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(_collect_missing_markers(tests_review_companion, TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, "tests-review-companion"))
     issues.extend(_collect_exact_count_issues(tests_review_companion, TESTS_REVIEW_COMPANION_EXACT_COUNTS, "tests-review-companion-exact"))
     issues.extend(_collect_missing_markers(scripts_readme, SCRIPTS_REQUIRED_MARKERS, "scripts-readme"))
+    issues.extend(_collect_exact_count_issues(scripts_readme, SCRIPTS_EXACT_COUNTS, "scripts-readme-exact"))
     issues.extend(_collect_missing_markers(tests_readme, TESTS_REQUIRED_MARKERS, "tests-readme"))
     issues.extend(_collect_exact_count_issues(tests_readme, TESTS_EXACT_COUNTS, "tests-readme-exact"))
     issues.extend(_collect_missing_markers(makefile, MAKE_REQUIRED_LINES, "makefile"))
@@ -519,7 +535,7 @@ def run_self_test() -> int:
                     ),
                 )
             elif rel == "scripts/zigux/README.md":
-                _write(path, "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
+                _write(path, _baseline_scripts_readme())
             elif rel == "zigux/tests/README.md":
                 _write(path, _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
             elif rel == "zigux/Makefile":
@@ -545,10 +561,7 @@ def run_self_test() -> int:
         )
         _assert_only(
             validate(root),
-            [
-                "docs-readme:zigux/tests/phase13_devres_boundary_evidence.zig",
-                "docs-readme-exact:the current eight-test shared-helper release packet:expected=1:actual=1",
-            ][:1],
+            ["docs-readme:zigux/tests/phase13_devres_boundary_evidence.zig"],
             "missing_docs_readme_boundary_evidence_marker_failed",
         )
         _write(docs_readme_path, _repeat_markers(DOC_REQUIRED_MARKERS, DOC_EXACT_COUNTS))
@@ -593,25 +606,42 @@ def run_self_test() -> int:
         )
         _assert_only(
             validate(root),
-            ["scripts-readme:phase13_devres_boundary_evidence.zig"],
+            [
+                "scripts-readme:phase13_devres_boundary_evidence.zig",
+                "scripts-readme-exact:phase13_devres_boundary_evidence.zig:expected=1:actual=0",
+            ],
             "missing_scripts_readme_boundary_evidence_marker_failed",
         )
-        _write(scripts_readme_path, "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
+        _write(scripts_readme_path, _baseline_scripts_readme())
         case_count += 1
 
         scripts_readme_path.write_text(
-            "\n".join(SCRIPTS_REQUIRED_MARKERS).replace(
+            _baseline_scripts_readme().replace(
                 "the eight-test shared helper replay\n", "the seven-test shared helper replay\n", 1
-            )
-            + "\n",
+            ),
             encoding="utf-8",
         )
         _assert_only(
             validate(root),
-            ["scripts-readme:the eight-test shared helper replay"],
+            [
+                "scripts-readme:the eight-test shared helper replay",
+                "scripts-readme-exact:the eight-test shared helper replay:expected=1:actual=0",
+            ],
             "scripts_readme_eight_test_wording_guard_failed",
         )
-        _write(scripts_readme_path, "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
+        _write(scripts_readme_path, _baseline_scripts_readme())
+        case_count += 1
+
+        scripts_readme_path.write_text(
+            _baseline_scripts_readme() + "phase13_devres_boundary_evidence.zig\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["scripts-readme-exact:phase13_devres_boundary_evidence.zig:expected=1:actual=2"],
+            "scripts_readme_duplicate_boundary_evidence_guard_failed",
+        )
+        _write(scripts_readme_path, _baseline_scripts_readme())
         case_count += 1
 
         makefile_path = root / "zigux/Makefile"
@@ -646,9 +676,7 @@ def run_self_test() -> int:
         _assert_only(
             validate(root),
             [
-                "phase13-build:\" = b.addTest(.{\":expected=8:actual=7",
-                "phase13-build:\"test_step.dependOn(&run_phase13_\":expected=8:actual=7",
-                "phase13-build:.root_source_file = b.path(\"phase13_devres_boundary_evidence.zig\"),:expected=1:actual=0",
+                "phase13-build: = b.addTest(.{:expected=8:actual=7",
                 "phase13-build-marker:const phase13_devres_boundary_evidence_tests = b.addTest(.{",
                 "phase13-build-marker:.name = \"phase13-devres-boundary-evidence-tests\"",
                 "phase13-build-marker:const run_phase13_devres_boundary_evidence_tests = b.addRunArtifact(phase13_devres_boundary_evidence_tests);",
@@ -668,7 +696,7 @@ def run_self_test() -> int:
         )
         _assert_only(
             validate(root),
-            ["phase13-build:\"test_step.dependOn(&run_phase13_\":expected=8:actual=7"],
+            ["phase13-build:test_step.dependOn(&run_phase13_:expected=8:actual=7"],
             "missing_phase13_build_boundary_evidence_dependency_failed",
         )
         _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
@@ -757,6 +785,7 @@ def main() -> int:
         + len(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS)
         + len(TESTS_REVIEW_COMPANION_EXACT_COUNTS)
         + len(SCRIPTS_REQUIRED_MARKERS)
+        + len(SCRIPTS_EXACT_COUNTS)
         + len(TESTS_REQUIRED_MARKERS)
         + len(TESTS_EXACT_COUNTS)
         + len(MAKE_REQUIRED_LINES)
