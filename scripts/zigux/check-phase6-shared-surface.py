@@ -112,10 +112,10 @@ REQUIRED_SNIPPETS = {
         "- fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs",
         "- incremental partial-sum chaining across even and odd fragment boundaries",
         "- non-zero seeded `partial` accumulation parity across odd, carry-heavy, and pre-folded seed inputs",
-        "- a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases",
-        "- pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`",
+        "- fixture-backed carry-discipline and imported KUnit random-prefix replays for all-ones prefixes and no-spurious-carry seeded cases",
+        "- IPv4 and IPv6 pseudo-header accumulation parity between the dedicated helper paths and manual `partial` plus `blockAdd` composition",
         "- incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement",
-        "- a direct 30-case C-vs-Zig replay for compute, seeded partial, composition, IPv4 and IPv6 pseudo-header, direct `negate`, direct `from32to16` and `fold`, and incremental replacement behavior",
+        "- a direct 39-case C-vs-Zig replay for compute, `ipFastCsum`, seeded partial, composition, IPv4 and IPv6 pseudo-header, direct `negate`, direct `from32to16`, `fold`, `unfold`, `add16`, `sub16`, and incremental replacement behavior",
         "- helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop",
     ],
     "Documentation/zigux/phase6-hexdump-slice.md": [
