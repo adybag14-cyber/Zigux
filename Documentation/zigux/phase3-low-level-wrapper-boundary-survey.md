@@ -8,7 +8,7 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 - `PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig`
 - `PHASE3_ATOMIC_SCOPE=load-store-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max-compare-exchange-compare-exchange-weak`
 - `PHASE3_ATOMIC_STATUS=bounded-helper-surface-landed`
-- `PHASE3_ATOMIC_BLOB_SHA=3d709c0f9c77ae2e6a8a6d4fe6951c6326e4d1de`
+- `PHASE3_ATOMIC_BLOB_SHA=5c0260c1a20d1e255cb72831f480572139cc903c`
 - `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full-acquire-release-pair`
 - `PHASE3_BARRIER_STATUS=local-caller-state-and-handoff-probes-landed`
@@ -16,7 +16,7 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_SCOPE=range-read8-write8-read16-write16-read32-write32-read64-write64`
 - `PHASE3_MMIO_STATUS=byte-16-bit-32-bit-and-64-bit-mmio-through-narrow-pointer-bridge`
-- `PHASE3_MMIO_BLOB_SHA=3e53168ff806ef94e691667f84ec871cfa6d4288`
+- `PHASE3_MMIO_BLOB_SHA=70bf700a8ec952ff7bbaf230cf5522071af810d0`
 - `PHASE3_NARROW_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_NARROW_UNSAFE_SCOPE=address-byte-offset-align1-pointer-slice-const-pointer-write-and-interop-policy-unsafe-scope-byte-decoders`
 - `PHASE3_NARROW_UNSAFE_STATUS=align1-raw-pointer-bridge-plus-explicit-unsafe-scope-byte-policy`
