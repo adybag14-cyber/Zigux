@@ -324,6 +324,44 @@ test "phase11 gpio_wdt drvdata checkpoint keeps watchdog_set_drvdata ordering ex
     try std.testing.expect(level_checkpoint.blocked_on_platform_registration);
 }
 
+test "phase11 gpio_wdt reboot glue checkpoint keeps stop_on_reboot ordering explicit" {
+    var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
+    const prestarted_checkpoint = prestarted_watchdog.rebootGlueCheckpointSummary(true);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, prestarted_checkpoint.hw_algo);
+    try std.testing.expect(prestarted_checkpoint.always_running);
+    try std.testing.expect(prestarted_checkpoint.nowayout);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.input, prestarted_checkpoint.requested_line);
+    try std.testing.expectEqual(gpio_wdt.DescriptorRequestFlags.in, prestarted_checkpoint.descriptor_flags);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.start_before_register, prestarted_checkpoint.start_mode);
+    try std.testing.expect(prestarted_checkpoint.timeout_init_requested);
+    try std.testing.expect(prestarted_checkpoint.nowayout_applied);
+    try std.testing.expect(prestarted_checkpoint.stop_on_reboot_requested);
+    try std.testing.expect(prestarted_checkpoint.nowayout_precedes_stop_on_reboot);
+    try std.testing.expect(prestarted_checkpoint.stop_on_reboot_precedes_pre_registration_start);
+    try std.testing.expect(prestarted_checkpoint.stop_on_reboot_precedes_register_device_request);
+    try std.testing.expect(prestarted_checkpoint.pre_registration_start_precedes_register_device_request);
+    try std.testing.expect(prestarted_checkpoint.blocked_on_live_reboot_registration);
+    try std.testing.expect(prestarted_checkpoint.blocked_on_platform_registration);
+
+    var dormant_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, false);
+    const dormant_checkpoint = dormant_watchdog.rebootGlueCheckpointSummary(false);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, dormant_checkpoint.hw_algo);
+    try std.testing.expect(!dormant_checkpoint.always_running);
+    try std.testing.expect(!dormant_checkpoint.nowayout);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.output_low, dormant_checkpoint.requested_line);
+    try std.testing.expectEqual(gpio_wdt.DescriptorRequestFlags.out_low, dormant_checkpoint.descriptor_flags);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.register_only, dormant_checkpoint.start_mode);
+    try std.testing.expect(dormant_checkpoint.timeout_init_requested);
+    try std.testing.expect(!dormant_checkpoint.nowayout_applied);
+    try std.testing.expect(dormant_checkpoint.stop_on_reboot_requested);
+    try std.testing.expect(dormant_checkpoint.nowayout_precedes_stop_on_reboot);
+    try std.testing.expect(!dormant_checkpoint.stop_on_reboot_precedes_pre_registration_start);
+    try std.testing.expect(dormant_checkpoint.stop_on_reboot_precedes_register_device_request);
+    try std.testing.expect(!dormant_checkpoint.pre_registration_start_precedes_register_device_request);
+    try std.testing.expect(dormant_checkpoint.blocked_on_live_reboot_registration);
+    try std.testing.expect(dormant_checkpoint.blocked_on_platform_registration);
+}
+
 test "phase11 gpio_wdt registration handoff summary records startup state, stop policy, and watchdog metadata" {
     var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
     const prestarted_handoff = prestarted_watchdog.registrationHandoffSummary(true);
