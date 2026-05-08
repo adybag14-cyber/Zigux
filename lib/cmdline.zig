@@ -279,7 +279,7 @@ fn parseUnsignedPrefix(s: []const u8) ?ParsedPrefix {
     while (index < s.len and isDigitForBase(s[index], base)) : (index += 1) {}
 
     if (index == start) {
-        if (start == prefix_len + 1) {
+        if (start == prefix_len + 1 or (base == 16 and start == prefix_len + 2)) {
             return .{ .value = 0, .len = prefix_len + 1 };
         }
         return null;
@@ -391,6 +391,26 @@ test "getOption reports ranges, accepts leading plus, and consumes a standalone 
     try std.testing.expectEqualStrings("", hyphen_only);
 }
 
+test "getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull consumption" {
+    var plain_hex_rest: []const u8 = "0x";
+    var plain_hex_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&plain_hex_rest, &plain_hex_value));
+    try std.testing.expectEqual(@as(i32, 0), plain_hex_value);
+    try std.testing.expectEqualStrings("x", plain_hex_rest);
+
+    var plus_hex_rest: []const u8 = "+0x";
+    var plus_hex_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&plus_hex_rest, &plus_hex_value));
+    try std.testing.expectEqual(@as(i32, 0), plus_hex_value);
+    try std.testing.expectEqualStrings("x", plus_hex_rest);
+
+    var negative_hex_rest: []const u8 = "-0x";
+    var negative_hex_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&negative_hex_rest, &negative_hex_value));
+    try std.testing.expectEqual(@as(i32, 0), negative_hex_value);
+    try std.testing.expectEqualStrings("x", negative_hex_rest);
+}
+
 test "getOptions expands ranges, supports validation-only counting, and accepts leading plus" {
     var values = [_]i32{ 0, 0, 0, 0, 0 };
     const rest = getOptions("1-3,5", values.len, &values);
@@ -421,6 +441,18 @@ test "getOptions expands ranges, supports validation-only counting, and accepts 
     const plus_validate_rest = getOptions("+7", 0, &plus_validate);
     try std.testing.expectEqualStrings("", plus_validate_rest);
     try std.testing.expectEqual(@as(i32, 1), plus_validate[0]);
+}
+
+test "getOptions keeps incomplete hex prefixes as zero-valued leaves" {
+    var values = [_]i32{ 0, 0, 0 };
+    const rest = getOptions("0x,7", values.len, &values);
+    try std.testing.expectEqualStrings("x,7", rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 0, 0 }, &values);
+
+    var validate = [_]i32{0};
+    const validate_rest = getOptions("+0x,7", 0, &validate);
+    try std.testing.expectEqualStrings("x,7", validate_rest);
+    try std.testing.expectEqual(@as(i32, 1), validate[0]);
 }
 
 test "getOptions stops on descending ranges and unparseable suffixes" {
