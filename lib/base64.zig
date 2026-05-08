@@ -221,8 +221,6 @@ fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!u
         const quartet = src[src_index .. src_index + 4];
         const a = decodeMapValue(map, quartet[0]) catch return DecodeError.InvalidInput;
         const b = decodeMapValue(map, quartet[1]) catch return DecodeError.InvalidInput;
-        _ = a;
-        _ = b;
 
         const c = quartet[2];
         const d = quartet[3];
@@ -233,10 +231,10 @@ fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!u
             }
 
             if (c == '=') {
-                out_len += try validateTailWithMap(src[src_index .. src_index + 2], map);
+                out_len += try validateDecodedPair(a, b);
             } else {
-                _ = decodeMapValue(map, c) catch return DecodeError.InvalidInput;
-                out_len += try validateTailWithMap(src[src_index .. src_index + 3], map);
+                const c_value = decodeMapValue(map, c) catch return DecodeError.InvalidInput;
+                out_len += try validateDecodedTriple(a, b, c_value);
             }
             return out_len;
         }
@@ -253,7 +251,15 @@ fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!u
     if (padding or tail == 1) {
         return DecodeError.InvalidInput;
     }
-    return out_len + try validateTailWithMap(src[src_index..], map);
+
+    const a = decodeMapValue(map, src[src_index]) catch return DecodeError.InvalidInput;
+    const b = decodeMapValue(map, src[src_index + 1]) catch return DecodeError.InvalidInput;
+    if (tail == 2) {
+        return out_len + try validateDecodedPair(a, b);
+    }
+
+    const c = decodeMapValue(map, src[src_index + 2]) catch return DecodeError.InvalidInput;
+    return out_len + try validateDecodedTriple(a, b, c);
 }
 
 fn validateTail(src: []const u8, variant: Variant) DecodeError!usize {
@@ -267,17 +273,24 @@ fn validateTailWithMap(src: []const u8, map: *const ReverseMap) DecodeError!usiz
 
     const a = try decodeMapValue(map, src[0]);
     const b = try decodeMapValue(map, src[1]);
-    var value = (@as(u32, a) << 12) | (@as(u32, b) << 6);
-
     if (src.len == 2) {
-        if ((value & 0x3ff) != 0) {
-            return DecodeError.InvalidInput;
-        }
-        return 1;
+        return validateDecodedPair(a, b);
     }
 
     const c = try decodeMapValue(map, src[2]);
-    value |= @as(u32, c);
+    return validateDecodedTriple(a, b, c);
+}
+
+fn validateDecodedPair(a: u8, b: u8) DecodeError!usize {
+    const value = (@as(u32, a) << 12) | (@as(u32, b) << 6);
+    if ((value & 0x3ff) != 0) {
+        return DecodeError.InvalidInput;
+    }
+    return 1;
+}
+
+fn validateDecodedTriple(a: u8, b: u8, c: u8) DecodeError!usize {
+    const value = (@as(u32, a) << 12) | (@as(u32, b) << 6) | @as(u32, c);
     if ((value & 0x3) != 0) {
         return DecodeError.InvalidInput;
     }
