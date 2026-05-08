@@ -28,6 +28,7 @@ REQUIRED_MARKERS = [
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/validate-phase14.py",
+    CHECKER_PATH,
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     "zigux/tests/phase14_build.zig",
@@ -49,9 +50,22 @@ REQUIRED_MARKERS = [
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14",
 ]
+DOCS_ROOT_EXACT_COUNT_MARKERS = [
+    CHECKER_PATH,
+    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+]
 REQUIRED_SMOKE_SURVEY_MARKERS = [
     CHECKER_PATH,
     "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.",
+    "make -C zigux phase14-validate ZIG=/absolute/path/to/attached-zig/zig",
+    "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig",
+    "make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig",
+    "make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig",
+]
+SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
+    CHECKER_PATH,
     "make -C zigux phase14-validate ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig",
@@ -67,6 +81,14 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def require_exact_marker_count(errors: list[str], rel_path: str, text: str, marker: str) -> None:
+    actual_count = text.count(marker)
+    if actual_count != 1:
+        errors.append(
+            f"marker count drift in {rel_path}: {marker} (expected 1, found {actual_count})"
+        )
+
+
 def check(root: Path) -> list[str]:
     errors: list[str] = []
     if MARKER not in read_text(Path(__file__)):
@@ -80,6 +102,8 @@ def check(root: Path) -> list[str]:
     for marker in REQUIRED_MARKERS:
         if marker not in text:
             errors.append(f"missing marker in {DOCS_ROOT_PATH}: {marker}")
+    for marker in DOCS_ROOT_EXACT_COUNT_MARKERS:
+        require_exact_marker_count(errors, DOCS_ROOT_PATH, text, marker)
 
     smoke_survey_path = root / SMOKE_SURVEY_PATH
     if not smoke_survey_path.exists():
@@ -89,6 +113,8 @@ def check(root: Path) -> list[str]:
         for marker in REQUIRED_SMOKE_SURVEY_MARKERS:
             if marker not in smoke_text:
                 errors.append(f"missing marker in {SMOKE_SURVEY_PATH}: {marker}")
+        for marker in SMOKE_SURVEY_EXACT_COUNT_MARKERS:
+            require_exact_marker_count(errors, SMOKE_SURVEY_PATH, smoke_text, marker)
 
     makefile_path = root / MAKEFILE_PATH
     if not makefile_path.exists():
@@ -181,6 +207,27 @@ def run_self_test() -> int:
             return 1
         write_text(root / DOCS_ROOT_PATH, good_text)
 
+        broken_path.write_text(
+            good_text.replace(
+                "zigux/tests/phase14_end_to_end_smoke_manifest.json\n",
+                "zigux/tests/phase14_end_to_end_smoke_manifest.json\nzigux/tests/phase14_end_to_end_smoke_manifest.json\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/README.md: "
+            "zigux/tests/phase14_end_to_end_smoke_manifest.json (expected 1, found 2)" in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when the docs-root summary duplicated the shared smoke manifest marker",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_text)
+
         broken_docs_root_path = root / DOCS_ROOT_PATH
         broken_docs_root_path.unlink()
         errors = check(root)
@@ -251,6 +298,27 @@ def run_self_test() -> int:
         ):
             print(
                 "self-test expected failure when the shared smoke survey lost the attached-toolchain scope guard",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
+
+        broken_smoke_path.write_text(
+            good_smoke_text.replace(
+                f"{CHECKER_PATH}\n",
+                f"{CHECKER_PATH}\n{CHECKER_PATH}\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
+            f"{CHECKER_PATH} (expected 1, found 2)" in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when the shared smoke survey duplicated the docs-root checker path",
                 file=sys.stderr,
             )
             return 1
