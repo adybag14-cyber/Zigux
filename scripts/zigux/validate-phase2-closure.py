@@ -658,6 +658,7 @@ def run_self_test() -> int:
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-genksyms-crc-diff.py",
+        "scripts/zigux/check-phase2-tests-readme-alignment.py",
     ]
     for command in make_duplicate_cases:
         mutated = make_ok + f"\ncd $(ZIGUX_ROOT) && $(PYTHON) {command}"
@@ -689,6 +690,7 @@ def run_self_test() -> int:
         "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
         "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "python3 scripts/zigux/check-genksyms-crc-diff.py",
+        "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     ]
     for command in workflow_duplicate_cases:
         mutated = workflow_ok + f"run: {command}\n"
