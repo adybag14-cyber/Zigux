@@ -227,7 +227,8 @@ pub fn parseIntArray(allocator: std.mem.Allocator, buf: []const u8) ParseIntArra
     }
 
     const nints: usize = @intCast(count_only[0]);
-    const ints = try allocator.alloc(i32, nints + 1);
+    const slot_count = try checkedCountWithSentinel(nints);
+    const ints = try allocator.alloc(i32, slot_count);
     errdefer allocator.free(ints);
 
     _ = cmdline.getOptions(current, ints.len, ints);
@@ -243,7 +244,8 @@ pub fn parseIntArrayUser(
         return error.Fault;
     }
 
-    const buf = try allocator.alloc(u8, count + 1);
+    const buf_len = try checkedCountWithSentinel(count);
+    const buf = try allocator.alloc(u8, buf_len);
     defer allocator.free(buf);
 
     @memcpy(buf[0..count], from[0..count]);
@@ -268,7 +270,7 @@ pub fn kasprintfStrarray(
         };
     }
 
-    const slot_count = try std.math.add(usize, n, 1);
+    const slot_count = try checkedCountWithSentinel(n);
     var names = try allocator.alloc([:0]u8, n);
     errdefer allocator.free(names);
 
@@ -479,6 +481,10 @@ fn copyRenderedCString(dest: []u8, rendered: []const u8) void {
     const copy_len = @min(rendered.len, dest.len - 1);
     @memcpy(dest[0..copy_len], rendered[0..copy_len]);
     dest[copy_len] = 0;
+}
+
+fn checkedCountWithSentinel(base_count: usize) !usize {
+    return std.math.add(usize, base_count, 1);
 }
 
 fn allocPrintCString(
@@ -863,6 +869,12 @@ test "kasprintfStrarray frees intermediate allocations when setup fails" {
         runKasprintfStrarrayWithFailingAllocator,
         .{ "cpu", @as(usize, 3) },
     );
+}
+
+test "checkedCountWithSentinel rejects usize overflow for sentinel-backed allocations" {
+    try std.testing.expectEqual(@as(usize, 1), try checkedCountWithSentinel(0));
+    try std.testing.expectEqual(@as(usize, 4), try checkedCountWithSentinel(3));
+    try std.testing.expectError(error.Overflow, checkedCountWithSentinel(std.math.maxInt(usize)));
 }
 
 test "stringUnescape applies Linux-style escape classes deterministically" {
