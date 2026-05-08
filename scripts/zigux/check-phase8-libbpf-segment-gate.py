@@ -30,6 +30,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "zigux/tests/phase8_perf_buffer_poll.zig",
     "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+    "tools/lib/bpf/zigux_segments/verify.zig",
     MANIFEST_PATH,
 ]
 
@@ -39,6 +40,7 @@ REQUIRED_MARKERS = {
         "tools/lib/bpf/zigux_segments/manifest.json",
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
         "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        "tools/lib/bpf/zigux_segments/verify.zig",
         "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
         "zigux/tests/phase8_libbpf_segments_only_build.zig",
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
@@ -116,8 +118,10 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase8_libbpf_segments_only_build.zig": [
         "\"phase8_libbpf_segments.zig\"",
+        "../../tools/lib/bpf/zigux_segments/verify.zig",
         "phase8-libbpf-segment-tests",
-        "Run focused Phase 8 libbpf segment survey tests",
+        "phase8-libbpf-segment-verify-tests",
+        "Run focused Phase 8 libbpf segment survey and verifier tests",
     ],
     "zigux/tests/phase8_perf_buffer_poll.zig": [
         "ready-buffer processing attempts cannot exceed observed ready events",
@@ -299,7 +303,7 @@ def fixture_text(rel: str) -> str:
         body = "\n".join(REQUIRED_MARKERS[rel])
         return (
             "const expected_surveyed_commit = "
-            '"0e8ce03f80f631368bfa3c32452d615bb629e3db";\n'
+            '\"0e8ce03f80f631368bfa3c32452d615bb629e3db\";\n'
             f"{body}\n"
         )
     return "\n".join(REQUIRED_MARKERS.get(rel, ["# fixture"])) + "\n"
@@ -348,6 +352,7 @@ def run_self_test() -> None:
         ("missing_manifest", MANIFEST_PATH),
         ("missing_test", TEST_PATH),
         ("missing_makefile", "zigux/Makefile"),
+        ("missing_verify_module", "tools/lib/bpf/zigux_segments/verify.zig"),
     ]
 
     marker_cases = [
@@ -401,14 +406,28 @@ def run_self_test() -> None:
             "non-ready wait observations stay explicit",
             "zigux/tests/phase8_perf_buffer_poll.zig: non-ready wait observations cannot claim record processing",
         ),
+        (
+            "focused_build_missing_verify_module",
+            "zigux/tests/phase8_libbpf_segments_only_build.zig",
+            "../../tools/lib/bpf/zigux_segments/verify.zig",
+            "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+            "zigux/tests/phase8_libbpf_segments_only_build.zig: ../../tools/lib/bpf/zigux_segments/verify.zig",
+        ),
+        (
+            "focused_build_missing_verifier_route_name",
+            "zigux/tests/phase8_libbpf_segments_only_build.zig",
+            "Run focused Phase 8 libbpf segment survey and verifier tests",
+            "Run focused Phase 8 libbpf segment survey tests",
+            "zigux/tests/phase8_libbpf_segments_only_build.zig: Run focused Phase 8 libbpf segment survey and verifier tests",
+        ),
     ]
 
     alignment_cases = [
         (
             "invalid_commit_shape",
             MANIFEST_PATH,
-            '"0e8ce03f80f631368bfa3c32452d615bb629e3db"',
-            '"not-a-commit"',
+            '\"0e8ce03f80f631368bfa3c32452d615bb629e3db\"',
+            '\"not-a-commit\"',
             f"{MANIFEST_PATH}: invalid_surveyed_commit_shape:not-a-commit",
         ),
         (
@@ -428,8 +447,8 @@ def run_self_test() -> None:
         (
             "segment_status_drift",
             MANIFEST_PATH,
-            '"perf-buffer-poll-bookkeeping",\n      "status": "starter_landed"',
-            '"perf-buffer-poll-bookkeeping",\n      "status": "deferred_high_risk"',
+            '\"perf-buffer-poll-bookkeeping\",\n      \"status\": \"starter_landed\"',
+            '\"perf-buffer-poll-bookkeeping\",\n      \"status\": \"deferred_high_risk\"',
             f"{MANIFEST_PATH}: wrong_status:perf-buffer-poll-bookkeeping:starter_landed:deferred_high_risk",
         ),
     ]
