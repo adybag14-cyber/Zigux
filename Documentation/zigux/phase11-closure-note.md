@@ -23,6 +23,7 @@ It does not claim that all of Phase 11 is complete. It closes only the shared re
   - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
   - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
   - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+  - `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
   - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
   - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
   - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
