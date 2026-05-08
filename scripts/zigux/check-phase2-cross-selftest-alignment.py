@@ -35,6 +35,15 @@ EXPECTED_TARGETS = [
     "riscv64-linux-musl",
 ]
 
+EXPECTED_TOOLS = [
+    "scripts/zigux/fixdep.zig",
+    "scripts/zigux/genksyms.zig",
+    "scripts/zigux/genksyms_crc.zig",
+    "scripts/zigux/mk_elfconfig.zig",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
+]
+
 TOOLCHAIN_NOTE_MARKERS = [
     "python3 scripts/zigux/check-phase2-cross.py --self-test",
     "python3 scripts/zigux/check-phase2-cross.py",
@@ -154,6 +163,14 @@ def validate_targets_manifest(path: Path) -> list[str]:
     targets = payload.get("targets")
     if targets != EXPECTED_TARGETS:
         issues.append(f"targets:list={targets!r}:expected={EXPECTED_TARGETS!r}")
+    if payload.get("tool_count") != len(EXPECTED_TOOLS):
+        issues.append(
+            "targets:tool_count="
+            f"{payload.get('tool_count')!r}:expected={len(EXPECTED_TOOLS)}"
+        )
+    tools = payload.get("tools")
+    if tools != EXPECTED_TOOLS:
+        issues.append(f"targets:tools={tools!r}:expected={EXPECTED_TOOLS!r}")
     return issues
 
 
@@ -262,6 +279,8 @@ def build_self_test_root(root: Path) -> None:
                 "status": "closed",
                 "target_count": len(EXPECTED_TARGETS),
                 "targets": EXPECTED_TARGETS,
+                "tool_count": len(EXPECTED_TOOLS),
+                "tools": EXPECTED_TOOLS,
             }
         )
         + "\n",
@@ -305,6 +324,30 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             "targets:list=['x86_64-linux-musl', 'x86_64-linux-musl', 'riscv64-linux-musl']:expected=['x86_64-linux-musl', 'aarch64-linux-musl', 'riscv64-linux-musl']"
+            in issues
+        )
+
+        build_self_test_root(root)
+        payload = load_json_object(abspath(root, TARGETS), label="phase2_cross_targets")
+        payload["tool_count"] = 5
+        write_text(abspath(root, TARGETS), json.dumps(payload) + "\n")
+        issues = validate_root(root)
+        assert "targets:tool_count=5:expected=6" in issues
+
+        build_self_test_root(root)
+        payload = load_json_object(abspath(root, TARGETS), label="phase2_cross_targets")
+        payload["tools"] = [
+            "scripts/zigux/fixdep.zig",
+            "scripts/zigux/genksyms.zig",
+            "scripts/zigux/mk_elfconfig.zig",
+            "scripts/zigux/kconfig/conf_bridge.zig",
+            "scripts/zigux/kconfig/confdata_bridge.zig",
+            "scripts/zigux/genksyms_crc.zig",
+        ]
+        write_text(abspath(root, TARGETS), json.dumps(payload) + "\n")
+        issues = validate_root(root)
+        assert (
+            "targets:tools=['scripts/zigux/fixdep.zig', 'scripts/zigux/genksyms.zig', 'scripts/zigux/mk_elfconfig.zig', 'scripts/zigux/kconfig/conf_bridge.zig', 'scripts/zigux/kconfig/confdata_bridge.zig', 'scripts/zigux/genksyms_crc.zig']:expected=['scripts/zigux/fixdep.zig', 'scripts/zigux/genksyms.zig', 'scripts/zigux/genksyms_crc.zig', 'scripts/zigux/mk_elfconfig.zig', 'scripts/zigux/kconfig/conf_bridge.zig', 'scripts/zigux/kconfig/confdata_bridge.zig']"
             in issues
         )
 
@@ -388,7 +431,7 @@ def run_self_test() -> int:
         assert "missing_file:Documentation/zigux/review-checklist.md" in issues
 
     print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=15")
+    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
@@ -421,7 +464,7 @@ def main() -> int:
     print("PHASE2_CROSS_SELFTEST_ALIGNMENT=pass")
     print(
         "PHASE2_CROSS_SELFTEST_ALIGNMENT_MARKER_COUNT="
-        f"{len(TOOLCHAIN_NOTE_MARKERS) + len(CLOSURE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(VALIDATE_PHASE2_MARKERS) + len(VALIDATE_PHASE2_CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(MAKEFILE_MARKERS) + len(EXPECTED_TARGETS)}"
+        f"{len(TOOLCHAIN_NOTE_MARKERS) + len(CLOSURE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(VALIDATE_PHASE2_MARKERS) + len(VALIDATE_PHASE2_CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(MAKEFILE_MARKERS) + len(EXPECTED_TARGETS) + len(EXPECTED_TOOLS)}"
     )
     return 0
 
