@@ -24,14 +24,14 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay`
 - `PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface`
-- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=6e34681a33cba837600cac89fc225d54520ffd6c`
+- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=1c909dfbd713bfb6ffbf22941c989690fc568555`
 - `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
 - `PHASE3_ABI_TEST_BLOB_SHA=7c3c7887bb23d1acccd835ed3bb71eba3824c45d`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b`
 - `PHASE3_ABI_EXPECTED_BLOB_SHA=891be039615b878e10fda94788bc896ef12aac7b`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=91537cc1e4d6ae3cff25907efb47bef231d540b1`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=487395ea6a92382aa800c5b882b3f3d2c617d6ad`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=36d3c027c8e3e6b0591448acb040bac1c983e445`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet`
