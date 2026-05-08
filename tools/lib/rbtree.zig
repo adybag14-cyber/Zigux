@@ -514,6 +514,10 @@ pub fn first(root: *const Root) ?*Node {
     return minimum(node);
 }
 
+pub fn rb_first(root: *const Root) ?*Node {
+    return first(root);
+}
+
 pub fn firstCached(root: *const RootCached) ?*Node {
     return root.leftmost;
 }
@@ -521,6 +525,10 @@ pub fn firstCached(root: *const RootCached) ?*Node {
 pub fn last(root: *const Root) ?*Node {
     const node = root.node orelse return null;
     return maximum(node);
+}
+
+pub fn rb_last(root: *const Root) ?*Node {
+    return last(root);
 }
 
 pub fn next(node: *const Node) ?*Node {
@@ -542,6 +550,10 @@ pub fn next(node: *const Node) ?*Node {
     return parent;
 }
 
+pub fn rb_next(node: *const Node) ?*Node {
+    return next(node);
+}
+
 pub fn prev(node: *const Node) ?*Node {
     if (emptyNode(node)) {
         return null;
@@ -559,6 +571,10 @@ pub fn prev(node: *const Node) ?*Node {
     }
 
     return parent;
+}
+
+pub fn rb_prev(node: *const Node) ?*Node {
+    return prev(node);
 }
 
 pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {
@@ -582,6 +598,10 @@ pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {
     } else {
         parent.?.right = new;
     }
+}
+
+pub fn rb_replace_node(victim: *Node, new: *Node, root: *Root) void {
+    replaceNode(victim, new, root);
 }
 
 pub fn replaceNodeCached(victim: *Node, new: *Node, root: *RootCached) void {
@@ -609,6 +629,10 @@ pub fn firstPostorder(root: *const Root) ?*Node {
     return leftDeepestNode(node);
 }
 
+pub fn rb_first_postorder(root: *const Root) ?*Node {
+    return firstPostorder(root);
+}
+
 pub fn nextPostorder(node: ?*const Node) ?*Node {
     const current = node orelse return null;
     const parent = current.parent;
@@ -616,6 +640,10 @@ pub fn nextPostorder(node: ?*const Node) ?*Node {
         return leftDeepestNode(parent.?.right.?);
     }
     return parent;
+}
+
+pub fn rb_next_postorder(node: ?*const Node) ?*Node {
+    return nextPostorder(node);
 }
 
 test "rbtree inserts and traverses in sorted order" {
