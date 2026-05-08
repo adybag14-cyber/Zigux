@@ -6,6 +6,8 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 
 - `PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`
 - `PHASE3_ZIGUX_H_PACKET=shared Phase 3 ABI substrate packet only`
+- `PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`
+- `PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
 - this note governs how the Linux-facing aggregation header may grow without turning header churn into fake Phase 3 progress
 
 ## Ownership
@@ -14,12 +16,14 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 - curated Zig mirror ownership stays in `zigux/bindings/abi.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/notifier_abi.zig`
 - packet-local export and UAPI starter wording stays in `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
 - policy, unsafe, atomic, barrier, and MMIO helper wording stays in the existing Phase 3 policy and low-level-wrapper survey notes
+- `Documentation/zigux/phase3-abi-slice.md` remains the shared packet summary that must keep this governance note explicit whenever the Linux-facing header adds or rehomes a top-level review surface
 - `include/linux/zigux.h` remains the Linux-facing relay and aggregation header for already-landed helper views, summaries, and narrow boundary adapters only
 
 ## Growth Rule
 
 - `PHASE3_ZIGUX_H_GROWTH_RULE=new top-level helper families may land in include/linux/zigux.h only when the same bounded change also lands packet-local proof and updates this note.`
 - packet-local proof means either the shared ABI dump route or a focused replay already carried by the Phase 3 packet for that exact surface
+- the same bounded change should also refresh `Documentation/zigux/phase3-abi-slice.md` and update `zigux/tests/fixtures/phase3_abi_manifest.json` whenever the review surface inventory changes
 - header-only naming growth does not count as Phase 3 closure by itself
 - repetitive wrapper, summary, or suffix-chain expansion without new bounded proof should be treated as churn, not progress
 
@@ -28,6 +32,7 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 - `include/linux/zigux.h` may aggregate already-approved helper entry points, but it should not become a second source of truth for canonical struct layout, policy enums, or UAPI version ownership
 - if a helper surface needs new ownership wording before it can be reviewed safely, add that wording here first instead of burying it in a dump-only or wrapper-only follow-up
 - export/UAPI starter work may reference this header, but the dedicated export/UAPI survey still owns the narrower starter-boundary claims it proves directly
+- the shared ABI slice and manifest should keep this note visible as part of the live Phase 3 packet so header growth never becomes an implied proof surface on its own
 
 ## Non-Goals
 
