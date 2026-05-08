@@ -133,11 +133,15 @@ TESTS_README_MARKERS = (
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
@@ -325,6 +329,26 @@ def run_self_test() -> int:
         tests_readme_path = root / TESTS_README_REL
         baseline_tests_readme = _read(tests_readme_path)
         for marker, replacement, label in (
+            (
+                "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+                "Documentation/zigux/phase15-handoff-next-steps-missing.md",
+                "missing_tests_readme_handoff_note_marker_guard_failed",
+            ),
+            (
+                "Documentation/zigux/phase15-readiness-gate-survey.md",
+                "Documentation/zigux/phase15-readiness-gate-missing.md",
+                "missing_tests_readme_readiness_note_marker_guard_failed",
+            ),
+            (
+                "Documentation/zigux/phase15-governance-lane-sequencing.md",
+                "Documentation/zigux/phase15-governance-lane-missing.md",
+                "missing_tests_readme_lane_sequencing_note_marker_guard_failed",
+            ),
+            (
+                ".github/workflows/zigux-bootstrap.yml",
+                ".github/workflows/phase15-missing.yml",
+                "missing_tests_readme_workflow_marker_guard_failed",
+            ),
             (
                 "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
                 "zigux/tests/phase15_blocker_evidence_missing.zig",
