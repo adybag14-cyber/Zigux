@@ -21,8 +21,8 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_workqueue_bridge_manifest.json`
 - survey note: `Documentation/zigux/phase14-workqueue-bridge-survey.md`
-- lane key: `P14-L04`
-- surveyed commit: `9e278f632d6d5097cb8cfc2dc61744ae105baa8c`
+- lane key: `P14-L02`
+- surveyed commit: `9b98d3b9c812840bf279508030be0b8de093736c`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-workqueue-live-execution-blocker`
 - retained-in-C boundary: live worker-pool execution, draining, delayed-work requeue ownership, timer-base and CPU-affinity handoff, hotplug transitions, rescuer behavior, scheduler callbacks, and forward-progress correctness still remain in C because they share `worker_pool` state, pending-bit handoff, delayed timer expiry, and scheduler-visible ownership that the current boundary map only records for reviewability.
@@ -51,8 +51,8 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_rcu_tree_manifest.json`
 - survey note: `Documentation/zigux/phase14-rcu-tree-survey.md`
-- lane key: `P14-L13`
-- surveyed commit: `4c889233d157960514b241bcd5aff7cac5fda312`
+- lane key: `P14-Y04`
+- surveyed commit: `db6b88b27e2d538719af678b711ccc0c4300b3e4`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-rcu-tree-bridge-blocker`
 - retained-in-C boundary: grace-period sequence publication, the memory-ordering lock network, expedited funnel or stall behavior, NOCB wakeups, idle-watch and dyntick re-entry transitions, quiescent-state propagation, callback enqueue and batch invocation, public wait and callback-barrier ownership, and CPU hotplug callback migration still remain in C because they share the live `rcu_node` hierarchy, offload state, watching-state snapshots, callback-drain coordination, CPU enrollment and teardown paths, and memory-ordering guarantees.
@@ -71,6 +71,8 @@ The four anchor packets above are also carried together by the Phase 14 shared s
 - convenience target: `make -C zigux phase14`
 
 That shared packet matters because it proves the workqueue, ring-buffer, skbuff, and RCU anchor notes still agree on their exact surveyed commits, lane keys, ready-next versus blocked posture, stay-in-C decisions, and the same validator, smoke, and full-replay routes instead of drifting independently or disappearing from the shared evidence path.
+
+For shared Phase 14 sequencing and anti-overlap follow-through, treat this cross-anchor note as the current owner-map surface for the workqueue and RCU packets: workqueue now routes through `P14-L02`, and RCU now routes through `P14-Y04`, so future shared-lane runs should not reopen the older `P14-L04` or `P14-L13` handoffs from stale packet wording alone.
 
 ## What this lane does not claim
 
