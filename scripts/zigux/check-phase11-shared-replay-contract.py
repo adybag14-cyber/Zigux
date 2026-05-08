@@ -104,7 +104,7 @@ REQUIRED_HVC_CONSOLE_MATRIX_MARKERS = [
 REQUIRED_DOCS_README_MARKERS = [
     "Phase 11 notes",
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
-    "`scripts/zigux/check-phase11-header-boundary-packet.py`, `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` now keep the shared-versus-dedicated Phase 11 packet honest: the shipped contract checker plus the focused header-boundary checker, the dedicated bcm2835 archival checker route, the dedicated HVC survey checker route and manifest-backed archival checkpoint, the shared build-and-make packet, the parked shared closure checkpoint, the parked driver-lane owner map, the dedicated DesignWare teardown note, the dedicated `hvc_console` survey note and teardown note, the bounded `hvc_cleanup()` handoff, the focused shared header-boundary note and manifest-backed survey replay, and the four driver-local validation matrices all remain reviewable without implying a removed `validate-phase11.py`, a missing build inventory, or a broader checker-script packet that does not exist on `master`.",
+    "`scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` now keep the shared-versus-dedicated Phase 11 packet honest: the shipped contract checker plus the focused header-boundary checker, the shared build-and-make packet, the dedicated `hvc_console` survey note and replay, the bounded `hvc_cleanup()` handoff, the focused shared header-boundary note and manifest-backed survey replay, and the four driver-local validation matrices all remain reviewable without implying a removed `validate-phase11.py`, a missing build inventory, or a broader checker-script packet than the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` archival route plus the shipped `check-phase11-shared-replay-contract.py` and `check-phase11-header-boundary-packet.py` routes on `master`.",
 ]
 REQUIRED_SCRIPT_README_MARKERS = [
     "Phase 11 notes",
@@ -351,7 +351,7 @@ def run_self_test() -> int:
                 print(exc, file=sys.stderr)
                 return 1
         for rel_path, marker, _expected_count, label in EXACT_COUNT_MARKERS:
-            write_fixture_tree(root)
+            write_fixtureTree(root)
             try:
                 expect_exact_count_failure(root, rel_path, marker, label)
             except AssertionError as exc:
