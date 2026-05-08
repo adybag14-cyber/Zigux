@@ -36,12 +36,15 @@
     "savedefconfig"
   ],
   "allconfig_sentinel_packet": [
+    "alldefconfig_expected.json"
+  ],
+  "allconfig_override_packet": [
     "allmodconfig_expected.json"
   ],
   "helper_local_anchors": [
     "conf bridge emits syncconfig auto files",
     "conf bridge emits alldefconfig argv and env",
-    "conf bridge emits allmodconfig argv and env",
+    "conf bridge emits explicit empty allconfig override for allmodconfig",
     "conf bridge emits randconfig tunables when present",
     "conf bridge emits yes2modconfig argv and env",
     "conf bridge emits defconfig mode argument before kconfig",
