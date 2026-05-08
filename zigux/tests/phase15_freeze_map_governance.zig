@@ -80,9 +80,9 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("9342905d34fb98d6fcd88cf2e88efed7355131d2", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("4fc891b380cdd2991dff7676ade7f844df1b55fd", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
@@ -127,7 +127,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     var saw_blocker_ownership_sync = false;
     var saw_review_process_required_field_sync = false;
     var saw_anchor_reporting_sync = false;
-    var saw_stale_provenance_cleanup = false;
+    var saw_current_freeze_blocker_evidence_verify = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -200,12 +200,14 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "replay command") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "latest blocker disposition") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase15-stale-provenance-cleanup")) {
-            saw_stale_provenance_cleanup = true;
+        if (std.mem.eql(u8, gap.id, "phase15-current-freeze-blocker-evidence-verify")) {
+            saw_current_freeze_blocker_evidence_verify = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "older current-master readback marker") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "verified master head") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "older verified head") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze anchor set") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blocker dispositions") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact-head parity") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
@@ -231,7 +233,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     try std.testing.expect(saw_governance_family_alignment);
     try std.testing.expect(saw_blocker_ownership_sync);
     try std.testing.expect(saw_anchor_reporting_sync);
-    try std.testing.expect(saw_stale_provenance_cleanup);
+    try std.testing.expect(saw_current_freeze_blocker_evidence_verify);
     try std.testing.expect(saw_blocker);
 }
 
@@ -279,10 +281,11 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     );
     defer std.testing.allocator.free(governance_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_LANE_KEY=P15-L04") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_SLICE=freeze-map-governance-anchor-reporting-field-sync") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "verified `master` head `9342905d34fb98d6fcd88cf2e88efed7355131d2` observed on May 7, 2026") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "older current-master readback marker was no longer precise enough") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_LANE_KEY=P15-L03") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_SLICE=freeze-map-governance-current-freeze-blocker-evidence-verify") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "verified `master` head `4fc891b380cdd2991dff7676ade7f844df1b55fd` observed on May 8, 2026") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "older verified head `9342905d34fb98d6fcd88cf2e88efed7355131d2`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "freeze anchor set and blocker dispositions matched the newer shared governance packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Freeze-In-C Anchor Governance Inventory") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "Architecture Council + PMO / Release Management") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "Architecture Council + Validation and Perf Team") != null);
