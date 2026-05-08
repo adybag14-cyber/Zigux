@@ -37,7 +37,7 @@ Fresh repo inspection shows the bounded roadmap anchor is already landed as `sam
   - three integer-backed attributes, with `baz` and `bar` sharing the same show and store path
   - real sysfs and module-lifecycle substrate through `kobject_create_and_add`, `sysfs_create_group`, `kernel_kobj`, and module init or exit hooks
 - the honest Phase 5 move is to make the directory name, attribute dispatch, and lifetime boundaries reviewable in memory while keeping sysfs creation, kernel object registration, and module wiring out of scope.
-- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` all help keep this kobject note aligned with the same four-sample Phase 5 packet described from the docs root, guide, sample root, scripts root, and tests root.
+- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` all help keep this kobject note aligned with the same four-sample Phase 5 packet described from the docs root, guide, sample root, scripts root, and tests root.
 - the narrower same-lane guidance risk on current `master` is no longer missing broad docs-root coverage; it is reviewers having to reconstruct which kobject-owned lifecycle replays are the authoritative packet when a shared guidance edit touches the sample, manifest, or survey note together.
 
 ## Approved idiom for the landed kobject-style sample
