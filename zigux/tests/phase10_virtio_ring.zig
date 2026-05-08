@@ -24,6 +24,46 @@ test "phase10 virtio ring validates queue bounds before any transport work" {
     try std.testing.expectError(error.QueueAlreadyDefined, ring.defineQueue(0, 8, .packed_ring, false, true));
 }
 
+test "phase10 virtio ring notification-data summary keeps split and packed queue next-avail state reviewable" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(0, 8, .split, true, false);
+
+    var summary = try ring.notificationDataSummary(0);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 0), summary.queue_index);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.split, summary.layout);
+    try std.testing.expectEqual(@as(u16, 8), summary.descriptor_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), summary.next_avail_idx);
+    try std.testing.expect(!summary.next_avail_wrap_counter);
+    try std.testing.expectEqual(@as(u16, 0), summary.encoded_next);
+    try std.testing.expectEqual(@as(u32, 0), summary.notification_data);
+
+    try ring.publishDescriptorChain(0);
+    try ring.publishDescriptorChain(0);
+    summary = try ring.notificationDataSummary(0);
+    try std.testing.expectEqual(@as(u16, 2), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 2), summary.next_avail_idx);
+    try std.testing.expect(!summary.next_avail_wrap_counter);
+    try std.testing.expectEqual(@as(u16, 2), summary.encoded_next);
+    try std.testing.expectEqual(@as(u32, 0x0002_0000), summary.notification_data);
+
+    try ring.defineQueue(1, 8, .packed_ring, true, false);
+    inline for (0..9) |_| {
+        try ring.publishDescriptorChain(1);
+    }
+
+    summary = try ring.notificationDataSummary(1);
+    try std.testing.expectEqual(@as(u16, 1), summary.queue_index);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.packed_ring, summary.layout);
+    try std.testing.expectEqual(@as(u16, 8), summary.descriptor_count);
+    try std.testing.expectEqual(@as(u16, 9), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 1), summary.next_avail_idx);
+    try std.testing.expect(summary.next_avail_wrap_counter);
+    try std.testing.expectEqual(@as(u16, virtio_ring.packed_notification_wrap_bit | 1), summary.encoded_next);
+    try std.testing.expectEqual(@as(u32, 0x8001_0001), summary.notification_data);
+}
+
 test "phase10 virtio ring refuses reset while unpublished outstanding or unpolled work remains" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(1, 8, .split, true, false);
