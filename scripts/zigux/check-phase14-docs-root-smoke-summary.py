@@ -176,6 +176,17 @@ def run_self_test() -> int:
             return 1
         write_text(root / DOCS_ROOT_PATH, good_text)
 
+        broken_docs_root_path = root / DOCS_ROOT_PATH
+        broken_docs_root_path.unlink()
+        errors = check(root)
+        if not errors or f"missing file: {DOCS_ROOT_PATH}" not in errors:
+            print(
+                "self-test expected failure when the docs-root summary file was missing",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_text)
+
         broken_smoke_path = root / SMOKE_SURVEY_PATH
         broken_smoke_path.write_text(
             good_smoke_text.replace(
