@@ -129,6 +129,16 @@ PHASE3_VALIDATE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py",
 )
 
+PHASE4_VALIDATE_TARGET = "phase4-validate"
+PHASE4_VALIDATE_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py",
+)
+
 PHASE6_VALIDATE_TARGET = "phase6-validate"
 PHASE6_VALIDATE_HELPERS = ("check-phase6-shared-surface.py",)
 PHASE7_VALIDATE_TARGET = "phase7-validate"
@@ -364,6 +374,7 @@ def validate(root: Path) -> list[str]:
 
     _validate_target_commands(issues, makefile, PHASE2_TOOLCHAIN_TARGET, PHASE2_TOOLCHAIN_COMMANDS)
     _validate_target_commands(issues, makefile, PHASE3_VALIDATE_TARGET, PHASE3_VALIDATE_COMMANDS)
+    _validate_target_commands(issues, makefile, PHASE4_VALIDATE_TARGET, PHASE4_VALIDATE_COMMANDS)
     _validate_target_helpers(issues, makefile, PHASE6_VALIDATE_TARGET, PHASE6_VALIDATE_HELPERS)
     _validate_target_commands(issues, makefile, PHASE7_VALIDATE_TARGET, PHASE7_VALIDATE_COMMANDS)
     _validate_target_commands(issues, makefile, PHASE8_VALIDATE_TARGET, PHASE8_VALIDATE_COMMANDS)
@@ -397,6 +408,9 @@ def _baseline_makefile() -> str:
         "",
         "phase3-selftest:",
         "\t@true",
+        "",
+        "phase4-validate:",
+        *PHASE4_VALIDATE_COMMANDS,
         "",
         "phase6-validate:",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
@@ -467,6 +481,19 @@ def run_self_test() -> int:
         _write(root / TESTS_README_REL, tests)
         assert validate(root) == ["missing_tests_readme_phase3_marker:scripts/zigux/run-phase3-checks.py --self-test"]
         _write(root / TESTS_README_REL, _baseline_tests_readme())
+        case_count += 1
+
+        makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py\n",
+            "",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        assert validate(root) == [
+            f"missing_makefile_command:{PHASE4_VALIDATE_TARGET}:{PHASE4_VALIDATE_COMMANDS[-1]}",
+            f"makefile_command_order_drift:{PHASE4_VALIDATE_TARGET}",
+        ]
+        _write(root / MAKEFILE_REL, _baseline_makefile())
         case_count += 1
 
         readme = _baseline_readme().replace(
