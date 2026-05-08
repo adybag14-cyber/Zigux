@@ -10,6 +10,41 @@ test "runtime atomic64 sample advertises the bounded pilot-module contract" {
     try std.testing.expect(descriptor.provides_selftest_hook);
 }
 
+test "runtime atomic64 sample exposes lifecycle snapshots across stage transitions" {
+    var module = sample.RuntimeAtomic64Sample{};
+
+    const cold = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.cold, cold.stage);
+    try std.testing.expectEqual(@as(usize, 0), cold.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold.exit_runs);
+    try std.testing.expect(!cold.allows_counter_ops);
+
+    try module.init(23);
+    const initialized = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.exit_runs);
+    try std.testing.expect(initialized.allows_counter_ops);
+
+    _ = try module.runSelftest();
+    const selftested = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, selftested.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftested.exit_runs);
+    try std.testing.expect(selftested.allows_counter_ops);
+
+    try module.exit();
+    const exited = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, exited.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);
+    try std.testing.expect(!exited.allows_counter_ops);
+}
+
 test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit counter" {
     var module = sample.RuntimeAtomic64Sample{};
 
