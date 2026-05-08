@@ -79,6 +79,7 @@ HEADER_MARKERS = [
     "struct zigux_notifier_chain_summary",
     "zigux_notifier_chain_view_from_head",
     "zigux_notifier_chain_summarize",
+    "zigux_notifier_chain_empty",
     "zigux_notifier_chain_has_nonincreasing_priority_order",
 ]
 
@@ -89,6 +90,7 @@ REVIEWABILITY_MARKERS = [
     'try expectContains(packet_checker_text, "PHASE13_NOTIFIER_PACKET=pass");',
     'try expectContains(packet_checker_text, "\\"phase13-notifier-focused-packet-checker\\"");',
     'try expectContains(exported_notifier_abi_text, "zigux_notifier");',
+    'try expectContains(exported_notifier_abi_text, "zigux_notifier_chain_empty");',
     'try expectContains(survey_note, "`scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet");',
     'if (std.mem.eql(u8, gap.id, "phase13-notifier-focused-packet-checker")) {',
     'try std.testing.expectEqualStrings("scripts/zigux/check-phase13-notifier-packet.py", gap.zigux_destination);',
@@ -406,6 +408,7 @@ def run_self_test() -> int:
                 "phase13-notifier-header:struct zigux_notifier_chain_view",
                 "phase13-notifier-header:struct zigux_notifier_chain_summary",
                 "phase13-notifier-header:zigux_notifier_chain_summarize",
+                "phase13-notifier-header:zigux_notifier_chain_empty",
                 "phase13-notifier-header:zigux_notifier_chain_has_nonincreasing_priority_order",
             ],
             "header_guard_failed",
@@ -422,6 +425,7 @@ def run_self_test() -> int:
                 'phase13-notifier-reviewability:try expectContains(packet_checker_text, "PHASE13_NOTIFIER_PACKET=pass");',
                 'phase13-notifier-reviewability:try expectContains(packet_checker_text, "\\"phase13-notifier-focused-packet-checker\\"");',
                 'phase13-notifier-reviewability:try expectContains(exported_notifier_abi_text, "zigux_notifier");',
+                'phase13-notifier-reviewability:try expectContains(exported_notifier_abi_text, "zigux_notifier_chain_empty");',
                 'phase13-notifier-reviewability:try expectContains(survey_note, "`scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet");',
                 'phase13-notifier-reviewability:if (std.mem.eql(u8, gap.id, "phase13-notifier-focused-packet-checker")) {',
                 'phase13-notifier-reviewability:try std.testing.expectEqualStrings("scripts/zigux/check-phase13-notifier-packet.py", gap.zigux_destination);',
