@@ -311,3 +311,36 @@ test "phase 6 base64 exact-fit encode and decode buffers stay accepted across st
         try std.testing.expectEqualSlices(u8, case.expected, exact[0..written]);
     }
 }
+
+test "phase 6 base64 empty encode and decode inputs stay zero-length no-ops across variants" {
+    const variants = [_]base64.Variant{ .std, .urlsafe, .imap };
+
+    for (variants) |variant| {
+        var encoded = [_]u8{0xa1} ** 4;
+        const encoded_exact = encoded[0..0];
+
+        try std.testing.expectEqual(@as(usize, 0), base64.chars(0, true));
+        try std.testing.expectEqual(@as(usize, 0), base64.chars(0, false));
+        try std.testing.expectEqual(@as(usize, 0), try base64.encode(encoded_exact, "", true, variant));
+        try std.testing.expectEqual(@as(usize, 0), try base64.encode(encoded_exact, "", false, variant));
+        for (encoded) |byte| {
+            try std.testing.expectEqual(@as(u8, 0xa1), byte);
+        }
+
+        var decoded_padded = [_]u8{0xb2} ** 4;
+        const decoded_padded_exact = decoded_padded[0..0];
+        try std.testing.expectEqual(@as(usize, 0), try base64.bytes("", true, variant));
+        try std.testing.expectEqual(@as(usize, 0), try base64.decode(decoded_padded_exact, "", true, variant));
+        for (decoded_padded) |byte| {
+            try std.testing.expectEqual(@as(u8, 0xb2), byte);
+        }
+
+        var decoded_unpadded = [_]u8{0xc3} ** 4;
+        const decoded_unpadded_exact = decoded_unpadded[0..0];
+        try std.testing.expectEqual(@as(usize, 0), try base64.bytes("", false, variant));
+        try std.testing.expectEqual(@as(usize, 0), try base64.decode(decoded_unpadded_exact, "", false, variant));
+        for (decoded_unpadded) |byte| {
+            try std.testing.expectEqual(@as(u8, 0xc3), byte);
+        }
+    }
+}
