@@ -97,31 +97,18 @@ test "partial sums compose across the fixture split matrix" {
     }
 }
 
-test "blockSub reverses blockAdd across odd and even fragment boundaries" {
-    const Case = struct {
-        bytes: []const u8,
-        split: usize,
-    };
-
-    const carry_heavy = [_]u8{ 0xff, 0xfe, 0x01, 0x00, 0xaa, 0x55 };
-    const odd_tail = [_]u8{ 0x10, 0x20, 0x30, 0x40, 0x50 };
-    const cases = [_]Case{
-        .{ .bytes = "abc", .split = 1 },
-        .{ .bytes = "phase6", .split = 2 },
-        .{ .bytes = &carry_heavy, .split = 3 },
-        .{ .bytes = &odd_tail, .split = 4 },
-    };
-
-    for (cases) |case| {
-        const prefix = checksum.partial(case.bytes[0..case.split], 0);
-        const suffix = checksum.partial(case.bytes[case.split..], 0);
-        const whole = checksum.partial(case.bytes, 0);
+test "blockSub reverses fixture-backed fragment composition across odd and even splits" {
+    for (fixtures.composition_cases) |case| {
+        const prefix = checksum.partial(case.payload[0..case.split], 0);
+        const suffix = checksum.partial(case.payload[case.split..], 0);
         const combined = checksum.blockAdd(prefix, suffix, case.split);
-        const restored = checksum.partial("", checksum.blockSub(combined, suffix, case.split));
+        const restored_prefix = checksum.partial("", checksum.blockSub(combined, suffix, case.split));
+        const rebuilt = checksum.blockAdd(restored_prefix, suffix, case.split);
 
-        try std.testing.expectEqual(whole, checksum.partial("", combined));
-        try std.testing.expectEqual(prefix, restored);
-        try std.testing.expectEqual(whole, checksum.partial("", checksum.blockAdd(restored, suffix, case.split)));
+        try std.testing.expectEqual(case.expected_partial, checksum.partial("", combined));
+        try std.testing.expectEqual(prefix, restored_prefix);
+        try std.testing.expectEqual(case.expected_partial, checksum.partial("", rebuilt));
+        try std.testing.expectEqual(case.expected_fold, checksum.fold(checksum.partial("", rebuilt)));
     }
 }
 
