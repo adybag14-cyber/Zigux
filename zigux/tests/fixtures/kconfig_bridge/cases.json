@@ -1,12 +1,12 @@
 {
   "conf_cases": [
     {
-      "name": "olddefconfig",
-      "mode": "olddefconfig",
+      "name": "oldaskconfig",
+      "mode": "oldaskconfig",
       "kconfig": "Kconfig",
-      "config": ".config",
+      "config": "ask/.config",
       "arch": "x86_64",
-      "expected": "olddefconfig_expected.json"
+      "expected": "oldaskconfig_expected.json"
     },
     {
       "name": "syncconfig",
@@ -18,12 +18,28 @@
       "expected": "syncconfig_expected.json"
     },
     {
-      "name": "alldefconfig",
-      "mode": "alldefconfig",
+      "name": "oldconfig",
+      "mode": "oldconfig",
       "kconfig": "Kconfig",
-      "config": "build/.config",
+      "config": "refresh/.config",
+      "arch": "x86",
+      "expected": "oldconfig_expected.json"
+    },
+    {
+      "name": "allnoconfig",
+      "mode": "allnoconfig",
+      "kconfig": "Kconfig",
+      "config": "none/.config",
       "arch": "arm64",
-      "expected": "alldefconfig_expected.json"
+      "expected": "allnoconfig_expected.json"
+    },
+    {
+      "name": "allyesconfig",
+      "mode": "allyesconfig",
+      "kconfig": "Kconfig",
+      "config": "yes/.config",
+      "arch": "arm64",
+      "expected": "allyesconfig_expected.json"
     },
     {
       "name": "allmodconfig",
@@ -35,6 +51,14 @@
       "expected": "allmodconfig_expected.json"
     },
     {
+      "name": "alldefconfig",
+      "mode": "alldefconfig",
+      "kconfig": "Kconfig",
+      "config": "build/.config",
+      "arch": "arm64",
+      "expected": "alldefconfig_expected.json"
+    },
+    {
       "name": "randconfig",
       "mode": "randconfig",
       "kconfig": "Kconfig",
@@ -43,30 +67,6 @@
       "seed": "0xC0FFEE",
       "probability": "15:25",
       "expected": "randconfig_expected.json"
-    },
-    {
-      "name": "yes2modconfig",
-      "mode": "yes2modconfig",
-      "kconfig": "Kconfig",
-      "config": "rewrite/.config",
-      "arch": "x86",
-      "expected": "yes2modconfig_expected.json"
-    },
-    {
-      "name": "mod2yesconfig",
-      "mode": "mod2yesconfig",
-      "kconfig": "Kconfig",
-      "config": "promote/.config",
-      "arch": "x86",
-      "expected": "mod2yesconfig_expected.json"
-    },
-    {
-      "name": "mod2noconfig",
-      "mode": "mod2noconfig",
-      "kconfig": "Kconfig",
-      "config": "demote/.config",
-      "arch": "x86",
-      "expected": "mod2noconfig_expected.json"
     },
     {
       "name": "defconfig",
@@ -93,6 +93,46 @@
       "config": "out/list.config",
       "arch": "x86_64",
       "expected": "listnewconfig_expected.json"
+    },
+    {
+      "name": "helpnewconfig",
+      "mode": "helpnewconfig",
+      "kconfig": "Kconfig",
+      "config": "out/help.config",
+      "arch": "riscv64",
+      "expected": "helpnewconfig_expected.json"
+    },
+    {
+      "name": "olddefconfig",
+      "mode": "olddefconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "expected": "olddefconfig_expected.json"
+    },
+    {
+      "name": "yes2modconfig",
+      "mode": "yes2modconfig",
+      "kconfig": "Kconfig",
+      "config": "rewrite/.config",
+      "arch": "x86",
+      "expected": "yes2modconfig_expected.json"
+    },
+    {
+      "name": "mod2yesconfig",
+      "mode": "mod2yesconfig",
+      "kconfig": "Kconfig",
+      "config": "promote/.config",
+      "arch": "x86",
+      "expected": "mod2yesconfig_expected.json"
+    },
+    {
+      "name": "mod2noconfig",
+      "mode": "mod2noconfig",
+      "kconfig": "Kconfig",
+      "config": "demote/.config",
+      "arch": "x86",
+      "expected": "mod2noconfig_expected.json"
     }
   ],
   "confdata_cases": [
