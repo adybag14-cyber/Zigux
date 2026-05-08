@@ -44,6 +44,8 @@ PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
 ]
 
 PHASE2_MAKEFILE_RUN_COUNTS = {
+    "scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
+    "scripts/zigux/check-phase2-fixdep-gate.py": 1,
     "scripts/zigux/check-fixdep-diff.py --self-test": 1,
     "scripts/zigux/check-fixdep-diff.py": 1,
     "scripts/zigux/check-zig-toolchain.py": 1,
@@ -85,6 +87,10 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-zig-toolchain.py --self-test": 1,
     "python3 scripts/zigux/check-zig-toolchain.py": 1,
     "python3 scripts/zigux/validate-phase2.py": 1,
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py": 1,
+    "python3 scripts/zigux/check-fixdep-diff.py --self-test": 1,
+    "python3 scripts/zigux/check-fixdep-diff.py": 1,
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1,
     "python3 scripts/zigux/validate-phase2-closure.py": 1,
@@ -134,6 +140,7 @@ def required_files_for(root: Path) -> list[Path]:
         root / "Documentation" / "zigux" / "review-checklist.md",
         TOOLCHAIN_NOTES,
         root / "Documentation" / "zigux" / "artifact-diff.md",
+        root / "scripts" / "zigux" / "check-phase2-fixdep-gate.py",
         root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py",
         root / "scripts" / "zigux" / "check-genksyms-bridge.py",
         root / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
@@ -283,6 +290,8 @@ def validate_exact_workflow_runs(text: str) -> list[str]:
 def make_ok_text() -> str:
     return "\n".join(
         [
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
@@ -325,6 +334,10 @@ def workflow_ok_text() -> str:
                 "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
                 "run: python3 scripts/zigux/validate-phase2.py",
+                "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
+                "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
+                "run: python3 scripts/zigux/check-fixdep-diff.py",
                 "run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
                 "run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
                 "run: python3 scripts/zigux/validate-phase2-closure.py",
@@ -433,6 +446,8 @@ def main_validation(root: Path) -> list[str]:
         "PHASE2_TOOL_COUNT=6",
         "PHASE2_CROSS_TARGET_COUNT=3",
         "PHASE2_FIXDEP_SELF_TEST=python3 scripts/zigux/check-fixdep-diff.py --self-test",
+        "PHASE2_FIXDEP_GATE_SELF_TEST=python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+        "PHASE2_FIXDEP_GATE=python3 scripts/zigux/check-phase2-fixdep-gate.py",
         "PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py",
         "PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py",
         "PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test",
@@ -486,6 +501,10 @@ def main_validation(root: Path) -> list[str]:
     required_closure_markers.extend(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
 
     required_workflow_markers = [
+        "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+        "python3 scripts/zigux/check-phase2-fixdep-gate.py",
+        "python3 scripts/zigux/check-fixdep-diff.py --self-test",
+        "python3 scripts/zigux/check-fixdep-diff.py",
         "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
         "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
         "python3 scripts/zigux/check-genksyms-bridge.py --self-test",
@@ -533,6 +552,10 @@ def main_validation(root: Path) -> list[str]:
         "phase2-toolchain:",
         "phase2-validate: phase2-toolchain",
         "phase2-validate:",
+        "check-phase2-fixdep-gate.py --self-test",
+        "check-phase2-fixdep-gate.py",
+        "check-fixdep-diff.py --self-test",
+        "check-fixdep-diff.py",
         "check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
         "check-phase2-genksyms-bridge-selftest-alignment.py",
         "phase2-kconfig:",
