@@ -47,6 +47,7 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge keeps trailing escaped backslashes in quoted strings",
     "confdata bridge emits no entries for empty CONFIG symbol names",
     "confdata bridge keeps only the last assignment for duplicate symbols",
+    "confdata bridge keeps only the last state across unset and set transitions",
 ]
 
 REQUIRED_CONF_CASE_MODES = [
@@ -248,7 +249,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("INVALID_CONF_CASE_SYNCCONFIG_FIELDS", f"{name}:nosilentupdate"))
 
         if mode not in ALLCONFIG_OVERRIDE_MODES and "allconfig" in case:
-            issues.append(("INVALID_CONF_CASE_ALLCONFIG_FIELDS", f"{name}:allconfig"))
+            issues.append(("INVALID_CONF_CASE_ALLCONFIG_FIELDS", f"{name}:allconfig}"))
 
         rel_path = case["expected"]
         if not (fixture_dir / rel_path).exists():
