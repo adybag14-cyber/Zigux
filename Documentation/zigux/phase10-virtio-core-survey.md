@@ -31,6 +31,7 @@ This same packet is now the roadmap-facing `lab-only driver validation` evidence
 - the landed core helper already covers bounded status sequencing, feature negotiation, driver-validation narrowing, status_show and features_show-style attribute summaries, queue callback bookkeeping, queue descriptor-shape metadata, config-generation bookkeeping, interrupt-ack bookkeeping, lifecycle guards, and reset replay in memory only
 - the direct `drivers/virtio/virtio_verify.zig` replay already keeps the wrapper-facing lifecycle guard checkpoints, narrowed-feature summaries, failed-status teardown, and reset replay reviewable beside the helper-local packet and the shared Phase 10 build route
 - the landed driver-id helper already keeps bounded `register_virtio_device()`, `virtio_uevent()`, `virtio_id_match()`, and `virtio_dev_match()` reviewable through exact, wildcard, and unmatched paths without claiming bus registration
+- the landed driver-id coverage helper now makes exact coverage, wildcard coverage, wildcard shadowing, and unmatched table outcomes explicit without widening into probe or bus registration
 - the roadmap-facing parity evidence for this bounded packet now explicitly spans the Phase 10 destination `drivers/virtio/*.zig` plus the justified bridging-helper boundary in `zigux/kernel/` and `zigux/helpers/`
 - the honest roadmap gap here is no longer missing lab-driver evidence: the manifest-backed survey note, survey gate, dedicated packet checker, direct core verify replay, shared build replay, and shared Linux-style Phase 10 routes already keep the bounded starter reviewable as `lab-only driver validation`
 - the remaining roadmap bridges to a true lab driver are still blocked outside this lane: dual implementations for risky transport-facing paths plus probe, full remove, and reset lifecycle state remain too risky to claim from the core helper alone
@@ -60,6 +61,7 @@ The restored survey manifest records:
 - the landed `phase10-virtio-core-survey-note`
 - the landed `phase10-virtio-core-verify-replay`
 - the landed `phase10-driver-id-helper`
+- the landed `phase10-driver-id-coverage-disposition-helper`
 - the landed `phase10-driver-id-gate`
 - the landed `phase10-queue-shape-bookkeeping-helper`
 - the landed `phase10-config-generation-bookkeeping-helper`
@@ -72,7 +74,7 @@ The restored survey manifest records:
 - the still-blocked `phase10-core-dual-implementation-bridge`
 - the still-blocked `phase10-core-probe-remove-lifecycle`
 
-This keeps the lane concrete and reviewable without overstating progress: the current core packet already owns the roadmap-facing `lab-only driver validation` evidence through the survey packet, direct core verify replay, bounded status_show and features_show review surfaces, and shared build routes, the still-missing dual-implementation boundary for risky transport-facing paths remains explicit, and the remaining transport-backed probe or remove bridge to a true lab driver is still blocked rather than implied.
+This keeps the lane concrete and reviewable without overstating progress: the current core packet already owns the roadmap-facing `lab-only driver validation` evidence through the survey packet, direct core verify replay, bounded status_show and features_show review surfaces, the driver-id coverage disposition helper, and shared build routes, the still-missing dual-implementation boundary for risky transport-facing paths remains explicit, and the remaining transport-backed probe or remove bridge to a true lab driver is still blocked rather than implied.
 
 ## Non-goals
 
