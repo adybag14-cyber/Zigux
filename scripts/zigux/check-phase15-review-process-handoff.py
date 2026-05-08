@@ -475,7 +475,6 @@ def run_self_test() -> int:
         note_path.write_text(original_note, encoding="utf-8")
         case_count += 1
 
-        note_path.writeText = None
         note_path.write_text(
             original_note.replace(
                 "landed `phase15-workflow-replay-anchor-visible`",
