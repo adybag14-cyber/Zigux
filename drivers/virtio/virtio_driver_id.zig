@@ -55,6 +55,24 @@ pub const DriverIdTableReviewSummary = struct {
     shadowed_more_specific_rule_index: ?usize,
 };
 
+pub const DriverIdCoverageDisposition = enum {
+    unmatched,
+    exact_coverage,
+    wildcard_coverage,
+    wildcard_shadowing_more_specific_rule,
+};
+
+pub const DriverIdCoverageSummary = struct {
+    anchor: []const u8,
+    device_id: u32,
+    vendor_id: u32,
+    candidate_count: usize,
+    matched_rule_index: ?usize,
+    matched_specificity: DriverIdMatchSpecificity,
+    shadowed_more_specific_rule_index: ?usize,
+    disposition: DriverIdCoverageDisposition,
+};
+
 pub const VirtioDriverIdMatcher = struct {
     const Self = @This();
 
@@ -187,6 +205,33 @@ pub const VirtioDriverIdMatcher = struct {
         };
     }
 
+    pub fn driverIdCoverageSummary(
+        self: *const Self,
+        rules: []const DriverIdMatchRule,
+    ) DriverIdCoverageSummary {
+        const review = self.driverIdTableReviewSummary(rules);
+        const disposition: DriverIdCoverageDisposition = if (!review.matched)
+            .unmatched
+        else if (review.shadowed_more_specific_rule_index != null)
+            .wildcard_shadowing_more_specific_rule
+        else switch (review.matched_specificity) {
+            .exact => .exact_coverage,
+            .device_wildcard, .vendor_wildcard, .full_wildcard => .wildcard_coverage,
+            .unmatched => .unmatched,
+        };
+
+        return .{
+            .anchor = review.anchor,
+            .device_id = review.device_id,
+            .vendor_id = review.vendor_id,
+            .candidate_count = review.candidate_count,
+            .matched_rule_index = review.matched_rule_index,
+            .matched_specificity = review.matched_specificity,
+            .shadowed_more_specific_rule_index = review.shadowed_more_specific_rule_index,
+            .disposition = disposition,
+        };
+    }
+
     fn formatInto(buffer: []u8, comptime fmt: []const u8, args: anytype) !usize {
         const rendered = try std.fmt.bufPrint(buffer, fmt, args);
         return rendered.len;
@@ -217,3 +262,59 @@ pub const VirtioDriverIdMatcher = struct {
         return 0;
     }
 };
+
+test "virtio driver id coverage summary reports exact coverage" {
+    const matcher = try VirtioDriverIdMatcher.init(2, 0x1040, 0x1af4);
+    const summary = matcher.driverIdCoverageSummary(&.{
+        .{ .device_id = 0x1040, .vendor_id = 0x1af4 },
+        .{ .device_id = any_id, .vendor_id = any_id },
+    });
+
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expectEqual(DriverIdCoverageDisposition.exact_coverage, summary.disposition);
+    try std.testing.expectEqual(DriverIdMatchSpecificity.exact, summary.matched_specificity);
+    try std.testing.expectEqual(@as(?usize, 0), summary.matched_rule_index);
+    try std.testing.expectEqual(@as(?usize, null), summary.shadowed_more_specific_rule_index);
+}
+
+test "virtio driver id coverage summary reports wildcard coverage" {
+    const matcher = try VirtioDriverIdMatcher.init(3, 0x1050, 0x1af4);
+    const summary = matcher.driverIdCoverageSummary(&.{
+        .{ .device_id = any_id, .vendor_id = 0x1af4 },
+        .{ .device_id = 0x1040, .vendor_id = 0x1af4 },
+    });
+
+    try std.testing.expectEqual(DriverIdCoverageDisposition.wildcard_coverage, summary.disposition);
+    try std.testing.expectEqual(DriverIdMatchSpecificity.device_wildcard, summary.matched_specificity);
+    try std.testing.expectEqual(@as(?usize, 0), summary.matched_rule_index);
+    try std.testing.expectEqual(@as(?usize, null), summary.shadowed_more_specific_rule_index);
+}
+
+test "virtio driver id coverage summary reports wildcard shadowing a later more specific rule" {
+    const matcher = try VirtioDriverIdMatcher.init(4, 0x1050, 0x1af4);
+    const summary = matcher.driverIdCoverageSummary(&.{
+        .{ .device_id = any_id, .vendor_id = 0x1af4 },
+        .{ .device_id = 0x1050, .vendor_id = 0x1af4 },
+    });
+
+    try std.testing.expectEqual(
+        DriverIdCoverageDisposition.wildcard_shadowing_more_specific_rule,
+        summary.disposition,
+    );
+    try std.testing.expectEqual(DriverIdMatchSpecificity.device_wildcard, summary.matched_specificity);
+    try std.testing.expectEqual(@as(?usize, 0), summary.matched_rule_index);
+    try std.testing.expectEqual(@as(?usize, 1), summary.shadowed_more_specific_rule_index);
+}
+
+test "virtio driver id coverage summary reports unmatched coverage" {
+    const matcher = try VirtioDriverIdMatcher.init(5, 0x1051, 0x1af4);
+    const summary = matcher.driverIdCoverageSummary(&.{
+        .{ .device_id = 0x1040, .vendor_id = 0x1af4 },
+        .{ .device_id = any_id, .vendor_id = 0x10ec },
+    });
+
+    try std.testing.expectEqual(DriverIdCoverageDisposition.unmatched, summary.disposition);
+    try std.testing.expectEqual(DriverIdMatchSpecificity.unmatched, summary.matched_specificity);
+    try std.testing.expectEqual(@as(?usize, null), summary.matched_rule_index);
+    try std.testing.expectEqual(@as(?usize, null), summary.shadowed_more_specific_rule_index);
+}
