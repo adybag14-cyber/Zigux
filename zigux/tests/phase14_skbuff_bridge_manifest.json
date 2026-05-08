@@ -1,7 +1,7 @@
 {
-  "lane_key": "P14-Y03",
+  "lane_key": "P14-L09",
   "phase": "Phase 14",
-  "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
+  "surveyed_commit": "4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7",
   "anchor": "net/core/skbuff.c",
   "roadmap_destinations": [
     "net/core/skbuff_bridge.zig",
@@ -101,6 +101,13 @@
       "kind": "boundary_map",
       "zigux_destination": "net/core/skbuff_bridge.zig",
       "why_now": "The first honest skbuff foothold is a boundary map around __alloc_skb(), napi_alloc_skb(), skb_clone(), pskb_expand_head(), __skb_checksum_complete(), skb_segment(), and consume_skb(), with explicit stay-in-C decisions where shared-data ownership and teardown are still too coupled to refcounts and destructors."
+    },
+    {
+      "id": "phase14-skbuff-boundary-map-roadmap-query",
+      "status": "starter_landed",
+      "kind": "boundary_map",
+      "zigux_destination": "net/core/skbuff_bridge.zig",
+      "why_now": "The bridge already names the four roadmap-approved boundary-study surfaces and the two explicit stay-in-C boundary areas, but without helper queries later runs would have to infer roadmap alignment from array order instead of a packet-local machine-checkable catalog."
     },
     {
       "id": "phase14-skbuff-test-gate",
