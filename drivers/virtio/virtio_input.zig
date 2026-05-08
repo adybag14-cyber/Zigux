@@ -133,6 +133,24 @@ pub const MultitouchSlotSummary = struct {
     multitouch_enabled: bool,
 };
 
+pub const ProbePreflightBlocker = enum {
+    identity_incomplete,
+    event_queue_unconfigured,
+    status_queue_unconfigured,
+    event_buffers_unfilled,
+    capability_setup_incomplete,
+};
+
+pub const ProbePreflightSummary = struct {
+    anchor: []const u8,
+    identity_ready: bool,
+    queue_plan_ready: bool,
+    capability_setup_ready: bool,
+    device_ready: bool,
+    blocker: ?ProbePreflightBlocker,
+    ready_for_probe_handoff: bool,
+};
+
 pub const QueueCallbackPreflightBlocker = enum {
     event_queue_unconfigured,
     status_queue_unconfigured,
@@ -455,6 +473,39 @@ pub const VirtioInputLab = struct {
         };
     }
 
+    pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {
+        const identity_ready = self.identityReady();
+        const queue_callback_preflight = self.queueCallbackPreflightSummary();
+        const queue_plan_ready = queue_callback_preflight.event_queue_configured and
+            queue_callback_preflight.status_queue_configured and
+            queue_callback_preflight.event_buffers_ready;
+        const capability_setup_ready = self.capabilitySetupReady();
+        const device_ready = queue_callback_preflight.device_ready;
+
+        const blocker: ?ProbePreflightBlocker = if (!identity_ready)
+            .identity_incomplete
+        else if (!queue_callback_preflight.event_queue_configured)
+            .event_queue_unconfigured
+        else if (!queue_callback_preflight.status_queue_configured)
+            .status_queue_unconfigured
+        else if (!queue_callback_preflight.event_buffers_ready)
+            .event_buffers_unfilled
+        else if (!capability_setup_ready)
+            .capability_setup_incomplete
+        else
+            null;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .identity_ready = identity_ready,
+            .queue_plan_ready = queue_plan_ready,
+            .capability_setup_ready = capability_setup_ready,
+            .device_ready = device_ready,
+            .blocker = blocker,
+            .ready_for_probe_handoff = blocker == null,
+        };
+    }
+
     pub fn queueCallbackPreflightSummary(self: *const Self) QueueCallbackPreflightSummary {
         const event_queue_configured = self.event_descriptor_count != 0;
         const status_queue_configured = self.status_descriptor_count != 0;
@@ -634,6 +685,10 @@ pub const VirtioInputLab = struct {
     fn capabilitySetupReady(self: *const Self) bool {
         _ = self.capabilitySetupSummary() catch return false;
         return true;
+    }
+
+    fn identityReady(self: *const Self) bool {
+        return self.name_len != 0 and self.phys_len != 0;
     }
 
     fn multitouchSlotsRequired(self: *const Self) bool {
