@@ -354,9 +354,13 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, top_bit_contract_source, "try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(top_bit + 1, 1));") != null);
     try std.testing.expect(std.mem.indexOf(u8, top_bit_contract_source, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.initialized, module.stage());") != null);
 
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(sample.ModuleStage.cold, module.stage());") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(usize, 1), module.init_runs);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try module.clearRange(second_word_base, 2);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try module.setRange(9, 4);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(u32, 7), summary.weight);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expect(module.isSet(second_word_base + 6));") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(sample.OperationFamily.summary, selftest.operation_families[2]);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(sample.OperationFamily.lifecycle, selftest.operation_families[3]);") != null);
