@@ -151,6 +151,7 @@ pub const AddRuleSyscallRequest = struct {
     handled_access_fs: u64 = 0,
     handled_access_net: u64 = 0,
     path_beneath_attr: PathBeneathAttr = .{},
+    path_beneath_parent_path: PathFdRequest = .{},
     net_port_attr: NetPortAttr = .{},
 };
 
@@ -160,6 +161,9 @@ pub const AddRuleSyscallPlan = struct {
     requires_zero_flags: bool,
     acquires_ruleset_with_write_access: bool,
     reuses_add_rule_validation: bool,
+    reuses_path_beneath_handoff: bool,
+    acquires_parent_path_reference: bool,
+    releases_parent_path_reference: bool,
     dispatched_rule: AddRulePlan,
 };
 
@@ -495,12 +499,24 @@ pub const SyscallsHelperLab = struct {
             .net_port_attr = request.net_port_attr,
         });
 
+        const path_beneath_handoff = switch (dispatched_rule.action) {
+            .path_beneath => try planAddRulePathBeneathHandoff(.{
+                .handled_access_fs = request.handled_access_fs,
+                .path_beneath_attr = request.path_beneath_attr,
+                .parent_path = request.path_beneath_parent_path,
+            }),
+            .net_port => null,
+        };
+
         return .{
             .anchor = descriptor().anchor,
             .checks_initialization_gate = true,
             .requires_zero_flags = true,
             .acquires_ruleset_with_write_access = true,
             .reuses_add_rule_validation = true,
+            .reuses_path_beneath_handoff = path_beneath_handoff != null,
+            .acquires_parent_path_reference = if (path_beneath_handoff) |handoff| handoff.acquires_parent_path_reference else false,
+            .releases_parent_path_reference = if (path_beneath_handoff) |handoff| handoff.releases_parent_path_reference else false,
             .dispatched_rule = dispatched_rule,
         };
     }
@@ -706,6 +722,9 @@ test "landlock add-rule syscall planning keeps write-fd dispatch explicit" {
     try std.testing.expect(path_plan.dispatched_rule.requires_ruleset_write_access);
     try std.testing.expect(path_plan.dispatched_rule.requires_path_lookup);
     try std.testing.expectEqual(@as(i32, 42), path_plan.dispatched_rule.parent_fd);
+    try std.testing.expect(path_plan.reuses_path_beneath_handoff);
+    try std.testing.expect(path_plan.acquires_parent_path_reference);
+    try std.testing.expect(path_plan.releases_parent_path_reference);
 
     const net_plan = try SyscallsHelperLab.planLandlockAddRule(.{
         .ruleset_fd = .{
@@ -722,6 +741,9 @@ test "landlock add-rule syscall planning keeps write-fd dispatch explicit" {
     try std.testing.expectEqual(AddRuleAction.net_port, net_plan.dispatched_rule.action);
     try std.testing.expectEqual(@as(?u16, 443), net_plan.dispatched_rule.port);
     try std.testing.expect(!net_plan.dispatched_rule.requires_path_lookup);
+    try std.testing.expect(!net_plan.reuses_path_beneath_handoff);
+    try std.testing.expect(!net_plan.acquires_parent_path_reference);
+    try std.testing.expect(!net_plan.releases_parent_path_reference);
 }
 
 test "landlock add-rule syscall planning rejects disabled state flags and non-writable rulesets" {
@@ -755,6 +777,24 @@ test "landlock add-rule syscall planning rejects disabled state flags and non-wr
         .rule_type = rule_type_net_port,
         .handled_access_net = 0x1,
         .net_port_attr = .{ .allowed_access = 0x1, .port = 80 },
+    }));
+}
+
+test "landlock add-rule syscall planning rejects invalid path-beneath parent paths through the handoff" {
+    try std.testing.expectError(error.PrivateInode, SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd = .{
+            .file_mode = fmode_can_write,
+            .required_mode = fmode_can_write,
+        },
+        .rule_type = rule_type_path_beneath,
+        .handled_access_fs = 0x1,
+        .path_beneath_attr = .{
+            .allowed_access = 0x1,
+            .parent_fd = 7,
+        },
+        .path_beneath_parent_path = .{
+            .inode_is_private = true,
+        },
     }));
 }
 
