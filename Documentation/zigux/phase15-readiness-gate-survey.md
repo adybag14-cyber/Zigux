@@ -7,8 +7,8 @@ This document records the bounded Phase 15 governance lane for checking whether 
 - `PHASE15_STATUS=maintenance_mode_ready`
 - `PHASE15_LANE_KEY=P15-L01`
 - `PHASE15_SLICE=phase15-readiness-gate-current-blocker-inventory`
-- survey provenance refreshed against current `master` via the GitHub connector on May 6, 2026
-- the shared replay surface is green on current `master` once this dedicated readiness note, its manifest, the focused `zigux/tests/phase15_readiness_gate.zig` guard, and the shipped `phase15-validate` checker stack are present together
+- survey provenance refreshed against current `master` readback on 2026-05-08 after the shared Phase 15 review checklist picked up the explicit workflow-backed and direct shared build replay markers
+- the shared replay surface is green on current `master` once this dedicated readiness note, its manifest, the focused `zigux/tests/phase15_readiness_gate.zig` guard, and the shipped `phase15-validate` checker stack are present together beside that now-explicit checklist replay contract
 
 ## Roadmap Versus Ledger
 
@@ -24,6 +24,7 @@ This document records the bounded Phase 15 governance lane for checking whether 
 
 - the shared governance packet is present through `Documentation/zigux/README.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, the Phase 15 scripts-root checkers `scripts/zigux/check-phase15-scripts-readme-alignment.py` and `scripts/zigux/check-phase15-review-process-handoff.py`, `.github/workflows/zigux-bootstrap.yml`, the focused readiness replay pair `zigux/tests/phase15_readiness_gate.zig` and `zigux/tests/phase15_readiness_gate_manifest.json`, the shared `zigux/tests/phase15_build.zig` replay, `make -C zigux phase15-validate`, and `make -C zigux phase15`
 - `zigux/Makefile` still exposes `phase15-validate`, and that validator-first route still reruns both dedicated Phase 15 checker paths before the shared `zigux/tests/phase15_build.zig` replay, so the current governance packet carries explicit release evidence for the shipped review route instead of relying on the build replay alone
+- `Documentation/zigux/review-checklist.md` now carries `.github/workflows/zigux-bootstrap.yml` and `zig build test --build-file zigux/tests/phase15_build.zig` explicitly beside the existing validator-first and make-route markers, so this readiness packet no longer relies on those shared replay surfaces being implied from adjacent notes
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md` keeps the bounded handoff record and parked next-step packet visible beside this readiness gate
 - `Documentation/zigux/phase15-governance-lane-sequencing.md` keeps the shared owner split explicit, and the focused `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and `zigux/tests/phase15_governance_lane_sequencing.zig` replays keep the current blocker vocabulary, lane-owner vocabulary, and anti-overlap packet visible inside the shared Phase 15 build instead of leaving them implicit in adjacent notes
 - `Documentation/zigux/README.md` is the docs-root entry point for this parked governance packet, so `Documentation/zigux/phase15-readiness-gate-survey.md` must stay named there beside the freeze map, review process, parity scorecard, handoff note, and indefinite-C policy instead of leaving the maintenance-mode blocker inventory implicit
@@ -48,4 +49,4 @@ This document records the bounded Phase 15 governance lane for checking whether 
 
 ## Next bounded step
 
-Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the docs-root readiness pointer disappears, one of the two dedicated `phase15-validate` checker routes disappears, or one of the four recorded deep-core blocker dispositions changes.
+Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the shared review checklist drops the explicit workflow-backed or direct shared-build replay markers, one of the two dedicated `phase15-validate` checker routes disappears, or one of the four recorded deep-core blocker dispositions changes.
