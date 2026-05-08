@@ -19,6 +19,8 @@ TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 EXPECTED_LANE_KEY = "P15-L06"
+EXPECTED_SURVEYED_COMMIT_MODE = "verified_master_head"
+EXPECTED_ROADMAP_REQUIREMENT = "Architecture Council review process"
 
 PRODUCT_BOUNDARY_MARKER = "product boundary:"
 REQUIRED_PRODUCT_BOUNDARY_MARKERS = (
@@ -35,6 +37,9 @@ REQUIRED_PRODUCT_BOUNDARY_MARKERS = (
 )
 REQUIRED_NOTE_MARKERS = (
     f"`PHASE15_LANE_KEY={EXPECTED_LANE_KEY}`",
+    "`PHASE15_PROVENANCE_MODE=verified_master_head`",
+    "survey provenance refreshed against verified `master` head `",
+    "exact branch-head parity is now recorded for this packet",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
     "current review-process evidence is limited to named `phase`",
     "`current status bucket`",
@@ -48,6 +53,7 @@ REQUIRED_NOTE_MARKERS = (
     "landed `phase15-roadmap-minimum-field-sync`",
     "landed `phase15-workflow-replay-anchor-visible`",
     "landed `phase15-dedicated-make-test-replay-visible`",
+    "landed `phase15-verified-master-head-provenance-sync`",
 )
 
 REQUIRED_REVIEW_PACKET_FIELDS = (
@@ -317,6 +323,16 @@ def validate(root: Path) -> list[str]:
 
     if manifest.get("lane_key") != EXPECTED_LANE_KEY:
         failures.append(f"manifest:lane_key:{manifest.get('lane_key')}")
+    if manifest.get("surveyed_commit_mode") != EXPECTED_SURVEYED_COMMIT_MODE:
+        failures.append(f"manifest:surveyed_commit_mode:{manifest.get('surveyed_commit_mode')}")
+    surveyed_commit = manifest.get("surveyed_commit")
+    if not isinstance(surveyed_commit, str) or len(surveyed_commit) != 40 or any(ch not in '0123456789abcdef' for ch in surveyed_commit):
+        failures.append(f"manifest:surveyed_commit:{surveyed_commit}")
+    surveyed_commit_mode_reason = manifest.get("surveyed_commit_mode_reason")
+    if not isinstance(surveyed_commit_mode_reason, str) or "exact verified master-head SHA" not in surveyed_commit_mode_reason:
+        failures.append(f"manifest:surveyed_commit_mode_reason:{surveyed_commit_mode_reason}")
+    if manifest.get("roadmap_requirement") != EXPECTED_ROADMAP_REQUIREMENT:
+        failures.append(f"manifest:roadmap_requirement:{manifest.get('roadmap_requirement')}")
 
     review_fields = manifest.get("required_review_packet_fields")
     if not isinstance(review_fields, list):
@@ -390,6 +406,9 @@ def write_fixture_tree(root: Path) -> None:
         "# Phase 15 Architecture Council Review Process Survey",
         "## Status",
         REQUIRED_NOTE_MARKERS[0],
+        REQUIRED_NOTE_MARKERS[1],
+        "- survey provenance refreshed against verified `master` head `0123456789abcdef0123456789abcdef01234567`",
+        "- exact branch-head parity is now recorded for this packet; the current survey keeps that verified-head provenance explicit instead of relying on a dated readback marker",
         PRODUCT_BOUNDARY_MARKER,
         *REQUIRED_PRODUCT_BOUNDARY_MARKERS,
         "## Current Approval Posture",
@@ -398,12 +417,17 @@ def write_fixture_tree(root: Path) -> None:
         "- landed `phase15-roadmap-minimum-field-sync`",
         "- landed `phase15-workflow-replay-anchor-visible`",
         "- landed `phase15-dedicated-make-test-replay-visible`",
+        "- landed `phase15-verified-master-head-provenance-sync`",
         "- no Architecture Council approval is currently recorded for a freeze-map status change",
         "",
     )), encoding="utf-8")
 
     manifest = {
         "lane_key": EXPECTED_LANE_KEY,
+        "surveyed_commit": "0123456789abcdef0123456789abcdef01234567",
+        "surveyed_commit_mode": EXPECTED_SURVEYED_COMMIT_MODE,
+        "surveyed_commit_mode_reason": "This review-process packet now records the exact verified master-head SHA instead of a dated readback marker.",
+        "roadmap_requirement": EXPECTED_ROADMAP_REQUIREMENT,
         "required_review_packet_fields": list(REQUIRED_REVIEW_PACKET_FIELDS),
         "ownership_evidence_fields": list(REQUIRED_OWNERSHIP_FIELDS),
         "handoff": {
@@ -460,6 +484,35 @@ def run_self_test() -> int:
         note_path.write_text(original_note, encoding="utf-8")
         case_count += 1
 
+        note_path.write_text(original_note.replace("`PHASE15_PROVENANCE_MODE=verified_master_head`", "`PHASE15_PROVENANCE_MODE=dated_master_readback`", 1), encoding="utf-8")
+        expect_only(root, ["note:`PHASE15_PROVENANCE_MODE=verified_master_head`"], "missing_verified_master_head_mode_marker")
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
+        note_path.write_text(
+            original_note.replace(
+                "survey provenance refreshed against verified `master` head `0123456789abcdef0123456789abcdef01234567`",
+                "survey provenance refreshed against dated `master` readback marker",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(root, ["note:survey provenance refreshed against verified `master` head `"], "missing_verified_master_head_marker")
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
+        note_path.write_text(
+            original_note.replace(
+                "exact branch-head parity is now recorded for this packet",
+                "dated readback parity is now recorded for this packet",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(root, ["note:exact branch-head parity is now recorded for this packet"], "missing_exact_branch_head_parity_marker")
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
         note_path.write_text(
             original_note.replace(
                 "workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`",
@@ -504,6 +557,22 @@ def run_self_test() -> int:
             root,
             ["note:landed `phase15-workflow-replay-anchor-visible`"],
             "missing_workflow_replay_recorded_gap_marker",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
+        note_path.write_text(
+            original_note.replace(
+                "landed `phase15-verified-master-head-provenance-sync`",
+                "landed `phase15-dated-readback-provenance-sync`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["note:landed `phase15-verified-master-head-provenance-sync`"],
+            "missing_verified_master_head_recorded_gap_marker",
         )
         note_path.write_text(original_note, encoding="utf-8")
         case_count += 1
@@ -556,6 +625,38 @@ def run_self_test() -> int:
         case_count += 1
 
         manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["surveyed_commit_mode"] = "dated_master_readback"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest:surveyed_commit_mode:dated_master_readback"], "missing_surveyed_commit_mode_guard")
+        write_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["surveyed_commit"] = "not-a-real-commit"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest:surveyed_commit:not-a-real-commit"], "missing_surveyed_commit_guard")
+        write_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["surveyed_commit_mode_reason"] = "This review-process packet now records a dated readback marker instead of the commit SHA."
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(
+            root,
+            ["manifest:surveyed_commit_mode_reason:This review-process packet now records a dated readback marker instead of the commit SHA."],
+            "missing_surveyed_commit_mode_reason_guard",
+        )
+        write_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["roadmap_requirement"] = "freeze map only"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest:roadmap_requirement:freeze map only"], "missing_roadmap_requirement_guard")
+        write_fixture_tree(root)
+        case_count += 1
+
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["required_review_packet_fields"].remove("required approver set")
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
