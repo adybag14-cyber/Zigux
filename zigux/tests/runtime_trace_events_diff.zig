@@ -72,6 +72,12 @@ test "runtime trace-events diff gate keeps selftest totals machine-checkable thr
 
     const emission_summary = try module.runSelftest();
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", emission_summary.anchor);
+    try std.testing.expectEqual(@as(usize, 5), emission_summary.event_families.len);
+    try std.testing.expectEqual(sample.EventFamily.foo_bar, emission_summary.event_families[0]);
+    try std.testing.expectEqual(sample.EventFamily.template, emission_summary.event_families[1]);
+    try std.testing.expectEqual(sample.EventFamily.conditional, emission_summary.event_families[2]);
+    try std.testing.expectEqual(sample.EventFamily.relative_location, emission_summary.event_families[3]);
+    try std.testing.expectEqual(sample.EventFamily.function_callback, emission_summary.event_families[4]);
     try std.testing.expectEqual(@as(usize, 6), emission_summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 2), emission_summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 8), emission_summary.total_events);
