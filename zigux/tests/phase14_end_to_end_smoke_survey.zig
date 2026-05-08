@@ -234,7 +234,7 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     try std.testing.expect(containsMarker(workflow_text, "Run focused Phase 14 smoke shard"));
     try std.testing.expect(containsMarker(workflow_text, "run: make -C zigux phase14-smoke"));
     try std.testing.expect(containsMarker(workflow_text, "Run Phase 14 internal bridge tests"));
-    try std.testing.expect(containsMarker(workflow_text, "run: zig build test --build-file zigux/tests/phase14_build.zig --summary all"));
+    try std.testing.expect(containsMarker(workflow_text, "run: make -C zigux phase14-test"));
 
     for (expected_compile_artifacts) |expected| {
         const matrix_row = try std.fmt.allocPrint(
