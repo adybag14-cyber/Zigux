@@ -98,9 +98,6 @@ pub const PlatformHandoffSummary = struct {
     pm_base_available: bool,
     drvdata_ready: bool,
     register_device_requested: bool,
-    poweroff_handler_present: bool,
-    poweroff_handler_claimed: bool,
-    poweroff_handler_conflict: bool,
 };
 
 pub const PoweroffSummary = struct {
@@ -285,7 +282,6 @@ pub const Bcm2835WatchdogLab = struct {
         self: *const Self,
         system_power_controller: bool,
         pm_base_available: bool,
-        poweroff_handler_present: bool,
     ) PlatformHandoffSummary {
         _ = self;
         return .{
@@ -295,9 +291,6 @@ pub const Bcm2835WatchdogLab = struct {
             .pm_base_available = pm_base_available,
             .drvdata_ready = pm_base_available,
             .register_device_requested = true,
-            .poweroff_handler_present = poweroff_handler_present,
-            .poweroff_handler_claimed = system_power_controller and !poweroff_handler_present,
-            .poweroff_handler_conflict = system_power_controller and poweroff_handler_present,
         };
     }
 
