@@ -422,7 +422,6 @@ def run_self_test() -> int:
         note_path.write_text(baseline_note, encoding="utf-8")
         case_count += 1
 
-        note_path.writeText if False else None
         note_path.write_text(
             baseline_note.replace("make -C zigux phase15-test", "make -C zigux phase15-check", 1),
             encoding="utf-8",
@@ -478,7 +477,6 @@ def run_self_test() -> int:
         scorecard_manifest_path = root / SCORECARD_MANIFEST_PATH
         scorecard_manifest = json.loads(read_text(root, SCORECARD_MANIFEST_PATH))
         scorecard_manifest["metrics"]["review_packet_field_count"] = 19
-        writeText if False else None
         write_text(scorecard_manifest_path, json.dumps(scorecard_manifest, indent=2) + "\n")
         assert_only(
             validate(root),
