@@ -99,6 +99,7 @@ test "phase13 notifier/list survey records the landed adjacent notifier header s
     try expectContains(exported_abi_text, "struct zigux_list_view");
     try expectContains(exported_abi_text, "struct zigux_hlist_view");
     try expectContains(exported_notifier_abi_text, "zigux_notifier");
+    try expectContains(exported_notifier_abi_text, "zigux_notifier_chain_empty");
     try expectContains(exported_notifier_abi_text, "ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING");
     try std.testing.expect(std.mem.indexOf(u8, phase13_build_text, "phase13_notifier") == null);
     try expectContains(survey_note, "lane key: `P13-L18`");
