@@ -325,6 +325,8 @@ test "phase 14 rcu tree bridge catalog stays review-only and queryable" {
     const map = tree_bridge.RcuTreeBridgeLab.boundaryMap();
     const audit = tree_bridge.RcuTreeBridgeLab.concurrencyAudit();
     const governance = tree_bridge.RcuTreeBridgeLab.bridgeGovernance();
+    const critical_checkpoint_ids = tree_bridge.RcuTreeBridgeLab.criticalFreezeCheckpointIds();
+    const critical_blocked_behaviors = tree_bridge.RcuTreeBridgeLab.criticalFreezeBlockedBehaviors();
 
     try std.testing.expectEqualStrings("rcu_tree_boundary_map_lab", descriptor.name);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", descriptor.anchor);
@@ -367,6 +369,18 @@ test "phase 14 rcu tree bridge catalog stays review-only and queryable" {
     try std.testing.expect(tree_bridge.RcuTreeBridgeLab.governsCriticalFreezeBlockedBehavior("CPU hotplug enrollment, teardown, and callback migration"));
     try std.testing.expectEqual(@as(?usize, 8), tree_bridge.RcuTreeBridgeLab.blockedBehaviorIndex("CPU hotplug enrollment, teardown, and callback migration"));
     try std.testing.expect(!tree_bridge.RcuTreeBridgeLab.blocksLiveBehavior("nonexistent rcu bridge behavior"));
+    try std.testing.expectEqual(governance.governed_checkpoint_ids.len, critical_checkpoint_ids.len);
+    try std.testing.expectEqual(governance.governed_blocked_behaviors.len, critical_blocked_behaviors.len);
+
+    for (critical_checkpoint_ids, 0..) |checkpoint_id, index| {
+        try std.testing.expectEqualStrings(checkpoint_id, governance.governed_checkpoint_ids[index]);
+        try std.testing.expect(tree_bridge.RcuTreeBridgeLab.governsCriticalFreezeCheckpoint(checkpoint_id));
+    }
+
+    for (critical_blocked_behaviors, 0..) |behavior, index| {
+        try std.testing.expectEqualStrings(behavior, governance.governed_blocked_behaviors[index]);
+        try std.testing.expect(tree_bridge.RcuTreeBridgeLab.governsCriticalFreezeBlockedBehavior(behavior));
+    }
 }
 
 test "phase 14 rcu tree survey keeps the memory-ordering boundary explicit" {
