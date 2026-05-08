@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-module-starter`
-- `PHASE9_SURVEYED_COMMIT=2a1851e145a648f0792e2bba2fee100e9884a1de`
+- `PHASE9_SURVEYED_COMMIT=5a88aec1d9c12e11745cb125b7c7fa56fd5e85f2`
 - lane: `P9-L13`
 - scope: lifecycle starter, bounded return-probe bookkeeping, a tiny differential gate, a loader-handoff scaffold, dedicated Phase 9 test wiring, survey-note plus survey-manifest closure, and explicit adjacency to the separate shared runtime-loader lane that owns the facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` step
 - product boundary:
@@ -31,6 +31,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 ## Landed starter surface
 
 - a bounded `runtime_kretprobe_loader` scaffold that keeps the planned `register_kretprobe()` and `unregister_kretprobe()` labels, entry or exit symbol naming, private-data size, idle registration snapshot, and failed-exit state retention explicit while the real runtime substrate is still unavailable.
+- the sample now also keeps maxactive-pressure failed-exit recovery explicit, so exhausting the active budget increments `nmissed`, blocks exit until every armed probe drains, and still preserves the retained missed-instance count in the final exit report.
 - the sample and diff gate also keep overlapping entry stamps explicit under concurrent load, so the bounded pilot proves per-instance return timing stays distinct before any shared loader handoff is prepared.
 - the loader-owned prepared handoff snapshot stays stable once captured, so later sample mutation or late selftest activity does not silently rewrite the parked registration plan before runtime-substrate review.
 - that same loader-owned snapshot also remains the single post-release review surface after `releaseWithoutSubstrate()` or `releaseSharedWithoutSubstrate()` closes the waiting state, so this pilot does not split ownership across a second release-only note path.
