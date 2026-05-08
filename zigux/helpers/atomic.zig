@@ -154,3 +154,23 @@ test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {
     try std.testing.expectEqual(@as(?u32, 19), weak_mismatch);
     try std.testing.expectEqual(@as(u32, 19), weak_release_value);
 }
+
+test "phase3 atomic wrappers keep non-seq-cst fetch orderings reviewable" {
+    var signed_value: i32 = -4;
+    try std.testing.expectEqual(@as(i32, -4), fetchAdd(i32, &signed_value, 6, .monotonic));
+    try std.testing.expectEqual(@as(i32, 2), signed_value);
+    try std.testing.expectEqual(@as(i32, 2), fetchSub(i32, &signed_value, 3, .release));
+    try std.testing.expectEqual(@as(i32, -1), signed_value);
+    try std.testing.expectEqual(@as(i32, -1), fetchMin(i32, &signed_value, -7, .acquire));
+    try std.testing.expectEqual(@as(i32, -7), signed_value);
+    try std.testing.expectEqual(@as(i32, -7), fetchMax(i32, &signed_value, 5, .acq_rel));
+    try std.testing.expectEqual(@as(i32, 5), signed_value);
+
+    var bitwise_value: u32 = 0b1010;
+    try std.testing.expectEqual(@as(u32, 0b1010), fetchOr(u32, &bitwise_value, 0b0100, .release));
+    try std.testing.expectEqual(@as(u32, 0b1110), bitwise_value);
+    try std.testing.expectEqual(@as(u32, 0b1110), fetchAnd(u32, &bitwise_value, 0b0110, .acquire));
+    try std.testing.expectEqual(@as(u32, 0b0110), bitwise_value);
+    try std.testing.expectEqual(@as(u32, 0b0110), fetchXor(u32, &bitwise_value, 0b0011, .acq_rel));
+    try std.testing.expectEqual(@as(u32, 0b0101), bitwise_value);
+}
