@@ -3,6 +3,7 @@ const hexdump = @import("hexdump");
 const fixtures = @import("phase6_hexdump_vectors");
 
 const Io = std.Io;
+const bench_sample_count: usize = 3;
 
 const BenchResult = struct {
     elapsed_ns: u64,
@@ -211,6 +212,12 @@ fn slowdownPct(helper_ns: u64, reference_ns: u64) u64 {
     return @intCast((@as(u128, helper_ns - reference_ns) * 100) / @as(u128, reference_ns));
 }
 
+fn medianNs(samples: []u64) u64 {
+    std.debug.assert(samples.len == bench_sample_count);
+    std.mem.sort(u64, samples, {}, std.sort.asc(u64));
+    return samples[samples.len / 2];
+}
+
 pub fn main(init: std.process.Init) !void {
     try validatePerfMatrix();
 
@@ -243,20 +250,35 @@ pub fn main(init: std.process.Init) !void {
         try std.testing.expectEqual(fixtures.expectedLength(case.len, case.rowsize, case.groupsize, case.ascii), required);
         try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(helper_line[0..], 0));
 
-        const helper_result = try runHelperBench(case);
-        const reference_result = try runReferenceBench(case);
-        const slowdown_pct = slowdownPct(helper_result.elapsed_ns, reference_result.elapsed_ns);
+        var helper_elapsed_samples: [bench_sample_count]u64 = undefined;
+        var reference_elapsed_samples: [bench_sample_count]u64 = undefined;
+        var helper_accumulator: u64 = 0;
+
+        for (0..bench_sample_count) |sample_index| {
+            const helper_result = try runHelperBench(case);
+            const reference_result = try runReferenceBench(case);
+
+            helper_elapsed_samples[sample_index] = helper_result.elapsed_ns;
+            reference_elapsed_samples[sample_index] = reference_result.elapsed_ns;
+
+            if (helper_result.accumulator != reference_result.accumulator) {
+                return error.HexdumpPerfAccumulatorMismatch;
+            }
+
+            helper_accumulator = helper_result.accumulator;
+        }
+
+        const helper_ns = medianNs(helper_elapsed_samples[0..]);
+        const reference_ns = medianNs(reference_elapsed_samples[0..]);
+        const slowdown_pct = slowdownPct(helper_ns, reference_ns);
 
         try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_ITERATIONS={d}\n", .{ case.label, case.reps });
-        try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_HELPER_NS={d}\n", .{ case.label, helper_result.elapsed_ns });
-        try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_REFERENCE_NS={d}\n", .{ case.label, reference_result.elapsed_ns });
+        try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_HELPER_NS={d}\n", .{ case.label, helper_ns });
+        try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_REFERENCE_NS={d}\n", .{ case.label, reference_ns });
         try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_SLOWDOWN_PCT={d}\n", .{ case.label, slowdown_pct });
         try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_THRESHOLD_PCT={d}\n", .{ case.label, case.max_slowdown_pct });
-        try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_ACCUMULATOR={d}\n", .{ case.label, helper_result.accumulator });
+        try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_ACCUMULATOR={d}\n", .{ case.label, helper_accumulator });
 
-        if (helper_result.accumulator != reference_result.accumulator) {
-            return error.HexdumpPerfAccumulatorMismatch;
-        }
         if (slowdown_pct > case.max_slowdown_pct) {
             failed = true;
             try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}=fail\n", .{case.label});
@@ -273,4 +295,9 @@ pub fn main(init: std.process.Init) !void {
 
 test "phase 6 hexdump perf matrix preflight stays aligned with the documented packet" {
     try validatePerfMatrix();
+}
+
+test "medianNs selects the middle sample after sorting" {
+    var samples = [_]u64{ 91, 12, 47 };
+    try std.testing.expectEqual(@as(u64, 47), medianNs(samples[0..]));
 }
