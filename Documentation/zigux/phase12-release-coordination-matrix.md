@@ -1,6 +1,6 @@
 # Phase 12 Release Coordination Matrix
 
-This matrix keeps the active Phase 12 release-facing packet explicit beside the longer sequencing and closure notes without implying that the broader complex-driver tranche is closed.
+This matrix keeps the active Phase 12 release-facing packet explicit beside the longer sequencing, closure, and release-readiness notes without implying that the broader complex-driver tranche is closed.
 
 ## Release Posture
 
@@ -10,6 +10,7 @@ This matrix keeps the active Phase 12 release-facing packet explicit beside the 
 - the current release reading stays bounded to reviewable `virtio_net`, `nvme_pci`, `virtio_scsi`, and segmented `libbpf` evidence plus the shared smoke-first replay packet and the mixed raw-fallback packet
 - release-order authority: `Documentation/zigux/phase12-release-sequencing.md`
 - PMO closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`
+- release-readiness survey: `Documentation/zigux/phase12-release-readiness-survey.md`
 - shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
 - shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
@@ -59,13 +60,13 @@ This matrix keeps the active Phase 12 release-facing packet explicit beside the 
 
 Before treating the packet as release-ready, confirm all of the following stay true together:
 
-1. `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/freeze-map.md`, this matrix, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile` still name the same smoke-first Phase 12 packet.
+1. `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this matrix, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile` still name the same smoke-first Phase 12 packet.
 2. Only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` still act as commit-pinned fallback artifacts, while `virtio_net` and `libbpf` remain shared-tree-only anchors.
-3. `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` still keeps `virtio_net`, `nvme_pci`, and `virtio_scsi` separate from each other, while `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` still keeps shared libbpf reviewability, helper-sized follow-through, deferred bridge and queue-routing work, and the blocked object-model wall distinct from the driver lanes and from each other.
+3. `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` still keeps `virtio_net`, `nvme_pci`, and `virtio_scsi` separate from each other, while `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` still keeps shared reviewability, helper-sized follow-through, deferred bridge and queue-routing work, and the blocked object-model wall distinct from the driver lanes and from each other.
 4. The checker and workflow still read as build-only contract enforcement rather than as a validator-first route, a release-readiness packet guard, a raw-coverage packet guard, or a focused libbpf-only replay surface.
 5. `Documentation/zigux/freeze-map.md` still keeps the frozen and boundary-study anchors explicit, the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback drill still reads as lab-only reversible-delivery evidence rather than tranche-wide runtime recovery or release-closed proof, and every shared Phase 12 PMO surface still keeps queueing, throughput, rollback, and recovery wording below that freeze-boundary line instead of rounding the active driver-and-libbpf packet up into deep-core delivery claims.
 
 ## Update Rule
 
-- If the bounded Phase 12 packet changes lane ownership, fallback posture, or smoke-set membership, update this matrix in the same change so the compact release view keeps matching live `master`.
+- If the bounded Phase 12 packet changes lane ownership, fallback posture, smoke-set membership, or the parked release-readiness reading, update this matrix in the same change so the compact release view keeps matching live `master`.
 - If a future validator-first, focused libbpf-only, raw-coverage guard, cross-build replay, or broader runtime-recovery route ever becomes real, land the actual shipped file and replay surface first, then add it here without rewriting the active smoke-first packet ahead of the evidence.
