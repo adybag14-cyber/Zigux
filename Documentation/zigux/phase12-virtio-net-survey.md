@@ -41,6 +41,7 @@ The highest-value honest step in this lane is therefore a very small probe snaps
 - the active packet now treats those landed probe, syntax-lab, queue-recovery, receive-refill, control-queue-restore, transmit-recycle, and mergeable-buffer-length steps as a segmented rollout boundary: the runtime-data-path boundary remains blocked until roadmap-approved DMA-safe abstractions, queueing correctness substrate work, and throughput plus recovery parity evidence exist, so the current tranche still stops short of live page-pool DMA, refill loops, XDP execution, NAPI, control-virtqueue commands, or net-device lifecycle work.
 - use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether this survey-backed packet is close enough to describe the active Phase 12 tranche as release-closed.
 - keep `Documentation/zigux/phase12-release-coordination-matrix.md` visible beside that same PMO closure companion so the compact lane-owner split, fallback split, and smoke-set summary stay reviewable without flattening the `virtio_net` lane into broader PMO prose.
+- when the local runtime does not provide `zig` on `PATH`, keep the same smoke-first replay order and rerun only the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing a driver-local or `virtio_net`-specific fallback entrypoint.
 
 ## Recorded gaps
 
@@ -88,6 +89,11 @@ This survey slice does not claim:
 
 3. run the convenience target
 - `make -C zigux phase12`
+
+4. If the local runtime does not provide `zig` on `PATH`, keep the same smoke-first order and rerun the shipped Make routes with an attached toolchain override instead of inventing a new `virtio_net`-specific or Phase 12 entrypoint.
+- `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
+- `make -C zigux phase12 ZIG=<attached-zig-path>`
+- This is an environment override for the existing replay packet, not a validator-first, driver-local, or `phase12-validate` route.
 
 Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether this survey-backed packet is close enough to describe the active Phase 12 tranche as release-closed.
 
