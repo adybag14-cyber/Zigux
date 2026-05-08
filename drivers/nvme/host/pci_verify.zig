@@ -424,3 +424,69 @@ test "nvme pci recovery replay carries multi-page PRP descriptor DMA through res
     try testing.expectEqual(@as(u32, 8192), stale.descriptor_rebuild_dma_bytes);
     try testing.expect(stale.admin_queue_must_be_replanned);
 }
+
+test "nvme pci recovery rebuild progress tracks partial and complete backlog retirement after admin replay" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, false);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    const stale = lab.summarizeRecoveryRebuildProgress();
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", stale.anchor);
+    try testing.expectEqual(nvme_pci.RecoveryState.running, stale.state);
+    try testing.expectEqual(@as(u32, 1), stale.reset_generation);
+    try testing.expectEqual(@as(usize, 0), stale.planned_io_queues);
+    try testing.expectEqual(@as(usize, 2), stale.dropped_io_queues_initial);
+    try testing.expectEqual(@as(usize, 0), stale.dropped_io_queues_retired);
+    try testing.expectEqual(@as(usize, 2), stale.dropped_io_queues_remaining);
+    try testing.expect(!stale.queue_planning_blocked);
+    try testing.expect(stale.admin_queue_must_be_replanned);
+
+    try testing.expectError(error.AdminQueueReplayRequired, lab.retireRecoveredIoQueues(1));
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.reserveIoQueues(2, 2);
+
+    const partial = try lab.retireRecoveredIoQueues(1);
+    try testing.expectEqual(@as(usize, 2), partial.planned_io_queues);
+    try testing.expectEqual(@as(usize, 2), partial.dropped_io_queues_initial);
+    try testing.expectEqual(@as(usize, 1), partial.dropped_io_queues_retired);
+    try testing.expectEqual(@as(usize, 1), partial.dropped_io_queues_remaining);
+    try testing.expect(!partial.queue_planning_blocked);
+    try testing.expect(!partial.admin_queue_must_be_replanned);
+
+    const complete = try lab.retireRecoveredIoQueues(1);
+    try testing.expectEqual(@as(usize, 2), complete.planned_io_queues);
+    try testing.expectEqual(@as(usize, 2), complete.dropped_io_queues_initial);
+    try testing.expectEqual(@as(usize, 2), complete.dropped_io_queues_retired);
+    try testing.expectEqual(@as(usize, 0), complete.dropped_io_queues_remaining);
+    try testing.expect(!complete.queue_planning_blocked);
+    try testing.expect(!complete.admin_queue_must_be_replanned);
+}
+
+test "nvme pci recovery rebuild progress rejects empty, missing, and oversized retirement requests" {
+    var missing = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try missing.planAdminQueue(32, 64, false);
+    try testing.expectError(error.NoRecoveryBacklog, missing.retireRecoveredIoQueues(1));
+
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    _ = try lab.planIoQueue(8, 64, false);
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    _ = try lab.planAdminQueue(32, 64, false);
+    _ = try lab.reserveIoQueues(1, 1);
+
+    try testing.expectError(error.InvalidRecoveredIoQueueCount, lab.retireRecoveredIoQueues(0));
+    try testing.expectError(error.RebuiltIoQueuesExceedBacklog, lab.retireRecoveredIoQueues(2));
+
+    const retired = try lab.retireRecoveredIoQueues(1);
+    try testing.expectEqual(@as(usize, 1), retired.dropped_io_queues_initial);
+    try testing.expectEqual(@as(usize, 1), retired.dropped_io_queues_retired);
+    try testing.expectEqual(@as(usize, 0), retired.dropped_io_queues_remaining);
+
+    try testing.expectError(error.RebuiltIoQueuesExceedBacklog, lab.retireRecoveredIoQueues(1));
+}
