@@ -162,7 +162,7 @@ REQUIRED_FILE_MARKERS = {
     ],
     LIBBPF_SURVEY_PATH: [
         "public fallback posture: shared-tree-only anchor",
-        "Documentation/zigux/phase12-release-closure-checklist.md`",
+        "Documentation/zigux/phase12-release-closure-checklist.md",
         "the older segment catalog still leaves two bounded shared-bridge helpers explicitly nearer than the object-model wall",
     ],
     SCRIPTS_README_PATH: [
