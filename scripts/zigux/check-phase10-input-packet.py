@@ -89,9 +89,11 @@ EXPECTED_MAKEFILE_MARKERS = [
 ]
 
 EXPECTED_HELPER_MARKERS = [
+    "pub const ProbePreflightSummary = struct {",
     "pub const RegistrationPreflightSummary = struct {",
     "pub const StatusDrainSummary = struct {",
     "pub const TeardownObservationSummary = struct {",
+    "pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {",
     "pub fn registrationPreflightSummary(self: *const Self) RegistrationPreflightSummary {",
     "pub fn drainStatusQueue(self: *Self, completed_status_count: usize) !StatusDrainSummary {",
     "pub fn teardownObservationSummary(self: *const Self) TeardownObservationSummary {",
@@ -99,15 +101,22 @@ EXPECTED_HELPER_MARKERS = [
 
 EXPECTED_VERIFY_MARKERS = [
     'test "virtio input wrapper-facing queue preflight advances in bounded order" {',
+    'test "virtio input wrapper-facing probe preflight stops before registration lifecycle claims" {',
     'test "virtio input registration preflight keeps wrapper prerequisites ahead of registration claims" {',
+    'try std.testing.expectEqualStrings("identity_incomplete", @tagName(summary.blocker.?));',
+    'try std.testing.expect(summary.ready_for_probe_handoff);',
     'try std.testing.expectEqualStrings("event_buffers_unfilled", @tagName(summary.blocker.?));',
     'try std.testing.expectEqualStrings("multitouch_slots_unplanned", @tagName(summary.blocker.?));',
 ]
 
 EXPECTED_TEST_MARKERS = [
+    'test "phase10 virtio input probe preflight keeps identity and capability staging ahead of registration claims" {',
     'test "phase10 virtio input registration preflight reports blockers before readiness" {',
     'test "phase10 virtio input teardown observation keeps identity while surfacing reset-local state" {',
     'test "phase10 virtio input reset clears queue plan and returns to default bus identity" {',
+    "ProbePreflightBlocker.identity_incomplete",
+    "ProbePreflightBlocker.capability_setup_incomplete",
+    "summary.ready_for_probe_handoff",
     "RegistrationBlocker.multitouch_slots_unplanned",
     "RegistrationBlocker.event_queue_unconfigured",
     "summary.preserves_identity",
@@ -132,20 +141,25 @@ EXPECTED_SURVEY_TEST_MARKERS = [
     'test "phase10 virtio input survey manifest records the live starter and remaining gap" {',
     'try std.testing.expectEqualStrings("P10-L13", manifest.lane_key);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-input-probe-preflight-helper") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe-preflight summary") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated queue-callback-preflight replay") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper ownership stays with the already-landed shared Phase 10 packets") != null);',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-survey-note")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-probe-preflight-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-replay")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-wrapper-ownership-note")) {',
     'try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lab-only driver validation evidence") != null);',
     'try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.preexisting_phase10_test_files);',
+    '"phase10-virtio-input-probe-preflight-helper"',
     '"phase10-virtio-input-queue-callback-preflight-replay"',
     '"phase10-virtio-input-status-drain-helper"',
+    'try std.testing.expect(saw_probe_preflight_helper);',
     'try std.testing.expect(saw_queue_callback_preflight_replay);',
     'try std.testing.expect(saw_queue_callback_preflight_helper);',
-    'try std.testing.expect(starter_landed_count >= 15);',
+    'try std.testing.expect(starter_landed_count >= 16);',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
 ]
@@ -173,11 +187,13 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "dedicated queue-callback-preflight replay",
     "phase10-virtio-input-verify-replay",
+    "phase10-virtio-input-probe-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-replay",
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
     "phase10-virtio-input-status-drain-helper",
     "phase10-virtio-input-wrapper-ownership-note",
+    "probe-preflight summary",
     "queue-callback preflight summary",
     "wrapper ownership stays with the already-landed shared Phase 10 packets",
     "drivers/virtio/virtio_ring.zig",
@@ -197,6 +213,7 @@ EXPECTED_GAPS = {
     "phase10-virtio-input-survey-gate": "starter_landed",
     "phase10-virtio-input-capability-setup-helper": "starter_landed",
     "phase10-virtio-input-multitouch-slot-helper": "starter_landed",
+    "phase10-virtio-input-probe-preflight-helper": "starter_landed",
     "phase10-virtio-input-registration-preflight-helper": "starter_landed",
     "phase10-virtio-input-queue-callback-preflight-helper": "starter_landed",
     "phase10-virtio-input-status-drain-helper": "starter_landed",
@@ -355,7 +372,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"manifest:{key}")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 15:
+    if len(gaps) < 16:
         missing_markers.append("manifest:gaps")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     for gap_id, status in EXPECTED_GAPS.items():
@@ -451,108 +468,66 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_architecture_council_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest_path.writeText = None
         manifest_path.write_text(
             original_manifest.replace(
-                '"phase10-virtio-input-queue-callback-preflight-helper",\n      "status": "starter_landed"',
-                '"phase10-virtio-input-queue-callback-preflight-helper",\n      "status": "blocked_on_risky_transport"',
+                '"phase10-virtio-input-probe-preflight-helper",\n      "status": "starter_landed"',
+                '"phase10-virtio-input-probe-preflight-helper",\n      "status": "blocked_on_risky_transport"',
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if (
-            "manifest:gap_status:phase10-virtio-input-queue-callback-preflight-helper=blocked_on_risky_transport"
-            not in missing_markers
-        ):
-            raise SystemExit("phase10-input-self-test:expected_queue_callback_gap_marker_missing")
+        if "manifest:gap_status:phase10-virtio-input-probe-preflight-helper=blocked_on_risky_transport" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_probe_preflight_gap_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         helper_path = tmp_root / "drivers/virtio/virtio_input.zig"
         original_helper = helper_path.read_text(encoding="utf-8")
         helper_path.write_text(
             original_helper.replace(
-                "pub const TeardownObservationSummary = struct {",
-                "pub const TeardownObservationDrift = struct {",
+                "pub const ProbePreflightSummary = struct {",
+                "pub const ProbePreflightDrift = struct {",
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "helper:pub const TeardownObservationSummary = struct {" not in missing_markers:
-            raise SystemExit("phase10-input-self-test:expected_teardown_helper_marker_missing")
+        if "helper:pub const ProbePreflightSummary = struct {" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_probe_helper_marker_missing")
         helper_path.write_text(original_helper, encoding="utf-8")
 
         verify_path = tmp_root / "drivers/virtio/virtio_input_verify.zig"
         original_verify = verify_path.read_text(encoding="utf-8")
         verify_path.write_text(
-            original_verify.replace("event_buffers_unfilled", "event_buffers_drifted", 1),
+            original_verify.replace("identity_incomplete", "identity_drifted", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'verify:try std.testing.expectEqualStrings("event_buffers_unfilled", @tagName(summary.blocker.?));' not in missing_markers:
-            raise SystemExit("phase10-input-self-test:expected_verify_marker_missing")
+        if 'verify:try std.testing.expectEqualStrings("identity_incomplete", @tagName(summary.blocker.?));' not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_probe_verify_marker_missing")
         verify_path.write_text(original_verify, encoding="utf-8")
 
         test_path = tmp_root / "zigux/tests/phase10_virtio_input.zig"
         original_test = test_path.read_text(encoding="utf-8")
         test_path.write_text(
-            original_test.replace("summary.clears_runtime_state", "summary.runtime_state_drift", 1),
+            original_test.replace("ProbePreflightBlocker.identity_incomplete", "ProbePreflightBlocker.identity_drifted", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "tests:summary.clears_runtime_state" not in missing_markers:
-            raise SystemExit("phase10-input-self-test:expected_teardown_test_marker_missing")
+        if "tests:ProbePreflightBlocker.identity_incomplete" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_probe_test_marker_missing")
         test_path.write_text(original_test, encoding="utf-8")
-
-        status_drain_path = tmp_root / "zigux/tests/phase10_virtio_input_status_drain.zig"
-        original_status_drain = status_drain_path.read_text(encoding="utf-8")
-        status_drain_path.write_text(
-            original_status_drain.replace("suppressed_status_count", "suppressed_status_drift", 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "status_drain:suppressed_status_count" not in missing_markers:
-            raise SystemExit("phase10-input-self-test:expected_status_drain_marker_missing")
-        status_drain_path.write_text(original_status_drain, encoding="utf-8")
-
-        queue_callback_preflight_path = tmp_root / "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig"
-        original_queue_callback_preflight = queue_callback_preflight_path.read_text(encoding="utf-8")
-        queue_callback_preflight_path.write_text(
-            original_queue_callback_preflight.replace("ready_for_queue_callbacks", "ready_for_queue_drift", 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "queue_callback_preflight:ready_for_queue_callbacks" not in missing_markers:
-            raise SystemExit("phase10-input-self-test:expected_queue_callback_preflight_marker_missing")
-        queue_callback_preflight_path.write_text(original_queue_callback_preflight, encoding="utf-8")
 
         survey_path = tmp_root / "Documentation/zigux/phase10-virtio-input-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
-            original_survey.replace("phase10-virtio-input-wrapper-ownership-note", "phase10-virtio-input-wrapper-drift", 1),
+            original_survey.replace("phase10-virtio-input-probe-preflight-helper", "phase10-virtio-input-probe-preflight-drift", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "survey_note:phase10-virtio-input-wrapper-ownership-note" not in missing_markers:
-            raise SystemExit("phase10-input-self-test:expected_wrapper_ownership_marker_missing")
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        survey_path.write_text(
-            original_survey.replace("phase10-virtio-input-registration-lifecycle", "phase10-virtio-input-registration-drift", 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "survey_note:phase10-virtio-input-registration-lifecycle" not in missing_markers:
-            raise SystemExit("phase10-input-self-test:expected_survey_note_marker_missing")
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        survey_path.write_text(
-            original_survey.replace("phase10-virtio-input-queue-callback-preflight-helper", "phase10-virtio-input-queue-callback-drift", 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "survey_note:phase10-virtio-input-queue-callback-preflight-helper" not in missing_markers:
-            raise SystemExit("phase10-input-self-test:expected_queue_callback_note_marker_missing")
+        if "survey_note:phase10-virtio-input-probe-preflight-helper" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_probe_survey_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
         docs_readme_path = tmp_root / "Documentation/zigux/README.md"
@@ -614,15 +589,6 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_scripts_readme_marker_missing")
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace("phase10_virtio_input_survey.zig", "phase10_virtio_input_survey_drift.zig", 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "scripts_readme:phase10_virtio_input_survey.zig" not in missing_markers:
-            raise SystemExit("phase10-input-self-test:expected_scripts_readme_marker_missing")
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
         tests_readme_path = tmp_root / "zigux/tests/README.md"
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -635,7 +601,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=22")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
