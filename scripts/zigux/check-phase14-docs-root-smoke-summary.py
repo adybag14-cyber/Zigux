@@ -99,18 +99,22 @@ def check(root: Path) -> list[str]:
     if not manifest_path.exists():
         errors.append(f"missing file: {MANIFEST_PATH}")
     else:
-        manifest = json.loads(read_text(manifest_path))
-        surface_found = False
-        for surface in manifest.get("surfaces", []):
-            if not isinstance(surface, dict):
-                continue
-            if surface.get("path") == CHECKER_PATH and surface.get("required_marker") == MARKER:
-                surface_found = True
-                break
-        if not surface_found:
-            errors.append(
-                "missing docs-root smoke-summary checker surface in zigux/tests/phase14_end_to_end_smoke_manifest.json"
-            )
+        try:
+            manifest = json.loads(read_text(manifest_path))
+        except json.JSONDecodeError as exc:
+            errors.append(f"invalid json in {MANIFEST_PATH}: {exc}")
+        else:
+            surface_found = False
+            for surface in manifest.get("surfaces", []):
+                if not isinstance(surface, dict):
+                    continue
+                if surface.get("path") == CHECKER_PATH and surface.get("required_marker") == MARKER:
+                    surface_found = True
+                    break
+            if not surface_found:
+                errors.append(
+                    "missing docs-root smoke-summary checker surface in zigux/tests/phase14_end_to_end_smoke_manifest.json"
+                )
 
     return errors
 
@@ -230,6 +234,32 @@ def run_self_test() -> int:
         ):
             print(
                 "self-test expected failure when the manifest lost the docs-root checker surface",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    "surfaces": [
+                        {
+                            "path": CHECKER_PATH,
+                            "required_marker": MARKER,
+                        }
+                    ]
+                },
+                indent=2,
+            ) + "\n",
+        )
+
+        broken_manifest_path.write_text("{\n", encoding="utf-8")
+        errors = check(root)
+        if not errors or not any(
+            f"invalid json in {MANIFEST_PATH}:" in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when the shared smoke manifest JSON was invalid",
                 file=sys.stderr,
             )
             return 1
