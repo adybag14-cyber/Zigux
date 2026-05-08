@@ -205,7 +205,7 @@ test "phase11 hvc console survey note records the bounded layout checkpoints" {
     try expectContains(note, "size `72`");
     try expectContains(note, "Documentation/zigux/phase11-hvc-console-teardown-note.md");
     try expectContains(note, "close, cleanup, and remove ownership split");
-    try expectContains(note, "current driver, verifier, tests, validation matrix, and shared replay contract");
+    try expectContains(note, "current driver, verifier, tests, archival manifest, validation matrix, and shared replay contract");
 }
 
 test "phase11 hvc console teardown note keeps the bounded ownership split explicit" {
