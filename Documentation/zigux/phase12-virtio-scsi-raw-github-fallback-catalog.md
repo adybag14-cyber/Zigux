@@ -12,7 +12,7 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 - `PHASE12_SLICE=virtio-scsi-raw-github-fallback-catalog`
 - `active_survey_lane: P12-L13`
 - `historical_fallback_lane: P12-L09`
-- scope: public tree and raw URL coverage for the shipped `virtio_scsi` starter, direct syntax-lab smoke shard, survey, build wiring, manifest, shared replay surfaces, the driver-only anti-overlap companion, the shared libbpf anti-overlap companion, the shared fallback overview, the PMO closure companion, and the compact release coordination matrix that now travel with the active release-order packet
+- scope: public tree and raw URL coverage for the shipped `virtio_scsi` starter, direct syntax-lab smoke shard, survey, build wiring, manifest, shared replay surfaces, the driver-only anti-overlap companion, the shared libbpf anti-overlap companion, the shared fallback overview, the PMO closure companion, the adjacent release-readiness note, and the compact release coordination matrix that now travel with the active release-order packet
 
 ## Tree views
 
@@ -23,6 +23,7 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 - shared libbpf anti-overlap companion: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
 - shared fallback overview: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - PMO closure companion: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-closure-checklist.md`
+- adjacent release-readiness note: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-readiness-survey.md`
 - compact release coordination matrix: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-coordination-matrix.md`
 - shared tests index: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/README.md`
 - shared build wiring: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_build.zig`
@@ -43,6 +44,7 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 - shared libbpf anti-overlap companion: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
 - shared fallback overview: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - PMO closure companion: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-closure-checklist.md`
+- adjacent release-readiness note: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-readiness-survey.md`
 - compact release coordination matrix: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-coordination-matrix.md`
 - shared tests index: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/README.md`
 - shared build wiring: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_build.zig`
@@ -70,6 +72,8 @@ The shipped Phase 12 packet on `master` still keeps the shared smoke-first repla
    - This is an environment override for the existing replay packet, not a validator-first or `phase12-validate` route.
 
 Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether those same shipped surfaces are close enough to describe the active Phase 12 tranche as release-closed.
+
+Keep `Documentation/zigux/phase12-release-readiness-survey.md` visible beside this fallback catalog, the PMO closure companion, and the compact release coordination matrix so the shared smoke-first release posture and build-only replay boundary stay tied to the same active packet instead of drifting into a separate readiness-only route.
 
 `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` should stay visible beside this fallback catalog and the compact release coordination matrix so the `virtio_scsi` packet stays separate from `nvme_pci` and `virtio_net` even while all three lanes share the same four-step replay order.
 
