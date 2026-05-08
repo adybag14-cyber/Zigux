@@ -484,6 +484,7 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         "Run Phase 5 reference sample tests",
         "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
         "Documentation/zigux/**",
+        "samples/zigux/**",
         "samples/zigux/README.md",
         "zigux/**",
     };
