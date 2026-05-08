@@ -626,6 +626,16 @@ def run_self_test() -> int:
         _write(path, "# stub\n")
         case_count += 1
 
+        path = root / "scripts" / "zigux" / "check-phase2-cross.py"
+        path.unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase2-cross.py"],
+            "missing_phase2_cross_repo_file_guard_failed",
+        )
+        _write(path, "# stub\n")
+        case_count += 1
+
         cmd = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py\n"
         _write(root / MAKEFILE_REL, baseline_makefile.replace(cmd, "", 1))
         _assert_only(
