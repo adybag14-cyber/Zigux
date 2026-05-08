@@ -64,6 +64,7 @@
       "kconfig": "Kconfig",
       "config": "rand/.config",
       "arch": "x86_64",
+      "allconfig": "allrandom.config",
       "seed": "0xC0FFEE",
       "probability": "15:25",
       "expected": "randconfig_expected.json"
