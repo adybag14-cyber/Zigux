@@ -16,6 +16,9 @@ SURVEY_PATH = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
 KPROBE_NOTE_PATH = Path("Documentation/zigux/phase4-kprobe-example-gap-survey.md")
 KPROBE_MANIFEST_PATH = Path("zigux/tests/phase4_kprobe_example_manifest.json")
 KPROBE_SURVEY_PATH = Path("zigux/tests/phase4_kprobe_example_survey.zig")
+TEST_FSMOUNT_NOTE_PATH = Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md")
+TEST_FSMOUNT_MANIFEST_PATH = Path("zigux/tests/phase4_test_fsmount_manifest.json")
+TEST_FSMOUNT_SURVEY_PATH = Path("zigux/tests/phase4_test_fsmount_survey.zig")
 PERF_BASELINE_MANIFEST_PATH = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 PERF_BASELINE_SURVEY_PATH = Path("zigux/tests/phase4_perf_baseline_survey.zig")
 
@@ -61,6 +64,7 @@ SELF_TEST_CASES = [
     "bitmap_diff_survey_replay_marker_drift",
     "kprobe_gap_packet_presence_drift",
     "perf_baseline_packet_presence_drift",
+    "test_fsmount_gap_packet_presence_drift",
     "missing_note_file",
 ]
 
@@ -95,7 +99,7 @@ REQUIRED_NOTE_MARKERS = [
     "`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`",
     "`Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
     "`threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold.",
-    "That published seventeen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, and it now checks the shipped perf-baseline packet's manifest-presence drift path too, so those validator, matrix, reviewer-checklist, and perf-baseline packet expectations are no longer an unstated self-test gap.",
+    "That published eighteen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, and it now checks the shipped perf-baseline packet's manifest-presence drift path plus the adjacent `test_fsmount` gap packet's manifest-presence drift path too, so those validator, matrix, reviewer-checklist, perf-baseline packet, and parked `test_fsmount` packet expectations are no longer an unstated self-test gap.",
     "manifest-backed runtime atomic64 survey pair now pins the same current `phase4_build.zig`, `validate-phase4.py`, `phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, and `phase9_build.zig` blobs that the shared validator and review packet now depend on",
     "`zigux/Makefile` still exposes `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, and `make -C zigux phase4`, so the Linux-style local replay surface matches the current shared Phase 4 packet instead of hiding those routes in the build file alone.",
     "`make -C zigux phase4-bitmap-diff-survey` plus `zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig`",
@@ -105,7 +109,11 @@ REQUIRED_NOTE_MARKERS = [
     "`make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`",
     "shared gate-evidence note now keeps that adjacent parked packet explicit without claiming a shipped Zig starter",
     "`samples/zigux/kprobe_example.zig` remains absent",
-    "`samples/zigux/test_fsmount.zig` remains absent",
+    "`Documentation/zigux/phase4-test-fsmount-gap-survey.md`",
+    "`zigux/tests/phase4_test_fsmount_manifest.json`",
+    "`zigux/tests/phase4_test_fsmount_survey.zig`",
+    "`make M=samples/vfs`",
+    "shared validator route now picks that same parked packet up through `scripts/zigux/check-phase4-gate-evidence.py` while `samples/zigux/test_fsmount.zig` remains absent on current `master`",
     "hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved",
     "`zigux/tests/README.md` now explicitly carries the shipped local-only perf-baseline pair `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig`",
 ]
@@ -167,6 +175,34 @@ def validate_kprobe_gap_packet(root: Path) -> list[str]:
     ]:
         if marker not in survey_text:
             missing.append(f"phase4_gate_evidence:kprobe_survey:{marker}")
+    return missing
+
+def validate_test_fsmount_gap_packet(root: Path) -> list[str]:
+    missing: list[str] = []
+    for path in [TEST_FSMOUNT_NOTE_PATH, TEST_FSMOUNT_MANIFEST_PATH, TEST_FSMOUNT_SURVEY_PATH]:
+        if not (root / path).exists():
+            missing.append(f"file:{path}")
+            return missing
+    note_text = read_text(root, TEST_FSMOUNT_NOTE_PATH)
+    survey_text = read_text(root, TEST_FSMOUNT_SURVEY_PATH)
+    manifest = json.loads(read_text(root, TEST_FSMOUNT_MANIFEST_PATH))
+    if manifest.get("shared_gate_evidence_packet_present") is not False:
+        missing.append("phase4_gate_evidence:test_fsmount_manifest:shared_gate_evidence_packet_present")
+    for marker in [
+        "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false",
+        "zigux/tests/phase4_test_fsmount_manifest.json",
+        "zigux/tests/phase4_test_fsmount_survey.zig",
+        "Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet about this same survey note, manifest, and replay command",
+    ]:
+        if marker not in note_text:
+            missing.append(f"phase4_gate_evidence:test_fsmount_note:{marker}")
+    for marker in [
+        "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false",
+        "Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet",
+        "claiming that the shared Phase 4 exact-readback gate already carries this packet",
+    ]:
+        if marker not in survey_text:
+            missing.append(f"phase4_gate_evidence:test_fsmount_survey:{marker}")
     return missing
 
 
@@ -289,6 +325,7 @@ def validate_root(root: Path) -> list[str]:
         missing.append(f"phase4_gate_evidence:status_exact_count:PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA={review_checklist_digest}:{count}")
     missing.extend(validate_runtime_atomic64_packet(root))
     missing.extend(validate_kprobe_gap_packet(root))
+    missing.extend(validate_test_fsmount_gap_packet(root))
     missing.extend(validate_perf_baseline_packet(root))
     return missing
 
@@ -387,6 +424,84 @@ test \"phase4 kprobe gap fixture note alignment\" {
 }
 // the packet now stays explicit in the shared gate-evidence note while still not claiming a shipped Zig sample
 // treating adjacent gate-evidence visibility as a shipped Zig starter
+""")
+
+def write_test_fsmount_gap_packet_fixture(root: Path) -> None:
+    manifest = {
+        'lane_key': 'validation-perf',
+        'phase': 'Phase 4',
+        'anchor_path': 'samples/vfs/test-fsmount.c',
+        'anchor_blob_sha': '50f47b72e85fbc8dd52dedad96ee96e6379da5b8',
+        'sample_path': 'samples/zigux/test_fsmount.zig',
+        'sample_present': False,
+        'current_replay': 'make M=samples/vfs',
+        'survey_note': 'Documentation/zigux/phase4-test-fsmount-gap-survey.md',
+        'survey_owner': 'Validation and Perf Team',
+        'rollback_owner': 'Validation and Perf Team',
+        'shared_gate_evidence_packet_present': False,
+        'validation_entrypoint': 'zig test zigux/tests/phase4_test_fsmount_survey.zig',
+        'review_prompts': [
+            'the survey keeps the Linux anchor path and blob sha explicit while the Zig starter stays absent',
+            'the packet keeps the live VFS replay command explicit without implying a shipped Zig sample',
+            'the owner and rollback owner remain Validation and Perf Team while the packet stays adjacent to the shared Phase 4 validator-first route',
+            'the packet stays outside the shared gate-evidence target set until a later bounded promotion lands',
+        ],
+        'non_goals': [
+            'shipped test_fsmount Zig starter',
+            'shared gate-evidence promotion',
+            'approved fsmount perf threshold',
+        ],
+    }
+    write_text(root / TEST_FSMOUNT_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+    write_text(root / TEST_FSMOUNT_NOTE_PATH, """# Phase 4 Test Fsmount Gap Survey
+
+This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs/test-fsmount.c` anchor without claiming that a Zig starter has landed.
+
+## Status
+
+- `PHASE4_TEST_FSMOUNT_STATUS=parked_gap_survey`
+- `PHASE4_LANE_KEY=validation-perf`
+- `PHASE4_ANCHOR_PATH=samples/vfs/test-fsmount.c`
+- `PHASE4_ANCHOR_BLOB_SHA=50f47b72e85fbc8dd52dedad96ee96e6379da5b8`
+- `PHASE4_SAMPLE_PATH=samples/zigux/test_fsmount.zig`
+- `PHASE4_SAMPLE_PRESENT=false`
+- `PHASE4_CURRENT_REPLAY=make M=samples/vfs`
+- `PHASE4_SURVEY_OWNER=Validation and Perf Team`
+- `PHASE4_ROLLBACK_OWNER=Validation and Perf Team`
+- `PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false`
+- `PHASE4_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_test_fsmount_survey.zig`
+
+## Scope
+
+- keep the current C anchor path, anchor blob, replay command, owner, rollback owner, and missing-Zig-starter posture reviewable
+- keep this packet adjacent to the shared Phase 4 validator-first packet instead of pretending the exact-readback gate already owns it
+- prepare the smallest truthful handoff for a future manifest-backed promotion into the broader Phase 4 validation surfaces
+
+## Current Readback
+
+- `samples/vfs/test-fsmount.c` is present on `master` and still keeps the fd-based mount flow around `fsopen`, `fsconfig`, `fsmount`, and `move_mount` explicit
+- the live replay path remains `make M=samples/vfs`
+- `samples/zigux/test_fsmount.zig` is still absent on current `master`
+- the dedicated parked gap packet now spans this note, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, so the `test_fsmount` follow-through is no longer matrix prose alone even while it stays outside the shared gate-evidence packet
+
+## Non-Goals
+
+- claiming a shipped Zig starter for `samples/zigux/test_fsmount.zig`
+- claiming that the shared Phase 4 exact-readback gate already carries this packet
+- claiming approved hard perf thresholds for the test_fsmount anchor
+
+## Next Bounded Step
+
+Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet about this same survey note, manifest, and replay command once the adjacent packet has been reread and accepted as the truthful current boundary.
+""")
+    write_text(root / TEST_FSMOUNT_SURVEY_PATH, """const std = @import(\"std\");
+
+test \"phase4 test_fsmount gap manifest keeps the parked survey explicit\" {
+    try std.testing.expect(true);
+}
+// PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false
+// Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet
+// claiming that the shared Phase 4 exact-readback gate already carries this packet
 """)
 
 
@@ -494,7 +609,7 @@ def build_fixture_note(root: Path) -> str:
         '- `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now all point at the same currently shipped Phase 4 rollback-readiness packet surfaces that the validator and shared build still own on `master`.',
         '- `scripts/zigux/check-phase4-gate-evidence.py` remains the dedicated exact-readback checker for this narrower rollback-ownership packet.',
         '- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair, and `phase4-runtime-atomic64-diff-survey-tests` plus `phase4-bitmap-live-helper-replay-tests` stay wired through the shared Phase 4 build entrypoint.',
-        "- That published seventeen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, and it now checks the shipped perf-baseline packet's manifest-presence drift path too, so those validator, matrix, reviewer-checklist, and perf-baseline packet expectations are no longer an unstated self-test gap.",
+        "- That published eighteen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, and it now checks the shipped perf-baseline packet's manifest-presence drift path plus the adjacent `test_fsmount` gap packet's manifest-presence drift path too, so those validator, matrix, reviewer-checklist, perf-baseline packet, and parked `test_fsmount` packet expectations are no longer an unstated self-test gap.",
         '- The exact-readback set is current again for the shared rollback-ownership and lab-matrix packet, and the manifest-backed runtime atomic64 survey pair now pins the same current `phase4_build.zig`, `validate-phase4.py`, `phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, and `phase9_build.zig` blobs that the shared validator and review packet now depend on.',
         '- The current helper-backed bitmap rollback lab replay route remains `zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`, and the helper-backed row still records `Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`.',
         '- The helper-backed bitmap rollback row still keeps `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold.',
@@ -502,13 +617,13 @@ def build_fixture_note(root: Path) -> str:
         '- `zigux/Makefile` still exposes `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, and `make -C zigux phase4`, so the Linux-style local replay surface matches the current shared Phase 4 packet instead of hiding those routes in the build file alone.',
         '- The broader shared build and Makefile surface also still carries `make -C zigux phase4-bitmap-diff-survey` plus `zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig`, so the bitmap survey packet remains reviewable beside the helper-backed replay without widening the lane into perf-threshold approval.',
         '- The parked kprobe gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now stays explicit in this shared gate-evidence note as adjacent parked evidence only, its Linux replay remains `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`, and the shared gate-evidence note now keeps that adjacent parked packet explicit without claiming a shipped Zig starter while `samples/zigux/kprobe_example.zig` remains absent on current `master`.',
+        '- The dedicated parked `test_fsmount` gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig` now also stays under the dedicated exact-readback checker, its Linux replay remains `make M=samples/vfs`, and the shared validator route now picks that same parked packet up through `scripts/zigux/check-phase4-gate-evidence.py` while `samples/zigux/test_fsmount.zig` remains absent on current `master`.',
         '- The shipped local perf-baseline survey packet is intentionally separate from that shared exact-readback set: it keeps the still-unapproved benchmark-command and acceptable-limit posture machine-checked locally without turning the Phase 4 validator or CI path into a perf-approval claim before one bounded threshold packet lands for each rollback gate.',
-        '- `samples/zigux/test_fsmount.zig` remains absent, so the current exact-readback packet still stops short of claiming that missing Zig starter as shipped evidence.',
         '',
         '## Current Conclusion',
         '- hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.',
         '- the dedicated local perf-baseline survey packet is still the truthful way to keep that unapproved posture measurable until one bounded benchmark command and one acceptable limit are promoted for each shipped rollback gate.',
-        '- The current exact-readback note is aligned again to the live validator, README, workflow, Makefile, and Phase 4 gate surfaces on `master`, and `zigux/tests/README.md` now explicitly carries the shipped local-only perf-baseline pair `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig`, so the parked kprobe gap packet is now explicit here as adjacent evidence without claiming a shipped Zig starter and the next same-lane follow-through is to land one manifest-backed Phase 4 `test_fsmount` gap survey packet before this lane widens into threshold-approval work.',
+        '- The current exact-readback note is aligned again to the live validator, README, workflow, Makefile, and Phase 4 gate surfaces on `master`, and `zigux/tests/README.md` now explicitly carries the shipped local-only perf-baseline pair `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig`, while the adjacent `test_fsmount` gap packet is now visible as parked evidence with its own note, manifest, and survey route and is reread by the dedicated exact-readback checker before the shared validator continues.',
     ])
     return "\n".join(lines) + "\n"
 
@@ -521,15 +636,39 @@ def run_self_test() -> int:
             write_text(root / relative_path, f'fixture for {relative_path}\n')
         write_runtime_atomic64_packet_fixture(root)
         write_kprobe_gap_packet_fixture(root)
+        write_test_fsmount_gap_packet_fixture(root)
         write_perf_baseline_packet_fixture(root)
         write_text(root / NOTE_PATH, build_fixture_note(root))
         missing = validate_root(root)
         assert not missing, missing
 
-        broken_manifest = root / PERF_BASELINE_MANIFEST_PATH
-        broken_manifest.unlink()
-        missing = validate_root(root)
+        broken_perf_root = root / 'broken_perf'
+        for relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.values():
+            write_text(broken_perf_root / relative_path, f'fixture for {relative_path}\n')
+        for relative_path in PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS.values():
+            write_text(broken_perf_root / relative_path, f'fixture for {relative_path}\n')
+        write_runtime_atomic64_packet_fixture(broken_perf_root)
+        write_kprobe_gap_packet_fixture(broken_perf_root)
+        write_test_fsmount_gap_packet_fixture(broken_perf_root)
+        write_perf_baseline_packet_fixture(broken_perf_root)
+        write_text(broken_perf_root / NOTE_PATH, build_fixture_note(broken_perf_root))
+        (broken_perf_root / PERF_BASELINE_MANIFEST_PATH).unlink()
+        missing = validate_root(broken_perf_root)
         assert f"file:{PERF_BASELINE_MANIFEST_PATH}" in missing, missing
+
+        broken_test_fsmount_root = root / 'broken_test_fsmount'
+        for relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.values():
+            write_text(broken_test_fsmount_root / relative_path, f'fixture for {relative_path}\n')
+        for relative_path in PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS.values():
+            write_text(broken_test_fsmount_root / relative_path, f'fixture for {relative_path}\n')
+        write_runtime_atomic64_packet_fixture(broken_test_fsmount_root)
+        write_kprobe_gap_packet_fixture(broken_test_fsmount_root)
+        write_test_fsmount_gap_packet_fixture(broken_test_fsmount_root)
+        write_perf_baseline_packet_fixture(broken_test_fsmount_root)
+        write_text(broken_test_fsmount_root / NOTE_PATH, build_fixture_note(broken_test_fsmount_root))
+        (broken_test_fsmount_root / TEST_FSMOUNT_MANIFEST_PATH).unlink()
+        missing = validate_root(broken_test_fsmount_root)
+        assert f"file:{TEST_FSMOUNT_MANIFEST_PATH}" in missing, missing
     print('PHASE4_GATE_EVIDENCE_SELF_TEST=pass')
     print(f'PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}')
     print('PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=' + ','.join(SELF_TEST_CASES))
