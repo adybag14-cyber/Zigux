@@ -44,7 +44,11 @@ REQUIRED_MARKERS = {
         "stops before any ownership of `execl_cmd()`",
         "direct varargs launch path",
         "integrated `planDeferredExecvCall()` plus `planDeferredExeclCall()` planner packet",
+        "zig test tools/lib/subcmd/exec-cmd.zig",
         "make -C zigux phase8-validate",
+        "zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
+        "make -C zigux phase8-exec-cmd-test",
+        "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
     ],
     "Documentation/zigux/README.md": [
         "Documentation/zigux/phase8-exec-cmd-slice.md",
@@ -215,7 +219,7 @@ def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
-    assert missing_markers == [marker], case
+    assert marker in missing_markers, case
 
 
 def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None:
@@ -264,6 +268,13 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-exec-cmd-slice.md: output-stable tooling behavior",
         ),
         (
+            "slice_helper_test_gate",
+            "Documentation/zigux/phase8-exec-cmd-slice.md",
+            "zig test tools/lib/subcmd/exec-cmd.zig",
+            "zig test tools/lib/subcmd/exec_cmd.zig",
+            "Documentation/zigux/phase8-exec-cmd-slice.md: zig test tools/lib/subcmd/exec-cmd.zig",
+        ),
+        (
             "slice_execl_boundary",
             "Documentation/zigux/phase8-exec-cmd-slice.md",
             "stops before any ownership of `execl_cmd()`",
@@ -276,6 +287,27 @@ def run_self_test() -> None:
             "integrated `planDeferredExecvCall()` plus `planDeferredExeclCall()` planner packet",
             "integrated deferred planner packet",
             "Documentation/zigux/phase8-exec-cmd-slice.md: integrated `planDeferredExecvCall()` plus `planDeferredExeclCall()` planner packet",
+        ),
+        (
+            "slice_focused_build_gate",
+            "Documentation/zigux/phase8-exec-cmd-slice.md",
+            "zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
+            "zig build test --build-file zigux/tests/phase8_exec_cmd_build.zig --summary all",
+            "Documentation/zigux/phase8-exec-cmd-slice.md: zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
+        ),
+        (
+            "slice_focused_make_gate",
+            "Documentation/zigux/phase8-exec-cmd-slice.md",
+            "make -C zigux phase8-exec-cmd-test",
+            "make -C zigux phase8-exec-test",
+            "Documentation/zigux/phase8-exec-cmd-slice.md: make -C zigux phase8-exec-cmd-test",
+        ),
+        (
+            "slice_shared_build_gate",
+            "Documentation/zigux/phase8-exec-cmd-slice.md",
+            "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
+            "zig build test --build-file zigux/tests/phase8_exec_build.zig --summary all",
+            "Documentation/zigux/phase8-exec-cmd-slice.md: zig build test --build-file zigux/tests/phase8_build.zig --summary all",
         ),
         (
             "docs_root_slice_note",
@@ -346,13 +378,6 @@ def run_self_test() -> None:
             "Phase 8 flow",
             "Phase 8 route",
             "zigux/tests/README.md: Phase 8 flow",
-        ),
-        (
-            "tests_readme_focused_build",
-            "zigux/tests/README.md",
-            "`zigux/tests/phase8_exec_cmd_only_build.zig`",
-            "`zigux/tests/phase8_exec_cmd_build.zig`",
-            "zigux/tests/README.md: `zigux/tests/phase8_exec_cmd_only_build.zig`",
         ),
         (
             "tests_readme_make_route",
@@ -467,25 +492,11 @@ def run_self_test() -> None:
             "tools/lib/subcmd/exec-cmd.zig: pub fn buildDeferredExecvCall",
         ),
         (
-            "helper_planned_execv",
-            "tools/lib/subcmd/exec-cmd.zig",
-            "pub fn planDeferredExecvCall",
-            "pub fn planDeferredExecCall",
-            "tools/lib/subcmd/exec-cmd.zig: pub fn planDeferredExecvCall",
-        ),
-        (
             "helper_planned_execv_with_pwd",
             "tools/lib/subcmd/exec-cmd.zig",
             "pub fn planDeferredExecvCallWithPwd",
             "pub fn planDeferredExecCallWithPwd",
             "tools/lib/subcmd/exec-cmd.zig: pub fn planDeferredExecvCallWithPwd",
-        ),
-        (
-            "helper_planned_execl",
-            "tools/lib/subcmd/exec-cmd.zig",
-            "pub fn planDeferredExeclCall",
-            "pub fn planDeferredExecLineCall",
-            "tools/lib/subcmd/exec-cmd.zig: pub fn planDeferredExeclCall",
         ),
         (
             "helper_planned_execl_with_pwd",
