@@ -5,6 +5,20 @@
   "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
   "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
   "harness": "zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c",
+  "bridge_contract": {
+    "tool": "scripts/genksyms/genksyms",
+    "stdin": "cpp-stream",
+    "stdout": "symversions",
+    "argv_lead": "scripts/genksyms/genksyms",
+    "options_fields": [
+      "debug_level",
+      "warnings",
+      "dump_defs",
+      "preserve",
+      "reference_files",
+      "dump_types_file"
+    ]
+  },
   "case_count": 19,
   "cases": [
     "minimal",
