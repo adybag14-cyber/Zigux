@@ -294,11 +294,13 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_trace_events_survey_module,
     });
     const run_runtime_trace_events_survey_tests = b.addRunArtifact(runtime_trace_events_survey_tests);
+    run_runtime_trace_events_survey_tests.setCwd(b.path("../.."));
     const runtime_kretprobe_survey_tests = b.addTest(.{
         .name = "phase9-runtime-kretprobe-survey-tests",
         .root_module = runtime_kretprobe_survey_module,
     });
     const run_runtime_kretprobe_survey_tests = b.addRunArtifact(runtime_kretprobe_survey_tests);
+    run_runtime_kretprobe_survey_tests.setCwd(b.path("../.."));
 
     const runtime_atomic64_tests_step = b.step(
         "phase9-runtime-atomic64-tests",
