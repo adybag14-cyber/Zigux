@@ -76,6 +76,22 @@ test "phase 7 argvSplitWithArgc reports the split length through the optional ou
     try std.testing.expectEqual(argc, split.argv.len);
 }
 
+test "phase 7 argvSplit keeps the exported C argv vector sized to argc plus one sentinel" {
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argv_split.argvSplitWithArgc(std.testing.allocator, "console=ttyS0 root=/dev/vda rw", &argc);
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(argc, split.argv.len);
+    try std.testing.expectEqual(argc + 1, split.argv_null_terminated.len);
+    try std.testing.expect(split.cArgv() == split.argv_null_terminated.ptr);
+
+    for (split.argv, 0..) |token, index| {
+        try std.testing.expectEqual(@intFromPtr(token.ptr), @intFromPtr(split.argv_null_terminated[index].?));
+    }
+
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.argv_null_terminated[argc]);
+}
+
 test "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned" {
     var split = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
     defer split.deinit(std.testing.allocator);
