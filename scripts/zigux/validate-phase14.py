@@ -307,6 +307,30 @@ def check_compile_matrix(root: Path) -> list[str]:
             errors.append(f"missing compile-artifact root in zigux/tests/phase14_build.zig: {root_source}")
     return errors
 
+def collect_manifest_surface_markers(manifest: dict) -> tuple[dict[str, str], Counter[str], list[str]]:
+    raw_surfaces = manifest.get("surfaces", [])
+    if not isinstance(raw_surfaces, list):
+        return {}, Counter(), ["phase14 manifest surfaces payload is not a list"]
+
+    surfaces: dict[str, str] = {}
+    surface_counts: Counter[str] = Counter()
+    errors: list[str] = []
+    for surface in raw_surfaces:
+        if not isinstance(surface, dict):
+            errors.append("phase14 manifest surface entry is not an object")
+            continue
+        path = surface.get("path")
+        if not isinstance(path, str):
+            errors.append("phase14 manifest surface entry is missing a string path")
+            continue
+        surface_counts[path] += 1
+        required_marker = surface.get("required_marker")
+        if not isinstance(required_marker, str):
+            errors.append(f"phase14 manifest surface missing string required_marker for {path}")
+            continue
+        surfaces[path] = required_marker
+    return surfaces, surface_counts, errors
+
 def run_checker(root: Path, rel_path: str, missing_message: str, failure_message: str) -> list[str]:
     checker = root / rel_path
     if not checker.exists():
@@ -344,7 +368,11 @@ def check(root: Path) -> list[str]:
         errors.append("phase14 shared smoke manifest lane_key drifted from the current shared-lane owner")
     if manifest.get("commands") != REQUIRED_COMMANDS:
         errors.append("phase14 manifest commands drifted from the shared validate/smoke/test packet")
-    surfaces = {surface.get("path"): surface.get("required_marker") for surface in manifest.get("surfaces", []) if isinstance(surface, dict)}
+    surfaces, surface_counts, surface_errors = collect_manifest_surface_markers(manifest)
+    errors.extend(surface_errors)
+    for path, count in surface_counts.items():
+        if count != 1:
+            errors.append(f"phase14 manifest surface count drift for {path} (expected 1, found {count})")
     for path, marker in REQUIRED_SURFACES.items():
         if surfaces.get(path) != marker:
             errors.append(f"manifest surface drift for {path}")
@@ -404,6 +432,20 @@ def run_self_test() -> int:
             for error in errors:
                 print(f"- {error}", file=sys.stderr)
             return 1
+        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken_manifest["surfaces"].append({
+            "path": "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+            "required_marker": DOCS_ROOT_CHECKER_MARKER,
+        })
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
+        errors = check(root)
+        if not any(
+            "phase14 manifest surface count drift for scripts/zigux/check-phase14-docs-root-smoke-summary.py (expected 1, found 2)" in error
+            for error in errors
+        ):
+            print("self-test expected duplicate manifest-surface failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken_smoke_note = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
         broken_smoke_note.write_text(broken_smoke_note.read_text(encoding="utf-8").replace(compile_matrix_note_row(*COMPILE_MATRIX_ROWS[0]) + "\n", "", 1), encoding="utf-8")
         errors = check(root)
