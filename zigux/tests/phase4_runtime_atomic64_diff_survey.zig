@@ -4,6 +4,8 @@ const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     roadmap_target_path: []const u8,
+    owner: []const u8,
+    rollback_owner: []const u8,
     roadmap_atomic64_diff_present: bool,
     roadmap_atomic64_wrapper_targets_runtime_diff: bool,
     live_gate_path: []const u8,
@@ -30,7 +32,7 @@ const Manifest = struct {
     ready_next: []const u8,
 };
 
-test "phase 4 atomic64 survey keeps wrapper handoff and sibling blob pins explicit" {
+test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob pins explicit" {
     const parsed = try std.json.parseFromSlice(
         Manifest,
         std.testing.allocator,
@@ -46,6 +48,8 @@ test "phase 4 atomic64 survey keeps wrapper handoff and sibling blob pins explic
     try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", manifest.roadmap_target_path);
     try std.testing.expect(manifest.roadmap_atomic64_diff_present);
     try std.testing.expect(manifest.roadmap_atomic64_wrapper_targets_runtime_diff);
+    try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.owner);
+    try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.rollback_owner);
 
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.live_gate_path);
     try std.testing.expectEqualStrings("d3c082339d3357d7f4ed458313966705a7a9c409", manifest.live_gate_blob_sha);
@@ -80,7 +84,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff and sibling blob pins explic
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/runtime_atomic64_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "single bounded replay body") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Phase 9") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "same current matrix, validator, and review-checklist surfaces again") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "same current named owner, rollback owner, matrix, validator, and review-checklist surfaces again") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/phase4_perf_baseline_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/phase4_perf_baseline_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "still-unapproved benchmark-command and acceptable-limit posture measurable") != null);
@@ -112,6 +116,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff and sibling blob pins explic
     );
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "validator-first bootstrap replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "shared reviewer checklist") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "named owner") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "rollback-owner matrix") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "local-only perf-baseline survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "measurable and reversible") != null);
