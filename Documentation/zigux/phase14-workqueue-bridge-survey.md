@@ -5,9 +5,9 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 ## Status
 
 - `PHASE14_STATUS=blocked_maintenance`
-- `PHASE14_LANE_KEY=P14-L04`
-- `PHASE14_SURVEYED_COMMIT=9e278f632d6d5097cb8cfc2dc61744ae105baa8c`
-- `PHASE14_SLICE=workqueue-flush-drain-governance`
+- `PHASE14_LANE_KEY=P14-L02`
+- `PHASE14_SURVEYED_COMMIT=9b98d3b9c812840bf279508030be0b8de093736c`
+- `PHASE14_SLICE=workqueue-scheduler-visible-worker-state-refinement`
 - scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline, the delayed timer-expiry handoff audit, the delayed-work requeue stay-in-C decision, the explicit runtime `max_active` retuning boundary, the explicit flush-drain governance note, the explicit hotplug-topology rebinding note, the explicit scheduler-visible worker-state note, the explicit rescuer or mayday stay-in-C note, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
 - product boundary:
   - `kernel/workqueue_bridge.zig`
@@ -57,7 +57,7 @@ The current lane state is:
 - landed `phase14-workqueue-rescuer-mayday-governance`
 - blocked `phase14-workqueue-live-execution-blocker`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 boundary map for workqueue ownership and non-goals, plus explicit delayed-work requeue, runtime `max_active` retuning, flush-drain, hotplug-topology, scheduler-visible worker-state, and rescuer-mayday stay-in-C decisions, but it still does not claim live worker-pool execution, scheduler-hook parity, delayed-work requeue ownership in Zig, runtime `max_active` retuning ownership in Zig, flush completion ownership in Zig, hotplug rebinding ownership in Zig, or a direct `kernel/workqueue.c` rewrite.
+This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 boundary map for workqueue ownership and non-goals, plus explicit delayed-work requeue, runtime `max_active` retuning, flush-drain, hotplug-topology, and scheduler-visible worker-state stay-in-C decisions, but it still does not claim live worker-pool execution, scheduler-hook parity, delayed-work requeue ownership in Zig, runtime `max_active` retuning ownership in Zig, flush completion ownership in Zig, hotplug rebinding ownership in Zig, or a direct `kernel/workqueue.c` rewrite.
 
 ## Non-goals
 
