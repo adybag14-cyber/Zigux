@@ -69,7 +69,9 @@ DOCS_README_MARKERS = (
     "zigux/tests/README.md",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "zigux/tests/phase15_readiness_gate.zig",
-    "make -C zigux phase15-validate",
+    "zigux/Makefile",
+    "scripts-root validator-first route",
+    "shared build-and-make path",
     "make -C zigux phase15",
     "without implying any Architecture Council approval for a freeze-map status change",
 )
@@ -149,7 +151,7 @@ TESTS_README_MARKERS = (
     "zigux/tests/phase15_readiness_gate.zig",
     "zigux/Makefile",
     "make -C zigux phase15-validate",
-    "zig build test --build-file zigux/tests/phase15_build.zig",
+    "shared build-and-make path",
     "make -C zigux phase15",
     "without implying any Architecture Council approval for a freeze-map status change",
 )
