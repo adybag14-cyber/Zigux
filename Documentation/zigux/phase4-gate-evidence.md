@@ -34,7 +34,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`
 - `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`
 - `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`
-- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`
+- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`
 
 ## Exact Readback Evidence
 - `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now all point at the same currently shipped Phase 4 rollback-readiness packet surfaces that the validator and shared build still own on `master`.
