@@ -112,8 +112,9 @@ REQUIRED_FILE_MARKERS = {
         "Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
         "shipped shared coordination surfaces on `master`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
+        "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
         "shared reviewability surfaces that describe or gate the live Phase 12 libbpf packet",
-        "shared reviewability owns the survey, manifest, deterministic snapshot fixture, reviewability gate, and shared build alignment",
+        "shared reviewability owns the survey, manifest, deterministic snapshot fixture, snapshot determinism replay, reviewability gate, and shared build alignment",
     ],
     PHASE12_RAW_GITHUB_COVERAGE_PATH: [
         "commit-pinned fallback artifacts:",
@@ -170,6 +171,7 @@ REQUIRED_FILE_MARKERS = {
     LIBBPF_SURVEY_PATH: [
         "public fallback posture: shared-tree-only anchor",
         "Documentation/zigux/phase12-release-closure-checklist.md",
+        "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
         "the older segment catalog still leaves two bounded shared-bridge helpers explicitly nearer than the object-model wall",
     ],
     SCRIPTS_README_PATH: [
@@ -210,6 +212,7 @@ REQUIRED_FILE_MARKERS = {
         "run_phase12_nvme_pci_verify_tests.step",
         "run_phase12_virtio_scsi_syntax_lab_tests.step",
         "phase12_libbpf_reviewability_module",
+        "phase12_libbpf_snapshot_determinism_module",
     ],
     MAKEFILE_PATH: [
         "PHONY += phase12-smoke",
