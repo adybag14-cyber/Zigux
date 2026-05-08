@@ -64,6 +64,7 @@ The current landed helper and replay tests check:
 - variant decode parity for URL-safe and IMAP inputs
 - output-length accounting through `paddedChars`, `chars`, and `maxDecodedBytes`
 - exact-fit encode and decode buffers across std, URL-safe, and IMAP inputs
+- empty encode and decode inputs stay zero-length no-ops across std, URL-safe, and IMAP variants
 - destination-bounds failures before partial writes during both encode and decode
 - shared kernel-derived encode, decode, variant, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - invalid-input rejection through both `bytes` and `decode` for malformed, embedded-NUL, and variant-mismatched decode inputs
