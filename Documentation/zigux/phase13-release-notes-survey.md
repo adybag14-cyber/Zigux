@@ -31,6 +31,8 @@ The shared replay on `master` is now the eight-test bundle wired by `zigux/tests
 
 The focused `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard is shipped direct helper evidence for the syscall anchor, but it stays outside that eight-test replay count so the release-facing packet does not quietly grow a ninth shared step.
 
+The focused `zigux/tests/phase13_libfs_addressability.zig` shard is likewise shipped direct helper evidence for the `libfs` anchor, but it stays outside that eight-test replay count so the release-facing packet does not quietly grow a ninth shared step.
+
 Inside that packet, the Phase 13 `devres` lane remains bounded to helper-only planning around `lib/devres.c`.
 
 The same validator-first release route on current `master` also reruns `scripts/zigux/check-phase13-landlock-ruleset-packet.py` and `scripts/zigux/check-phase13-notifier-packet.py` beside the shared release validator and the `devres` packet checker, so the helper-only ruleset blockers and adjacent notifier packet stay explicit without turning those dedicated guards into extra shared replay steps.
@@ -47,6 +49,7 @@ These files are shipped adjacent release-surface evidence on `master`, but they 
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-packet.py`
+- `zigux/tests/phase13_libfs_addressability.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
@@ -63,7 +66,7 @@ It remains an active helper-first release packet while these boundaries stay exp
 - `lib/devres.zig` does not claim live device-tree walking or overlapping resource arbitration
 - `lib/devres.zig` does not claim live DMA-backed mapping beyond the bounded coherent replay or scatterlist ownership
 - `lib/devres.zig` does not claim live arch memtype state mutation
-- the notifier survey, dedicated notifier packet checker, manifest, reviewability replay, and ABI-helper surfaces remain adjacent release evidence rather than extra shared replay steps
+- the notifier survey, dedicated notifier packet checker, manifest, reviewability replay, ABI-helper surfaces, and the focused `libfs` plus `landlock syscalls` direct-evidence shards remain adjacent release evidence rather than extra shared replay steps
 
 ## Replay commands
 
