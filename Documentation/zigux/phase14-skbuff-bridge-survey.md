@@ -5,9 +5,9 @@ This document records the bounded Phase 14 survey lane around `net/core/skbuff.c
 ## Status
 
 - `PHASE14_STATUS=active`
-- `PHASE14_SURVEYED_COMMIT=f05e02445443e7743c3675a6f8ca4f70f6e736fb`
-- `PHASE14_LANE_KEY=P14-Y03`
-- `PHASE14_SLICE=skbuff-boundary-map-tail-publication-followup`
+- `PHASE14_SURVEYED_COMMIT=4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7`
+- `PHASE14_LANE_KEY=P14-L09`
+- `PHASE14_SLICE=skbuff-boundary-map-roadmap-query`
 - scope: the landed `net/core/skbuff_bridge.zig` boundary map plus its expanded lifetime audit outline and concurrency-sensitive checkpoint catalog, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
 - product boundary:
   - `net/core/skbuff_bridge.zig`
@@ -30,7 +30,8 @@ The highest-value honest step in this lane is therefore to add a boundary map th
 - `net/core/skbuff.c` is present on `master` and is large enough that even a minimal bridge note can easily overstate what Zigux owns if the boundary is not written down first.
 - `include/linux/skbuff.h` makes the coupling visible: `struct skb_shared_info`, the split `dataref`, header-clone rules, `destructor_arg`, checksum metadata, and GSO fields show exactly why this lane needs explicit stay-in-C decisions before implementation claims.
 - `net/core/datagram.c` is a useful nearby consumer because it still relies on the shipped skbuff lifetime model rather than any alternate wrapper surface.
-- the new `net/core/skbuff_bridge.zig` starter stays intentionally narrow around boundary recording for allocation entrypoints, clone and copy seams as review-only study surfaces under the current freeze posture, headroom mutation, checksum or segmentation surfaces, shared-info refcount ownership, and destructor or free-path ownership.
+- the new `net/core/skbuff_bridge.zig` starter stays intentionally narrow around boundary recording for allocation entrypoints, clone and copy seams, headroom mutation, checksum or segmentation surfaces, shared-info refcount ownership, and destructor or free-path ownership.
+- the bridge now exposes machine-checkable roadmap boundary-study helpers for the four review-only study surfaces and the two explicit stay-in-C boundary areas, so later runs can prove the boundary map still matches the roadmap without inferring intent from array order alone.
 - the bridge now carries an explicit review-only concurrency-sensitive checkpoint catalog around the partial-tail-owner, checksum-to-data-offset, and exported tail-publication checkpoints inside `skb_segment()`, so the packet satisfies the roadmap's concurrency-audit requirement without claiming live ownership of skbuff lifetime, qdisc publication, or checksum state.
 - the bridge now keeps checksum-complete state around `__skb_checksum_complete()` and `skb_checksum_complete_unset()` separate from the segmentation study, which keeps the ownership boundary around `skb->csum`, `skb->ip_summed`, `skb->csum_valid`, and `skb->csum_complete_sw` explicit without claiming live checksum-state control.
 - the bridge now records the orphan-frag and zerocopy handoff inside `skb_segment()`, keeping `skb_orphan_frags()`, `skb_zerocopy_clone()`, `SKBFL_SHARED_FRAG`, and the carried fragment state visible while still keeping live payload ownership in C.
@@ -46,6 +47,7 @@ The current lane state is:
 - landed `phase14-build-gate`
 - landed `phase14-make-target`
 - landed `phase14-skbuff-boundary-map-starter`
+- landed `phase14-skbuff-boundary-map-roadmap-query`
 - landed `phase14-skbuff-test-gate`
 - landed `phase14-skbuff-slice-note`
 - landed `phase14-skbuff-survey-note`
@@ -57,7 +59,7 @@ The current lane state is:
 - landed `phase14-skbuff-segs-prev-tail-publication-followup`
 - blocked `phase14-skbuff-live-ownership-blocker`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a lifetime-audit foothold, an explicit concurrency-sensitive checkpoint catalog for the qdisc-facing tail-publication boundary, an explicit checksum-state audit, the orphan-frag and zerocopy handoff study, the checksum-metadata handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, and the exported tail-publication audit, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, qdisc-facing publication ownership, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
+This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a machine-checkable roadmap-alignment helper surface for that map, a lifetime-audit foothold, an explicit concurrency-sensitive checkpoint catalog for the qdisc-facing tail-publication boundary, an explicit checksum-state audit, the orphan-frag and zerocopy handoff study, the checksum-metadata handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, and the exported tail-publication audit, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, qdisc-facing publication ownership, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
 
 ## Freeze-in-C guardrails
 
@@ -98,4 +100,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 14 skbuff lane parked unless the packet drifts or stronger stay-in-C evidence changes the freeze posture. After the exported-tail checkpoint, no smaller review-only skbuff follow-up remains before the live ownership blocker.
+Keep the Phase 14 skbuff lane parked unless the packet drifts or stronger stay-in-C evidence changes the freeze posture. After the roadmap-alignment helper and the exported-tail checkpoint, no smaller review-only skbuff follow-up remains before the live ownership blocker.
