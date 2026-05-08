@@ -71,6 +71,7 @@ Current bootstrap helpers
 - `phase3_check_lib.py`
 - `generate-phase3-check-wrappers.py`
 - `check-phase1-parity.py`
+- `check-phase2-fixdep-gate.py`
 - `check-fixdep-diff.py`
 - `check-genksyms-bridge.py`
 - `check-phase2-genksyms-bridge-selftest-alignment.py`
@@ -103,6 +104,7 @@ Phase 2 flow
 - `check-phase2-cross-selftest-alignment.py` keeps `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` aligned around the bounded three-target compile matrix.
 - `check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned with the committed `fixdep`, `genksyms`, and `kconfig` packet manifests so the shared Phase 2 tool inventory, self-test route, and live gate wiring stay explicit before the direct Zig replays run.
 - `check-phase2-toolchain-pin-scope.py --self-test` and `check-phase2-toolchain-pin-scope.py` keep `scripts/zigux/zig-toolchain-policy.json`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, and this scripts index aligned around the current x86_64-linux bootstrap host target while the cross-target compile matrix stays a separate Phase 2 surface.
+- `check-phase2-fixdep-gate.py --self-test` and `check-phase2-fixdep-gate.py` keep `.github/workflows/zigux-bootstrap.yml`, `check-fixdep-diff.py`, and the direct `zig test scripts/zigux/fixdep.zig` replay aligned around the shipped Phase 2 fixdep gate packet before the bounded parity replay runs.
 - `check-fixdep-diff.py` compares the bounded `fixdep.zig` output against the committed fixture set, including `zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt`.
 - `check-genksyms-bridge.py` exercises the bounded `genksyms.zig` bridge parity lane.
 - `check-genksyms-crc-diff.py` checks the bounded `genksyms_crc.zig` artifact lane.
