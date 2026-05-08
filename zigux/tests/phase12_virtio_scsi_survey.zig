@@ -44,7 +44,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase12 virtio_scsi survey manifest records the landed queue starter and probe snapshot helper" {
+test "phase12 virtio_scsi survey manifest records the landed queue starter, queue window, and probe snapshot helper" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -78,7 +78,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_scsi_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_slice_note_present);
-    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -92,6 +92,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     var saw_driver_starter = false;
     var saw_driver_tests = false;
     var saw_slice_note = false;
+    var saw_queue_window = false;
     var saw_probe_snapshot = false;
     var saw_restore_queue_rebind = false;
     var saw_event_rearm = false;
@@ -152,6 +153,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
             saw_survey_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-virtio-scsi-survey.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-window summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recovery event-rearm summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "event-buffer ownership summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fallback path") != null);
@@ -173,6 +175,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poll-queue clamping") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "global virtqueue indexes") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-window ownership boundaries") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-config snapshot") != null);
         }
 
@@ -180,6 +183,16 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
             saw_slice_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-virtio-scsi-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-window summary") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-queue-window-summary-starter")) {
+            saw_queue_window = true;
+            try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "control and event queue gap") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "default versus poll queue ranges") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "before any blk-mq queue mapping") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-probe-config-snapshot-starter")) {
@@ -240,7 +253,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -252,6 +265,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     try std.testing.expect(saw_driver_starter);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
+    try std.testing.expect(saw_queue_window);
     try std.testing.expect(saw_probe_snapshot);
     try std.testing.expect(saw_restore_queue_rebind);
     try std.testing.expect(saw_event_rearm);
@@ -276,6 +290,7 @@ test "phase12 virtio_scsi survey note keeps the active lane identity and fallbac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "owner lane: `P12-L13`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "does not own the active survey packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-window summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "restore queue rebind summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recovery event-rearm summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "event-buffer ownership summary") != null);
@@ -300,6 +315,7 @@ test "phase12 virtio_scsi slice note keeps the rollback drill explicit" {
     defer std.testing.allocator.free(slice_note);
 
     const expected_fragments = [_][]const u8{
+        "derives one bounded queue-window summary that keeps the control and event queue gap plus the default-versus-poll request-queue ranges explicit",
         "records the fixed event-buffer fanout used by the driver and derives one bounded restore-time event-buffer ownership summary",
         "freezes queue planning and event recycling intent across a lab-only transport freeze or restore boundary",
         "clears the old queue snapshot so the next step must replan",
