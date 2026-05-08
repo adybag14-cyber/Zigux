@@ -451,6 +451,8 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .waiting_on_runtime_substrate;") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .released_without_substrate;") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader keeps the prepared snapshot stable across later sample mutation\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects prepared shared request drift before any local runtime handoff\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader keeps shared release failures from desynchronizing loader state\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects prepared shared selftest-hook drift before any local runtime handoff\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects shared selftest-hook drift before any local runtime handoff\"") != null);
 
