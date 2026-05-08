@@ -5,10 +5,10 @@ This document records the bounded Phase 15 governance lane around `Documentation
 ## Status
 
 - `PHASE15_STATUS=governance_slice_landed`
-- `PHASE15_LANE_KEY=P15-L04`
-- `PHASE15_SLICE=freeze-map-governance-anchor-reporting-field-sync`
-- scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, the shared validator-first route already shipped for the current governance packet, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, and per-anchor evidence-archive reporting posture
-- survey provenance refreshed against verified `master` head `9342905d34fb98d6fcd88cf2e88efed7355131d2` observed on May 7, 2026 after compare-to-master showed the older current-master readback marker was no longer precise enough while the lane's blocker posture and anchor inventory stayed the same
+- `PHASE15_LANE_KEY=P15-L03`
+- `PHASE15_SLICE=freeze-map-governance-current-freeze-blocker-evidence-verify`
+- scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, the shared validator-first route already shipped for the current governance packet, and one bounded maintenance follow-up that keeps the current freeze anchor set, blocker evidence, and shared governance provenance aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, and per-anchor evidence-archive reporting posture
+- survey provenance refreshed against verified `master` head `4fc891b380cdd2991dff7676ade7f844df1b55fd` observed on May 8, 2026 after shared Phase 15 readback showed the freeze-map note still pointed at older verified head `9342905d34fb98d6fcd88cf2e88efed7355131d2` even though the current freeze anchor set and blocker dispositions matched the newer shared governance packet
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
@@ -32,9 +32,9 @@ This document records the bounded Phase 15 governance lane around `Documentation
 
 The roadmap's Phase 15 work is about governance, not another burst of deep-core implementation. The live repo now carries much more than the original freeze-map starter: the parity scorecard, Architecture Council review-process note, retained stay-in-C closeout rule, reopen-trigger catalog, indefinite-C policy note, and the shared validator-first route are all already landed.
 
-That makes the original freeze-map governance slice slightly stale. Its focused note and manifest still stopped at a partial owner inventory even though the current parity scorecard note and its machine-checkable `zigux/tests/phase15_parity_scorecard.json` manifest now carry the authoritative per-anchor rollback owner, evidence-archive path, benchmark-notes status, replay command, and latest blocker disposition fields that the root freeze-map policy already requires, while the shared Phase 15 scripts packet already keeps the parked governance route reviewable before the shared build replay runs.
+That makes the freeze-map governance slice slightly stale. Its focused note and manifest still pointed at an older verified-head readback even though the current parity scorecard note and its machine-checkable `zigux/tests/phase15_parity_scorecard.json` manifest already carry the newer exact-head provenance, while the freeze anchor inventory and per-anchor blocker dispositions themselves remain unchanged. The shared Phase 15 scripts packet already keeps the parked governance route reviewable before the shared build replay runs.
 
-The honest bounded step is therefore maintenance, not expansion: refresh the freeze-map-specific lane record so it matches current repo reality, align its anchor inventory with the scorecard-backed reporting fields that already govern retained stay-in-C review packets, and keep the current blocker posture explicit while the central policy note carries the same closeout and reopen rules as the later governance artifacts.
+The honest bounded step is therefore maintenance, not expansion: refresh the freeze-map-specific lane record so it matches the newer shared governance head, keep its current freeze anchor set and blocker posture explicit, and leave the root policy note aligned with the broader Phase 15 packet's closeout, reopen, and evidence-archive rules.
 
 ## Landed governance rules
 
@@ -58,7 +58,7 @@ The honest bounded step is therefore maintenance, not expansion: refresh the fre
 - `mm/page_alloc.c` remains blocked as `blocked_no_bounded_allocator_seam` because the repo still has no bounded allocator seam
 - `kernel/rcu/tree.c` remains blocked as `blocked_phase14_followup_still_wider_than_allowed_rcu_seam` because the published Phase 14 follow-up is still wider than the allowed RCU seam
 - `net/core/skbuff.c` remains blocked as `blocked_packet_lifetime_boundary_still_too_wide` because the published Phase 14 follow-up is still wider than the allowed packet-lifetime boundary
-- the freeze-map anchor set therefore stays unchanged on current `master`
+- the freeze-map anchor set and study-only scope therefore stay unchanged on current `master` and match the newer shared governance head `4fc891b380cdd2991dff7676ade7f844df1b55fd`
 
 ## Recorded gaps
 
@@ -72,10 +72,10 @@ The current lane state is:
 - landed `phase15-governance-family-alignment`
 - landed `phase15-blocker-ownership-sync`
 - landed `phase15-anchor-reporting-field-sync`
-- landed `phase15-stale-provenance-cleanup`
+- landed `phase15-current-freeze-blocker-evidence-verify`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight: Zigux now has a reviewable and runnable governance rule for the freeze map that matches the current stay-in-C policy family, the parity-scorecard lane-owner and rollback-owner records, the machine-checkable scorecard manifest, the shared validator-first route, and the per-anchor evidence-archive reporting posture already expected by the broader Phase 15 packet. The lane also now records one concrete verified head instead of leaning on a generic current-master readback marker. What remains blocked is any deep-core status change, not the governance scaffolding itself.
+This keeps the lane tight: Zigux now has a reviewable and runnable governance rule for the freeze map that matches the current stay-in-C policy family, the parity-scorecard lane-owner and rollback-owner records, the machine-checkable scorecard manifest, the shared validator-first route, and the per-anchor evidence-archive reporting posture already expected by the broader Phase 15 packet. The lane also now records exact-head parity with the newer shared governance packet while keeping the freeze anchor set and blocker dispositions unchanged, instead of leaving the note parked on the older head marker. What remains blocked is any deep-core status change, not the governance scaffolding itself.
 
 ## Non-goals
 
