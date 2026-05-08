@@ -33,11 +33,11 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 
 ## Why this slice exists
 
-The roadmap says Phase 15 must include a policy for code that remains in C indefinitely. Current `master` already carries the freeze map, the review checklist prompt, the Architecture Council review-process note, the parity scorecard, and the reserved per-anchor evidence-archive templates, but those files still spread the long-term stay-in-C posture across several artifacts rather than giving it one dedicated Phase 15 policy record.
+The roadmap says Phase 15 must include a policy for code that remains in C indefinitely. Current `master` already carries the freeze map, the review checklist prompt, the Architecture Council review-process note, the parity scorecard, and the reserved per-anchor evidence-archive templates, and this dedicated policy note now keeps that long-term stay-in-C posture in one reviewable Phase 15 record instead of leaving it distributed only across adjacent governance artifacts.
 
-That gap matters because the current freeze set is not just temporarily blocked work. `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c` are the deep-core anchors most likely to remain C-owned for the current product plan unless an unusually strong and narrow seam appears later. Without a dedicated indefinite-C policy note, the repo can say "keep the code in C" in several places while still leaving unclear what must remain recorded when the product deliberately chooses long-term C ownership.
+That consolidation matters because the current freeze set is not just temporarily blocked work. `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c` are the deep-core anchors most likely to remain C-owned for the current product plan unless an unusually strong and narrow seam appears later. Without a dedicated packet like this one, the repo could say "keep the code in C" in several places while still leaving unclear what must remain recorded when the product deliberately chooses long-term C ownership.
 
-The honest bounded step is therefore to make that indefinite-C posture explicit and reviewable without inventing any status-change approval, new deep-core implementation, or fake end-state certainty beyond the current product plan.
+The honest bounded step for this lane was therefore to make that indefinite-C posture explicit and reviewable without inventing any status-change approval, new deep-core implementation, or fake end-state certainty beyond the current product plan.
 
 ## When the indefinite-C policy applies
 
