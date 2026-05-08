@@ -105,6 +105,7 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `Documentation/zigux/review-checklist.md`
   * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
   * `Documentation/zigux/phase13-release-notes-survey.md`
+  * `scripts/zigux/validate-phase13-release.py`
   * `scripts/zigux/check-phase13-notifier-packet.py`
   * `Documentation/zigux/phase13-notifier-list-survey.md`
   * `zigux/tests/phase13_notifier_list_manifest.json`
@@ -112,12 +113,15 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `zigux/bindings/notifier_abi.zig`
   * `include/zigux/notifier_abi.h`
   * `zigux/helpers/notifier_chain_view.zig`
+  * `zigux/Makefile`
 
 The direct `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard stays in that adjacent release-evidence set for the same reason already recorded in the syscall lane section and the release-notes packet: it is shipped focused direct evidence on current `master`, but it does not expand the shared replay beyond the eight build-backed tests.
 
 `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` stays in that same adjacent evidence set as the owner-map note for the active `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` helper families. It keeps the shared validator-first route and adjacent notifier evidence from collapsing into one ownerless packet, but it does not add a ninth replay step or change which helper lane owns which backlog.
 
 The contributor workflow guide, contributor-surface sync note, compact tests-root companion, and shared review checklist stay in that same adjacent evidence set too. They keep the broader contributor-facing Phase 13 packet honest beside the validator-first route, but they do not promote those reminder surfaces into extra replay steps or move ownership away from the helper-family lanes.
+
+The shipped validator-first route also stays in that adjacent evidence set: `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, and `zigux/Makefile` keep the four-anchor traceability packet, the dedicated `devres` and `landlock/ruleset` checker proofs, and the adjacent notifier evidence fail-closed on current `master` without promoting those validation surfaces into a ninth shared replay step.
 
 The shipped `scripts/zigux/check-phase13-notifier-packet.py` route stays in that same adjacent evidence set: it fail-closes the notifier survey, manifest, reviewability replay, ABI header, and helper footholds without promoting that adjacent packet into a ninth shared replay step.
 
