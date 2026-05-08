@@ -279,3 +279,61 @@ test "phase 8 help section rendering keeps the stable main and PATH headings rev
         rendered.writer.buffered(),
     );
 }
+
+test "phase 8 help empty PATH fallback keeps the main section suppressed" {
+    const path_entries = [_]help.DirectoryEntry{
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "perf-stat", .is_executable = true },
+        .{ .name = "README.md", .is_executable = true },
+        .{ .name = "perf-stat", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "", .entries = &path_entries },
+        },
+    };
+
+    var main_cmds = help.CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = help.CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try help.loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        null,
+        null,
+        "",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 0), main_cmds.count());
+    try std.testing.expectEqual(@as(usize, 2), other_cmds.count());
+    try std.testing.expectEqualStrings("report", other_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("stat", other_cmds.names.items[1].name);
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try help.writeCommandSectionsForTerminal(
+        &rendered.writer,
+        "perf",
+        "",
+        main_cmds,
+        other_cmds,
+        null,
+        "24",
+        null,
+    );
+
+    try std.testing.expectEqualStrings(
+        "perf available from elsewhere on your $PATH\n" ++
+            "-------------------------------------------\n" ++
+            "  report stat\n" ++
+            "\n",
+        rendered.writer.buffered(),
+    );
+}
