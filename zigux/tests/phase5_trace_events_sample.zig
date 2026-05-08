@@ -173,6 +173,30 @@ test "phase 5 trace-events sample ownership summary keeps lifecycle snapshots ex
     try std.testing.expectEqual(@as(usize, 0), summary.registration_depth);
 }
 
+test "phase 5 trace-events sample keeps the ownership replay helper explicit" {
+    var module = sample.TraceEventsReferenceSample{};
+    const ownership_replay = try module.runOwnershipReplay();
+
+    try std.testing.expectEqual(sample.SampleStage.cold, ownership_replay.stage_before_init);
+    try std.testing.expectEqual(sample.SampleStage.initialized, ownership_replay.stage_after_init);
+    try std.testing.expectEqual(sample.SampleStage.replay_complete, ownership_replay.stage_after_replay);
+    try std.testing.expectEqual(sample.SampleStage.exited, ownership_replay.stage_after_exit);
+    try std.testing.expectEqual(@as(usize, 1), ownership_replay.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), ownership_replay.replay_runs);
+    try std.testing.expectEqual(@as(usize, 1), ownership_replay.exit_runs);
+    try std.testing.expectEqual(@as(usize, 8), ownership_replay.total_event_calls);
+    try std.testing.expectEqualStrings("Gandalf", ownership_replay.selected_string);
+    try std.testing.expectEqual(@as(usize, 2), ownership_replay.selected_index);
+    try std.testing.expectEqualStrings("iter=7", ownership_replay.formatted_message);
+    try std.testing.expectEqual(@as(usize, sample.TraceEventsReferenceSample.function_callback_family_count), ownership_replay.function_callback_event_calls);
+    try std.testing.expect(ownership_replay.registration_balance_restored);
+    try std.testing.expect(ownership_replay.saw_conditional_path);
+    try std.testing.expect(ownership_replay.saw_vararg_payload);
+    try std.testing.expect(ownership_replay.saw_rel_loc_payload);
+    try std.testing.expect(ownership_replay.saw_function_callback_path);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runOwnershipReplay());
+}
+
 test "phase 5 trace-events sample makes ownership and teardown boundaries explicit" {
     var module = sample.TraceEventsReferenceSample{};
 
