@@ -79,7 +79,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "drivers/virtio/virtio_input_verify.zig",
-      "why_now": "The live repo now has a dedicated wrapper-facing verifier replay that keeps queue-callback and registration-preflight blocker ordering reviewable beside the helper-local tests and focused status-drain replay without widening into transport-backed queue callbacks or registration lifecycle work."
+      "why_now": "The live repo now has a dedicated wrapper-facing verifier replay that keeps queue-callback, probe-preflight, and registration-preflight blocker ordering reviewable beside the helper-local tests and focused status-drain replay without widening into transport-backed queue callbacks or registration lifecycle work."
     },
     {
       "id": "phase10-virtio-input-queue-callback-preflight-replay",
@@ -124,6 +124,13 @@
       "why_now": "The live repo now includes one bounded in-memory multitouch slot-planning helper keyed off `ABS_MT_SLOT`, which gives the lab slice a truthful slot-count foothold before any `input_register_device()` or transport-backed queue work."
     },
     {
+      "id": "phase10-virtio-input-probe-preflight-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_input.zig",
+      "why_now": "The live repo now includes one bounded probe-preflight summary that keeps identity staging, queue-fill readiness, and capability-setup blockers explicit before any future ready-state toggle or `input_register_device()` handoff."
+    },
+    {
       "id": "phase10-virtio-input-registration-preflight-helper",
       "status": "starter_landed",
       "kind": "lab_driver_starter",
@@ -163,7 +170,7 @@
       "status": "blocked_on_risky_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
-      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky even after the registration-preflight, queue-callback preflight, multitouch slot, and status-drain helpers landed, until broader queue callback plumbing is in place."
+      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky even after the probe-preflight, registration-preflight, queue-callback preflight, multitouch slot, and status-drain helpers landed, until broader queue callback plumbing is in place."
     }
   ]
 }
