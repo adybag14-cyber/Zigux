@@ -29,8 +29,6 @@ EXPECTED_CHECKSUMS = [
     "PHASE1_BENCH_HWEIGHT_CHECKSUM",
     "PHASE1_BENCH_LIST_SORT_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CHECKSUM",
-    "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM",
-    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM",
 ]
 REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
@@ -160,15 +158,18 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
             return ("expectations_exact_checksum_value_type", (key, type(value).__name__))
         if value <= 0:
             return ("expectations_exact_checksum_nonpositive", (key, value))
-        if key not in checksum_keys:
-            return ("expectations_exact_checksum_not_listed", key)
 
     return ("pass", expectations)
 
 
 def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, object]:
     parsed, counts = parse_output(stdout)
-    required_keys = {"PHASE1_BENCH", *expectations["iterations"], *expectations["checksums"]}
+    required_keys = {
+        "PHASE1_BENCH",
+        *expectations["iterations"],
+        *expectations["checksums"],
+        *expectations["exact_checksums"],
+    }
     duplicate = sorted(key for key in required_keys if counts.get(key, 0) > 1)
     if duplicate:
         return ("duplicate", duplicate)
@@ -208,6 +209,20 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
             return ("nonpositive_checksum", (key, actual))
         expected_exact = expectations["exact_checksums"].get(key)
         if expected_exact is not None and value != expected_exact:
+            return ("exact_checksum_mismatch", (key, expected_exact, value))
+
+    for key, expected_exact in expectations["exact_checksums"].items():
+        if key in expectations["checksums"]:
+            continue
+        actual = parsed.get(key)
+        if actual is None:
+            missing.append(key)
+            continue
+        try:
+            value = int(actual)
+        except ValueError:
+            return ("checksum_value_type", (key, actual))
+        if value != expected_exact:
             return ("exact_checksum_mismatch", (key, expected_exact, value))
 
     if missing:
@@ -288,8 +303,8 @@ def run_self_test() -> None:
         },
     }
     kind, payload = validate_expectations(downgraded_rbtree_exact)
-    assert kind == "expectations_checksums_rbtree_exact_required"
-    assert payload == "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"
+    assert kind == "expectations_missing_exact_checksums"
+    assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]
 
     missing_string_exact = {
         "status": "pass",
