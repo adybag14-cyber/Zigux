@@ -97,7 +97,7 @@ The DesignWare watchdog lane owns the `dw_wdt` platform-facing starter, its regi
 
 This lane may compare its platform-backed follow-through against the other watchdog packets, but it does not own their manifests, HVC teardown follow-through, or next-step selection. Its next bounded work stays inside DesignWare registration, registration-scaffold truthfulness, verify-backed handoff truthfulness, teardown-parity truthfulness, reset or clock ownership wording, or another direct `dw_wdt` handoff repair.
 
-The HVC console lane owns console-local starter, survey, verify-backed, and teardown-adjacent evidence:
+The HVC console lane owns console-local starter, survey, archival-manifest, verify-backed, and teardown-adjacent evidence:
 
 - `Documentation/zigux/phase11-hvc-console-slice.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
@@ -118,7 +118,7 @@ This lane may rely on the shared replay contract and may keep the bounded `hvc_c
 - If a Phase 11 run changes `drivers/watchdog/gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt.zig`, `zigux/tests/phase11_gpio_wdt_platform_drvdata.zig`, the GPIO manifest, the GPIO survey gate, the GPIO module or slice notes, or the GPIO validation matrix, that work belongs to the GPIO watchdog lane.
 - If a Phase 11 run changes `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, the DesignWare manifest, the DesignWare survey gate, or the DesignWare validation matrix, that work belongs to the DesignWare watchdog lane.
 - If a Phase 11 run changes `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, the HVC manifest, the HVC survey gate, the dedicated HVC survey checker or its `make -C zigux phase11-hvc-survey` replay path, or the HVC validation matrix, that work belongs to the HVC console lane.
-- If a Phase 11 run only changes `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, the shared replay contract, the shared closure note, the shared contract checker, the shared header-boundary packet, the shared build wiring, or the workflow-backed replay route, it should reopen the smallest directly coupled shared packet first instead of quietly consuming one of the driver lanes.
+- If a Phase 11 run only changes `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, the shared replay contract, the shared closure note, the shared header-boundary packet, the shared build wiring, or the workflow-backed replay route, it should reopen the smallest directly coupled shared packet first instead of quietly consuming one of the driver lanes.
 - Shared build or make replay drift should only reopen a driver lane when the break is actually rooted in that driver's helper, manifest, survey, validation matrix, dedicated packet checker, named teardown ownership note, or the focused gpio platform-drvdata replay.
 
 ## Next bounded step
