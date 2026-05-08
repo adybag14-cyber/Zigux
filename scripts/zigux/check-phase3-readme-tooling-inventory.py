@@ -502,6 +502,16 @@ def run_self_test() -> int:
         _write(root / "scripts" / "zigux" / "check-phase4-artifact-diff-determinism.py", "# stub\n")
         case_count += 1
 
+        (root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py").unlink()
+        assert validate(root) == ["missing_repo_file:scripts/zigux/check-phase2-toolchain-pin-scope.py"]
+        _write(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py", "# stub\n")
+        case_count += 1
+
+        (root / "scripts" / "zigux" / "check-phase2-cross.py").unlink()
+        assert validate(root) == ["missing_repo_file:scripts/zigux/check-phase2-cross.py"]
+        _write(root / "scripts" / "zigux" / "check-phase2-cross.py", "# stub\n")
+        case_count += 1
+
         readme = _baseline_readme().replace(
             "while `make -C zigux phase6-perf` remains the narrow aggregate route for the checksum and hexdump perf packet rather than a bundle-wide Phase 6 perf closure",
             "and there is no `make -C zigux phase6-perf` route on `master`",
