@@ -61,6 +61,43 @@ test "phase12 virtio scsi probe snapshot keeps queue clamp and probe-only bounda
     try std.testing.expectEqual(virtio_scsi.RequestQueueKind.request_poll, poll_queue.kind);
 }
 
+test "phase12 virtio scsi queue window summary keeps default and poll queue ranges explicit" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    _ = try lab.planQueueLayout(8, 3);
+
+    const summary = try lab.queueWindowSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.control_queue_index), summary.control_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), summary.event_queue_index);
+    try std.testing.expectEqual(@as(u16, 2), summary.first_default_queue_index);
+    try std.testing.expectEqual(@as(u16, 6), summary.last_default_queue_index);
+    try std.testing.expectEqual(@as(u16, 5), summary.default_queue_count);
+    try std.testing.expectEqual(@as(?u16, 7), summary.first_poll_queue_index);
+    try std.testing.expectEqual(@as(?u16, 9), summary.last_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, 3), summary.poll_queue_count);
+    try std.testing.expectEqual(@as(u16, 10), summary.total_queues);
+    try std.testing.expect(summary.preserves_control_event_gap);
+    try std.testing.expect(summary.keeps_default_queues_before_poll_queues);
+
+    _ = try lab.freezeForTransportReset();
+    try std.testing.expectError(error.TransportFrozen, lab.queueWindowSummary());
+}
+
+test "phase12 virtio scsi queue window summary keeps non-poll queue layouts compact" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    _ = try lab.planQueueLayout(1, 4);
+
+    const summary = try lab.queueWindowSummary();
+    try std.testing.expectEqual(@as(u16, 2), summary.first_default_queue_index);
+    try std.testing.expectEqual(@as(u16, 2), summary.last_default_queue_index);
+    try std.testing.expectEqual(@as(u16, 1), summary.default_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), summary.first_poll_queue_index);
+    try std.testing.expectEqual(@as(?u16, null), summary.last_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, 0), summary.poll_queue_count);
+    try std.testing.expectEqual(@as(u16, 3), summary.total_queues);
+    try std.testing.expect(summary.keeps_default_queues_before_poll_queues);
+}
+
 test "phase12 virtio scsi host shape summary keeps pre-registration host fields reviewable" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
     const summary = try lab.captureHostShapeSummary(.{
@@ -249,7 +286,7 @@ test "phase12 virtio scsi recovery event ownership and rollback keep the frozen 
     try std.testing.expect(rollback.blocks_request_queue_access_until_restore);
     try std.testing.expect(rollback.keeps_frozen_layout_for_restore);
     try std.testing.expect(rollback.clears_live_layout_after_restore);
-    try std.testing.expect(rollback.requires_replan_before_queue_reuse);
+    try std.testing.expect(rollback.requires_replanBefore_queue_reuse);
 
     const restore = try lab.restoreAfterTransportReset();
     try std.testing.expectEqual(@as(u16, 1), restore.recovery_generation);
