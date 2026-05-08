@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L05",
   "phase": "Phase 13",
-  "surveyed_commit": "10369315cba5d146a7c6c4c6480ef9d279dc490f",
+  "surveyed_commit": "032c57dbde9a95ad6e28ad891cca54bd2e3bfcf1",
   "anchor": "lib/devres.c",
   "roadmap_destinations": [
     "lib/devres.zig",
