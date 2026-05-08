@@ -68,6 +68,7 @@ REQUIRED_TEARDOWN_NOTE_MARKERS = [
     "buffered-write clearing",
     "notifier-hangup ownership",
     "kept console binding",
+    "oversized buffered-write rejection",
     "do not treat this note as evidence of live notifier callbacks",
 ]
 
@@ -93,6 +94,7 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "`hvc_hangup()` disconnect boundary",
     "stale-count short-circuiting",
     "preserving buffered-write state when the stale port-count guard wins",
+    "compile-local impossible buffered-write failure replay in `drivers/tty/hvc/hvc_console_verify.zig`",
 ]
 
 REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS = [
@@ -120,6 +122,7 @@ REQUIRED_VERIFY_REPLAY_MARKERS = [
     'test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces"',
     'test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks"',
     'test "hvc_console verify keeps sysrq notifier deferral false without dispatch"',
+    'test "hvc_console verify rejects impossible hangup buffered-write state"',
 ]
 
 REQUIRED_SURVEY_REPLAY_MARKERS = [
@@ -165,7 +168,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 53
+SELF_TEST_CASE_COUNT = 56
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -303,6 +306,7 @@ The live archival packet now belongs to lane `P11-L16`.
 - buffered-write clearing
 - notifier-hangup ownership
 - kept console binding
+- oversized buffered-write rejection
 - do not treat this note as evidence of live notifier callbacks
 """,
     )
@@ -331,6 +335,7 @@ The live archival packet now belongs to lane `P11-L16`.
 - `hvc_hangup()` disconnect boundary
 - stale-count short-circuiting
 - preserving buffered-write state when the stale port-count guard wins
+- compile-local impossible buffered-write failure replay in `drivers/tty/hvc/hvc_console_verify.zig`
 """,
     )
     write_text(
@@ -383,6 +388,9 @@ test "hvc_console verify keeps targetless sysrq dispatch from implying notifier 
     try std.testing.expect(true);
 }
 test "hvc_console verify keeps sysrq notifier deferral false without dispatch" {
+    try std.testing.expect(true);
+}
+test "hvc_console verify rejects impossible hangup buffered-write state" {
     try std.testing.expect(true);
 }
 """,
@@ -636,6 +644,12 @@ def run_self_test() -> int:
             expect_failure(
                 root,
                 TEARDOWN_NOTE_PATH,
+                "oversized buffered-write rejection",
+                "teardown_note:oversized buffered-write rejection",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
                 "do not treat this note as evidence of live notifier callbacks",
                 "teardown_note:do not treat this note as evidence of live notifier callbacks",
             )
@@ -713,6 +727,12 @@ def run_self_test() -> int:
             )
             expect_failure(
                 root,
+                VALIDATION_MATRIX_PATH,
+                "compile-local impossible buffered-write failure replay in `drivers/tty/hvc/hvc_console_verify.zig`",
+                "validation_matrix:compile-local impossible buffered-write failure replay in `drivers/tty/hvc/hvc_console_verify.zig`",
+            )
+            expect_failure(
+                root,
                 SHARED_REPLAY_CONTRACT_PATH,
                 "`make -C zigux phase11-hvc-survey`",
                 "shared_replay_contract:`make -C zigux phase11-hvc-survey`",
@@ -779,6 +799,12 @@ def run_self_test() -> int:
             )
             expect_failure(
                 root,
+                VERIFY_REPLAY_PATH,
+                'test "hvc_console verify rejects impossible hangup buffered-write state"',
+                'verify_replay:test "hvc_console verify rejects impossible hangup buffered-write state"',
+            )
+            expect_failure(
+                root,
                 SURVEY_REPLAY_PATH,
                 'test "phase11 hvc console survey keeps a bounded winsize layout proof"',
                 'survey_replay:test "phase11 hvc console survey keeps a bounded winsize layout proof"',
@@ -792,8 +818,8 @@ def run_self_test() -> int:
             expect_failure(
                 root,
                 SURVEY_REPLAY_PATH,
-                "layout_assert.assertSize(HvOps, 72);",
-                "survey_replay:layout_assert.assertSize(HvOps, 72);",
+                'layout_assert.assertSize(HvOps, 72);',
+                'survey_replay:layout_assert.assertSize(HvOps, 72);',
             )
             expect_failure(
                 root,
