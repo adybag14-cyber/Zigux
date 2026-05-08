@@ -362,13 +362,12 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
                 .failure => |failure| return .{ .failure = failure },
             }
         } else {
+            const short_option_index = index;
             switch (try parseShortOptions(allocator, args, &index, &request, &references)) {
                 .none => {
                     try rendered_args.append(allocator, arg);
-                    if (std.mem.eql(u8, arg, "-r") or std.mem.eql(u8, arg, "-T")) {
-                        if (index > 0 and index < args.len) {
-                            try rendered_args.append(allocator, args[index]);
-                        }
+                    if (index != short_option_index and index < args.len) {
+                        try rendered_args.append(allocator, args[index]);
                     }
                 },
                 .command => |command| return .{ .command = command },
@@ -456,7 +455,7 @@ test "parseArgs reports ambiguous abbreviated long options" {
     var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena_state.deinit();
 
-    const args = [_][]const u8{ "--d" };
+    const args = [_][]const u8{"--d"};
     const outcome = try parseArgs(arena_state.allocator(), &args);
 
     switch (outcome) {
@@ -469,7 +468,7 @@ test "parseArgs reports ambiguous abbreviated long options" {
 }
 
 test "genksyms bridge keeps version side effect before short help" {
-    const args = [_][]const u8{ "-Vh" };
+    const args = [_][]const u8{"-Vh"};
     const outcome = try parseArgs(testing.allocator, &args);
 
     switch (outcome) {
@@ -491,6 +490,29 @@ test "genksyms bridge keeps version side effect before long help" {
             else => return error.ExpectedHelpCommand,
         },
         else => return error.ExpectedCommand,
+    }
+}
+
+test "genksyms bridge preserves the consumed argv entry when clustered short options take the next argument" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
+    const args = [_][]const u8{ "-dr", "foo.symref" };
+    const outcome = try parseArgs(arena_state.allocator(), &args);
+
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                try testing.expectEqual(@as(usize, 1), request.debug_level);
+                try testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+                try testing.expectEqual(@as(usize, 2), request.rendered_args.len);
+                try testing.expectEqualStrings("-dr", request.rendered_args[0]);
+                try testing.expectEqualStrings("foo.symref", request.rendered_args[1]);
+            },
+            else => return error.ExpectedRequestCommand,
+        },
+        else => return error.ExpectedRequestCommand,
     }
 }
 
