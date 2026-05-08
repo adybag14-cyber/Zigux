@@ -14,7 +14,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=5f212bc871d5c6c194be3249ef8d91ca3b5d09cf`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
-- `PHASE3_MMIO_BLOB_SHA=0075995d067cf2e177169868169b6566b0ac1694`
+- `PHASE3_MMIO_BLOB_SHA=70bf700a8ec952ff7bbaf230cf5522071af810d0`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
 - `PHASE3_UNSAFE_BLOB_SHA=78319221371f440f974759985dd667d63e617dc1`
