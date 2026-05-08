@@ -16,6 +16,7 @@ pub const DecodeError = error{
     InvalidInput,
 };
 
+const ReverseMap = [256]i8;
 const std_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const urlsafe_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 const imap_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,";
@@ -118,12 +119,13 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
         return DecodeError.DestinationTooSmall;
     }
 
+    const map = reverseMap(variant);
     var out_index: usize = 0;
     var src_index: usize = 0;
 
     while (src_index + 4 <= src.len) : (src_index += 4) {
-        const a = try decodeValue(src[src_index], variant);
-        const b = try decodeValue(src[src_index + 1], variant);
+        const a = try decodeMapValue(map, src[src_index]);
+        const b = try decodeMapValue(map, src[src_index + 1]);
         const third_char = src[src_index + 2];
         const fourth_char = src[src_index + 3];
 
@@ -133,7 +135,7 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
             out_index += 1;
 
             if (third_char != '=') {
-                const c = try decodeValue(third_char, variant);
+                const c = try decodeMapValue(map, third_char);
                 value |= @as(u32, c);
                 dst[out_index] = @truncate(value >> 2);
                 out_index += 1;
@@ -142,8 +144,8 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
             return out_index;
         }
 
-        const c = try decodeValue(third_char, variant);
-        const d = try decodeValue(fourth_char, variant);
+        const c = try decodeMapValue(map, third_char);
+        const d = try decodeMapValue(map, fourth_char);
 
         const value = (@as(u32, a) << 18) |
             (@as(u32, b) << 12) |
@@ -160,8 +162,8 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
         return out_index;
     }
 
-    const a = try decodeValue(src[src_index], variant);
-    const b = try decodeValue(src[src_index + 1], variant);
+    const a = try decodeMapValue(map, src[src_index]);
+    const b = try decodeMapValue(map, src[src_index + 1]);
     var value = (@as(u32, a) << 12) | (@as(u32, b) << 6);
     dst[out_index] = @truncate(value >> 10);
     out_index += 1;
@@ -170,7 +172,7 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
         return out_index;
     }
 
-    const c = try decodeValue(src[src_index + 2], variant);
+    const c = try decodeMapValue(map, src[src_index + 2]);
     value |= @as(u32, c);
     dst[out_index] = @truncate(value >> 2);
     out_index += 1;
@@ -185,7 +187,7 @@ fn alphabet(variant: Variant) []const u8 {
     };
 }
 
-fn reverseMap(variant: Variant) *const [256]i8 {
+fn reverseMap(variant: Variant) *const ReverseMap {
     return switch (variant) {
         .std => &std_reverse_map,
         .urlsafe => &urlsafe_reverse_map,
@@ -193,7 +195,7 @@ fn reverseMap(variant: Variant) *const [256]i8 {
     };
 }
 
-fn initReverseMap(comptime ch62: u8, comptime ch63: u8) [256]i8 {
+fn initReverseMap(comptime ch62: u8, comptime ch63: u8) ReverseMap {
     var map = [_]i8{invalid_reverse_value} ** 256;
 
     inline for ('A'..('Z' + 1)) |ch| {
@@ -211,13 +213,14 @@ fn initReverseMap(comptime ch62: u8, comptime ch63: u8) [256]i8 {
 }
 
 fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
+    const map = reverseMap(variant);
     var out_len: usize = 0;
     var src_index: usize = 0;
 
     while (src_index + 4 <= src.len) : (src_index += 4) {
         const quartet = src[src_index .. src_index + 4];
-        const a = decodeValue(quartet[0], variant) catch return DecodeError.InvalidInput;
-        const b = decodeValue(quartet[1], variant) catch return DecodeError.InvalidInput;
+        const a = decodeMapValue(map, quartet[0]) catch return DecodeError.InvalidInput;
+        const b = decodeMapValue(map, quartet[1]) catch return DecodeError.InvalidInput;
         _ = a;
         _ = b;
 
@@ -230,16 +233,16 @@ fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!u
             }
 
             if (c == '=') {
-                out_len += try validateTail(src[src_index .. src_index + 2], variant);
+                out_len += try validateTailWithMap(src[src_index .. src_index + 2], map);
             } else {
-                _ = decodeValue(c, variant) catch return DecodeError.InvalidInput;
-                out_len += try validateTail(src[src_index .. src_index + 3], variant);
+                _ = decodeMapValue(map, c) catch return DecodeError.InvalidInput;
+                out_len += try validateTailWithMap(src[src_index .. src_index + 3], map);
             }
             return out_len;
         }
 
-        _ = decodeValue(c, variant) catch return DecodeError.InvalidInput;
-        _ = decodeValue(d, variant) catch return DecodeError.InvalidInput;
+        _ = decodeMapValue(map, c) catch return DecodeError.InvalidInput;
+        _ = decodeMapValue(map, d) catch return DecodeError.InvalidInput;
         out_len += 3;
     }
 
@@ -250,16 +253,20 @@ fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!u
     if (padding or tail == 1) {
         return DecodeError.InvalidInput;
     }
-    return out_len + try validateTail(src[src_index..], variant);
+    return out_len + try validateTailWithMap(src[src_index..], map);
 }
 
 fn validateTail(src: []const u8, variant: Variant) DecodeError!usize {
+    return validateTailWithMap(src, reverseMap(variant));
+}
+
+fn validateTailWithMap(src: []const u8, map: *const ReverseMap) DecodeError!usize {
     if (src.len < 2 or src.len > 3) {
         return DecodeError.InvalidInput;
     }
 
-    const a = try decodeValue(src[0], variant);
-    const b = try decodeValue(src[1], variant);
+    const a = try decodeMapValue(map, src[0]);
+    const b = try decodeMapValue(map, src[1]);
     var value = (@as(u32, a) << 12) | (@as(u32, b) << 6);
 
     if (src.len == 2) {
@@ -269,7 +276,7 @@ fn validateTail(src: []const u8, variant: Variant) DecodeError!usize {
         return 1;
     }
 
-    const c = try decodeValue(src[2], variant);
+    const c = try decodeMapValue(map, src[2]);
     value |= @as(u32, c);
     if ((value & 0x3) != 0) {
         return DecodeError.InvalidInput;
@@ -278,7 +285,11 @@ fn validateTail(src: []const u8, variant: Variant) DecodeError!usize {
 }
 
 fn decodeValue(ch: u8, variant: Variant) DecodeError!u8 {
-    const value = reverseMap(variant)[ch];
+    return decodeMapValue(reverseMap(variant), ch);
+}
+
+fn decodeMapValue(map: *const ReverseMap, ch: u8) DecodeError!u8 {
+    const value = map[ch];
     if (value == invalid_reverse_value) {
         return DecodeError.InvalidInput;
     }
