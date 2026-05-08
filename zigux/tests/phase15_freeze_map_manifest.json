@@ -149,7 +149,7 @@
     {
       "anchor": "net/core/skbuff.c",
       "roadmap_basis": "Phase 15 keeps skbuff frozen unless a narrower-than-lifetime follow-up answers the current blocker with Architecture Council reviewable evidence.",
-      "repo_reality": "Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where lane P14-L09 still records blocked phase14-skbuff-live-ownership-blocker and says no smaller review-only skbuff follow-up remains before the live ownership blocker.",
+      "repo_reality": "Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where lane P14-L11 still records blocked phase14-skbuff-live-ownership-blocker and says no smaller review-only skbuff follow-up remains before the live ownership blocker.",
       "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide"
     }
   ],
