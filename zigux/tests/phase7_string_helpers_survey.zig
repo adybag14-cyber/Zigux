@@ -139,17 +139,30 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_impl, "pub fn stringUnescapeInplace");
     try expectContains(helper_impl, "pub fn stringEscapeMem");
     try expectContains(helper_impl, "pub fn kstrdupAndReplace");
+    try expectContains(helper_impl, "pub fn memcpyAndPad");
+    try expectContains(helper_impl, "pub fn stringIsTerminated");
+    try expectContains(helper_impl, "pub fn stringUpper");
+    try expectContains(helper_impl, "pub fn stringLower");
+    try expectContains(helper_impl, "pub fn parseIntArray");
+    try expectContains(helper_impl, "pub fn parseIntArrayUser");
+    try expectContains(helper_impl, "pub fn freeIntArray");
     try expectContains(helper_impl, "pub fn kstrdupQuotable");
     try expectContains(helper_impl, "pub fn kasprintfStrarray");
+    try expectContains(helper_impl, "pub fn kfreeStrarray");
     try expectContains(helper_impl, "pub fn skipSpaces");
     try expectContains(helper_impl, "pub fn strim");
     try expectContains(helper_impl, "test \"matchString stops at null sentinels and returns -EINVAL on miss\"");
     try expectContains(helper_impl, "test \"sysfsMatchString reuses sysfs newline semantics\"");
     try expectContains(helper_impl, "test \"kstrdupAndReplace duplicates the first-NUL prefix before replacing bytes\"");
+    try expectContains(helper_impl, "test \"memcpyAndPad matches the bounded copy-and-pad contract\"");
+    try expectContains(helper_impl, "test \"stringIsTerminated reports whether a bounded window contains NUL\"");
+    try expectContains(helper_impl, "test \"stringUpper and stringLower perform bounded ASCII case conversion\"");
     try expectContains(helper_impl, "test \"stringGetSize formats decimal and binary units with Linux-style rounding\"");
     try expectContains(helper_impl, "test \"stringGetSize respects no-space and no-bytes modifiers\"");
     try expectContains(helper_impl, "test \"stringGetSize reports truncated output length without losing termination\"");
     try expectContains(helper_impl, "test \"stringGetSize handles zero block size and zero-length outputs safely\"");
+    try expectContains(helper_impl, "test \"parseIntArray fails closed when no integers are present\"");
+    try expectContains(helper_impl, "test \"parseIntArrayUser fails closed on short buffers and empty copied input\"");
     try expectContains(helper_impl, "test \"stringUnescape exact-fit destination still decodes an escape\"");
     try expectContains(helper_impl, "test \"stringUnescape keeps terminator-only and zero-capacity destinations bounded\"");
     try expectContains(helper_impl, "test \"stringUnescapeInplace reuses the in-place core path without touching bytes after the first NUL\"");
@@ -157,5 +170,6 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_impl, "test \"kstrdupQuotable returns null for null input, keeps empty results owned, and stops at the first NUL\"");
     try expectContains(helper_impl, "test \"kstrdupQuotable frees the owned copy when allocation fails\"");
     try expectContains(helper_impl, "test \"kasprintfStrarray frees intermediate allocations when setup fails\"");
+    try expectContains(helper_impl, "test \"kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe\"");
     try expectContains(helper_impl, "std.testing.checkAllAllocationFailures");
 }
