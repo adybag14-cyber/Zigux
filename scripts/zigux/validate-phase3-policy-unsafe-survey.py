@@ -70,15 +70,16 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
     "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, and `permitsGlobalFallbackPolicyBytes` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
     "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.",
+    "`zigux/unsafe/narrow.zig` now also mirrors the panic and allocator helper style with typed `InteropPolicy` entry points through `scopeFromInteropPolicy`, `recognizesInteropPolicy`, `permitsNoUnsafeInteropPolicy`, `permitsVolatileMmioInteropPolicy`, and `permitsRawPointerBridgeInteropPolicy` so shared callers do not have to split unsafe-scope bytes out by hand before checking the bounded unsafe contract.",
     "`zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, `write32()`, `read64()`, and `write64()` rather than widening into a larger policy substrate.",
     "`scripts/zigux/check-phase3-policy-byte-guards.py` now gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, and the explicit shared dump gate, so the existing `phase3-validate` path fails closed on policy-byte drift instead of leaving that contract implicit.",
 )
 
 REQUIRED_LAYOUT_ASSERT_SNIPPETS = (
     "fn assertInteropPolicyModeValues() void {",
-    "assertInteropPolicyByteValue(\"panic_mode.abort\", @intFromEnum(abi.PanicMode.abort), 0);",
-    "assertInteropPolicyByteValue(\"allocator_mode.caller_provided\", @intFromEnum(abi.AllocatorMode.caller_provided), 0);",
-    "assertInteropPolicyByteValue(\"unsafe_scope.raw_pointer_bridge\", @intFromEnum(abi.UnsafeScope.raw_pointer_bridge), 2);",
+    'assertInteropPolicyByteValue("panic_mode.abort", @intFromEnum(abi.PanicMode.abort), 0);',
+    'assertInteropPolicyByteValue("allocator_mode.caller_provided", @intFromEnum(abi.AllocatorMode.caller_provided), 0);',
+    'assertInteropPolicyByteValue("unsafe_scope.raw_pointer_bridge", @intFromEnum(abi.UnsafeScope.raw_pointer_bridge), 2);',
     "pub fn assertMmioRangeLayout() void {",
     "pub fn assertRbtreeRootViewLayout() void {",
     'test "phase3 layout assertions cover canonical bindings" {',
@@ -109,14 +110,25 @@ REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
 )
 
 REQUIRED_UNSAFE_SNIPPETS = (
+    'const abi = @import("abi_bindings");',
     "pub fn addressOf(ptr: anytype) usize {",
     "pub fn byteOffset(base: usize, offset: usize) usize {",
     'return std.math.add(usize, base, offset) catch @panic("phase3 narrow unsafe byte offset overflow");',
     "pub fn pointerAt(comptime T: type, base: usize, offset: usize) *align(1) volatile T {",
     "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {",
+    "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?UnsafeScopeTag {",
+    "pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
     "if (reserved != 0) return null;",
     "try std.testing.expect(!recognizesInteropPolicyBytes(1, 1));",
     "try std.testing.expect(!permitsRawPointerBridgePolicyBytes(2, 1));",
+    "try std.testing.expectEqual(@as(?UnsafeScopeTag, .raw_pointer_bridge), scopeFromInteropPolicy(raw_policy));",
+    "try std.testing.expect(!recognizesInteropPolicy(reserved_policy));",
+    "try std.testing.expect(permitsNoUnsafeInteropPolicy(none_policy));",
+    "try std.testing.expect(permitsVolatileMmioInteropPolicy(mmio_policy));",
+    "try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(reserved_policy));",
 )
 
 REQUIRED_ABI_TEST_SNIPPETS = (
@@ -350,13 +362,13 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         missing_guard_wording = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_SURVEY_SNIPPETS[5] + "\n",
+            REQUIRED_SURVEY_SNIPPETS[6] + "\n",
             "",
             1,
         )
         write_file(root / SURVEY_REL, missing_guard_wording)
         issues = validate(root)
-        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[5]}" in issues
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[6]}" in issues
 
         build_valid_workspace(root)
         missing_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
@@ -367,6 +379,16 @@ def run_self_test() -> int:
         write_file(root / SURVEY_REL, missing_survey_snippet)
         issues = validate(root)
         assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[2]}" in issues
+
+        build_valid_workspace(root)
+        missing_typed_unsafe_survey = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            REQUIRED_SURVEY_SNIPPETS[4] + "\n",
+            "",
+            1,
+        )
+        write_file(root / SURVEY_REL, missing_typed_unsafe_survey)
+        issues = validate(root)
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[4]}" in issues
 
         build_valid_workspace(root)
         broken_layout = (root / LAYOUT_ASSERT_REL).read_text(encoding="utf-8").replace(
@@ -400,13 +422,23 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         broken_unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_UNSAFE_SNIPPETS[3] + "\n",
+            REQUIRED_UNSAFE_SNIPPETS[4] + "\n",
             "",
             1,
         )
         write_file(root / UNSAFE_NARROW_REL, broken_unsafe)
         issues = validate(root)
-        assert f"missing_unsafe_snippet:{REQUIRED_UNSAFE_SNIPPETS[3]}" in issues
+        assert f"missing_unsafe_snippet:{REQUIRED_UNSAFE_SNIPPETS[4]}" in issues
+
+        build_valid_workspace(root)
+        broken_typed_unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8").replace(
+            REQUIRED_UNSAFE_SNIPPETS[10] + "\n",
+            "",
+            1,
+        )
+        write_file(root / UNSAFE_NARROW_REL, broken_typed_unsafe)
+        issues = validate(root)
+        assert f"missing_unsafe_snippet:{REQUIRED_UNSAFE_SNIPPETS[10]}" in issues
 
         build_valid_workspace(root)
         broken_dump = (root / ABI_DUMP_REL).read_text(encoding="utf-8").replace(
@@ -424,7 +456,7 @@ def run_self_test() -> int:
         assert "policy_byte_guard_exit:1" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
