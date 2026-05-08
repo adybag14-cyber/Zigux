@@ -103,7 +103,9 @@ For the active simple-driver contributor packet, confirm wording still matches:
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-survey.md`
 - `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
