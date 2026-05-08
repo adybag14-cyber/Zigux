@@ -22,6 +22,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase8-tooling-lane-sequencing.md",
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase8-exec-cmd-packet.py",
     "scripts/zigux/check-phase8-help-kallsyms-packet.py",
@@ -206,6 +207,17 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-perf-buffer-poll-test`",
         "`make -C zigux phase8-test`",
         "without widening `perf-buffer-online-cpu-routing` into live epoll",
+    ],
+    "Documentation/zigux/README.md": [
+        "Phase 8 notes -",
+        "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
+        "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
+        "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        "`make -C zigux phase8-help-kallsyms-test`",
+        "`make -C zigux phase8-file-path-handle-bridge-test`",
+        "`make -C zigux phase8-libbpf-segments-test`",
+        "`make -C zigux phase8-perf-buffer-poll-test`",
+        "the libbpf packet is only honest when the docs-root summary keeps the dedicated file-path bridge, libbpf segment-survey, perf-buffer-poll, and shared help-kallsyms shard routes explicit beside `phase8_build.zig`",
     ],
     "scripts/zigux/README.md": [
         "Phase 8 flow",
@@ -639,6 +651,7 @@ def run_self_test() -> None:
         ("missing_validator", "scripts/zigux/validate-phase8.py"),
         ("missing_exec_cmd_slice", "Documentation/zigux/phase8-exec-cmd-slice.md"),
         ("missing_review_checklist", "Documentation/zigux/review-checklist.md"),
+        ("missing_docs_root_readme", "Documentation/zigux/README.md"),
         ("missing_exec_cmd_checker", "scripts/zigux/check-phase8-exec-cmd-packet.py"),
         ("missing_help_kallsyms_checker", "scripts/zigux/check-phase8-help-kallsyms-packet.py"),
         ("missing_makefile", "zigux/Makefile"),
@@ -659,6 +672,13 @@ def run_self_test() -> None:
     ]
 
     marker_cases = [
+        (
+            "docs_root_phase8_help_kallsyms_shard",
+            "Documentation/zigux/README.md",
+            "`make -C zigux phase8-help-kallsyms-test`",
+            "`make -C zigux phase8-help-test`",
+            "Documentation/zigux/README.md: `make -C zigux phase8-help-kallsyms-test`",
+        ),
         (
             "file_path_bridge_slice_reuse_packet",
             "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
