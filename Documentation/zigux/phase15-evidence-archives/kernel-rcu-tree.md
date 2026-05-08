@@ -20,12 +20,14 @@ This template reserves the Architecture Council packet path named by the Phase 1
 
 - lane owner: `ABI and Runtime Team`
 - rollback owner: `Architecture Council + ABI and Runtime Team`
+- required approver set: `Architecture Council + ABI and Runtime Team + Validation and Perf Team`
 
 ## Validation Gate Summary
 
 - validation gate summary: `phase15 scorecard replay and existing Phase 14 survey evidence remain the current bounded gates`
 - benchmark notes: `pending_until_rcu_followup_is_narrower_than_freeze_boundary`
 - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
+- rollback threshold: `return to blocked_phase14_followup_still_wider_than_allowed_rcu_seam if the seam inventory, validation plan, or linked evidence is weak, stale, or contradictory`
 
 ## Linked Evidence
 
