@@ -101,6 +101,7 @@ For the active simple-driver contributor packet, confirm wording still matches:
 - `zigux/tests/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
@@ -113,17 +114,24 @@ For the active simple-driver contributor packet, confirm wording still matches:
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `zigux/tests/phase11_build.zig`
+- `zigux/tests/phase11_gpio_wdt_manifest.json`
+- `zigux/tests/phase11_bcm2835_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_manifest.json`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
+- `drivers/watchdog/bcm2835_wdt_verify.zig`
+- `drivers/watchdog/dw_wdt_verify.zig`
+- `drivers/tty/hvc/hvc_console_verify.zig`
 - `zigux/Makefile`
 - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - `make -C zigux phase11`
 - `make -C zigux phase11-hvc-survey`
 
-Keep the shared `zig build test --build-file zigux/tests/phase11_build.zig --summary all` plus `make -C zigux phase11` replay route separate from the dedicated `make -C zigux phase11-hvc-survey` archival route so contributor guidance does not collapse the shipped shared-versus-dedicated split around `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_survey.zig`.
+Keep the shared `zig build test --build-file zigux/tests/phase11_build.zig --summary all` plus `make -C zigux phase11` replay route separate from the dedicated `make -C zigux phase11-hvc-survey` archival route so contributor guidance does not collapse the shipped shared-versus-dedicated split around `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_survey.zig`.
 
 ## Phase 13 anchors
 
