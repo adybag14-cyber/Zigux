@@ -6,7 +6,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
 
 - `PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed`
 - current surveyed packet pin: `75f8336c4305beed127d7abfae37d3999b7cc57c`
-- active watchdog continuity for this matrix and its coupled survey packet is `P11-L12`
+- active watchdog continuity for this matrix and its coupled survey packet is `P11-L05`
 - scope: keep the current `dw_wdt` starter honest about what is already validated, name the next kernel-facing checkpoints, and avoid overclaiming platform registration, clock or reset wiring, IRQ handling, or live MMIO behavior before those surfaces exist in Zigux
 - current repo reality:
   - `drivers/watchdog/dw_wdt.zig`
