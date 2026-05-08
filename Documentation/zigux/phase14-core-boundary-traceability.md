@@ -21,11 +21,11 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_workqueue_bridge_manifest.json`
 - survey note: `Documentation/zigux/phase14-workqueue-bridge-survey.md`
-- lane key: `P14-L04`
-- surveyed commit: `9e278f632d6d5097cb8cfc2dc61744ae105baa8c`
+- lane key: `P14-L02`
+- surveyed commit: `9b98d3b9c812840bf279508030be0b8de093736c`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-workqueue-live-execution-blocker`
-- retained-in-C boundary: live worker-pool execution, draining, delayed-work requeue ownership, timer-base and CPU-affinity handoff, hotplug transitions, rescuer behavior, scheduler callbacks, and forward-progress correctness still remain in C because they share `worker_pool` state, pending-bit handoff, delayed timer expiry, and scheduler-visible ownership that the current boundary map only records for reviewability.
+- retained-in-C boundary: live worker-pool execution, runtime `max_active` retuning ownership, flush completion, delayed-work requeue ownership, timer-base and CPU-affinity handoff, hotplug-topology rebinding, rescuer execution, scheduler-visible worker-state transitions, pending-bit claim ownership, and unbound `pwq->refcnt` retry behavior still remain in C because they share `worker_pool` state, `inactive_works` rebalance, active-color progression, delayed timer expiry, `POOL_DISASSOCIATED` topology updates, and mayday or scheduler-hook ownership that the current boundary map only records for reviewability.
 
 ### Ring buffer
 
@@ -33,7 +33,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 - survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`
 - lane key: `P14-L08`
 - surveyed commit: `946d5c73fdb763ba860a20879b05da54e1896e8c`
-- ready-next gap: none currently recorded
+- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`
 - blocked gap: `phase14-ring-buffer-zig-port-blocker`
 - retained-in-C boundary: reserve or commit publication, reader-page handoff, exported-page forced-copy decisions, remote-reader metadata, wakeup or watermark publication, mapped-reader limitations, concurrent mapped-reader governance, and tracefs splice or resize lockouts still stay with the shipped C implementation because they share per-CPU page choreography, reader-visible loss accounting, wait-queue state, and `resize_disabled` ownership.
 
@@ -72,7 +72,7 @@ The four anchor packets above are also carried together by the Phase 14 shared s
 
 That shared packet matters because it proves the workqueue, ring-buffer, skbuff, and RCU anchor notes still agree on their exact surveyed commits, lane keys, ready-next versus blocked posture, stay-in-C decisions, and the same validator, smoke, and full-replay routes instead of drifting independently or disappearing from the shared evidence path.
 
-For shared Phase 14 sequencing and anti-overlap follow-through, treat this cross-anchor note as a summary surface only: the live workqueue, ring-buffer, skbuff, and RCU packets now route through `P14-L04`, `P14-L08`, `P14-L09`, and `P14-L13`, so future shared-lane runs should align against those anchor-local packets instead of stale packet wording or run memory alone.
+For shared Phase 14 sequencing and anti-overlap follow-through, treat this cross-anchor note as a summary surface only: the live workqueue, ring-buffer, skbuff, and RCU packets now route through `P14-L02`, `P14-L08`, `P14-L09`, and `P14-L13`, so future shared-lane runs should align against those anchor-local packets instead of stale packet wording or run memory alone.
 
 ## What this lane does not claim
 
