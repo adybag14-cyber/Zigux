@@ -468,7 +468,6 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_architecture_council_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
-        manifest_path.writeText = None
         manifest_path.write_text(
             original_manifest.replace(
                 '"phase10-virtio-input-probe-preflight-helper",\n      "status": "starter_landed"',
