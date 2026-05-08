@@ -10,8 +10,9 @@ The current bridge stays intentionally narrow:
 - records checksum and segmentation surfaces around `__skb_checksum_complete()` and `skb_segment()` as metadata-heavy boundaries only
 - marks `skb_shared_info.dataref`, `skb_header_cloned()`, and the shared header-write rules as explicit stay-in-C decisions
 - marks `skb_release_head_state()`, `skb_release_data()`, and `consume_skb()` as explicit stay-in-C decisions tied to destructor callbacks and frag-list teardown
+- exposes machine-checkable helper queries for the four roadmap boundary-study areas and the two explicit stay-in-C boundary areas so later runs can prove the boundary map still matches the Phase 14 roadmap without relying on array order
 - adds a nine-checkpoint lifetime audit outline plus a three-entry concurrency-sensitive checkpoint catalog that names dataref splits, clone-before-expand mutation, destructor ordering, checksum-complete state caching, segmentation orphan-frag or zerocopy handoff, segmentation checksum-metadata handoff, the partial-GSO tail-owner transfer, the checksum-to-data-offset crossover, and the exported tail-publication consumer contract while keeping all live ownership in C
 
 This slice still does not claim live allocation, refcount transitions, header-write eligibility, destructor callbacks, frag-list teardown, checksum completion, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
 
-After the exported tail-publication audit, no smaller review-only skbuff follow-up remains inside this bridge packet. The remaining live ownership, checksum, segmentation, qdisc-facing publication, and destructor coordination stays explicitly in C until stronger evidence changes the freeze posture.
+After the roadmap-alignment helper and the exported tail-publication audit, no smaller review-only skbuff follow-up remains inside this bridge packet. The remaining live ownership, checksum, segmentation, qdisc-facing publication, and destructor coordination stays explicitly in C until stronger evidence changes the freeze posture.
