@@ -9,7 +9,7 @@ It is a coordination artifact, not an approval record and not a freeze-map statu
 - `PHASE15_STATUS=parked_governance_packet`
 - `PHASE15_SEQUENCE=governance-lane-anti-overlap`
 - shared validator-first routes already present on `master`: `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-review-process-handoff.py`, and `make -C zigux phase15-validate`
-- shared replay routes already present on `master`: `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15`
+- shared replay routes already present on `master`: `make -C zigux phase15-test`, `zig build test --build-file zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
 
 ## Why this note exists
 
