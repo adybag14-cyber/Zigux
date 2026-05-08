@@ -94,17 +94,19 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
 
     try std.testing.expectEqualStrings("P15-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-07", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-08", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
     try std.testing.expectEqualStrings("keep_in_c", manifest.decision_buckets[0]);
     try std.testing.expectEqualStrings("bounded_dual_implementation", manifest.decision_buckets[2]);
     try std.testing.expectEqualStrings("maintenance_mode", manifest.handoff.current_mode);
-    try std.testing.expectEqual(@as(usize, 3), manifest.handoff.replay_commands.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.handoff.replay_commands.len);
     try std.testing.expectEqualStrings("make -C zigux phase15-validate", manifest.handoff.replay_commands[0]);
-    try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase15_build.zig", manifest.handoff.replay_commands[1]);
-    try std.testing.expectEqualStrings("make -C zigux phase15", manifest.handoff.replay_commands[2]);
+    try std.testing.expectEqualStrings(".github/workflows/zigux-bootstrap.yml", manifest.handoff.replay_commands[1]);
+    try std.testing.expectEqualStrings("make -C zigux phase15-test", manifest.handoff.replay_commands[2]);
+    try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase15_build.zig", manifest.handoff.replay_commands[3]);
+    try std.testing.expectEqualStrings("make -C zigux phase15", manifest.handoff.replay_commands[4]);
     try std.testing.expectEqualStrings("deep_core_blocker_posture_change", manifest.handoff.blocker_posture_requirement);
     try std.testing.expectEqualStrings("wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice", manifest.handoff.next_step);
 
@@ -126,23 +128,28 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "## Current Approval Posture");
     try expectContains(survey_doc, "## Maintenance-Mode Handoff");
     try expectContains(survey_doc, "`PHASE15_LANE_KEY=P15-L06`");
-    try expectContains(survey_doc, "survey provenance refreshed against current `master` readback on 2026-05-07");
+    try expectContains(survey_doc, "survey provenance refreshed against current `master` readback on 2026-05-08");
     try expectContains(survey_doc, "maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires or the deep-core blocker posture changes");
     try expectContains(survey_doc, "current review-process evidence is limited to named `phase`");
     try expectContains(survey_doc, "`validation gate summary`");
     try expectContains(survey_doc, "`parity scorecard link or blocker record`");
     try expectContains(survey_doc, "`indefinite-C policy link or non-applicability note`");
+    try expectContains(survey_doc, "workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`");
+    try expectContains(survey_doc, "dedicated `make -C zigux phase15-test` route");
     try expectContains(survey_doc, "rollback-threshold");
     try expectContains(survey_doc, "retained-discussion-state");
     try expectContains(survey_doc, "reopen-trigger records");
     try expectContains(survey_doc, "current lane posture: `maintenance_mode`");
     try expectContains(survey_doc, "`make -C zigux phase15-validate`");
+    try expectContains(survey_doc, "`make -C zigux phase15-test`");
     try expectContains(survey_doc, "`zig build test --build-file zigux/tests/phase15_build.zig`");
     try expectContains(survey_doc, "`make -C zigux phase15`");
     try expectContains(survey_doc, "deep-core blocker posture changes enough to justify a new bounded review-process follow-up");
     try expectContains(survey_doc, "next future target: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice");
     try expectContains(survey_doc, "landed `phase15-roadmap-minimum-field-sync`");
     try expectContains(survey_doc, "landed `phase15-lane-owner-alignment-replay-visible`");
+    try expectContains(survey_doc, "landed `phase15-workflow-replay-anchor-visible`");
+    try expectContains(survey_doc, "landed `phase15-dedicated-make-test-replay-visible`");
     try expectContains(survey_doc, "Documentation/zigux/phase15-governance-lane-sequencing.md");
     try expectContains(survey_doc, "zigux/tests/phase15_indefinite_c_blocker_evidence.zig");
     try expectContains(survey_doc, "zigux/tests/phase15_governance_lane_sequencing.zig");
@@ -164,10 +171,12 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(makefile, "zigux/tests/phase15_build.zig");
 
     try expectContains(manifest_json, "\"lane_key\": \"P15-L06\"");
-    try expectContains(manifest_json, "\"surveyed_commit\": \"current-master-readback-2026-05-07\"");
+    try expectContains(manifest_json, "\"surveyed_commit\": \"current-master-readback-2026-05-08\"");
     try expectContains(manifest_json, "\"handoff\"");
     try expectContains(manifest_json, "\"current_mode\": \"maintenance_mode\"");
     try expectContains(manifest_json, "make -C zigux phase15-validate");
+    try expectContains(manifest_json, ".github/workflows/zigux-bootstrap.yml");
+    try expectContains(manifest_json, "make -C zigux phase15-test");
     try expectContains(manifest_json, "zig build test --build-file zigux/tests/phase15_build.zig");
     try expectContains(manifest_json, "make -C zigux phase15");
     try expectContains(manifest_json, "deep_core_blocker_posture_change");
