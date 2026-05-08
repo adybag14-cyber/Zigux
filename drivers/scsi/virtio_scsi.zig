@@ -167,6 +167,24 @@ pub const RecoveryRestoreQueueRebindSummary = struct {
     defers_event_buffers_until_after_device_ready: bool,
 };
 
+pub const RecoveryRequestQueueRestartSummary = struct {
+    anchor: []const u8,
+    request_queues: u16,
+    default_queues: u16,
+    poll_queues: u16,
+    total_queues: u16,
+    event_queue_index: u16,
+    first_request_queue_index: u16,
+    first_poll_queue_index: ?u16,
+    event_buffer_count: u16,
+    recovery_generation: u16,
+    requires_find_vqs_before_restart: bool,
+    requires_device_ready_before_restart: bool,
+    requires_event_rearm_before_restart: bool,
+    requires_replan_before_restart: bool,
+    preserves_default_before_poll_partition: bool,
+};
+
 pub const RecoveryEventBufferOwnershipSummary = struct {
     anchor: []const u8,
     event_queue_index: u16,
@@ -469,6 +487,36 @@ pub const VirtioScsiQueueLab = struct {
             .recreates_control_and_event_queues = true,
             .recreates_request_queues_before_device_ready = true,
             .defers_event_buffers_until_after_device_ready = true,
+        };
+    }
+
+    pub fn recoveryRequestQueueRestartSummary(self: *const Self) !RecoveryRequestQueueRestartSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        const preserves_default_before_poll_partition = if (layout.first_poll_queue_index) |first_poll_queue_index|
+            try checkedAddU16(layout.first_request_queue_index, layout.default_queues - 1) < first_poll_queue_index
+        else
+            true;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .request_queues = layout.request_queues,
+            .default_queues = layout.default_queues,
+            .poll_queues = layout.poll_queues,
+            .total_queues = layout.total_queues,
+            .event_queue_index = layout.event_queue_index,
+            .first_request_queue_index = layout.first_request_queue_index,
+            .first_poll_queue_index = layout.first_poll_queue_index,
+            .event_buffer_count = layout.event_buffer_count,
+            .recovery_generation = self.recovery_generation,
+            .requires_find_vqs_before_restart = true,
+            .requires_device_ready_before_restart = true,
+            .requires_event_rearm_before_restart = true,
+            .requires_replan_before_restart = true,
+            .preserves_default_before_poll_partition = preserves_default_before_poll_partition,
         };
     }
 
