@@ -82,16 +82,42 @@ fn expectManualTraversalOrder() !void {
     try std.testing.expectEqual(@as(?*rbtree.Node, &entries[5].node), rbtree.prev(&entries[2].node));
 }
 
-fn expectStarterBalanceInvariants(root: *const rbtree.Root) !void {
-    try std.testing.expectEqual(rbtree.Color.black, root.node.?.color);
+fn nodePtrInt(node: ?*const rbtree.Node) usize {
+    return if (node) |current| @intFromPtr(current) else 0;
+}
 
-    var current = rbtree.first(root);
-    while (current) |node| : (current = rbtree.next(node)) {
-        if (node.color == .red) {
-            try std.testing.expectEqual(rbtree.Color.black, if (node.left) |left| left.color else .black);
-            try std.testing.expectEqual(rbtree.Color.black, if (node.right) |right| right.color else .black);
+fn expectParentLinks(node: ?*const rbtree.Node, parent: ?*const rbtree.Node) !void {
+    const current = node orelse return;
+    const actual_parent: ?*const rbtree.Node = if (current.parent) |value| value else null;
+    try std.testing.expectEqual(nodePtrInt(parent), nodePtrInt(actual_parent));
+    try expectParentLinks(current.left, current);
+    try expectParentLinks(current.right, current);
+}
+
+fn expectBlackHeight(node: ?*const rbtree.Node) !usize {
+    const current = node orelse return 1;
+
+    const left_height = try expectBlackHeight(current.left);
+    const right_height = try expectBlackHeight(current.right);
+    try std.testing.expectEqual(left_height, right_height);
+
+    if (current.color == .red) {
+        if (current.left) |left| {
+            try std.testing.expectEqual(rbtree.Color.black, left.color);
+        }
+        if (current.right) |right| {
+            try std.testing.expectEqual(rbtree.Color.black, right.color);
         }
     }
+
+    return left_height + @intFromBool(current.color == .black);
+}
+
+fn expectStarterBalanceInvariants(root: *const rbtree.Root) !void {
+    const root_node = root.node orelse return;
+    try std.testing.expectEqual(rbtree.Color.black, root_node.color);
+    try expectParentLinks(root_node, null);
+    _ = try expectBlackHeight(root_node);
 }
 
 test "phase 7 rbtree module imports cleanly" {
@@ -184,6 +210,7 @@ test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stabl
     try expectStarterBalanceInvariants(&root);
 
     rbtree.erase(&entries[1].node, &root);
+    try expectStarterBalanceInvariants(&root);
     rbtree.replaceNode(&entries[0].node, &replacement.node, &root);
 
     const replaced_expected = [_]i32{ 5, 10, 15, 25 };
@@ -198,6 +225,7 @@ test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stabl
     try std.testing.expectEqual(replaced_expected.len, fixture.ordered.replace_order.len);
     try std.testing.expectEqual(replaced_expected.len, replaced_index);
     try std.testing.expectEqualSlices(i32, fixture.ordered.replace_order, replaced_actual[0..replaced_index]);
+    try expectStarterBalanceInvariants(&root);
 }
 
 test "phase 7 rbtree cached helpers return leftmost handoff state" {
