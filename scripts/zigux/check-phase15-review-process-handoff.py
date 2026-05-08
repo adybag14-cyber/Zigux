@@ -183,6 +183,8 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = (
     "make -C zigux phase15-validate",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
+    "if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, parity scorecard link or blocker record, indefinite-C policy link or non-applicability note, explicit non-goals, and written rationale explicit?",
+    "if a freeze-map anchor is closing review with a stay-in-C outcome, are the retained discussion state, the current blocker, and reopen triggers explicit?",
 )
 
 REQUIRED_SCRIPT_README_MARKERS = (
@@ -426,6 +428,7 @@ def write_fixture_tree(root: Path) -> None:
         "",
     )), encoding="utf-8")
 
+    (root / MAKEFILE_PATH).writeText = None
     (root / MAKEFILE_PATH).write_text("\n".join((
         *REQUIRED_MAKEFILE_MARKERS,
         "",
@@ -591,6 +594,38 @@ def run_self_test() -> int:
 
         checklist_path.write_text(original_checklist.replace("make -C zigux phase15-validate", "make -C zigux phase15-check", 1), encoding="utf-8")
         expect_only(root, ["review_checklist:make -C zigux phase15-validate"], "missing_validator_first_marker")
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+        case_count += 1
+
+        checklist_path.write_text(
+            original_checklist.replace(
+                "parity scorecard link or blocker record",
+                "scorecard link",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["review_checklist:if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, parity scorecard link or blocker record, indefinite-C policy link or non-applicability note, explicit non-goals, and written rationale explicit?"],
+            "missing_exact_status_review_prompt",
+        )
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+        case_count += 1
+
+        checklist_path.write_text(
+            original_checklist.replace(
+                "retained discussion state, the current blocker, and reopen triggers",
+                "retained discussion state and reopen triggers",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["review_checklist:if a freeze-map anchor is closing review with a stay-in-C outcome, are the retained discussion state, the current blocker, and reopen triggers explicit?"],
+            "missing_exact_stay_in_c_closeout_prompt",
+        )
         checklist_path.write_text(original_checklist, encoding="utf-8")
         case_count += 1
 
