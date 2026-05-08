@@ -15,6 +15,8 @@ const SurveySummary = struct {
     acceptable_limit_unapproved: bool,
     atomic64_benchmark_command_approved: bool,
     atomic64_acceptable_limit_approved: bool,
+    bitmap_benchmark_command_approved: bool,
+    bitmap_acceptable_limit_approved: bool,
 };
 
 const DeterministicReplay = struct {
@@ -138,6 +140,8 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try std.testing.expect(manifest.survey_summary.acceptable_limit_unapproved);
     try std.testing.expect(manifest.survey_summary.atomic64_benchmark_command_approved);
     try std.testing.expect(manifest.survey_summary.atomic64_acceptable_limit_approved);
+    try std.testing.expect(manifest.survey_summary.bitmap_benchmark_command_approved);
+    try std.testing.expect(!manifest.survey_summary.bitmap_acceptable_limit_approved);
 
     try std.testing.expectEqualStrings(
         "benchmark_command_approved",
