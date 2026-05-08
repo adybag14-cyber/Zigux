@@ -237,6 +237,13 @@ REQUIRED_WORKFLOW_MARKERS = (
     "run: make -C zigux phase15-test",
 )
 
+REQUIRED_HANDOFF_REPLAY_COMMANDS = (
+    "make -C zigux phase15-validate",
+    ".github/workflows/zigux-bootstrap.yml",
+    "zig build test --build-file zigux/tests/phase15_build.zig",
+    "make -C zigux phase15",
+)
+
 REQUIRED_FILES = (
     DOCS_README_PATH,
     REVIEW_CHECKLIST_PATH,
@@ -305,6 +312,18 @@ def validate(root: Path) -> list[str]:
             if field not in ownership_fields:
                 failures.append(f"manifest_ownership_evidence_fields:{field}")
 
+    handoff = manifest.get("handoff")
+    if not isinstance(handoff, dict):
+        failures.append("manifest:handoff")
+    else:
+        replay_commands = handoff.get("replay_commands")
+        if not isinstance(replay_commands, list):
+            failures.append("manifest:handoff_replay_commands")
+        else:
+            for command in REQUIRED_HANDOFF_REPLAY_COMMANDS:
+                if command not in replay_commands:
+                    failures.append(f"manifest_handoff_replay:{command}")
+
     handoff = manifest.get("handoff_evidence")
     if not isinstance(handoff, dict):
         failures.append("manifest:handoff_evidence")
@@ -362,6 +381,9 @@ def write_fixture_tree(root: Path) -> None:
         "lane_key": EXPECTED_LANE_KEY,
         "required_review_packet_fields": list(REQUIRED_REVIEW_PACKET_FIELDS),
         "ownership_evidence_fields": list(REQUIRED_OWNERSHIP_FIELDS),
+        "handoff": {
+            "replay_commands": list(REQUIRED_HANDOFF_REPLAY_COMMANDS),
+        },
         "handoff_evidence": {
             "current_repo_handoff": " ".join(REQUIRED_CURRENT_REPO_HANDOFF_MARKERS),
             "current_bounded_lane": " ".join(REQUIRED_CURRENT_BOUNDED_LANE_MARKERS),
@@ -477,6 +499,13 @@ def run_self_test() -> int:
         ).replace("  ", " ")
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_only(root, ["manifest_lane:direct `zig build test --build-file zigux/tests/phase15_build.zig` route"], "missing_direct_build_route_marker")
+        write_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["handoff"]["replay_commands"].remove(".github/workflows/zigux-bootstrap.yml")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest_handoff_replay:.github/workflows/zigux-bootstrap.yml"], "missing_workflow_replay_command")
         write_fixture_tree(root)
         case_count += 1
 
