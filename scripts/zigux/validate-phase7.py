@@ -505,6 +505,16 @@ EXACT_COUNT_MARKERS = {
     ],
 }
 
+FORBIDDEN_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": [
+        "run: make -C zigux phase7",
+        "run: python3 scripts/zigux/validate-phase7.py --self-test",
+        "run: python3 scripts/zigux/validate-phase7.py",
+        "run: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
+        "run: zig build test --build-file zigux/tests/phase7_build.zig",
+    ],
+}
+
 FIXTURE_OVERRIDES = {
     "scripts/zigux/validate-phase7.py": "# fixture\n",
     "zigux/tests/phase7_string_helpers.zig": "// fixture\n",
@@ -564,11 +574,23 @@ def collect_missing_markers(root: Path) -> list[str]:
     return missing
 
 
-def validate(root: Path) -> tuple[list[str], list[str]]:
+def collect_forbidden_markers(root: Path) -> list[str]:
+    forbidden: list[str] = []
+    for rel, markers in FORBIDDEN_MARKERS.items():
+        text = (root / rel).read_text(encoding="utf-8")
+        for marker in markers:
+            if marker in text:
+                forbidden.append(f"{rel}: {marker}")
+    return forbidden
+
+
+def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
-        return missing_files, []
-    return [], collect_missing_markers(root)
+        return missing_files, [], []
+    missing_markers = collect_missing_markers(root)
+    forbidden_markers = collect_forbidden_markers(root)
+    return [], missing_markers, forbidden_markers
 
 
 def write_fixture_root(tmp_root: Path) -> None:
@@ -593,14 +615,16 @@ def write_fixture_root(tmp_root: Path) -> None:
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
-    missing_files, missing_markers = validate(tmp_root)
+    missing_files, missing_markers, forbidden_markers = validate(tmp_root)
     assert missing_markers == [], case
+    assert forbidden_markers == [], case
     assert missing_files == [rel], case
 
 
 def expect_missing_marker(case: str, tmp_root: Path, expected: str) -> None:
-    missing_files, missing_markers = validate(tmp_root)
+    missing_files, missing_markers, forbidden_markers = validate(tmp_root)
     assert missing_files == [], case
+    assert forbidden_markers == [], case
     assert expected in missing_markers, case
 
 
@@ -639,7 +663,7 @@ def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
-        assert validate(tmp_root) == ([], [])
+        assert validate(tmp_root) == ([], [], [])
 
         missing_file_case_count = 0
         for rel in REQUIRED_FILES:
@@ -673,7 +697,24 @@ def run_self_test() -> None:
                 write_fixture_root(tmp_root)
                 exact_count_case_count += 1
 
-    case_count = missing_file_case_count + missing_marker_case_count + exact_count_case_count
+        forbidden_marker_case_count = 0
+        for rel, markers in FORBIDDEN_MARKERS.items():
+            path = tmp_root / rel
+            for marker in markers:
+                mutate_file(path, lambda text, marker=marker: text + marker + "\n")
+                missing_files, missing_markers, forbidden_markers = validate(tmp_root)
+                assert missing_files == [], f"forbidden_marker:{rel}:{marker}"
+                assert missing_markers == [], f"forbidden_marker:{rel}:{marker}"
+                assert f"{rel}: {marker}" in forbidden_markers, f"forbidden_marker:{rel}:{marker}"
+                write_fixture_root(tmp_root)
+                forbidden_marker_case_count += 1
+
+    case_count = (
+        missing_file_case_count
+        + missing_marker_case_count
+        + exact_count_case_count
+        + forbidden_marker_case_count
+    )
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
     print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
 
@@ -687,7 +728,7 @@ def main() -> int:
         run_self_test()
         return 0
 
-    missing_files, missing_markers = validate(ROOT)
+    missing_files, missing_markers, forbidden_markers = validate(ROOT)
     if missing_files:
         print("PHASE7_VALIDATION=fail")
         print("MISSING_PHASE7_FILES_START")
@@ -702,6 +743,14 @@ def main() -> int:
         for item in missing_markers:
             print(item)
         print("MISSING_PHASE7_MARKERS_END")
+        return 1
+
+    if forbidden_markers:
+        print("PHASE7_VALIDATION=fail")
+        print("FORBIDDEN_PHASE7_MARKERS_START")
+        for item in forbidden_markers:
+            print(item)
+        print("FORBIDDEN_PHASE7_MARKERS_END")
         return 1
 
     print("PHASE7_VALIDATION=pass")
