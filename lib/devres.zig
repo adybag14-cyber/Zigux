@@ -316,6 +316,14 @@ pub const DevresHelperLab = struct {
         });
     }
 
+    pub fn planManagedIoremapAcquireNp(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
+        return planManagedIoremapAcquire(.{
+            .kind = .non_posted,
+            .release_record_allocated = input.release_record_allocated,
+            .mapped_address = input.mapped_address,
+        });
+    }
+
     pub fn ioremapReleaseMatches(tracked_address: usize, candidate_address: usize) bool {
         return tracked_address == candidate_address;
     }
