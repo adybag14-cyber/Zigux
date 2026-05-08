@@ -251,6 +251,81 @@ test "hvc_console verify keeps sysrq notifier deferral false without dispatch" {
     try std.testing.expect(no_break_sysrq.remove_handoff_still_required);
 }
 
+test "hvc_console verify keeps khvcd worker-entry sleep, kick, and poll-mask boundaries explicit" {
+    var console = try hvc_console.HvcConsoleLab.init(4);
+    _ = console.instantiate(0x44);
+
+    const active_worker = try console.summarizeKhvcdWorkerEntry(.{
+        .polling = .{
+            .close = .{
+                .port_initialized = true,
+                .open_count_before_close = 1,
+            },
+            .notifier_hangup_pending = true,
+            .write_poll_pending = true,
+        },
+        .xmon_active = true,
+        .timeout_ms = hvc_console.min_timeout_ms,
+    });
+    try std.testing.expect(active_worker.final_close_wait_required);
+    try std.testing.expect(active_worker.clears_port_initialized_on_final_close);
+    try std.testing.expect(active_worker.khvcd_polling_pending);
+    try std.testing.expect(active_worker.poll_read_pending);
+    try std.testing.expect(active_worker.poll_write_pending);
+    try std.testing.expectEqual(hvc_console.hvc_poll_read | hvc_console.hvc_poll_write, active_worker.poll_mask);
+    try std.testing.expect(active_worker.xmon_forces_read_poll);
+    try std.testing.expect(!active_worker.wakeup_short_circuited_by_kick);
+    try std.testing.expect(!active_worker.sleeps_without_timeout);
+    try std.testing.expect(active_worker.sleeps_with_timeout);
+    try std.testing.expectEqual(hvc_console.min_timeout_ms, active_worker.timeout_ms_before_sleep);
+    try std.testing.expectEqual(@as(u32, 11), active_worker.timeout_ms_after_backoff);
+    try std.testing.expect(active_worker.backend_handoff_pending);
+
+    const kicked_worker = try console.summarizeKhvcdWorkerEntry(.{
+        .polling = .{
+            .close = .{
+                .port_initialized = false,
+                .open_count_before_close = 2,
+            },
+            .write_poll_pending = true,
+        },
+        .hvc_kicked_after_poll = true,
+        .timeout_ms = 0,
+    });
+    try std.testing.expect(!kicked_worker.final_close_wait_required);
+    try std.testing.expect(!kicked_worker.poll_read_pending);
+    try std.testing.expect(kicked_worker.poll_write_pending);
+    try std.testing.expectEqual(hvc_console.hvc_poll_write, kicked_worker.poll_mask);
+    try std.testing.expect(kicked_worker.wakeup_short_circuited_by_kick);
+    try std.testing.expect(!kicked_worker.sleeps_without_timeout);
+    try std.testing.expect(!kicked_worker.sleeps_with_timeout);
+    try std.testing.expectEqual(@as(u32, 0), kicked_worker.timeout_ms_before_sleep);
+    try std.testing.expectEqual(@as(u32, 0), kicked_worker.timeout_ms_after_backoff);
+    try std.testing.expect(kicked_worker.backend_handoff_pending);
+
+    const idle_worker = try console.summarizeKhvcdWorkerEntry(.{
+        .polling = .{
+            .close = .{
+                .port_initialized = false,
+                .open_count_before_close = 2,
+            },
+        },
+        .timeout_ms = hvc_console.max_timeout_ms,
+    });
+    try std.testing.expect(idle_worker.sleeps_without_timeout);
+    try std.testing.expect(!idle_worker.sleeps_with_timeout);
+    try std.testing.expectEqual(hvc_console.max_timeout_ms, idle_worker.timeout_ms_after_backoff);
+    try std.testing.expect(!idle_worker.backend_handoff_pending);
+
+    try std.testing.expectError(error.InvalidOpenCount, console.summarizeKhvcdWorkerEntry(.{
+        .polling = .{
+            .close = .{
+                .open_count_before_close = 0,
+            },
+        },
+    }));
+}
+
 test "hvc_console verify rejects impossible hangup buffered-write state" {
     var console = try hvc_console.HvcConsoleLab.init(6);
     _ = console.instantiate(0x61);
