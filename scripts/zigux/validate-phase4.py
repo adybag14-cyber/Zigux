@@ -112,6 +112,7 @@ REQUIRED_SCRIPT_README_MARKERS = [
 REQUIRED_TESTS_README_MARKERS = [
     "zigux/tests/atomic64_diff.zig",
     "zigux/tests/runtime_atomic64_diff.zig",
+    "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
     "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
     "zigux/tests/bitmap_diff.zig",
     "zigux/tests/phase4_bitmap_diff_manifest.json",
@@ -521,24 +522,58 @@ def run_phase4_bitmap_packet_check(root: Path) -> list[str]:
         if manifest.get(field) != expected:
             problems.append(f"bitmap_manifest:{field}:{manifest.get(field)}:{expected}")
 
-    for field in [
+    expected_true_fields = [
         "roadmap_bitmap_diff_present",
         "phase4_build_present",
         "phase4_build_uses_bitmap_diff",
         "phase4_build_uses_bitmap_diff_survey",
-    ]:
+    ]
+    for field in expected_true_fields:
         if manifest.get(field) is not True:
             problems.append(f"bitmap_manifest:{field}:{manifest.get(field)}:true")
+
+    expected_field_markers = {
+        "roadmap_gap_summary": [
+            "zigux/tests/bitmap_diff.zig",
+            "shared Phase 4 gate-evidence note",
+            "phase4_build.zig",
+            "Shared Subsystems Pod",
+            "rollback owner",
+        ],
+        "reversible_delivery_evidence": [
+            "zigux/tests/bitmap_diff.zig",
+            "zigux/tests/phase4_bitmap_live_helper_replay.zig",
+            "Documentation/zigux/phase4-gate-evidence.md",
+            "zigux/tests/phase4_bitmap_diff_manifest.json",
+            "zigux/tests/phase4_bitmap_diff_survey.zig",
+            "zigux/tests/phase4_build.zig",
+            "measurable and reversible",
+        ],
+        "ready_next": [
+            "scripts/zigux/validate-phase4.py",
+            "Documentation/zigux/phase4-validation-matrix.md",
+            "Shared Subsystems Pod",
+            "rollback owner",
+            "samples",
+            "perf-threshold approval",
+        ],
+    }
+    for field, markers in expected_field_markers.items():
+        value = manifest.get(field)
+        if not isinstance(value, str):
+            problems.append(f"bitmap_manifest:{field}:{value}:string")
+            continue
+        for marker in markers:
+            if marker not in value:
+                problems.append(f"bitmap_manifest_marker:{field}:{marker}")
 
     for field, relative_path in PHASE4_BITMAP_PIN_TARGETS.items():
         expected = _git_blob_sha1((root / relative_path).read_bytes())
         actual = manifest.get(field)
         if actual != expected:
             problems.append(f"bitmap_manifest_sha:{field}:{actual}:{expected}")
-        if survey.count(expected) != 1:
-            problems.append(f"bitmap_survey_sha:{field}:{expected}:{survey.count(expected)}")
 
-    survey_markers = [
+    expected_survey_markers = [
         "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay measurable",
         "phase 4 bitmap survey keeps the shared build route explicit",
         "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit",
@@ -547,10 +582,14 @@ def run_phase4_bitmap_packet_check(root: Path) -> list[str]:
         "phase4_bitmap_live_helper_replay.zig",
         "Shared Subsystems Pod",
         "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+        manifest["live_gate_blob_sha"],
+        manifest["helper_replay_blob_sha"],
+        manifest["gate_evidence_blob_sha"],
+        manifest["phase4_build_blob_sha"],
     ]
-    for marker in survey_markers:
+    for marker in expected_survey_markers:
         if marker not in survey:
-            problems.append(f"bitmap_survey_marker:{marker}")
+            problems.append(f"bitmap_survey:{marker}")
 
     return problems
 
@@ -558,11 +597,11 @@ def run_phase4_bitmap_packet_check(root: Path) -> list[str]:
 def _write(root: Path, relative_path: str, content: str) -> None:
     path = root / relative_path
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8", newline="\n")
+    path.write_text(content, encoding="utf-8")
 
 
 def build_fixture_tree(root: Path) -> None:
-    _write(root, "scripts/zigux/artifact_diff.py", "print('artifact diff fixture')\n")
+    _write(root, "scripts/zigux/artifact_diff.py", "# fixture\n")
     _write(
         root,
         "scripts/zigux/check-artifact-diff-contract.py",
@@ -687,6 +726,7 @@ def build_fixture_tree(root: Path) -> None:
             [
                 "zigux/tests/atomic64_diff.zig",
                 "zigux/tests/runtime_atomic64_diff.zig",
+                "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
                 "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
                 "zigux/tests/bitmap_diff.zig",
                 "zigux/tests/phase4_bitmap_diff_manifest.json",
