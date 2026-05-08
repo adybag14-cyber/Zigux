@@ -102,6 +102,7 @@ REQUIRED_FILE_MARKERS = {
         "build-only contract drift still fails closed when the local runtime needs the fallback path.",
         "the compact release-coordination matrix",
         "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+        "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
