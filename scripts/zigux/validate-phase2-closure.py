@@ -116,12 +116,23 @@ PHASE2_WORKFLOW_EXACT_LINES = {
     "run: zig test scripts/zigux/mk_elfconfig.zig": 1,
 }
 
+PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS = [
+    "scripts/zigux/zig-toolchain-policy.json",
+    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
+    "python3 scripts/zigux/check-zig-toolchain.py",
+    "current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`",
+    "current minimum Zig version: `0.17.0-dev.87+9b177a7d2`",
+    "x86_64-linux",
+]
+
 def required_files_for(root: Path) -> list[Path]:
     return [
         root / "Documentation" / "zigux" / "phase2-closure.md",
         root / "Documentation" / "zigux" / "README.md",
         root / "Documentation" / "zigux" / "review-checklist.md",
-        root / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md",
+        TOOLCHAIN_NOTES,
         root / "Documentation" / "zigux" / "artifact-diff.md",
         root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py",
         root / "scripts" / "zigux" / "check-genksyms-bridge.py",
@@ -346,9 +357,32 @@ def workflow_ok_text() -> str:
         + "\n"
     )
 
+def toolchain_notes_ok_text() -> str:
+    return (
+        "\n".join(
+            [
+                "- policy file: `scripts/zigux/zig-toolchain-policy.json`",
+                "- guard self-test: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
+                "- guard: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+                "- workflow install path: `python3 scripts/zigux/install-zig.py --dest .zig-toolchain`",
+                "- workflow verification path: `python3 scripts/zigux/check-zig-toolchain.py`",
+                "- current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`",
+                "- current minimum Zig version: `0.17.0-dev.87+9b177a7d2`",
+                "- current pinned bootstrap archive target: `x86_64-linux`",
+            ]
+        )
+        + "\n"
+    )
+
 def require_marker(text: str, marker: str, bucket: list[str], prefix: str) -> None:
     if marker not in text:
         bucket.append(f"{prefix}:{marker}")
+
+def validate_required_markers(text: str, markers: list[str], prefix: str) -> list[str]:
+    issues: list[str] = []
+    for marker in markers:
+        require_marker(text, marker, issues, prefix)
+    return issues
 
 def main_validation(root: Path) -> list[str]:
     required_files = required_files_for(root)
@@ -381,10 +415,11 @@ def main_validation(root: Path) -> list[str]:
             return [f"missing_file:{abs_path.relative_to(root)}"]
 
     closure = (root / "Documentation/zigux/phase2-closure.md").read_text(encoding="utf-8")
-    workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
+    workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
     ledger = (root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
-    artifact_doc = (root / "Documentation" / "zigux" / "artifact-diff.md").read_text(encoding="utf-8")
+    artifact_doc = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
+    toolchain_notes = TOOLCHAIN_NOTES.read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     tool_manifest = json.loads(
         (root / "zigux/tests/fixtures/phase2_tool_manifest.json").read_text(encoding="utf-8")
@@ -536,6 +571,8 @@ def main_validation(root: Path) -> list[str]:
         require_marker(script_readme, marker, issues, "scripts")
     for marker in required_doc_markers:
         require_marker(artifact_doc, marker, issues, "doc")
+    for marker in PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS:
+        require_marker(toolchain_notes, marker, issues, "toolchain_notes")
     for marker in required_makefile_markers:
         require_marker(makefile, marker, issues, "make")
     issues.extend(validate_exact_makefile_runs(makefile))
@@ -566,8 +603,31 @@ def run_self_test() -> int:
     cases: list[tuple[str, list[str], list[str]]] = []
     make_ok = make_ok_text()
     workflow_ok = workflow_ok_text()
+    toolchain_notes_ok = toolchain_notes_ok_text()
     cases.append(("make_ok", validate_exact_makefile_runs(make_ok), []))
     cases.append(("workflow_ok", validate_exact_workflow_runs(workflow_ok), []))
+    cases.append(
+        (
+            "toolchain_notes_ok",
+            validate_required_markers(
+                toolchain_notes_ok,
+                PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS,
+                "toolchain_notes",
+            ),
+            [],
+        )
+    )
+    cases.append(
+        (
+            "toolchain_notes_missing_x86_64",
+            validate_required_markers(
+                toolchain_notes_ok.replace("`x86_64-linux`", "`archive-target`", 1),
+                PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS,
+                "toolchain_notes",
+            ),
+            ["toolchain_notes:x86_64-linux"],
+        )
+    )
 
     make_duplicate_cases = [
         "scripts/zigux/check-kconfig-bridge.py --self-test",
@@ -688,7 +748,7 @@ def main() -> int:
     )
     print(
         "PHASE2_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{51 + len(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + 25 + 6 + 4 + 29}"
+        f"{51 + len(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + 25 + 6 + 4 + len(PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS) + 29}"
     )
     return 0
 
