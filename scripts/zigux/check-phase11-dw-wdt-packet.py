@@ -12,6 +12,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 SURVEY_NOTE_PATH = "Documentation/zigux/phase11-dw-wdt-survey.md"
 VALIDATION_MATRIX_PATH = "Documentation/zigux/phase11-dw-wdt-validation-matrix.md"
+SHARED_REPLAY_CONTRACT_PATH = "Documentation/zigux/phase11-shared-replay-contract.md"
 MANIFEST_PATH = "zigux/tests/phase11_dw_wdt_manifest.json"
 SURVEY_GATE_PATH = "zigux/tests/phase11_dw_wdt_survey.zig"
 REGISTRATION_SCAFFOLD_PATH = "zigux/tests/phase11_dw_wdt_registration_scaffold.zig"
@@ -37,6 +38,15 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`",
 ]
 
+REQUIRED_SHARED_REPLAY_MARKERS = [
+    "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+    "`Documentation/zigux/phase11-dw-wdt-survey.md`",
+    "`zigux/tests/phase11_dw_wdt_manifest.json`",
+    "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
+    "`drivers/watchdog/dw_wdt_verify.zig`",
+    "`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`",
+]
+
 REQUIRED_MANIFEST_MARKERS = [
     '"lane_key": "P11-L05"',
     '"id": "phase11-dw-wdt-survey-gate"',
@@ -52,7 +62,7 @@ REQUIRED_BUILD_MARKERS = [
     '.name = "phase11-dw-wdt-survey-tests"',
 ]
 
-SELF_TEST_CASE_COUNT = 13
+SELF_TEST_CASE_COUNT = 15
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -69,6 +79,7 @@ def validate(root: Path) -> list[str]:
     for rel_path in [
         SURVEY_NOTE_PATH,
         VALIDATION_MATRIX_PATH,
+        SHARED_REPLAY_CONTRACT_PATH,
         MANIFEST_PATH,
         SURVEY_GATE_PATH,
         REGISTRATION_SCAFFOLD_PATH,
@@ -87,6 +98,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_VALIDATION_MATRIX_MARKERS:
         if marker not in read_text(root, VALIDATION_MATRIX_PATH):
             failures.append(f"validation_matrix:{marker}")
+    for marker in REQUIRED_SHARED_REPLAY_MARKERS:
+        if marker not in read_text(root, SHARED_REPLAY_CONTRACT_PATH):
+            failures.append(f"shared_replay:{marker}")
     for marker in REQUIRED_MANIFEST_MARKERS:
         if marker not in read_text(root, MANIFEST_PATH):
             failures.append(f"manifest:{marker}")
@@ -123,6 +137,18 @@ This survey note keeps lane identity `P11-L05` explicit beside the current revie
 - `phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`
 - `scripts/zigux/check-phase11-dw-wdt-packet.py`
 - `python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`
+""",
+    )
+    write_text(
+        root / SHARED_REPLAY_CONTRACT_PATH,
+        """# Phase 11 Shared Replay Contract
+
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-survey.md`
+- `zigux/tests/phase11_dw_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
+- `drivers/watchdog/dw_wdt_verify.zig`
+- `phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`
 """,
     )
     write_text(
@@ -183,6 +209,7 @@ def run_self_test() -> int:
             (SURVEY_NOTE_PATH, "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`", "survey_note:`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`"),
             (VALIDATION_MATRIX_PATH, "`drivers/watchdog/dw_wdt_verify.zig`", "validation_matrix:`drivers/watchdog/dw_wdt_verify.zig`"),
             (VALIDATION_MATRIX_PATH, "`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`", "validation_matrix:`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`"),
+            (SHARED_REPLAY_CONTRACT_PATH, "`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`", "shared_replay:`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`"),
             (MANIFEST_PATH, '"id": "phase11-dw-wdt-registration-order-scaffold"', 'manifest:"id": "phase11-dw-wdt-registration-order-scaffold"'),
             (BUILD_PATH, '.name = "phase11-dw-wdt-survey-tests"', 'build:.name = "phase11-dw-wdt-survey-tests"'),
         ]
@@ -193,7 +220,7 @@ def run_self_test() -> int:
             except AssertionError as exc:
                 print(str(exc), file=sys.stderr)
                 return 1
-        for rel_path in [SURVEY_GATE_PATH, REGISTRATION_SCAFFOLD_PATH, VERIFY_REPLAY_PATH, SCRIPT_PATH, MANIFEST_PATH, VALIDATION_MATRIX_PATH, SURVEY_NOTE_PATH]:
+        for rel_path in [SURVEY_GATE_PATH, REGISTRATION_SCAFFOLD_PATH, VERIFY_REPLAY_PATH, SCRIPT_PATH, MANIFEST_PATH, VALIDATION_MATRIX_PATH, SHARED_REPLAY_CONTRACT_PATH, SURVEY_NOTE_PATH]:
             write_fixture_tree(root)
             try:
                 expect_missing_file(root, rel_path)
