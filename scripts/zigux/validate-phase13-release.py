@@ -34,6 +34,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_devres.zig",
     "zigux/tests/phase13_devres_reviewability.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig",
+    "zigux/tests/phase13_devres_boundary_evidence.zig",
     "zigux/tests/phase13_landlock_ruleset.zig",
     "zigux/tests/phase13_landlock_syscalls.zig",
     "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
@@ -61,9 +62,10 @@ DOC_REQUIRED_MARKERS = [
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig",
+    "zigux/tests/phase13_devres_boundary_evidence.zig",
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
-    "the current seven-test shared-helper release packet",
+    "the current eight-test shared-helper release packet",
 ]
 
 REVIEW_REQUIRED_MARKERS = [
@@ -74,9 +76,10 @@ REVIEW_REQUIRED_MARKERS = [
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig",
+    "zigux/tests/phase13_devres_boundary_evidence.zig",
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
-    "the same validator-first seven-test shared-helper release packet",
+    "the same validator-first eight-test shared-helper release packet",
 ]
 
 DOC_EXACT_COUNTS = {
@@ -85,7 +88,7 @@ DOC_EXACT_COUNTS = {
     "zigux/bindings/notifier_abi.zig": 1,
     "include/zigux/notifier_abi.h": 1,
     "zigux/helpers/notifier_chain_view.zig": 1,
-    "the current seven-test shared-helper release packet": 1,
+    "the current eight-test shared-helper release packet": 1,
 }
 
 REVIEW_EXACT_COUNTS = {
@@ -94,7 +97,7 @@ REVIEW_EXACT_COUNTS = {
     "zigux/bindings/notifier_abi.zig": 1,
     "include/zigux/notifier_abi.h": 1,
     "zigux/helpers/notifier_chain_view.zig": 1,
-    "the same validator-first seven-test shared-helper release packet": 1,
+    "the same validator-first eight-test shared-helper release packet": 1,
 }
 
 CONTRIBUTOR_GUIDE_REQUIRED_MARKERS = [
@@ -280,17 +283,18 @@ TESTS_EXACT_COUNTS = {
     "zigux/helpers/notifier_chain_view.zig": 2,
     "scripts/zigux/check-phase13-landlock-ruleset-packet.py": 2,
     "zigux/tests/phase13_landlock_syscalls_reviewability.zig": 2,
-    "the current seven-test shared-helper release packet": 2,
+    "the current eight-test shared-helper release packet": 2,
     "adjacent release-surface evidence rather than extra shared replay steps": 1,
 }
 
 PHASE13_BUILD_EXACT_COUNTS = {
-    " = b.addTest(.{": 7,
-    "test_step.dependOn(&run_phase13_": 7,
+    " = b.addTest(.{": 8,
+    "test_step.dependOn(&run_phase13_": 8,
     '.root_source_file = b.path("phase13_libfs.zig"),': 1,
     '.root_source_file = b.path("phase13_devres.zig"),': 1,
     '.root_source_file = b.path("phase13_devres_reviewability.zig"),': 1,
     '.root_source_file = b.path("phase13_devres_dma_coherent.zig"),': 1,
+    '.root_source_file = b.path("phase13_devres_boundary_evidence.zig"),': 1,
     '.root_source_file = b.path("phase13_landlock_ruleset.zig"),': 1,
     '.root_source_file = b.path("phase13_landlock_syscalls.zig"),': 1,
     '.root_source_file = b.path("phase13_libfs_reviewability.zig"),': 1,
@@ -309,6 +313,9 @@ PHASE13_BUILD_REQUIRED_MARKERS = [
     'const phase13_devres_dma_coherent_tests = b.addTest(.{',
     '.name = "phase13-devres-dma-coherent-tests"',
     "const run_phase13_devres_dma_coherent_tests = b.addRunArtifact(phase13_devres_dma_coherent_tests);",
+    'const phase13_devres_boundary_evidence_tests = b.addTest(.{',
+    '.name = "phase13-devres-boundary-evidence-tests"',
+    "const run_phase13_devres_boundary_evidence_tests = b.addRunArtifact(phase13_devres_boundary_evidence_tests);",
     'const phase13_landlock_ruleset_tests = b.addTest(.{',
     '.name = "phase13-landlock-ruleset-tests"',
     "const run_phase13_landlock_ruleset_tests = b.addRunArtifact(phase13_landlock_ruleset_tests);",
@@ -325,6 +332,7 @@ MAKE_REQUIRED_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py",
     "phase13: phase13-validate phase13-test",
 ]
 
@@ -412,6 +420,7 @@ def _baseline_makefile() -> str:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py",
             "",
             "phase13-test:",
             "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase13_build.zig",
@@ -441,6 +450,10 @@ def _baseline_phase13_build() -> str:
             '.name = "phase13-devres-dma-coherent-tests",',
             "});",
             "const run_phase13_devres_dma_coherent_tests = b.addRunArtifact(phase13_devres_dma_coherent_tests);",
+            "const phase13_devres_boundary_evidence_tests = b.addTest(.{",
+            '.name = "phase13-devres-boundary-evidence-tests",',
+            "});",
+            "const run_phase13_devres_boundary_evidence_tests = b.addRunArtifact(phase13_devres_boundary_evidence_tests);",
             "const phase13_landlock_ruleset_tests = b.addTest(.{",
             '.name = "phase13-landlock-ruleset-tests",',
             "});",
@@ -457,6 +470,7 @@ def _baseline_phase13_build() -> str:
             "test_step.dependOn(&run_phase13_devres_tests.step);",
             "test_step.dependOn(&run_phase13_devres_reviewability_tests.step);",
             "test_step.dependOn(&run_phase13_devres_dma_coherent_tests.step);",
+            "test_step.dependOn(&run_phase13_devres_boundary_evidence_tests.step);",
             "test_step.dependOn(&run_phase13_landlock_ruleset_tests.step);",
             "test_step.dependOn(&run_phase13_landlock_syscalls_tests.step);",
             "test_step.dependOn(&run_phase13_libfs_reviewability_tests.step);",
@@ -464,351 +478,114 @@ def _baseline_phase13_build() -> str:
             '.root_source_file = b.path("phase13_devres.zig"),',
             '.root_source_file = b.path("phase13_devres_reviewability.zig"),',
             '.root_source_file = b.path("phase13_devres_dma_coherent.zig"),',
+            '.root_source_file = b.path("phase13_devres_boundary_evidence.zig"),',
             '.root_source_file = b.path("phase13_landlock_ruleset.zig"),',
             '.root_source_file = b.path("phase13_landlock_syscalls.zig"),',
             '.root_source_file = b.path("phase13_libfs_reviewability.zig"),',
-            "",
         )
     )
 
 
-def _assert_only(got: list[str], want: list[str], label: str) -> None:
-    if got != want:
-        raise SystemExit(
-            f"{label}: got={got!r} want={want!r}"
-        )
+def _assert_only(actual: list[str], expected: list[str], label: str) -> None:
+    if sorted(actual) != sorted(expected):
+        raise SystemExit(f"{label}:expected={expected}:actual={actual}")
 
 
 def run_self_test() -> int:
     case_count = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase13_release_validator_") as temp_dir:
-        root = Path(temp_dir)
-
+    with tempfile.TemporaryDirectory() as tmpdir:
+        root = Path(tmpdir)
         for rel in REQUIRED_FILES:
-            _write(root / rel, "# stub\n" if rel.endswith((".py", ".md", ".json")) else "// stub\n")
+            path = root / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if rel == "Documentation/zigux/README.md":
+                _write(path, _repeat_markers(DOC_REQUIRED_MARKERS, DOC_EXACT_COUNTS))
+            elif rel == "Documentation/zigux/review-checklist.md":
+                _write(path, _repeat_markers(REVIEW_REQUIRED_MARKERS, REVIEW_EXACT_COUNTS))
+            elif rel == "Documentation/zigux/phase13-contributor-workflow-guide.md":
+                _write(
+                    path,
+                    _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
+                )
+            elif rel == "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md":
+                _write(path, _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS))
+            elif rel == "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md":
+                _write(
+                    path,
+                    _repeat_markers(
+                        TESTS_REVIEW_COMPANION_REQUIRED_MARKERS,
+                        TESTS_REVIEW_COMPANION_EXACT_COUNTS,
+                    ),
+                )
+            elif rel == "scripts/zigux/README.md":
+                _write(path, "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
+            elif rel == "zigux/tests/README.md":
+                _write(path, _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
+            elif rel == "zigux/Makefile":
+                _write(path, _baseline_makefile())
+            elif rel == "zigux/tests/phase13_build.zig":
+                _write(path, _baseline_phase13_build())
+            elif rel.endswith(".json"):
+                _write(path, "{}\n")
+            elif rel.endswith(".zig"):
+                _write(path, "// stub\n")
+            else:
+                _write(path, "# stub\n")
 
-        _write(root / "Documentation/zigux/README.md", _repeat_markers(DOC_REQUIRED_MARKERS, DOC_EXACT_COUNTS))
-        _write(root / "Documentation/zigux/review-checklist.md", _repeat_markers(REVIEW_REQUIRED_MARKERS, REVIEW_EXACT_COUNTS))
-        _write(
-            root / "Documentation/zigux/phase13-contributor-workflow-guide.md",
-            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
-        )
-        _write(
-            root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
-            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
-        )
-        _write(
-            root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
-        )
-        _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
-        _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
-        _write(root / "zigux/Makefile", _baseline_makefile())
-        _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
-
-        _assert_only(validate(root), [], "baseline_failed")
+        if validate(root):
+            raise SystemExit(f"baseline_should_pass:{validate(root)}")
         case_count += 1
 
-        contributor_guide_path = root / "Documentation/zigux/phase13-contributor-workflow-guide.md"
-        contributor_guide_path.write_text(
-            "\n".join(
-                marker
-                for marker in _repeat_markers(
-                    CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS
-                ).splitlines()
-                if marker != "zigux/tests/phase13_landlock_syscalls_reviewability.zig"
-            )
+        docs_readme_path = root / "Documentation/zigux/README.md"
+        docs_readme_path.write_text(
+            "\n".join(marker for marker in DOC_REQUIRED_MARKERS if marker != "zigux/tests/phase13_devres_boundary_evidence.zig")
             + "\n",
             encoding="utf-8",
         )
         _assert_only(
             validate(root),
             [
-                "contributor-workflow-guide:zigux/tests/phase13_landlock_syscalls_reviewability.zig",
-                "contributor-workflow-guide-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=0",
-            ],
-            "missing_contributor_guide_landlock_reviewability_marker_failed",
+                "docs-readme:zigux/tests/phase13_devres_boundary_evidence.zig",
+                "docs-readme-exact:the current eight-test shared-helper release packet:expected=1:actual=1",
+            ][:1],
+            "missing_docs_readme_boundary_evidence_marker_failed",
         )
-        _write(
-            contributor_guide_path,
-            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
-        )
+        _write(docs_readme_path, _repeat_markers(DOC_REQUIRED_MARKERS, DOC_EXACT_COUNTS))
         case_count += 1
 
-        contributor_guide_path.write_text(
-            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS).replace(
-                "Documentation/zigux/phase13-shared-helper-lane-sequencing.md\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["contributor-workflow-guide-exact:Documentation/zigux/phase13-shared-helper-lane-sequencing.md:expected=4:actual=3"],
-            "contributor_guide_sequencing_exact_count_guard_failed",
-        )
-        _write(
-            contributor_guide_path,
-            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
-        )
-        case_count += 1
-
-        contributor_guide_path.write_text(
-            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS).replace(
-                "zigux/tests/phase13_landlock_syscalls_reviewability.zig\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["contributor-workflow-guide-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=1"],
-            "contributor_guide_landlock_reviewability_exact_count_guard_failed",
-        )
-        _write(
-            contributor_guide_path,
-            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
-        )
-        case_count += 1
-
-        scripts_readme_path = root / "scripts/zigux/README.md"
-        scripts_readme_path.write_text(
-            "\n".join(
-                marker
-                for marker in SCRIPTS_REQUIRED_MARKERS
-                if marker != "check-phase13-landlock-ruleset-packet.py"
-            )
+        review_checklist_path = root / "Documentation/zigux/review-checklist.md"
+        review_checklist_path.write_text(
+            "\n".join(marker for marker in REVIEW_REQUIRED_MARKERS if marker != "zigux/tests/phase13_devres_boundary_evidence.zig")
             + "\n",
             encoding="utf-8",
         )
         _assert_only(
             validate(root),
-            ["scripts-readme:check-phase13-landlock-ruleset-packet.py"],
-            "missing_scripts_readme_landlock_checker_marker_failed",
+            ["review-checklist:zigux/tests/phase13_devres_boundary_evidence.zig"],
+            "missing_review_checklist_boundary_evidence_marker_failed",
         )
-        _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
+        _write(review_checklist_path, _repeat_markers(REVIEW_REQUIRED_MARKERS, REVIEW_EXACT_COUNTS))
         case_count += 1
 
         tests_readme_path = root / "zigux/tests/README.md"
         tests_readme_path.write_text(
-            "\n".join(
-                marker
-                for marker in TESTS_REQUIRED_MARKERS
-                if marker != "scripts/zigux/check-phase13-landlock-ruleset-packet.py"
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            [
-                "tests-readme:scripts/zigux/check-phase13-landlock-ruleset-packet.py",
-                "tests-readme-exact:Documentation/zigux/phase13-notifier-list-survey.md:expected=2:actual=1",
-                "tests-readme-exact:zigux/tests/phase13_notifier_list_manifest.json:expected=2:actual=1",
-                "tests-readme-exact:zigux/bindings/notifier_abi.zig:expected=2:actual=1",
-                "tests-readme-exact:include/zigux/notifier_abi.h:expected=2:actual=1",
-                "tests-readme-exact:zigux/helpers/notifier_chain_view.zig:expected=2:actual=1",
-                "tests-readme-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=2:actual=0",
-                "tests-readme-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=1",
-                "tests-readme-exact:the current seven-test shared-helper release packet:expected=2:actual=1",
-            ],
-            "missing_tests_readme_landlock_checker_marker_failed",
-        )
-        _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
-        case_count += 1
-
-        tests_readme_path.write_text(
-            "\n".join(
-                marker
-                for marker in TESTS_REQUIRED_MARKERS
-                if marker != "zigux/tests/phase13_landlock_syscalls_reviewability.zig"
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            [
-                "tests-readme:zigux/tests/phase13_landlock_syscalls_reviewability.zig",
-                "tests-readme-exact:Documentation/zigux/phase13-notifier-list-survey.md:expected=2:actual=1",
-                "tests-readme-exact:zigux/tests/phase13_notifier_list_manifest.json:expected=2:actual=1",
-                "tests-readme-exact:zigux/bindings/notifier_abi.zig:expected=2:actual=1",
-                "tests-readme-exact:include/zigux/notifier_abi.h:expected=2:actual=1",
-                "tests-readme-exact:zigux/helpers/notifier_chain_view.zig:expected=2:actual=1",
-                "tests-readme-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=2:actual=1",
-                "tests-readme-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=0",
-                "tests-readme-exact:the current seven-test shared-helper release packet:expected=2:actual=1",
-            ],
-            "missing_tests_readme_landlock_reviewability_marker_failed",
-        )
-        _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
-        case_count += 1
-
-        tests_readme_path.write_text(
             _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS).replace(
-                "scripts/zigux/check-phase13-landlock-ruleset-packet.py\n", "", 1
+                "the current eight-test shared-helper release packet\n", "the current seven-test shared-helper release packet\n", 1
             ),
             encoding="utf-8",
         )
         _assert_only(
             validate(root),
-            ["tests-readme-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=2:actual=1"],
-            "tests_readme_landlock_checker_exact_count_guard_failed",
+            ["tests-readme-exact:the current eight-test shared-helper release packet:expected=2:actual=1"],
+            "tests_readme_eight_test_wording_guard_failed",
         )
-        _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
-        case_count += 1
-
-        tests_readme_path.write_text(
-            _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS).replace(
-                "zigux/tests/phase13_landlock_syscalls_reviewability.zig\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["tests-readme-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=1"],
-            "tests_readme_landlock_reviewability_exact_count_guard_failed",
-        )
-        _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
-        case_count += 1
-
-        tests_readme_path.write_text(
-            _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS).replace(
-                "Documentation/zigux/phase13-notifier-list-survey.md\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["tests-readme-exact:Documentation/zigux/phase13-notifier-list-survey.md:expected=2:actual=1"],
-            "tests_readme_notifier_survey_exact_count_guard_failed",
-        )
-        _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
-        case_count += 1
-
-        scripts_readme_path.write_text(
-            "\n".join(
-                marker
-                for marker in SCRIPTS_REQUIRED_MARKERS
-                if marker != "zigux/tests/phase13_notifier_list_reviewability.zig"
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["scripts-readme:zigux/tests/phase13_notifier_list_reviewability.zig"],
-            "missing_scripts_readme_notifier_reviewability_marker_failed",
-        )
-        _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
-        case_count += 1
-
-        contributor_guide_path.write_text(
-            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS).replace(
-                "zigux/tests/phase13_notifier_list_reviewability.zig\n", "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["contributor-workflow-guide-exact:zigux/tests/phase13_notifier_list_reviewability.zig:expected=2:actual=1"],
-            "contributor_guide_notifier_reviewability_exact_count_guard_failed",
-        )
-        _write(
-            contributor_guide_path,
-            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
-        )
-        case_count += 1
-
-        contributor_surface_sync_path = root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"
-        contributor_surface_sync_path.write_text(
-            "\n".join(
-                marker
-                for marker in _repeat_markers(
-                    CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS
-                ).splitlines()
-                if marker != "zigux/tests/phase13_landlock_syscalls_reviewability.zig"
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            [
-                "contributor-surface-sync:zigux/tests/phase13_landlock_syscalls_reviewability.zig",
-                "contributor-surface-sync-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=0",
-            ],
-            "missing_contributor_surface_sync_landlock_reviewability_marker_failed",
-        )
-        _write(
-            contributor_surface_sync_path,
-            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
-        )
-        case_count += 1
-
-        contributor_surface_sync_path.write_text(
-            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS).replace(
-                "zigux/tests/phase13_landlock_syscalls_reviewability.zig\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["contributor-surface-sync-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=2:actual=1"],
-            "contributor_surface_sync_landlock_reviewability_exact_count_guard_failed",
-        )
-        _write(
-            contributor_surface_sync_path,
-            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
-        )
-        case_count += 1
-
-        contributor_surface_sync_path.write_text(
-            "\n".join(
-                marker
-                for marker in _repeat_markers(
-                    CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS
-                ).splitlines()
-                if marker != "scripts/zigux/check-phase13-landlock-ruleset-packet.py"
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            [
-                "contributor-surface-sync:scripts/zigux/check-phase13-landlock-ruleset-packet.py",
-                "contributor-surface-sync-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=1:actual=0",
-            ],
-            "missing_contributor_surface_sync_landlock_checker_marker_failed",
-        )
-        _write(
-            contributor_surface_sync_path,
-            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
-        )
-        case_count += 1
-
-        contributor_surface_sync_path.write_text(
-            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS).replace(
-                "zigux/tests/phase13_notifier_list_reviewability.zig\n", "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["contributor-surface-sync-exact:zigux/tests/phase13_notifier_list_reviewability.zig:expected=2:actual=1"],
-            "contributor_surface_sync_notifier_reviewability_exact_count_guard_failed",
-        )
-        _write(
-            contributor_surface_sync_path,
-            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
-        )
+        _write(tests_readme_path, _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
         case_count += 1
 
         makefile_path = root / "zigux/Makefile"
         makefile_path.write_text(
             _baseline_makefile().replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py\n",
                 "",
                 1,
             ),
@@ -816,162 +593,62 @@ def run_self_test() -> int:
         )
         _assert_only(
             validate(root),
-            ["makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py"],
-            "missing_makefile_landlock_checker_route_failed",
+            ["makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py"],
+            "missing_makefile_notifier_route_failed",
         )
         _write(root / "zigux/Makefile", _baseline_makefile())
         case_count += 1
 
-        tests_review_companion_path = root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
-        tests_review_companion_path.write_text(
-            "\n".join(
-                marker
-                for marker in _repeat_markers(
-                    TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS
-                ).splitlines()
-                if marker != "scripts/zigux/check-phase13-landlock-ruleset-packet.py"
-            )
-            + "\n",
+        phase13_build_path = root / "zigux/tests/phase13_build.zig"
+        phase13_build_path.write_text(
+            _baseline_phase13_build().replace(
+                "const phase13_devres_boundary_evidence_tests = b.addTest(.{\n"
+                ".name = \"phase13-devres-boundary-evidence-tests\",\n"
+                "});\n"
+                "const run_phase13_devres_boundary_evidence_tests = b.addRunArtifact(phase13_devres_boundary_evidence_tests);\n",
+                "",
+                1,
+            ),
             encoding="utf-8",
         )
         _assert_only(
             validate(root),
             [
-                "tests-review-companion:scripts/zigux/check-phase13-landlock-ruleset-packet.py",
-                "tests-review-companion-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=3:actual=0",
+                "phase13-build:\" = b.addTest(.{\":expected=8:actual=7",
+                "phase13-build:\"test_step.dependOn(&run_phase13_\":expected=8:actual=7",
+                "phase13-build:.root_source_file = b.path(\"phase13_devres_boundary_evidence.zig\"),:expected=1:actual=0",
+                "phase13-build-marker:const phase13_devres_boundary_evidence_tests = b.addTest(.{",
+                "phase13-build-marker:.name = \"phase13-devres-boundary-evidence-tests\"",
+                "phase13-build-marker:const run_phase13_devres_boundary_evidence_tests = b.addRunArtifact(phase13_devres_boundary_evidence_tests);",
             ],
-            "missing_landlock_checker_marker_failed",
+            "missing_phase13_build_boundary_evidence_markers_failed",
         )
-        _write(
-            tests_review_companion_path,
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
-        )
+        _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
         case_count += 1
 
-        tests_review_companion_path.write_text(
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS).replace(
-                "scripts/zigux/check-phase13-landlock-ruleset-packet.py\n", "", 1
+        phase13_build_path.write_text(
+            _baseline_phase13_build().replace(
+                "test_step.dependOn(&run_phase13_devres_boundary_evidence_tests.step);\n",
+                "",
+                1,
             ),
             encoding="utf-8",
         )
         _assert_only(
             validate(root),
-            ["tests-review-companion-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=3:actual=2"],
-            "tests_review_companion_landlock_checker_exact_count_guard_failed",
+            ["phase13-build:\"test_step.dependOn(&run_phase13_\":expected=8:actual=7"],
+            "missing_phase13_build_boundary_evidence_dependency_failed",
         )
-        _write(
-            tests_review_companion_path,
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
-        )
+        _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
         case_count += 1
 
-        tests_review_companion_path.write_text(
-            "\n".join(
-                marker
-                for marker in _repeat_markers(
-                    TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS
-                ).splitlines()
-                if marker != "zigux/tests/phase13_landlock_syscalls_reviewability.zig"
-            )
-            + "\n",
-            encoding="utf-8",
-        )
+        (root / "zigux/tests/phase13_devres_boundary_evidence.zig").unlink()
         _assert_only(
             validate(root),
-            [
-                "tests-review-companion:zigux/tests/phase13_landlock_syscalls_reviewability.zig",
-                "tests-review-companion-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=3:actual=0",
-            ],
-            "missing_landlock_reviewability_marker_failed",
+            ["missing_file:zigux/tests/phase13_devres_boundary_evidence.zig"],
+            "missing_devres_boundary_evidence_file_failed",
         )
-        _write(
-            tests_review_companion_path,
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
-        )
-        case_count += 1
-
-        tests_review_companion_path.write_text(
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS).replace(
-                "zigux/tests/phase13_landlock_syscalls_reviewability.zig\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["tests-review-companion-exact:zigux/tests/phase13_landlock_syscalls_reviewability.zig:expected=3:actual=2"],
-            "tests_review_companion_landlock_reviewability_exact_count_guard_failed",
-        )
-        _write(
-            tests_review_companion_path,
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
-        )
-        case_count += 1
-
-        tests_review_companion_path.write_text(
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS).replace(
-                "Documentation/zigux/phase13-devres-survey.md\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["tests-review-companion-exact:Documentation/zigux/phase13-devres-survey.md:expected=3:actual=2"],
-            "tests_review_companion_devres_survey_exact_count_guard_failed",
-        )
-        _write(
-            tests_review_companion_path,
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
-        )
-        case_count += 1
-
-        contributor_surface_sync_path.write_text(
-            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS).replace(
-                "Documentation/zigux/phase13-shared-helper-lane-sequencing.md\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["contributor-surface-sync:Documentation/zigux/phase13-shared-helper-lane-sequencing.md"],
-            "missing_contributor_surface_sync_sequencing_marker_failed",
-        )
-        _write(
-            contributor_surface_sync_path,
-            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
-        )
-        case_count += 1
-
-        tests_review_companion_path.write_text(
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS).replace(
-                "Documentation/zigux/phase13-shared-helper-lane-sequencing.md\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["tests-review-companion:Documentation/zigux/phase13-shared-helper-lane-sequencing.md"],
-            "missing_tests_review_companion_sequencing_marker_failed",
-        )
-        _write(
-            tests_review_companion_path,
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
-        )
-        case_count += 1
-
-        tests_review_companion_path.write_text(
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS)
-            + "same shipped validator-first release path\n",
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["tests-review-companion-exact:same shipped validator-first release path:expected=1:actual=2"],
-            "tests_review_companion_exact_count_guard_failed",
-        )
-        _write(
-            tests_review_companion_path,
-            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
-        )
+        _write(root / "zigux/tests/phase13_devres_boundary_evidence.zig", "// stub\n")
         case_count += 1
 
         (root / "scripts/zigux/check-phase13-notifier-packet.py").unlink()
