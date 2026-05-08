@@ -348,7 +348,7 @@
       "status": "starter_landed",
       "kind": "reporting",
       "zigux_destination": "zigux/tests/phase15_parity_scorecard.json",
-      "why_now": "The live review-process packet now carries rollback-threshold, parity-scorecard, indefinite-C policy, explicit non-goal, and rationale requirements, so the scorecard now mirrors that full review-packet and ownership-evidence field coverage instead of keeping the older ten-field summary."
+      "why_now": "The live review-process packet now carries required-approver-set, rollback-threshold, parity-scorecard, indefinite-C policy, explicit non-goal, and rationale requirements, so the scorecard now mirrors that full review-packet and ownership-evidence field coverage instead of keeping the older ten-field summary."
     },
     {
       "id": "phase15-aggregate-scorecard-metrics",
