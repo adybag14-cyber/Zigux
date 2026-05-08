@@ -1292,3 +1292,78 @@ test "sameLocation and choosePwdCwdFromFilesystem honor logical PWD aliases" {
     try std.testing.expectEqualStrings(logical_pwd, choosePwdCwdFromFilesystem(cwd, logical_pwd));
     try std.testing.expectEqualStrings(cwd, choosePwdCwdFromFilesystem(cwd, "/definitely/missing"));
 }
+
+test "setupPathWithPwd reports MissingCurrentWorkingDirectory when relative path entries need cwd" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    try std.testing.expectError(
+        error.MissingCurrentWorkingDirectory,
+        setupPathWithPwd(
+            std.testing.allocator,
+            &env,
+            state,
+            config,
+            "",
+            null,
+            false,
+        ),
+    );
+}
+
+test "planDeferredExecvCallWithPwd keeps absolute injected paths working without cwd" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "/opt/perf/bin");
+    try setArgv0Path(std.testing.allocator, &state, "/opt/perf/helpers");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    var planned = try planDeferredExecvCallWithPwd(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "",
+        null,
+        false,
+        &[_][]const u8{ "record", "-a" },
+    );
+    defer planned.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(
+        "/opt/perf/bin:/opt/perf/helpers:/usr/bin:/bin",
+        planned.path,
+    );
+    try std.testing.expectEqualStrings(planned.path, env.get("PATH").?);
+    try std.testing.expectEqualStrings("perf", planned.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", planned.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", planned.call.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), planned.call.argv[3]);
+}
