@@ -30,6 +30,7 @@ EXPECTED_CHECKSUMS = [
     "PHASE1_BENCH_LIST_SORT_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM",
 ]
 REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
@@ -39,10 +40,12 @@ REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_STRING_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM",
 }
 RBTREE_REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_RBTREE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM",
 }
 
 
@@ -225,6 +228,7 @@ def run_self_test() -> None:
             "PHASE1_BENCH_STRING_CHECKSUM": 5,
             "PHASE1_BENCH_RBTREE_CHECKSUM": 6,
             "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM": 7,
+            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 8,
         },
     }
     kind, payload = validate_expectations(expectations)
@@ -246,27 +250,28 @@ def run_self_test() -> None:
             "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=3",
             "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM=4",
             "PHASE1_BENCH_STRING_CHECKSUM=5",
-            "PHASE1_BENCH_HWEIGHT_CHECKSUM=8",
-            "PHASE1_BENCH_LIST_SORT_CHECKSUM=9",
+            "PHASE1_BENCH_HWEIGHT_CHECKSUM=9",
+            "PHASE1_BENCH_LIST_SORT_CHECKSUM=10",
             "PHASE1_BENCH_RBTREE_CHECKSUM=6",
             "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM=7",
+            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=8",
         ]
     )
     kind, _ = validate_output(expectations, ok_output)
     assert kind == "pass"
 
     mismatch_output = ok_output.replace(
-        "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM=7",
-        "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM=70",
+        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=8",
+        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=80",
     )
     kind, payload = validate_output(expectations, mismatch_output)
     assert kind == "exact_checksum_mismatch"
-    assert payload == ("PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM", 7, 70)
+    assert payload == ("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM", 8, 80)
 
-    duplicate_output = ok_output + "\nPHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM=7"
+    duplicate_output = ok_output + "\nPHASE1_BENCH_RBTREE_CACHED_CHECKSUM=8"
     kind, payload = validate_output(expectations, duplicate_output)
     assert kind == "duplicate"
-    assert payload == ["PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM"]
+    assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]
 
     downgraded_rbtree_exact = {
         "status": "pass",
@@ -279,11 +284,12 @@ def run_self_test() -> None:
             "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
             "PHASE1_BENCH_STRING_CHECKSUM": 5,
             "PHASE1_BENCH_RBTREE_CHECKSUM": 6,
+            "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM": 7,
         },
     }
     kind, payload = validate_expectations(downgraded_rbtree_exact)
     assert kind == "expectations_checksums_rbtree_exact_required"
-    assert payload == "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM"
+    assert payload == "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"
 
     missing_string_exact = {
         "status": "pass",
@@ -296,6 +302,7 @@ def run_self_test() -> None:
             "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
             "PHASE1_BENCH_RBTREE_CHECKSUM": 6,
             "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM": 7,
+            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 8,
         },
     }
     kind, payload = validate_expectations(missing_string_exact)
