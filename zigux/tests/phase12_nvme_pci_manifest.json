@@ -10,7 +10,7 @@
   ],
   "survey_summary": {
     "nvme_pci_c_lines": 4293,
-    "preexisting_phase10_test_files": 7,
+    "preexisting_phase10_test_files": 20,
     "preexisting_phase10_build_present": true,
     "preexisting_virtio_core_zig_present": true,
     "preexisting_virtio_ring_zig_present": true,
@@ -131,7 +131,7 @@
       "status": "starter_landed",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/nvme/host/pci.zig",
-      "why_now": "The landed recovery replay helper now reports reset-generation staleness, admin-queue replay need, dropped I/O queue rebuild count, and post-reset queue numbering, and pairs that review surface with bounded dropped-I/O backlog retirement once rebuilt queue plans are present, without claiming live timeout recovery, IRQ handling, or hardware-backed reset transport."
+      "why_now": "The landed recovery replay helper now reports reset-generation staleness, admin-queue replay need, dropped I/O queue rebuild count, and post-reset queue numbering, and pairs that review surface with bounded dropped-I/O backlog retirement once replacement queue plans are present, without claiming live timeout recovery, IRQ handling, or hardware-backed reset transport."
     },
     {
       "id": "phase12-nvme-pci-dma-safe-transport-gap",
