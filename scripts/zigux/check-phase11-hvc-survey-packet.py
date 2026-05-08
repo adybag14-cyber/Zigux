@@ -60,6 +60,7 @@ REQUIRED_TEARDOWN_NOTE_MARKERS = [
     "tty_port_put()",
     "tty_vhangup()",
     "tty_kref_put()",
+    "do not treat this note as evidence of live notifier callbacks",
 ]
 
 REQUIRED_VALIDATION_MATRIX_MARKERS = [
@@ -136,7 +137,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 35
+SELF_TEST_CASE_COUNT = 36
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -262,6 +263,7 @@ The live archival packet now belongs to lane `P11-L16`.
 - `tty_port_put()`
 - `tty_vhangup()`
 - `tty_kref_put()`
+- do not treat this note as evidence of live notifier callbacks
 """,
     )
     write_text(
@@ -502,6 +504,12 @@ def run_self_test() -> int:
                 TEARDOWN_NOTE_PATH,
                 "`tty_kref_put()`",
                 "teardown_note:tty_kref_put()",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "do not treat this note as evidence of live notifier callbacks",
+                "teardown_note:do not treat this note as evidence of live notifier callbacks",
             )
             expect_failure(
                 root,
