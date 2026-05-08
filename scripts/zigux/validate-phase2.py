@@ -552,7 +552,7 @@ def run_self_test() -> int:
         "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, "
         "`scripts/zigux/check-phase2-tool-manifest-packets.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, "
         "`python3 scripts/zigux/install-zig.py --self-test`, `make -C zigux phase2-validate`, "
-        "`make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, and `make -C zigux phase2` still agree "
+        "`make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` still agree "
         "on the same pinned toolchain and bounded kbuild-facing replay surface?"
     )
     issues = validate_exact_review_markers(review_line)
