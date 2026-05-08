@@ -294,6 +294,30 @@ pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node
     return candidate;
 }
 
+pub const MatchIterator = struct {
+    key: *const anyopaque,
+    cmp: CmpKeyFn,
+    current: ?*Node,
+
+    pub fn init(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {
+        return .{
+            .key = key,
+            .cmp = cmp,
+            .current = findFirst(key, root, cmp),
+        };
+    }
+
+    pub fn nextMatchNode(self: *MatchIterator) ?*Node {
+        const node = self.current orelse return null;
+        self.current = nextMatch(self.key, node, self.cmp);
+        return node;
+    }
+};
+
+pub fn matchIterator(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {
+    return MatchIterator.init(key, root, cmp);
+}
+
 fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
     if (victim.parent == null) {
         root.node = replacement;
@@ -867,6 +891,66 @@ test "rbtree nextMatch walks the duplicate range in order" {
     try std.testing.expectEqual(@as(usize, 3), count);
     try std.testing.expectEqualSlices(usize, &[_]usize{ 0, 2, 4 }, serials[0..count]);
     try std.testing.expect(nextMatch(&duplicate, cursor, cmp) == null);
+}
+
+test "rbtree matchIterator walks the duplicate range in order" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: *const anyopaque, node: *const Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 5, .serial = 3 },
+        .{ .key = 10, .serial = 4 },
+        .{ .key = 15, .serial = 5 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    const duplicate = @as(i32, 10);
+    var iterator = matchIterator(&duplicate, &root, cmp);
+    var serials: [3]usize = undefined;
+    var count: usize = 0;
+    while (iterator.nextMatchNode()) |node| {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        serials[count] = entry.serial;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 0, 2, 4 }, serials[0..count]);
+
+    const missing = @as(i32, 17);
+    var missing_iterator = matchIterator(&missing, &root, cmp);
+    try std.testing.expect(missing_iterator.nextMatchNode() == null);
 }
 
 test "rbtree addCached returns the inserted node only when it becomes leftmost" {
