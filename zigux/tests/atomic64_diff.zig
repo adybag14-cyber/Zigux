@@ -230,7 +230,7 @@ test "atomic64 diff wrapper keeps the Linux-style phase4 make routes explicit" {
     defer std.testing.allocator.free(makefile_source);
     try expectMarker(
         makefile_source,
-        "PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4",
+        "PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-kprobe-example-survey phase4",
     );
     try expectMarker(makefile_source, "phase4-runtime-atomic64-diff:");
     try expectMarker(
@@ -242,6 +242,13 @@ test "atomic64 diff wrapper keeps the Linux-style phase4 make routes explicit" {
         makefile_source,
         "$(ZIG) build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig",
     );
+    try expectMarker(makefile_source, "phase4-perf-baseline-survey:");
+    try expectMarker(
+        makefile_source,
+        "$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+    );
+    try expectMarker(makefile_source, "phase4-kprobe-example-survey:");
+    try expectMarker(makefile_source, "$(ZIG) test zigux/tests/phase4_kprobe_example_survey.zig");
     try expectMarker(makefile_source, "phase4: phase4-validate phase4-test");
 }
 
