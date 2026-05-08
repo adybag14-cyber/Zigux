@@ -480,8 +480,8 @@ def run_self_test() -> int:
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
             build_lines.append("b.addTest(.")
             build_lines.append("b.addRunArtifact(")
-            buildLines.append(label)
-            buildLines.append(root_source)
+            build_lines.append(label)
+            build_lines.append(root_source)
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         errors = check(root)
         if errors:
@@ -501,6 +501,20 @@ def run_self_test() -> int:
             print("self-test expected compile-matrix row failure", file=sys.stderr)
             return 1
         write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
+        broken_build = root / "zigux/tests/phase14_build.zig"
+        broken_build.write_text(
+            broken_build.read_text(encoding="utf-8").replace(
+                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n",
+                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\nsmoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any("phase14 smoke shard stopped being dedicated" in error for error in errors):
+            print("self-test expected dedicated smoke-shard failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         broken_build = root / "zigux/tests/phase14_build.zig"
         broken_build.write_text(
             broken_build.read_text(encoding="utf-8").replace(
