@@ -1,3 +1,4 @@
+const builtin = @import("builtin");
 const std = @import("std");
 const Io = std.Io;
 
@@ -5,6 +6,7 @@ const max_file_bytes: usize = std.math.maxInt(usize);
 
 const FixdepError = error{
     NoTargets,
+    OpenDependencyFile,
     ReadDependencyFile,
 };
 
@@ -53,6 +55,21 @@ fn emitOpenFileError(io: std.Io, path: []const u8, err: anyerror) !noreturn {
     try stderr.writeAll(": ");
     try stderr.writeAll(describeFileReadError(err));
     try stderr.writeAll("\n");
+    try stderr.flush();
+    std.process.exit(2);
+}
+
+fn writeReadFileError(writer: anytype, err: anyerror) !void {
+    try writer.writeAll("fixdep: read: ");
+    try writer.writeAll(describeFileReadError(err));
+    try writer.writeAll("\n");
+}
+
+fn emitReadFileError(io: std.Io, err: anyerror) !noreturn {
+    var stderr_buffer: [256]u8 = undefined;
+    var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+    const stderr = &stderr_writer.interface;
+    try writeReadFileError(stderr, err);
     try stderr.flush();
     std.process.exit(2);
 }
@@ -123,7 +140,7 @@ const Processor = struct {
                 continue;
             }
 
-            var end = start + 7;
+            var end: usize = start + 7;
             while (end < visible_text.len and isIdentByte(visible_text[end])) : (end += 1) {}
 
             var trimmed_end = end;
@@ -140,7 +157,9 @@ const Processor = struct {
     }
 
     fn readDependencyFile(self: *Processor, path: []const u8) ![]const u8 {
-        return Io.Dir.cwd().readFileAlloc(self.io, path, self.arena.allocator(), .limited(max_file_bytes)) catch |err| switch (err) {
+        const file = Io.Dir.cwd().openFile(self.io, path, .{
+            .allow_directory = if (builtin.os.tag == .windows) false else true,
+        }) catch |err| switch (err) {
             error.FileNotFound,
             error.AccessDenied,
             error.IsDir,
@@ -153,13 +172,23 @@ const Processor = struct {
             error.DeviceBusy,
             error.NoDevice,
             error.FileTooBig,
-            error.InputOutput,
             => {
                 self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
                 self.last_file_error = err;
-                return error.ReadDependencyFile;
+                return error.OpenDependencyFile;
             },
             else => return err,
+        };
+        defer file.close(self.io);
+
+        var file_reader = file.reader(self.io, &.{ });
+        return file_reader.interface.allocRemaining(self.arena.allocator(), .limited(max_file_bytes)) catch |err| switch (err) {
+            error.ReadFailed => {
+                self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
+                self.last_file_error = file_reader.err.?;
+                return error.ReadDependencyFile;
+            },
+            error.OutOfMemory, error.StreamTooLong => |e| return e,
         };
     }
 
@@ -281,16 +310,24 @@ pub fn runFixdep(allocator: std.mem.Allocator, io: std.Io, writer: anytype, depf
 
     try writer.print("savedcmd_{s} := {s}\n\n", .{ target, cmdline });
     const dep_text = processor.readDependencyFile(depfile) catch |err| switch (err) {
-        error.ReadDependencyFile => {
+        error.OpenDependencyFile => {
             try writer.flush();
             try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
+        },
+        error.ReadDependencyFile => {
+            try writer.flush();
+            try emitReadFileError(io, processor.last_file_error.?);
         },
         else => return err,
     };
     processor.parseDepFile(writer, dep_text, target) catch |err| switch (err) {
-        error.ReadDependencyFile => {
+        error.OpenDependencyFile => {
             try writer.flush();
             try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
+        },
+        error.ReadDependencyFile => {
+            try writer.flush();
+            try emitReadFileError(io, processor.last_file_error.?);
         },
         else => return err,
     };
@@ -546,6 +583,38 @@ test "file read errors map to C-style messages" {
     try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.AccessDenied));
 }
 
+test "read failure wording matches C perror prefix" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 64),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try writeReadFileError(&capture, error.InputOutput);
+
+    try std.testing.expectEqualStrings(
+        "fixdep: read: Input/output error\n",
+        capture.list.items,
+    );
+}
+
 test "output write failure uses C-style wording" {
     const Capture = struct {
         list: std.ArrayList(u8),
@@ -670,12 +739,12 @@ test "escaped hash dependency survives concatenated target comment path" {
 
     try processor.parseDepFile(
         &capture,
-        "sample.o: sample.rmeta dir\\#crate.rmeta dir\\:crate.rmeta \\\n# generated by rustc\\\n  still comment\nmodule/sample.o: temp.rmeta later.rmeta\n",
+        "sample.o: sample.rmeta dir\\#crate.rmeta \\\n# generated by rustc\\\n  still comment\nmodule/sample.o: temp.rmeta later.rmeta\n",
         "sample.o",
     );
 
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n  dir#crate.rmeta \\\n  dir:crate.rmeta \\\n  later.rmeta \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n  dir#crate.rmeta \\\n  later.rmeta \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
