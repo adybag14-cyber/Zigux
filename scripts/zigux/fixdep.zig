@@ -87,6 +87,15 @@ fn emitOutputWriteError(io: std.Io) !noreturn {
     std.process.exit(1);
 }
 
+fn flushOutputIgnoringError(writer: anytype) void {
+    writer.flush() catch {};
+}
+
+fn flushOutputPreservingPrimaryError(writer: anytype, primary_err: anyerror) anyerror!void {
+    flushOutputIgnoringError(writer);
+    return primary_err;
+}
+
 const Processor = struct {
     io: std.Io,
     arena: std.heap.ArenaAllocator,
@@ -311,25 +320,25 @@ pub fn runFixdep(allocator: std.mem.Allocator, io: std.Io, writer: anytype, depf
     try writer.print("savedcmd_{s} := {s}\n\n", .{ target, cmdline });
     const dep_text = processor.readDependencyFile(depfile) catch |err| switch (err) {
         error.OpenDependencyFile => {
-            try writer.flush();
+            flushOutputIgnoringError(writer);
             try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
         },
         error.ReadDependencyFile => {
-            try writer.flush();
+            flushOutputIgnoringError(writer);
             try emitReadFileError(io, processor.last_file_error.?);
         },
-        else => return err,
+        else => return flushOutputPreservingPrimaryError(writer, err),
     };
     processor.parseDepFile(writer, dep_text, target) catch |err| switch (err) {
         error.OpenDependencyFile => {
-            try writer.flush();
+            flushOutputIgnoringError(writer);
             try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
         },
         error.ReadDependencyFile => {
-            try writer.flush();
+            flushOutputIgnoringError(writer);
             try emitReadFileError(io, processor.last_file_error.?);
         },
-        else => return err,
+        else => return flushOutputPreservingPrimaryError(writer, err),
     };
 }
 
@@ -362,7 +371,7 @@ pub fn main(init: std.process.Init) !void {
 
     runFixdep(arena, io, stdout, args[1], args[2], args[3]) catch |err| switch (err) {
         error.NoTargets => {
-            try stdout.flush();
+            flushOutputIgnoringError(stdout);
             try emitNoTargetsParseError(io);
         },
         else => return err,
@@ -644,6 +653,20 @@ test "output write failure uses C-style wording" {
     try std.testing.expectEqualStrings(
         "fixdep: not all data was written to the output\n",
         capture.list.items,
+    );
+}
+
+test "flush helper preserves the primary error" {
+    const FlushFailWriter = struct {
+        fn flush(_: *@This()) !void {
+            return error.FlushFailed;
+        }
+    };
+
+    var writer = FlushFailWriter{};
+    try std.testing.expectError(
+        error.PrimaryFailure,
+        flushOutputPreservingPrimaryError(&writer, error.PrimaryFailure),
     );
 }
 
