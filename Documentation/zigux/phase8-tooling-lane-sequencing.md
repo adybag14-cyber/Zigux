@@ -119,7 +119,9 @@ Allowed surfaces:
 - `zigux/tests/README.md`
 - `zigux/Makefile`
 
-The first wording-only reopen target here should usually be `Documentation/zigux/README.md` when the docs-root summary falls back to older active-tranche shorthand for the parked libbpf packet.
+When this wording lane reopens, treat `scripts/zigux/README.md` as a first-pass truth surface alongside `Documentation/zigux/README.md`, not as a later summary. The scripts-root Phase 8 flow is the compact shared packet inventory for the parked file-path bridge, perf-buffer poll, and libbpf-segment shard routes, including `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, `make -C zigux phase8-file-path-handle-bridge-test`, and `make -C zigux phase8-libbpf-segments-test`.
+
+The first wording-only reopen target here should usually be the docs-root plus scripts-root pair when the shared packet falls back to older active-tranche shorthand for the parked libbpf packet.
 
 Do not use this lane to smuggle helper behavior changes.
 If a wording fix requires changing helper logic, split the helper change back into the owning command, symbol, or libbpf lane.
@@ -128,7 +130,7 @@ If a wording fix requires changing helper logic, split the helper change back in
 1. Re-read the shared packet surfaces first.
 2. If they already agree that `exec-cmd`, `help`, and `kallsyms` are parked, do not start there.
 3. If a fresh same-lane gap exists, prefer the next bounded step inside the libbpf helper lane before widening into broader Phase 8 wording work.
-4. If `Documentation/zigux/README.md` still frames the parked libbpf packet as active by default, treat that as a wording-only reopen and correct it before helper-local follow-up.
+4. If `Documentation/zigux/README.md` or `scripts/zigux/README.md` falls back to older active-tranche shorthand for the parked libbpf packet, treat that as a wording-only reopen and correct the shared reminder pair before helper-local follow-up.
 5. Use the shared packet wording lane only when the coordination surfaces themselves have drifted.
 6. Keep every reopened task small enough to validate through its focused shard before rerunning the shared `phase8_build.zig` path.
 
@@ -137,7 +139,7 @@ If a wording fix requires changing helper logic, split the helper change back in
 Today the strongest Phase 8 sequencing correction is simple:
 - treat `exec-cmd`, `help`, and `kallsyms` as parked tooling slices
 - treat the libbpf helper family plus its bridge and survey notes as the currently parked reviewable Phase 8 libbpf packet, reopening it only for tighter same-lane gaps
-- keep docs-root, checklist, tests-root, and validator wording repairs separate from helper-local parity work so older active-tranche shorthand does not pull scheduled runs away from the parked posture
+- keep docs-root, scripts-root, checklist, tests-root, and validator wording repairs separate from helper-local parity work so older active-tranche shorthand does not pull scheduled runs away from the parked posture
 
 That split matches the live docs-root Phase 8 summary and prevents scheduled tooling runs from duplicating already-parked starter-slice work.
 
@@ -146,6 +148,6 @@ That split matches the live docs-root Phase 8 summary and prevents scheduled too
 The older shared tests-root reminder refresh is already complete.
 That older immediate next step is now complete, and `zigux/tests/README.md` should now be read as a parked-packet reminder plus focused reopen map rather than as a reason to treat the libbpf packet as already active again by default.
 
-If another wording-only drift appears first, start with `Documentation/zigux/README.md` so the docs-root summary stays aligned with that parked-packet posture before reopening any helper-local Phase 8 follow-up.
+If another wording-only drift appears first, start by rereading `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` together so the parked libbpf shard markers and focused make routes stay aligned before reopening any helper-local Phase 8 follow-up.
 
 The honest default is to leave this lane parked unless another one-file same-lane helper-local, validator, checker, survey, README, or wording drift appears inside the shared libbpf packet.
