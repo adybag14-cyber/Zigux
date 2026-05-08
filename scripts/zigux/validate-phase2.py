@@ -384,7 +384,7 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
-            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-fixdep-gate.py")],
+            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-fixdep-gate.py" )],
             ["PHASE2_FIXDEP_GATE=pass", "PHASE2_FIXDEP_GATE_WORKFLOW_MARKER_COUNT=5"],
         )
     )
@@ -541,8 +541,23 @@ def run_self_test() -> int:
     )
     issues = validate_exact_review_markers(review_line)
     assert issues == []
+    with tempfile.TemporaryDirectory(prefix="phase2_validate_root_") as tmp_dir:
+        temp_root = Path(tmp_dir)
+        (temp_root / "zigux" / "tests" / "fixtures" / "genksyms_bridge").mkdir(parents=True)
+        (temp_root / "zigux" / "tests" / "fixtures" / "kconfig_bridge").mkdir(parents=True)
+        (temp_root / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "cases.json").write_text(
+            '{"cases":[]}',
+            encoding="utf-8",
+        )
+        (temp_root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json").write_text(
+            '{"conf_cases":[],"confdata_cases":[]}',
+            encoding="utf-8",
+        )
+        missing = validate_root(temp_root)
+    assert missing
+    assert missing[0] == "missing_file:scripts/zigux/fixdep.zig"
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=4")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
