@@ -37,6 +37,7 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 - comparison-based plain-tree lookup helpers
 - ordered erase, erase-and-detach, and direct node replacement
 - in-order and postorder traversal helpers
+- linked-node neighbour tracking plus detached linked-ownership reset through `addLinked()`, `eraseLinked()`, and `clearLinkedNode()`
 - shared reviewability through `zigux/tests/phase7_rbtree_survey.zig`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
@@ -95,6 +96,8 @@ The current starter slice covers:
 - `rb_replace_node_cached()` via `replaceNodeCached()`
 - `rb_first_postorder()`
 - `rb_next_postorder()`
+- `NodeLinked`, `RootLinked`, and `clearLinkedNode()`
+- `addLinked()` and `eraseLinked()` for linked-node neighbour tracking and teardown-safe ownership reset
 
 The current tests check:
 
@@ -109,6 +112,7 @@ The current tests check:
 - postorder walking on a minimally balanced tree
 - terminal postorder handoff accepts null input so callers can finish walks without a separate pre-check
 - detached-node clearing semantics
+- linked-node neighbour tracking, leftmost updates, and detached linked-ownership reset across `addLinked()`, `eraseLinked()`, and `clearLinkedNode()`
 - a machine-checked manifest that records the `lib/rbtree.c` anchor and the landed Phase 7 review surfaces
 
 ## Non-goals
@@ -120,4 +124,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection finds a concrete need for one tiny additional C-vs-Zig parity shape over the existing insert, cached-leftmost, duplicate-key lookup, erase, erase-and-detach, replace, reverse traversal, or postorder surface.
+Leave this lane parked unless fresh repo inspection finds a concrete need for one tiny additional C-vs-Zig parity shape over the existing insert, cached-leftmost, duplicate-key lookup, erase, erase-and-detach, replace, reverse traversal, linked-node ownership, or postorder surface.
