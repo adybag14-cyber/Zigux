@@ -18,6 +18,7 @@ This note records the current export-shim and starter UAPI boundary that still s
 - `PHASE3_ABI_HEADER_PATH=include/zigux/abi.h`
 - `PHASE3_ABI_HEADER_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
 - `PHASE3_EXPORT_UAPI_LAYOUT_PATH=zigux/tests/phase3_export_uapi_layout.zig`
+- `PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA=2747cfce7afcc00670c15f3732ca1ec5b4dd1896`
 
 ## Live Boundary
 
