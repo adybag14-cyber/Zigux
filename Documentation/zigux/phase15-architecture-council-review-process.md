@@ -68,7 +68,7 @@ Every Architecture Council request in this lane family must carry:
 - the current status bucket and the requested decision bucket
 - the decision record ID for the specific review being requested
 - the named owner for the lane and the rollback owner
-- the required approver set that names the Architecture Council plus any specialist, release, validation, or product sign-offs already called for by the current parity scorecard entry
+- the required approver set that names the Architecture Council plus any specialist, release, validation, or product sign-offs required for the current anchor and reflected in the linked parity scorecard record when that evidence is available
 - the validation gate summary with links to the live evidence
 - the evidence archive path that preserves linked surveys, blocker follow-ups, benchmark notes, and replay commands
 - the latest blocker disposition saying whether the anchor remains blocked, is ready for narrower follow-up, or has been rejected for status change
