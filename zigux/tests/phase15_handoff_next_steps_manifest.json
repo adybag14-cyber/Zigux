@@ -23,6 +23,7 @@
     "readiness_note_present": true,
     "tests_root_phase15_surface_present": true,
     "phase15_validate_target_present": true,
+    "phase15_make_test_target_present": true,
     "scripts_alignment_guard_present": true,
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
