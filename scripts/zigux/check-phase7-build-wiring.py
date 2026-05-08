@@ -52,6 +52,8 @@ REVIEW_GATE_SPECS = [
         "test_name_marker": '.name = "phase7-string-helpers-survey-tests",',
         "depend_marker": "test_step.dependOn(&run_string_helpers_survey_tests.step);",
         "cwd_marker": 'run_string_helpers_survey_tests.setCwd(b.path("../.."));',
+        "step_name_marker": '"phase7-string-helpers-survey",',
+        "step_depend_marker": "string_helpers_survey_step.dependOn(&run_string_helpers_survey_tests.step);",
     },
     {
         "key": "string_helpers_sample_boundary",
@@ -59,6 +61,8 @@ REVIEW_GATE_SPECS = [
         "test_name_marker": '.name = "phase7-string-helpers-sample-boundary-tests",',
         "depend_marker": "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step);",
         "cwd_marker": 'run_string_helpers_sample_boundary_tests.setCwd(b.path("../.."));',
+        "step_name_marker": '"phase7-string-helpers-sample-boundary",',
+        "step_depend_marker": "string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step);",
     },
     {
         "key": "cmdline_survey",
@@ -66,6 +70,8 @@ REVIEW_GATE_SPECS = [
         "test_name_marker": '.name = "phase7-cmdline-survey-tests",',
         "depend_marker": "test_step.dependOn(&run_cmdline_survey_tests.step);",
         "cwd_marker": 'run_cmdline_survey_tests.setCwd(b.path("../.."));',
+        "step_name_marker": '"phase7-cmdline-survey",',
+        "step_depend_marker": "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step);",
     },
     {
         "key": "argv_split_survey",
@@ -73,6 +79,8 @@ REVIEW_GATE_SPECS = [
         "test_name_marker": '.name = "phase7-argv-split-survey-tests",',
         "depend_marker": "test_step.dependOn(&run_argv_split_survey_tests.step);",
         "cwd_marker": 'run_argv_split_survey_tests.setCwd(b.path("../.."));',
+        "step_name_marker": '"phase7-argv-split-survey",',
+        "step_depend_marker": "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step);",
     },
     {
         "key": "rbtree_survey",
@@ -80,6 +88,8 @@ REVIEW_GATE_SPECS = [
         "test_name_marker": '.name = "phase7-rbtree-survey-tests",',
         "depend_marker": "test_step.dependOn(&run_rbtree_survey_tests.step);",
         "cwd_marker": 'run_rbtree_survey_tests.setCwd(b.path("../.."));',
+        "step_name_marker": '"phase7-rbtree-survey",',
+        "step_depend_marker": "rbtree_survey_step.dependOn(&run_rbtree_survey_tests.step);",
     },
 ]
 
@@ -101,6 +111,8 @@ REQUIRED_MARKERS = [
         spec["test_name_marker"],
         spec["depend_marker"],
         spec["cwd_marker"],
+        spec["step_name_marker"],
+        spec["step_depend_marker"],
     )
 ]
 
@@ -216,6 +228,18 @@ def run_self_test() -> None:
                     spec["cwd_marker"].replace('../..', '.'),
                     spec["cwd_marker"],
                 ),
+                (
+                    f"{spec['key']}_step_name_drift",
+                    spec["step_name_marker"],
+                    spec["step_name_marker"].replace('",', '-drift",'),
+                    spec["step_name_marker"],
+                ),
+                (
+                    f"{spec['key']}_step_depend_drift",
+                    spec["step_depend_marker"],
+                    spec["step_depend_marker"].replace(".step);", "_drift.step);"),
+                    spec["step_depend_marker"],
+                ),
             ]
         )
         exact_count_cases.extend(
@@ -234,6 +258,16 @@ def run_self_test() -> None:
                     f"{spec['key']}_cwd_exact_count",
                     spec["cwd_marker"],
                     f"{spec['cwd_marker']}:expected=1:actual=2",
+                ),
+                (
+                    f"{spec['key']}_step_name_exact_count",
+                    spec["step_name_marker"],
+                    f"{spec['step_name_marker']}:expected=1:actual=2",
+                ),
+                (
+                    f"{spec['key']}_step_depend_exact_count",
+                    spec["step_depend_marker"],
+                    f"{spec['step_depend_marker']}:expected=1:actual=2",
                 ),
             ]
         )
