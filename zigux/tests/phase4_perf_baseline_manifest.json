@@ -93,6 +93,7 @@
       "status": "ready_next",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/atomic64_diff.zig",
+      "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
       "why_now": "Now that the local perf packet carries exact atomic64 benchmark-command evidence in structured form, the next bounded same-lane promotion can approve that replay command in the broader Phase 4 review packet only when the still-unapproved acceptable limit remains explicit and the shared validator-first packet does not widen by accident."
     },
     {
@@ -107,6 +108,7 @@
       "status": "ready_next",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/bitmap_diff.zig",
+      "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
       "why_now": "Now that the local perf packet exact-pins the bitmap benchmark-command candidate and deterministic replay evidence in structured form, the next same-lane follow-through can approve that replay command in the broader Phase 4 review packet only when the still-unapproved acceptable limit stays explicit and the shared validator-first packet does not widen by accident."
     }
   ]
