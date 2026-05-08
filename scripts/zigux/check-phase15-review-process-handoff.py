@@ -31,7 +31,9 @@ REQUIRED_NOTE_MARKERS = (
     "`parity scorecard link or blocker record`",
     "`indefinite-C policy link or non-applicability note`",
     "`rollback-threshold`",
+    "workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`",
     "landed `phase15-roadmap-minimum-field-sync`",
+    "landed `phase15-workflow-replay-anchor-visible`",
 )
 
 REQUIRED_REVIEW_PACKET_FIELDS = (
@@ -370,9 +372,10 @@ def write_fixture_tree(root: Path) -> None:
         REQUIRED_NOTE_MARKERS[0],
         PRODUCT_BOUNDARY_MARKER,
         "## Current Approval Posture",
-        "- current review-process evidence is limited to named `phase`, `current status bucket`, `required approver set`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records",
+        "- current review-process evidence is limited to named `phase`, `current status bucket`, `required approver set`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records, plus the workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`",
         "## Recorded Gaps",
         "- landed `phase15-roadmap-minimum-field-sync`",
+        "- landed `phase15-workflow-replay-anchor-visible`",
         "- no Architecture Council approval is currently recorded for a freeze-map status change",
         "",
     )), encoding="utf-8")
@@ -432,6 +435,38 @@ def run_self_test() -> int:
         original_note = note_path.read_text(encoding="utf-8")
         note_path.write_text(original_note.replace("`required approver set`", "`approver set`", 1), encoding="utf-8")
         expect_only(root, ["note:`required approver set`"], "missing_required_approver_set_marker")
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
+        note_path.write_text(
+            original_note.replace(
+                "workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`",
+                "workflow-backed replay anchor `.github/workflows/phase15-missing.yml`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["note:workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`"],
+            "missing_workflow_replay_anchor_marker",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
+        note_path.write_text(
+            original_note.replace(
+                "landed `phase15-workflow-replay-anchor-visible`",
+                "landed `phase15-workflow-anchor-visible`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["note:landed `phase15-workflow-replay-anchor-visible`"],
+            "missing_workflow_replay_recorded_gap_marker",
+        )
         note_path.write_text(original_note, encoding="utf-8")
         case_count += 1
 
