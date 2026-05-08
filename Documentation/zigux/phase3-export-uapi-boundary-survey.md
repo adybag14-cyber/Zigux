@@ -10,23 +10,23 @@ This note records the current export-shim and starter UAPI boundary that still s
 - `PHASE3_REVIEW_ROOT_RULE=export-uapi-growth-requires-survey-plus-layout-replay-plus-shared-review-surface-refresh`
 - `PHASE3_LAYOUT_REPLAY_OWNERSHIP=export-uapi-packet-owns-shared-boundary-header-layout-replay`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
-- `PHASE3_EXPORT_SHIM_BLOB_SHA=598fddc704b95e9ed47e027f431ea67874ea0045`
+- `PHASE3_EXPORT_SHIM_BLOB_SHA=c04698d10959a6020f33ac6df85083ccf833d9db`
 - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
-- `PHASE3_UAPI_VERSION_BLOB_SHA=c3c05ea2384bba3882d7a79312f429ef3ec88ca0`
+- `PHASE3_UAPI_VERSION_BLOB_SHA=f07b3a87bab362782467309d06549d3a4c2c16d0`
 - `PHASE3_LINUX_HEADER_PATH=include/linux/zigux.h`
 - `PHASE3_LINUX_HEADER_BLOB_SHA=c8cfd9590d2d0039ad087bb020a236fdc0a2b4ff`
 - `PHASE3_ABI_HEADER_PATH=include/zigux/abi.h`
 - `PHASE3_ABI_HEADER_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
 - `PHASE3_EXPORT_UAPI_LAYOUT_PATH=zigux/tests/phase3_export_uapi_layout.zig`
-- `PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA=4cd0ba5e5a2a9796afa03faae7fe39659910e177`
+- `PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA=b76e6ae686ea7e8baa600f4f29b5925b3bb64e00`
 
 ## Live Boundary
 
 The blob markers above are the authoritative packet-local evidence for the currently shipped export shim, starter UAPI helper, Linux-facing aggregation header, canonical ABI header, and focused layout replay in this connector-only run.
 
-- `zigux/kernel/export_shim.zig` keeps the starter export boundary narrow by relaying the shared `Header` type and boundary-header helpers from `zigux/uapi/version.zig` and by normalizing explicit success or errno-style export status values.
-- `zigux/uapi/version.zig` keeps the starter UAPI version contract reviewable through canonical versus future-compatible boundary-header helpers without widening into a broader UAPI packet.
-- `zigux/tests/phase3_export_uapi_layout.zig` keeps the focused layout replay explicit by pinning the named `export_shim.Header` relay beside canonical boundary-header size, field offsets, compatibility predicates, compatibility classification, and canonicalization behavior across the export shim and starter UAPI helper.
+- `zigux/kernel/export_shim.zig` keeps the starter export boundary narrow by relaying the shared `Header`, `HeaderCompatibility`, and `HeaderAcceptance` types plus the boundary-header helpers from `zigux/uapi/version.zig`, by exposing an explicit `compatibilityStatus()` relay for status-based callers, and by normalizing explicit success or errno-style export status values.
+- `zigux/uapi/version.zig` keeps the starter UAPI version contract reviewable through canonical versus future-compatible boundary-header helpers plus a compact `acceptHeader()` path that returns compatibility classification beside the canonical header without widening into a broader UAPI packet.
+- `zigux/tests/phase3_export_uapi_layout.zig` keeps the focused layout replay explicit by pinning the named `export_shim.Header` relay beside boundary-header size, field offsets, compatibility predicates, compatibility classification, accepted-header canonicalization, and compatibility-status relays across the export shim and starter UAPI helper.
 - `include/linux/zigux.h` remains the Linux-facing aggregation header for already-landed Phase 3 boundary helpers, including the explicit `zigux_status_ok()` and `zigux_status_err()` relay surface.
 - `include/zigux/abi.h` remains the canonical ABI layout source of truth for `struct zigux_boundary_header`, `struct zigux_export_status`, and the shared version and status flags those starter helpers depend on.
 
