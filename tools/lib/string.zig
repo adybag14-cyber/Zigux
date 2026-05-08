@@ -297,7 +297,13 @@ pub fn strHasPrefixLen(str: []const u8, prefix: []const u8) usize {
 }
 
 pub fn strHasPrefix(str: []const u8, prefix: []const u8) bool {
-    return strHasPrefixLen(str, prefix) != 0;
+    const prefix_len = cStringLen(prefix);
+    const str_len = cStringLen(str);
+    if (prefix_len > str_len) {
+        return false;
+    }
+
+    return std.mem.eql(u8, str[0..prefix_len], prefix[0..prefix_len]);
 }
 
 pub fn str_has_prefix(str: []const u8, prefix: []const u8) usize {
@@ -426,8 +432,10 @@ test "strreplace mirrors replaceChar C-string semantics" {
 
 test "strHasPrefix honors C-string boundaries" {
     try std.testing.expect(strHasPrefix("prefix", "pre"));
+    try std.testing.expect(strHasPrefix("prefix", ""));
     try std.testing.expectEqual(@as(usize, 6), str_has_prefix("prefix", "prefix"));
     try std.testing.expectEqual(@as(usize, 3), str_has_prefix("prefix", "pre"));
+    try std.testing.expectEqual(@as(usize, 0), str_has_prefix("prefix", ""));
     try std.testing.expectEqual(@as(usize, 0), str_has_prefix("prefix", "suffix"));
     try std.testing.expectEqual(@as(usize, 0), str_has_prefix("pre", "prefix"));
 
@@ -439,6 +447,7 @@ test "strHasPrefix honors C-string boundaries" {
 
 test "strstarts mirrors the header-level prefix helper" {
     try std.testing.expect(strstarts("prefix", "pre"));
+    try std.testing.expect(strstarts("prefix", ""));
     try std.testing.expect(strstarts("prefix", "prefix"));
     try std.testing.expect(!strstarts("prefix", "suffix"));
     try std.testing.expect(!strstarts("pre", "prefix"));
