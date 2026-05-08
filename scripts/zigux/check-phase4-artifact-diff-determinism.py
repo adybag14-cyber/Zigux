@@ -35,6 +35,8 @@ EXPECTED_HELPER_SELF_TEST_CASES = [
 EXPECTED_CONTRACT_CASES = [
     "helper_self_test",
     "helper_self_test_repeat",
+    "cli_help_output",
+    "cli_help_output_repeat",
     "cli_missing_required_args",
     "cli_missing_actual_operand",
     "cli_invalid_mode",
@@ -63,6 +65,7 @@ EXPECTED_CONTRACT_CASES = [
 
 EXPECTED_REPEAT_CONTRACT_CASES = [
     "helper_self_test_repeat",
+    "cli_help_output_repeat",
     "text_pass_repeat",
     "json_mismatch_repeat",
     "sha256_drift_repeat",
@@ -329,7 +332,7 @@ def run_self_test() -> None:
             lambda: assert_contract_lines(
                 [
                     "ARTIFACT_DIFF_CONTRACT=pass",
-                    "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=21",
+                    "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=22",
                     "ARTIFACT_DIFF_CONTRACT_BASE_CASES="
                     + ",".join(
                         [
@@ -339,10 +342,10 @@ def run_self_test() -> None:
                             and case != "cli_invalid_mode"
                         ]
                     ),
-                    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=4",
+                    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5",
                     "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES="
                     + ",".join(EXPECTED_REPEAT_CONTRACT_CASES),
-                    "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=25",
+                    "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27",
                     "ARTIFACT_DIFF_CONTRACT_CASES="
                     + ",".join(
                         [case for case in EXPECTED_CONTRACT_CASES if case != "cli_invalid_mode"]
