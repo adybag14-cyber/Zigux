@@ -33,7 +33,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
-      "why_now": "The archival survey gate now verifies that the bounded hvc_console starter includes the setup-state, close-boundary, cleanup handoff, remove-path handoff, the driver-local teardown note, tty-registration handoff helper, sysrq handoff helper, notifier handoff helper, the never-registered no-unregister failure mode, the targetless no-unregister edge, the dedicated struct winsize layout proof, and the dedicated struct hv_ops callback-table layout proof while keeping the remaining live notifier execution and host-backed behavior gaps reviewable."
+      "why_now": "The archival survey gate now verifies that the bounded hvc_console starter includes the setup-state, close-boundary, cleanup handoff, remove-path handoff, the driver-local teardown note, tty-registration handoff helper, sysrq handoff helper, notifier handoff helper, the khvcd polling-contract boundary, the stale-count-preserving hvc_hangup disconnect boundary, the never-registered no-unregister failure mode, the targetless no-unregister edge, the dedicated struct winsize layout proof, and the dedicated struct hv_ops callback-table layout proof while keeping the remaining live notifier execution and host-backed behavior gaps reviewable."
     },
     {
       "id": "phase11-hvc-console-winsize-layout-assert",
@@ -54,7 +54,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-hvc-console-survey.md",
-      "why_now": "The survey note now records that the original roadmap simple-driver gap is closed by the bounded direct-port starter, the first hardware validation matrix is present, the driver-local teardown note now anchors the close, cleanup, and remove ownership split, the dedicated struct hv_ops callback-table proof now sits beside the existing struct winsize checkpoint, and teardown and failure-mode parity remain bounded to the host-free close boundary, cleanup handoff summary, remove-path handoff summary, tty-registration handoff summary, sysrq handoff summary, and notifier-facing handoff summary rather than live tty or hypervisor integration."
+      "why_now": "The survey note now records that the original roadmap simple-driver gap is closed by the bounded direct-port starter, the first hardware validation matrix is present, the driver-local teardown note now anchors the close, cleanup, and remove ownership split, the dedicated struct hv_ops callback-table proof now sits beside the existing struct winsize checkpoint, and teardown and failure-mode parity remain bounded to the host-free close boundary, cleanup handoff summary, remove-path handoff summary, tty-registration handoff summary, sysrq handoff summary, notifier-facing handoff summary, khvcd polling-contract summary, and hvc_hangup disconnect summary rather than live tty or hypervisor integration."
     },
     {
       "id": "phase11-hvc-console-driver-starter",
@@ -82,7 +82,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console.zig",
-      "why_now": "Dedicated driver tests now cover setup-state slot validation, newline framing, retry-after-EAGAIN flush intent, final-close wait gating, remove-path teardown ordering, tty-registration handoff boundaries, the bounded sysrq handoff, the bounded notifier handoff, the never-registered no-unregister edge, the targetless no-unregister edge, hung-up close short-circuiting, and teardown gating without touching tty core integration."
+      "why_now": "Dedicated driver tests now cover setup-state slot validation, newline framing, retry-after-EAGAIN flush intent, final-close wait gating, remove-path teardown ordering, tty-registration handoff boundaries, the bounded sysrq handoff, the bounded notifier handoff, the khvcd polling-contract wakeup and teardown-pressure boundary, the active-versus-stale hvc_hangup disconnect split, the never-registered no-unregister edge, the targetless no-unregister edge, hung-up close short-circuiting, and teardown gating without touching tty core integration."
     },
     {
       "id": "phase11-hvc-console-validation-matrix",
