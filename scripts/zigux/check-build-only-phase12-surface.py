@@ -146,6 +146,7 @@ REQUIRED_FILE_MARKERS = {
         "Phase 12 Release Coordination Matrix",
         "release-order authority: `Documentation/zigux/phase12-release-sequencing.md`",
         "PMO closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`",
+        "adjacent release-readiness note: `Documentation/zigux/phase12-release-readiness-survey.md`",
         "shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
         "driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "freeze-boundary authority: `Documentation/zigux/freeze-map.md`",
