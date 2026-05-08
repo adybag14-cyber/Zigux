@@ -267,6 +267,47 @@ def run_self_test() -> int:
             print("self-test expected failure when the explicit review-blocker status drifted", file=sys.stderr)
             return 1
 
+        write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
+
+        broken_smoke_path.write_text(
+            broken_smoke_path.read_text(encoding="utf-8").replace(
+                "Leave this shared smoke lane parked unless one of the four anchor-local manifests, the cross-anchor traceability note, the shared replay wiring, or the paired Phase 14 docs surfaces drift.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: Leave this shared smoke lane parked unless one of the four anchor-local manifests, the cross-anchor traceability note, the shared replay wiring, or the paired Phase 14 docs surfaces drift."
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the smoke-note parking guidance drifted", file=sys.stderr)
+            return 1
+
+        write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
+
+        broken_checklist_path = root / "Documentation/zigux/review-checklist.md"
+        broken_checklist_path.write_text(
+            broken_checklist_path.read_text(encoding="utf-8").replace(
+                "same study-only stay-in-C posture without implying an active deep-core port claim?\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/review-checklist.md: same study-only stay-in-C posture without implying an active deep-core port claim?"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the review-checklist stay-in-C prompt drifted", file=sys.stderr)
+            return 1
+
+        write_text(broken_checklist_path, required_text("Documentation/zigux/review-checklist.md"))
+
         for rel_path in REQUIRED_FILE_MARKERS:
             broken_file = root / rel_path
             broken_file.unlink()
