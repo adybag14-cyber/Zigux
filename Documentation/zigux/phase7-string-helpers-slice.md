@@ -115,11 +115,11 @@ The current tests check:
 This slice does not yet claim:
 
 - the broader allocation-backed duplication and string-array family beyond `kstrdup_and_replace()`, `kstrdup_quotable()`, and the current bounded starters
-- task-owned, file-owned, or device-managed quotable helper follow-ons
+- the remaining task-owned, file-owned, or device-managed follow-ons: `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, and `devm_kasprintf_strarray()`
 - a new `samples/zigux/` string-helper reference sample
 
 ## Next bounded step
 
 Leave this lane parked unless fresh repo inspection finds one more concrete Phase 7 helper need or a renewed Phase 5-versus-Phase 7 boundary drift.
 
-If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.
+If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync inside the now-landed whitespace, size-rendering, quoting, escape, or string-array packet before widening into `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()`.
