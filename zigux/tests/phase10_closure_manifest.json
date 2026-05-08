@@ -134,9 +134,12 @@
   },
   "landed_core_helper_evidence": {
     "zigux/tests/phase10_virtio_core_manifest.json": [
-      "phase10-config-generation-summary-helper",
-      "phase10-config-delivery-disposition-helper",
-      "phase10-config-driver-toggle-guard-helper"
+      "phase10-queue-shape-bookkeeping-helper",
+      "phase10-config-generation-bookkeeping-helper",
+      "phase10-interrupt-ack-bookkeeping-helper",
+      "phase10-lifecycle-guard-bookkeeping-helper",
+      "phase10-driver-validation-narrowing-helper",
+      "phase10-reset-replay-bookkeeping-helper"
     ]
   },
   "landed_ring_helper_evidence": {
