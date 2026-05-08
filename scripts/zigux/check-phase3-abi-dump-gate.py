@@ -191,7 +191,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (root / BUILD_REL).write_text(
-            '\n'.join(['const dump = b.step("phase3-dump", "Run dump");', ""]),
+            "\n".join(['const dump = b.step("phase3-dump", "Run dump");', ""]),
             encoding="utf-8",
             newline="\n",
         )
@@ -333,8 +333,55 @@ def run_self_test() -> int:
             in issues
         )
 
+        (root / DOC_REL).write_text(
+            "\n".join(
+                [
+                    "# Phase 3 ABI Substrate Slice",
+                    "PHASE3_EXPORT_SCOPE=shim-only starter nested inside the ABI substrate slice",
+                    "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
+                    "PHASE3_EXPORT_SHIM_BLOB_SHA=deadbeef",
+                    "PHASE3_UAPI_SCOPE=version-and-boundary-header starter nested inside the ABI substrate slice",
+                    "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
+                    "PHASE3_UAPI_VERSION_BLOB_SHA=cafebabe",
+                    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof",
+                    DUMP_GATE,
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / MAKEFILE_REL).write_text(
+            "\n".join(
+                [
+                    "phase3-validate:",
+                    f"\t{MAKEFILE_SELFTEST_CMD}",
+                    f"\t{MAKEFILE_LIVE_CMD}",
+                    "phase3-abi:",
+                    "\t@true",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / BUILD_REL).write_text(
+            "\n".join(['const test = b.step("phase3-test", "Run test");', ""]),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / MANIFEST_REL).write_text(
+            json.dumps({"files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL]}),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / DUMP_REL).unlink()
+        issues = validate(root)
+        assert f"missing_build_step:{BUILD_REL}:phase3-dump" in issues
+        assert f"missing_dump:{DUMP_REL}" in issues
+
     print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")
-    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4")
+    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
