@@ -35,6 +35,8 @@ Those two notes remain truthful shared-tree-only anchors on `master`. They are r
 
 ### Tree views
 - shared fallback overview: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-raw-github-coverage-survey.md`
+- commit-pinned `nvme_pci` fallback map: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
+- commit-pinned `virtio_scsi` fallback catalog: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - shared-tree-only `virtio_net` anchor: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-virtio-net-survey.md`
 - shared-tree-only libbpf anchor: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-libbpf-segment-survey.md`
 - release-order authority: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-sequencing.md`
@@ -44,6 +46,8 @@ Those two notes remain truthful shared-tree-only anchors on `master`. They are r
 
 ### Raw file views
 - shared fallback overview: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-raw-github-coverage-survey.md`
+- commit-pinned `nvme_pci` fallback map: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
+- commit-pinned `virtio_scsi` fallback catalog: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - shared-tree-only `virtio_net` anchor: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-virtio-net-survey.md`
 - shared-tree-only libbpf anchor: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-libbpf-segment-survey.md`
 - release-order authority: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-sequencing.md`
