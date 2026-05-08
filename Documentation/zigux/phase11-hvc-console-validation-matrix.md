@@ -10,6 +10,7 @@ This document records the first bounded kernel-integration validation matrix for
 - current repo reality:
   - `drivers/tty/hvc/hvc_console.zig`
   - `drivers/tty/hvc/hvc_console_verify.zig`
+  - `zigux/tests/phase11_hvc_console.zig`
   - `zigux/tests/phase11_hvc_cleanup.zig`
   - `zigux/tests/phase11_hvc_console_manifest.json`
   - `zigux/tests/phase11_hvc_console_survey.zig`
