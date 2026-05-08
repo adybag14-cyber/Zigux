@@ -68,6 +68,10 @@ pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
     return normalize(from64to32(result));
 }
 
+pub fn tcpUdpMagic(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u16 {
+    return fold(tcpUdpNofold(sum, saddr, daddr, len, proto));
+}
+
 pub fn tcpUdpV6Nofold(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) u32 {
     var result: u64 = normalize(sum);
 
@@ -80,6 +84,10 @@ pub fn tcpUdpV6Nofold(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len:
     result += len;
     result += proto;
     return normalize(from64to32(result));
+}
+
+pub fn tcpUdpV6Magic(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) u16 {
+    return fold(tcpUdpV6Nofold(sum, saddr, daddr, len, proto));
 }
 
 pub fn partial(bytes: []const u8, seed: u32) u32 {
@@ -291,6 +299,7 @@ test "pseudo-header helpers match direct pseudo-header plus payload recomputatio
     writeBigEndianU16(ipv4_packet[10..12], ipv4_payload.len);
     @memcpy(ipv4_packet[12..], &ipv4_payload);
     try std.testing.expectEqual(compute(&ipv4_packet), fold(ipv4_partial));
+    try std.testing.expectEqual(compute(&ipv4_packet), tcpUdpMagic(partial(&ipv4_payload, 0), ipv4_saddr, ipv4_daddr, ipv4_payload.len, ipv4_proto));
 
     const ipv6_payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36, 0xaa };
     const ipv6_saddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe };
@@ -307,6 +316,7 @@ test "pseudo-header helpers match direct pseudo-header plus payload recomputatio
     ipv6_packet[39] = ipv6_proto;
     @memcpy(ipv6_packet[40..], &ipv6_payload);
     try std.testing.expectEqual(compute(&ipv6_packet), fold(ipv6_partial));
+    try std.testing.expectEqual(compute(&ipv6_packet), tcpUdpV6Magic(partial(&ipv6_payload, 0), &ipv6_saddr, &ipv6_daddr, ipv6_payload.len, ipv6_proto));
 }
 
 test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
@@ -321,6 +331,7 @@ test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
     manual_v4 = add(manual_v4, 17);
     manual_v4 = add(manual_v4, 6);
     try std.testing.expectEqual(normalize(manual_v4), v4_result);
+    try std.testing.expectEqual(fold(normalize(manual_v4)), tcpUdpMagic(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17));
 
     const v6_saddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe };
     const v6_daddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf };
@@ -339,6 +350,7 @@ test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
     manual_v6 = add(manual_v6, v6_len & 0xffff);
     manual_v6 = add(manual_v6, v6_proto);
     try std.testing.expectEqual(normalize(manual_v6), v6_result);
+    try std.testing.expectEqual(fold(normalize(manual_v6)), tcpUdpV6Magic(payload_seed, &v6_saddr, &v6_daddr, v6_len, v6_proto));
 }
 
 test "pseudo-header helpers keep carry-heavy folding stable" {
@@ -353,6 +365,7 @@ test "pseudo-header helpers keep carry-heavy folding stable" {
     manual_v4 = add(manual_v4, 0x00ff);
     manual_v4 = add(manual_v4, 0xffff);
     try std.testing.expectEqual(normalize(manual_v4), v4_result);
+    try std.testing.expectEqual(fold(normalize(manual_v4)), tcpUdpMagic(seed, 0xffff_ffff, 0xffff_ffff, 0xffff, 0xff));
 
     const v6_saddr = [_]u8{0xff} ** 16;
     const v6_daddr = [_]u8{0xff} ** 16;
@@ -368,4 +381,5 @@ test "pseudo-header helpers keep carry-heavy folding stable" {
     manual_v6 = add(manual_v6, 0xfffe);
     manual_v6 = add(manual_v6, 0x00ff);
     try std.testing.expectEqual(normalize(manual_v6), v6_result);
+    try std.testing.expectEqual(fold(normalize(manual_v6)), tcpUdpV6Magic(seed, &v6_saddr, &v6_daddr, 0xffff_fffe, 0xff));
 }
