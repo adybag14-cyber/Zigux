@@ -82,6 +82,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "make -C zigux phase2-validate",
+    "make -C zigux phase2-tools",
     "make -C zigux phase2-kconfig",
     "make -C zigux phase2-cross",
     "make -C zigux phase2",
@@ -202,6 +203,7 @@ EXACT_COUNT_CHECKS = {
         "scripts/zigux/check-phase2-fixdep-gate.py": 1,
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
         "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
+        "make -C zigux phase2-tools": 1,
         "make -C zigux phase2-kconfig": 1,
         "make -C zigux phase2-cross": 1,
     },
@@ -378,7 +380,7 @@ def run_self_test() -> int:
             assert f"missing_file:{rel_path}" in issues
             case_count += 1
 
-    assert case_count == 112
+    assert case_count == 114
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
