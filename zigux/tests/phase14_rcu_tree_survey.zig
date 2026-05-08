@@ -324,6 +324,7 @@ test "phase 14 rcu tree bridge catalog stays review-only and queryable" {
     const descriptor = tree_bridge.RcuTreeBridgeLab.descriptor();
     const map = tree_bridge.RcuTreeBridgeLab.boundaryMap();
     const audit = tree_bridge.RcuTreeBridgeLab.concurrencyAudit();
+    const governance = tree_bridge.RcuTreeBridgeLab.bridgeGovernance();
 
     try std.testing.expectEqualStrings("rcu_tree_boundary_map_lab", descriptor.name);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", descriptor.anchor);
@@ -331,18 +332,24 @@ test "phase 14 rcu tree bridge catalog stays review-only and queryable" {
     try std.testing.expect(descriptor.provides_boundary_map);
     try std.testing.expect(descriptor.provides_concurrency_audit_outline);
     try std.testing.expect(descriptor.provides_stay_in_c_decisions);
+    try std.testing.expect(descriptor.provides_bridge_governance);
     try std.testing.expect(!descriptor.touches_live_gp_state);
     try std.testing.expect(!descriptor.touches_live_nocb_state);
     try std.testing.expect(!descriptor.touches_live_hotplug_state);
 
-    try std.testing.expectEqual(@as(usize, 7), map.areas.len);
-    try std.testing.expectEqual(@as(usize, 7), tree_bridge.RcuTreeBridgeLab.stayInCDecisionCount());
+    try std.testing.expectEqual(@as(usize, 9), map.areas.len);
+    try std.testing.expectEqual(@as(usize, 9), tree_bridge.RcuTreeBridgeLab.boundaryAreaCount());
+    try std.testing.expectEqual(@as(usize, 9), tree_bridge.RcuTreeBridgeLab.stayInCDecisionCount());
     try std.testing.expectEqual(@as(usize, 9), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 9), audit.blocked_live_behaviors.len);
     try std.testing.expectEqual(@as(usize, 9), tree_bridge.RcuTreeBridgeLab.auditCheckpointCount());
+    try std.testing.expectEqual(@as(usize, 3), governance.governed_checkpoint_ids.len);
+    try std.testing.expectEqual(@as(usize, 3), governance.governed_blocked_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 3), tree_bridge.RcuTreeBridgeLab.criticalFreezeCheckpointCount());
     try std.testing.expect(std.mem.indexOf(u8, tree_bridge.RcuTreeBridgeLab.nextAuditFocus(), "review-only") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tree_bridge.RcuTreeBridgeLab.nextAuditFocus(), "public wait and barrier APIs") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tree_bridge.RcuTreeBridgeLab.nextAuditFocus(), "CPU-hotplug callback migration") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tree_bridge.RcuTreeBridgeLab.nextAuditFocus(), "Architecture Council reopen record") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tree_bridge.RcuTreeBridgeLab.nextAuditFocus(), "memory-ordering") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tree_bridge.RcuTreeBridgeLab.nextAuditFocus(), "CPU-hotplug") != null);
 
     const public_wait = tree_bridge.RcuTreeBridgeLab.checkpointById("public-wait-and-barrier-contract") orelse return error.MissingCheckpoint;
     try std.testing.expect(public_wait.guard == .public_wait_and_barrier_contract);
@@ -356,6 +363,8 @@ test "phase 14 rcu tree bridge catalog stays review-only and queryable" {
     try std.testing.expect(tree_bridge.RcuTreeBridgeLab.hasAuditGuard(.nocb_wakeup_handoff));
     try std.testing.expect(tree_bridge.RcuTreeBridgeLab.hasAuditGuard(.public_wait_and_barrier_contract));
     try std.testing.expect(tree_bridge.RcuTreeBridgeLab.blocksLiveBehavior("public wait, polling-cookie, and callback-barrier ownership"));
+    try std.testing.expect(tree_bridge.RcuTreeBridgeLab.governsCriticalFreezeCheckpoint("memory-ordering-lock-network"));
+    try std.testing.expect(tree_bridge.RcuTreeBridgeLab.governsCriticalFreezeBlockedBehavior("CPU hotplug enrollment, teardown, and callback migration"));
     try std.testing.expectEqual(@as(?usize, 8), tree_bridge.RcuTreeBridgeLab.blockedBehaviorIndex("CPU hotplug enrollment, teardown, and callback migration"));
     try std.testing.expect(!tree_bridge.RcuTreeBridgeLab.blocksLiveBehavior("nonexistent rcu bridge behavior"));
 }
