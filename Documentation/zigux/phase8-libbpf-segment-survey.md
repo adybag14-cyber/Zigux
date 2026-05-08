@@ -21,6 +21,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
   - `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
   - `zigux/tests/phase8_cpu_mask.zig`
+  - `zigux/tests/phase8_cpu_mask_only_build.zig`
   - `zigux/tests/phase8_logging.zig`
   - `zigux/tests/phase8_pin_path.zig`
   - `zigux/tests/phase8_bpf_type_names.zig`
@@ -113,19 +114,21 @@ The current tests check:
 ## Gates
 1. run the shared Phase 8 validator route first
    - `make -C zigux phase8-validate`
-2. run the focused libbpf survey wrapper
+2. run the focused cpu-mask build shard
+   - `zig build test --build-file zigux/tests/phase8_cpu_mask_only_build.zig --summary all`
+3. run the focused libbpf survey wrapper
    - `make -C zigux phase8-libbpf-segments-test`
    - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-3. run the focused file-path handle bridge wrapper
+4. run the focused file-path handle bridge wrapper
    - `make -C zigux phase8-file-path-handle-bridge-test`
    - `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`
-4. run the focused perf-buffer poll wrapper
+5. run the focused perf-buffer poll wrapper
    - `make -C zigux phase8-perf-buffer-poll-test`
    - `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
-5. run the shared Phase 8 wrapper
+6. run the shared Phase 8 wrapper
    - `make -C zigux phase8-test`
    - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-6. run the convenience target
+7. run the convenience target
    - `make -C zigux phase8`
 
 ## Non-goals
