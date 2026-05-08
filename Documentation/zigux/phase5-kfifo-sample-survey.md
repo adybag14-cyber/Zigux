@@ -42,7 +42,7 @@ Fresh repo inspection now shows that `samples/zigux/` carries four bounded Phase
 - `runtime_trace_events.zig`
 - `runtime_trace_events_loader.zig`
 
-The Phase 5 gap is now narrowed to one landed sample-backed reference pattern for the `kfifo` anchor. The remaining work is to keep its exact checks and non-goals visible while the full four-anchor Phase 5 reference sample set stays visibly separate from the later runtime-oriented starters and their loader-side follow-ons.
+For the `kfifo` anchor, current `master` already ships the roadmap-backed side-by-side sample port. The remaining same-lane work is to keep its exact checks, approved in-memory idiom, and non-goals visible while the full four-anchor Phase 5 reference sample set stays visibly separate from the later runtime-oriented starters and their loader-side follow-ons.
 
 ## Survey findings
 
@@ -128,7 +128,7 @@ The current gap is not "Zigux lacks every sample." The more precise gap is:
 - the approved kfifo idiom should keep the embedded fixed-buffer storage cue explicit in the survey note as part of what makes the landed sample reviewable and repeatable instead of leaving that storage boundary implicit in code only
 - the kfifo sample now covers queue-order replay, explicit queue-shape rollover cues, and one ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
 
-This slice closes the `kfifo` survey-only gap by landing the first sample-backed replay and documenting its exact checks so future Phase 5 work can advance from a concrete baseline instead of another round of ambiguous sample naming.
+This slice now documents the already-landed `kfifo` side-by-side sample port against the roadmap's approved-idiom goal and keeps its exact checks visible so future Phase 5 work advances from a concrete baseline instead of drifting back into ambiguous sample naming or runtime-substrate claims.
 
 ## Latest verification snapshot
 
