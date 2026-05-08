@@ -76,7 +76,7 @@ REQUIRED_STATUS_LINES = [
     "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false",
-    "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false",
+    "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true",
 ]
 REQUIRED_STATUS_PREFIXES = ["PHASE4_EVIDENCE_DATE="]
 REQUIRED_NOTE_MARKERS = [
@@ -322,7 +322,7 @@ def build_fixture_note(root: Path) -> str:
         '- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`',
         '- `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`',
         '- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`',
-        '- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`',
+        '- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`',
         '',
         '## Exact Readback Evidence',
         '- `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now all point at the same currently shipped Phase 4 rollback-readiness packet surfaces that the validator and shared build still own on `master`.',
