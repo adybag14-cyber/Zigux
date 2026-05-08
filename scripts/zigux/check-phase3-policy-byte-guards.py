@@ -37,10 +37,24 @@ REQUIRED_ALLOCATOR_SNIPPETS = (
     "if (reserved != 0) return null;",
     "pub fn requiresExplicitCallerPolicyBytes(mode: u8, reserved: u8) bool {",
     "return modeFromInteropPolicyBytes(mode, reserved) == .caller_provided;",
+    "pub fn requiresExplicitCallerInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "return requiresExplicitCallerPolicyBytes(policy.allocator_mode, policy.reserved);",
+    "pub fn requiresExplicitCallerByte(mode: u8) bool {",
+    "return requiresExplicitCallerPolicyBytes(mode, 0);",
     "pub fn permitsGlobalFallbackPolicyBytes(mode: u8, reserved: u8) bool {",
     "return switch (modeFromInteropPolicyBytes(mode, reserved) orelse return false) {",
+    "pub fn permitsGlobalFallbackInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "return permitsGlobalFallbackPolicyBytes(policy.allocator_mode, policy.reserved);",
+    "pub fn permitsGlobalFallbackByte(mode: u8) bool {",
+    "return permitsGlobalFallbackPolicyBytes(mode, 0);",
     "try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(2, 1));",
+    "try std.testing.expect(requiresExplicitCallerInteropPolicy(caller_policy));",
+    "try std.testing.expect(!requiresExplicitCallerInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!requiresExplicitCallerByte(9));",
     "try std.testing.expect(!requiresExplicitCallerPolicyBytes(2, 1));",
+    "try std.testing.expect(permitsGlobalFallbackInteropPolicy(heap_policy));",
+    "try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!permitsGlobalFallbackByte(9));",
     "try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));",
 )
 
@@ -135,14 +149,14 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         broken_allocator = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8").replace(
-            "try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));\n",
+            "pub fn requiresExplicitCallerInteropPolicy(policy: abi.InteropPolicy) bool {\n",
             "",
             1,
         )
         write(root / ALLOCATOR_POLICY_REL, broken_allocator)
         issues = validate(root)
         assert (
-            "missing_allocator_snippet:try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));"
+            "missing_allocator_snippet:pub fn requiresExplicitCallerInteropPolicy(policy: abi.InteropPolicy) bool {"
             in issues
         )
 
