@@ -486,7 +486,7 @@ def validate_root(root: Path) -> list[str]:
         run_guard(
             root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"), "--self-test"],
-            ["PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass", "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=42"],
+            ["PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass", "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=48"],
         )
     )
     guard_issues.extend(
