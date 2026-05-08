@@ -164,7 +164,7 @@ REQUIRED_CLOSURE_MARKERS = [
     ),
     (
         "closure_rbtree_review_packet_count",
-        "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while cached-root replacement, detach, and reseed behavior keeps direct review anchors without implying a broader shared cached-root fixture packet than current master ships",
+        "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while match-iterator coverage plus cached-root insert-miss, replacement, detach, and reseed behavior keep direct review anchors without implying a broader shared iterator or cached-root fixture packet than current master ships",
         1,
     ),
     (
@@ -326,7 +326,9 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "rbtree postorder and empty node helpers behave"',
             'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
             'test "rbtree nextMatch walks the duplicate range in order"',
+            'test "rbtree matchIterator walks the duplicate range in order"',
             'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
+            'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
             'test "rbtree cached root keeps the leftmost pointer in sync"',
             'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
             'test "rbtree eraseCached returns null for a singleton cached tree"',
@@ -352,13 +354,16 @@ EXPECTED_REVIEW_ANCHORS = {
         "duplicate_search_anchors": [
             'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
             'test "rbtree nextMatch walks the duplicate range in order"',
+            'test "rbtree matchIterator walks the duplicate range in order"',
         ],
         "cached_root_followup_anchors": [
+            'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
+            'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
             'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
             'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
             'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
         ],
-        "review_packet_summary": "shared duplicate-search parity stays explicit through the Phase 1 fixture and replay, while cached-root replacement, detach, and reseed behavior remains owned by direct helper-local anchors until master ships dedicated shared cached-root fixture keys",
+        "review_packet_summary": "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root insert-miss, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys",
     },
     "tools/lib/string.zig": {
         "helper_test_anchors": [
