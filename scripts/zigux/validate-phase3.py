@@ -90,6 +90,7 @@ LOW_LEVEL_WRAPPER_REQUIRED_MARKERS = (
     "atomic.fetchMax(i32, &signed_value, 6, .seq_cst)",
     "atomic.fetchAdd(i32, &signed_arithmetic_value, 5, .seq_cst)",
     "atomic.fetchSub(i32, &signed_arithmetic_value, 7, .seq_cst)",
+    "atomic.fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic)",
     "atomic.compareExchange(u32, &monotonic_value, 5, 7, .monotonic, .monotonic)",
     "const monotonic_mismatch = atomic.compareExchange(",
     "try std.testing.expectEqual(@as(?u32, 7), monotonic_mismatch);",
@@ -491,6 +492,22 @@ def run_self_test() -> int:
         validate_low_level_wrapper_markers(root, "abi", missing_fetch_nand_issues)
         assert missing_fetch_nand_issues == [
             "abi:missing_low_level_wrapper_marker=atomic.fetchNand(u32, &value, 10, .seq_cst)"
+        ]
+
+        wrapper_test_path.write_text(
+            "\n".join(
+                marker
+                for marker in LOW_LEVEL_WRAPPER_REQUIRED_MARKERS
+                if marker != "atomic.fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic)"
+            )
+            + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        missing_monotonic_fetch_nand_issues: list[str] = []
+        validate_low_level_wrapper_markers(root, "abi", missing_monotonic_fetch_nand_issues)
+        assert missing_monotonic_fetch_nand_issues == [
+            "abi:missing_low_level_wrapper_marker=atomic.fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic)"
         ]
 
         wrapper_test_path.write_text(
