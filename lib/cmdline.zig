@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 const std = @import("std");
 
+const ParsedPrefix = struct {
+    value: u64,
+    len: usize,
+};
+
 pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
     const current = str.*;
     if (current.len == 0) {
@@ -245,7 +250,7 @@ fn cStringPrefix(s: []const u8) []const u8 {
     return s[0 .. std.mem.indexOfScalar(u8, s, 0) orelse s.len];
 }
 
-fn parseUnsignedPrefix(s: []const u8) ?struct { value: u64, len: usize } {
+fn parseUnsignedPrefix(s: []const u8) ?ParsedPrefix {
     if (s.len == 0) {
         return null;
     }
@@ -286,7 +291,7 @@ fn parseUnsignedPrefix(s: []const u8) ?struct { value: u64, len: usize } {
     };
 }
 
-fn parseMemparseZeroPrefix(s: []const u8) ?struct { value: u64, len: usize } {
+fn parseMemparseZeroPrefix(s: []const u8) ?ParsedPrefix {
     if (s.len == 0) {
         return null;
     }
@@ -440,6 +445,12 @@ test "memparse handles size suffixes, accepts leading plus, and reports where pa
 
     try std.testing.expectEqual(@as(u64, 0), memparse("0xK", &index));
     try std.testing.expectEqual(@as(usize, 1), index);
+
+    try std.testing.expectEqual(@as(u64, 0), memparse("+0xK", &index));
+    try std.testing.expectEqual(@as(usize, 2), index);
+
+    try std.testing.expectEqual(@as(u64, 0), memparse("+0x", &index));
+    try std.testing.expectEqual(@as(usize, 2), index);
 
     try std.testing.expectEqual(@as(u64, 1024), memparse("+1K", &index));
     try std.testing.expectEqual(@as(usize, 3), index);
