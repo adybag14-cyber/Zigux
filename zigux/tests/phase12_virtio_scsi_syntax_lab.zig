@@ -130,7 +130,7 @@ test "phase12 virtio scsi syntax lab keeps recovery summaries reachable through 
     try std.testing.expect(rearm_summary.requires_device_ready_before_rearm);
     try std.testing.expect(rollback_summary.blocks_queue_planning_until_restore);
     try std.testing.expect(rollback_summary.keeps_frozen_layout_for_restore);
-    try std.testing.expect(rollback_summary.clears_live_layoutAfter_restore);
+    try std.testing.expect(rollback_summary.clears_live_layout_after_restore);
     try std.testing.expectEqual(@as(u16, 1), restored.recovery_generation);
 }
 
