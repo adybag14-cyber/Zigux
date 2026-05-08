@@ -98,6 +98,7 @@ REQUIRED_NOTE_MARKERS = [
     "`samples/zigux/kprobe_example.zig` remains absent",
     "`samples/zigux/test_fsmount.zig` remains absent",
     "hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved",
+    "`zigux/tests/README.md` should explicitly carry the shipped local-only perf-baseline pair `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig` before this lane widens into threshold-approval work.",
 ]
 
 def git_blob_sha1(payload: bytes) -> str:
@@ -262,6 +263,7 @@ def build_fixture_note(root: Path) -> str:
             "",
             "## Current Conclusion",
             "- hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
+            "- `zigux/tests/README.md` should explicitly carry the shipped local-only perf-baseline pair `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig` before this lane widens into threshold-approval work.",
         ]
     )
     return "\n".join(lines) + "\n"
