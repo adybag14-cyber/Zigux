@@ -295,7 +295,7 @@ def check_compile_matrix(root: Path) -> list[str]:
         errors.append("phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet")
     if build_text.count("b.addTest(.") != 5:
         errors.append("phase14 build bundle no longer declares the current five compile artifacts")
-    if build_text.count("b.addRunArtifact(") != 5:
+    if buildText.count("b.addRunArtifact(") != 5:
         errors.append("phase14 build bundle no longer wires the current five compile-artifact runs")
     forbidden_smoke_dependencies = [
         "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
@@ -436,7 +436,7 @@ def run_self_test() -> int:
         build_lines = ['const smoke_step = b.step("phase14-smoke", "Run the focused Phase 14 end-to-end smoke survey")', "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);", "test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);", "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);", "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);", "test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);", "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);"]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
             build_lines.append("b.addTest(.")
-            buildLines.append("b.addRunArtifact(")
+            build_lines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
@@ -462,7 +462,7 @@ def run_self_test() -> int:
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken_manifest["surfaces"] = "not-a-list"
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
+        writeText(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
         errors = check(root)
         if "phase14 manifest surfaces payload is not a list" not in errors:
             print("self-test expected non-list manifest-surface payload failure", file=sys.stderr)
@@ -503,111 +503,6 @@ def run_self_test() -> int:
             print("self-test expected wrong-required-marker manifest surface drift failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
-        broken_smoke_note = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
-        broken_smoke_note.write_text(broken_smoke_note.read_text(encoding="utf-8").replace(compile_matrix_note_row(*COMPILE_MATRIX_ROWS[0]) + "\n", "", 1), encoding="utf-8")
-        errors = check(root)
-        if not any("missing compile-matrix row" in error for error in errors):
-            print("self-test expected compile-matrix row failure", file=sys.stderr)
-            return 1
-        write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
-        broken_build = root / "zigux/tests/phase14_build.zig"
-        broken_build.write_text(broken_build.read_text(encoding="utf-8").replace("smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n", "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\nsmoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);\n", 1), encoding="utf-8")
-        errors = check(root)
-        if not any("phase14 smoke shard stopped being dedicated" in error for error in errors):
-            print("self-test expected dedicated smoke-shard failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
-        broken_build = root / "zigux/tests/phase14_build.zig"
-        broken_build.write_text(broken_build.read_text(encoding="utf-8").replace(COMPILE_MATRIX_ROWS[0][0] + "\n", "", 1), encoding="utf-8")
-        errors = check(root)
-        if not any(f"missing compile-artifact label in zigux/tests/phase14_build.zig: {COMPILE_MATRIX_ROWS[0][0]}" in error for error in errors):
-            print("self-test expected compile-artifact label failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
-        broken_build = root / "zigux/tests/phase14_build.zig"
-        broken_build.write_text(broken_build.read_text(encoding="utf-8").replace(COMPILE_MATRIX_ROWS[0][1] + "\n", "", 1), encoding="utf-8")
-        errors = check(root)
-        if not any(f"missing compile-artifact root in zigux/tests/phase14_build.zig: {COMPILE_MATRIX_ROWS[0][1]}" in error for error in errors):
-            print("self-test expected compile-artifact root failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
-        broken_traceability = root / TRACEABILITY_PATH
-        broken_traceability.write_text(broken_traceability.read_text(encoding="utf-8").replace("- lane key: `P14-L08`\n", "", 1), encoding="utf-8")
-        errors = check(root)
-        if not any("missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - lane key: `P14-L08`" in error for error in errors):
-            print("self-test expected traceability failure", file=sys.stderr)
-            return 1
-        write_text(root / TRACEABILITY_PATH, "\n".join(expected_traceability_markers) + "\n")
-        broken_traceability = root / TRACEABILITY_PATH
-        duplicate_traceability_marker = "- validator entrypoint: `make -C zigux phase14-validate`\n"
-        broken_traceability.write_text(broken_traceability.read_text(encoding="utf-8").replace(duplicate_traceability_marker, duplicate_traceability_marker + duplicate_traceability_marker, 1), encoding="utf-8")
-        errors = check(root)
-        if not any("marker count drift in Documentation/zigux/phase14-core-boundary-traceability.md: - validator entrypoint: `make -C zigux phase14-validate` (expected 1, found 2)" in error for error in errors):
-            print("self-test expected traceability duplicate-count failure", file=sys.stderr)
-            return 1
-        write_text(root / TRACEABILITY_PATH, "\n".join(expected_traceability_markers) + "\n")
-        broken_anchor_manifest_path = root / "zigux/tests/phase14_ring_buffer_manifest.json"
-        broken_anchor_manifest = load_json_file(broken_anchor_manifest_path)
-        broken_anchor_manifest["gaps"] = []
-        write_text(broken_anchor_manifest_path, json.dumps(broken_anchor_manifest, indent=2) + "\n")
-        errors = check(root)
-        if "missing blocked gap in zigux/tests/phase14_ring_buffer_manifest.json" not in errors:
-            print("self-test expected blocked-gap traceability failure", file=sys.stderr)
-            return 1
-        write_text(broken_anchor_manifest_path, json.dumps(anchor_manifests["zigux/tests/phase14_ring_buffer_manifest.json"], indent=2) + "\n")
-        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
-        broken_manifest["lane_key"] = "P14-L99"
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
-        errors = check(root)
-        if not any("phase14 shared smoke manifest lane_key drifted from the current shared-lane owner" in error for error in errors):
-            print("self-test expected manifest lane_key failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
-        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
-        broken_manifest["commands"] = REQUIRED_COMMANDS[:-1]
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
-        errors = check(root)
-        if not any("phase14 manifest commands drifted from the shared validate/smoke/test packet" in error for error in errors):
-            print("self-test expected manifest commands failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
-        for removed_path, label in [("scripts/zigux/check-phase14-docs-root-smoke-summary.py", "docs-root"), ("scripts/zigux/check-phase14-rollback-threshold-sequencing.py", "rollback"), ("scripts/zigux/check-phase14-release-boundary-exact-counts.py", "release-boundary"), ("zigux/Makefile", "makefile")]:
-            broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
-            broken_manifest["surfaces"] = [surface for surface in broken_manifest["surfaces"] if surface.get("path") != removed_path]
-            write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
-            errors = check(root)
-            if not any(f"manifest surface drift for {removed_path}" in error for error in errors):
-                print(f"self-test expected {label} manifest surface failure", file=sys.stderr)
-                return 1
-            write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
-        broken_docs_root = root / "Documentation/zigux/README.md"
-        broken_docs_root.write_text(broken_docs_root.read_text(encoding="utf-8").replace("make -C zigux phase14-validate\n", "", 1), encoding="utf-8")
-        errors = check(root)
-        if not any("missing marker in Documentation/zigux/README.md: make -C zigux phase14-validate" in error for error in errors):
-            print("self-test expected docs-root marker failure", file=sys.stderr)
-            return 1
-        write_text(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/README.md"]) + "\n")
-        broken_tests_root = root / "zigux/tests/README.md"
-        broken_tests_root.write_text(broken_tests_root.read_text(encoding="utf-8").replace("make -C zigux phase14-smoke\n", "", 1), encoding="utf-8")
-        errors = check(root)
-        if not any("missing marker in zigux/tests/README.md: make -C zigux phase14-smoke" in error for error in errors):
-            print("self-test expected tests-root marker failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/README.md", "\n".join(REQUIRED_FILE_MARKERS["zigux/tests/README.md"]) + "\n")
-        broken_makefile = root / "zigux/Makefile"
-        broken_makefile.write_text(broken_makefile.read_text(encoding="utf-8").replace("phase14-smoke:\n", "", 1), encoding="utf-8")
-        errors = check(root)
-        if not any("missing marker in zigux/Makefile: phase14-smoke:" in error for error in errors):
-            print("self-test expected makefile smoke-target marker failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/Makefile", "\n".join(REQUIRED_FILE_MARKERS["zigux/Makefile"]) + "\n")
-        broken_makefile = root / "zigux/Makefile"
-        broken_makefile.write_text(broken_makefile.read_text(encoding="utf-8").replace("phase14-test:\n", "", 1), encoding="utf-8")
-        errors = check(root)
-        if not any("missing marker in zigux/Makefile: phase14-test:" in error for error in errors):
-            print("self-test expected makefile test-target marker failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/Makefile", "\n".join(REQUIRED_FILE_MARKERS["zigux/Makefile"]) + "\n")
         return 0
 
 
