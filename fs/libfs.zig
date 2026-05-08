@@ -15,6 +15,7 @@ pub const ModuleDescriptor = struct {
     provides_directory_emit_planning: bool,
     provides_directory_cursor_open_planning: bool,
     provides_directory_cursor_close_planning: bool,
+    provides_directory_cursor_reposition_planning: bool,
     provides_transaction_buffer_planning: bool,
     provides_transaction_publish_planning: bool,
     provides_transaction_release_planning: bool,
@@ -112,6 +113,21 @@ pub const DirectoryCursorClosePlan = struct {
     return_code: i32,
 };
 
+pub const CursorRepositionPlacement = enum {
+    none,
+    before_target,
+    behind_target,
+};
+
+pub const CursorRepositionPlan = struct {
+    anchor: []const u8,
+    detaches_hashed_cursor: bool,
+    reinserts_cursor: bool,
+    placement: CursorRepositionPlacement,
+    keeps_cursor_unlinked: bool,
+    drops_temporary_target_ref: bool,
+};
+
 pub const TransactionBufferAcquirePlan = struct {
     anchor: []const u8,
     requested_size: usize,
@@ -180,6 +196,7 @@ pub const LibFsHelperLab = struct {
             .provides_directory_emit_planning = true,
             .provides_directory_cursor_open_planning = true,
             .provides_directory_cursor_close_planning = true,
+            .provides_directory_cursor_reposition_planning = true,
             .provides_transaction_buffer_planning = true,
             .provides_transaction_publish_planning = true,
             .provides_transaction_release_planning = true,
@@ -397,6 +414,24 @@ pub const LibFsHelperLab = struct {
             .releases_private_data = has_private_data,
             .null_private_data_is_allowed = true,
             .return_code = 0,
+        };
+    }
+
+    pub fn dcacheCursorRepositionPlan(cursor_is_hashed: bool, found_target: bool, placement: CursorRepositionPlacement) !CursorRepositionPlan {
+        if (found_target and placement == .none) {
+            return error.MissingPlacement;
+        }
+        if (!found_target and placement != .none) {
+            return error.UnexpectedPlacement;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .detaches_hashed_cursor = cursor_is_hashed,
+            .reinserts_cursor = found_target,
+            .placement = placement,
+            .keeps_cursor_unlinked = !found_target,
+            .drops_temporary_target_ref = found_target,
         };
     }
 
