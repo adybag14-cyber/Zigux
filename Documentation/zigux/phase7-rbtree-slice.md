@@ -8,12 +8,13 @@ This document records the bounded Phase 7 runtime leaf-helper slice for Zigux ar
 - `PHASE7_SLICE=rbtree-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-Y04`
 - scope: first bounded balancing, traversal, and cached-leftmost helpers
-- lane state: helper, fixture, dedicated survey, parity checker, shared validator, and make-wrapper slice landed; parked unless a new `lib/rbtree.c` parity issue appears
+- lane state: helper, fixture, dedicated survey, dedicated parity checker, shared build-wiring checker, shared validator, and make-wrapper slice landed; parked unless a new `lib/rbtree.c` parity issue appears
 - product boundary:
   - `lib/rbtree.zig`
   - `samples/zigux/README.md`
   - `scripts/zigux/validate-phase7.py`
   - `scripts/zigux/check-phase7-rbtree-parity.py`
+  - `scripts/zigux/check-phase7-build-wiring.py`
   - `zigux/tests/phase7_rbtree.zig`
   - `zigux/tests/phase7_rbtree_survey.zig`
   - `zigux/tests/phase7_rbtree_manifest.json`
@@ -36,7 +37,7 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 - comparison-based plain-tree lookup helpers
 - ordered erase, erase-and-detach, and direct node replacement
 - in-order and postorder traversal helpers
-- shared reviewability through `zigux/tests/phase7_rbtree_survey.zig`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, and `make -C zigux phase7`
+- shared reviewability through `zigux/tests/phase7_rbtree_survey.zig`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 
@@ -58,13 +59,14 @@ Current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sampl
 
 5. keep the shared validator-first packet explicit
 - `python3 scripts/zigux/validate-phase7.py`
+- `python3 scripts/zigux/check-phase7-build-wiring.py`
 - `python3 scripts/zigux/check-phase7-rbtree-parity.py`
 - `make -C zigux phase7-validate`
 
 6. keep the shared Linux-style replay route explicit
 - `make -C zigux phase7`
 
-This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the shared validator-first and Linux-style `make -C zigux phase7-validate` plus `make -C zigux phase7` routes stayed aligned around the same parked packet, and the committed parity fixture now locks ordered insert, duplicate-range lookup, erase-and-detach reset, replace, reverse traversal, and postorder behavior against the C helper surface. The cached leftmost helpers come from the header-side runtime surface rather than `lib/rbtree.c` itself, so they stay reviewable through the focused Zig module tests instead of the committed C parity fixture. This slice does not carry an open parity-fixture follow-up.
+This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the shared validator-first, dedicated build-wiring, and Linux-style `make -C zigux phase7-validate` plus `make -C zigux phase7` routes stayed aligned around the same parked packet, and the committed parity fixture now locks ordered insert, duplicate-range lookup, erase-and-detach reset, replace, reverse traversal, and postorder behavior against the C helper surface. The cached leftmost helpers come from the header-side runtime surface rather than `lib/rbtree.c` itself, so they stay reviewable through the focused Zig module tests instead of the committed C parity fixture. This slice does not carry an open parity-fixture follow-up.
 
 ## Current parity surface
 
