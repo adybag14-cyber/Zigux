@@ -154,6 +154,7 @@
         "test \"strstarts mirrors the header-level prefix helper\"",
         "test \"strEndsWith honors C-string boundaries\"",
         "test \"sysfsStreq treats trailing newline and NUL as equivalent\"",
+        "test \"sysfs_streq mirrors sysfsStreq newline and NUL equivalence\"",
         "test \"memdup and memchrInv preserve byte content\"",
         "test \"memchrInv keeps long-buffer first-dirty-byte results stable\"",
         "test \"memchrInv follows the earliest dirty byte as long buffers change\"",
