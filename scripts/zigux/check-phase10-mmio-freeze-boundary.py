@@ -34,6 +34,34 @@ EXPECTED_ROADMAP_DESTINATIONS = [
     "zigux/helpers/",
 ]
 
+EXPECTED_FREEZE_IN_C_ANCHORS = [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c",
+]
+
+EXPECTED_STUDY_ONLY_ANCHORS = [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+]
+
+EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY = {
+    "status": "separate_phase14_lane",
+    "anchors": EXPECTED_STUDY_ONLY_ANCHORS,
+    "required_phase14_evidence_features": [
+        "boundary maps",
+        "concurrency audits",
+        "explicit stay-in-C decisions where warranted",
+        "wrapper-first or study-only posture",
+    ],
+    "future_destinations": [
+        "kernel/workqueue_bridge.zig",
+        "kernel/trace/ring_buffer.zig",
+    ],
+    "future_destination_policy": "kernel/trace/ring_buffer.zig remains a future destination only if years of evidence justify it",
+}
+
 EXPECTED_COMPONENTS = {
     "core": {
         "manifest_path": CORE_MANIFEST_PATH,
@@ -189,6 +217,25 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     if closure_manifest.get("allowed_roadmap_destinations") != EXPECTED_ROADMAP_DESTINATIONS:
         missing_markers.append("closure_manifest:allowed_roadmap_destinations")
+    if closure_manifest.get("freeze_in_c_anchors") != EXPECTED_FREEZE_IN_C_ANCHORS:
+        missing_markers.append("closure_manifest:freeze_in_c_anchors")
+    if closure_manifest.get("study_only_anchors") != EXPECTED_STUDY_ONLY_ANCHORS:
+        missing_markers.append("closure_manifest:study_only_anchors")
+
+    phase14_boundary = closure_manifest.get("phase14_study_only_boundary")
+    if not isinstance(phase14_boundary, dict):
+        missing_markers.append("closure_manifest:phase14_study_only_boundary")
+    else:
+        if phase14_boundary.get("status") != EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY["status"]:
+            missing_markers.append("closure_manifest:phase14_study_only_boundary.status")
+        if phase14_boundary.get("anchors") != EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY["anchors"]:
+            missing_markers.append("closure_manifest:phase14_study_only_boundary.anchors")
+        if phase14_boundary.get("required_phase14_evidence_features") != EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY["required_phase14_evidence_features"]:
+            missing_markers.append("closure_manifest:phase14_study_only_boundary.required_phase14_evidence_features")
+        if phase14_boundary.get("future_destinations") != EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY["future_destinations"]:
+            missing_markers.append("closure_manifest:phase14_study_only_boundary.future_destinations")
+        if phase14_boundary.get("future_destination_policy") != EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY["future_destination_policy"]:
+            missing_markers.append("closure_manifest:phase14_study_only_boundary.future_destination_policy")
 
     scoreboard = closure_manifest.get("roadmap_parity_scoreboard")
     if not isinstance(scoreboard, dict):
@@ -343,6 +390,9 @@ def baseline_manifests() -> tuple[dict[str, dict], dict]:
         "architecture_council_reopen_required": manifests["mmio"]["architecture_council_reopen_required"],
         "architecture_council_reopen_attached": manifests["mmio"]["architecture_council_reopen_attached"],
         "forbidden_transport_claims": manifests["mmio"]["forbidden_transport_claims"],
+        "freeze_in_c_anchors": EXPECTED_FREEZE_IN_C_ANCHORS,
+        "study_only_anchors": EXPECTED_STUDY_ONLY_ANCHORS,
+        "phase14_study_only_boundary": EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY,
         "roadmap_parity_scoreboard": {
             "virtqueue_wrappers": {
                 "status": "starter_landed",
@@ -478,9 +528,33 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "closure_manifest:exact_checks:python3 scripts/zigux/check-phase10-ring-packet.py" not in missing_markers:
             raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_exact_check_marker_missing")
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
+
+        drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
+        drifted["freeze_in_c_anchors"] = ["kernel/sched/core.c"]
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
+        _, missing_markers = validate(tmp_root)
+        if "closure_manifest:freeze_in_c_anchors" not in missing_markers:
+            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_freeze_in_c_anchor_marker_missing")
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
+
+        drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
+        drifted["study_only_anchors"] = ["kernel/workqueue.c"]
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
+        _, missing_markers = validate(tmp_root)
+        if "closure_manifest:study_only_anchors" not in missing_markers:
+            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_study_only_anchor_marker_missing")
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
+
+        drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
+        drifted["phase14_study_only_boundary"]["future_destination_policy"] = "phase14 drifted"
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
+        _, missing_markers = validate(tmp_root)
+        if "closure_manifest:phase14_study_only_boundary.future_destination_policy" not in missing_markers:
+            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_phase14_boundary_policy_marker_missing")
 
     print("PHASE10_MMIO_FREEZE_BOUNDARY=pass")
-    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
