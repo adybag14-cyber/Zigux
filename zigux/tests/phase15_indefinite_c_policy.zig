@@ -25,6 +25,11 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const FreezeMapManifest = struct {
+    freeze_in_c_targets: []const []const u8,
+    study_only_targets: []const []const u8,
+};
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -283,6 +288,65 @@ test "phase 15 indefinite-C evidence archives and build wiring stay aligned with
         "phase15_indefinite_c_lane_owner_alignment.zig",
         "phase15-indefinite-c-lane-owner-alignment-tests",
     });
+}
+
+test "phase 15 indefinite-C policy anchor set stays aligned with the authoritative freeze map" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const policy_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase15_indefinite_c_policy.json",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(policy_json);
+
+    const freeze_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase15_freeze_map_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(freeze_manifest_json);
+
+    const freeze_map_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/freeze-map.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(freeze_map_doc);
+
+    const policy_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-indefinite-c-policy.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(policy_doc);
+
+    const parsed_policy = try std.json.parseFromSlice(Manifest, std.testing.allocator, policy_json, .{});
+    defer parsed_policy.deinit();
+
+    const parsed_freeze_manifest = try std.json.parseFromSlice(FreezeMapManifest, std.testing.allocator, freeze_manifest_json, .{});
+    defer parsed_freeze_manifest.deinit();
+
+    try std.testing.expectEqual(parsed_freeze_manifest.value.freeze_in_c_targets.len, parsed_policy.value.anchors.len);
+
+    for (parsed_freeze_manifest.value.freeze_in_c_targets, 0..) |freeze_target, i| {
+        try std.testing.expectEqualStrings(freeze_target, parsed_policy.value.anchors[i]);
+        try std.testing.expect(std.mem.indexOf(u8, freeze_map_doc, freeze_target) != null);
+        try std.testing.expect(std.mem.indexOf(u8, policy_doc, freeze_target) != null);
+    }
+
+    for (parsed_freeze_manifest.value.study_only_targets) |study_only_target| {
+        try std.testing.expect(std.mem.indexOf(u8, policy_doc, study_only_target) == null);
+
+        for (parsed_policy.value.anchors) |policy_anchor| {
+            try std.testing.expect(!std.mem.eql(u8, study_only_target, policy_anchor));
+        }
+    }
 }
 
 test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
