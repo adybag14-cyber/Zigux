@@ -15,6 +15,6 @@ The live repo state is now:
 
 This cleanup packet now carries lane identity `P11-L04` so the live manifest, focused survey gate, and survey note all point at the same gpio watchdog review record.
 
-This remains intentionally small. The lane still does not claim platform-driver registration, live GPIO descriptor lookup, `watchdog_set_drvdata()` execution, watchdog core registration, reboot hooks, module parameters beyond summary bookkeeping, live GPIO execution, teardown and failure-mode parity beyond the landed bounded starter checks and teardown note, or hardware-backed validation beyond the landed matrix.
+This remains intentionally small. The lane still does not claim platform-driver registration, live GPIO descriptor lookup, `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution, watchdog core registration, reboot hooks, module parameters beyond summary bookkeeping, live GPIO execution, teardown and failure-mode parity beyond the landed bounded starter checks and teardown note, or hardware-backed validation beyond the landed matrix.
 
 The next honest bounded step for this archived review packet is to keep the landed descriptor, timeout-property, platform-drvdata, drvdata, teardown, handoff, and register-device request summaries traceable while later same-family lanes decide whether hardware-backed validation can move forward without claiming live GPIO or broader platform glue.
