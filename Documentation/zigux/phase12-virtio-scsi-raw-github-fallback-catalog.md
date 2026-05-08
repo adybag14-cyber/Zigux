@@ -12,7 +12,7 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 - `PHASE12_SLICE=virtio-scsi-raw-github-fallback-catalog`
 - `active_survey_lane: P12-L13`
 - `historical_fallback_lane: P12-L09`
-- scope: public tree and raw URL coverage for the shipped `virtio_scsi` starter, direct syntax-lab smoke shard, survey, build wiring, manifest, shared replay surfaces, the driver-only anti-overlap companion, the shared libbpf anti-overlap companion, the shared fallback overview, the PMO closure companion, the adjacent release-readiness note, and the compact release coordination matrix that now travel with the active release-order packet
+- scope: public tree and raw URL coverage for the shipped `virtio_scsi` starter, including the current bounded queue-window ownership summary, direct syntax-lab smoke shard, survey, build wiring, manifest, shared replay surfaces, the driver-only anti-overlap companion, the shared libbpf anti-overlap companion, the shared fallback overview, the PMO closure companion, the adjacent release-readiness note, and the compact release coordination matrix that now travel with the active release-order packet
 
 ## Tree views
 
@@ -61,6 +61,7 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.
 
 - current virtio_scsi smoke packet surfaces: `zigux/tests/phase12_virtio_scsi.zig` and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
+- current degraded-read reminder: those same starter-facing surfaces now keep the landed queue-window ownership summary explicit, so the control and event queue gap plus the default-versus-poll request-queue ranges stay reviewable here without claiming blk-mq queue mapping or live request ownership
 
 1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
 2. `make -C zigux phase12-smoke`
@@ -89,4 +90,4 @@ This catalog should stay read-only and should not be used to imply an unshipped 
 
 ## Update rule
 
-If the bounded `virtio_scsi` packet gains or drops a shipped Phase 12 surface, update this catalog in the same change so fallback inspection keeps matching the live reviewable packet on `master`.
+If the bounded `virtio_scsi` packet gains or drops a shipped Phase 12 surface, or if the shipped starter-facing queue-window or recovery-summary wording changes inside that existing packet, update this catalog in the same change so fallback inspection keeps matching the live reviewable packet on `master`.
