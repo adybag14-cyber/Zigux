@@ -74,6 +74,14 @@ pub const FreezeGuardrail = struct {
     automatic_return_to_blocked_triggers: []const []const u8,
 };
 
+pub const DecisionChecklistEntry = struct {
+    id: []const u8,
+    summary: []const u8,
+    ownership: Ownership,
+    anchor_symbols: []const []const u8,
+    rationale: []const u8,
+};
+
 const boundary_areas = [_]BoundaryArea{
     .{
         .id = "allocation-entrypoints",
@@ -223,6 +231,44 @@ const audit_checkpoints = [_]AuditCheckpoint{
     },
 };
 
+const decision_checklist = [_]DecisionChecklistEntry{
+    .{
+        .id = boundary_areas[4].id,
+        .summary = boundary_areas[4].summary,
+        .ownership = boundary_areas[4].ownership,
+        .anchor_symbols = boundary_areas[4].anchor_symbols,
+        .rationale = boundary_areas[4].rationale,
+    },
+    .{
+        .id = boundary_areas[5].id,
+        .summary = boundary_areas[5].summary,
+        .ownership = boundary_areas[5].ownership,
+        .anchor_symbols = boundary_areas[5].anchor_symbols,
+        .rationale = boundary_areas[5].rationale,
+    },
+    .{
+        .id = audit_checkpoints[6].id,
+        .summary = audit_checkpoints[6].summary,
+        .ownership = audit_checkpoints[6].ownership,
+        .anchor_symbols = &[_][]const u8{ "skb_segment", "SKB_GSO_PARTIAL", "sock_wfree" },
+        .rationale = audit_checkpoints[6].blocked_by,
+    },
+    .{
+        .id = audit_checkpoints[7].id,
+        .summary = audit_checkpoints[7].summary,
+        .ownership = audit_checkpoints[7].ownership,
+        .anchor_symbols = &[_][]const u8{ "skb_segment", "SKB_GSO_CB", "remcsum_offload" },
+        .rationale = audit_checkpoints[7].blocked_by,
+    },
+    .{
+        .id = audit_checkpoints[8].id,
+        .summary = audit_checkpoints[8].summary,
+        .ownership = audit_checkpoints[8].ownership,
+        .anchor_symbols = &[_][]const u8{ "skb_segment", "segs->prev", "validate_xmit_skb_list" },
+        .rationale = audit_checkpoints[8].blocked_by,
+    },
+};
+
 const blocked_live_behaviors = [_][]const u8{
     "live skbuff allocation and cache ownership",
     "shared-data refcount transitions",
@@ -306,6 +352,23 @@ pub const SkbuffBridgeLab = struct {
             .required_evidence = freeze_required_evidence[0..],
             .automatic_return_to_blocked_triggers = freeze_return_to_blocked_triggers[0..],
         };
+    }
+
+    pub fn decisionChecklist() []const DecisionChecklistEntry {
+        return decision_checklist[0..];
+    }
+
+    pub fn decisionChecklistCount() usize {
+        return decision_checklist.len;
+    }
+
+    pub fn decisionChecklistEntryById(id: []const u8) ?DecisionChecklistEntry {
+        for (decision_checklist) |entry| {
+            if (std.mem.eql(u8, entry.id, id)) {
+                return entry;
+            }
+        }
+        return null;
     }
 
     pub fn stayInCDecisionCount() usize {
@@ -441,6 +504,34 @@ test "skbuff bridge boundary map records stay-in-c lifetime decisions" {
     try std.testing.expectEqualStrings("destructor-and-free-path", map.areas[5].id);
     try std.testing.expect(map.areas[5].ownership == .stay_in_c);
     try std.testing.expectEqualStrings("consume_skb", map.areas[5].anchor_symbols[2]);
+}
+
+test "skbuff bridge decision checklist exposes the stay-in-c review packet" {
+    const checklist = SkbuffBridgeLab.decisionChecklist();
+
+    try std.testing.expectEqual(@as(usize, 5), checklist.len);
+    try std.testing.expectEqual(@as(usize, 5), SkbuffBridgeLab.decisionChecklistCount());
+
+    const refcount = SkbuffBridgeLab.decisionChecklistEntryById("shared-info-refcount-ownership") orelse return error.MissingChecklistEntry;
+    try std.testing.expect(refcount.ownership == .stay_in_c);
+    try std.testing.expectEqualStrings(boundary_areas[4].summary, refcount.summary);
+    try std.testing.expectEqualStrings("struct skb_shared_info", refcount.anchor_symbols[0]);
+    try std.testing.expectEqualStrings("dataref", refcount.anchor_symbols[1]);
+    try std.testing.expectEqualStrings("skb_header_cloned", refcount.anchor_symbols[2]);
+
+    const tail_owner = SkbuffBridgeLab.decisionChecklistEntryById("segmentation-partial-tail-owner-transfer") orelse return error.MissingChecklistEntry;
+    try std.testing.expect(tail_owner.ownership == .stay_in_c);
+    try std.testing.expectEqualStrings(audit_checkpoints[6].summary, tail_owner.summary);
+    try std.testing.expectEqualStrings("skb_segment", tail_owner.anchor_symbols[0]);
+    try std.testing.expectEqualStrings("SKB_GSO_PARTIAL", tail_owner.anchor_symbols[1]);
+    try std.testing.expectEqualStrings("sock_wfree", tail_owner.anchor_symbols[2]);
+
+    const tail_publication = SkbuffBridgeLab.decisionChecklistEntryById("segmentation-tail-publication-consumer-contract") orelse return error.MissingChecklistEntry;
+    try std.testing.expectEqualStrings(audit_checkpoints[8].blocked_by, tail_publication.rationale);
+    try std.testing.expectEqualStrings("segs->prev", tail_publication.anchor_symbols[1]);
+    try std.testing.expectEqualStrings("validate_xmit_skb_list", tail_publication.anchor_symbols[2]);
+
+    try std.testing.expect(SkbuffBridgeLab.decisionChecklistEntryById("missing-checklist-entry") == null);
 }
 
 test "skbuff bridge lifetime audit stays review-only" {
