@@ -179,7 +179,10 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
         phase4_runtime_atomic64_manifest_source,
         "\"phase4_validator_runtime_atomic64_diff_present\": true",
     );
-    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_validator_blob_sha\": \"");
+    try expectMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "\"phase4_validator_blob_sha\": \"602b1ff6ee9baf2874a3456704b250ae1086ee87\"",
+    );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
         "\"phase4_validation_matrix_atomic64_diff_note_present\": true",
@@ -188,8 +191,14 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
         phase4_runtime_atomic64_manifest_source,
         "\"phase4_validation_matrix_runtime_atomic64_note_present\": true",
     );
-    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_validation_matrix_blob_sha\": \"");
-    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_review_checklist_blob_sha\": \"");
+    try expectMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "\"phase4_validation_matrix_blob_sha\": \"5c680042a517d35c053a12df794676822d710ea3\"",
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "\"phase4_review_checklist_blob_sha\": \"a7803e891f84333f4791a2dd0d0733b8bb46c4a9\"",
+    );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
         "\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"",
