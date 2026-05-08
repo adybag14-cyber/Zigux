@@ -10,6 +10,7 @@ test "phase12 virtio scsi syntax lab keeps bounded queue-lab exports reachable" 
     _ = virtio_scsi.RecoveryAction;
     _ = virtio_scsi.QueueLayoutSummary;
     _ = virtio_scsi.RequestQueueSummary;
+    _ = virtio_scsi.QueueWindowSummary;
     _ = virtio_scsi.ProbeConfigSnapshot;
     _ = virtio_scsi.HostShapeRequest;
     _ = virtio_scsi.HostShapeSummary;
@@ -45,6 +46,16 @@ test "phase12 virtio scsi syntax lab keeps queue-family constants and defaults s
     try std.testing.expectEqual(@as(?u16, 6), layout.first_poll_queue_index);
     try std.testing.expectEqual(virtio_scsi.RequestQueueKind.request, (try lab.requestQueue(0)).kind);
     try std.testing.expectEqual(virtio_scsi.RequestQueueKind.request_poll, (try lab.requestQueue(4)).kind);
+
+    const summary = try lab.queueWindowSummary();
+    try std.testing.expectEqual(@as(u16, 2), summary.first_default_queue_index);
+    try std.testing.expectEqual(@as(u16, 5), summary.last_default_queue_index);
+    try std.testing.expectEqual(@as(u16, 4), summary.default_queue_count);
+    try std.testing.expectEqual(@as(?u16, 6), summary.first_poll_queue_index);
+    try std.testing.expectEqual(@as(?u16, 7), summary.last_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, 2), summary.poll_queue_count);
+    try std.testing.expect(summary.preserves_control_event_gap);
+    try std.testing.expect(summary.keeps_default_queues_before_poll_queues);
 }
 
 test "phase12 virtio scsi syntax lab keeps probe-config snapshot variants reachable" {
@@ -119,7 +130,7 @@ test "phase12 virtio scsi syntax lab keeps recovery summaries reachable through 
     try std.testing.expect(rearm_summary.requires_device_ready_before_rearm);
     try std.testing.expect(rollback_summary.blocks_queue_planning_until_restore);
     try std.testing.expect(rollback_summary.keeps_frozen_layout_for_restore);
-    try std.testing.expect(rollback_summary.clears_live_layout_after_restore);
+    try std.testing.expect(rollback_summary.clears_live_layoutAfter_restore);
     try std.testing.expectEqual(@as(u16, 1), restored.recovery_generation);
 }
 
