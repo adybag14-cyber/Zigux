@@ -90,9 +90,9 @@
     },
     {
       "surface": "zigux/tests/phase9_build.zig",
-      "role": "trace_events_build_step",
+      "role": "shared_build_bundle",
       "owner": "P9-L16",
-      "boundary": "Owns only the `phase9-runtime-trace-events-tests` step in the shared Phase 9 replay bundle while the shared loader lane keeps the facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` step aligned."
+      "boundary": "Owns only the `phase9-runtime-trace-events-tests` step in the shared Phase 9 replay bundle only while the shared loader lane keeps the facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` step aligned."
     }
   ],
   "gaps": [
