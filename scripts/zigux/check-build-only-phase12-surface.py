@@ -171,6 +171,7 @@ REQUIRED_FILE_MARKERS = {
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`scripts/zigux/check-build-only-phase12-surface.py`",
         "`make -C zigux phase12-smoke`",
+        "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
         "`make -C zigux phase12`",
     ],
     PHASE12_BUILD_PATH: [
