@@ -46,7 +46,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs.zig",
-      "why_now": "Dedicated starter tests keep the current helper surface honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-emit handoff bookkeeping, the landed transaction acquire, publish, and release planners, and the new simple_open() private-data handoff planner."
+      "why_now": "Dedicated starter tests keep the current helper surface honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-emit handoff bookkeeping, the landed cursor-reposition planner, the landed transaction acquire, publish, and release planners, and the new simple_open() private-data handoff planner."
     },
     {
       "id": "phase13-libfs-slice-note",
@@ -117,6 +117,13 @@
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now models the pure dcache_dir_close() release path, including the file->private_data release decision, the null-cursor no-op allowance, and the unconditional zero return path before any sibling traversal, lock ordering, or live cursor mutation is claimed."
+    },
+    {
+      "id": "phase13-libfs-cursor-reposition-helper",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models the pure post-scan cursor-reposition bookkeeping around hlist_del_init(), explicit before-target versus behind-target reinsertion, the unlinked fallback when no positive target is found, and temporary-target release bookkeeping before any live sibling traversal, lock ordering, or reschedule-aware cursor movement is claimed."
     },
     {
       "id": "phase13-libfs-addressability-helper",
