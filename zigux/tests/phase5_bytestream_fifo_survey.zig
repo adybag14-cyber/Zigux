@@ -53,7 +53,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -66,6 +66,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_exact_sequence = false;
     var saw_capacity = false;
     var saw_helper_boundary = false;
+    var saw_transfer_count = false;
     var saw_preview_boundary = false;
     var saw_available_capacity = false;
     var saw_wrapped_storage_boundary = false;
@@ -111,6 +112,13 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "fill-to-capacity")) {
             saw_capacity = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "20 through 42 inclusive") != null);
+        }
+        if (std.mem.eql(u8, check.id, "transfer-count-contract")) {
+            saw_transfer_count = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "initial string copy count is 5") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "first drain count is 5") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "second drain count is 2") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "requeue count is 2") != null);
         }
         if (std.mem.eql(u8, check.id, "preview-truncation-boundary")) {
             saw_preview_boundary = true;
@@ -169,6 +177,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_helper_boundary);
+    try std.testing.expect(saw_transfer_count);
     try std.testing.expect(saw_preview_boundary);
     try std.testing.expect(saw_available_capacity);
     try std.testing.expect(saw_wrapped_storage_boundary);
@@ -310,6 +319,11 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         "if the change updates an existing Phase 5 sample, do the descriptor, manifest, and shared `phase5_build.zig` entrypoint still agree on the same Linux anchor and exact replay contract?",
         "if the change updates a landed Phase 5 sample that keeps a Linux concurrency or private-data cue only for reviewability, does the note or checklist still say clearly what remains in-memory-only and what runtime parity is still out of scope?",
         "if the change updates the landed Phase 5 `bytestream_fifo` sample packet, do the note, shared checklist text, and paired manifest-backed replays keep the exact queue-order drain contract, non-destructive `snapshotInto()` cue, short-drain `\"hel\"` plus queued `\"lo\"` helper boundary, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path explicit instead of implying procfs, user-copy, locking, or module-registration parity?",
+        "if the change updates a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
+        "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*rbtree*` reference sample and that `rbtree` reviewability remains under `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, and `zigux/tests/phase7_build.zig` rather than the four shipped Phase 5 samples?",
+        "if the change updates a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
+        "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*rbtree*` reference sample and that `rbtree` reviewability remains under `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, and `zigux/tests/phase7_build.zig` rather than the four shipped Phase 5 samples?",
+        "if the change updates a landed Phase 5 `bytestream_fifo` sample packet, do the note, shared checklist text, and paired manifest-backed replays keep the exact queue-order drain contract, non-destructive `snapshotInto()` cue, short-drain `\"hel\"` plus queued `\"lo\"` helper boundary, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path explicit instead of implying procfs, user-copy, locking, or module-registration parity?",
         "if the change updates a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
         "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*rbtree*` reference sample and that `rbtree` reviewability remains under `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, and `zigux/tests/phase7_build.zig` rather than the four shipped Phase 5 samples?",
     };
