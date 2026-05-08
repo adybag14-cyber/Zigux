@@ -84,15 +84,15 @@ PHASE1_IMPORT_MARKERS = [
 ]
 
 PHASE1_REPLAY_MARKERS = [
-    "fixture.find_bit.tail_clamped_first",
-    "fixture.find_bit.tail_zero_clamped_next",
-    "fixture.find_bit.tail_and_clamped_next",
     "fixture.find_bit.inclusive_boundary_next",
     "fixture.find_bit.inclusive_boundary_zero",
     "fixture.find_bit.inclusive_boundary_and",
     "fixture.find_bit.past_nbits_next",
     "fixture.find_bit.past_nbits_zero",
     "fixture.find_bit.past_nbits_and",
+    "fixture.find_bit.tail_clamped_first",
+    "fixture.find_bit.tail_zero_clamped_next",
+    "fixture.find_bit.tail_and_clamped_next",
     "fixture.find_bit.tail_clamped_last",
     "fixture.find_bit.tail_clamped_empty_last",
     "fixture.bitmap.scnprintf",
@@ -263,6 +263,26 @@ def collect_phase1_fixture_mismatches(root: Path) -> list[str]:
     bits_per_long = find_bit.get("bits_per_long")
     if not isinstance(bits_per_long, int) or bits_per_long <= 0:
         return [f"phase1_fixture_find_bit:bits_per_long:expected=positive-integer:actual={bits_per_long!r}"]
+    inclusive_boundary_expected = bits_per_long - 1
+    for field in (
+        "inclusive_boundary_next",
+        "inclusive_boundary_zero",
+        "inclusive_boundary_and",
+    ):
+        if find_bit.get(field) != inclusive_boundary_expected:
+            mismatches.append(
+                f"phase1_fixture_find_bit:{field}:expected={inclusive_boundary_expected}:actual={find_bit.get(field)!r}"
+            )
+    past_nbits_expected = 7
+    for field in (
+        "past_nbits_next",
+        "past_nbits_zero",
+        "past_nbits_and",
+    ):
+        if find_bit.get(field) != past_nbits_expected:
+            mismatches.append(
+                f"phase1_fixture_find_bit:{field}:expected={past_nbits_expected}:actual={find_bit.get(field)!r}"
+            )
     tail_expected = bits_per_long + 5
     for field in (
         "tail_clamped_first",
@@ -274,6 +294,15 @@ def collect_phase1_fixture_mismatches(root: Path) -> list[str]:
     ):
         if find_bit.get(field) != tail_expected:
             mismatches.append(f"phase1_fixture_find_bit:{field}:expected={tail_expected}:actual={find_bit.get(field)!r}")
+    tail_last_expected = bits_per_long + 3
+    if find_bit.get("tail_clamped_last") != tail_last_expected:
+        mismatches.append(
+            f"phase1_fixture_find_bit:tail_clamped_last:expected={tail_last_expected}:actual={find_bit.get('tail_clamped_last')!r}"
+        )
+    if find_bit.get("tail_clamped_empty_last") != tail_expected:
+        mismatches.append(
+            f"phase1_fixture_find_bit:tail_clamped_empty_last:expected={tail_expected}:actual={find_bit.get('tail_clamped_empty_last')!r}"
+        )
     bitmap = fixture.get("bitmap")
     if not isinstance(bitmap, dict):
         mismatches.append("phase1_fixture_bitmap:bitmap:expected=object:actual=missing")
@@ -380,15 +409,15 @@ def make_fixture_root(root: Path) -> None:
 def run_self_test() -> None:
     test_text = (
         'test "phase 1 helper ports match committed parity fixture"\n'
-        'fixture.find_bit.tail_clamped_first\n'
-        'fixture.find_bit.tail_zero_clamped_next\n'
-        'fixture.find_bit.tail_and_clamped_next\n'
         'fixture.find_bit.inclusive_boundary_next\n'
         'fixture.find_bit.inclusive_boundary_zero\n'
         'fixture.find_bit.inclusive_boundary_and\n'
         'fixture.find_bit.past_nbits_next\n'
         'fixture.find_bit.past_nbits_zero\n'
         'fixture.find_bit.past_nbits_and\n'
+        'fixture.find_bit.tail_clamped_first\n'
+        'fixture.find_bit.tail_zero_clamped_next\n'
+        'fixture.find_bit.tail_and_clamped_next\n'
         'fixture.find_bit.tail_clamped_last\n'
         'fixture.find_bit.tail_clamped_empty_last\n'
         'fixture.bitmap.scnprintf\n'
@@ -428,7 +457,7 @@ def run_self_test() -> None:
         (tmp_root / "tools" / "lib" / "string.zig").write_text('\n'.join(SOURCE_MARKERS["string_test_anchor"][1]) + '\n', encoding="utf-8")
         (tmp_root / "tools" / "lib" / "rbtree.zig").write_text('\n'.join(SOURCE_MARKERS["rbtree_test_anchor"][1]) + '\n', encoding="utf-8")
         (tmp_root / "zigux" / "tests" / "phase1_helpers.zig").write_text('\n'.join(PHASE1_IMPORT_MARKERS) + '\n' + 'test "phase 1 helper ports match committed parity fixture"\n' + '\n'.join(PHASE1_REPLAY_MARKERS) + '\n' + '\n'.join(HELPER_FOLLOWUP_TESTS) + '\n', encoding="utf-8")
-        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").write_text(json.dumps({"argv_split": {},"bitmap": {"scnprintf": "1-3,7,10-11","truncated_scnprintf_len": 7,"truncated_scnprintf": "1-3,7,1","terminator_only_scnprintf_len": 0,"terminator_only_nul": 0,"zero_length_scnprintf_len": 0,"partial_xor_nbits": 4, "partial_xor_masked_values": [14]},"cmdline": {},"ctype": {},"find_bit": {"bits_per_long": 64,"tail_clamped_first": 69,"tail_clamped_next": 69,"tail_zero_clamped_first": 69,"tail_zero_clamped_next": 69,"tail_and_clamped_first": 69,"tail_and_clamped_next": 69,"tail_clamped_last": 67,"tail_clamped_empty_last": 69},"hweight": {},"list_sort": {},"rbtree": {"find_found_key": 41,"find_missing": True,"find_first_serial": 3,"next_match_serials": [3, 4],"next_match_terminal_null": True},"slab": {},"str_error_r": {},"string": {"replace_char": "a_b","replace_char_end": 3,"replace_char_cstr_end": 2,"replace_char_cstr_bytes": [97, 95, 0, 45, 122],"memchr_inv_index": 4,"memchr_inv_none": True},"vsprintf": {},"zalloc": {}}, separators=(",", ":")), encoding="utf-8")
+        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").write_text(json.dumps({"argv_split": {},"bitmap": {"scnprintf": "1-3,7,10-11","truncated_scnprintf_len": 7,"truncated_scnprintf": "1-3,7,1","terminator_only_scnprintf_len": 0,"terminator_only_nul": 0,"zero_length_scnprintf_len": 0,"partial_xor_nbits": 4, "partial_xor_masked_values": [14]},"cmdline": {},"ctype": {},"find_bit": {"bits_per_long": 64,"inclusive_boundary_next": 63,"inclusive_boundary_zero": 63,"inclusive_boundary_and": 63,"past_nbits_next": 7,"past_nbits_zero": 7,"past_nbits_and": 7,"tail_clamped_first": 69,"tail_clamped_next": 69,"tail_zero_clamped_first": 69,"tail_zero_clamped_next": 69,"tail_and_clamped_first": 69,"tail_and_clamped_next": 69,"tail_clamped_last": 67,"tail_clamped_empty_last": 69},"hweight": {},"list_sort": {},"rbtree": {"find_found_key": 41,"find_missing": True,"find_first_serial": 3,"next_match_serials": [3, 4],"next_match_terminal_null": True},"slab": {},"str_error_r": {},"string": {"replace_char": "a_b","replace_char_end": 3,"replace_char_cstr_end": 2,"replace_char_cstr_bytes": [97, 95, 0, 45, 122],"memchr_inv_index": 4,"memchr_inv_none": True},"vsprintf": {},"zalloc": {}}, separators=(",", ":")), encoding="utf-8")
         (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").write_text(json.dumps({"phase": "Phase 1","status": "closed","helper_count": len(EXPECTED_HELPERS),"helpers": EXPECTED_HELPERS,"review_anchors": EXPECTED_MANIFEST_HELPER_FIELDS}, indent=2) + "\n", encoding="utf-8")
         assert not collect_missing_markers(tmp_root)
     print("PHASE1_VALIDATION_SELF_TEST=pass")
