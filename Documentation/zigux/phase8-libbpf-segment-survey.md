@@ -70,6 +70,7 @@ The current starter implementation stays deliberately bounded:
 - the segment now includes an injected chunk-reader interface for sysfs-style buffered input without claiming direct file-descriptor parity
 - the starter exposes dense `[]bool` mask output plus set-bit counting for future perf-buffer and feature-probe callers
 - delimiter skipping accepts the newline-terminated `/sys/devices/system/cpu/possible` style input without widening into real file I/O
+- direct and chunked carriage-return- and tab-delimited CPU-mask fragments stay aligned with the current `parse_cpu_mask_str()` whitespace handling without widening into file I/O, caching, or deferred routing behavior
 - malformed ranges still fail fast instead of silently stretching the segment into broader object or verifier-facing work
 - `logging.zig` ports libbpf's bounded print-level parsing, verbosity gating, major or minor version reporting, and the libbpf-specific strerror table without claiming environment reads, stderr output, or full errno-name coverage
 - the logging helper keeps invalid `LIBBPF_LOG_LEVEL`-style values explicit for callers instead of printing directly
@@ -89,6 +90,7 @@ The current starter implementation stays deliberately bounded:
 The current tests check:
 - mixed single-CPU and `start-end` ranges expand into the expected dense mask
 - repeated delimiters and newline-terminated inputs still parse cleanly
+- direct and chunked carriage-return- and tab-delimited CPU-mask fragments stay aligned with the current `parse_cpu_mask_str()` whitespace handling
 - chunked reader input can split ranges and delimiters across scratch-buffer boundaries
 - the bounded set-bit counter matches the parsed mask contents
 - empty and malformed ranges report explicit errors
