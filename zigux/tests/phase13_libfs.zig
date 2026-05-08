@@ -12,6 +12,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_directory_cursor_open_planning);
     try std.testing.expect(descriptor.provides_directory_cursor_close_planning);
+    try std.testing.expect(descriptor.provides_directory_cursor_reposition_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_publish_planning);
     try std.testing.expect(descriptor.provides_transaction_release_planning);
@@ -244,6 +245,36 @@ test "phase13 libfs directory close planning releases the cursor handoff without
     try std.testing.expect(!empty.releases_private_data);
     try std.testing.expect(empty.null_private_data_is_allowed);
     try std.testing.expectEqual(@as(i32, 0), empty.return_code);
+}
+
+test "phase13 libfs cursor reposition planning keeps unlinked and behind-target outcomes explicit" {
+    const unlinked = try libfs.LibFsHelperLab.dcacheCursorRepositionPlan(false, false, .none);
+    try std.testing.expectEqualStrings("fs/libfs.c", unlinked.anchor);
+    try std.testing.expect(!unlinked.detaches_hashed_cursor);
+    try std.testing.expect(!unlinked.reinserts_cursor);
+    try std.testing.expectEqual(libfs.CursorRepositionPlacement.none, unlinked.placement);
+    try std.testing.expect(unlinked.keeps_cursor_unlinked);
+    try std.testing.expect(!unlinked.drops_temporary_target_ref);
+
+    const behind = try libfs.LibFsHelperLab.dcacheCursorRepositionPlan(true, true, .behind_target);
+    try std.testing.expect(behind.detaches_hashed_cursor);
+    try std.testing.expect(behind.reinserts_cursor);
+    try std.testing.expectEqual(libfs.CursorRepositionPlacement.behind_target, behind.placement);
+    try std.testing.expect(!behind.keeps_cursor_unlinked);
+    try std.testing.expect(behind.drops_temporary_target_ref);
+}
+
+test "phase13 libfs cursor reposition planning keeps before-target replay pure and rejects placement drift" {
+    const before = try libfs.LibFsHelperLab.dcacheCursorRepositionPlan(true, true, .before_target);
+    try std.testing.expectEqualStrings("fs/libfs.c", before.anchor);
+    try std.testing.expect(before.detaches_hashed_cursor);
+    try std.testing.expect(before.reinserts_cursor);
+    try std.testing.expectEqual(libfs.CursorRepositionPlacement.before_target, before.placement);
+    try std.testing.expect(!before.keeps_cursor_unlinked);
+    try std.testing.expect(before.drops_temporary_target_ref);
+
+    try std.testing.expectError(error.MissingPlacement, libfs.LibFsHelperLab.dcacheCursorRepositionPlan(true, true, .none));
+    try std.testing.expectError(error.UnexpectedPlacement, libfs.LibFsHelperLab.dcacheCursorRepositionPlan(false, false, .behind_target));
 }
 
 test "phase13 libfs transaction acquire planning stays page-bounded and single-write" {
