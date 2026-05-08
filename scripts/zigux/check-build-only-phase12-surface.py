@@ -24,6 +24,8 @@ LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
 PHASE12_COORDINATION_MATRIX_PATH = "Documentation/zigux/phase12-release-coordination-matrix.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
+PHASE12_VIRTIO_NET_MANIFEST_PATH = "zigux/tests/phase12_virtio_net_manifest.json"
+PHASE12_VIRTIO_NET_SURVEY_TEST_PATH = "zigux/tests/phase12_virtio_net_survey.zig"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
@@ -207,6 +209,21 @@ REQUIRED_FILE_MARKERS = {
         "`make -C zigux phase12-smoke`",
         "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
         "`make -C zigux phase12`",
+    ],
+    PHASE12_VIRTIO_NET_MANIFEST_PATH: [
+        '"lane_key": "P12-L04"',
+        '"phase": "Phase 12"',
+        '"anchor": "drivers/net/virtio_net.c"',
+        '"id": "phase12-virtio-net-syntax-lab-gate"',
+        '"id": "phase12-virtio-net-segmented-rollout-boundary"',
+    ],
+    PHASE12_VIRTIO_NET_SURVEY_TEST_PATH: [
+        'try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);',
+        'try std.testing.expectEqualStrings("Phase 12", manifest.phase);',
+        'try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);',
+        'if (std.mem.eql(u8, gap.id, "phase12-virtio-net-syntax-lab-gate")) {',
+        'try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_syntax_lab.zig", gap.zigux_destination);',
+        'if (std.mem.eql(u8, gap.id, "phase12-virtio-net-segmented-rollout-boundary")) {',
     ],
     PHASE12_BUILD_PATH: [
         'const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");',
