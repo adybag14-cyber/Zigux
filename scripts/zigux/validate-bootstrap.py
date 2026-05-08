@@ -6,6 +6,8 @@ ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW_EXACT_RUN_COUNTS = {
     'python3 scripts/zigux/check-zig-toolchain.py --self-test': 1,
     'python3 scripts/zigux/check-zig-toolchain.py': 1,
+    'python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test': 1,
+    'python3 scripts/zigux/check-phase1-installer-review-surfaces.py': 1,
     'python3 scripts/zigux/check-phase9-build-only-surface.py --self-test': 1,
     'python3 scripts/zigux/check-phase9-build-only-surface.py': 1,
 }
@@ -17,6 +19,7 @@ required_files = [
     ROOT / 'Documentation' / 'zigux' / 'freeze-map.md',
     ROOT / 'scripts' / 'zigux' / 'README.md',
     ROOT / 'scripts' / 'zigux' / 'check-zig-toolchain.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase1-installer-review-surfaces.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase6-shared-surface.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase9-build-only-surface.py',
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
@@ -81,6 +84,10 @@ required_workflow_markers = [
     'include/linux/zigux.h',
     'include/zigux/**',
     '.github/workflows/zigux-bootstrap.yml',
+    'Self-test Phase 1 installer-review surfaces',
+    'python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test',
+    'Check Phase 1 installer-review surfaces',
+    'python3 scripts/zigux/check-phase1-installer-review-surfaces.py',
     'Self-test Phase 6 shared-surface checker',
     'python3 scripts/zigux/check-phase6-shared-surface.py --self-test',
     'Check Phase 6 shared surface',
