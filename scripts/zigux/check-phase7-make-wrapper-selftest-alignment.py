@@ -42,8 +42,14 @@ FORBIDDEN_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase7-make-wrapper.py",
     "run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+    "run: python3 scripts/zigux/check-phase7-argv-split-packet.py",
+    "run: python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+    "run: python3 scripts/zigux/check-phase7-rbtree-parity.py",
+    "run: python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
+    "run: python3 scripts/zigux/check-phase7-build-wiring.py",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 11
+EXPECTED_SELF_TEST_CASE_COUNT = 14
 
 
 def read_text(path: Path) -> str:
@@ -298,6 +304,39 @@ def run_self_test() -> int:
         cases += 1
 
         build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + "        run: python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[4]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + "        run: python3 scripts/zigux/check-phase7-rbtree-parity.py\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[7]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + "        run: python3 scripts/zigux/check-phase7-build-wiring.py --self-test\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[8]) in issues
+        cases += 1
+
+        build_self_test_root(root)
         path = root / CHECKER
         path.write_text(
             path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[6], "", 1),
@@ -315,7 +354,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 7 make-wrapper self-test surface stays centralized in the shared make route."
+        description="Check that the Phase 7 workflow keeps dedicated validation hooks centralized in the shared make route."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
