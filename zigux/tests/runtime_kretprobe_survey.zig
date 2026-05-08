@@ -100,6 +100,14 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     );
     defer std.testing.allocator.free(module_slice_doc);
 
+    const lane_sequencing_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(lane_sequencing_doc);
+
     const loader_source = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "samples/zigux/runtime_kretprobe_loader.zig",
@@ -210,6 +218,11 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(module_slice_doc, "loadable Phase 9 runtime kretprobe pilot module parity");
     try expectContains(module_slice_doc, "make -C zigux phase9-runtime-loader-shared-tests");
     try expectContains(module_slice_doc, "make -C zigux phase9-runtime-kretprobe-test");
+
+    try expectContains(lane_sequencing_doc, "### Kretprobe pilot lane");
+    try expectContains(lane_sequencing_doc, "- `zigux/tests/runtime_kretprobe_manifest.json`");
+    try expectContains(lane_sequencing_doc, "- `zigux/tests/runtime_kretprobe_survey.zig`");
+    try expectContains(lane_sequencing_doc, "- the `phase9-runtime-kretprobe-tests` step in `zigux/tests/phase9_build.zig`");
 
     try expectContains(loader_source, "error.OutstandingProbeStateForLoader");
     try expectContains(loader_source, "summary.active_instances != 0 or summary.entry_timestamp_armed");
