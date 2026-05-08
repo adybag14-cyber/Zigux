@@ -392,6 +392,10 @@ pub fn sysfsStreq(lhs: []const u8, rhs: []const u8) bool {
     return std.mem.eql(u8, lhs[0..lhs_len], rhs[0..rhs_len]);
 }
 
+pub fn sysfs_streq(lhs: []const u8, rhs: []const u8) bool {
+    return sysfsStreq(lhs, rhs);
+}
+
 test "strtobool accepts common Linux forms" {
     try std.testing.expect(try strtobool("y"));
     try std.testing.expect(try strtobool("On"));
@@ -526,6 +530,16 @@ test "sysfsStreq treats trailing newline and NUL as equivalent" {
     const nul_terminated = [_]u8{ 'z', 'i', 'g', 0, '\n', 'x' };
     const plain = [_]u8{ 'z', 'i', 'g', 0, 'y' };
     try std.testing.expect(sysfsStreq(&nul_terminated, &plain));
+}
+
+test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence" {
+    try std.testing.expect(sysfs_streq("zigux", "zigux\n"));
+    try std.testing.expect(sysfs_streq("zigux\n", "zigux"));
+    try std.testing.expect(!sysfs_streq("zigux-extra\n", "zigux"));
+
+    const nul_terminated = [_]u8{ 'z', 'i', 'g', 0, '\n', 'x' };
+    const plain = [_]u8{ 'z', 'i', 'g', 0, 'y' };
+    try std.testing.expect(sysfs_streq(&nul_terminated, &plain));
 }
 
 test "memdup and memchrInv preserve byte content" {
