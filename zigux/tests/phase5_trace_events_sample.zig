@@ -123,7 +123,54 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
     try std.testing.expectEqual(@as(usize, 1), callback_boundary.registration_depth_after_register);
     try std.testing.expectEqual(@as(usize, 0), callback_boundary.registration_depth_after_unregister);
     try std.testing.expect(callback_boundary.registration_balance_restored);
-    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
+}
+
+test "phase 5 trace-events sample ownership summary keeps lifecycle snapshots explicit" {
+    var module = sample.TraceEventsReferenceSample{};
+
+    var summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.cold, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), summary.total_event_calls);
+    try std.testing.expectEqual(@as(usize, 0), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.replay_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.exit_runs);
+    try std.testing.expectEqual(@as(i32, -1), summary.last_main_count);
+    try std.testing.expectEqual(@as(i32, -1), summary.last_function_count);
+    try std.testing.expectEqualStrings("", summary.selected_string);
+    try std.testing.expectEqual(@as(usize, 0), summary.selected_index);
+    try std.testing.expectEqualStrings("", summary.formatted_message);
+    try std.testing.expect(!summary.saw_conditional_path);
+    try std.testing.expect(!summary.saw_vararg_payload);
+    try std.testing.expect(!summary.saw_rel_loc_payload);
+    try std.testing.expect(!summary.saw_function_callback_path);
+
+    try module.init();
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.initialized, summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), summary.init_runs);
+
+    _ = try module.runAnchorReplay();
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.replay_complete, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), summary.total_event_calls);
+    try std.testing.expectEqual(@as(usize, 1), summary.replay_runs);
+    try std.testing.expectEqual(@as(i32, 7), summary.last_main_count);
+    try std.testing.expectEqual(@as(i32, 9), summary.last_function_count);
+    try std.testing.expectEqualStrings("Gandalf", summary.selected_string);
+    try std.testing.expectEqual(@as(usize, 2), summary.selected_index);
+    try std.testing.expectEqualStrings("iter=7", summary.formatted_message);
+    try std.testing.expect(summary.saw_conditional_path);
+    try std.testing.expect(summary.saw_vararg_payload);
+    try std.testing.expect(summary.saw_rel_loc_payload);
+    try std.testing.expect(summary.saw_function_callback_path);
+
+    try module.exit();
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.exited, summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.registration_depth);
 }
 
 test "phase 5 trace-events sample makes ownership and teardown boundaries explicit" {
