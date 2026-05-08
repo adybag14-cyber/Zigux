@@ -13,15 +13,15 @@ The starter stays intentionally narrow:
 - records one bounded PRP buffer shape by capturing first-page offset, first PRP coverage, rounded span, tail-page count, and PRP list bound checks without constructing live PRP lists or touching submission flow
 - records one bounded PRP metadata helper by quantifying command-inline data pointers, PRP-list-covered pages, extra descriptor DMA footprint, total DMA bytes, and reset-time descriptor rebuild need without claiming live PRP allocation or DMA mapping
 - records one bounded recovery replay helper by reporting reset-generation staleness for cached PRP metadata, admin-queue replay need, dropped I/O queue rebuild count, and post-reset queue numbering without claiming live timeout recovery, IRQ routing, or hardware-backed reset transport
-- keeps the current recovery-governance boundary explicit too: the starter can report dropped I/O queue rebuild pressure after reset, but it still does not claim a queue-local helper that retires only part of that backlog once post-reset rebuild work begins
+- can now retire part of the dropped-I/O backlog after reset once the admin queue has been replayed and replacement queue plans have been made, while keeping that retirement as bookkeeping rather than claiming live queue creation or recovery completion
 
 Ownership boundary:
 - `P12-L05` owns only the queue-planning, queue-count reservation, queue-reservation replay, PRP buffer-shape, PRP metadata, and recovery replay starter surface
 - blocked DMA and recovery transport work stays outside this starter and remains owned by the broader Phase 12 transport substrate until the roadmap explicitly approves a deeper follow-up
-- partial post-reset rebuild completion accounting is still unlanded same-driver recovery governance, not proof of DMA-safe transport parity or shared Phase 12 recovery closure
+- bounded backlog retirement is still recovery-governance bookkeeping, not proof of DMA-safe transport parity, blk-mq parity, or shared Phase 12 recovery closure
 
 This slice does not claim PCI probe or remove wiring, interrupt registration, controller enable or shutdown sequences, live MMIO, PRP list construction, blk-mq integration, tagset setup, or hardware-backed recovery.
 
 The shared Phase 12 packet now keeps the direct smoke preflight explicit here too: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-smoke` rerun this bounded `nvme pci` starter before the broader survey-backed replay, so the slice should stay aligned with that smoke-plus-build order instead of leaving it implicit in `zigux/tests/phase12_build.zig`, `zigux/Makefile`, or `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` alone.
 
-The next honest bounded step inside the same Phase 12 lane is to keep the packet parked unless a same-driver reopen first lands bounded post-reset rebuild-progress accounting that can retire the dropped-I/O backlog marker without widening into live DMA mapping, blk-mq, or PCI lifecycle work. Only after that narrower recovery-governance follow-through should the lane reconsider any explicitly approved transport-facing step beyond the now-landed queue-planning, queue-count reservation, queue-reservation replay, PRP buffer-shape, PRP metadata, and recovery replay helpers.
+The next honest bounded step inside the same Phase 12 lane is to keep the packet parked unless a same-driver reopen lands one explicitly approved transport-facing descriptor, queueing, or recovery preflight that builds on the now-landed queue-planning, queue-count reservation, queue-reservation replay, PRP buffer-shape, PRP metadata, recovery replay, and rebuild-progress helpers without widening into live DMA mapping, blk-mq, or PCI lifecycle work.
