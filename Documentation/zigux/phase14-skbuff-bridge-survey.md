@@ -27,10 +27,10 @@ The highest-value honest step in this lane is therefore to add a boundary map th
 
 ## Survey findings
 
-- `net/core/skbuff.c` is present on `master` and is large enough that even a minimal wrapper can easily overstate what Zigux owns if the boundary is not written down first.
+- `net/core/skbuff.c` is present on `master` and is large enough that even a minimal bridge note can easily overstate what Zigux owns if the boundary is not written down first.
 - `include/linux/skbuff.h` makes the coupling visible: `struct skb_shared_info`, the split `dataref`, header-clone rules, `destructor_arg`, checksum metadata, and GSO fields show exactly why this lane needs explicit stay-in-C decisions before implementation claims.
 - `net/core/datagram.c` is a useful nearby consumer because it still relies on the shipped skbuff lifetime model rather than any alternate wrapper surface.
-- the new `net/core/skbuff_bridge.zig` starter stays intentionally narrow around boundary recording for allocation entrypoints, clone and copy seams, headroom mutation, checksum or segmentation surfaces, shared-info refcount ownership, and destructor or free-path ownership.
+- the new `net/core/skbuff_bridge.zig` starter stays intentionally narrow around boundary recording for allocation entrypoints, clone and copy seams as review-only study surfaces under the current freeze posture, headroom mutation, checksum or segmentation surfaces, shared-info refcount ownership, and destructor or free-path ownership.
 - the bridge now carries an explicit review-only concurrency-sensitive checkpoint catalog around the partial-tail-owner, checksum-to-data-offset, and exported tail-publication checkpoints inside `skb_segment()`, so the packet satisfies the roadmap's concurrency-audit requirement without claiming live ownership of skbuff lifetime, qdisc publication, or checksum state.
 - the bridge now keeps checksum-complete state around `__skb_checksum_complete()` and `skb_checksum_complete_unset()` separate from the segmentation study, which keeps the ownership boundary around `skb->csum`, `skb->ip_summed`, `skb->csum_valid`, and `skb->csum_complete_sw` explicit without claiming live checksum-state control.
 - the bridge now records the orphan-frag and zerocopy handoff inside `skb_segment()`, keeping `skb_orphan_frags()`, `skb_zerocopy_clone()`, `SKBFL_SHARED_FRAG`, and the carried fragment state visible while still keeping live payload ownership in C.
