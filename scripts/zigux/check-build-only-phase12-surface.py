@@ -102,6 +102,7 @@ REQUIRED_FILE_MARKERS = {
         "build-only contract drift still fails closed when the local runtime needs the fallback path.",
         "the compact release-coordination matrix",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
         "This is an environment override for the existing replay packet, not a validator-first or `phase12-validate` route.",
         "There is no shipped shared `scripts/zigux/validate-phase12.py`, no dedicated `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`, so this release-facing note should not imply validator-first, dedicated PMO checker, focused libbpf-only replay, raw-coverage checker, or cross-build routes as part of the active shared release path.",
