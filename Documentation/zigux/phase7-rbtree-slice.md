@@ -8,11 +8,14 @@ This document records the bounded Phase 7 runtime leaf-helper slice for Zigux ar
 - `PHASE7_SLICE=rbtree-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-Y04`
 - scope: first bounded balancing, traversal, and cached-leftmost helpers
-- lane state: helper, fixture, dedicated survey, dedicated parity checker, shared build-wiring checker, shared validator, and make-wrapper slice landed; parked unless a new `lib/rbtree.c` parity issue appears
+- lane state: helper, fixture, dedicated survey, dedicated parity checker, shared build-wiring checker, shared validator, make-wrapper alignment note, and make-wrapper slice landed; parked unless a new `lib/rbtree.c` parity issue appears
 - product boundary:
   - `lib/rbtree.zig`
   - `samples/zigux/README.md`
+  - `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
   - `scripts/zigux/validate-phase7.py`
+  - `scripts/zigux/check-phase7-make-wrapper.py`
+  - `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
   - `scripts/zigux/check-phase7-rbtree-parity.py`
   - `scripts/zigux/check-phase7-build-wiring.py`
   - `zigux/tests/phase7_rbtree.zig`
@@ -38,11 +41,11 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 - ordered erase, erase-and-detach, and direct node replacement
 - in-order and postorder traversal helpers
 - linked-node neighbour tracking plus detached linked-ownership reset through `addLinked()`, `eraseLinked()`, and `clearLinkedNode()`
-- shared reviewability through `zigux/tests/phase7_rbtree_survey.zig`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, and `make -C zigux phase7`
+- shared reviewability through `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `zigux/tests/phase7_rbtree_survey.zig`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 
-Current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample; keep `rbtree` reviewability under this slice, `samples/zigux/README.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
+Current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample; keep `rbtree` reviewability under this slice, `samples/zigux/README.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
 
 ## Gates
 
@@ -60,6 +63,8 @@ Current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sampl
 
 5. keep the shared validator-first packet explicit
 - `python3 scripts/zigux/validate-phase7.py`
+- `python3 scripts/zigux/check-phase7-make-wrapper.py`
+- `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
 - `python3 scripts/zigux/check-phase7-build-wiring.py`
 - `python3 scripts/zigux/check-phase7-rbtree-parity.py`
 - `make -C zigux phase7-validate`
@@ -67,7 +72,7 @@ Current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sampl
 6. keep the shared Linux-style replay route explicit
 - `make -C zigux phase7`
 
-This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the shared validator-first, dedicated build-wiring, and Linux-style `make -C zigux phase7-validate` plus `make -C zigux phase7` routes stayed aligned around the same parked packet, and the committed parity fixture now locks ordered insert, duplicate-range lookup, erase-and-detach reset, replace, reverse traversal, and postorder behavior against the C helper surface. The linked-node teardown note stays narrower than that committed C fixture: `clearLinkedNode()` is reviewed here through the detached reset path that `eraseLinked()` drives inside the Zig helper tests, not as a separate `lib/rbtree.c` parity claim. The cached leftmost helpers come from the header-side runtime surface rather than `lib/rbtree.c` itself, so they stay reviewable through the focused Zig module tests instead of the committed C parity fixture. This slice does not carry an open parity-fixture follow-up.
+This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the shared validator-first, dedicated make-wrapper, dedicated make-wrapper selftest-alignment, dedicated build-wiring, and Linux-style `make -C zigux phase7-validate` plus `make -C zigux phase7` routes stayed aligned around the same parked packet, and the committed parity fixture now locks ordered insert, duplicate-range lookup, erase-and-detach reset, replace, reverse traversal, and postorder behavior against the C helper surface. The linked-node teardown note stays narrower than that committed C fixture: `clearLinkedNode()` is reviewed here through the detached reset path that `eraseLinked()` drives inside the Zig helper tests, not as a separate `lib/rbtree.c` parity claim. The cached leftmost helpers come from the header-side runtime surface rather than `lib/rbtree.c` itself, so they stay reviewable through the focused Zig module tests instead of the committed C parity fixture. This slice does not carry an open parity-fixture follow-up.
 
 ## Current parity surface
 
@@ -114,7 +119,7 @@ The current tests check:
 - detached-node clearing semantics
 - linked-node neighbour tracking, leftmost updates, and detached linked-ownership reset across `addLinked()`, `eraseLinked()`, and `clearLinkedNode()`
 - the helper-local linked teardown path explicitly treats `clearLinkedNode()` as the detached reset that `eraseLinked()` invokes, rather than as a separate committed C parity surface
-- a machine-checked manifest that records the `lib/rbtree.c` anchor and the landed Phase 7 review surfaces
+- a machine-checked manifest that records the `lib/rbtree.c` anchor and the landed Phase 7 review surfaces, including the shared make-wrapper alignment note and checker-backed validator packet
 
 ## Non-goals
 
