@@ -13,7 +13,7 @@
     "the contributor packet still names runConditionalBoundaryReplay() as the approved public conditional-family helper for the count-0 Mother Goose branch, iter=%d message, 0xdeadbeef bitmask, and main-thread family counts instead of implying private sample-state reads",
     "the in-memory replay still keeps the array payload, selected string, and iter-format message reviewable instead of hiding them behind runtime thread state",
     "runCallbackBoundaryReplay() keeps function-callback replay a balanced register-then-unregister idiom rather than implying kthread creation or tracepoint enablement parity",
-    "the sample-owned prompts keep the exact checked_focus order, the registration depth rising to 1 then returning to 0 across the balanced callback replay, unregisterFunctionCallback() underflow plus OutstandingRegistration rejection, and post-exit replay rejection explicit instead of leaving those callback-boundary cues implied",
+    "the sample-owned prompts keep the exact checked_focus order, the public runOwnershipReplay() lifecycle helper, the registration depth rising to 1 then returning to 0 across the balanced callback replay, unregisterFunctionCallback() underflow plus OutstandingRegistration rejection, and post-exit replay rejection explicit instead of leaving those callback-boundary cues implied",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer the new boundary from code alone",
     "docs and tests still keep CREATE_TRACE_POINTS, tracepoint macros, kernel scheduling, and module registration wiring out of scope for this Phase 5 sample"
   ],
@@ -66,7 +66,7 @@
     {
       "id": "post-exit-rejection",
       "kind": "ownership_lifetime",
-      "expected": "after exit the sample rejects later payload replay or callback-registration calls"
+      "expected": "runOwnershipReplay() keeps the cold to initialized to replay_complete to after exit lifecycle public with one init, replay, and exit run, Gandalf plus iter=7 retained in the final snapshot, restored registration balance, and the after exit state that rejects later replay or callback registration"
     }
   ],
   "non_goals": [
