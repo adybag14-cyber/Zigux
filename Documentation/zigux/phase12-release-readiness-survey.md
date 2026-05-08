@@ -15,6 +15,10 @@ This document records the current release-discipline reading for the active boun
 ## Current release reading
 The current shared Phase 12 packet on `master` is smoke-first plus shared build replay.
 
+If the local runtime does not provide `zig` on `PATH`, keep that same smoke-first release packet and rerun only the shipped Make routes as `make -C zigux phase12-smoke ZIG=<attached-zig-path>` and `make -C zigux phase12 ZIG=<attached-zig-path>`.
+
+This is an environment override for the existing replay packet, not a validator-first or `phase12-validate` route.
+
 It stays explicit through the PMO closure companion, the compact release-coordination matrix, the driver-only anti-overlap companion, the shared libbpf anti-overlap companion, the mixed raw-fallback overview note, the workflow-backed build-only contract, and the bounded `virtio_net`, `nvme_pci`, `virtio_scsi`, and libbpf survey packet.
 
 There is no shipped shared `scripts/zigux/validate-phase12.py`, no dedicated `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`, so this release-facing note should not imply validator-first, dedicated PMO checker, focused libbpf-only replay, raw-coverage checker, or cross-build routes as part of the active shared release path.
