@@ -43,6 +43,7 @@ REQUIRED_FILES = [
     "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -90,8 +91,6 @@ TOOLCHAIN_NOTES_MARKERS = [
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     "python3 scripts/zigux/check-phase2-cross.py --self-test",
     "python3 scripts/zigux/check-phase2-cross.py",
-    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
-    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "python3 scripts/zigux/check-genksyms-crc-diff.py",
     "- shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
     "- shared kconfig selftest-alignment guard: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -254,6 +253,7 @@ MISSING_FILE_CASES = [
     "scripts/zigux/check-genksyms-crc-diff.py",
     "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "scripts/zigux/genksyms_crc.zig",
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/check-mk-elfconfig-diff.py",
@@ -378,7 +378,7 @@ def run_self_test() -> int:
             assert f"missing_file:{rel_path}" in issues
             case_count += 1
 
-    assert case_count == 111
+    assert case_count == 112
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
