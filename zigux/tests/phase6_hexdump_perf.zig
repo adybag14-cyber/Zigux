@@ -123,34 +123,10 @@ fn validatePerfMatrix() !void {
         }
 
         if (std.mem.eql(u8, case.label, "32B-ascii-g2")) {
-            var exact: [114]u8 = undefined;
-            var truncated: [113]u8 = [_]u8{fixtures.fill_char} ** 113;
-
-            const exact_required = hexdump.hexDumpToBuffer(
-                fixtures.data_b[0..case.len],
-                case.rowsize,
-                case.groupsize,
-                exact[0..],
-                case.ascii,
-            );
-            if (exact_required != case.expected_text.current().len) return error.HexdumpPerfMatrixMismatch;
-            if (!std.mem.eql(u8, case.expected_text.current(), std.mem.sliceTo(exact[0..], 0))) {
-                return error.HexdumpPerfMatrixMismatch;
-            }
-            if (exact[exact_required] != 0) return error.HexdumpPerfMatrixMismatch;
-
-            const truncated_required = hexdump.hexDumpToBuffer(
-                fixtures.data_b[0..case.len],
-                case.rowsize,
-                case.groupsize,
-                truncated[0..],
-                case.ascii,
-            );
-            if (truncated_required != case.expected_text.current().len) return error.HexdumpPerfMatrixMismatch;
-            if (!std.mem.eql(u8, case.expected_text.current()[0 .. case.expected_text.current().len - 1], std.mem.sliceTo(truncated[0..], 0))) {
-                return error.HexdumpPerfMatrixMismatch;
-            }
-            if (truncated[truncated.len - 1] != 0) return error.HexdumpPerfMatrixMismatch;
+            try validateBoundaryBuffers(case, 114);
+        }
+        if (std.mem.eql(u8, case.label, "16B-ascii-g8")) {
+            try validateBoundaryBuffers(case, 52);
         }
 
         if (std.mem.eql(u8, case.label, "16B-plain-g1")) {
@@ -177,6 +153,37 @@ fn validatePerfMatrix() !void {
     if (!saw_plain_g1 or !saw_ascii_g2 or !saw_ascii_g4 or !saw_ascii_g8) {
         return error.HexdumpPerfMatrixMismatch;
     }
+}
+
+fn validateBoundaryBuffers(case: fixtures.PerfCase, comptime required_with_nul: usize) !void {
+    var exact: [required_with_nul]u8 = undefined;
+    var truncated: [required_with_nul - 1]u8 = [_]u8{fixtures.fill_char} ** (required_with_nul - 1);
+
+    const exact_required = hexdump.hexDumpToBuffer(
+        fixtures.data_b[0..case.len],
+        case.rowsize,
+        case.groupsize,
+        exact[0..],
+        case.ascii,
+    );
+    if (exact_required != case.expected_text.current().len) return error.HexdumpPerfMatrixMismatch;
+    if (!std.mem.eql(u8, case.expected_text.current(), std.mem.sliceTo(exact[0..], 0))) {
+        return error.HexdumpPerfMatrixMismatch;
+    }
+    if (exact[exact_required] != 0) return error.HexdumpPerfMatrixMismatch;
+
+    const truncated_required = hexdump.hexDumpToBuffer(
+        fixtures.data_b[0..case.len],
+        case.rowsize,
+        case.groupsize,
+        truncated[0..],
+        case.ascii,
+    );
+    if (truncated_required != case.expected_text.current().len) return error.HexdumpPerfMatrixMismatch;
+    if (!std.mem.eql(u8, case.expected_text.current()[0 .. case.expected_text.current().len - 1], std.mem.sliceTo(truncated[0..], 0))) {
+        return error.HexdumpPerfMatrixMismatch;
+    }
+    if (truncated[truncated.len - 1] != 0) return error.HexdumpPerfMatrixMismatch;
 }
 
 fn monotonicNs() !u64 {
