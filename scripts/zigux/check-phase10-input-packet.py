@@ -253,6 +253,8 @@ EXPECTED_GAPS = {
     "phase10-virtio-input-lab-gate": "starter_landed",
     "phase10-virtio-input-verify-replay": "starter_landed",
     "phase10-virtio-input-queue-callback-preflight-replay": "starter_landed",
+    "phase10-virtio-input-registration-preflight-replay": "starter_landed",
+    "phase10-virtio-input-teardown-observation-replay": "starter_landed",
     "phase10-virtio-input-survey-gate": "starter_landed",
     "phase10-virtio-input-capability-setup-helper": "starter_landed",
     "phase10-virtio-input-multitouch-slot-helper": "starter_landed",
@@ -534,6 +536,32 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_probe_preflight_gap_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest_path.write_text(
+            original_manifest.replace(
+                '"phase10-virtio-input-registration-preflight-replay",\n      "status": "starter_landed"',
+                '"phase10-virtio-input-registration-preflight-replay",\n      "status": "blocked_on_risky_transport"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:gap_status:phase10-virtio-input-registration-preflight-replay=blocked_on_risky_transport" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_registration_preflight_replay_gap_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace(
+                '"phase10-virtio-input-teardown-observation-replay",\n      "status": "starter_landed"',
+                '"phase10-virtio-input-teardown-observation-replay",\n      "status": "blocked_on_risky_transport"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:gap_status:phase10-virtio-input-teardown-observation-replay=blocked_on_risky_transport" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_teardown_observation_replay_gap_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         helper_path = tmp_root / "drivers/virtio/virtio_input.zig"
         original_helper = helper_path.read_text(encoding="utf-8")
         helper_path.write_text(
@@ -710,7 +738,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
