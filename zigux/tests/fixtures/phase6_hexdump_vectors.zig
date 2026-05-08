@@ -348,6 +348,14 @@ pub const length_cases = [_]LengthCase{
         .expected_length = 0,
     },
     .{
+        .name = "empty ascii line reports zero length",
+        .len = 0,
+        .rowsize = 16,
+        .groupsize = 1,
+        .ascii = true,
+        .expected_length = 0,
+    },
+    .{
         .name = "plain rowsize-16 group-1 line length",
         .len = 16,
         .rowsize = 16,
@@ -546,6 +554,7 @@ test "phase 6 hexdump curated overflow packet stays bounded to the documented ma
 test "phase 6 hexdump curated length packet stays bounded to the documented matrix" {
     const expected = [_]LengthCase{
         .{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },
+        .{ .name = "empty ascii line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 0 },
         .{ .name = "plain rowsize-16 group-1 line length", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 47 },
         .{ .name = "ascii rowsize-16 group-1 line length", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 65 },
         .{ .name = "ascii rowsize-16 group-2 line length", .len = 16, .rowsize = 16, .groupsize = 2, .ascii = true, .expected_length = 57 },
