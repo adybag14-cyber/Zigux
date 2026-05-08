@@ -396,6 +396,8 @@ test "phase 6 bsearch raw lookup returns null for empty input without invoking t
         bsearch.bsearchIndex(&@as(u32, 5), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compareOpaqueU32Counted),
     );
     try std.testing.expectEqual(@as(usize, 0), counted_raw_compare_calls);
+
+    counted_raw_compare_calls = 0;
     try std.testing.expect(
         bsearch.bsearch(&@as(u32, 5), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compareOpaqueU32Counted) == null,
     );
@@ -404,6 +406,25 @@ test "phase 6 bsearch raw lookup returns null for empty input without invoking t
     counted_raw_compare_calls = 0;
     try std.testing.expect(
         bsearch.bsearchMutable(&@as(u32, 5), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compareOpaqueU32Counted) == null,
+    );
+    try std.testing.expectEqual(@as(usize, 0), counted_raw_compare_calls);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(?usize, null),
+        bsearch.bsearchIndex(&@as(u32, 5), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compareDescendingOpaqueU32Counted),
+    );
+    try std.testing.expectEqual(@as(usize, 0), counted_raw_compare_calls);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expect(
+        bsearch.bsearch(&@as(u32, 5), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compareDescendingOpaqueU32Counted) == null,
+    );
+    try std.testing.expectEqual(@as(usize, 0), counted_raw_compare_calls);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expect(
+        bsearch.bsearchMutable(&@as(u32, 5), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compareDescendingOpaqueU32Counted) == null,
     );
     try std.testing.expectEqual(@as(usize, 0), counted_raw_compare_calls);
 }
