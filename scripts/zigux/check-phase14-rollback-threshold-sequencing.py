@@ -220,7 +220,7 @@ def required_text(root: Path, rel_path: str) -> str:
     if rel_path == RING_BUFFER_MANIFEST_PATH:
         return json.dumps({"lane_key": "P14-L08", "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c"}, indent=2) + "\n"
     if rel_path == SKBUFF_MANIFEST_PATH:
-        return json.dumps({"lane_key": "P14-L09", "surveyed_commit": "4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7"}, indent=2) + "\n"
+        return json.dumps({"lane_key": "P14-L11", "surveyed_commit": "4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7"}, indent=2) + "\n"
     if rel_path == RCU_MANIFEST_PATH:
         return json.dumps({"lane_key": "P14-L13", "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312"}, indent=2) + "\n"
     if rel_path == TRACEABILITY_PATH:
@@ -252,7 +252,7 @@ def run_self_test() -> int:
         broken_traceability_path = root / TRACEABILITY_PATH
         broken_traceability_path.write_text(
             broken_traceability_path.read_text(encoding="utf-8").replace(
-                "the live workqueue, ring-buffer, skbuff, and RCU packets now route through `P14-L02`, `P14-L08`, `P14-L09`, and `P14-L13`\n",
+                "the live workqueue, ring-buffer, skbuff, and RCU packets now route through `P14-L02`, `P14-L08`, `P14-L11`, and `P14-L13`\n",
                 "",
                 1,
             ),
@@ -260,7 +260,7 @@ def run_self_test() -> int:
         )
         errors = check(root)
         if not any(
-            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: the live workqueue, ring-buffer, skbuff, and RCU packets now route through `P14-L02`, `P14-L08`, `P14-L09`, and `P14-L13`"
+            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: the live workqueue, ring-buffer, skbuff, and RCU packets now route through `P14-L02`, `P14-L08`, `P14-L11`, and `P14-L13`"
             in error
             for error in errors
         ):
@@ -284,7 +284,8 @@ def run_self_test() -> int:
         ):
             print("self-test expected duplicate workqueue lane-key failure", file=sys.stderr)
             return 1
-        write_text(broken_traceability_path, required_text(root, TRACEABILITY_PATH))
+        writeText = write_text
+        writeText(broken_traceability_path, required_text(root, TRACEABILITY_PATH))
 
         broken_release_path = root / RELEASE_BOUNDARY_PATH
         broken_release_path.write_text("`PHASE14_STUDY_ONLY_ANCHOR_COUNT=1`\n", encoding="utf-8")
