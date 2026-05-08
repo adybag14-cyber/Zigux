@@ -164,6 +164,36 @@ test "phase12 virtio scsi host shape summary defaults non-poll hosts and blocks 
     }));
 }
 
+test "phase12 virtio scsi freeze and restore summaries keep recovery-state transitions explicit" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    _ = try lab.planQueueLayout(5, 2);
+
+    const frozen = try lab.freezeForTransportReset();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", frozen.anchor);
+    try std.testing.expectEqual(virtio_scsi.RecoveryAction.freeze, frozen.action);
+    try std.testing.expect(!frozen.was_frozen);
+    try std.testing.expect(frozen.is_frozen);
+    try std.testing.expect(!frozen.request_planning_available);
+    try std.testing.expect(!frozen.event_recycling_enabled);
+    try std.testing.expectEqual(@as(u16, 5), frozen.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 2), frozen.remembered_poll_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), frozen.remembered_event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 0), frozen.recovery_generation);
+
+    const restored = try lab.restoreAfterTransportReset();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", restored.anchor);
+    try std.testing.expectEqual(virtio_scsi.RecoveryAction.restore, restored.action);
+    try std.testing.expect(restored.was_frozen);
+    try std.testing.expect(!restored.is_frozen);
+    try std.testing.expect(restored.request_planning_available);
+    try std.testing.expect(restored.event_recycling_enabled);
+    try std.testing.expectEqual(@as(u16, 5), restored.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 2), restored.remembered_poll_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), restored.remembered_event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 1), restored.recovery_generation);
+    try std.testing.expectError(error.QueueLayoutUnavailable, lab.queueWindowSummary());
+}
+
 test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery boundary" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
     _ = try lab.planQueueLayout(6, 2);
