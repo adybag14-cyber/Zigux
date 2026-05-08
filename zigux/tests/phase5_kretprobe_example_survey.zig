@@ -353,6 +353,9 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*bitmap*` reference sample",
         "Documentation/zigux/phase4-validation-matrix.md",
         "samples/zigux/runtime_bitmap.zig",
+        "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*rbtree*` reference sample",
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        "zigux/tests/phase7_rbtree.zig",
     };
 
     for (checklist_markers) |needle| {
@@ -386,6 +389,9 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "zigux/kernel/runtime_loader.zig",
         "zigux/kernel/runtime_loader_contract.zig",
         "zigux/tests/phase9_build.zig",
+        "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample",
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        "zigux/tests/phase7_rbtree.zig",
     };
 
     for (sample_root_markers) |needle| {
