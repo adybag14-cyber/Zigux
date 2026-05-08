@@ -8,10 +8,12 @@ The current driver-local teardown surface is intentionally small and host-free:
 - `removeSummary()` owns the unregister-side cleanup by recording debugfs-clear intent, unregister intent, reset-assert intent, and whether hardware remains running after remove when reset control is unavailable.
 
 ## Teardown Ownership
-boundary current Zigux owner what stays reviewable now still out of scope
-stop boundary `stop()` reset-control-backed disable, current-count clear, interrupt clear, and preserved running state when the DesignWare instance is non-stoppable reset-controller acquisition, live MMIO writes, and watchdog-core stop side effects
-teardown handoff `teardownSummary()` idle no-op versus active-stop outcome selection, stop-invocation bookkeeping, enable-bit clear state, interrupt-clear state, and hardware-running-after-teardown reporting reboot notifier ordering, hardware-backed shutdown timing, and interrupt delivery
-remove handoff `removeSummary()` debugfs-clear intent, unregister-device intent, reset-assert request, and running-versus-quiesced remove outcomes actual platform remove callbacks, debugfs teardown execution, and hardware-backed reset-line behavior
+
+| boundary | current Zigux owner | what stays reviewable now | still out of scope |
+| --- | --- | --- | --- |
+| stop boundary | `stop()` | reset-control-backed disable, current-count clear, interrupt clear, and preserved running state when the DesignWare instance is non-stoppable | reset-controller acquisition, live MMIO writes, and watchdog-core stop side effects |
+| teardown handoff | `teardownSummary()` | idle no-op versus active-stop outcome selection, stop-invocation bookkeeping, enable-bit clear state, interrupt-clear state, and hardware-running-after-teardown reporting | reboot notifier ordering, hardware-backed shutdown timing, and interrupt delivery |
+| remove handoff | `removeSummary()` | debugfs-clear intent, unregister-device intent, reset-assert request, and running-versus-quiesced remove outcomes | actual platform remove callbacks, debugfs teardown execution, and hardware-backed reset-line behavior |
 
 ## Review Guardrails
 
