@@ -154,6 +154,33 @@ test "phase13 devres write-combined ioremap wrapper frees the release record on 
     try std.testing.expect(!result.should_unmap_on_detach);
 }
 
+test "phase13 devres non-posted ioremap wrapper mirrors the managed lifetime split" {
+    const success = try devres.DevresHelperLab.planManagedIoremapAcquireNp(.{
+        .release_record_allocated = true,
+        .mapped_address = 0x2800,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", success.anchor);
+    try std.testing.expectEqual(devres.ManagedIoremapKind.non_posted, success.kind);
+    try std.testing.expectEqual(@as(?usize, 0x2800), success.mapped_address);
+    try std.testing.expect(success.added_to_devres);
+    try std.testing.expect(success.release_record_retained);
+    try std.testing.expect(!success.release_record_freed);
+    try std.testing.expect(success.should_unmap_on_detach);
+
+    const failure = try devres.DevresHelperLab.planManagedIoremapAcquireNp(.{
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(devres.ManagedIoremapKind.non_posted, failure.kind);
+    try std.testing.expectEqual(@as(?usize, null), failure.mapped_address);
+    try std.testing.expect(!failure.added_to_devres);
+    try std.testing.expect(!failure.release_record_retained);
+    try std.testing.expect(failure.release_record_freed);
+    try std.testing.expect(!failure.should_unmap_on_detach);
+}
+
 test "phase13 devres release matching stays pointer-exact" {
     try std.testing.expect(devres.DevresHelperLab.ioremapReleaseMatches(0x4000, 0x4000));
     try std.testing.expect(!devres.DevresHelperLab.ioremapReleaseMatches(0x4000, 0x4010));
