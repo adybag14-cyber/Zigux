@@ -53,7 +53,7 @@ The current bounded helper covers:
 - ignored unrelated fdinfo lines so the helper stays smaller than direct file reads
 - reused-map name resolution that keeps truncated kernel names tied back to the object-side name when the libbpf-compatible `BPF_OBJ_NAME_LEN` boundary is hit
 - bounded compatibility checks for map type, key size, value size, max entries, map flags, and `map_extra`, including the devmap readonly-prog exception that libbpf tolerates
-- planning-only reopen-attempt disposition that requires a non-empty pinned path plus compatible fdinfo-derived map info before any real map reopen can be considered
+- planning-only reopen-attempt disposition via `resolveReusePinnedMapAttempt()` that requires a non-empty pinned path plus compatible fdinfo-derived map info before any real map reopen can be considered
 - `planTokenPreparation()` as a planning-only token-preparation gate that requires a non-empty token path plus a ready reused-map bridge plan before any future token open attempt can be considered
 
 The current tests check:
