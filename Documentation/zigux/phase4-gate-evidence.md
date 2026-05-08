@@ -15,7 +15,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_WORKFLOW_BLOB_SHA=b23d99c1354de85b84fac025d90839edc43c73cd`
 - `PHASE4_DOC_README_BLOB_SHA=178c8c4aa4c95810259f9fd53f7c4204bd63c96e`
 - `PHASE4_SCRIPT_README_BLOB_SHA=39f9bf674bc4e0c2a04ad52f8da6ee79bc1e1b28`
-- `PHASE4_TESTS_README_BLOB_SHA=ca078ee9bc89cf323e6dd689455f11358ebb21f8`
+- `PHASE4_TESTS_README_BLOB_SHA=1732a11c18bfbd954e634a92393bfe2115202e40`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=873721b47f378ec6e7b3e46d2a7a0388e8dac8e7`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=d3c082339d3357d7f4ed458313966705a7a9c409`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=825823b724a96c6d4fcca97071ddad8202686587`
@@ -53,4 +53,4 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 ## Current Conclusion
 - hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.
 - the dedicated local perf-baseline survey packet is still the truthful way to keep that unapproved posture measurable until one bounded benchmark command and one acceptable limit are promoted for each shipped rollback gate.
-- The current exact-readback note is aligned again to the live validator, README, workflow, Makefile, and Phase 4 gate surfaces on `master`, but the next same-lane follow-through is still one shared-surface truthfulness repair: `zigux/tests/README.md` should explicitly carry the shipped local-only perf-baseline pair `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig` before this lane widens into threshold-approval work.
+- The current exact-readback note is aligned again to the live validator, README, workflow, Makefile, and Phase 4 gate surfaces on `master`, and `zigux/tests/README.md` now explicitly carries the shipped local-only perf-baseline pair `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig`, so the next same-lane follow-through is one bounded benchmark command and one acceptable limit for each shipped rollback gate before this lane widens into threshold-approval work.
