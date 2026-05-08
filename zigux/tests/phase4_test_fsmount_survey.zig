@@ -73,7 +73,7 @@ test "phase4 test_fsmount gap manifest keeps the parked survey explicit" {
         manifest.review_prompts[2],
     );
     try std.testing.expectEqualStrings(
-        "the packet stays outside the shared gate-evidence target set until a later bounded promotion lands",
+        "the packet stays outside the shared gate-evidence target set while the shared validator still rereads it through the dedicated exact-readback checker",
         manifest.review_prompts[3],
     );
     try std.testing.expectEqual(@as(usize, 3), manifest.non_goals.len);
@@ -119,6 +119,7 @@ test "phase4 test_fsmount gap survey note stays honest about the parked boundary
         "zigux/tests/phase4_test_fsmount_manifest.json",
         "zigux/tests/phase4_test_fsmount_survey.zig",
         "`samples/zigux/test_fsmount.zig` is still absent",
+        "the shared validator route already rereads this parked packet through `scripts/zigux/check-phase4-gate-evidence.py`",
         "Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet",
         "claiming that the shared Phase 4 exact-readback gate already carries this packet",
         "claiming approved hard perf thresholds for the test_fsmount anchor",
