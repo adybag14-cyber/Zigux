@@ -169,3 +169,39 @@ test "virtio ring packed event-index summary stays queue-local and reports when 
     try testing.expectEqual(@as(u16, 4), summary.event_index_target_idx);
     try testing.expect(summary.should_poll);
 }
+
+test "virtio ring notification-data summary tracks packed wrap and split reset transitions" {
+    var lab = virtio_ring.VirtioRingLab{};
+    try lab.defineQueue(0, 8, .split, true, false);
+    try lab.publishDescriptorChain(0);
+    try lab.publishDescriptorChain(0);
+    try lab.publishDescriptorChain(0);
+
+    var summary = try lab.notificationDataSummary(0);
+    try testing.expectEqual(virtio_ring.QueueLayout.split, summary.layout);
+    try testing.expectEqual(@as(u16, 3), summary.next_avail_idx);
+    try testing.expect(!summary.next_avail_wrap_counter);
+    try testing.expectEqual(@as(u32, 0x0003_0000), summary.notification_data);
+
+    try lab.defineQueue(1, 8, .packed_ring, true, false);
+    inline for (0..9) |_| {
+        try lab.publishDescriptorChain(1);
+    }
+    summary = try lab.notificationDataSummary(1);
+    try testing.expectEqual(virtio_ring.QueueLayout.packed_ring, summary.layout);
+    try testing.expectEqual(@as(u16, 1), summary.next_avail_idx);
+    try testing.expect(summary.next_avail_wrap_counter);
+    try testing.expectEqual(@as(u16, virtio_ring.packed_notification_wrap_bit | 1), summary.encoded_next);
+    try testing.expectEqual(@as(u32, 0x8001_0001), summary.notification_data);
+
+    _ = try lab.prepareKick(1);
+    try lab.recordUsedChains(1, 9);
+    _ = try lab.pollUsedBuffers(1);
+    _ = try lab.resetQueue(1);
+    summary = try lab.notificationDataSummary(1);
+    try testing.expectEqual(@as(u16, 0), summary.avail_idx_shadow);
+    try testing.expectEqual(@as(u16, 0), summary.next_avail_idx);
+    try testing.expect(!summary.next_avail_wrap_counter);
+    try testing.expectEqual(@as(u16, 0), summary.encoded_next);
+    try testing.expectEqual(@as(u32, 1), summary.notification_data);
+}
