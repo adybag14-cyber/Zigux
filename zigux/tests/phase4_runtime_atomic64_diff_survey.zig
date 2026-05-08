@@ -20,6 +20,7 @@ const Manifest = struct {
     phase4_validator_atomic64_diff_present: bool,
     phase4_validator_runtime_atomic64_diff_present: bool,
     phase4_validator_blob_sha: []const u8,
+    phase4_gate_evidence_path: []const u8,
     phase9_build_present: bool,
     phase9_build_blob_sha: []const u8,
     phase4_validation_matrix_atomic64_diff_note_present: bool,
@@ -106,6 +107,10 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob
     try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
     try std.testing.expectEqualStrings("602b1ff6ee9baf2874a3456704b250ae1086ee87", manifest.phase4_validator_blob_sha);
+    try std.testing.expectEqualStrings(
+        "Documentation/zigux/phase4-gate-evidence.md",
+        manifest.phase4_gate_evidence_path,
+    );
 
     try std.testing.expect(manifest.phase9_build_present);
     try std.testing.expectEqualStrings("8f6ce92cfaff8eb1225686b5474ec91e7c76dd3f", manifest.phase9_build_blob_sha);
@@ -143,6 +148,9 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "scripts/zigux/validate-phase4.py") != null,
     );
     try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/phase4-gate-evidence.md") != null,
+    );
+    try std.testing.expect(
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/review-checklist.md") != null,
     );
     try std.testing.expect(
@@ -155,12 +163,13 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_perf_baseline_survey.zig") != null,
     );
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "validator-first bootstrap replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "exact-readback note") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "shared reviewer checklist") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "named owner") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "rollback-owner matrix") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "local-only perf-baseline survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "measurable and reversible") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "same rollback surfaces pinned") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "same rollback packet pinned") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "benchmark command") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "acceptable limit") != null);
