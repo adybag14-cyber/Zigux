@@ -35,7 +35,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-kallsyms-slice.md": [
         "PHASE8_SLICE=kallsyms-parse-wrapper-parked",
         "one direct `kallsymsParse()` wrapper",
-        "oversized symbol names now truncate to `KSYM_NAME_LEN`",
+        "direct parser now truncates oversized symbol names to `KSYM_NAME_LEN`",
         "weak-object `V` and `v` classes still follow the current C header contract",
         "make -C zigux phase8-help-kallsyms-test",
     ],
@@ -104,8 +104,8 @@ REQUIRED_MARKERS = {
         "Run focused Phase 8 help and kallsyms tests",
     ],
     "zigux/tests/phase8_kallsyms.zig": [
-        "phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit",
-        "oversized symbol names now truncate to `KSYM_NAME_LEN`",
+        "phase 8 kallsyms slice note keeps the current nullable parser contract explicit",
+        "phase 8 kallsyms direct parser stays nullable while truncating oversized names",
         "weak-object `V` and `v` classes still follow the current C header contract",
         "phase8_help_kallsyms_only_build.zig",
     ],
@@ -251,9 +251,9 @@ def run_self_test() -> None:
         (
             "kallsyms_slice_truncation_guard",
             "Documentation/zigux/phase8-kallsyms-slice.md",
-            "oversized symbol names now truncate to `KSYM_NAME_LEN`",
-            "oversized symbol names now stay bounded",
-            "Documentation/zigux/phase8-kallsyms-slice.md: oversized symbol names now truncate to `KSYM_NAME_LEN`",
+            "direct parser now truncates oversized symbol names to `KSYM_NAME_LEN`",
+            "direct parser keeps oversized names bounded",
+            "Documentation/zigux/phase8-kallsyms-slice.md: direct parser now truncates oversized symbol names to `KSYM_NAME_LEN`",
         ),
         (
             "kallsyms_slice_weak_object_note",
@@ -349,9 +349,9 @@ def run_self_test() -> None:
         (
             "kallsyms_test_truncation_contract",
             "zigux/tests/phase8_kallsyms.zig",
-            "phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit",
+            "phase 8 kallsyms slice note keeps the current nullable parser contract explicit",
             "phase 8 kallsyms slice note keeps the parser contract explicit",
-            "zigux/tests/phase8_kallsyms.zig: phase 8 kallsyms slice note keeps the C-aligned truncation contract explicit",
+            "zigux/tests/phase8_kallsyms.zig: phase 8 kallsyms slice note keeps the current nullable parser contract explicit",
         ),
         (
             "kallsyms_test_weak_object_anchor",
