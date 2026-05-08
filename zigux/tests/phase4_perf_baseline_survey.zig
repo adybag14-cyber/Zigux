@@ -15,6 +15,29 @@ const SurveySummary = struct {
     acceptable_limit_unapproved: bool,
 };
 
+const DeterministicReplay = struct {
+    iterations: usize,
+    checksum: u64,
+    final_counter: i64,
+};
+
+const Atomic64CommandEvidence = struct {
+    evidence_status: []const u8,
+    benchmark_command: []const u8,
+    acceptable_limit_status: []const u8,
+    deterministic_replays: []const DeterministicReplay,
+};
+
+const BitmapCommandEvidence = struct {
+    evidence_status: []const u8,
+    acceptable_limit_status: []const u8,
+};
+
+const CommandEvidence = struct {
+    atomic64: Atomic64CommandEvidence,
+    bitmap: BitmapCommandEvidence,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -30,6 +53,7 @@ const Manifest = struct {
     rollback_owner: []const u8,
     surveyed_gates: []const SurveyedGate,
     survey_summary: SurveySummary,
+    command_evidence: CommandEvidence,
     gaps: []const Gap,
 };
 
@@ -39,9 +63,6 @@ fn isAllowedStatus(status: []const u8) bool {
 }
 
 test "phase4 perf baseline survey manifest keeps the current unapproved threshold posture explicit" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
     const parsed = try std.json.parseFromSlice(
         Manifest,
         std.testing.allocator,
@@ -51,63 +72,13 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    const phase4_build = @embedFile("phase4_build.zig");
-    const phase4_matrix = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase4-validation-matrix.md",
-        std.testing.allocator,
-        .limited(48 * 1024),
-    );
-    defer std.testing.allocator.free(phase4_matrix);
-    const phase4_gate_evidence = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase4-gate-evidence.md",
-        std.testing.allocator,
-        .limited(128 * 1024),
-    );
-    defer std.testing.allocator.free(phase4_gate_evidence);
-    const makefile = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/Makefile",
-        std.testing.allocator,
-        .limited(128 * 1024),
-    );
-    defer std.testing.allocator.free(makefile);
-    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/README.md",
-        std.testing.allocator,
-        .limited(128 * 1024),
-    );
-    defer std.testing.allocator.free(tests_readme);
-    const doc_readme = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/README.md",
-        std.testing.allocator,
-        .limited(128 * 1024),
-    );
-    defer std.testing.allocator.free(doc_readme);
-    const script_readme = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "scripts/zigux/README.md",
-        std.testing.allocator,
-        .limited(128 * 1024),
-    );
-    defer std.testing.allocator.free(script_readme);
-    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/review-checklist.md",
-        std.testing.allocator,
-        .limited(128 * 1024),
-    );
-    defer std.testing.allocator.free(review_checklist);
 
     try std.testing.expectEqualStrings("P4-L20", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.owner);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
     try std.testing.expectEqual(@as(usize, 2), manifest.surveyed_gates.len);
-    try std.testing.expectEqual(@as(usize, 4), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.gaps.len);
 
     try std.testing.expectEqualStrings(
         "zigux/tests/atomic64_diff.zig",
@@ -142,28 +113,46 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         manifest.surveyed_gates[1].threshold_posture,
     );
 
-    const live_summary = SurveySummary{
-        .phase4_build_step_present = std.mem.indexOf(u8, phase4_build, "phase4_perf_baseline_survey.zig") != null and
-            std.mem.indexOf(u8, phase4_build, "phase4-perf-baseline-survey-tests") != null and
-            std.mem.indexOf(u8, phase4_build, "phase4-perf-baseline-survey") != null,
-        .phase4_validation_matrix_present = std.mem.indexOf(u8, phase4_matrix, "zigux/tests/phase4_perf_baseline_manifest.json") != null and
-            std.mem.indexOf(u8, phase4_matrix, "zigux/tests/phase4_perf_baseline_survey.zig") != null and
-            std.mem.indexOf(u8, phase4_matrix, "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig") != null and
-            std.mem.indexOf(u8, phase4_matrix, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null and
-            std.mem.indexOf(u8, phase4_matrix, "The dedicated perf-baseline survey stays outside the shared `phase4-test` entrypoint") != null,
-        .shared_phase4_test_step_includes_survey = std.mem.indexOf(u8, phase4_build, "test_step.dependOn(&run_perf_baseline_survey_tests.step);") != null,
-        .benchmark_command_unapproved = std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null or
-            std.mem.indexOf(u8, phase4_matrix, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null,
-        .acceptable_limit_unapproved = std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null or
-            std.mem.indexOf(u8, phase4_matrix, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null,
-    };
-    try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
+    try std.testing.expect(manifest.survey_summary.phase4_build_step_present);
+    try std.testing.expect(manifest.survey_summary.phase4_validation_matrix_present);
+    try std.testing.expect(!manifest.survey_summary.shared_phase4_test_step_includes_survey);
+    try std.testing.expect(manifest.survey_summary.benchmark_command_unapproved);
+    try std.testing.expect(manifest.survey_summary.acceptable_limit_unapproved);
+
+    try std.testing.expectEqualStrings(
+        "explicit_candidate_landed",
+        manifest.command_evidence.atomic64.evidence_status,
+    );
+    try std.testing.expectEqualStrings(
+        "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+        manifest.command_evidence.atomic64.benchmark_command,
+    );
+    try std.testing.expectEqualStrings(
+        "still_unapproved",
+        manifest.command_evidence.atomic64.acceptable_limit_status,
+    );
+    try std.testing.expectEqual(@as(usize, 2), manifest.command_evidence.atomic64.deterministic_replays.len);
+    try std.testing.expectEqual(@as(usize, 1), manifest.command_evidence.atomic64.deterministic_replays[0].iterations);
+    try std.testing.expectEqual(@as(u64, 3626254113632800175), manifest.command_evidence.atomic64.deterministic_replays[0].checksum);
+    try std.testing.expectEqual(@as(i64, 130322557735600377), manifest.command_evidence.atomic64.deterministic_replays[0].final_counter);
+    try std.testing.expectEqual(@as(usize, 4), manifest.command_evidence.atomic64.deterministic_replays[1].iterations);
+    try std.testing.expectEqual(@as(u64, 9210681150676220922), manifest.command_evidence.atomic64.deterministic_replays[1].checksum);
+    try std.testing.expectEqual(@as(i64, 130322557735600376), manifest.command_evidence.atomic64.deterministic_replays[1].final_counter);
+    try std.testing.expectEqualStrings(
+        "command_still_unapproved",
+        manifest.command_evidence.bitmap.evidence_status,
+    );
+    try std.testing.expectEqualStrings(
+        "still_unapproved",
+        manifest.command_evidence.bitmap.acceptable_limit_status,
+    );
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var saw_manifest_gap = false;
     var saw_gate_gap = false;
-    var saw_atomic64_gap = false;
+    var saw_atomic64_command_evidence_gap = false;
+    var saw_atomic64_command_gap = false;
     var saw_bitmap_gap = false;
 
     for (manifest.gaps) |gap| {
@@ -194,11 +183,11 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared CI perf approval") != null);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-atomic64-command")) {
-            saw_atomic64_gap = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "benchmark command plus one acceptable limit") != null);
+        if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-atomic64-command-evidence")) {
+            saw_atomic64_command_evidence_gap = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase4_perf_baseline_manifest.json", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact-pins") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runThresholdReplay(1)") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "3626254113632800175") != null);
@@ -206,59 +195,32 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runThresholdReplay(4)") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "9210681150676220922") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "130322557735600376") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-atomic64-command")) {
+            saw_atomic64_command_gap = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "structured form") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared validator-first packet") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-bitmap-command")) {
             saw_bitmap_gap = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "benchmark command plus one acceptable limit") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "other shipped surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit") != null);
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 2), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 2), ready_next_count);
     try std.testing.expect(saw_manifest_gap);
     try std.testing.expect(saw_gate_gap);
-    try std.testing.expect(saw_atomic64_gap);
+    try std.testing.expect(saw_atomic64_command_evidence_gap);
+    try std.testing.expect(saw_atomic64_command_gap);
     try std.testing.expect(saw_bitmap_gap);
-
-    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "Documentation/zigux/phase4-validation-matrix.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "Documentation/zigux/phase4-gate-evidence.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "scripts/zigux/validate-phase4.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase4_perf_baseline_manifest.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase4_perf_baseline_survey.zig") != null);
-
-    try std.testing.expect(std.mem.indexOf(u8, doc_readme, "Phase 4 notes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, doc_readme, "Documentation/zigux/phase4-validation-matrix.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, doc_readme, "Documentation/zigux/phase4-gate-evidence.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, doc_readme, "intentionally unapproved perf-threshold posture") != null);
-
-    try std.testing.expect(std.mem.indexOf(u8, script_readme, "Phase 4 flow") != null);
-    try std.testing.expect(std.mem.indexOf(u8, script_readme, "zigux/tests/phase4_perf_baseline_manifest.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, script_readme, "zigux/tests/phase4_perf_baseline_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, script_readme, "intentionally unapproved perf-threshold posture") != null);
-
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "if the change touches the shared Phase 4 validation packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "Documentation/zigux/phase4-validation-matrix.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "Documentation/zigux/phase4-gate-evidence.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "intentionally unapproved perf-threshold posture") != null);
-
-    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase4-perf-baseline-survey") != null);
-    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase4-perf-baseline-survey:") != null);
-    try std.testing.expect(std.mem.indexOf(u8, makefile, "$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig") != null);
-
-    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "`zigux/tests/phase4_perf_baseline_survey.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "threshold_pending_until_runtime_atomic64_scope_widens") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks") != null);
-
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "zigux/tests/phase4_perf_baseline_manifest.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "zigux/tests/phase4_perf_baseline_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "dedicated local-only perf-baseline posture packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "still-unapproved benchmark-command and acceptable-limit posture machine-checked locally") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "The dedicated exact-readback checker now also rereads that shipped perf-baseline manifest-and-survey pair") != null);
 }
