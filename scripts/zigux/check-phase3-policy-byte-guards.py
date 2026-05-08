@@ -20,7 +20,7 @@ REQUIRED_SURVEY_MARKERS = (
 REQUIRED_SURVEY_SNIPPETS = (
     "`PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`",
     "`zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
-    "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, and `permitsGlobalFallbackPolicyBytes` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
+    "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte or typed shared callers infer behavior elsewhere in the packet.",
     "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.",
     "`zigux/unsafe/narrow.zig` now also mirrors the panic and allocator helper style with typed `InteropPolicy` entry points through `scopeFromInteropPolicy`, `recognizesInteropPolicy`, `permitsNoUnsafeInteropPolicy`, `permitsVolatileMmioInteropPolicy`, and `permitsRawPointerBridgeInteropPolicy` so shared callers do not have to split unsafe-scope bytes out by hand before checking the bounded unsafe contract.",
 )
@@ -200,6 +200,16 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
 
         build_valid_workspace(root)
+        broken_allocator_survey = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            REQUIRED_SURVEY_SNIPPETS[2] + "\n",
+            "",
+            1,
+        )
+        write(root / SURVEY_REL, broken_allocator_survey)
+        issues = validate(root)
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[2]}" in issues
+
+        build_valid_workspace(root)
         broken_dump_gate = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
             "`PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`\n",
             "",
@@ -266,7 +276,7 @@ def run_self_test() -> int:
         assert "missing_unsafe_snippet:pub fn recognizesByte(unsafe_scope: u8) bool {" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
