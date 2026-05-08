@@ -11,7 +11,7 @@ It is a coordination artifact, not a closure claim.
 - shared make validation route: `make -C zigux phase8-validate`
 - shared build replay entrypoint: `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 - Linux-style replay entrypoint: `make -C zigux phase8`
-- shipped shared coordination surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`, `zigux/tests/phase8_build.zig`, and `zigux/Makefile`
+- shipped shared coordination surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`, `zigux/tests/phase8_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
 - current helper-family posture: the bounded libbpf packet is parked after the landed file-path bridge and perf-buffer poll review updates, and this sequencing note should reopen it only for another smaller same-lane helper, validator, checker, survey, README, or shared wording gap
 - continuity wording guard: if another shared Phase 8 reminder still says the libbpf shard routes are active, treat that wording as a focused reopen-entrypoint cue only, not as a claim that the libbpf packet is currently active by default
 
@@ -121,6 +121,7 @@ Allowed surfaces:
 - `scripts/zigux/validate-phase8.py`
 - `zigux/tests/README.md`
 - `zigux/Makefile`
+- `.github/workflows/zigux-bootstrap.yml`
 
 When this wording lane reopens, treat `scripts/zigux/README.md` and `zigux/tests/README.md` as first-pass truth surfaces alongside `Documentation/zigux/README.md`, not as later summaries. On current `master` the scripts-root Phase 8 flow keeps the compact shared packet inventory visible through `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_logging.zig`, `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_bpf_type_names.zig`, and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, while the docs-root and tests-root reminders keep `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, and the parked command plus shared symbol replay surfaces explicit through `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_help_kallsyms_only_build.zig`, `make -C zigux phase8-help-test`, and `make -C zigux phase8-help-kallsyms-test` alongside the focused `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, and `make -C zigux phase8-perf-buffer-poll-test` shard routes beside the parked libbpf packet. The same tests-root reminder must also keep `zigux/tests/phase8_pin_path.zig` and `zigux/tests/phase8_bpf_type_names.zig` visible inside that parked libbpf packet summary so the shared helper inventory does not collapse back to the older starter-only shorthand.
 
@@ -142,7 +143,7 @@ If a wording fix requires changing helper logic, split the helper change back in
 Today the strongest Phase 8 sequencing correction is simple:
 - treat `exec-cmd`, `help`, and `kallsyms` as parked tooling slices
 - treat the libbpf helper family plus its bridge and survey notes as the currently parked reviewable Phase 8 libbpf packet, reopening it only for tighter same-lane gaps
-- keep docs-root, scripts-root, checklist, tests-root, and validator wording repairs separate from helper-local parity work so older active-tranche shorthand does not pull scheduled runs away from the parked posture
+- keep docs-root, scripts-root, checklist, tests-root, validator wording repairs, and workflow-backed shard reminders separate from helper-local parity work so older active-tranche shorthand does not pull scheduled runs away from the parked posture
 
 That split matches the live docs-root Phase 8 summary and prevents scheduled tooling runs from duplicating already-parked starter-slice work.
 
