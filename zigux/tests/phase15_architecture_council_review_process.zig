@@ -15,6 +15,8 @@ const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     surveyed_commit: []const u8,
+    surveyed_commit_mode: []const u8,
+    surveyed_commit_mode_reason: []const u8,
     roadmap_requirement: []const u8,
     anchor: []const u8,
     current_approval_state: []const u8,
@@ -95,6 +97,8 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try std.testing.expectEqualStrings("P15-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-08", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("dated_master_readback_marker", manifest.surveyed_commit_mode);
+    try std.testing.expectEqualStrings("This review-process packet currently records a dated master readback marker instead of an exact verified branch-head SHA.", manifest.surveyed_commit_mode_reason);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
@@ -128,7 +132,9 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "## Current Approval Posture");
     try expectContains(survey_doc, "## Maintenance-Mode Handoff");
     try expectContains(survey_doc, "`PHASE15_LANE_KEY=P15-L06`");
-    try expectContains(survey_doc, "survey provenance refreshed against current `master` readback on 2026-05-08");
+    try expectContains(survey_doc, "`PHASE15_PROVENANCE_MODE=dated_master_readback_marker`");
+    try expectContains(survey_doc, "survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-08` on 2026-05-08 because this review-process packet does not yet record an exact verified `master` head SHA");
+    try expectContains(survey_doc, "exact branch-head parity is not yet recorded for this packet; the current survey therefore uses an explicit dated readback marker instead of implying exact-head provenance");
     try expectContains(survey_doc, "maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires or the deep-core blocker posture changes");
     try expectContains(survey_doc, "current review-process evidence is limited to named `phase`");
     try expectContains(survey_doc, "`validation gate summary`");
@@ -150,6 +156,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "landed `phase15-lane-owner-alignment-replay-visible`");
     try expectContains(survey_doc, "landed `phase15-workflow-replay-anchor-visible`");
     try expectContains(survey_doc, "landed `phase15-dedicated-make-test-replay-visible`");
+    try expectContains(survey_doc, "landed `phase15-degraded-provenance-mode-visible`");
     try expectContains(survey_doc, "Documentation/zigux/phase15-governance-lane-sequencing.md");
     try expectContains(survey_doc, "zigux/tests/phase15_indefinite_c_blocker_evidence.zig");
     try expectContains(survey_doc, "zigux/tests/phase15_governance_lane_sequencing.zig");
@@ -172,6 +179,8 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
 
     try expectContains(manifest_json, "\"lane_key\": \"P15-L06\"");
     try expectContains(manifest_json, "\"surveyed_commit\": \"current-master-readback-2026-05-08\"");
+    try expectContains(manifest_json, "\"surveyed_commit_mode\": \"dated_master_readback_marker\"");
+    try expectContains(manifest_json, "\"surveyed_commit_mode_reason\": \"This review-process packet currently records a dated master readback marker instead of an exact verified branch-head SHA.\"");
     try expectContains(manifest_json, "\"handoff\"");
     try expectContains(manifest_json, "\"current_mode\": \"maintenance_mode\"");
     try expectContains(manifest_json, "make -C zigux phase15-validate");
