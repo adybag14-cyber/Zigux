@@ -93,7 +93,7 @@ Primary Phase 5 packet
 - `zigux/tests/phase5_kretprobe_example_survey.zig`
 
 Keep explicit
-- pre-init retargeting
+- `runRetargetReplay()` plus pre-init retargeting, empty-symbol rejection, and post-init retarget rejection
 - `runLifecycleGuardReplay()` plus the pre-init and post-init guard boundaries
 - the fixed `maxactiveBudget()` cue at `20`
 - `runRecoveryReplay()` plus outstanding-instance rejection
