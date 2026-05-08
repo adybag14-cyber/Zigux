@@ -26,7 +26,8 @@
       "id": "bsearch",
       "helper": "lib/bsearch.zig",
       "tests": [
-        "zigux/tests/phase6_bsearch.zig"
+        "zigux/tests/phase6_bsearch.zig",
+        "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig"
       ],
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md"
     },
