@@ -16,6 +16,8 @@ SURVEY_PATH = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
 KPROBE_NOTE_PATH = Path("Documentation/zigux/phase4-kprobe-example-gap-survey.md")
 KPROBE_MANIFEST_PATH = Path("zigux/tests/phase4_kprobe_example_manifest.json")
 KPROBE_SURVEY_PATH = Path("zigux/tests/phase4_kprobe_example_survey.zig")
+PERF_BASELINE_MANIFEST_PATH = Path("zigux/tests/phase4_perf_baseline_manifest.json")
+PERF_BASELINE_SURVEY_PATH = Path("zigux/tests/phase4_perf_baseline_survey.zig")
 
 PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
     "PHASE4_VALIDATION_MATRIX_BLOB_SHA": "Documentation/zigux/phase4-validation-matrix.md",
@@ -58,6 +60,7 @@ SELF_TEST_CASES = [
     "shared_validator_expected_self_test_case_count_drift",
     "bitmap_diff_survey_replay_marker_drift",
     "kprobe_gap_packet_presence_drift",
+    "perf_baseline_packet_presence_drift",
     "missing_note_file",
 ]
 
@@ -92,7 +95,7 @@ REQUIRED_NOTE_MARKERS = [
     "`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`",
     "`Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
     "`threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold.",
-    "That published sixteen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, so those validator, matrix, and reviewer-checklist pins are no longer an unstated self-test gap.",
+    "That published seventeen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, and it now checks the shipped perf-baseline packet's manifest-presence drift path too, so those validator, matrix, reviewer-checklist, and perf-baseline packet expectations are no longer an unstated self-test gap.",
     "manifest-backed runtime atomic64 survey pair now pins the same current `phase4_build.zig`, `validate-phase4.py`, `phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, and `phase9_build.zig` blobs that the shared validator and review packet now depend on",
     "`zigux/Makefile` still exposes `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, and `make -C zigux phase4`, so the Linux-style local replay surface matches the current shared Phase 4 packet instead of hiding those routes in the build file alone.",
     "`make -C zigux phase4-bitmap-diff-survey` plus `zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig`",
@@ -166,6 +169,95 @@ def validate_kprobe_gap_packet(root: Path) -> list[str]:
             missing.append(f"phase4_gate_evidence:kprobe_survey:{marker}")
     return missing
 
+
+def validate_perf_baseline_packet(root: Path) -> list[str]:
+    manifest_file = root / PERF_BASELINE_MANIFEST_PATH
+    survey_file = root / PERF_BASELINE_SURVEY_PATH
+    missing: list[str] = []
+    if not manifest_file.exists():
+        return [f"file:{PERF_BASELINE_MANIFEST_PATH}"]
+    if not survey_file.exists():
+        return [f"file:{PERF_BASELINE_SURVEY_PATH}"]
+
+    try:
+        manifest = json.loads(read_text(root, PERF_BASELINE_MANIFEST_PATH))
+    except json.JSONDecodeError as exc:
+        return [f"phase4_gate_evidence:perf_baseline_manifest:invalid_json:{exc.msg}"]
+
+    expected_fields = {
+        "lane_key": "P4-L20",
+        "phase": "Phase 4",
+        "owner": "Validation and Perf Team",
+        "rollback_owner": "Validation and Perf Team",
+    }
+    for field, expected in expected_fields.items():
+        actual = manifest.get(field)
+        if actual != expected:
+            missing.append(f"phase4_gate_evidence:perf_baseline_manifest:{field}:{actual}:{expected}")
+
+    surveyed_gates = manifest.get("surveyed_gates")
+    if not isinstance(surveyed_gates, list) or len(surveyed_gates) != 2:
+        missing.append("phase4_gate_evidence:perf_baseline_manifest:surveyed_gates")
+    else:
+        expected_surfaces = [
+            (
+                "zigux/tests/atomic64_diff.zig",
+                "ABI and Runtime Team",
+                "ABI and Runtime Team",
+                "threshold_pending_until_runtime_atomic64_scope_widens",
+            ),
+            (
+                "zigux/tests/bitmap_diff.zig",
+                "Shared Subsystems Pod",
+                "Shared Subsystems Pod",
+                "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+            ),
+        ]
+        for gate, expected in zip(surveyed_gates, expected_surfaces):
+            if not isinstance(gate, dict):
+                missing.append("phase4_gate_evidence:perf_baseline_manifest:surveyed_gate_shape")
+                continue
+            surface, owner, rollback_owner, threshold = expected
+            if gate.get("surface") != surface:
+                missing.append(f"phase4_gate_evidence:perf_baseline_manifest:surface:{gate.get('surface')}:{surface}")
+            if gate.get("gate_owner") != owner:
+                missing.append(f"phase4_gate_evidence:perf_baseline_manifest:gate_owner:{gate.get('gate_owner')}:{owner}")
+            if gate.get("gate_rollback_owner") != rollback_owner:
+                missing.append(f"phase4_gate_evidence:perf_baseline_manifest:gate_rollback_owner:{gate.get('gate_rollback_owner')}:{rollback_owner}")
+            if gate.get("threshold_posture") != threshold:
+                missing.append(f"phase4_gate_evidence:perf_baseline_manifest:threshold_posture:{gate.get('threshold_posture')}:{threshold}")
+
+    summary = manifest.get("survey_summary")
+    if not isinstance(summary, dict):
+        missing.append("phase4_gate_evidence:perf_baseline_manifest:survey_summary")
+    else:
+        expected_summary = {
+            "phase4_build_step_present": True,
+            "phase4_validation_matrix_present": True,
+            "shared_phase4_test_step_includes_survey": False,
+            "benchmark_command_unapproved": True,
+            "acceptable_limit_unapproved": True,
+        }
+        for field, expected in expected_summary.items():
+            actual = summary.get(field)
+            if actual != expected:
+                missing.append(f"phase4_gate_evidence:perf_baseline_manifest:survey_summary:{field}:{actual}:{expected}")
+
+    survey_text = read_text(root, PERF_BASELINE_SURVEY_PATH)
+    for marker in [
+        "phase4 perf baseline survey manifest keeps the current unapproved threshold posture explicit",
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+        "threshold_pending_until_runtime_atomic64_scope_widens",
+        "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+        "benchmark command plus one acceptable limit",
+        "shared CI perf approval",
+    ]:
+        if marker not in survey_text:
+            missing.append(f"phase4_gate_evidence:perf_baseline_survey:{marker}")
+
+    return missing
+
+
 def validate_root(root: Path) -> list[str]:
     note_file = root / NOTE_PATH
     if not note_file.exists():
@@ -197,6 +289,7 @@ def validate_root(root: Path) -> list[str]:
         missing.append(f"phase4_gate_evidence:status_exact_count:PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA={review_checklist_digest}:{count}")
     missing.extend(validate_runtime_atomic64_packet(root))
     missing.extend(validate_kprobe_gap_packet(root))
+    missing.extend(validate_perf_baseline_packet(root))
     return missing
 
 def write_text(path: Path, content: str) -> None:
@@ -296,6 +389,79 @@ test \"phase4 kprobe gap fixture note alignment\" {
 // treating adjacent gate-evidence visibility as a shipped Zig starter
 """)
 
+
+def write_perf_baseline_packet_fixture(root: Path) -> None:
+    manifest = {
+        "lane_key": "P4-L20",
+        "phase": "Phase 4",
+        "owner": "Validation and Perf Team",
+        "rollback_owner": "Validation and Perf Team",
+        "surveyed_gates": [
+            {
+                "surface": "zigux/tests/atomic64_diff.zig",
+                "gate_owner": "ABI and Runtime Team",
+                "gate_rollback_owner": "ABI and Runtime Team",
+                "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
+            },
+            {
+                "surface": "zigux/tests/bitmap_diff.zig",
+                "gate_owner": "Shared Subsystems Pod",
+                "gate_rollback_owner": "Shared Subsystems Pod",
+                "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+            },
+        ],
+        "survey_summary": {
+            "phase4_build_step_present": True,
+            "phase4_validation_matrix_present": True,
+            "shared_phase4_test_step_includes_survey": False,
+            "benchmark_command_unapproved": True,
+            "acceptable_limit_unapproved": True,
+        },
+        "gaps": [
+            {
+                "id": "phase4-perf-baseline-survey-manifest",
+                "status": "starter_landed",
+                "kind": "survey_manifest",
+                "zigux_destination": "zigux/tests/phase4_perf_baseline_manifest.json",
+                "why_now": "manifest-backed survey packet keeps the current unapproved benchmark-command and acceptable-limit posture machine-checked without inventing numbers",
+            },
+            {
+                "id": "phase4-perf-baseline-survey-gate",
+                "status": "starter_landed",
+                "kind": "validation",
+                "zigux_destination": "zigux/tests/phase4_perf_baseline_survey.zig",
+                "why_now": "correctness-only posture stays measurable without treating the local survey route as shared CI perf approval",
+            },
+            {
+                "id": "phase4-perf-baseline-atomic64-command",
+                "status": "ready_next",
+                "kind": "perf_command",
+                "zigux_destination": "zigux/tests/atomic64_diff.zig",
+                "why_now": "one bounded benchmark command plus one acceptable limit still needs approval",
+            },
+            {
+                "id": "phase4-perf-baseline-bitmap-command",
+                "status": "ready_next",
+                "kind": "perf_command",
+                "zigux_destination": "zigux/tests/bitmap_diff.zig",
+                "why_now": "one bounded benchmark command plus one acceptable limit still needs approval",
+            },
+        ],
+    }
+    write_text(root / PERF_BASELINE_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+    write_text(root / PERF_BASELINE_SURVEY_PATH, """const std = @import(\"std\");
+
+test \"phase4 perf baseline survey manifest keeps the current unapproved threshold posture explicit\" {
+    try std.testing.expect(true);
+}
+// zigux/tests/phase4_perf_baseline_manifest.json
+// threshold_pending_until_runtime_atomic64_scope_widens
+// threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks
+// benchmark command plus one acceptable limit
+// shared CI perf approval
+""")
+
+
 def build_fixture_note(root: Path) -> str:
     lines = [
         '# Phase 4 Gate Evidence',
@@ -328,7 +494,7 @@ def build_fixture_note(root: Path) -> str:
         '- `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now all point at the same currently shipped Phase 4 rollback-readiness packet surfaces that the validator and shared build still own on `master`.',
         '- `scripts/zigux/check-phase4-gate-evidence.py` remains the dedicated exact-readback checker for this narrower rollback-ownership packet.',
         '- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair, and `phase4-runtime-atomic64-diff-survey-tests` plus `phase4-bitmap-live-helper-replay-tests` stay wired through the shared Phase 4 build entrypoint.',
-        "- That published sixteen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, so those validator, matrix, and reviewer-checklist pins are no longer an unstated self-test gap.",
+        "- That published seventeen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, and it now checks the shipped perf-baseline packet's manifest-presence drift path too, so those validator, matrix, reviewer-checklist, and perf-baseline packet expectations are no longer an unstated self-test gap.",
         '- The exact-readback set is current again for the shared rollback-ownership and lab-matrix packet, and the manifest-backed runtime atomic64 survey pair now pins the same current `phase4_build.zig`, `validate-phase4.py`, `phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, and `phase9_build.zig` blobs that the shared validator and review packet now depend on.',
         '- The current helper-backed bitmap rollback lab replay route remains `zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`, and the helper-backed row still records `Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`.',
         '- The helper-backed bitmap rollback row still keeps `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold.',
@@ -355,9 +521,15 @@ def run_self_test() -> int:
             write_text(root / relative_path, f'fixture for {relative_path}\n')
         write_runtime_atomic64_packet_fixture(root)
         write_kprobe_gap_packet_fixture(root)
+        write_perf_baseline_packet_fixture(root)
         write_text(root / NOTE_PATH, build_fixture_note(root))
         missing = validate_root(root)
         assert not missing, missing
+
+        broken_manifest = root / PERF_BASELINE_MANIFEST_PATH
+        broken_manifest.unlink()
+        missing = validate_root(root)
+        assert f"file:{PERF_BASELINE_MANIFEST_PATH}" in missing, missing
     print('PHASE4_GATE_EVIDENCE_SELF_TEST=pass')
     print(f'PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}')
     print('PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=' + ','.join(SELF_TEST_CASES))
