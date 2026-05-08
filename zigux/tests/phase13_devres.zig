@@ -437,7 +437,7 @@ test "phase13 devres plans devm_of_iomap around translated resources and optiona
         },
     };
 
-    const outcome = try devres.DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
+    var outcome = try devres.DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
         .device_name = "uart1",
         .index = 1,
         .resources = &resources,
@@ -445,14 +445,44 @@ test "phase13 devres plans devm_of_iomap around translated resources and optiona
     });
 
     switch (outcome) {
-        .mapped => |plan| {
-            defer std.testing.allocator.free(plan.mapping.pretty_name);
+        .mapped => |*plan| {
+            defer plan.deinit(std.testing.allocator);
             try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
             try std.testing.expectEqual(@as(usize, 1), plan.index);
             try std.testing.expectEqual(@as(?u64, 0x80), plan.reported_size);
             try std.testing.expectEqualStrings("uart1 data", plan.mapping.pretty_name);
             try std.testing.expectEqual(devres.IoremapType.np, plan.mapping.effective_type);
             try std.testing.expect(plan.mapping.requests_region);
+        },
+        .err => return error.UnexpectedFailure,
+    }
+}
+
+test "phase13 devres devm_of_iomap plan deinit clears nested ownership markers" {
+    const resources = [_]devres.Resource{.{
+        .start = 0x7200,
+        .end = 0x727f,
+        .is_memory = true,
+        .nonposted = true,
+        .name = "status",
+    }};
+
+    var outcome = try devres.DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
+        .device_name = "uart1-owner",
+        .index = 0,
+        .resources = &resources,
+        .report_size = true,
+    });
+
+    switch (outcome) {
+        .mapped => |*plan| {
+            try std.testing.expectEqualStrings("uart1-owner status", plan.mapping.pretty_name);
+            try std.testing.expect(plan.mapping.pretty_name_owned_by_plan);
+            try std.testing.expectEqual(@as(?u64, 0x80), plan.reported_size);
+            plan.deinit(std.testing.allocator);
+            try std.testing.expectEqualStrings("", plan.mapping.pretty_name);
+            try std.testing.expect(!plan.mapping.pretty_name_owned_by_plan);
+            try std.testing.expectEqual(@as(?u64, null), plan.reported_size);
         },
         .err => return error.UnexpectedFailure,
     }
