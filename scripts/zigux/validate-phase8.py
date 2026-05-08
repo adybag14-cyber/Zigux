@@ -252,7 +252,9 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         "`zigux/tests/phase8_perf_buffer_poll.zig`",
         "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+        "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
         "`make -C zigux phase8-file-path-handle-bridge-test`",
+        "`make -C zigux phase8-libbpf-segments-test`",
         "`make -C zigux phase8-perf-buffer-poll-test`",
     ],
     ".github/workflows/zigux-bootstrap.yml": [
@@ -682,6 +684,20 @@ def run_self_test() -> None:
             "`make -C zigux phase8-help-kallsyms-test`",
             "`make -C zigux phase8-help-test`",
             "Documentation/zigux/README.md: `make -C zigux phase8-help-kallsyms-test`",
+        ),
+        (
+            "tests_root_libbpf_segments_only_build",
+            "zigux/tests/README.md",
+            "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
+            "`zigux/tests/phase8_libbpf_segments_build.zig`",
+            "zigux/tests/README.md: `zigux/tests/phase8_libbpf_segments_only_build.zig`",
+        ),
+        (
+            "tests_root_libbpf_segments_route",
+            "zigux/tests/README.md",
+            "`make -C zigux phase8-libbpf-segments-test`",
+            "`make -C zigux phase8-test`",
+            "zigux/tests/README.md: `make -C zigux phase8-libbpf-segments-test`",
         ),
         (
             "workflow_phase8_libbpf_shard_gate",
