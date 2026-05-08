@@ -16,15 +16,18 @@ MAKEFILE = Path("zigux/Makefile")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 CLOSURE = Path("Documentation/zigux/phase2-closure.md")
 TOOL_MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
+CONF_PACKET_PATH = "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json"
 CONFDATA_PACKET_PATH = "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"
 
 REQUIRED_CHECKER_MARKERS = (
+    "REQUIRED_CONF_CASE_MODES = [",
     "REQUIRED_CONFDATA_CASES = [",
     "EXPECTED_SELF_TEST_CASE_COUNT = 17",
     'print("KCONFIG_BRIDGE_SELF_TEST=pass")',
     'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")',
 )
 REQUIRED_CHECKER_EXACT_COUNTS = {
+    "REQUIRED_CONF_CASE_MODES = [": 1,
     "REQUIRED_CONFDATA_CASES = [": 1,
     "EXPECTED_SELF_TEST_CASE_COUNT = 17": 1,
     'print("KCONFIG_BRIDGE_SELF_TEST=pass")': 1,
@@ -71,7 +74,7 @@ REQUIRED_CLOSURE_EXACT_COUNTS = {
     f"`PHASE2_KCONFIG_BRIDGE_CONFDATA_PACKET={CONFDATA_PACKET_PATH}`": 1,
     "`kconfig_confdata_bridge_packet`": 1,
 }
-EXPECTED_SELF_TEST_CASE_COUNT = 38
+EXPECTED_SELF_TEST_CASE_COUNT = 42
 
 
 def read_text(path: Path) -> str:
@@ -140,8 +143,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if count != expected_count:
             issues.append(("DUPLICATE_CLOSURE_MARKERS", f"{marker}:count={count}:expected={expected_count}"))
 
+    if tool_manifest.get("kconfig_conf_bridge_packet") != CONF_PACKET_PATH:
+        issues.append(("INVALID_TOOL_MANIFEST_CONF_PACKET", f"kconfig_conf_bridge_packet={tool_manifest.get('kconfig_conf_bridge_packet')!r}"))
     if tool_manifest.get("kconfig_confdata_bridge_packet") != CONFDATA_PACKET_PATH:
-        issues.append(("INVALID_TOOL_MANIFEST_PACKET", f"kconfig_confdata_bridge_packet={tool_manifest.get('kconfig_confdata_bridge_packet')!r}"))
+        issues.append(("INVALID_TOOL_MANIFEST_CONFDATA_PACKET", f"kconfig_confdata_bridge_packet={tool_manifest.get('kconfig_confdata_bridge_packet')!r}"))
 
     return issues
 
@@ -188,6 +193,7 @@ def build_self_test_root(root: Path) -> None:
         root / CHECKER,
         "\n".join(
             (
+                "REQUIRED_CONF_CASE_MODES = [",
                 "REQUIRED_CONFDATA_CASES = [",
                 "    'sample',",
                 "]",
@@ -269,6 +275,7 @@ def build_self_test_root(root: Path) -> None:
                 "phase": "Phase 2",
                 "status": "closed",
                 "tool_count": 6,
+                "kconfig_conf_bridge_packet": CONF_PACKET_PATH,
                 "kconfig_confdata_bridge_packet": CONFDATA_PACKET_PATH,
             },
             indent=2,
@@ -314,6 +321,13 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / CHECKER
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[2], "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[2]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CHECKER
         path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[2], REQUIRED_CHECKER_MARKERS[2] + "\n" + REQUIRED_CHECKER_MARKERS[2], 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[2]}:count=2:expected=1") in issues
@@ -324,6 +338,13 @@ def run_self_test() -> int:
         path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[3], REQUIRED_CHECKER_MARKERS[3] + "\n" + REQUIRED_CHECKER_MARKERS[3], 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[3]}:count=2:expected=1") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CHECKER
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[4], REQUIRED_CHECKER_MARKERS[4] + "\n" + REQUIRED_CHECKER_MARKERS[4], 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[4]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
@@ -539,10 +560,28 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = root / TOOL_MANIFEST
         payload = json.loads(path.read_text(encoding="utf-8"))
+        payload.pop("kconfig_conf_bridge_packet")
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_TOOL_MANIFEST_CONF_PACKET", "kconfig_conf_bridge_packet=None") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / TOOL_MANIFEST
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["kconfig_conf_bridge_packet"] = "zigux/tests/fixtures/kconfig_bridge/other_manifest.json"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_TOOL_MANIFEST_CONF_PACKET", "kconfig_conf_bridge_packet='zigux/tests/fixtures/kconfig_bridge/other_manifest.json'") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / TOOL_MANIFEST
+        payload = json.loads(path.read_text(encoding="utf-8"))
         payload.pop("kconfig_confdata_bridge_packet")
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("INVALID_TOOL_MANIFEST_PACKET", "kconfig_confdata_bridge_packet=None") in issues
+        assert ("INVALID_TOOL_MANIFEST_CONFDATA_PACKET", "kconfig_confdata_bridge_packet=None") in issues
         cases += 1
 
         build_self_test_root(root)
@@ -551,7 +590,7 @@ def run_self_test() -> int:
         payload["kconfig_confdata_bridge_packet"] = "zigux/tests/fixtures/kconfig_bridge/other_manifest.json"
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("INVALID_TOOL_MANIFEST_PACKET", "kconfig_confdata_bridge_packet='zigux/tests/fixtures/kconfig_bridge/other_manifest.json'") in issues
+        assert ("INVALID_TOOL_MANIFEST_CONFDATA_PACKET", "kconfig_confdata_bridge_packet='zigux/tests/fixtures/kconfig_bridge/other_manifest.json'") in issues
         cases += 1
 
     assert cases == EXPECTED_SELF_TEST_CASE_COUNT
