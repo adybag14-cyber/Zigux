@@ -269,6 +269,14 @@ test "phase 9 runtime atomic64 survey source-checks the direct sample evidence p
     );
     defer std.testing.allocator.free(phase9_build);
 
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".name = \"runtime_atomic64\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".anchor = \"lib/atomic64_test.c\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".requires_runtime_substrate = true") != null);
@@ -339,4 +347,8 @@ test "phase 9 runtime atomic64 survey source-checks the direct sample evidence p
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-atomic64-sample-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-atomic64-loader-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-loader-shared-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase9-runtime-atomic64-test:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "$(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase9-test:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase9: phase9-test") != null);
 }
