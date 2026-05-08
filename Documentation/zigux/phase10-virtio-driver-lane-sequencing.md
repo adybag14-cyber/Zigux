@@ -74,7 +74,7 @@ The next honest core step stays outside transport-backed probe or remove work. I
 - `drivers/virtio/virtio_ring.zig`
 - `drivers/virtio/virtio_ring_verify.zig`
 
-This lane may talk about adjacent MMIO footing when the survey compares roadmap posture, but it does not own MMIO helper growth, MMIO manifests, or MMIO next-step selection. Its next bounded work stays queue-local, such as broken-queue recovery or packed-ring event-index review.
+This lane may talk about adjacent MMIO footing when the survey compares roadmap posture, but it does not own MMIO helper growth, MMIO manifests, or MMIO next-step selection. Fresh ring-packet readback now shows the queue-local follow-through is already landed: broken-queue recovery, clear-broken blocker exposure, and packed-ring event-index review are part of the shipped ring helper plus verifier packet, so the remaining roadmap lab-driver bridge stays MMIO-owned. If this lane reopens, keep it to the next smallest ring-packet truthfulness sync in the survey, manifest, slice, or dedicated guard rather than reopening new queue-local helper growth.
 
 `P10-L13` input lane owns the lab-only input packet:
 
