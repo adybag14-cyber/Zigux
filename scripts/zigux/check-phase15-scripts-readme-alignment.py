@@ -21,6 +21,7 @@ PARITY_SCORECARD_NOTE_REL = "Documentation/zigux/phase15-parity-scorecard.md"
 TESTS_README_REL = "zigux/tests/README.md"
 HANDOFF_CHECKER_REL = "scripts/zigux/check-phase15-review-process-handoff.py"
 MANIFEST_REL = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
+READINESS_MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
 BUILD_REL = "zigux/tests/phase15_build.zig"
 
 REQUIRED_FILES = (
@@ -35,6 +36,7 @@ REQUIRED_FILES = (
     TESTS_README_REL,
     HANDOFF_CHECKER_REL,
     MANIFEST_REL,
+    READINESS_MANIFEST_REL,
     BUILD_REL,
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
@@ -195,6 +197,18 @@ BUILD_MARKERS = (
     'b.step("test", "Run Phase 15 governance tests")',
 )
 
+READINESS_NOTE_MARKERS = (
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "make -C zigux phase15-validate",
+    "phase15-deep-core-status-change-blocker",
+)
+
+READINESS_VALIDATE_CHECKERS = (
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+)
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -238,6 +252,8 @@ def validate(root: Path) -> list[str]:
     parity_scorecard = _read(root / PARITY_SCORECARD_NOTE_REL)
     tests_readme = _read(root / TESTS_README_REL)
     manifest = json.loads(_read(root / MANIFEST_REL))
+    readiness_note = _read(root / READINESS_GATE_NOTE_REL)
+    readiness_manifest = json.loads(_read(root / READINESS_MANIFEST_REL))
     build = _read(root / BUILD_REL)
 
     _require_markers_exact_once(readme, README_SNIPPETS, "readme", issues)
@@ -249,6 +265,7 @@ def validate(root: Path) -> list[str]:
     _require_markers_present(review_process_note, REVIEW_PROCESS_NOTE_MARKERS, "review_process_note", issues)
     _require_markers_present(parity_scorecard, PARITY_SCORECARD_MARKERS, "parity_scorecard", issues)
     _require_markers_present(tests_readme, TESTS_README_MARKERS, "tests_readme", issues)
+    _require_markers_present(readiness_note, READINESS_NOTE_MARKERS, "readiness_note", issues)
 
     handoff_evidence = manifest.get("handoff_evidence")
     if not isinstance(handoff_evidence, dict):
@@ -276,6 +293,16 @@ def validate(root: Path) -> list[str]:
                 issues,
             )
 
+    phase15_validate_checkers = readiness_manifest.get("phase15_validate_checkers")
+    if not isinstance(phase15_validate_checkers, list):
+        issues.append("readiness_manifest:missing:phase15_validate_checkers")
+    else:
+        for checker in READINESS_VALIDATE_CHECKERS:
+            if checker not in phase15_validate_checkers:
+                issues.append(f"readiness_manifest:missing:{checker}")
+        if len(phase15_validate_checkers) != len(READINESS_VALIDATE_CHECKERS):
+            issues.append(f"readiness_manifest:count:{len(phase15_validate_checkers)}")
+
     _require_markers_present(build, BUILD_MARKERS, "build", issues)
     return issues
 
@@ -297,6 +324,7 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root / REVIEW_PROCESS_NOTE_REL, "\n".join(REVIEW_PROCESS_NOTE_MARKERS) + "\n")
     _write(root / PARITY_SCORECARD_NOTE_REL, "\n".join(PARITY_SCORECARD_MARKERS) + "\n")
     _write(root / TESTS_README_REL, "\n".join(TESTS_README_MARKERS) + "\n")
+    _write(root / READINESS_GATE_NOTE_REL, "\n".join(READINESS_NOTE_MARKERS) + "\n")
     _write(
         root / MANIFEST_REL,
         json.dumps(
@@ -305,6 +333,16 @@ def _seed_fixture_tree(root: Path) -> None:
                     "current_repo_handoff": " ".join(CURRENT_REPO_HANDOFF_MARKERS),
                     "current_bounded_lane": " ".join(MANIFEST_LANE_MARKERS),
                 }
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    _write(
+        root / READINESS_MANIFEST_REL,
+        json.dumps(
+            {
+                "phase15_validate_checkers": list(READINESS_VALIDATE_CHECKERS),
             },
             indent=2,
         )
@@ -391,6 +429,34 @@ def run_self_test() -> int:
         _write(manifest_path, baseline_manifest)
         case_count += 1
 
+        readiness_note_path = root / READINESS_GATE_NOTE_REL
+        baseline_readiness_note = _read(readiness_note_path)
+        readiness_note_marker = "scripts/zigux/check-phase15-review-process-handoff.py"
+        _write(readiness_note_path, baseline_readiness_note.replace(readiness_note_marker, "scripts/zigux/check-phase15-review-process-missing.py", 1))
+        _assert_only(
+            validate(root),
+            [f"readiness_note:missing:{readiness_note_marker}"],
+            "missing_readiness_note_checker_marker_guard_failed",
+        )
+        _write(readiness_note_path, baseline_readiness_note)
+        case_count += 1
+
+        readiness_manifest_path = root / READINESS_MANIFEST_REL
+        baseline_readiness_manifest = _read(readiness_manifest_path)
+        readiness_manifest_data = json.loads(baseline_readiness_manifest)
+        readiness_manifest_data["phase15_validate_checkers"].remove("scripts/zigux/check-phase15-review-process-handoff.py")
+        _write(readiness_manifest_path, json.dumps(readiness_manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            [
+                "readiness_manifest:missing:scripts/zigux/check-phase15-review-process-handoff.py",
+                "readiness_manifest:count:1",
+            ],
+            "missing_readiness_manifest_checker_guard_failed",
+        )
+        _write(readiness_manifest_path, baseline_readiness_manifest)
+        case_count += 1
+
     print("PHASE15_SCRIPTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE15_SCRIPTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -419,7 +485,7 @@ def main() -> int:
     print("PHASE15_SCRIPTS_README_ALIGNMENT=pass")
     print(
         "PHASE15_SCRIPTS_README_ALIGNMENT_MARKER_COUNT="
-        f"{len(README_SNIPPETS) + len(DOCS_README_MARKERS) + len(MAKEFILE_REQUIRED) + len(HANDOFF_CHECKER_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_PROCESS_NOTE_MARKERS) + len(PARITY_SCORECARD_MARKERS) + len(TESTS_README_MARKERS) + len(MANIFEST_LANE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(README_SNIPPETS) + len(DOCS_README_MARKERS) + len(MAKEFILE_REQUIRED) + len(HANDOFF_CHECKER_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_PROCESS_NOTE_MARKERS) + len(PARITY_SCORECARD_MARKERS) + len(TESTS_README_MARKERS) + len(MANIFEST_LANE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(READINESS_NOTE_MARKERS) + len(READINESS_VALIDATE_CHECKERS) + len(BUILD_MARKERS)}"
     )
     return 0
 
