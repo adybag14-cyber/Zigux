@@ -46,6 +46,7 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
+    "Documentation/zigux/README.md",
 )
 LOW_LEVEL_WRAPPER_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
 LOW_LEVEL_WRAPPER_REQUIRED_MARKERS = (
