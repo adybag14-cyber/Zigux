@@ -4,6 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
+- `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings-plus-mmio-and-rbtree-views`
 - `PHASE3_LAYOUT_ASSERT_BLOB_SHA=21b239f78ad5806868079f99cbf111d3cb97de25`
@@ -47,6 +48,8 @@ For this lane, the roadmap-backed contract is still narrow:
 This lane does not justify broad runtime policy machinery on its own.
 
 ## Live Repo Reality
+
+This survey is anchored to packet-local blob IDs because the current connector run could inspect the live Phase 3 packet files directly but did not expose a trustworthy branch-head commit SHA. The blob markers above are therefore the authoritative current boundary evidence for this directly coupled policy-and-unsafe packet.
 
 The current tree still carries a real bounded policy-and-unsafe packet, but it is smaller than older versions of this survey claimed:
 
