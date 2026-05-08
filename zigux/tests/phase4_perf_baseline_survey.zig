@@ -129,7 +129,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try std.testing.expect(manifest.survey_summary.phase4_build_step_present);
     try std.testing.expect(manifest.survey_summary.phase4_validation_matrix_present);
     try std.testing.expect(!manifest.survey_summary.shared_phase4_test_step_includes_survey);
-    try std.testing.expect(manifest.survey_summary.benchmark_command_unapproved);
+    try std.testing.expect(!manifest.survey_summary.benchmark_command_unapproved);
     try std.testing.expect(manifest.survey_summary.acceptable_limit_unapproved);
     try std.testing.expect(manifest.survey_summary.atomic64_benchmark_command_approved);
 
@@ -153,7 +153,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try std.testing.expectEqual(@as(u64, 9210681150676220922), manifest.command_evidence.atomic64.deterministic_replays[1].checksum);
     try std.testing.expectEqual(@as(i64, 130322557735600376), manifest.command_evidence.atomic64.deterministic_replays[1].final_counter);
     try std.testing.expectEqualStrings(
-        "explicit_candidate_landed",
+        "benchmark_command_approved",
         manifest.command_evidence.bitmap.evidence_status,
     );
     try std.testing.expectEqualStrings(
@@ -266,20 +266,20 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
 
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-bitmap-command")) {
             saw_bitmap_gap = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings(
                 "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
                 gap.benchmark_command.?,
             );
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact-pins") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "approved for local Phase 4 perf review") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit remains explicitly unapproved") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared validator-first packet") != null);
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 5), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_manifest_gap);
     try std.testing.expect(saw_gate_gap);
     try std.testing.expect(saw_atomic64_command_evidence_gap);
