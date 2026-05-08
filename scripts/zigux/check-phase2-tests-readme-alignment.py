@@ -154,6 +154,9 @@ TESTS_README_MARKERS = [
     "make -C zigux phase2",
     "x86_64-linux",
     "three-target compile matrix",
+    "the shipped genksyms bridge direct replay",
+    "the shipped direct kconfig bridge replays",
+    "the shipped direct `mk_elfconfig` replay",
     "kbuild-facing replay surface",
 ]
 
@@ -217,6 +220,9 @@ EXACT_COUNT_CHECKS = {
         "zig test scripts/zigux/kconfig/conf_bridge.zig": 1,
         "zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
         "zig test scripts/zigux/mk_elfconfig.zig": 1,
+        "the shipped genksyms bridge direct replay": 1,
+        "the shipped direct kconfig bridge replays": 1,
+        "the shipped direct `mk_elfconfig` replay": 1,
     },
     "zigux/Makefile": {
         "check-phase2-tests-readme-alignment.py": 1,
@@ -352,7 +358,7 @@ def run_self_test() -> int:
             assert f"missing_file:{rel_path}" in issues
             case_count += 1
 
-    assert case_count == 101
+    assert case_count == 107
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
