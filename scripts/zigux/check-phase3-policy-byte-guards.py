@@ -12,6 +12,11 @@ PANIC_POLICY_REL = "zigux/helpers/panic_policy.zig"
 ALLOCATOR_POLICY_REL = "zigux/helpers/allocator_policy.zig"
 UNSAFE_NARROW_REL = "zigux/unsafe/narrow.zig"
 
+REQUIRED_SURVEY_MARKERS = (
+    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
+    "PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py",
+)
+
 REQUIRED_SURVEY_SNIPPETS = (
     "`PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`",
     "`zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
@@ -37,24 +42,10 @@ REQUIRED_ALLOCATOR_SNIPPETS = (
     "if (reserved != 0) return null;",
     "pub fn requiresExplicitCallerPolicyBytes(mode: u8, reserved: u8) bool {",
     "return modeFromInteropPolicyBytes(mode, reserved) == .caller_provided;",
-    "pub fn requiresExplicitCallerInteropPolicy(policy: abi.InteropPolicy) bool {",
-    "return requiresExplicitCallerPolicyBytes(policy.allocator_mode, policy.reserved);",
-    "pub fn requiresExplicitCallerByte(mode: u8) bool {",
-    "return requiresExplicitCallerPolicyBytes(mode, 0);",
     "pub fn permitsGlobalFallbackPolicyBytes(mode: u8, reserved: u8) bool {",
     "return switch (modeFromInteropPolicyBytes(mode, reserved) orelse return false) {",
-    "pub fn permitsGlobalFallbackInteropPolicy(policy: abi.InteropPolicy) bool {",
-    "return permitsGlobalFallbackPolicyBytes(policy.allocator_mode, policy.reserved);",
-    "pub fn permitsGlobalFallbackByte(mode: u8) bool {",
-    "return permitsGlobalFallbackPolicyBytes(mode, 0);",
     "try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(2, 1));",
-    "try std.testing.expect(requiresExplicitCallerInteropPolicy(caller_policy));",
-    "try std.testing.expect(!requiresExplicitCallerInteropPolicy(reserved_policy));",
-    "try std.testing.expect(!requiresExplicitCallerByte(9));",
     "try std.testing.expect(!requiresExplicitCallerPolicyBytes(2, 1));",
-    "try std.testing.expect(permitsGlobalFallbackInteropPolicy(heap_policy));",
-    "try std.testing.expect(!permitsGlobalFallbackInteropPolicy(reserved_policy));",
-    "try std.testing.expect(!permitsGlobalFallbackByte(9));",
     "try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));",
 )
 
@@ -75,6 +66,37 @@ REQUIRED_UNSAFE_SNIPPETS = (
 )
 
 
+def normalized_marker_lines(text: str) -> list[str]:
+    lines: list[str] = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if line.startswith("- "):
+            line = line[2:].strip()
+        if line.startswith("`") and line.endswith("`"):
+            line = line[1:-1]
+        lines.append(line)
+    return lines
+
+
+def require_exact_line_count(
+    issues: list[str],
+    text: str,
+    prefix: str,
+    line: str,
+    *,
+    normalized: bool = False,
+    expected_count: int = 1,
+) -> None:
+    lines = normalized_marker_lines(text) if normalized else text.splitlines()
+    count = lines.count(line)
+    if count == expected_count:
+        return
+    if count == 0:
+        issues.append(f"missing_{prefix}:{line}")
+        return
+    issues.append(f"duplicate_{prefix}:{line}:{count}")
+
+
 def require_snippets(issues: list[str], text: str, prefix: str, snippets: tuple[str, ...]) -> None:
     for snippet in snippets:
         if snippet not in text:
@@ -87,6 +109,9 @@ def validate(root: Path) -> list[str]:
     panic = (root / PANIC_POLICY_REL).read_text(encoding="utf-8")
     allocator = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8")
     unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8")
+
+    for marker in REQUIRED_SURVEY_MARKERS:
+        require_exact_line_count(issues, survey, "survey_marker", marker, normalized=True)
 
     require_snippets(issues, survey, "survey", REQUIRED_SURVEY_SNIPPETS)
     require_snippets(issues, panic, "panic", REQUIRED_PANIC_SNIPPETS)
@@ -101,7 +126,11 @@ def write(path: Path, content: str) -> None:
 
 
 def build_valid_workspace(root: Path) -> None:
-    write(root / SURVEY_REL, "\n".join(["# survey", *REQUIRED_SURVEY_SNIPPETS, ""]))
+    survey_lines = ["# survey"]
+    survey_lines.extend(f"`{marker}`" for marker in REQUIRED_SURVEY_MARKERS)
+    survey_lines.extend(REQUIRED_SURVEY_SNIPPETS)
+    survey_lines.append("")
+    write(root / SURVEY_REL, "\n".join(survey_lines))
     write(root / PANIC_POLICY_REL, "\n".join([*REQUIRED_PANIC_SNIPPETS, ""]))
     write(root / ALLOCATOR_POLICY_REL, "\n".join([*REQUIRED_ALLOCATOR_SNIPPETS, ""]))
     write(root / UNSAFE_NARROW_REL, "\n".join([*REQUIRED_UNSAFE_SNIPPETS, ""]))
@@ -113,6 +142,32 @@ def run_self_test() -> int:
         build_valid_workspace(root)
         assert validate(root) == []
 
+        broken_validate_marker = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "`PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`\n",
+            "",
+            1,
+        )
+        write(root / SURVEY_REL, broken_validate_marker)
+        issues = validate(root)
+        assert (
+            "missing_survey_marker:PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi"
+            in issues
+        )
+
+        build_valid_workspace(root)
+        broken_guard_marker = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "`PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py`\n",
+            "",
+            1,
+        )
+        write(root / SURVEY_REL, broken_guard_marker)
+        issues = validate(root)
+        assert (
+            "missing_survey_marker:PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py"
+            in issues
+        )
+
+        build_valid_workspace(root)
         broken_survey = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
             "modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes`",
             "modeFromByte`, `actionForByte`, and `canReturnByte`",
@@ -149,14 +204,14 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         broken_allocator = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8").replace(
-            "pub fn requiresExplicitCallerInteropPolicy(policy: abi.InteropPolicy) bool {\n",
+            "try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));\n",
             "",
             1,
         )
         write(root / ALLOCATOR_POLICY_REL, broken_allocator)
         issues = validate(root)
         assert (
-            "missing_allocator_snippet:pub fn requiresExplicitCallerInteropPolicy(policy: abi.InteropPolicy) bool {"
+            "missing_allocator_snippet:try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));"
             in issues
         )
 
@@ -181,7 +236,7 @@ def run_self_test() -> int:
         assert "missing_unsafe_snippet:pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=6")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
