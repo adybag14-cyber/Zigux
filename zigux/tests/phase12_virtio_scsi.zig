@@ -286,7 +286,7 @@ test "phase12 virtio scsi recovery event ownership and rollback keep the frozen 
     try std.testing.expect(rollback.blocks_request_queue_access_until_restore);
     try std.testing.expect(rollback.keeps_frozen_layout_for_restore);
     try std.testing.expect(rollback.clears_live_layout_after_restore);
-    try std.testing.expect(rollback.requires_replanBefore_queue_reuse);
+    try std.testing.expect(rollback.requires_replan_before_queue_reuse);
 
     const restore = try lab.restoreAfterTransportReset();
     try std.testing.expectEqual(@as(u16, 1), restore.recovery_generation);
