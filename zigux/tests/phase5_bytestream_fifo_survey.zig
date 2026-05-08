@@ -494,7 +494,7 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
     }
 }
 
-test "phase 5 bytestream fifo survey note records the short-drain helper contract" {
+test "phase 5 bytestream fifo survey note records the full helper-boundary contract" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -506,9 +506,20 @@ test "phase 5 bytestream fifo survey note records the short-drain helper contrac
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "draining a three-byte destination from the queued string `\\\"hello\\\"` yields `\\\"hel\\\"`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "leaves the remaining prefix `\\\"lo\\\"` queued in order") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "follow-up drain on the now-empty queue returns `0`") != null);
+    const required_markers = [_][]const u8{
+        "empty-queue peek and skip return `null`",
+        "empty enqueue copies `0` bytes",
+        "skip-at-capacity returns `0`",
+        "`pop-after-reset` returning `null`",
+        "draining a three-byte destination from the queued string `\\\"hello\\\"` yields `\\\"hel\\\"`",
+        "leaves the remaining prefix `\\\"lo\\\"` queued in order",
+        "follow-up drain on the now-empty queue returns `0`",
+        "does that same helper-facing packet still keep the bounded helper contract explicit",
+    };
+
+    for (required_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
+    }
 }
 
 test "phase 5 bytestream fifo survey note records the preview boundary contract" {
