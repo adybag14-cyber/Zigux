@@ -53,7 +53,7 @@
       "status": "starter_landed",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "The live helper already covers status sequencing, bounded feature negotiation, driver-validation narrowing, queue callback bookkeeping, config bookkeeping, interrupt bookkeeping, lifecycle guards, and reset replay in memory only."
+      "why_now": "The live helper already covers status sequencing, bounded feature negotiation, driver-validation narrowing, driver-name bookkeeping, status and feature attribute summaries, queue callback bookkeeping, config bookkeeping, interrupt bookkeeping, lifecycle guards, and reset replay in memory only."
     },
     {
       "id": "phase10-virtio-core-lab-gate",
@@ -145,6 +145,13 @@
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
       "why_now": "The core helper already replays how driver-side validation can narrow an offered feature set before the final FEATURES_OK handshake is accepted."
+    },
+    {
+      "id": "phase10-core-attribute-summary-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The live core helper already renders bounded status_show and features_show-style summaries so review can inspect device, driver, and negotiated feature state without claiming transport-backed sysfs or lifecycle parity."
     },
     {
       "id": "phase10-reset-replay-bookkeeping-helper",
