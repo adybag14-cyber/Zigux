@@ -31,6 +31,26 @@ Those two notes are the only shipped Phase 12 fallback artifacts whose job is to
 
 Those two notes remain truthful shared-tree-only anchors on `master`. They are reviewable public repo surfaces, but they are not commit-pinned fallback artifacts and should not be described as if they owned the same raw-URL catalog role as the `nvme_pci` and `virtio_scsi` notes.
 
+## Shared public path map
+
+### Tree views
+- shared fallback overview: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-raw-github-coverage-survey.md`
+- shared-tree-only `virtio_net` anchor: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-virtio-net-survey.md`
+- shared-tree-only libbpf anchor: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-libbpf-segment-survey.md`
+- release-order authority: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-sequencing.md`
+- PMO closure companion: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-closure-checklist.md`
+- adjacent release-readiness note: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-readiness-survey.md`
+- compact release coordination matrix: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-coordination-matrix.md`
+
+### Raw file views
+- shared fallback overview: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-raw-github-coverage-survey.md`
+- shared-tree-only `virtio_net` anchor: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-virtio-net-survey.md`
+- shared-tree-only libbpf anchor: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-libbpf-segment-survey.md`
+- release-order authority: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-sequencing.md`
+- PMO closure companion: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-closure-checklist.md`
+- adjacent release-readiness note: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-readiness-survey.md`
+- compact release coordination matrix: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-coordination-matrix.md`
+
 ## Shared replay reminder
 
 The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order used by the PMO sequencing and closure companion notes.
