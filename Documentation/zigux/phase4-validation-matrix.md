@@ -150,7 +150,7 @@ The dedicated perf-baseline survey stays outside the shared `phase4-test` entryp
 - survey owner: `Validation and Perf Team`
 - rollback owner: `Validation and Perf Team`
 - current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, plus the dedicated local survey wrapper at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keep the current C anchor, replay command, owner, and rollback owner reviewable, and the packet intentionally stays outside the shared gate-evidence target set until a later bounded promotion lands
-- next bounded evidence step: keep the dedicated parked survey packet and the dedicated local survey wrapper adjacent to the shared Phase 4 validator and gate-evidence packet until a later bounded promotion teaches those shared review surfaces about the same note, manifest, and replay command without claiming a shipped Zig starter
+- next bounded evidence step: keep the dedicated parked survey packet and the dedicated local survey wrapper adjacent to the shared Phase 4 exact-readback packet until a later bounded promotion moves that same note, manifest, and replay command into the shared gate-evidence target set without claiming a shipped Zig starter
 
 ### `Phase 4 perf thresholds`
 - current gate anchors: `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`
