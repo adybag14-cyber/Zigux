@@ -32,6 +32,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase7_string_helpers.zig",
     "zigux/tests/phase7_string_helpers_survey.zig",
     "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+    "zigux/tests/phase7_string_helpers_manifest.json",
     "zigux/tests/phase7_cmdline.zig",
     "zigux/tests/phase7_cmdline_survey.zig",
     "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
@@ -101,6 +102,7 @@ REQUIRED_MARKERS = {
         "`kasprintf_strarray()` over the bounded sequential prefix-index ownership path",
         "`kfree_strarray()` over the bounded repeated-teardown-safe release path",
         "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+        "zigux/tests/phase7_string_helpers_manifest.json",
         "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
         "no `samples/zigux/*string*` Phase 5 reference sample is expected here;",
         "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
@@ -361,6 +363,7 @@ EXACT_COUNT_MARKERS = {
         ("`kstrdup_quotable()` over the bounded quotable-log escape path", 1),
         ("`kasprintf_strarray()` over the bounded sequential prefix-index ownership path", 1),
         ("`kfree_strarray()` over the bounded repeated-teardown-safe release path", 1),
+        ("zigux/tests/phase7_string_helpers_manifest.json", 1),
         (
             "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
             1,
@@ -532,6 +535,7 @@ FIXTURE_OVERRIDES = {
         REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_sample_boundary.zig"]
     )
     + "\n",
+    "zigux/tests/phase7_string_helpers_manifest.json": "{}\n",
     "zigux/tests/phase7_cmdline.zig": "// fixture\n",
     "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig": "// fixture\n",
     "zigux/tests/phase7_argv_split.zig": "// fixture\n",
