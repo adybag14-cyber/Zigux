@@ -109,7 +109,7 @@ SCRIPTS_README_MARKERS = [
 ]
 
 TESTS_README_MARKERS = [
-    "scripts/zigux/validate_phase3_selftest.py",
+    "python3 scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-abi-dump-gate.py",
@@ -451,7 +451,10 @@ def run_self_test() -> int:
         assert "duplicate_scripts_readme_marker:2:validate_phase3_selftest.py" in issues
 
         build_self_test_root(root)
-        write_text(root / "zigux/tests/README.md", "scripts/zigux/validate_phase3_selftest.py\n")
+        write_text(
+            root / "zigux/tests/README.md",
+            "python3 scripts/zigux/validate_phase3_selftest.py\n",
+        )
         issues = validate_root(root)
         assert "tests_readme:scripts/zigux/check-phase3-selftest-surface.py" in issues
         assert "tests_readme:scripts/zigux/check-phase3-readme-tooling-inventory.py" in issues
@@ -473,6 +476,11 @@ def run_self_test() -> int:
             "tests_readme:opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`"
             in issues
         )
+
+        build_self_test_root(root)
+        write_text(root / "zigux/tests/README.md", "scripts/zigux/validate_phase3_selftest.py\n")
+        issues = validate_root(root)
+        assert "tests_readme:python3 scripts/zigux/validate_phase3_selftest.py" in issues
 
         build_self_test_root(root)
         write_text(
@@ -564,7 +572,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=33")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
