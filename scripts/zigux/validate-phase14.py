@@ -460,6 +460,25 @@ def run_self_test() -> int:
             print("self-test expected duplicate manifest-surface failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        traceability_path = root / TRACEABILITY_PATH
+        traceability_path.write_text(
+            traceability_path.read_text(encoding="utf-8").replace(
+                "- blocked gap: `phase14-rcu-tree-bridge-blocker`\n",
+                "- blocked gap: `phase14-rcu-tree-bridge-blocker`\n"
+                "- blocked gap: `phase14-rcu-tree-bridge-blocker`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-core-boundary-traceability.md: - blocked gap: `phase14-rcu-tree-bridge-blocker` (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate traceability blocked-gap failure", file=sys.stderr)
+            return 1
+        write_text(root / TRACEABILITY_PATH, "\n".join(expected_traceability_markers) + "\n")
         broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken_manifest["surfaces"] = "not-a-list"
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
