@@ -220,14 +220,24 @@ test "phase10 virtio mmio summarizes a planned config-word write disposition wit
     try std.testing.expectEqual(@as(u32, 0x90ab_cdef), disposition.previous_value);
     try std.testing.expectEqual(@as(u32, 0x1122_3344), disposition.planned_value);
     try std.testing.expectEqual(@as(u8, 0b1111), disposition.changed_byte_mask);
+    try std.testing.expect(disposition.has_changes);
+    try std.testing.expectEqual(@as(u8, 4), disposition.changed_byte_count);
 
     const config_summary = try device.readConfigOffset(virtio_mmio.mmio_window_bytes + 4);
     try std.testing.expectEqual(@as(u32, 0x90ab_cdef), config_summary.value);
     try std.testing.expectEqual(@as(u32, 1), config_summary.config_generation);
 
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x90ab_cd00);
+    const one_byte_change = try device.configWriteDispositionSummary();
+    try std.testing.expectEqual(@as(u8, 0b0001), one_byte_change.changed_byte_mask);
+    try std.testing.expect(one_byte_change.has_changes);
+    try std.testing.expectEqual(@as(u8, 1), one_byte_change.changed_byte_count);
+
     _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x90ab_cdef);
     const same_value = try device.configWriteDispositionSummary();
     try std.testing.expectEqual(@as(u8, 0), same_value.changed_byte_mask);
+    try std.testing.expect(!same_value.has_changes);
+    try std.testing.expectEqual(@as(u8, 0), same_value.changed_byte_count);
 
     device.bumpConfigGeneration();
     try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
