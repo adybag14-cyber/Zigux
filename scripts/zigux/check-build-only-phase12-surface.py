@@ -221,6 +221,12 @@ REQUIRED_FILE_MARKERS = {
     ],
 }
 
+EXACT_COUNT_FILE_MARKERS = {
+    SCRIPTS_README_PATH: {
+        "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`": 1,
+    },
+}
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -282,6 +288,15 @@ def validate(root: Path) -> list[str]:
             if marker not in text:
                 failures.append(f"{rel_path}:{marker}")
 
+    for rel_path, markers in EXACT_COUNT_FILE_MARKERS.items():
+        text = read_text(root, rel_path)
+        for marker, expected_count in markers.items():
+            actual_count = text.count(marker)
+            if actual_count != expected_count:
+                failures.append(
+                    f"{rel_path}:{marker}:expected={expected_count}:actual={actual_count}"
+                )
+
     return failures
 
 
@@ -316,6 +331,28 @@ def run_self_test() -> int:
                     return 1
                 path.write_text(original, encoding="utf-8")
                 case_count += 1
+
+        scripts_readme = root / SCRIPTS_README_PATH
+        original_scripts_readme = scripts_readme.read_text(encoding="utf-8")
+        direct_shared_replay_marker = (
+            "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`"
+        )
+        scripts_readme.write_text(
+            original_scripts_readme + f"- duplicate {direct_shared_replay_marker}\n",
+            encoding="utf-8",
+        )
+        failures = validate(root)
+        expected_exact_count = (
+            f"{SCRIPTS_README_PATH}:{direct_shared_replay_marker}:expected=1:actual=2"
+        )
+        if expected_exact_count not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-scripts-readme-shared-build-replay-exact-count-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        scripts_readme.write_text(original_scripts_readme, encoding="utf-8")
+        case_count += 1
 
         missing_required = root / PHASE12_CLOSURE_CHECKLIST_PATH
         missing_required.unlink()
