@@ -105,6 +105,8 @@ REQUIRED_CURRENT_REPO_HANDOFF_MARKERS = (
 
 REQUIRED_CURRENT_BOUNDED_LANE_MARKERS = (
     "scripts-root validator path",
+    "workflow-backed replay path",
+    "direct `zig build test --build-file zigux/tests/phase15_build.zig` route",
     "Linux-style `make -C zigux phase15-validate` route",
     "tests-root guidance path",
     "dedicated handoff-checker route",
@@ -431,6 +433,17 @@ def run_self_test() -> int:
         manifest["ownership_evidence_fields"].remove("indefinite-C policy link or non-applicability note")
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_only(root, ["manifest_ownership_evidence_fields:indefinite-C policy link or non-applicability note"], "missing_ownership_field")
+        write_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["handoff_evidence"]["current_bounded_lane"] = manifest["handoff_evidence"]["current_bounded_lane"].replace(
+            "direct `zig build test --build-file zigux/tests/phase15_build.zig` route ",
+            "",
+            1,
+        ).replace("  ", " ")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest_lane:direct `zig build test --build-file zigux/tests/phase15_build.zig` route"], "missing_direct_build_route_marker")
         write_fixture_tree(root)
         case_count += 1
 
