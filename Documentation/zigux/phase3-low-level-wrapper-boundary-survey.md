@@ -30,8 +30,8 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b`
 - `PHASE3_ABI_EXPECTED_BLOB_SHA=891be039615b878e10fda94788bc896ef12aac7b`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=4c7061fbfdca102794ad62f9840587fe357e104c`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=64c5a488dda3d21c9262eb6a955934dac6842ba3`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=5530b701781847039beee072873000c92031e8a9`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=5c60f975dc6b19f731586f506f7ba574ce9c3802`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet`
