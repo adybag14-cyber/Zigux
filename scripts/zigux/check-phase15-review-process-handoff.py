@@ -154,6 +154,7 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = (
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/review-checklist.md",
+    ".github/workflows/zigux-bootstrap.yml",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_freeze_map_governance.zig",
@@ -162,6 +163,8 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = (
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_build.zig",
+    "make -C zigux phase15-validate",
+    "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
 )
 
@@ -452,6 +455,18 @@ def run_self_test() -> int:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_only(root, ["manifest_ownership_evidence_fields:indefinite-C policy link or non-applicability note"], "missing_ownership_field")
         write_fixture_tree(root)
+        case_count += 1
+
+        checklist_path = root / REVIEW_CHECKLIST_PATH
+        original_checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(original_checklist.replace(".github/workflows/zigux-bootstrap.yml", ".github/workflows/phase15-missing.yml", 1), encoding="utf-8")
+        expect_only(root, ["review_checklist:.github/workflows/zigux-bootstrap.yml"], "missing_workflow_marker")
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+        case_count += 1
+
+        checklist_path.write_text(original_checklist.replace("make -C zigux phase15-validate", "make -C zigux phase15-check", 1), encoding="utf-8")
+        expect_only(root, ["review_checklist:make -C zigux phase15-validate"], "missing_validator_first_marker")
+        checklist_path.write_text(original_checklist, encoding="utf-8")
         case_count += 1
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
