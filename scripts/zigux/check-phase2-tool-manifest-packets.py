@@ -68,6 +68,8 @@ REQUIRED_CLOSURE_MARKERS = [
     "shared packet gate: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "PHASE2_TOOL_MANIFEST_PACKET_SELF_TEST=python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
     "PHASE2_TOOL_MANIFEST_PACKET_GATE=python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
+    "PHASE2_ARTIFACT_TOOLS_PACKET=zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json keeps the committed `genksyms_crc` plus `mk_elfconfig` artifact-backed packet explicit inside the shared closure record instead of leaving that packet visible only through the aggregate tool manifest or the bootstrap note.",
 ]
 REQUIRED_BOOTSTRAP_MARKERS = [
     "- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`",
@@ -516,6 +518,20 @@ def run_self_test() -> int:
         assert f"closure_exact_marker:{REQUIRED_CLOSURE_MARKERS[0]}:count=2:expected=1" in issues
 
         build_self_test_root(root)
+        closure_path = root / "Documentation/zigux/phase2-closure.md"
+        closure_text = closure_path.read_text(encoding="utf-8").replace(REQUIRED_CLOSURE_MARKERS[3] + "\n", "", 1)
+        write_text(closure_path, closure_text)
+        issues = validate_root(root)
+        assert f"closure_marker:{REQUIRED_CLOSURE_MARKERS[3]}" in issues
+
+        build_self_test_root(root)
+        closure_path = root / "Documentation/zigux/phase2-closure.md"
+        closure_text = closure_path.read_text(encoding="utf-8") + REQUIRED_CLOSURE_MARKERS[3] + "\n"
+        write_text(closure_path, closure_text)
+        issues = validate_root(root)
+        assert f"closure_exact_marker:{REQUIRED_CLOSURE_MARKERS[3]}:count=2:expected=1" in issues
+
+        build_self_test_root(root)
         bootstrap_path = root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
         bootstrap_text = bootstrap_path.read_text(encoding="utf-8").replace(REQUIRED_BOOTSTRAP_MARKERS[0] + "\n", "", 1)
         write_text(bootstrap_path, bootstrap_text)
@@ -642,7 +658,7 @@ def run_self_test() -> int:
         assert f"workflow_line:{REQUIRED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
 
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=35")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
