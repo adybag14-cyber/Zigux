@@ -27,7 +27,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kobject/kobject-example.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection already showed one landed Phase 5 FIFO reference sample plus several later runtime-oriented starters under `samples/zigux/`. The next missing bounded anchor was the kobject sample, especially because it gives Phase 5 a small ownership-and-lifetime example without claiming a real sysfs substrate.
+Fresh repo inspection shows the bounded roadmap anchor is already landed as `samples/zigux/kobject_example.zig` inside the four-sample Phase 5 packet. The remaining same-lane job is no longer to add a missing kobject anchor; it is to keep the approved ownership-and-lifetime idiom and its coupled contributor surfaces truthful without claiming a real sysfs substrate.
 
 ## Survey findings
 
