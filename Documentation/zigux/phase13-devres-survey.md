@@ -62,7 +62,7 @@ The current lane state is:
 - blocked `phase13-devres-live-device-tree-walk`
 - blocked `phase13-devres-live-arch-memtype-state`
 
-This keeps the lane explicit without overstating progress: Zigux has a real helper-first devres foothold for managed resource planning, detach-time bookkeeping, one explicit uncached wrapper, one explicit WC resource wrapper, one dedicated coherent-DMA boundary replay, and one dedicated boundary-evidence gate, but it still does not claim live MMIO side effects, live DMA-backed helpers, live scatter-gather ownership, live device-tree walking, or live arch memtype state transitions.
+This keeps the lane explicit without overstating progress: Zigux has a real helper-first devres foothold for managed resource planning, detach-time bookkeeping, one explicit uncached wrapper, one explicit direct WC wrapper, one explicit WC resource wrapper, one dedicated coherent-DMA boundary replay, and one dedicated boundary-evidence gate, but it still does not claim live MMIO side effects, live DMA-backed helpers, live scatter-gather ownership, live device-tree walking, or live arch memtype state transitions.
 
 ## Non-goals
 
