@@ -403,7 +403,7 @@ test "phase12 virtio scsi raw fallback catalog stays aligned with the shipped bu
     );
 }
 
-test "phase12 virtio scsi shared release packet keeps rollback evidence explicit" {
+test "phase12 virtio scsi shared release packet keeps rollback evidence explicit across PMO surfaces" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -422,6 +422,30 @@ test "phase12 virtio scsi shared release packet keeps rollback evidence explicit
         .limited(256 * 1024),
     );
     defer std.testing.allocator.free(review_checklist);
+
+    const closure_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-release-closure-checklist.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(closure_checklist);
+
+    const release_readiness = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-release-readiness-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(release_readiness);
+
+    const coordination_matrix = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-release-coordination-matrix.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(coordination_matrix);
 
     const release_fragments = [_][]const u8{
         "The current storage-lane rollback drill is a bounded `virtio_scsi` lab surface, not a tranche-wide recovery claim.",
@@ -448,5 +472,32 @@ test "phase12 virtio scsi shared release packet keeps rollback evidence explicit
 
     for (checklist_fragments) |fragment| {
         try expectContains(review_checklist, fragment);
+    }
+
+    const closure_fragments = [_][]const u8{
+        "The bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback drill must remain described as lab-only reversible-delivery evidence rather than closure-ready runtime recovery.",
+        "Queueing, throughput, rollback, and recovery wording must keep the freeze-map split explicit: this packet can describe bounded driver-local evidence and the lab-only `virtio_scsi` rollback drill, but it must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.",
+    };
+
+    for (closure_fragments) |fragment| {
+        try expectContains(closure_checklist, fragment);
+    }
+
+    const release_readiness_fragments = [_][]const u8{
+        "the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording",
+        "The bounded `virtio_scsi` rollback drill remains storage-lane-local release evidence, not a tranche-wide recovery claim.",
+    };
+
+    for (release_readiness_fragments) |fragment| {
+        try expectContains(release_readiness, fragment);
+    }
+
+    const coordination_fragments = [_][]const u8{
+        "the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback drill remains lab-only reversible-delivery evidence inside this active packet",
+        "`Documentation/zigux/phase12-virtio-scsi-slice.md` rollback drill still reads as lab-only reversible-delivery evidence rather than tranche-wide runtime recovery or release-closed proof",
+    };
+
+    for (coordination_fragments) |fragment| {
+        try expectContains(coordination_matrix, fragment);
     }
 }
