@@ -60,8 +60,10 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
 
 ## Next bounded step
 
-Leave this note parked unless fresh repo inspection shows that the shared Phase 12 docs, review-checklist, scripts-root summary, tests-root summary, fallback-overview, compact release-coordination matrix, shared libbpf anti-overlap companion, or review surfaces are blurring `virtio_net`, `nvme_pci`, and `virtio_scsi` back together.
+Leave this note parked unless fresh repo inspection shows that the shared Phase 12 docs, review-checklist, scripts-root summary, tests-root summary, fallback-overview, compact release-coordination matrix, or shared libbpf anti-overlap surfaces are blurring `virtio_net`, `nvme_pci`, and `virtio_scsi` back together.
 
-If the lane reopens, start with the remaining scripts-root repair: `scripts/zigux/README.md` still omits the landed NVMe verify shard `drivers/nvme/host/pci_verify.zig` from the shared six-surface smoke packet even though the raw-coverage overview, compact release-coordination matrix, review checklist, and tests-root summary already keep that smoke set explicit.
+The older scripts-root repair is already landed on `master`: `scripts/zigux/README.md` now keeps the landed NVMe verify shard `drivers/nvme/host/pci_verify.zig` explicit inside the shared six-surface smoke packet beside the raw-coverage overview, compact release-coordination matrix, review checklist, and tests-root summary.
 
-After that scripts-root repair lands, keep the next step inside the smallest docs-root, review-checklist, scripts-root, tests-root, fallback-overview, compact-matrix, or shared libbpf anti-overlap wording repair that restores those three driver-local ownership boundaries without reopening PMO closure drift control, replaying the now-landed build-only checker self-test hardening, or the separate libbpf helper packet.
+If this lane reopens, start by diffing `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` against this note before widening into any new wording claim.
+
+After that reread, keep the next step inside the smallest docs-root, review-checklist, scripts-root, tests-root, fallback-overview, compact-matrix, or shared libbpf anti-overlap wording repair that restores those three driver-local ownership boundaries without reopening PMO closure drift control, replaying the already-landed scripts-root fix, or widening into the separate libbpf helper packet.
