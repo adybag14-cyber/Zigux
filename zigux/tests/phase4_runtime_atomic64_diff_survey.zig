@@ -106,7 +106,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob
 
     try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
-    try std.testing.expectEqualStrings("602b1ff6ee9baf2874a3456704b250ae1086ee87", manifest.phase4_validator_blob_sha);
+    try std.testing.expectEqualStrings("db8e22cb4602fc3431fec8a5eabcea43fd5bc197", manifest.phase4_validator_blob_sha);
     try std.testing.expectEqualStrings(
         "Documentation/zigux/phase4-gate-evidence.md",
         manifest.phase4_gate_evidence_path,
