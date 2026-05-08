@@ -44,7 +44,8 @@ DOCS_ROOT_MARKERS = [
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
-    "scripts/zigux/phase3_catalog.py --self-test",
+    "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
+    "phase3_catalog.py --self-test",
     "make -C zigux phase3-selftest",
     "without duplicating the default `phase3-validate` route",
 ]
@@ -253,7 +254,8 @@ def run_self_test() -> int:
         assert "docs_root:scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in issues
         assert "docs_root:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
         assert "docs_root:scripts/zigux/validate-phase3-abi-bindings-syntax.py" in issues
-        assert "docs_root:scripts/zigux/phase3_catalog.py --self-test" in issues
+        assert "docs_root:python3 scripts/zigux/phase3_catalog.py --audit-doc-sync" in issues
+        assert "docs_root:phase3_catalog.py --self-test" in issues
         assert "docs_root:without duplicating the default `phase3-validate` route" in issues
 
         build_self_test_root(root)
