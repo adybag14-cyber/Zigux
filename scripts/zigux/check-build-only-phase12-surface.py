@@ -100,6 +100,7 @@ REQUIRED_FILE_MARKERS = {
         "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
         "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
         "build-only contract drift still fails closed when the local runtime needs the fallback path.",
+        "the compact release-coordination matrix",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
         "This is an environment override for the existing replay packet, not a validator-first or `phase12-validate` route.",
