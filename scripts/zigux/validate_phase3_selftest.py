@@ -237,6 +237,91 @@ def run_self_test() -> int:
         assert run_targets(success_root) == []
         case_count += 1
 
+        missing_selftest_surface_aux_root = tmp_root / "missing-selftest-surface-aux"
+        _populate_root(missing_selftest_surface_aux_root)
+        write_script(
+            missing_selftest_surface_aux_root / "scripts/zigux/check-phase3-selftest-surface.py",
+            "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
+        )
+        assert run_targets(missing_selftest_surface_aux_root) == [
+            "missing_aux_marker:scripts/zigux/check-phase3-selftest-surface.py:PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        duplicate_selftest_surface_aux_root = tmp_root / "duplicate-selftest-surface-aux"
+        _populate_root(duplicate_selftest_surface_aux_root)
+        duplicate_selftest_surface_aux_path = (
+            duplicate_selftest_surface_aux_root / "scripts/zigux/check-phase3-selftest-surface.py"
+        )
+        duplicate_selftest_surface_aux_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "import sys",
+                    "",
+                    'if "--self-test" in sys.argv:',
+                    '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")',
+                    '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=1")',
+                    '    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=2")',
+                    "    raise SystemExit(0)",
+                    "",
+                    'raise SystemExit("expected --self-test")',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert run_targets(duplicate_selftest_surface_aux_root) == [
+            "duplicate_aux_marker:scripts/zigux/check-phase3-selftest-surface.py:2:PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        missing_readme_tooling_aux_root = tmp_root / "missing-readme-tooling-aux"
+        _populate_root(missing_readme_tooling_aux_root)
+        write_script(
+            missing_readme_tooling_aux_root / "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+            "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass",
+        )
+        assert run_targets(missing_readme_tooling_aux_root) == [
+            "missing_aux_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py:PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        duplicate_readme_tooling_aux_root = tmp_root / "duplicate-readme-tooling-aux"
+        _populate_root(duplicate_readme_tooling_aux_root)
+        duplicate_readme_tooling_aux_path = (
+            duplicate_readme_tooling_aux_root
+            / "scripts/zigux/check-phase3-readme-tooling-inventory.py"
+        )
+        duplicate_readme_tooling_aux_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "import sys",
+                    "",
+                    'if "--self-test" in sys.argv:',
+                    '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")',
+                    '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=1")',
+                    '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=2")',
+                    "    raise SystemExit(0)",
+                    "",
+                    'raise SystemExit("expected --self-test")',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert run_targets(duplicate_readme_tooling_aux_root) == [
+            "duplicate_aux_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py:2:PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
         missing_root = tmp_root / "missing"
         _populate_root(missing_root)
         (missing_root / "scripts/zigux/survey-phase3-abi-constant-parity.py").unlink()
