@@ -48,7 +48,8 @@ REQUIRED_SNIPPETS = {
         "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
         "- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay; there is no separate timing-style perf target in the shipped packet today",
         "- current review posture: helper parity plus the shipped dedicated slowdown gate exposed through `make -C zigux phase6-checksum-perf`",
-        "- current review posture: helper parity plus the shipped formatter-sensitive slowdown gate exposed through `make -C zigux phase6-hexdump-perf`",
+        "- `phase6-hexdump-test`, alongside the shipped formatter-sensitive slowdown gate exposed through `make -C zigux phase6-hexdump-perf`",
+        "- `make -C zigux phase6-hexdump-test`",
         "- `make -C zigux phase6-validate`",
         "- `make -C zigux phase6`",
         "- `make -C zigux phase6-base64-perf`",
@@ -69,6 +70,7 @@ REQUIRED_SNIPPETS = {
         "\"scripts/zigux/check-phase6-shared-surface.py\",",
         "\"make -C zigux phase6-validate\",",
         "\"make -C zigux phase6\",",
+        "\"make -C zigux phase6-hexdump-test\",",
         "\"make -C zigux phase6-perf\",",
         "\"make -C zigux phase6-base64-perf\",",
         "\"make -C zigux phase6-checksum-perf\",",
@@ -153,6 +155,7 @@ REQUIRED_SNIPPETS = {
         '.name = "phase6-hexdump-tests"',
         '.name = "phase6-checksum-perf"',
         '.name = "phase6-hexdump-perf"',
+        'const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");',
         'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
         'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
         'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
@@ -250,9 +253,10 @@ REQUIRED_SNIPPETS = {
         ".max_slowdown_pct = 600,",
     ],
     "zigux/Makefile": [
-        "PHONY += phase6-validate phase6-test phase6-perf phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6",
+        "PHONY += phase6-validate phase6-test phase6-hexdump-test phase6-perf phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6",
         "phase6-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
         "phase6-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase6_build.zig",
+        "phase6-hexdump-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig",
         "phase6-base64-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
         "phase6-perf: phase6-checksum-perf phase6-hexdump-perf",
         "phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
@@ -285,9 +289,10 @@ EXACT_COUNT_MARKERS = {
         "\"generated_fixture_artifacts_committed\": false",
     ],
     "zigux/Makefile": [
-        "PHONY += phase6-validate phase6-test phase6-perf phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6",
+        "PHONY += phase6-validate phase6-test phase6-hexdump-test phase6-perf phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6",
         "phase6-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
         "phase6-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase6_build.zig",
+        "phase6-hexdump-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig",
         "phase6-base64-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
         "phase6-perf: phase6-checksum-perf phase6-hexdump-perf",
         "phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
@@ -425,9 +430,21 @@ def run_self_test() -> None:
         )
         assert_failure(
             root,
+            "Documentation/zigux/phase6-helper-parity-catalog.md",
+            "- `make -C zigux phase6-hexdump-test`",
+            "- `make -C zigux phase6-hexdump-review`",
+        )
+        assert_failure(
+            root,
             "zigux/tests/phase6_helper_parity_manifest.json",
             "\"tranche\": \"leaf-helper-parity\",",
             "\"tranche\": \"leaf-helper\",",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_helper_parity_manifest.json",
+            "\"make -C zigux phase6-hexdump-test\",",
+            "\"make -C zigux phase6-hexdump-review\",",
         )
         assert_failure(
             root,
@@ -546,6 +563,12 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "zigux/tests/phase6_build.zig",
+            'const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");',
+            'const hexdump_test_step = b.step("phase6-hexdump-review", "Run Phase 6 hexdump helper tests");',
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_build.zig",
             '.name = "phase6-base64-perf"',
             '.name = "phase6-base64-bench"',
         )
@@ -572,6 +595,12 @@ def run_self_test() -> None:
             "zigux/Makefile",
             "phase6-base64-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-base64-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
             "phase6-base64-bench:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-base64-bench --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+        )
+        assert_failure(
+            root,
+            "zigux/Makefile",
+            "phase6-hexdump-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig",
+            "phase6-hexdump-review:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
         )
         assert_failure(
             root,
