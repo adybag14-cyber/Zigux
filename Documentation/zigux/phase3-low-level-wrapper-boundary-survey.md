@@ -6,7 +6,7 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 
 - `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run`
 - `PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig`
-- `PHASE3_ATOMIC_SCOPE=load-store-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max-compare-exchange-compare-exchange-weak`
+- `PHASE3_ATOMIC_SCOPE=load-store-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-nand-fetch-min-fetch-max-compare-exchange-compare-exchange-weak`
 - `PHASE3_ATOMIC_STATUS=bounded-helper-surface-landed`
 - `PHASE3_ATOMIC_BLOB_SHA=2ccb2a155b9e19fc3fbc033b000c0c44ecfb9494`
 - `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`
