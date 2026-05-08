@@ -184,6 +184,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "python3 scripts/zigux/check-genksyms-crc-diff.py",
     "python3 scripts/zigux/check-kconfig-bridge.py",
     "python3 scripts/zigux/check-phase2-cross.py --target",
+    "python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test",
     "python3 scripts/zigux/check-mk-elfconfig-diff.py",
     "zig test scripts/zigux/fixdep.zig",
     "zig test scripts/zigux/genksyms.zig",
@@ -214,6 +215,7 @@ REQUIRED_EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
+    "python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test": 1,
 }
 
 REQUIRED_DOC_MARKERS = [
@@ -572,6 +574,8 @@ def run_self_test() -> int:
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test"] == 1
     assert "python3 scripts/zigux/check-phase2-cross.py --self-test" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-phase2-cross.py --self-test"] == 1
+    assert "python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test" in REQUIRED_WORKFLOW_MARKERS
+    assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test"] == 1
     assert "python3 scripts/zigux/check-zig-toolchain.py --self-test" in REQUIRED_REVIEW_MARKERS
     with tempfile.TemporaryDirectory(prefix="phase2_required_files_root_") as tmp_dir:
         temp_root = Path(tmp_dir)
