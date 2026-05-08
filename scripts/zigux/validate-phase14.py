@@ -478,7 +478,7 @@ def run_self_test() -> int:
             "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
         ]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
-            build_lines.append("b.addTest(.")
+            build_lines.append("b.addTest(.{")
             build_lines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
@@ -572,6 +572,18 @@ def run_self_test() -> int:
             print("self-test expected traceability duplicate-count failure", file=sys.stderr)
             return 1
         write_text(root / TRACEABILITY_PATH, "\n".join(expected_traceability_markers) + "\n")
+        broken_anchor_manifest_path = root / "zigux/tests/phase14_ring_buffer_manifest.json"
+        broken_anchor_manifest = load_json_file(broken_anchor_manifest_path)
+        broken_anchor_manifest["gaps"] = []
+        write_text(broken_anchor_manifest_path, json.dumps(broken_anchor_manifest, indent=2) + "\n")
+        errors = check(root)
+        if "missing blocked gap in zigux/tests/phase14_ring_buffer_manifest.json" not in errors:
+            print("self-test expected blocked-gap traceability failure", file=sys.stderr)
+            return 1
+        write_text(
+            broken_anchor_manifest_path,
+            json.dumps(anchor_manifests["zigux/tests/phase14_ring_buffer_manifest.json"], indent=2) + "\n",
+        )
         broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken_manifest["lane_key"] = "P14-L99"
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
