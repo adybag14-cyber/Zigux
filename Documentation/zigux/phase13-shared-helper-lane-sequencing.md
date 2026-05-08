@@ -39,6 +39,7 @@ They coordinate the shared contributor-facing and validator-first packet, but th
 Owns the direct `libfs` helper and its paired packet surfaces:
   * `fs/libfs.zig`
   * `zigux/tests/phase13_libfs.zig`
+  * `zigux/tests/phase13_libfs_addressability.zig`
   * `zigux/tests/phase13_libfs_reviewability.zig`
   * `zigux/tests/phase13_libfs_manifest.json`
   * `Documentation/zigux/phase13-libfs-slice.md`
