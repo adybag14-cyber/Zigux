@@ -32,8 +32,10 @@ REQUIRED_NOTE_MARKERS = (
     "`indefinite-C policy link or non-applicability note`",
     "`rollback-threshold`",
     "workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`",
+    "dedicated `make -C zigux phase15-test` route",
     "landed `phase15-roadmap-minimum-field-sync`",
     "landed `phase15-workflow-replay-anchor-visible`",
+    "landed `phase15-dedicated-make-test-replay-visible`",
 )
 
 REQUIRED_REVIEW_PACKET_FIELDS = (
@@ -112,6 +114,7 @@ REQUIRED_CURRENT_REPO_HANDOFF_MARKERS = (
 REQUIRED_CURRENT_BOUNDED_LANE_MARKERS = (
     "scripts-root validator path",
     "workflow-backed replay path",
+    "dedicated `make -C zigux phase15-test` route",
     "direct `zig build test --build-file zigux/tests/phase15_build.zig` route",
     "Linux-style `make -C zigux phase15-validate` route",
     "tests-root guidance path",
@@ -242,6 +245,7 @@ REQUIRED_WORKFLOW_MARKERS = (
 REQUIRED_HANDOFF_REPLAY_COMMANDS = (
     "make -C zigux phase15-validate",
     ".github/workflows/zigux-bootstrap.yml",
+    "make -C zigux phase15-test",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
 )
@@ -372,10 +376,11 @@ def write_fixture_tree(root: Path) -> None:
         REQUIRED_NOTE_MARKERS[0],
         PRODUCT_BOUNDARY_MARKER,
         "## Current Approval Posture",
-        "- current review-process evidence is limited to named `phase`, `current status bucket`, `required approver set`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records, plus the workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`",
+        "- current review-process evidence is limited to named `phase`, `current status bucket`, `required approver set`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records, plus the workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml` and the dedicated `make -C zigux phase15-test` route",
         "## Recorded Gaps",
         "- landed `phase15-roadmap-minimum-field-sync`",
         "- landed `phase15-workflow-replay-anchor-visible`",
+        "- landed `phase15-dedicated-make-test-replay-visible`",
         "- no Architecture Council approval is currently recorded for a freeze-map status change",
         "",
     )), encoding="utf-8")
@@ -456,6 +461,23 @@ def run_self_test() -> int:
 
         note_path.write_text(
             original_note.replace(
+                "dedicated `make -C zigux phase15-test` route",
+                "dedicated `make -C zigux phase15-check` route",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["note:dedicated `make -C zigux phase15-test` route"],
+            "missing_dedicated_make_test_route_marker",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
+        note_path.writeText = None
+        note_path.write_text(
+            original_note.replace(
                 "landed `phase15-workflow-replay-anchor-visible`",
                 "landed `phase15-workflow-anchor-visible`",
                 1,
@@ -534,6 +556,13 @@ def run_self_test() -> int:
         ).replace("  ", " ")
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_only(root, ["manifest_lane:direct `zig build test --build-file zigux/tests/phase15_build.zig` route"], "missing_direct_build_route_marker")
+        write_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["handoff"]["replay_commands"].remove("make -C zigux phase15-test")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest_handoff_replay:make -C zigux phase15-test"], "missing_dedicated_make_test_replay_command")
         write_fixture_tree(root)
         case_count += 1
 
