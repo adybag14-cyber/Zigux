@@ -86,6 +86,7 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/generate-phase3-check-wrappers.py",
         "PHASE3_WRAPPER_SELF_TEST=pass",
+        ("PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",),
     ),
 )
 
@@ -239,6 +240,12 @@ def run_self_test() -> int:
             "scripts/zigux/run-phase3-checks.py",
             "PHASE3_RUNNER_SELF_TEST=pass",
             extra_markers=("PHASE3_RUNNER_SELF_TEST_CASE_COUNT=",),
+        )
+        case_count += 1
+        _require_target(
+            "scripts/zigux/generate-phase3-check-wrappers.py",
+            "PHASE3_WRAPPER_SELF_TEST=pass",
+            extra_markers=("PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",),
         )
         case_count += 1
 
@@ -460,7 +467,7 @@ def run_self_test() -> int:
 
         duplicate_aux_root = tmp_root / "duplicate-aux"
         _populate_root(duplicate_aux_root)
-        duplicate_aux_path = duplicate_aux_root / "scripts/zigux/validate-phase3-export-uapi-survey.py"
+        duplicate_aux_path = tmp_root / "duplicate-aux" / "scripts/zigux/validate-phase3-export-uapi-survey.py"
         duplicate_aux_path.write_text(
             "\n".join(
                 [
@@ -635,13 +642,13 @@ def run_self_test() -> int:
                     "",
                     "import sys",
                     "",
-                    "if \"--self-test\" in sys.argv:",
-                    "    print(\"PHASE3_RUNNER_SELF_TEST=pass\")",
-                    "    print(\"PHASE3_RUNNER_SELF_TEST_CASE_COUNT=1\")",
-                    "    print(\"PHASE3_RUNNER_SELF_TEST_CASE_COUNT=2\")",
+                    'if "--self-test" in sys.argv:',
+                    '    print("PHASE3_RUNNER_SELF_TEST=pass")',
+                    '    print("PHASE3_RUNNER_SELF_TEST_CASE_COUNT=1")',
+                    '    print("PHASE3_RUNNER_SELF_TEST_CASE_COUNT=2")',
                     "    raise SystemExit(0)",
                     "",
-                    "raise SystemExit(\"expected --self-test\")",
+                    'raise SystemExit("expected --self-test")',
                     "",
                 ]
             ),
@@ -650,6 +657,48 @@ def run_self_test() -> int:
         )
         assert run_targets(duplicate_runner_aux_root) == [
             "duplicate_aux_marker:scripts/zigux/run-phase3-checks.py:2:PHASE3_RUNNER_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        missing_wrapper_aux_root = tmp_root / "missing-wrapper-aux"
+        _populate_root(missing_wrapper_aux_root)
+        write_script(
+            missing_wrapper_aux_root / "scripts/zigux/generate-phase3-check-wrappers.py",
+            "PHASE3_WRAPPER_SELF_TEST=pass",
+        )
+        assert run_targets(missing_wrapper_aux_root) == [
+            "missing_aux_marker:scripts/zigux/generate-phase3-check-wrappers.py:PHASE3_WRAPPER_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        duplicate_wrapper_aux_root = tmp_root / "duplicate-wrapper-aux"
+        _populate_root(duplicate_wrapper_aux_root)
+        duplicate_wrapper_aux_path = (
+            duplicate_wrapper_aux_root / "scripts/zigux/generate-phase3-check-wrappers.py"
+        )
+        duplicate_wrapper_aux_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "import sys",
+                    "",
+                    'if "--self-test" in sys.argv:',
+                    '    print("PHASE3_WRAPPER_SELF_TEST=pass")',
+                    '    print("PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=1")',
+                    '    print("PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=2")',
+                    "    raise SystemExit(0)",
+                    "",
+                    'raise SystemExit("expected --self-test")',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert run_targets(duplicate_wrapper_aux_root) == [
+            "duplicate_aux_marker:scripts/zigux/generate-phase3-check-wrappers.py:2:PHASE3_WRAPPER_SELF_TEST_CASE_COUNT="
         ]
         case_count += 1
 
