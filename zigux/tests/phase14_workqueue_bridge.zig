@@ -74,7 +74,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -93,6 +93,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     var saw_delayed_timer_followup = false;
     var saw_delayed_requeue_governance = false;
     var saw_flush_drain_governance = false;
+    var saw_rescuer_mayday_governance = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -201,6 +202,15 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "work_color") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "flush_color") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase14-workqueue-rescuer-mayday-governance")) {
+            saw_rescuer_mayday_governance = true;
+            try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rescuer_thread()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "wq->maydays") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pwq->mayday_cursor") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "wake_up_worker()") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase14-workqueue-live-execution-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("zigux/tests/phase14_workqueue_bridge.zig", gap.zigux_destination);
@@ -214,7 +224,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -231,6 +241,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expect(saw_delayed_timer_followup);
     try std.testing.expect(saw_delayed_requeue_governance);
     try std.testing.expect(saw_flush_drain_governance);
+    try std.testing.expect(saw_rescuer_mayday_governance);
     try std.testing.expect(saw_blocker);
 }
 
@@ -246,6 +257,7 @@ test "phase14 workqueue bridge survey note pins the lane key and surveyed commit
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-workqueue-delayed-timer-expiry-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-workqueue-delayed-requeue-governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-workqueue-flush-drain-governance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-workqueue-rescuer-mayday-governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked maintenance") != null);
 }
 
