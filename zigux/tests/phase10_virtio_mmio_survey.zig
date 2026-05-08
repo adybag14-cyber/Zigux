@@ -96,7 +96,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P10-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
     try std.testing.expectEqualStrings("84f90e23ad1c28ae345905d5293a8c5395f37d43", manifest.surveyed_commit);
