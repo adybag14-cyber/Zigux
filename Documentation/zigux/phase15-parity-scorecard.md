@@ -27,7 +27,7 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
 - roadmap title: `Full-Parity Blockers and Long-Term Governance`
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
-- current repo handoff: `check-phase15-scripts-readme-alignment.py`, `check-phase15-review-process-handoff.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, `make -C zigux phase15-validate`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and `make -C zigux phase15`
+- current repo handoff: `check-phase15-scripts-readme-alignment.py`, `check-phase15-review-process-handoff.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and `make -C zigux phase15`
 - maintenance-mode next step: wait for the named reopen triggers or a deep-core blocker posture change
 
 ## Scorecard Entries
@@ -149,5 +149,6 @@ Each scorecard packet keeps linked surveys and blocker follow-ups, benchmark-not
 - `check-phase15-scripts-readme-alignment.py`
 - `check-phase15-review-process-handoff.py`
 - `make -C zigux phase15-validate`
+- `make -C zigux phase15-test`
 - `zig build test --build-file zigux/tests/phase15_build.zig`
 - `make -C zigux phase15`
