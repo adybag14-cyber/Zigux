@@ -8,7 +8,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - `PHASE15_SLICE=architecture-council-review-process-reopen-trigger-catalog`
 - `PHASE15_LANE_KEY=P15-L06`
 - scope: one review-process note, one dedicated manifest and Zig test, the focused lane-owner vocabulary alignment replay already shipped in the shared Phase 15 build, the focused indefinite-C blocker-evidence replay already shipped in the shared Phase 15 build, the shared governance-lane sequencing replay already shipped in the shared Phase 15 build, the shared Phase 15 build wiring, and a small review-checklist update that now also names the retained stay-in-C closeout state and reopen triggers
-- survey provenance refreshed against current `master` readback on 2026-05-07
+- survey provenance refreshed against current `master` readback on 2026-05-08
 - maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires or the deep-core blocker posture changes
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
@@ -111,7 +111,7 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the current bounded evidence is the freeze map, this review-process note, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, the review checklist hook, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `Documentation/zigux/phase15-parity-scorecard.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the focused `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, and `zigux/tests/phase15_governance_lane_sequencing.zig` replays already wired through the shared Phase 15 build, and the rest of the parked `phase15_freeze_map_governance`, `phase15_architecture_council_review_process`, `phase15_handoff_next_steps`, `phase15_indefinite_c_policy`, and `phase15_readiness_gate` evidence packet carried by `zigux/tests/phase15_build.zig`
-- current review-process evidence is limited to named `phase`, `current status bucket`, `required approver set`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, rollback-threshold, retained-discussion-state, and reopen-trigger records in the review packet plus the validator-first `make -C zigux phase15-validate` route and the anchor-specific rollback-owner records in the parity scorecard
+- current review-process evidence is limited to named `phase`, `current status bucket`, `required approver set`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, rollback-threshold, retained-discussion-state, and reopen-trigger records in the review packet plus the validator-first `make -C zigux phase15-validate` route, the workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`, and the anchor-specific rollback-owner records in the parity scorecard
 - until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
 
 ## Maintenance-Mode Handoff
@@ -119,6 +119,7 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 - current lane posture: `maintenance_mode`
 - replay before trusting this parked handoff:
   - `make -C zigux phase15-validate`
+  - confirm the workflow-backed replay anchor in `.github/workflows/zigux-bootstrap.yml`
   - `zig build test --build-file zigux/tests/phase15_build.zig`
   - `make -C zigux phase15`
 - reopen only when one of the named catalog triggers now fits the evidence packet, or when the deep-core blocker posture changes enough to justify a new bounded review-process follow-up
@@ -140,8 +141,9 @@ The current lane state is:
 - landed `phase15-roadmap-minimum-field-sync`
 - landed `phase15-lane-owner-alignment-replay-visible`
 - landed `phase15-approver-set-field-sync`
+- landed `phase15-workflow-replay-anchor-visible`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, restores the explicit indefinite-C policy linkage for stay-in-C requests, keeps the rollback-threshold gate explicit when evidence is weak or contradictory, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, keeps the roadmap-minimum `phase`, status-bucket, approver-set, and validation-gate evidence explicit in the parked packet, and makes the already-landed lane-owner vocabulary alignment, indefinite-C blocker-evidence, and governance-lane sequencing replays visible inside the same governance boundary, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, restores the explicit indefinite-C policy linkage for stay-in-C requests, keeps the rollback-threshold gate explicit when evidence is weak or contradictory, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, keeps the roadmap-minimum `phase`, status-bucket, approver-set, and validation-gate evidence explicit in the parked packet, makes the workflow-backed replay anchor explicit beside the validator-first, direct-build, and make-route replays, and makes the already-landed lane-owner vocabulary alignment, indefinite-C blocker-evidence, and governance-lane sequencing replays visible inside the same governance boundary, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
@@ -157,12 +159,15 @@ This slice does not claim:
 1. run the validator-first route
 - `make -C zigux phase15-validate`
 
-2. run the dedicated Phase 15 build
+2. confirm the workflow-backed replay anchor
+- `.github/workflows/zigux-bootstrap.yml`
+
+3. run the dedicated Phase 15 build
 - `zig build test --build-file zigux/tests/phase15_build.zig`
 
-3. run the convenience target
+4. run the convenience target
 - `make -C zigux phase15`
 
 ## Next bounded step
 
-Keep the Phase 15 governance lane in maintenance mode. The indefinite-C field-sync follow-up is already landed, so the next honest action is to wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice.
+Keep the Phase 15 governance lane in maintenance mode. The workflow-backed replay-anchor follow-through is now landed, so the next honest action is to wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice.
