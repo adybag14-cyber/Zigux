@@ -7,6 +7,7 @@ const SurveySummary = struct {
     preexisting_phase13_make_target_present: bool,
     preexisting_fs_libfs_zig_present: bool,
     preexisting_phase13_libfs_test_present: bool,
+    preexisting_phase13_libfs_addressability_test_present: bool,
     preexisting_phase13_slice_note_present: bool,
     preexisting_phase13_reviewability_present: bool,
     preexisting_phase13_survey_note_present: bool,
@@ -77,6 +78,7 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_make_target_present);
     try std.testing.expect(manifest.survey_summary.preexisting_fs_libfs_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_libfs_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_libfs_addressability_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
@@ -169,6 +171,7 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
             saw_reviewability_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase13_libfs_reviewability.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "focused addressability shard") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-survey-note")) {
             saw_survey_note = true;
@@ -280,6 +283,10 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-addressability-helper`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-simple-open-helper`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-dcache-cursor-helpers`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused `zigux/tests/phase13_libfs_addressability.zig` file") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused addressability proof") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated helper-local evidence rather than a ninth shared replay step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared eight-test `phase13_build.zig` route") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-helper-starter`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-test-gate`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-inode-and-pseudofs-lifecycle`") == null);
