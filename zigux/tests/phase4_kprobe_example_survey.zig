@@ -8,6 +8,7 @@ const Manifest = struct {
     sample_path: []const u8,
     sample_present: bool,
     current_replay: []const u8,
+    local_lab_replay: []const u8,
     survey_note: []const u8,
     survey_owner: []const u8,
     rollback_owner: []const u8,
@@ -52,6 +53,10 @@ test "phase4 kprobe gap manifest keeps the parked survey explicit" {
         manifest.current_replay,
     );
     try std.testing.expectEqualStrings(
+        "make -C zigux phase4-kprobe-example-survey",
+        manifest.local_lab_replay,
+    );
+    try std.testing.expectEqualStrings(
         "Documentation/zigux/phase4-kprobe-example-gap-survey.md",
         manifest.survey_note,
     );
@@ -68,7 +73,7 @@ test "phase4 kprobe gap manifest keeps the parked survey explicit" {
         manifest.review_prompts[0],
     );
     try std.testing.expectEqualStrings(
-        "the packet keeps the live make replay command explicit without implying a shipped Zig sample",
+        "the packet keeps the live make replay command and the dedicated local survey wrapper explicit without implying a shipped Zig sample",
         manifest.review_prompts[1],
     );
     try std.testing.expectEqualStrings(
@@ -76,7 +81,7 @@ test "phase4 kprobe gap manifest keeps the parked survey explicit" {
         manifest.review_prompts[2],
     );
     try std.testing.expectEqualStrings(
-        "the packet now stays explicit in the shared gate-evidence note while still not claiming a shipped Zig sample",
+        "the packet now stays explicit in the shared gate-evidence note and the dedicated local survey wrapper without claiming a shipped Zig sample",
         manifest.review_prompts[3],
     );
     try std.testing.expectEqual(@as(usize, 3), manifest.non_goals.len);
@@ -119,14 +124,16 @@ test "phase4 kprobe gap survey note stays honest about the parked boundary" {
         "PHASE4_SAMPLE_PATH=samples/zigux/kprobe_example.zig",
         "PHASE4_SAMPLE_PRESENT=false",
         "PHASE4_CURRENT_REPLAY=make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
+        "PHASE4_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey",
         "PHASE4_SURVEY_OWNER=Validation and Perf Team",
         "PHASE4_ROLLBACK_OWNER=Validation and Perf Team",
         "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=true",
         "zigux/tests/phase4_kprobe_example_manifest.json",
         "zigux/tests/phase4_kprobe_example_survey.zig",
-        "shared gate-evidence note now names that same survey note, manifest, and replay command",
+        "shared gate-evidence note now names that same survey note, manifest, replay command, and local survey wrapper",
+        "the dedicated local survey wrapper now reruns this parked packet through `make -C zigux phase4-kprobe-example-survey`",
         "`samples/zigux/kprobe_example.zig` is still absent",
-        "Land one manifest-backed Phase 4 test_fsmount gap survey packet",
+        "dedicated local survey wrapper until a future bounded lane intentionally opens either the Zig starter or a broader validation-surface promotion",
         "treating adjacent gate-evidence visibility as a shipped Zig starter",
         "claiming approved hard perf thresholds for the kprobe anchor",
     };
@@ -137,5 +144,6 @@ test "phase4 kprobe gap survey note stays honest about the parked boundary" {
 
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.anchor_blob_sha) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.validation_entrypoint) != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, manifest.local_lab_replay) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "claiming a shipped Zig starter") != null);
 }
