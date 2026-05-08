@@ -82,6 +82,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "make -C zigux phase2-validate",
     "make -C zigux phase2-kconfig",
+    "make -C zigux phase2-cross",
     "make -C zigux phase2",
 ]
 
@@ -203,6 +204,7 @@ EXACT_COUNT_CHECKS = {
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
         "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
         "make -C zigux phase2-kconfig": 1,
+        "make -C zigux phase2-cross": 1,
     },
     "scripts/zigux/README.md": {
         "check-phase2-genksyms-bridge-selftest-alignment.py": 1,
@@ -311,14 +313,24 @@ def render_docs_root_text(markers: list[str]) -> str:
     return "\n".join(rendered) + "\n"
 
 
+def render_marker_text_for_self_test(rel_path: str, markers: list[str]) -> str:
+    if rel_path == "Documentation/zigux/README.md":
+        return render_docs_root_text(markers)
+
+    rendered = list(markers)
+    exact_checks = EXACT_COUNT_CHECKS.get(rel_path, {})
+    for marker, expected_count in exact_checks.items():
+        current_count = count_occurrences("\n".join(rendered), marker)
+        if expected_count > current_count:
+            rendered.extend([marker] * (expected_count - current_count))
+    return "\n".join(rendered) + "\n"
+
+
 def build_self_test_root(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         write_text(root / rel_path, "")
     for rel_path, markers in FILE_MARKERS.items():
-        if rel_path == "Documentation/zigux/README.md":
-            write_text(root / rel_path, render_docs_root_text(markers))
-        else:
-            write_text(root / rel_path, "\n".join(markers) + "\n")
+        write_text(root / rel_path, render_marker_text_for_self_test(rel_path, markers))
 
 
 def remove_marker_once(text: str, marker: str) -> str:
@@ -366,7 +378,7 @@ def run_self_test() -> int:
             assert f"missing_file:{rel_path}" in issues
             case_count += 1
 
-    assert case_count == 109
+    assert case_count == 111
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
