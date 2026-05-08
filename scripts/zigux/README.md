@@ -172,6 +172,7 @@ Phase 12 notes
 - `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
 - `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - `Documentation/zigux/phase12-release-coordination-matrix.md`
+- `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/phase12-nvme-pci-slice.md`
 - `Documentation/zigux/phase12-nvme-pci-survey.md`
 - `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
