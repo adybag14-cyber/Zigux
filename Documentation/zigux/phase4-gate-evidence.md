@@ -7,16 +7,16 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
 - `PHASE4_VALIDATION_MATRIX_BLOB_SHA=5c680042a517d35c053a12df794676822d710ea3`
-- `PHASE4_VALIDATOR_BLOB_SHA=db8e22cb4602fc3431fec8a5eabcea43fd5bc197`
-- `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=089045c25cabf2e838aa174e9314c659453eb7fa`
+- `PHASE4_VALIDATOR_BLOB_SHA=f432beb531e1d8e3626f844fb2163adab3c3f138`
+- `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=3ab093377318dc22fb05ce34714ad0397d218d4c`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=47bf77b976241f20351ad6b7aa97884c92c16ada`
 - `PHASE4_BUILD_BLOB_SHA=9944a72ef3d53ff098dd44ea9c8a905d7f212db3`
 - `PHASE4_MAKEFILE_BLOB_SHA=c4e6d1fb74aa1f3ae53a93be63b2bac752154340`
 - `PHASE4_WORKFLOW_BLOB_SHA=951bf92efcad855038d348f989503e6a9da0adca`
-- `PHASE4_DOC_README_BLOB_SHA=0489e42498989ec4deb9054d9a9bc99ac8116a88`
-- `PHASE4_SCRIPT_README_BLOB_SHA=097d6e74dbdd6c8bb273f0b82d20c84215cff55a`
+- `PHASE4_DOC_README_BLOB_SHA=f5a0ad003d954a7729c9457d4c87a88c0f8d0995`
+- `PHASE4_SCRIPT_README_BLOB_SHA=9bf5564a3056b606b6dcbcb519df35c94fb142b6`
 - `PHASE4_TESTS_README_BLOB_SHA=57f439983be71241a22d76c351352de250a2fe05`
-- `PHASE4_ATOMIC64_DIFF_BLOB_SHA=b1649b29736246383429836baf20bbe608a623c3`
+- `PHASE4_ATOMIC64_DIFF_BLOB_SHA=c805a2d198ad6b632e6eddb9738a37e0d98f23ea`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=b52320323e1e6718245621253d11293d5cae03da`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=24418ad890696a59b95276fe8dec7eaeecf25172`
@@ -48,7 +48,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - The dedicated exact-readback checker now also rereads that shipped perf-baseline manifest-and-survey pair so the still-unapproved benchmark-command and acceptable-limit posture cannot drift out of the Phase 4 review packet unnoticed.
 - `zigux/Makefile` still exposes `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, and `make -C zigux phase4`, so the Linux-style local replay surface matches the current shared Phase 4 packet instead of hiding those routes in the build file alone.
 - The broader shared build and Makefile surface also still carries `make -C zigux phase4-bitmap-diff-survey` plus `zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig`, so the bitmap survey packet remains reviewable beside the helper-backed replay without widening the lane into perf-threshold approval.
-- `zigux/tests/bitmap_diff.zig` currently exact-pins thirteen bounded range and prefix cases, two `find_nth_bit` replays (the eight-bit starter population plus the full `exp1_find_nth_bits` enumeration), ten copy-tail cases, the empty threshold replay rejection, the deterministic threshold batch checks (`single.checksum=5216946504564592253`, `repeated.checksum=7942141539243507472`, `final_first_zero=109`, `final_weight=1005`, and `final_nth_seven=123`), explicit rollback governance, and the source-inventory cardinality guard for the 13 `DiffCase`, 10 `CopyCase`, and 13 `mixThresholdChecksum()` checkpoints.
+- `zigux/tests/bitmap_diff.zig` currently exact-pins thirteen bounded range and prefix cases, two `find_nth_bit` replays (the eight-bit starter population plus the full `exp1_find_nth_bits` enumeration), ten copy-tail cases, the empty threshold replay rejection, bounded out-of-bounds rejection coverage, the deterministic threshold batch checks (`single.checksum=5216946504564592253`, `repeated.checksum=7942141539243507472`, `final_first_zero=109`, `final_weight=1005`, and `final_nth_seven=123`), explicit rollback governance, and the source-inventory cardinality guard for the 13 `DiffCase`, 10 `CopyCase`, and 13 `mixThresholdChecksum()` checkpoints.
 - The parked kprobe gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now stays explicit in this shared gate-evidence note as adjacent parked evidence only, its Linux replay remains `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`, and the shared gate-evidence note now keeps that adjacent parked packet explicit without claiming a shipped Zig starter while `samples/zigux/kprobe_example.zig` remains absent on current `master`.
 - The shipped local perf-baseline survey packet is intentionally separate from that shared exact-readback set: it keeps the still-unapproved benchmark-command and acceptable-limit posture machine-checked locally without turning the Phase 4 validator or CI path into a perf-approval claim before one bounded threshold packet lands for each rollback gate.
 - `samples/zigux/test_fsmount.zig` remains absent, so the current exact-readback packet still stops short of claiming that missing Zig starter as shipped evidence.
