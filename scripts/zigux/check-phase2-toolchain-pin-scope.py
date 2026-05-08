@@ -44,6 +44,9 @@ DOCS_ROOT_MARKERS = [
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "pinned Zig toolchain",
     "make -C zigux phase2-validate",
+    "make -C zigux phase2-tools",
+    "make -C zigux phase2-kconfig",
+    "make -C zigux phase2-cross",
     "make -C zigux phase2",
 ]
 
@@ -143,6 +146,9 @@ EXACT_SURFACE_COUNTS = {
         "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
         "pinned Zig toolchain": 1,
         "make -C zigux phase2-validate": 1,
+        "make -C zigux phase2-tools": 1,
+        "make -C zigux phase2-kconfig": 1,
+        "make -C zigux phase2-cross": 1,
     },
     "tests_readme": {
         "pinned `x86_64-linux` bootstrap archive note": 1,
