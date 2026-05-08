@@ -163,6 +163,7 @@ For the active shared-helper release packet, keep the shared validator-first rep
 - `zigux/tests/README.md`
 - `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_libfs.zig`
+- `zigux/tests/phase13_libfs_addressability.zig`
 - `zigux/tests/phase13_libfs_manifest.json`
 - `zigux/tests/phase13_libfs_reviewability.zig`
 - `zigux/tests/phase13_devres.zig`
