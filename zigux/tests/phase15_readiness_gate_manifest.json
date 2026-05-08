@@ -25,6 +25,7 @@
     "phase15_build_present": true,
     "phase15_make_target_present": true,
     "phase15_validate_target_present": true,
+    "phase15_test_target_present": true,
     "phase15_scripts_alignment_checker_present": true,
     "phase15_review_process_handoff_checker_present": true,
     "shared_ci_phase15_present": true,
@@ -86,5 +87,5 @@
       "why_now": "The freeze-in-C posture still lacks enough evidence for any deep-core status change."
     }
   ],
-  "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the shared review checklist drops the explicit workflow-backed or direct shared-build replay markers, one of the two dedicated `phase15-validate` checker routes disappears, or one of the four recorded deep-core blocker dispositions changes."
+  "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the shared review checklist drops the explicit workflow-backed or direct shared-build replay markers, one of the two dedicated `phase15-validate` checker routes disappears, the dedicated `make -C zigux phase15-test` route disappears, or one of the four recorded deep-core blocker dispositions changes."
 }
