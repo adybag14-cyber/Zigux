@@ -430,7 +430,7 @@ def main_validation(root: Path) -> list[str]:
     closure = (root / "Documentation/zigux/phase2-closure.md").read_text(encoding="utf-8")
     workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
     ledger = (root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
-    script_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
+    script_readme = (root / "scripts" / "zigux/README.md").read_text(encoding="utf-8")
     artifact_doc = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
     toolchain_notes = TOOLCHAIN_NOTES.read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
@@ -481,6 +481,7 @@ def main_validation(root: Path) -> list[str]:
         "conf bridge emits defconfig mode argument before kconfig",
         "conf bridge emits savedefconfig mode argument before kconfig",
         "conf bridge escapes low control bytes in JSON strings",
+        "PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring",
         f"PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT={len(confdata_case_names)}",
         "PHASE2_KCONFIG_BRIDGE_CONFDATA_CASES=" + ",".join(confdata_case_names),
         "PHASE2_KCONFIG_BRIDGE_CONFDATA_EXPECTED_PACKET=" + ",".join(confdata_expected_packet),
