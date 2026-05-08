@@ -175,10 +175,10 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
 
     try std.testing.expectEqualStrings("string_helpers_sample", manifest.sample_replay_contract.descriptor_name);
     try std.testing.expectEqual(@as(i32, 1), manifest.sample_replay_contract.matched_index);
-    try std.testing.expectEqual(@as(usize, 4), manifest.sample_replay_contract.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.sample_replay_contract.checked_focus.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.sample_replay_contract.lifecycle_states.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.sample_replay_contract.helper_call_markers.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.sample_replay_contract.test_assertions.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.sample_replay_contract.test_assertions.len);
 
     var starter_landed_count: usize = 0;
     var saw_helper = false;
@@ -249,6 +249,8 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try expectExactCount(sample_source, "const values = [_]?[]const u8{ \"disabled\", \"enabled\", null, \"ignored\" };", 1);
     try expectContains(sample_source, "string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES,");
     try expectExactCount(sample_source, "string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES,", 1);
+    try expectContains(sample_source, "exact_unescape_text.len = string_helpers.stringUnescape(");
+    try expectExactCount(sample_source, "exact_unescape_text.len = string_helpers.stringUnescape(", 1);
     try expectContains(sample_source, "string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND,");
     try expectExactCount(sample_source, "string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND,", 1);
 
@@ -332,8 +334,8 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
         "`samples/zigux/string_helpers_sample.zig`",
         "`zigux/tests/phase7_string_helpers_sample_manifest.json`",
         "`zigux/tests/phase7_string_helpers_sample_survey.zig`",
-        "the bounded `samples/zigux/string_helpers_sample.zig` replay for descriptor ownership, lifecycle transitions, newline-tolerant matching, binary size rendering, compact no-space-no-bytes formatting, deterministic only-selected newline escaping, and append-selected newline hex escaping",
-        "the manifest-backed `zigux/tests/phase7_string_helpers_sample_survey.zig` gate so the helper, shared fixtures, sample replay, and slice note stay aligned in one reviewable packet after the added compact-format, only-selected newline escaping, and append-selected escape proofs",
+        "the bounded `samples/zigux/string_helpers_sample.zig` replay for descriptor ownership, lifecycle transitions, newline-tolerant matching, binary size rendering, compact no-space-no-bytes formatting, one exact-fit unescape destination proof, deterministic only-selected newline escaping, and append-selected newline hex escaping",
+        "the manifest-backed `zigux/tests/phase7_string_helpers_sample_survey.zig` gate so the helper, shared fixtures, sample replay, and slice note stay aligned in one reviewable packet after the added compact-format, exact-fit unescape boundary, only-selected newline escaping, and append-selected escape proofs",
     };
     for (expected_doc_markers) |marker| {
         try expectContains(slice_note, marker);
@@ -354,10 +356,13 @@ test "phase 7 string helper sample survey replays the shared fixture-backed outp
     const replay = try sample.runAnchorReplay();
 
     try std.testing.expectEqual(@as(i32, 1), replay.matched_index);
-    try std.testing.expectEqual(@as(usize, 4), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
     try std.testing.expectEqualSlices(u8, "1.50Ki", replay.compact_size_text.bytes[0..replay.compact_size_text.len]);
     try std.testing.expectEqual(newline_suffix.expected_len, replay.unescaped_text.len);
     try std.testing.expectEqualSlices(u8, newline_suffix.expected, replay.unescaped_text.bytes[0..replay.unescaped_text.len]);
+    try std.testing.expectEqual(@as(usize, 1), replay.exact_unescape_text.len);
+    try std.testing.expectEqualSlices(u8, "\n", replay.exact_unescape_text.bytes[0..replay.exact_unescape_text.len]);
+    try std.testing.expectEqual(@as(u8, 0), replay.exact_unescape_text.bytes[replay.exact_unescape_text.len]);
     try std.testing.expectEqual(newline_hex_escape.expected_len, replay.escaped_text.len);
     try std.testing.expectEqualSlices(u8, newline_hex_escape.expected, replay.escaped_text.bytes[0..replay.escaped_text.len]);
     try std.testing.expectEqual(selected_newline_escape.expected_len, replay.selected_escape_text.len);
