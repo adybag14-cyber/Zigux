@@ -34,6 +34,10 @@ test "phase 15 governance sequencing note keeps the owner split explicit" {
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "keep shared summaries compact while packet-local replay inventories stay in the sequencing note") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "keep every Phase 15 governance run parked unless a named reopen trigger fires") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "dated_master_readback_blocker_posture_fallback") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "future provenance refreshes stay handoff-lane `P15-L08` work") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "the current handoff provenance fallback is already isolated inside its owning packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "do not consume packet-local backlog") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Do not use this lane to change any deep-core blocker disposition") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "already closed the earlier handoff exact-head parity catch-up") == null);
 }
