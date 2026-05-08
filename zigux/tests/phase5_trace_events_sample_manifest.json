@@ -8,6 +8,7 @@
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest and survey test still describe the exact vararg-payload, message, relative-location, callback-path, and teardown contract run through phase5_build.zig",
+    "the contributor packet still keeps formattedMessage() explicit as the approved public formatting surface for the selected-string plus iter=%d replay instead of implying direct reads of private message storage",
     "the contributor packet still names runPayloadBoundaryReplay() as the approved public count-4 payload-boundary helper instead of implying private field inspection for the 1,2,3,4 prefix, zero sentinel, iter=%d replay, and selected-string branch",
     "the contributor packet still names runConditionalBoundaryReplay() as the approved public conditional-family helper for the count-0 Mother Goose branch, iter=%d message, 0xdeadbeef bitmask, and main-thread family counts instead of implying private sample-state reads",
     "the in-memory replay still keeps the array payload, selected string, and iter-format message reviewable instead of hiding them behind runtime thread state",
