@@ -64,7 +64,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try expectContains(manifest.validation_entrypoint, "phase5_build.zig");
-    try std.testing.expectEqual(@as(usize, 9), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
@@ -84,6 +84,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
 
     var saw_descriptor_prompt = false;
     var saw_payload_prompt = false;
+    var saw_formatted_surface_prompt = false;
     var saw_public_payload_prompt = false;
     var saw_public_conditional_prompt = false;
     var saw_callback_prompt = false;
@@ -111,6 +112,11 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "callback-path") != null)
         {
             saw_payload_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "formattedMessage()") != null and
+            std.mem.indexOf(u8, prompt, "private message storage") != null)
+        {
+            saw_formatted_surface_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "runPayloadBoundaryReplay()") != null and
             std.mem.indexOf(u8, prompt, "private field inspection") != null)
@@ -211,6 +217,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
 
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_payload_prompt);
+    try std.testing.expect(saw_formatted_surface_prompt);
     try std.testing.expect(saw_public_payload_prompt);
     try std.testing.expect(saw_public_conditional_prompt);
     try std.testing.expect(saw_callback_prompt);
