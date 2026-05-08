@@ -95,14 +95,23 @@ Keep the shared wording honest about what is not shipped on `master`: there is s
 For the active simple-driver contributor packet, confirm wording still matches:
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
+- `Documentation/zigux/phase11-closure-note.md`
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `zigux/tests/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
+- `Documentation/zigux/phase11-hvc-console-teardown-note.md`
+- `scripts/zigux/check-phase11-shared-replay-contract.py`
+- `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
+- `scripts/zigux/check-phase11-header-boundary-packet.py`
+- `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `zigux/tests/phase11_build.zig`
+- `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/Makefile`
 
