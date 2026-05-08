@@ -55,6 +55,7 @@ CLOSURE_MARKERS = [
     "- explicit opt-in to Node 24 action execution on GitHub-hosted runners",
     "- no known dependency on the deprecated Node 20 runtime",
     "- Zig installation through an in-repo official-download step instead of a Node 20-bound action",
+    "- `PHASE1_LANE_SEQUENCING_RULE=shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string reopen only for their current helper-local anchors or already-committed shared fixture keys`",
 ]
 
 CLOSURE_EXACT_MARKERS = [
@@ -287,6 +288,10 @@ def run_self_test() -> int:
         )
         assert (
             "phase1_closure_installer_packet:- Zig installation through an in-repo official-download step instead of a Node 20-bound action:expected>=1:actual=0"
+            in issues
+        )
+        assert (
+            "phase1_closure_installer_packet:- `PHASE1_LANE_SEQUENCING_RULE=shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string reopen only for their current helper-local anchors or already-committed shared fixture keys`:expected>=1:actual=0"
             in issues
         )
 
