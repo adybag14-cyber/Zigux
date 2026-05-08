@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L06",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-07",
+  "surveyed_commit": "current-master-readback-2026-05-08",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -65,6 +65,7 @@
     "current_mode": "maintenance_mode",
     "replay_commands": [
       "make -C zigux phase15-validate",
+      ".github/workflows/zigux-bootstrap.yml",
       "zig build test --build-file zigux/tests/phase15_build.zig",
       "make -C zigux phase15"
     ],
