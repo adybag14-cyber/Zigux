@@ -69,6 +69,26 @@ fn assertInteropPolicyModeValues() void {
     assertInteropPolicyByteValue("unsafe_scope.raw_pointer_bridge", @intFromEnum(abi.UnsafeScope.raw_pointer_bridge), 2);
 }
 
+pub fn assertInteropPolicyLayout() void {
+    assertInteropPolicyEnumLayouts();
+    assertSize(abi.InteropPolicy, 4);
+    assertFieldType(abi.InteropPolicy, "panic_mode", u8);
+    assertFieldType(abi.InteropPolicy, "allocator_mode", u8);
+    assertFieldType(abi.InteropPolicy, "unsafe_scope", u8);
+    assertFieldType(abi.InteropPolicy, "reserved", u8);
+    assertOffset(abi.InteropPolicy, "panic_mode", 0);
+    assertOffset(abi.InteropPolicy, "allocator_mode", 1);
+    assertOffset(abi.InteropPolicy, "unsafe_scope", 2);
+    assertOffset(abi.InteropPolicy, "reserved", 3);
+    assertInteropPolicyModeValues();
+}
+
+pub fn assertPolicyUnsafeSubstrateLayouts() void {
+    assertInteropPolicyLayout();
+    assertMmioRangeLayout();
+    assertRbtreeRootViewLayout();
+}
+
 pub fn assertMmioRangeLayout() void {
     assertSize(abi.MmioRange, @sizeOf(usize) + 8);
     assertAlign(abi.MmioRange, @alignOf(usize));
@@ -109,18 +129,6 @@ test "phase3 layout assertions cover canonical bindings" {
         assertOffset(abi.ExportStatus, "facility", 4);
         assertOffset(abi.ExportStatus, "flags", 6);
 
-        assertInteropPolicyEnumLayouts();
-        assertSize(abi.InteropPolicy, 4);
-        assertFieldType(abi.InteropPolicy, "panic_mode", u8);
-        assertFieldType(abi.InteropPolicy, "allocator_mode", u8);
-        assertFieldType(abi.InteropPolicy, "unsafe_scope", u8);
-        assertFieldType(abi.InteropPolicy, "reserved", u8);
-        assertOffset(abi.InteropPolicy, "panic_mode", 0);
-        assertOffset(abi.InteropPolicy, "allocator_mode", 1);
-        assertOffset(abi.InteropPolicy, "unsafe_scope", 2);
-        assertOffset(abi.InteropPolicy, "reserved", 3);
-        assertInteropPolicyModeValues();
-        assertMmioRangeLayout();
-        assertRbtreeRootViewLayout();
+        assertPolicyUnsafeSubstrateLayouts();
     }
 }
