@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 - `PHASE15_STATUS=indefinite_c_policy_survey_landed`
 - `PHASE15_LANE_KEY=P15-L16`
 - `PHASE15_SLICE=indefinite-c-policy-field-sync-followup`
-- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build, and the linked field-sync between the policy note, the shared scripts-root validator-first route, the review-process packet fields, the parity scorecard wording, and the reserved evidence-archive templates
+- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build, and the linked field-sync between the policy note, the shared scripts-root validator-first route, the review-process packet fields, the parity scorecard wording, the reserved evidence-archive templates, and the machine-checkable exception posture for retained stay-in-C closeouts
 - survey provenance refreshed against verified `master` head `2359c03fa82626b7359467c9b8bc9d0b092de5aa`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
@@ -82,6 +82,13 @@ There is no silent exception path around the indefinite-C policy.
 
 The only allowed exception is an Architecture Council reopen request that satisfies the documented reopen conditions and carries fresh linked evidence showing why the old blocker is no longer the current product truth.
 
+The policy packet keeps that closeout posture fixed as:
+
+- silent exception path: `forbidden`
+- only allowed exception: `architecture_council_reopen_request`
+- retained closeout state: `retired_from_active_discussion`
+- blocker requirement: `existing_blocker_remains_recorded_until_reopen_approved`
+
 Until that happens, the existing blocker remains recorded, the C implementation remains the product source of truth, and the anchor stays in the freeze-in-C set for the current plan horizon.
 
 ## Reopen conditions
@@ -92,6 +99,8 @@ An anchor recorded as remaining in C indefinitely may re-enter status review onl
 - an updated validation plan and rollback owner for that narrower seam
 - fresh linked evidence in the evidence archive showing why the old blocker disposition is no longer current
 - an Architecture Council review request that names the reopen conditions explicitly instead of implying silent drift
+
+These reopen inputs are the only machine-checkable path out of the retained stay-in-C closeout.
 
 If those reopen conditions are not met, the anchor remains in C and the review closes with the existing blocker still recorded.
 
@@ -114,9 +123,10 @@ The current lane state is:
 - landed `phase15-indefinite-c-policy-test`
 - landed `phase15-build-gate-indefinite-c-policy`
 - landed `phase15-indefinite-c-field-sync-followup`
+- landed `phase15-indefinite-c-exception-posture-manifest-sync`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane narrow. Zigux gains a dedicated, reviewable Phase 15 policy for code that remains in C indefinitely, keeps the shared validator-first route explicit beside the dedicated policy note and its paired test, keeps the focused blocker-evidence and lane-owner-alignment replays inside the same bounded policy packet, and still does not claim Architecture Council approval for any status change or any new deep-core Zig ownership.
+This keeps the lane narrow. Zigux gains a dedicated, reviewable Phase 15 policy for code that remains in C indefinitely, keeps the shared validator-first route explicit beside the dedicated policy note and its paired test, keeps the focused blocker-evidence and lane-owner-alignment replays inside the same bounded policy packet, exposes the no-silent-exception, retained-closeout, retained-blocker, and reopen-input posture in machine-checkable form, and still does not claim Architecture Council approval for any status change or any new deep-core Zig ownership.
 
 ## Non-goals
 
