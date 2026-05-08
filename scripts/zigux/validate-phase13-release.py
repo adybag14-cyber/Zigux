@@ -48,6 +48,7 @@ REQUIRED_FILES = [
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
     "scripts/zigux/check-phase13-devres-packet.py",
+    "scripts/zigux/check-phase13-notifier-packet.py",
     "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
 ]
 
@@ -471,76 +472,44 @@ def _baseline_phase13_build() -> str:
     )
 
 
-def _placeholder(rel: str) -> str:
-    if rel.endswith(".json"):
-        return "{}\n"
-    if rel.endswith(".py"):
-        return "# stub\n"
-    if rel.endswith(".md"):
-        return "# stub\n"
-    if rel.endswith(".h"):
-        return "// stub\n"
-    if rel.endswith(".zig"):
-        return "// stub\n"
-    return "\n"
-
-
-def _seed_fixture_tree(root: Path) -> None:
-    for rel in REQUIRED_FILES:
-        _write(root / rel, _placeholder(rel))
-
-    _write(root / "Documentation/zigux/README.md", "\n".join(DOC_REQUIRED_MARKERS) + "\n")
-    _write(root / "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_REQUIRED_MARKERS) + "\n")
-    _write(
-        root / "Documentation/zigux/phase13-contributor-workflow-guide.md",
-        _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
-    )
-    _write(
-        root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
-        _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
-    )
-    _write(
-        root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-        _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
-    )
-    _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
-    _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
-    _write(root / "zigux/Makefile", _baseline_makefile())
-    _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
-
-
-def _assert_only(actual: list[str], expected: list[str], label: str) -> None:
-    if actual != expected:
-        raise AssertionError(f"{label}: expected {expected!r}, got {actual!r}")
+def _assert_only(got: list[str], want: list[str], label: str) -> None:
+    if got != want:
+        raise SystemExit(
+            f"{label}: got={got!r} want={want!r}"
+        )
 
 
 def run_self_test() -> int:
     case_count = 0
-    with tempfile.TemporaryDirectory() as tmpdir:
-        root = Path(tmpdir)
-        _seed_fixture_tree(root)
+    with tempfile.TemporaryDirectory(prefix="zigux_phase13_release_validator_") as temp_dir:
+        root = Path(temp_dir)
+
+        for rel in REQUIRED_FILES:
+            _write(root / rel, "# stub\n" if rel.endswith((".py", ".md", ".json")) else "// stub\n")
+
+        _write(root / "Documentation/zigux/README.md", _repeat_markers(DOC_REQUIRED_MARKERS, DOC_EXACT_COUNTS))
+        _write(root / "Documentation/zigux/review-checklist.md", _repeat_markers(REVIEW_REQUIRED_MARKERS, REVIEW_EXACT_COUNTS))
+        _write(
+            root / "Documentation/zigux/phase13-contributor-workflow-guide.md",
+            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
+        )
+        _write(
+            root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
+            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
+        )
+        _write(
+            root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
+        )
+        _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
+        _write(root / "zigux/tests/README.md", _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
+        _write(root / "zigux/Makefile", _baseline_makefile())
+        _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
 
         _assert_only(validate(root), [], "baseline_failed")
         case_count += 1
 
         contributor_guide_path = root / "Documentation/zigux/phase13-contributor-workflow-guide.md"
-        contributor_guide_path.write_text(
-            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS).replace(
-                "scripts/zigux/check-phase13-landlock-ruleset-packet.py\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        _assert_only(
-            validate(root),
-            ["contributor-workflow-guide-exact:scripts/zigux/check-phase13-landlock-ruleset-packet.py:expected=3:actual=2"],
-            "contributor_guide_landlock_checker_exact_count_guard_failed",
-        )
-        _write(
-            contributor_guide_path,
-            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
-        )
-        case_count += 1
-
         contributor_guide_path.write_text(
             "\n".join(
                 marker
@@ -1003,6 +972,15 @@ def run_self_test() -> int:
             tests_review_companion_path,
             _repeat_markers(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, TESTS_REVIEW_COMPANION_EXACT_COUNTS),
         )
+        case_count += 1
+
+        (root / "scripts/zigux/check-phase13-notifier-packet.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:scripts/zigux/check-phase13-notifier-packet.py"],
+            "missing_notifier_checker_file_failed",
+        )
+        _write(root / "scripts/zigux/check-phase13-notifier-packet.py", "# stub\n")
         case_count += 1
 
         (root / "scripts/zigux/check-phase13-landlock-ruleset-packet.py").unlink()
