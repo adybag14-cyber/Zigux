@@ -21,6 +21,13 @@ SMOKE_SURVEY_PATH = "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
 MAKEFILE_PATH = "zigux/Makefile"
 MANIFEST_PATH = "zigux/tests/phase14_end_to_end_smoke_manifest.json"
 CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
+COMPILE_SHARD_SMOKE_MARKERS = [
+    "PHASE14_COMPILE_ARTIFACT_COUNT=5",
+    "PHASE14_FOCUSED_SHARD_COUNT=1",
+    "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
+    "- `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle`",
+    "- `phase14-ring-buffer-survey-tests`: root `phase14_ring_buffer_survey.zig`, coverage `full_bundle_only`",
+]
 REQUIRED_MARKERS = [
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
     "Documentation/zigux/phase14-release-boundary-survey.md",
@@ -63,6 +70,7 @@ REQUIRED_SMOKE_SURVEY_MARKERS = [
     "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig",
+    *COMPILE_SHARD_SMOKE_MARKERS,
 ]
 SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     CHECKER_PATH,
@@ -71,6 +79,9 @@ SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig",
+    "PHASE14_COMPILE_ARTIFACT_COUNT=5",
+    "PHASE14_FOCUSED_SHARD_COUNT=1",
+    "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
 ]
 
 
@@ -343,6 +354,69 @@ def run_self_test() -> int:
         ):
             print(
                 "self-test expected failure when the shared smoke survey duplicated the docs-root checker path",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
+
+        broken_smoke_path.write_text(
+            good_smoke_text.replace(
+                "PHASE14_FOCUSED_SHARD_COUNT=1\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
+            "PHASE14_FOCUSED_SHARD_COUNT=1" in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when the shared smoke survey lost the focused compile-shard count marker",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
+
+        broken_smoke_path.write_text(
+            good_smoke_text.replace(
+                "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4\n",
+                "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4\nPHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
+            "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4 (expected 1, found 2)" in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when the shared smoke survey duplicated the full-bundle-only compile count marker",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
+
+        broken_smoke_path.write_text(
+            good_smoke_text.replace(
+                "- `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
+            "- `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle`" in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when the shared smoke survey lost the focused compile-matrix row",
                 file=sys.stderr,
             )
             return 1
