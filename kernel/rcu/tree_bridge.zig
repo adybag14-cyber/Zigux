@@ -71,6 +71,8 @@ pub const BridgeGovernance = struct {
     blocker_reason: []const u8,
     required_evidence: []const []const u8,
     automatic_return_triggers: []const []const u8,
+    governed_checkpoint_ids: []const []const u8,
+    governed_blocked_behaviors: []const []const u8,
     next_step: []const u8,
 };
 
@@ -260,11 +262,14 @@ const governance_automatic_return_triggers = [_][]const u8{
     "freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner",
 };
 
+const governance_governed_checkpoint_ids = critical_freeze_checkpoint_ids[0..];
+const governance_governed_blocked_behaviors = critical_freeze_blocked_behaviors[0..];
+
 const governance_blocker_reason =
-    "gp_seq publication, public wait and barrier APIs, NOCB offload, idle-watch transitions, CPU-hotplug callback migration, and memory-ordering behavior remain too coupled to the deep-core Tree RCU implementation for live bridge ownership.";
+    "The memory-ordering lock network, public wait and barrier contract, and CPU-hotplug callback migration checkpoints still anchor the broader gp_seq publication, callback drainage, and hierarchy-rewire behavior too tightly to the deep-core Tree RCU implementation for live bridge ownership.";
 
 const governance_next_step =
-    "Keep kernel/rcu/tree_bridge.zig review-only until the same review packet carries a real Architecture Council reopen record, parity scorecard evidence, benchmark notes, and replay command.";
+    "Keep kernel/rcu/tree_bridge.zig review-only until the same review packet carries a real Architecture Council reopen record, parity scorecard evidence, benchmark notes, and replay command for the memory-ordering, public wait, and CPU-hotplug freeze checkpoints.";
 
 pub const RcuTreeBridgeLab = struct {
     pub fn descriptor() ModuleDescriptor {
@@ -310,6 +315,8 @@ pub const RcuTreeBridgeLab = struct {
             .blocker_reason = governance_blocker_reason,
             .required_evidence = governance_required_evidence[0..],
             .automatic_return_triggers = governance_automatic_return_triggers[0..],
+            .governed_checkpoint_ids = governance_governed_checkpoint_ids,
+            .governed_blocked_behaviors = governance_governed_blocked_behaviors,
             .next_step = governance_next_step,
         };
     }
@@ -343,6 +350,14 @@ pub const RcuTreeBridgeLab = struct {
 
     pub fn automaticReturnTriggerCount() usize {
         return governance_automatic_return_triggers.len;
+    }
+
+    pub fn governanceCheckpointCount() usize {
+        return governance_governed_checkpoint_ids.len;
+    }
+
+    pub fn governanceBlockedBehaviorCount() usize {
+        return governance_governed_blocked_behaviors.len;
     }
 
     pub fn checkpointById(id: []const u8) ?AuditCheckpoint {
@@ -387,6 +402,20 @@ pub const RcuTreeBridgeLab = struct {
 
     pub fn criticalFreezeBlockedBehaviors() []const []const u8 {
         return critical_freeze_blocked_behaviors[0..];
+    }
+
+    pub fn governsCriticalFreezeCheckpoint(id: []const u8) bool {
+        for (governance_governed_checkpoint_ids) |checkpoint_id| {
+            if (std.mem.eql(u8, checkpoint_id, id)) return true;
+        }
+        return false;
+    }
+
+    pub fn governsCriticalFreezeBlockedBehavior(behavior: []const u8) bool {
+        for (governance_governed_blocked_behaviors) |governed_behavior| {
+            if (std.mem.eql(u8, governed_behavior, behavior)) return true;
+        }
+        return false;
     }
 
     pub fn listsRequiredEvidence(evidence: []const u8) bool {
@@ -510,6 +539,7 @@ test "rcu tree bridge critical freeze checkpoint catalog stays anchored to the d
         const checkpoint = RcuTreeBridgeLab.checkpointById(checkpoint_id) orelse return error.MissingCheckpoint;
         try std.testing.expect(checkpoint.ownership == .stay_in_c);
         try std.testing.expect(RcuTreeBridgeLab.isCriticalFreezeCheckpoint(checkpoint_id));
+        try std.testing.expect(RcuTreeBridgeLab.governsCriticalFreezeCheckpoint(checkpoint_id));
     }
 
     const ordering = RcuTreeBridgeLab.checkpointById("memory-ordering-lock-network") orelse return error.MissingCheckpoint;
@@ -523,6 +553,7 @@ test "rcu tree bridge critical freeze checkpoint catalog stays anchored to the d
 
     for (RcuTreeBridgeLab.criticalFreezeBlockedBehaviors()) |behavior| {
         try std.testing.expect(RcuTreeBridgeLab.blocksLiveBehavior(behavior));
+        try std.testing.expect(RcuTreeBridgeLab.governsCriticalFreezeBlockedBehavior(behavior));
     }
 
     try std.testing.expect(!RcuTreeBridgeLab.isCriticalFreezeCheckpoint("grace-period-sequence-publication"));
@@ -538,11 +569,19 @@ test "rcu tree bridge governance keeps the blocker and rollback packet queryable
     try std.testing.expectEqualStrings("Repo Tooling Pod", governance.rollback_owner);
     try std.testing.expectEqual(@as(usize, 3), governance.required_evidence.len);
     try std.testing.expectEqual(@as(usize, 3), governance.automatic_return_triggers.len);
+    try std.testing.expectEqual(@as(usize, 3), governance.governed_checkpoint_ids.len);
+    try std.testing.expectEqual(@as(usize, 3), governance.governed_blocked_behaviors.len);
     try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.requiredEvidenceCount());
     try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.automaticReturnTriggerCount());
-    try std.testing.expect(std.mem.indexOf(u8, governance.blocker_reason, "public wait and barrier APIs") != null);
+    try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.governanceCheckpointCount());
+    try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.governanceBlockedBehaviorCount());
+    try std.testing.expect(std.mem.indexOf(u8, governance.blocker_reason, "public wait and barrier contract") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance.blocker_reason, "CPU-hotplug callback migration") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance.next_step, "Architecture Council reopen record") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance.next_step, "memory-ordering") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance.next_step, "CPU-hotplug") != null);
+    try std.testing.expectEqualStrings("memory-ordering-lock-network", governance.governed_checkpoint_ids[0]);
+    try std.testing.expectEqualStrings("public wait, polling-cookie, and callback-barrier ownership", governance.governed_blocked_behaviors[1]);
     try std.testing.expect(RcuTreeBridgeLab.listsRequiredEvidence("Architecture Council reopen record linked from the reviewable packet"));
     try std.testing.expect(RcuTreeBridgeLab.listsRequiredEvidence("parity scorecard evidence and benchmark notes attached to the same review packet"));
     try std.testing.expect(RcuTreeBridgeLab.listsAutomaticReturnTrigger("missing parity scorecard evidence, benchmark notes, or replay command in the active review packet"));
