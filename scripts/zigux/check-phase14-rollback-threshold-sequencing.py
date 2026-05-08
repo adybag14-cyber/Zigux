@@ -77,6 +77,15 @@ SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     "- `zigux/tests/phase14_ring_buffer_manifest.json`",
     "- `zigux/tests/phase14_rcu_tree_manifest.json`",
 ]
+RELEASE_BOUNDARY_EXACT_COUNT_MARKERS = [
+    "`PHASE14_STUDY_ONLY_ANCHOR_COUNT=2`",
+    "`PHASE14_FREEZE_IN_C_GOVERNED_COUNT=2`",
+    "`kernel/workqueue.c`: boundary-study-only anchor",
+    "`kernel/trace/ring_buffer.c`: boundary-study-only anchor",
+    "`kernel/rcu/tree.c`: remains blocked from active delivery",
+    "`net/core/skbuff.c`: remains blocked from active delivery",
+    "reviewability packet rather than a release-closure or status-change claim",
+]
 REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = [
     "if the change touches the shared Phase 14 smoke packet",
     "same study-only stay-in-C posture without implying an active deep-core port claim?",
@@ -116,6 +125,9 @@ def check(root: Path) -> list[str]:
                 errors.append(f"invalid json in {MANIFEST_PATH}: {exc}")
                 continue
             for marker in MANIFEST_EXACT_COUNT_MARKERS:
+                require_exact_marker_count(errors, rel_path, text, marker)
+        if rel_path == "Documentation/zigux/phase14-release-boundary-survey.md":
+            for marker in RELEASE_BOUNDARY_EXACT_COUNT_MARKERS:
                 require_exact_marker_count(errors, rel_path, text, marker)
         for marker in markers:
             if marker not in text:
@@ -197,6 +209,49 @@ def run_self_test() -> int:
             broken_path,
             required_text("Documentation/zigux/phase14-release-boundary-survey.md"),
         )
+
+        broken_path.write_text(
+            broken_path.read_text(encoding="utf-8").replace(
+                "`kernel/workqueue.c`: boundary-study-only anchor\n",
+                "`kernel/workqueue.c`: boundary-study-only anchor\n"
+                "`kernel/workqueue.c`: boundary-study-only anchor\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/phase14-release-boundary-survey.md: "
+            "`kernel/workqueue.c`: boundary-study-only anchor (expected 1, found 2)" in error
+            for error in errors
+        ):
+            print("self-test expected failure when the release-boundary workqueue anchor duplicated", file=sys.stderr)
+            return 1
+
+        write_text(
+            broken_path,
+            required_text("Documentation/zigux/phase14-release-boundary-survey.md"),
+        )
+
+        broken_path.write_text(
+            broken_path.read_text(encoding="utf-8").replace(
+                "reviewability packet rather than a release-closure or status-change claim\n",
+                "reviewability packet rather than a release-closure or status-change claim\n"
+                "reviewability packet rather than a release-closure or status-change claim\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/phase14-release-boundary-survey.md: "
+            "reviewability packet rather than a release-closure or status-change claim (expected 1, found 2)" in error
+            for error in errors
+        ):
+            print("self-test expected failure when the release-boundary reviewability line duplicated", file=sys.stderr)
+            return 1
+
+        write_text(broken_path, required_text("Documentation/zigux/phase14-release-boundary-survey.md"))
 
         broken_smoke_path = root / SMOKE_SURVEY_PATH
         broken_smoke_path.write_text(
