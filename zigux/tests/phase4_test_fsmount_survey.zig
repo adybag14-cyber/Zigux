@@ -208,7 +208,7 @@ test "phase4 test_fsmount survey keeps matrix and exact-readback checker anchors
         "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
         "zigux/tests/phase4_test_fsmount_manifest.json",
         "zigux/tests/phase4_test_fsmount_survey.zig",
-        "Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet",
+        "land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet",
     };
     for (required_matrix_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, marker) != null);
