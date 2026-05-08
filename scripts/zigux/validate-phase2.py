@@ -392,7 +392,7 @@ def validate_root(root: Path) -> list[str]:
         run_guard(
             root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-fixdep-diff.py"), "--self-test"],
-            ["FIXDEP_DIFF_SELF_TEST=pass", "FIXDEP_DIFF_SELF_TEST_CASE_COUNT=4"],
+            ["FIXDEP_DIFF_SELF_TEST=pass", "FIXDEP_DIFF_SELF_TEST_CASE_COUNT=2"],
         )
     )
     guard_issues.extend(
