@@ -456,6 +456,12 @@ pub const RulesetHelperLab = struct {
             .right => .attach_right,
         };
 
+        if (insertion_site == .root and search_plan.search_depth != 0) {
+            return error.UnexpectedSearchPath;
+        }
+        if (insertion_site != .root and search_plan.search_depth == 0) {
+            return error.MissingSearchPath;
+        }
         if (insertion_site == .root and search_plan.parent_key_data != null) {
             return error.UnexpectedParentNode;
         }
@@ -464,7 +470,7 @@ pub const RulesetHelperLab = struct {
         }
 
         return .{
-            .anchor = descriptor().anchor,
+            .anchor = search_plan.anchor,
             .root = search_plan.root,
             .mode = mode,
             .parent_key_data = search_plan.parent_key_data,
@@ -514,4 +520,35 @@ test "landlock ruleset insertion still rejects empty access for new rules" {
         &.{.{ .level = 0, .access = 0 }},
         0,
     ));
+}
+
+test "landlock ruleset tree-link rejects root insertion plans with retained search state" {
+    const malformed_search_plan = RuleTreeSearchPlan{
+        .anchor = RulesetHelperLab.descriptor().anchor,
+        .root = .inode,
+        .search_depth = 1,
+        .search_steps = [_]TreeSearchStep{.{ .node_key_data = 99, .direction = .left }} ++
+            ([_]TreeSearchStep{.{ .node_key_data = 0, .direction = .left }} ** (max_tree_search_depth - 1)),
+        .matched_existing_rule = false,
+        .parent_key_data = null,
+        .insertion_site = .root,
+        .resulting_num_rules = 1,
+    };
+
+    try std.testing.expectError(error.UnexpectedSearchPath, RulesetHelperLab.planRuleTreeLink(malformed_search_plan));
+}
+
+test "landlock ruleset tree-link rejects attachment plans without a recorded search path" {
+    const malformed_search_plan = RuleTreeSearchPlan{
+        .anchor = RulesetHelperLab.descriptor().anchor,
+        .root = .net_port,
+        .search_depth = 0,
+        .search_steps = [_]TreeSearchStep{.{ .node_key_data = 0, .direction = .left }} ** max_tree_search_depth,
+        .matched_existing_rule = false,
+        .parent_key_data = 42,
+        .insertion_site = .left,
+        .resulting_num_rules = 3,
+    };
+
+    try std.testing.expectError(error.MissingSearchPath, RulesetHelperLab.planRuleTreeLink(malformed_search_plan));
 }
