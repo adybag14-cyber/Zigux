@@ -1,6 +1,44 @@
 const std = @import("std");
 const hvc_console = @import("hvc_console.zig");
 
+test "hvc_console verify keeps failed-open close and cleanup teardown explicit" {
+    var console = try hvc_console.HvcConsoleLab.init(3);
+    _ = console.instantiate(0x31);
+
+    const failed_open = try console.summarizeOpenHandoff(.{
+        .notifier_add_result = -5,
+    });
+    try std.testing.expect(!failed_open.already_open);
+    try std.testing.expect(failed_open.notifier_add_requested);
+    try std.testing.expect(failed_open.notifier_add_failed);
+    try std.testing.expect(!failed_open.dtr_rts_raise_requested);
+    try std.testing.expect(!failed_open.port_initialized);
+    try std.testing.expect(failed_open.khvcd_wakeup_requested);
+    try std.testing.expect(failed_open.host_io_deferred);
+
+    const failed_close = try console.summarizeCloseBoundary(.{
+        .port_initialized = failed_open.port_initialized,
+        .open_count_before_close = failed_open.open_count_after_open,
+    });
+    try std.testing.expect(!failed_close.close_skipped);
+    try std.testing.expect(failed_close.final_close);
+    try std.testing.expect(!failed_close.close_wait_required);
+    try std.testing.expect(!failed_close.clears_port_initialized);
+    try std.testing.expect(failed_close.keeps_console_binding);
+    try std.testing.expect(failed_close.tty_registration_pending);
+    try std.testing.expectEqual(@as(usize, 0), failed_close.open_count_after_close);
+
+    const failed_cleanup = try console.summarizeCleanupHandoff(.{
+        .final_close = failed_close.final_close,
+    });
+    try std.testing.expect(!failed_cleanup.close_skipped);
+    try std.testing.expect(failed_cleanup.final_close);
+    try std.testing.expect(failed_cleanup.tty_port_reference_live);
+    try std.testing.expect(failed_cleanup.tty_port_put_requested);
+    try std.testing.expect(failed_cleanup.drops_tty_port_reference);
+    try std.testing.expect(failed_cleanup.deferred_final_release);
+}
+
 test "hvc_console verify keeps final-close teardown handoff ordering explicit" {
     var console = try hvc_console.HvcConsoleLab.init(12);
     const slot = console.instantiate(0xc1);
