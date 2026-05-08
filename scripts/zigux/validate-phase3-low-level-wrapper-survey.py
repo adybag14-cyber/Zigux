@@ -27,7 +27,7 @@ ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 8
 MMIO_POINTER_AT_CALL_COUNT = 8
 MMIO_FORBIDDEN_RAW_POINTER_TOKENS = (
     "@ptrFromInt",
@@ -62,15 +62,25 @@ ABI_MANIFEST_REQUIRED_FILES = (
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/validate-phase3.py",
+    "scripts/zigux/validate_phase3_selftest.py",
+    "scripts/zigux/check-phase3-selftest-surface.py",
+    "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+    "scripts/zigux/check-phase3-abi-dump-gate.py",
+    "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/check-phase3-policy-byte-guards.py",
+    "scripts/zigux/generate-phase3-check-wrappers.py",
+    "Documentation/zigux/README.md",
     ABI_SLICE_DOC_REL,
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     DOC_REL,
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
-    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
+    "scripts/zigux/README.md",
+    ".github/workflows/zigux-bootstrap.yml",
 )
 
 REQUIRED_DOC_MARKERS = (
@@ -483,6 +493,14 @@ def run_self_test() -> int:
         write(root / ABI_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
         issues = validate(root)
         assert "manifest_missing_entry:zigux/tests/phase3_export_uapi_layout.zig" in issues, issues
+
+        build_valid_workspace(root)
+        manifest = json.loads((root / ABI_MANIFEST_REL).read_text(encoding="utf-8"))
+        manifest["files"] = [rel for rel in manifest["files"] if rel != "scripts/zigux/validate_phase3_selftest.py"]
+        manifest["file_count"] = len(manifest["files"])
+        write(root / ABI_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        issues = validate(root)
+        assert "manifest_missing_entry:scripts/zigux/validate_phase3_selftest.py" in issues, issues
 
         build_valid_workspace(root)
         write(root / LOW_LEVEL_TEST_REL, (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8").replace(
