@@ -4,10 +4,11 @@
   "surveyed_commit": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
   "anchor": "samples/kprobes/kretprobe_example.c",
   "sample_path": "samples/zigux/kretprobe_example.zig",
+  "focused_boundary_test_path": "zigux/tests/phase5_kretprobe_example.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the manifest and survey test still describe the exact sample-owned runRetargetReplay() symbol-selection guard, skip, return-value, duration, missed-summary, lifecycle-guard, runRecoveryReplay() teardown recovery, and fixed maxactiveBudget() = 20 cue run through phase5_build.zig, with runLifecycleGuardReplay() keeping pre-init and post-init guard boundaries explicit",
+    "the manifest and survey test still pin the focused boundary replay at zigux/tests/phase5_kretprobe_example.zig and describe the exact sample-owned runRetargetReplay() symbol-selection guard, skip, return-value, duration, missed-summary, lifecycle-guard, runRecoveryReplay() teardown recovery, and fixed maxactiveBudget() = 20 cue run through phase5_build.zig, with runLifecycleGuardReplay() keeping pre-init and post-init guard boundaries explicit",
     "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
     "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
     "ownershipSummary keeps cold, initialized, armed, replay_complete, and exited snapshots explicit instead of leaving lifecycle review hidden in raw fields",
