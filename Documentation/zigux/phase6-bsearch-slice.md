@@ -14,6 +14,7 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
 - evidence note: direct readback on `2026-05-07` inspected the current `lib/bsearch.c`, `lib/bsearch.zig`, and `zigux/tests/phase6_bsearch.zig` packet so this slice stays limited to the shipped helper-local review surface instead of stale blob bookkeeping
+- roadmap anchor note: the live `lib/bsearch.c` anchor is still a thin `__inline_bsearch(...)` wrapper, so the shipped Zigux packet keeps raw `bsearch` and `bsearchMutable` replay as the roadmap-facing surface while the typed helper entrypoints stay as reviewability companions for the same comparator contract instead of implying a separate direct C harness or timing-style perf gate
 
 ## Why this slice exists
 
@@ -24,6 +25,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - leaf-oriented
 - small enough to validate with deterministic sorted inputs kept directly in the focused replay
 - a clean API-parity target for comparator-driven helper behavior
+- thin enough that the roadmap-facing parity claim can stay concentrated on the raw `bsearch` contract while Zig-only typed helpers keep the same comparison semantics easier to inspect in one bounded packet
 
 ## Gates
 
@@ -54,6 +56,8 @@ The current bsearch helper surface exercised by this slice covers:
 - `RawComparator`
 - `CRawComparator`
 
+Within that surface, the roadmap-facing parity anchor remains the raw `bsearch` and `bsearchMutable` pair that mirrors the thin Linux wrapper, while `searchIndex`, `search`, `searchMutable`, and `bsearchIndex` stay helper-local companions that make the comparator contract and comparison-budget evidence directly reviewable without widening Phase 6 into another helper family.
+
 The current tests check:
 
 - integer-key hits at the beginning, middle, and end of a sorted slice
@@ -70,6 +74,7 @@ The current tests check:
 - runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses
 - representative lookup work stays inside a bounded binary-search comparison budget for both typed and raw lookup paths
 - raw record lookup parity that exercises `member_size` across packed record entries and mutable write-through directly in the focused Phase 6 packet
+- raw `bsearch` and `bsearchMutable` replay stays explicit as the roadmap-facing wrapper surface while the typed helpers prove the same comparison semantics without needing a separate C harness packet
 
 The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable, and the same focused replay now carries the bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route.
 
@@ -80,6 +85,7 @@ This slice does not yet claim:
 - lower-bound or upper-bound helpers
 - duplicate-key stability guarantees beyond matching the kernel-style found-or-null contract
 - standalone nanosecond ceilings or a dedicated `phase6_bsearch_perf` route beyond the bundled comparison-budget replay
+- a separate direct C harness, because the current roadmap anchor is still only the thin exported wrapper around `__inline_bsearch(...)`
 
 ## Next bounded step
 
