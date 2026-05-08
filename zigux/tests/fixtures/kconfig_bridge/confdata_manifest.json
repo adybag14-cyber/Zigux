@@ -4,7 +4,7 @@
   "mode": "bounded config bridge",
   "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
   "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
-  "case_count": 10,
+  "case_count": 11,
   "cases": [
     "sample",
     "escaped_strings",
@@ -15,7 +15,8 @@
     "final_trailing_carriage_return",
     "final_unterminated_unset_comment",
     "uppercase_tristate",
-    "non_config_lines"
+    "non_config_lines",
+    "empty_config_symbol_names"
   ],
   "input_packet": [
     "sample.config",
@@ -27,7 +28,8 @@
     "final_trailing_carriage_return.config",
     "final_unterminated_unset_comment.config",
     "uppercase_tristate.config",
-    "non_config_lines.config"
+    "non_config_lines.config",
+    "empty_config_symbol_names.config"
   ],
   "expected_packet": [
     "sample_expected.json",
@@ -39,7 +41,8 @@
     "final_trailing_carriage_return_expected.json",
     "final_unterminated_unset_comment_expected.json",
     "uppercase_tristate_expected.json",
-    "non_config_lines_expected.json"
+    "non_config_lines_expected.json",
+    "empty_config_symbol_names_expected.json"
   ],
   "helper_local_anchors": [
     "confdata bridge parses bounded config states",
