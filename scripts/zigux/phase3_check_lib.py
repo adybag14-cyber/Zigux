@@ -19,6 +19,7 @@ SCRIPT_PREFIX = "check-phase3-"
 PHASE3_PREFLIGHT_SCRIPTS = {
     "abi": (
         "scripts/zigux/survey-phase3-abi-constant-parity.py",
+        "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
         "scripts/zigux/check-phase3-policy-byte-guards.py",
     ),
 }
@@ -240,6 +241,7 @@ def run_self_test() -> int:
     assert parsed.zig == "/tmp/zig"
     assert [path.as_posix() for path in preflight_scripts_for_slug("abi")] == [
         (ROOT / "scripts/zigux/survey-phase3-abi-constant-parity.py").as_posix(),
+        (ROOT / "scripts/zigux/validate-phase3-policy-unsafe-survey.py").as_posix(),
         (ROOT / "scripts/zigux/check-phase3-policy-byte-guards.py").as_posix(),
     ]
     assert preflight_scripts_for_slug("bitmap-cpumask") == ()
