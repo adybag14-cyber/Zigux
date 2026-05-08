@@ -239,6 +239,13 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_TESTS_README_MARKERS:
         if marker not in tests_readme_text:
             issues.append(f"tests_readme_marker:{marker}")
+    issues.extend(
+        validate_exact_substrings(
+            tests_readme_text,
+            REQUIRED_TESTS_README_MARKERS,
+            prefix="tests_readme_exact_marker",
+        )
+    )
 
     validate_phase2_text = (root / VALIDATE_PHASE2.relative_to(ROOT)).read_text(encoding="utf-8")
     for marker in REQUIRED_VALIDATE_PHASE2_MARKERS:
@@ -470,6 +477,27 @@ def run_self_test() -> int:
         assert f"tests_readme_marker:{REQUIRED_TESTS_README_MARKERS[0]}" in issues
 
         build_self_test_root(root)
+        tests_readme_path = root / "zigux/tests/README.md"
+        tests_readme_text = tests_readme_path.read_text(encoding="utf-8") + REQUIRED_TESTS_README_MARKERS[0] + "\n"
+        write_text(tests_readme_path, tests_readme_text)
+        issues = validate_root(root)
+        assert f"tests_readme_exact_marker:{REQUIRED_TESTS_README_MARKERS[0]}:count=2:expected=1" in issues
+
+        build_self_test_root(root)
+        tests_readme_path = root / "zigux/tests/README.md"
+        tests_readme_text = tests_readme_path.read_text(encoding="utf-8").replace(REQUIRED_TESTS_README_MARKERS[1] + "\n", "", 1)
+        write_text(tests_readme_path, tests_readme_text)
+        issues = validate_root(root)
+        assert f"tests_readme_marker:{REQUIRED_TESTS_README_MARKERS[1]}" in issues
+
+        build_self_test_root(root)
+        tests_readme_path = root / "zigux/tests/README.md"
+        tests_readme_text = tests_readme_path.read_text(encoding="utf-8") + REQUIRED_TESTS_README_MARKERS[1] + "\n"
+        write_text(tests_readme_path, tests_readme_text)
+        issues = validate_root(root)
+        assert f"tests_readme_exact_marker:{REQUIRED_TESTS_README_MARKERS[1]}:count=2:expected=1" in issues
+
+        build_self_test_root(root)
         validate_phase2_path = root / "scripts/zigux/validate-phase2.py"
         validate_phase2_text = validate_phase2_path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATE_PHASE2_MARKERS[1] + "\n", "", 1)
         write_text(validate_phase2_path, validate_phase2_text)
@@ -519,7 +547,7 @@ def run_self_test() -> int:
         assert f"workflow_line:{REQUIRED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
 
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=29")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
