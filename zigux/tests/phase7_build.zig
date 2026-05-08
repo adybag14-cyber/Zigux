@@ -28,6 +28,12 @@ pub fn build(b: *std.Build) void {
     const run_string_helpers_survey_tests = b.addRunArtifact(string_helpers_survey_tests);
     run_string_helpers_survey_tests.setCwd(b.path("../.."));
 
+    const string_helpers_survey_step = b.step(
+        "phase7-string-helpers-survey",
+        "Run the dedicated Phase 7 string_helpers survey gate",
+    );
+    string_helpers_survey_step.dependOn(&run_string_helpers_survey_tests.step);
+
     const cmdline_module = b.createModule(.{
         .root_source_file = b.path("../../lib/cmdline.zig"),
         .target = target,
@@ -51,6 +57,12 @@ pub fn build(b: *std.Build) void {
     });
     const run_cmdline_survey_tests = b.addRunArtifact(cmdline_survey_tests);
     run_cmdline_survey_tests.setCwd(b.path("../.."));
+
+    const cmdline_survey_step = b.step(
+        "phase7-cmdline-survey",
+        "Run the dedicated Phase 7 cmdline survey gate",
+    );
+    cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step);
 
     const argv_split_module = b.createModule(.{
         .root_source_file = b.path("../../lib/argv_split.zig"),
@@ -106,6 +118,12 @@ pub fn build(b: *std.Build) void {
     const run_rbtree_survey_tests = b.addRunArtifact(rbtree_survey_tests);
     run_rbtree_survey_tests.setCwd(b.path("../.."));
 
+    const rbtree_survey_step = b.step(
+        "phase7-rbtree-survey",
+        "Run the dedicated Phase 7 rbtree survey gate",
+    );
+    rbtree_survey_step.dependOn(&run_rbtree_survey_tests.step);
+
     const string_helpers_sample_boundary_root_module = b.createModule(.{
         .root_source_file = b.path("phase7_string_helpers_sample_boundary.zig"),
         .target = target,
@@ -117,6 +135,12 @@ pub fn build(b: *std.Build) void {
     });
     const run_string_helpers_sample_boundary_tests = b.addRunArtifact(string_helpers_sample_boundary_tests);
     run_string_helpers_sample_boundary_tests.setCwd(b.path("../.."));
+
+    const string_helpers_sample_boundary_step = b.step(
+        "phase7-string-helpers-sample-boundary",
+        "Run the dedicated Phase 7 string_helpers sample-boundary gate",
+    );
+    string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step);
 
     const string_helpers_tests = b.addTest(.{
         .name = "phase7-string-helpers-tests",
