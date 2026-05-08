@@ -239,6 +239,22 @@ PHASE4_BITMAP_PIN_TARGETS = {
     "phase4_build_blob_sha": "zigux/tests/phase4_build.zig",
 }
 
+EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_LINES = [
+    "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass",
+    "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=17",
+    "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES=catalog_shape,review_note_marker_round_trip,review_note_marker_drift,helper_summary_round_trip,contract_summary_round_trip,helper_summary_status_drift,helper_summary_count_drift,helper_summary_duplicate_case_drift,helper_summary_case_order_drift,contract_summary_status_drift,contract_summary_base_count_drift,contract_summary_base_case_order_drift,contract_summary_repeat_count_drift,contract_summary_repeat_case_order_drift,contract_summary_case_count_drift,contract_summary_duplicate_case_drift,contract_summary_case_order_drift",
+]
+
+EXPECTED_ARTIFACT_DIFF_CONTRACT_LINES = [
+    "ARTIFACT_DIFF_CONTRACT=pass",
+    "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23",
+    "ARTIFACT_DIFF_CONTRACT_BASE_CASES=helper_self_test,cli_help_output,cli_missing_required_args,cli_missing_actual_operand,cli_invalid_mode,text_pass,text_mismatch,text_missing_expected,text_missing_actual,text_missing_both,json_pass,json_mismatch,json_missing_expected,json_missing_actual,json_missing_both,json_invalid_expected,json_invalid_actual,json_invalid_both,sha256_pass,sha256_missing_expected,sha256_missing_actual,sha256_missing_both,sha256_drift",
+    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5",
+    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=helper_self_test_repeat,cli_help_output_repeat,text_pass_repeat,json_mismatch_repeat,sha256_drift_repeat",
+    "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28",
+    "ARTIFACT_DIFF_CONTRACT_CASES=helper_self_test,helper_self_test_repeat,cli_help_output,cli_help_output_repeat,cli_missing_required_args,cli_missing_actual_operand,cli_invalid_mode,text_pass,text_pass_repeat,text_mismatch,text_missing_expected,text_missing_actual,text_missing_both,json_pass,json_mismatch,json_mismatch_repeat,json_missing_expected,json_missing_actual,json_missing_both,json_invalid_expected,json_invalid_actual,json_invalid_both,sha256_pass,sha256_missing_expected,sha256_missing_actual,sha256_missing_both,sha256_drift,sha256_drift_repeat",
+]
+
 
 def _missing_files(root: Path) -> list[str]:
     return [path for path in REQUIRED_FILES if not (root / path).exists()]
@@ -265,6 +281,22 @@ def _run_python_script(root: Path, relative_path: str, *args: str) -> tuple[int,
         check=False,
     )
     return result.returncode, result.stdout.splitlines()
+
+
+def _expect_exact_output(
+    label: str,
+    lines: list[str],
+    expected_lines: list[str],
+) -> list[str]:
+    if lines == expected_lines:
+        return []
+    return [
+        f"{label}:unexpected_output",
+        f"{label}:expected_count:{len(expected_lines)}",
+        f"{label}:actual_count:{len(lines)}",
+        f"{label}:expected_lines:{' || '.join(expected_lines)}",
+        f"{label}:actual_lines:{' || '.join(lines)}",
+    ]
 
 
 def validate_root(root: Path) -> list[str]:
@@ -320,18 +352,22 @@ def run_artifact_diff_contract_check(root: Path) -> list[str]:
     code, lines = _run_python_script(root, "scripts/zigux/check-artifact-diff-contract.py")
     if code != 0:
         return [f"artifact_diff_contract:exit:{code}"]
-    if "ARTIFACT_DIFF_CONTRACT=pass" not in lines:
-        return ["artifact_diff_contract:missing_pass_marker"]
-    return []
+    return _expect_exact_output(
+        "artifact_diff_contract",
+        lines,
+        EXPECTED_ARTIFACT_DIFF_CONTRACT_LINES,
+    )
 
 
 def run_artifact_diff_contract_self_test_check(root: Path) -> list[str]:
     code, lines = _run_python_script(root, "scripts/zigux/check-artifact-diff-contract.py", "--self-test")
     if code != 0:
         return [f"artifact_diff_contract_self_test:exit:{code}"]
-    if "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass" not in lines:
-        return ["artifact_diff_contract_self_test:missing_pass_marker"]
-    return []
+    return _expect_exact_output(
+        "artifact_diff_contract_self_test",
+        lines,
+        EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_LINES,
+    )
 
 
 def run_phase4_gate_evidence_check(root: Path) -> list[str]:
@@ -476,10 +512,14 @@ def build_fixture_tree(root: Path) -> None:
             [
                 "#!/usr/bin/env python3",
                 "import sys",
+                f"SELF_TEST_LINES = {EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_LINES!r}",
+                f"CONTRACT_LINES = {EXPECTED_ARTIFACT_DIFF_CONTRACT_LINES!r}",
                 "if '--self-test' in sys.argv:",
-                "    print('ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass')",
+                "    for line in SELF_TEST_LINES:",
+                "        print(line)",
                 "else:",
-                "    print('ARTIFACT_DIFF_CONTRACT=pass')",
+                "    for line in CONTRACT_LINES:",
+                "        print(line)",
             ]
         )
         + "\n",
@@ -814,6 +854,32 @@ def run_self_test() -> int:
         assert failures == [
             "runtime_atomic64_manifest_marker:ready_next:Documentation/zigux/phase4-gate-evidence.md"
         ], failures
+
+        bad_root6 = Path(tmp_dir) / "bad6"
+        build_fixture_tree(bad_root6)
+        contract_checker = bad_root6 / "scripts/zigux/check-artifact-diff-contract.py"
+        contract_checker.write_text(
+            contract_checker.read_text(encoding="utf-8").replace(
+                "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28",
+                "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27",
+            ),
+            encoding="utf-8",
+        )
+        failures = run_artifact_diff_contract_check(bad_root6)
+        assert failures and failures[0] == "artifact_diff_contract:unexpected_output", failures
+
+        bad_root7 = Path(tmp_dir) / "bad7"
+        build_fixture_tree(bad_root7)
+        contract_checker = bad_root7 / "scripts/zigux/check-artifact-diff-contract.py"
+        contract_checker.write_text(
+            contract_checker.read_text(encoding="utf-8").replace(
+                "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=17",
+                "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=16",
+            ),
+            encoding="utf-8",
+        )
+        failures = run_artifact_diff_contract_self_test_check(bad_root7)
+        assert failures and failures[0] == "artifact_diff_contract_self_test:unexpected_output", failures
 
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
