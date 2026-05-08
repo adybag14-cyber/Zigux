@@ -12,7 +12,6 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 21
 
 
 @dataclass(frozen=True)
@@ -192,6 +191,7 @@ def _require_target(
 
 
 def run_self_test() -> int:
+    case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_selftest_runner_") as tmp_dir:
         tmp_root = Path(tmp_dir)
 
@@ -200,25 +200,30 @@ def run_self_test() -> int:
             "PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass",
             extra_markers=("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT=",),
         )
+        case_count += 1
         _require_target(
             "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
             "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",
             extra_markers=("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=",),
         )
+        case_count += 1
         _require_target(
             "scripts/zigux/check-phase3-policy-byte-guards.py",
             "PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass",
             extra_markers=("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=",),
         )
+        case_count += 1
         _require_target(
             "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
             "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
             extra_markers=("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT=",),
         )
+        case_count += 1
 
         success_root = tmp_root / "success"
         _populate_root(success_root)
         assert run_targets(success_root) == []
+        case_count += 1
 
         missing_root = tmp_root / "missing"
         _populate_root(missing_root)
@@ -226,6 +231,7 @@ def run_self_test() -> int:
         assert run_targets(missing_root) == [
             "missing_script:scripts/zigux/survey-phase3-abi-constant-parity.py"
         ]
+        case_count += 1
 
         wrong_marker_root = tmp_root / "wrong-marker"
         _populate_root(wrong_marker_root)
@@ -234,8 +240,10 @@ def run_self_test() -> int:
             "WRONG_MARKER=pass",
         )
         assert run_targets(wrong_marker_root) == [
-            "missing_pass_marker:scripts/zigux/survey-phase3-abi-constant-parity.py:PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass"
+            "missing_pass_marker:scripts/zigux/survey-phase3-abi-constant-parity.py:PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass",
+            "missing_aux_marker:scripts/zigux/survey-phase3-abi-constant-parity.py:PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT=",
         ]
+        case_count += 1
 
         wrong_abi_bindings_marker_root = tmp_root / "wrong-abi-bindings-marker"
         _populate_root(wrong_abi_bindings_marker_root)
@@ -246,6 +254,7 @@ def run_self_test() -> int:
         assert run_targets(wrong_abi_bindings_marker_root) == [
             "missing_pass_marker:scripts/zigux/validate-phase3-abi-bindings-syntax.py:PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass"
         ]
+        case_count += 1
 
         duplicate_marker_root = tmp_root / "duplicate-marker"
         _populate_root(duplicate_marker_root)
@@ -271,8 +280,10 @@ def run_self_test() -> int:
             newline="\n",
         )
         assert run_targets(duplicate_marker_root) == [
-            "duplicate_pass_marker:scripts/zigux/survey-phase3-abi-constant-parity.py:2:PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass"
+            "duplicate_pass_marker:scripts/zigux/survey-phase3-abi-constant-parity.py:2:PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass",
+            "missing_aux_marker:scripts/zigux/survey-phase3-abi-constant-parity.py:PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT=",
         ]
+        case_count += 1
 
         failing_root = tmp_root / "failing"
         _populate_root(failing_root)
@@ -285,6 +296,7 @@ def run_self_test() -> int:
             "self_test_failed:scripts/zigux/survey-phase3-abi-constant-parity.py:rc=7",
             "self_test_stdout:scripts/zigux/survey-phase3-abi-constant-parity.py:PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass",
         ]
+        case_count += 1
 
         missing_constant_aux_root = tmp_root / "missing-constant-aux"
         _populate_root(missing_constant_aux_root)
@@ -295,10 +307,13 @@ def run_self_test() -> int:
         assert run_targets(missing_constant_aux_root) == [
             "missing_aux_marker:scripts/zigux/survey-phase3-abi-constant-parity.py:PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT="
         ]
+        case_count += 1
 
         duplicate_constant_aux_root = tmp_root / "duplicate-constant-aux"
         _populate_root(duplicate_constant_aux_root)
-        duplicate_constant_aux_path = duplicate_constant_aux_root / "scripts/zigux/survey-phase3-abi-constant-parity.py"
+        duplicate_constant_aux_path = (
+            duplicate_constant_aux_root / "scripts/zigux/survey-phase3-abi-constant-parity.py"
+        )
         duplicate_constant_aux_path.write_text(
             "\n".join(
                 [
@@ -323,6 +338,7 @@ def run_self_test() -> int:
         assert run_targets(duplicate_constant_aux_root) == [
             "duplicate_aux_marker:scripts/zigux/survey-phase3-abi-constant-parity.py:2:PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT="
         ]
+        case_count += 1
 
         missing_aux_root = tmp_root / "missing-aux"
         _populate_root(missing_aux_root)
@@ -333,6 +349,7 @@ def run_self_test() -> int:
         assert run_targets(missing_aux_root) == [
             "missing_aux_marker:scripts/zigux/validate-phase3-export-uapi-survey.py:PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT="
         ]
+        case_count += 1
 
         duplicate_aux_root = tmp_root / "duplicate-aux"
         _populate_root(duplicate_aux_root)
@@ -361,6 +378,7 @@ def run_self_test() -> int:
         assert run_targets(duplicate_aux_root) == [
             "duplicate_aux_marker:scripts/zigux/validate-phase3-export-uapi-survey.py:2:PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT="
         ]
+        case_count += 1
 
         missing_policy_aux_root = tmp_root / "missing-policy-aux"
         _populate_root(missing_policy_aux_root)
@@ -371,6 +389,7 @@ def run_self_test() -> int:
         assert run_targets(missing_policy_aux_root) == [
             "missing_aux_marker:scripts/zigux/validate-phase3-policy-unsafe-survey.py:PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT="
         ]
+        case_count += 1
 
         duplicate_policy_aux_root = tmp_root / "duplicate-policy-aux"
         _populate_root(duplicate_policy_aux_root)
@@ -401,6 +420,7 @@ def run_self_test() -> int:
         assert run_targets(duplicate_policy_aux_root) == [
             "duplicate_aux_marker:scripts/zigux/validate-phase3-policy-unsafe-survey.py:2:PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT="
         ]
+        case_count += 1
 
         missing_policy_byte_aux_root = tmp_root / "missing-policy-byte-aux"
         _populate_root(missing_policy_byte_aux_root)
@@ -411,6 +431,7 @@ def run_self_test() -> int:
         assert run_targets(missing_policy_byte_aux_root) == [
             "missing_aux_marker:scripts/zigux/check-phase3-policy-byte-guards.py:PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT="
         ]
+        case_count += 1
 
         duplicate_policy_byte_aux_root = tmp_root / "duplicate-policy-byte-aux"
         _populate_root(duplicate_policy_byte_aux_root)
@@ -441,6 +462,7 @@ def run_self_test() -> int:
         assert run_targets(duplicate_policy_byte_aux_root) == [
             "duplicate_aux_marker:scripts/zigux/check-phase3-policy-byte-guards.py:2:PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT="
         ]
+        case_count += 1
 
         missing_low_level_aux_root = tmp_root / "missing-low-level-aux"
         _populate_root(missing_low_level_aux_root)
@@ -451,6 +473,7 @@ def run_self_test() -> int:
         assert run_targets(missing_low_level_aux_root) == [
             "missing_aux_marker:scripts/zigux/validate-phase3-low-level-wrapper-survey.py:PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT="
         ]
+        case_count += 1
 
         duplicate_low_level_aux_root = tmp_root / "duplicate-low-level-aux"
         _populate_root(duplicate_low_level_aux_root)
@@ -481,6 +504,7 @@ def run_self_test() -> int:
         assert run_targets(duplicate_low_level_aux_root) == [
             "duplicate_aux_marker:scripts/zigux/validate-phase3-low-level-wrapper-survey.py:2:PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT="
         ]
+        case_count += 1
 
         stderr_root = tmp_root / "stderr"
         _populate_root(stderr_root)
@@ -510,9 +534,10 @@ def run_self_test() -> int:
             "self_test_stdout:scripts/zigux/survey-phase3-abi-constant-parity.py:PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass",
             "self_test_stderr:scripts/zigux/survey-phase3-abi-constant-parity.py:broken",
         ]
+        case_count += 1
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print(f"PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT={PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT}")
+    print(f"PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
