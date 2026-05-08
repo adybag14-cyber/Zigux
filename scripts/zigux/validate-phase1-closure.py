@@ -346,6 +346,14 @@ CLOSURE_MARKERS = [
     "PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig",
     "PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py",
     "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
+    "PHASE1_FIND_BIT_ZERO_WINDOW_REVIEW=helper-local zero-bit-window proof stays explicit through the direct find_bit test anchor so first-scan entrypoints return the empty-window boundary without reading bitmap words",
+    "PHASE1_FIND_BIT_PAST_NBITS_REVIEW=helper-local past-nbits short-circuit proof stays explicit through the direct find_bit test anchor so next scans starting at or beyond nbits return the boundary without reading bitmap words outside the caller-visible window",
+    "PHASE1_BITMAP_FIRST_WORD_BOUNDARY_REVIEW=helper-local bitmap first-word boundary proof stays explicit through the direct bitmap test anchor so setRange and clearRange preserve exact first-word masks when a range ends on the first-word boundary",
+    "PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW=helper-local bitmap final partial-word proof stays explicit through the direct bitmap test anchor so setRange and clearRange clamp trailing partial-word masks to the requested tail window instead of spilling work beyond it",
+    "PHASE1_BITMAP_ZERO_BIT_NOOP_REVIEW=helper-local bitmap zero-bit no-op proof stays explicit through the direct bitmap test anchor so zero-bit windows keep mutating helpers, boolean queries, and the rendered empty-window path from touching caller-visible storage or writing hidden bytes",
+    "PHASE1_BITMAP_LINUX_ALIAS_REVIEW=helper-local bitmap Linux-style alias proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so the Linux-style bitmap alloc/free, zero/fill, predicate, mutation, and render aliases remain behaviorally locked to the primary helper surface",
+    "PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, signed overflow saturates instead of trapping, and suffixes are still consumed after saturation",
+    "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while match-iterator coverage plus cached-root insert-miss, replacement, detach, and reseed behavior keep direct review anchors without implying a broader shared iterator or cached-root fixture packet than current master ships",
     "PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring",
 ]
 
@@ -492,6 +500,24 @@ def run_self_test() -> None:
         path = root / "zigux/Makefile"
         path.write_text(path.read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[0] + "\n", "", 1), encoding="utf-8")
         assert any(item.startswith("makefile:") for item in collect_missing_markers(root))
+        cases += 1
+        make_fixture_root(root)
+
+        path = root / "Documentation/zigux/phase1-closure.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[10] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        assert f"closure:{CLOSURE_MARKERS[10]}" in collect_missing_markers(root)
+        cases += 1
+        make_fixture_root(root)
+
+        path = root / "Documentation/zigux/phase1-closure.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[12] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        assert f"closure:{CLOSURE_MARKERS[12]}" in collect_missing_markers(root)
         cases += 1
         make_fixture_root(root)
 
