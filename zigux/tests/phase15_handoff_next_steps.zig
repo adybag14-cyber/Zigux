@@ -10,6 +10,7 @@ const RepoEvidence = struct {
     readiness_note_present: bool,
     tests_root_phase15_surface_present: bool,
     phase15_validate_target_present: bool,
+    phase15_make_test_target_present: bool,
     scripts_alignment_guard_present: bool,
     phase15_make_target_present: bool,
     shared_ci_phase15_present: bool,
@@ -80,6 +81,7 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(manifest.repo_evidence.readiness_note_present);
     try std.testing.expect(manifest.repo_evidence.tests_root_phase15_surface_present);
     try std.testing.expect(manifest.repo_evidence.phase15_validate_target_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_make_test_target_present);
     try std.testing.expect(manifest.repo_evidence.scripts_alignment_guard_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
@@ -191,6 +193,7 @@ test "phase 15 handoff note keeps the repaired validator-first surface and remai
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "scripts/zigux/check-phase15-scripts-readme-alignment.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "scripts/zigux/check-phase15-review-process-handoff.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15-validate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared `zigux/tests/phase15_build.zig` replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-readiness-gate-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "deep-core-only blocker posture") != null);
