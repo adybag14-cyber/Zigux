@@ -213,6 +213,80 @@ test "phase 6 bsearch treats duplicate keys as found-or-null without claiming st
     try std.testing.expectEqual(@as(u32, 7), found.*);
 }
 
+test "phase 6 bsearch typed lower-bound replay stays aligned with duplicates and descending insertion edges" {
+    const ascending = [_]u32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]u32{ 16, 9, 4, 4, 4, 1 };
+
+    try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 0), ascending[0..], compareU32));
+    try std.testing.expectEqual(@as(usize, 1), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 4), ascending[0..], compareU32));
+    try std.testing.expectEqual(@as(usize, 4), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 5), ascending[0..], compareU32));
+    try std.testing.expectEqual(@as(usize, ascending.len), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 20), ascending[0..], compareU32));
+
+    try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 20), descending[0..], compareDescendingU32));
+    try std.testing.expectEqual(@as(usize, 2), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 4), descending[0..], compareDescendingU32));
+    try std.testing.expectEqual(@as(usize, 5), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 3), descending[0..], compareDescendingU32));
+    try std.testing.expectEqual(@as(usize, descending.len), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 0), descending[0..], compareDescendingU32));
+}
+
+test "phase 6 bsearch raw lower-bound replay stays aligned with duplicates and record member_size" {
+    const ascending = [_]u32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]u32{ 16, 9, 4, 4, 4, 1 };
+    const records = [_]RawRecord{
+        .{ .key = 1, .tag = 10, .flags = 0, .value = 10 },
+        .{ .key = 4, .tag = 11, .flags = 1, .value = 40 },
+        .{ .key = 4, .tag = 12, .flags = 0, .value = 41 },
+        .{ .key = 11, .tag = 13, .flags = 2, .value = 110 },
+        .{ .key = 16, .tag = 14, .flags = 0, .value = 160 },
+    };
+
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 0), @ptrCast(ascending[0..].ptr), ascending.len, @sizeOf(u32), compareOpaqueU32),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 4), @ptrCast(ascending[0..].ptr), ascending.len, @sizeOf(u32), compareOpaqueU32),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 5), @ptrCast(ascending[0..].ptr), ascending.len, @sizeOf(u32), compareOpaqueU32),
+    );
+    try std.testing.expectEqual(
+        @as(usize, ascending.len),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 20), @ptrCast(ascending[0..].ptr), ascending.len, @sizeOf(u32), compareOpaqueU32),
+    );
+
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 20), @ptrCast(descending[0..].ptr), descending.len, @sizeOf(u32), compareDescendingOpaqueU32),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 2),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 4), @ptrCast(descending[0..].ptr), descending.len, @sizeOf(u32), compareDescendingOpaqueU32),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 5),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 3), @ptrCast(descending[0..].ptr), descending.len, @sizeOf(u32), compareDescendingOpaqueU32),
+    );
+    try std.testing.expectEqual(
+        @as(usize, descending.len),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 0), @ptrCast(descending[0..].ptr), descending.len, @sizeOf(u32), compareDescendingOpaqueU32),
+    );
+
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 4), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareRawRecordKey),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 3),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 10), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareRawRecordKey),
+    );
+    try std.testing.expectEqual(
+        @as(usize, records.len),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 42), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareRawRecordKey),
+    );
+}
+
 test "phase 6 bsearch typed empty-input lookup returns null without invoking the comparator" {
     const empty = [_]u32{};
     var mutable_empty = [_]u32{};
