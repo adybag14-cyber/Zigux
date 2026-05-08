@@ -176,3 +176,46 @@ test "phase4 test_fsmount survey build replay stays aligned with the parked pack
         std.mem.indexOf(u8, note, "stays outside the shared gate-evidence packet") != null,
     );
 }
+
+test "phase4 test_fsmount survey keeps matrix and exact-readback checker anchors explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const phase4_matrix = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase4-validation-matrix.md",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(phase4_matrix);
+
+    const gate_evidence_checker = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/check-phase4-gate-evidence.py",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(gate_evidence_checker);
+
+    const required_matrix_markers = [_][]const u8{
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "zigux/tests/phase4_test_fsmount_manifest.json",
+        "zigux/tests/phase4_test_fsmount_survey.zig",
+        "Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet",
+    };
+    for (required_matrix_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, marker) != null);
+    }
+
+    const required_checker_markers = [_][]const u8{
+        "TEST_FSMOUNT_NOTE_PATH = Path(\"Documentation/zigux/phase4-test-fsmount-gap-survey.md\")",
+        "TEST_FSMOUNT_MANIFEST_PATH = Path(\"zigux/tests/phase4_test_fsmount_manifest.json\")",
+        "TEST_FSMOUNT_SURVEY_PATH = Path(\"zigux/tests/phase4_test_fsmount_survey.zig\")",
+        "def validate_test_fsmount_gap_packet(root: Path) -> list[str]:",
+        "missing.extend(validate_test_fsmount_gap_packet(root))",
+        "shared validator route now picks that same parked packet up through `scripts/zigux/check-phase4-gate-evidence.py` while `samples/zigux/test_fsmount.zig` remains absent on current `master`",
+    };
+    for (required_checker_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, gate_evidence_checker, marker) != null);
+    }
+}
