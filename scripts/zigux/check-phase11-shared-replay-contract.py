@@ -108,6 +108,7 @@ REQUIRED_HVC_CONSOLE_MATRIX_MARKERS = [
 REQUIRED_DOCS_README_MARKERS = [
     "Phase 11 notes",
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
+    "`Documentation/zigux/phase11-closure-note.md`",
     "`scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` now keep the shared-versus-dedicated Phase 11 packet honest: the shipped contract checker plus the focused header-boundary checker, the shared build-and-make packet, the dedicated `hvc_console` survey note and replay, the bounded `hvc_cleanup()` handoff, the focused shared header-boundary note and manifest-backed survey replay, and the four driver-local validation matrices all remain reviewable without implying a removed `validate-phase11.py`, a missing build inventory, or a broader checker-script packet than the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` archival route plus the shipped `check-phase11-shared-replay-contract.py` and `check-phase11-header-boundary-packet.py` routes on `master`.",
 ]
 REQUIRED_SCRIPT_README_MARKERS = [
@@ -186,7 +187,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 69
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 70
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -218,7 +219,8 @@ SELF_TEST_CASES = [
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[25], REQUIRED_CONTRACT_MARKERS[25]),
     (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[0], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[0]),
     (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2]),
-    (DOCS_README_PATH, "docs_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_DOCS_README_MARKERS[2]),
+    (DOCS_README_PATH, "docs_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_DOCS_README_MARKERS[3]),
+    (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[2], REQUIRED_DOCS_README_MARKERS[2]),
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-shared-replay-contract.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
@@ -236,10 +238,10 @@ SELF_TEST_CASES = [
     (TESTS_README_PATH, "tests_readme", "`Documentation/zigux/phase11-driver-lane-sequencing.md`, ", REQUIRED_TESTS_README_MARKERS[1]),
     (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[2], REQUIRED_TESTS_README_MARKERS[2]),
     (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[3], REQUIRED_TESTS_README_MARKERS[3]),
-    (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[4], REQUIRED_TESTS_README_MARKERS[1]),
-    (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[5], REQUIRED_TESTS_README_MARKERS[5]),
+    (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[4], REQUIRED_TESTS_README_MARKERS[4]),
+    (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[5], REQUIRED_TESTS_README_MARKERS[1]),
     (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[6], REQUIRED_TESTS_README_MARKERS[6]),
-    (TESTS_README_PATH, "tests_readme", "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`", REQUIRED_TESTS_README_MARKERS[1]),
+    (TESTS_README_PATH, "tests_readme", "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`", REQUIRED_TESTS_README_MARKERS[3]),
     (REVIEW_CHECKLIST_PATH, "review_checklist", "`Documentation/zigux/phase11-driver-lane-sequencing.md`, ", REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
     (REVIEW_CHECKLIST_PATH, "review_checklist", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
     (REVIEW_CHECKLIST_PATH, "review_checklist", "`zigux/tests/phase11_hvc_console_manifest.json`, ", REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
