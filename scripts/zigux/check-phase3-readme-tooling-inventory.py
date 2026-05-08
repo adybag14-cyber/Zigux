@@ -170,8 +170,8 @@ PHASE15_VALIDATE_COMMANDS = (
 REQUIRED_README_SNIPPETS = (
     "- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `check-phase3-abi-dump-gate.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-byte-guards.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
     "- there is no separate shared `validate-phase6.py` or broader external portability checker packet beyond `check-phase6-shared-surface.py` on `master`; the shipped dedicated perf replays are `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`, while `make -C zigux phase6-perf` remains the narrow aggregate route for the checksum and hexdump perf packet rather than a bundle-wide Phase 6 perf closure",
-    "- the current shared Phase 7 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `samples/zigux/README.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_build.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
-    "- `make -C zigux phase7-validate` keeps the shared Phase 7 validator plus the dedicated make-wrapper, make-wrapper selftest-alignment, argvSplit packet, rbtree parity, and build-wiring checkers wired through the Linux-style validation entrypoint.",
+    "- the current shared Phase 7 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `samples/zigux/README.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_build.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
+    "- `make -C zigux phase7-validate` keeps the shared Phase 7 validator plus the dedicated make-wrapper, make-wrapper selftest-alignment, argv_split packet, rbtree parity, and build-wiring checkers wired through the Linux-style validation entrypoint, and `make -C zigux phase7` remains the full Linux-style replay route for that same parked helper packet.",
     "- the current shared Phase 8 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase8-exec-cmd-slice.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`, `Documentation/zigux/phase8-bpf-type-names-slice.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `scripts/zigux/validate-phase8.py`, `scripts/zigux/check-phase8-exec-cmd-packet.py`, `scripts/zigux/check-phase8-help-kallsyms-packet.py`, `zigux/tests/phase8_build.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_exec_cmd_only_build.zig`, `zigux/tests/phase8_help.zig`, `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, `zigux/tests/phase8_kallsyms_only_build.zig`, `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_logging.zig`, `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_bpf_type_names.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_libbpf_segments.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
     "- `make -C zigux phase8-validate` keeps `validate-phase8.py` plus the focused `check-phase8-exec-cmd-packet.py` and `check-phase8-help-kallsyms-packet.py` checkers wired through the Linux-style validation entrypoint before the tooling replays run.",
     "- there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, `check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`; future runtime-pilot follow-through should stay inside the next smallest shared runtime-loader substrate, validation, or review-surface step that keeps those four loader handoffs plus the shared `zigux/kernel/runtime_loader.zig` facade and `zigux/kernel/runtime_loader_contract.zig` allocator/init-flow contract reviewable without widening into a larger runtime-module implementation.",
@@ -526,6 +526,40 @@ def run_self_test() -> int:
             validate(root),
             [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[1]}"],
             "missing_phase6_perf_route_readme_guard_failed",
+        )
+        _write(root / README_REL, baseline_readme)
+        case_count += 1
+
+        marker = (
+            "`Documentation/zigux/phase7-rbtree-slice.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, "
+            "`samples/zigux/README.md`, "
+        )
+        replacement = "`Documentation/zigux/phase7-rbtree-slice.md`, `samples/zigux/README.md`, "
+        _write(root / README_REL, baseline_readme.replace(marker, replacement, 1))
+        _assert_only(
+            validate(root),
+            [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[2]}"],
+            "missing_phase7_alignment_note_readme_guard_failed",
+        )
+        _write(root / README_REL, baseline_readme)
+        case_count += 1
+
+        marker = (
+            "`make -C zigux phase7-validate` keeps the shared Phase 7 validator plus the dedicated make-wrapper, "
+            "make-wrapper selftest-alignment, argv_split packet, rbtree parity, and build-wiring checkers wired through "
+            "the Linux-style validation entrypoint, and `make -C zigux phase7` remains the full Linux-style replay route "
+            "for that same parked helper packet."
+        )
+        replacement = (
+            "`make -C zigux phase7-validate` keeps the shared Phase 7 validator plus the dedicated make-wrapper, "
+            "make-wrapper selftest-alignment, argvSplit packet, rbtree parity, and build-wiring checkers wired through "
+            "the Linux-style validation entrypoint."
+        )
+        _write(root / README_REL, baseline_readme.replace(marker, replacement, 1))
+        _assert_only(
+            validate(root),
+            [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[3]}"],
+            "missing_phase7_full_make_route_readme_guard_failed",
         )
         _write(root / README_REL, baseline_readme)
         case_count += 1
