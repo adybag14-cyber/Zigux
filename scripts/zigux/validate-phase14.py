@@ -522,6 +522,25 @@ def run_self_test() -> int:
             print("self-test expected wrong-required-marker manifest surface drift failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        smoke_note_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
+        focused_row = compile_matrix_note_row(
+            "phase14-end-to-end-smoke-tests",
+            "phase14_end_to_end_smoke_survey.zig",
+            "focused_and_full_bundle",
+        )
+        smoke_note_path.write_text(
+            smoke_note_path.read_text(encoding="utf-8").replace(
+                focused_row + "\n",
+                focused_row + "\n" + focused_row + "\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 smoke note focused compile-shard count drifted from the current one-shard packet" not in errors:
+            print("self-test expected duplicate focused compile-shard coverage failure", file=sys.stderr)
+            return 1
+        write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
         return 0
 
 
