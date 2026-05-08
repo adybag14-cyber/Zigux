@@ -55,6 +55,7 @@ REQUIRED_HELPERS = (
     "check-phase10-ring-packet.py",
     "check-phase10-input-packet.py",
     "check-phase10-mmio-packet.py",
+    "check-phase10-mmio-freeze-boundary.py",
     "check-phase11-shared-replay-contract.py",
     "check-phase11-bcm2835-wdt-packet.py",
     "check-phase11-header-boundary-packet.py",
@@ -75,6 +76,7 @@ REQUIRED_HELPERS = (
     "phase3_check_lib.py",
     "generate-phase3-check-wrappers.py",
     "check-phase1-parity.py",
+    "check-phase2-fixdep-gate.py",
     "check-fixdep-diff.py",
     "check-genksyms-bridge.py",
     "check-phase2-genksyms-bridge-selftest-alignment.py",
@@ -496,6 +498,12 @@ def run_self_test() -> int:
         _write(root / README_REL, baseline_readme)
         case_count += 1
 
+        marker = "- `check-phase10-mmio-freeze-boundary.py`\n"
+        _write(root / README_REL, baseline_readme.replace(marker, "", 1))
+        _assert_only(validate(root), ["missing_readme_helper_entry:check-phase10-mmio-freeze-boundary.py", "readme_helper_order_drift"], "missing_phase10_mmio_freeze_boundary_readme_guard_failed")
+        _write(root / README_REL, baseline_readme)
+        case_count += 1
+
         cmd = "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test\n"
         _write(root / MAKEFILE_REL, baseline_makefile.replace(cmd, "", 1))
         _assert_only(validate(root), [f"missing_makefile_command:phase7-validate:{cmd.strip()}", "makefile_command_order_drift:phase7-validate"], "missing_phase7_make_wrapper_selftest_alignment_selftest_guard_failed")
@@ -538,6 +546,16 @@ def run_self_test() -> int:
             validate(root),
             ["missing_readme_helper_entry:check-phase11-hvc-survey-packet.py", "readme_helper_order_drift"],
             "missing_phase11_hvc_survey_packet_readme_guard_failed",
+        )
+        _write(root / README_REL, baseline_readme)
+        case_count += 1
+
+        marker = "- `check-phase2-fixdep-gate.py`\n"
+        _write(root / README_REL, baseline_readme.replace(marker, "", 1))
+        _assert_only(
+            validate(root),
+            ["missing_readme_helper_entry:check-phase2-fixdep-gate.py", "readme_helper_order_drift"],
+            "missing_phase2_fixdep_gate_readme_guard_failed",
         )
         _write(root / README_REL, baseline_readme)
         case_count += 1
