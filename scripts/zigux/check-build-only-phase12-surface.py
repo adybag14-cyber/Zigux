@@ -119,6 +119,7 @@ REQUIRED_FILE_MARKERS = {
         "PMO closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`",
         "shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
         "driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
+        "freeze-boundary authority: `Documentation/zigux/freeze-map.md`",
         "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2",
         "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
         "PHASE12_SHARED_SMOKE_SURFACE_COUNT=6",
