@@ -156,6 +156,13 @@ pub fn buildProcFdinfoPath(buffer: []u8, pid: i32, fd: i32) BridgeError![]u8 {
     return std.fmt.bufPrint(buffer, "/proc/{d}/fdinfo/{d}", .{ pid, fd }) catch |err| noSpaceToPathTooLong(err);
 }
 
+pub fn buildProcFdPath(buffer: []u8, pid: i32, fd: i32) BridgeError![]u8 {
+    if (pid < 0) return error.InvalidPid;
+    if (fd < 0) return error.InvalidFd;
+
+    return std.fmt.bufPrint(buffer, "/proc/{d}/fd/{d}", .{ pid, fd }) catch |err| noSpaceToPathTooLong(err);
+}
+
 pub fn parseFdinfoLine(line: []const u8) BridgeError!ParsedFdinfoLine {
     const trimmed = std.mem.trim(u8, line, " \t\r\n");
     const separator_index = std.mem.indexOfScalar(u8, trimmed, ':') orelse return error.MissingSeparator;
@@ -428,6 +435,26 @@ test "buildProcFdinfoPath keeps overflow failures explicit" {
     try std.testing.expectError(
         error.PathTooLong,
         buildProcFdinfoPath(&buffer, 4321, 17),
+    );
+}
+
+test "buildProcFdPath keeps the bounded procfs descriptor pathname contract explicit" {
+    var buffer: [64]u8 = undefined;
+
+    try std.testing.expectEqualStrings(
+        "/proc/4321/fd/17",
+        try buildProcFdPath(&buffer, 4321, 17),
+    );
+    try std.testing.expectError(error.InvalidPid, buildProcFdPath(&buffer, -1, 17));
+    try std.testing.expectError(error.InvalidFd, buildProcFdPath(&buffer, 4321, -1));
+}
+
+test "buildProcFdPath keeps overflow failures explicit" {
+    var buffer: [12]u8 = undefined;
+
+    try std.testing.expectError(
+        error.PathTooLong,
+        buildProcFdPath(&buffer, 4321, 17),
     );
 }
 
