@@ -211,6 +211,15 @@ fn applySuffix(value: u64, suffix: u8) u64 {
     return value << shift;
 }
 
+fn consumeMemparseTail(text: []const u8, idx: *usize) void {
+    if (idx.* < text.len and text[idx.*] == 'i') {
+        idx.* += 1;
+    }
+    if (idx.* < text.len and text[idx.*] == 'B') {
+        idx.* += 1;
+    }
+}
+
 fn clampSignedMagnitude(magnitude: u64, negative: bool) u64 {
     const max_positive = std.math.maxInt(i64);
     const min_magnitude = (@as(u64, 1) << 63);
@@ -263,7 +272,10 @@ pub fn memparse(text: []const u8) MemparseResult {
             result = applySuffix(result, text[idx]);
         }
         switch (text[idx]) {
-            'E', 'e', 'P', 'p', 'T', 't', 'G', 'g', 'M', 'm', 'K', 'k' => idx += 1,
+            'E', 'e', 'P', 'p', 'T', 't', 'G', 'g', 'M', 'm', 'K', 'k' => {
+                idx += 1;
+                consumeMemparseTail(text, &idx);
+            },
             else => {},
         }
     }
@@ -465,15 +477,15 @@ test "memchrInv follows the earliest dirty byte as long buffers change" {
 }
 
 test "memparse handles decimal hexadecimal octal and suffixes" {
-    const decimal = memparse("64K rest");
+    const decimal = memparse("64KiB rest");
     try std.testing.expectEqual(@as(u64, 64 << 10), decimal.value);
     try std.testing.expectEqualStrings(" rest", decimal.rest);
 
-    const hexadecimal = memparse("0x20M");
+    const hexadecimal = memparse("0x20MiB");
     try std.testing.expectEqual(@as(u64, 0x20 << 20), hexadecimal.value);
     try std.testing.expectEqualStrings("", hexadecimal.rest);
 
-    const octal = memparse("010K");
+    const octal = memparse("010KB");
     try std.testing.expectEqual(@as(u64, 8 << 10), octal.value);
     try std.testing.expectEqualStrings("", octal.rest);
 }
@@ -509,17 +521,17 @@ test "memparse keeps signed values and their trailing rest aligned" {
 }
 
 test "memparse consumes suffix after saturation" {
-    const saturated = memparse("18446744073709551615Ktail");
+    const saturated = memparse("18446744073709551615KiBtail");
     try std.testing.expectEqual(std.math.maxInt(u64), saturated.value);
     try std.testing.expectEqualStrings("tail", saturated.rest);
 }
 
 test "memparse applies suffixes before signed clamping" {
-    const negative = memparse("-2Ktail");
+    const negative = memparse("-2KiBtail");
     try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -2048))), negative.value);
     try std.testing.expectEqualStrings("tail", negative.rest);
 
-    const positive = memparse("+3Mmore");
+    const positive = memparse("+3MiBmore");
     try std.testing.expectEqual(@as(u64, 3 << 20), positive.value);
     try std.testing.expectEqualStrings("more", positive.rest);
 }
