@@ -14,6 +14,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 SURVEY_NOTE_PATH = "Documentation/zigux/phase11-hvc-console-survey.md"
 TEARDOWN_NOTE_PATH = "Documentation/zigux/phase11-hvc-console-teardown-note.md"
 VALIDATION_MATRIX_PATH = "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
+SHARED_REPLAY_CONTRACT_PATH = "Documentation/zigux/phase11-shared-replay-contract.md"
 VERIFY_REPLAY_PATH = "drivers/tty/hvc/hvc_console_verify.zig"
 CLEANUP_REPLAY_PATH = "zigux/tests/phase11_hvc_cleanup.zig"
 MANIFEST_PATH = "zigux/tests/phase11_hvc_console_manifest.json"
@@ -64,6 +65,19 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "bounded reschedule intent",
 ]
 
+REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS = [
+    "The dedicated archival HVC evidence still stays explicit beside that shared route:",
+    "`zigux/tests/phase11_hvc_console_manifest.json`",
+    "`zigux/tests/phase11_hvc_console_survey.zig`",
+    "`Documentation/zigux/phase11-hvc-console-survey.md`",
+    "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+    "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+    "`make -C zigux phase11-hvc-survey`",
+    "`zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff",
+    "`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close",
+]
+
 REQUIRED_MANIFEST_MARKERS = [
     '"lane_key": "P11-L16"',
     '"id": "phase11-hvc-console-driver-starter"',
@@ -92,7 +106,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -111,6 +125,7 @@ def validate(root: Path) -> list[str]:
         SURVEY_NOTE_PATH,
         TEARDOWN_NOTE_PATH,
         VALIDATION_MATRIX_PATH,
+        SHARED_REPLAY_CONTRACT_PATH,
         VERIFY_REPLAY_PATH,
         CLEANUP_REPLAY_PATH,
         MANIFEST_PATH,
@@ -128,6 +143,7 @@ def validate(root: Path) -> list[str]:
     survey_note = read_text(root, SURVEY_NOTE_PATH)
     teardown_note = read_text(root, TEARDOWN_NOTE_PATH)
     validation_matrix = read_text(root, VALIDATION_MATRIX_PATH)
+    shared_replay_contract = read_text(root, SHARED_REPLAY_CONTRACT_PATH)
     manifest = read_text(root, MANIFEST_PATH)
     build_file = read_text(root, BUILD_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
@@ -142,6 +158,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_VALIDATION_MATRIX_MARKERS:
         if marker not in validation_matrix:
             failures.append(f"validation_matrix:{marker}")
+    for marker in REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS:
+        if marker not in shared_replay_contract:
+            failures.append(f"shared_replay_contract:{marker}")
     for marker in REQUIRED_MANIFEST_MARKERS:
         if marker not in manifest:
             failures.append(f"manifest:{marker}")
@@ -208,6 +227,24 @@ The live archival packet now belongs to lane `P11-L16`.
 - khvcd polling contract boundary
 - notifier-driven versus polling-driven wakeups
 - bounded reschedule intent
+""",
+    )
+    write_text(
+        root / SHARED_REPLAY_CONTRACT_PATH,
+        """# Phase 11 Shared Replay Contract
+
+The dedicated archival HVC evidence still stays explicit beside that shared route:
+
+- `zigux/tests/phase11_hvc_console_manifest.json`
+- `zigux/tests/phase11_hvc_console_survey.zig`
+- `Documentation/zigux/phase11-hvc-console-survey.md`
+- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-teardown-note.md`
+- `scripts/zigux/check-phase11-hvc-survey-packet.py`
+- `make -C zigux phase11-hvc-survey`
+
+`zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff reviewable without implying live tty teardown.
+`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up cleanup, and notifier-facing failure-mode replays beside the shared packet.
 """,
     )
     write_text(
@@ -394,6 +431,24 @@ def run_self_test() -> int:
                 VALIDATION_MATRIX_PATH,
                 "khvcd polling contract boundary",
                 "validation_matrix:khvcd polling contract boundary",
+            )
+            expect_failure(
+                root,
+                SHARED_REPLAY_CONTRACT_PATH,
+                "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+                "shared_replay_contract:`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+            )
+            expect_failure(
+                root,
+                SHARED_REPLAY_CONTRACT_PATH,
+                "`make -C zigux phase11-hvc-survey`",
+                "shared_replay_contract:`make -C zigux phase11-hvc-survey`",
+            )
+            expect_failure(
+                root,
+                SHARED_REPLAY_CONTRACT_PATH,
+                "`zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff",
+                "shared_replay_contract:`zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff",
             )
             expect_failure(
                 root,
