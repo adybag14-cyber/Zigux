@@ -14,7 +14,7 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs
 - `PHASE4_SURVEY_OWNER=Validation and Perf Team`
 - `PHASE4_ROLLBACK_OWNER=Validation and Perf Team`
 - `PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false`
-- `PHASE4_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_test_fsmount_survey.zig`
+- `PHASE4_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 
 ## Scope
 
@@ -27,7 +27,7 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs
 - `samples/vfs/test-fsmount.c` is present on `master` and still keeps the fd-based mount flow around `fsopen`, `fsconfig`, `fsmount`, and `move_mount` explicit
 - the live replay path remains `make M=samples/vfs`
 - `samples/zigux/test_fsmount.zig` is still absent on current `master`
-- the dedicated parked gap packet now spans this note, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, so the `test_fsmount` follow-through is no longer matrix prose alone even while it stays outside the shared gate-evidence packet
+- the dedicated parked gap packet now spans this note, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, and the dedicated local survey wrapper now lives at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, so the `test_fsmount` follow-through is no longer matrix prose alone even while it stays outside the shared gate-evidence packet
 - the shared validator route already rereads this parked packet through `scripts/zigux/check-phase4-gate-evidence.py`, but `PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false` remains truthful because the packet is still adjacent evidence rather than part of the exact-readback target set itself
 
 ## Non-Goals
