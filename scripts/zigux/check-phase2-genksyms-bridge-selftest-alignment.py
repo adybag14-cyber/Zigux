@@ -35,7 +35,7 @@ BRIDGE_CONTRACT = {
 
 REQUIRED_BRIDGE_MARKERS = (
     "print('GENKSYMS_BRIDGE_SELF_TEST=pass')",
-    "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=7')",
+    "print(f'GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}')",
 )
 REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
@@ -312,8 +312,9 @@ def build_self_test_root(root: Path) -> None:
                 "    'genksyms bridge reports invalid short option in getopt style',",
                 "]",
                 "",
+                "SELF_TEST_CASE_COUNT = 7",
                 "print('GENKSYMS_BRIDGE_SELF_TEST=pass')",
-                "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=7')",
+                "print(f'GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}')",
                 "",
             )
         ),
@@ -549,6 +550,7 @@ def run_self_test() -> int:
         assert ("MISSING_MANIFEST_FILES", str(BRIDGE_MANIFEST)) in issues
         cases += 1
 
+    assert cases == 18
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT={cases}")
     return 0
