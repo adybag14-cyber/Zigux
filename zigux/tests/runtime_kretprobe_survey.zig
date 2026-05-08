@@ -116,6 +116,14 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     );
     defer std.testing.allocator.free(loader_source);
 
+    const diff_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_kretprobe_diff.zig",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(diff_source);
+
     const runtime_loader_source = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/kernel/runtime_loader.zig",
@@ -192,6 +200,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(survey_doc, "metadata-only labels");
     try expectContains(survey_doc, "idle registration snapshot");
     try expectContains(survey_doc, "failed-exit state");
+    try expectContains(survey_doc, "overlapping entry stamps distinct under concurrent load");
     try expectContains(survey_doc, "loader-owned prepared handoff snapshot");
     try expectContains(survey_doc, "active probe drains");
     try expectContains(survey_doc, "Roadmap gap vs current pilot");
@@ -211,6 +220,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(module_slice_doc, "register_kretprobe()");
     try expectContains(module_slice_doc, "unregister_kretprobe()");
     try expectContains(module_slice_doc, "idle registration snapshot");
+    try expectContains(module_slice_doc, "overlapping entry stamps explicit under concurrent load");
     try expectContains(module_slice_doc, "loader-owned prepared handoff snapshot");
     try expectContains(module_slice_doc, "failed-exit state");
     try expectContains(module_slice_doc, "Roadmap gap vs current pilot");
@@ -223,12 +233,15 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(lane_sequencing_doc, "- `zigux/tests/runtime_kretprobe_manifest.json`");
     try expectContains(lane_sequencing_doc, "- `zigux/tests/runtime_kretprobe_survey.zig`");
     try expectContains(lane_sequencing_doc, "- the `phase9-runtime-kretprobe-tests` step in `zigux/tests/phase9_build.zig`");
+    try expectContains(lane_sequencing_doc, "overlapping-entry-stamp replay");
 
     try expectContains(loader_source, "error.OutstandingProbeStateForLoader");
     try expectContains(loader_source, "summary.active_instances != 0 or summary.entry_timestamp_armed");
     try expectContains(loader_source, "runtime kretprobe loader keeps the prepared snapshot stable across later sample mutation");
     try expectContains(loader_source, "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity");
     try expectContains(loader_source, "runtime kretprobe loader recovers from initialized-stage failed exit into the same bounded handoff plan");
+
+    try expectContains(diff_source, "runtime kretprobe diff gate keeps overlapping entry stamps distinct under concurrent load");
 
     try expectContains(runtime_loader_source, "pub const AllocatorHandoff = contract.AllocatorHandoff;");
     try expectContains(runtime_loader_source, "pub const LoadPlan = contract.LoadPlan;");
