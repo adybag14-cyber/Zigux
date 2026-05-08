@@ -72,7 +72,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase8_exec_cmd_only_build.zig`",
         "helper-first, output-stable deferred-exec planning packet",
         "without widening into direct process-launch parity",
-        "`kernel/workqueue.c`",
+        "separate `kernel/workqueue.c` Phase 14 boundary-study target",
     ],
     "scripts/zigux/README.md": [
         "Phase 8 flow",
@@ -458,9 +458,9 @@ def run_self_test() -> None:
         (
             "checklist_boundary",
             "Documentation/zigux/review-checklist.md",
-            "`kernel/workqueue.c`",
-            "`kernel/sched/core.c`",
-            "Documentation/zigux/review-checklist.md: `kernel/workqueue.c`",
+            "separate `kernel/workqueue.c` Phase 14 boundary-study target",
+            "separate `kernel/workqueue.c` freeze boundary",
+            "Documentation/zigux/review-checklist.md: separate `kernel/workqueue.c` Phase 14 boundary-study target",
         ),
         (
             "workflow_step_name",
