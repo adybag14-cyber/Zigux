@@ -270,6 +270,7 @@ SCRIPTS_EXACT_COUNTS = {
     "include/zigux/notifier_abi.h": 1,
     "zigux/helpers/notifier_chain_view.zig": 1,
     "phase13_devres_boundary_evidence.zig": 1,
+    "make -C zigux phase13-validate": 1,
     "the eight-test shared helper replay": 1,
     "adjacent review evidence instead of adding extra shared replay steps on `master`": 1,
 }
@@ -644,6 +645,18 @@ def run_self_test() -> int:
             validate(root),
             ["scripts-readme-exact:phase13_devres_boundary_evidence.zig:expected=1:actual=2"],
             "scripts_readme_duplicate_boundary_evidence_guard_failed",
+        )
+        _write(scripts_readme_path, _baseline_scripts_readme())
+        case_count += 1
+
+        scripts_readme_path.write_text(
+            _baseline_scripts_readme() + "make -C zigux phase13-validate\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["scripts-readme-exact:make -C zigux phase13-validate:expected=1:actual=2"],
+            "scripts_readme_duplicate_phase13_validate_route_failed",
         )
         _write(scripts_readme_path, _baseline_scripts_readme())
         case_count += 1
