@@ -9,8 +9,8 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 - `PHASE15_LANE_KEY=P15-L10`
 - scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking, one machine-checked aggregate metrics block for the active freeze-in-C anchors, and one machine-checked mirror of the live Architecture Council review-packet and ownership-evidence field inventory
 - survey provenance refreshed against verified `master` head `4fc891b380cdd2991dff7676ade7f844df1b55fd`
-- required review-process review-packet fields tracked in the manifest: `20`
-- required review-process ownership-evidence fields tracked in the manifest: `15`
+- required review-process review-packet fields tracked in the manifest: `19`
+- required review-process ownership-evidence fields tracked in the manifest: `14`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -157,8 +157,8 @@ The machine-checked aggregate scorecard metrics currently record:
 - specialist lane-owned anchors: `2`
 - reserved decision-record templates: `4`
 - blocked status-change anchors: `4`
-- review-packet fields mirrored from the Architecture Council packet: `20`
-- ownership-evidence fields mirrored from the Architecture Council packet: `15`
+- review-packet fields mirrored from the Architecture Council packet: `19`
+- ownership-evidence fields mirrored from the Architecture Council packet: `14`
 
 These metrics do not claim forward implementation progress. They keep the parked freeze set reviewable without forcing later runs to recompute anchor totals, ownership split, template coverage, or review-packet field coverage by hand from the prose packet.
 
