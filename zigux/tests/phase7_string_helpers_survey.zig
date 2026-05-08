@@ -1,5 +1,32 @@
 const std = @import("std");
 
+const SurveySummary = struct {
+    preexisting_phase7_test_files: usize,
+    preexisting_phase7_build_present: bool,
+    preexisting_phase7_doc_present: bool,
+    preexisting_phase7_helper_present: bool,
+    preexisting_phase7_shared_validator_present: bool,
+    preexisting_phase7_boundary_replay_present: bool,
+};
+
+const Gap = struct {
+    id: []const u8,
+    status: []const u8,
+    kind: []const u8,
+    zigux_destination: []const u8,
+    why_now: []const u8,
+};
+
+const Manifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    surveyed_commit: []const u8,
+    anchor: []const u8,
+    roadmap_destinations: []const []const u8,
+    survey_summary: SurveySummary,
+    gaps: []const Gap,
+};
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
@@ -8,8 +35,94 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
 
+fn isAllowedStatus(status: []const u8) bool {
+    return std.mem.eql(u8, status, "starter_landed") or
+        std.mem.eql(u8, status, "ready_next");
+}
+
+fn isLowerHexCommitId(text: []const u8) bool {
+    if (text.len != 40) return false;
+    for (text) |ch| {
+        if (!std.ascii.isHex(ch) or std.ascii.isUpper(ch)) return false;
+    }
+    return true;
+}
+
 test "phase 7 string helpers survey keeps the roadmap-backed helper packet reviewable" {
     const allocator = std.testing.allocator;
+
+    const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
+    defer allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+    try std.testing.expectEqualStrings("P7-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 7", manifest.phase);
+    try std.testing.expect(isLowerHexCommitId(manifest.surveyed_commit));
+    try std.testing.expectEqualStrings("lib/string_helpers.c", manifest.anchor);
+    try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("lib/string_helpers.zig", manifest.roadmap_destinations[0]);
+    try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_phase7_test_files);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_build_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_doc_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_helper_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_shared_validator_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_boundary_replay_present);
+    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+
+    var starter_landed_count: usize = 0;
+    var saw_helper = false;
+    var saw_survey_gate = false;
+    var saw_sample_boundary = false;
+    var saw_manifest = false;
+
+    for (manifest.gaps, 0..) |gap, i| {
+        try std.testing.expect(gap.id.len > 0);
+        try std.testing.expect(gap.kind.len > 0);
+        try std.testing.expect(gap.why_now.len > 0);
+        try std.testing.expect(isAllowedStatus(gap.status));
+
+        if (std.mem.eql(u8, gap.status, "starter_landed")) {
+            starter_landed_count += 1;
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-string-helpers-helper")) {
+            saw_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("lib/string_helpers.zig", gap.zigux_destination);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-string-helpers-survey-gate")) {
+            saw_survey_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_string_helpers_survey.zig", gap.zigux_destination);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-string-helpers-sample-boundary")) {
+            saw_sample_boundary = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_string_helpers_sample_boundary.zig", gap.zigux_destination);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-string-helpers-manifest")) {
+            saw_manifest = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_string_helpers_manifest.json", gap.zigux_destination);
+        }
+
+        for (manifest.gaps[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
+            try std.testing.expect(!std.mem.eql(u8, gap.zigux_destination, other.zigux_destination));
+        }
+    }
+
+    try std.testing.expectEqual(manifest.gaps.len, starter_landed_count);
+    try std.testing.expect(saw_helper);
+    try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(saw_sample_boundary);
+    try std.testing.expect(saw_manifest);
 
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-string-helpers-slice.md");
     defer allocator.free(slice_note);
@@ -20,6 +133,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(slice_note, "zigux/tests/phase7_string_helpers.zig");
     try expectContains(slice_note, "zigux/tests/phase7_string_helpers_survey.zig");
     try expectContains(slice_note, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(slice_note, "zigux/tests/phase7_string_helpers_manifest.json");
     try expectContains(slice_note, "zig build test --build-file zigux/tests/phase7_build.zig");
     try expectContains(slice_note, "python3 scripts/zigux/validate-phase7.py");
     try expectContains(slice_note, "make -C zigux phase7-validate");
@@ -83,6 +197,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(validator, "\"Documentation/zigux/phase7-make-wrapper-selftest-alignment.md\"");
     try expectContains(validator, "\"scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py\"");
     try expectContains(validator, "\"zigux/tests/phase7_string_helpers_survey.zig\"");
+    try expectContains(validator, "\"zigux/tests/phase7_string_helpers_manifest.json\"");
 
     const alignment_note = try readRepoFile(allocator, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
     defer allocator.free(alignment_note);
