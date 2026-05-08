@@ -190,14 +190,14 @@ SELF_TEST_CASES = [
     (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2]),
     (DOCS_README_PATH, "docs_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_DOCS_README_MARKERS[2]),
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
-    (SCRIPTS_README_PATH, "scripts_readme", REQUIRED_SCRIPT_README_MARKERS[2], REQUIRED_SCRIPT_README_MARKERS[2]),
+    (SCRIPTS_README_PATH, "scripts_readme", REQUIRED_SCRIPT_README_MARKERS[2], REQUIRED_SCRIPT_README_MARKERS[1]),
     (SCRIPTS_README_PATH, "scripts_readme", REQUIRED_SCRIPT_README_MARKERS[3], REQUIRED_SCRIPT_README_MARKERS[3]),
     (SCRIPTS_README_PATH, "scripts_readme", REQUIRED_SCRIPT_README_MARKERS[4], REQUIRED_SCRIPT_README_MARKERS[4]),
     (TESTS_README_PATH, "tests_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_TESTS_README_MARKERS[1]),
     (TESTS_README_PATH, "tests_readme", "`Documentation/zigux/phase11-driver-lane-sequencing.md`, ", REQUIRED_TESTS_README_MARKERS[1]),
     (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[2], REQUIRED_TESTS_README_MARKERS[2]),
     (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[3], REQUIRED_TESTS_README_MARKERS[3]),
-    (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[4], REQUIRED_TESTS_README_MARKERS[4]),
+    (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[4], REQUIRED_TESTS_README_MARKERS[1]),
     (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[5], REQUIRED_TESTS_README_MARKERS[5]),
     (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[6], REQUIRED_TESTS_README_MARKERS[6]),
     (REVIEW_CHECKLIST_PATH, "review_checklist", "`Documentation/zigux/phase11-driver-lane-sequencing.md`, ", REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
@@ -249,8 +249,10 @@ FIXTURE_CONTENT = {
     WORKFLOW_PATH: "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n",
 }
 
+
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
+
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
@@ -278,9 +280,11 @@ def validate(root: Path) -> list[str]:
             failures.append(f"forbidden_marker:{marker}")
     return failures
 
+
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
@@ -288,14 +292,19 @@ def write_fixture_tree(root: Path) -> None:
     for rel_path, content in FIXTURE_CONTENT.items():
         write(root / rel_path, content)
 
+
 def expect_failure(root: Path, rel_path: str, label: str, marker: str, expected_marker: str) -> None:
     path = root / rel_path
     original = path.read_text(encoding="utf-8")
-    path.write_text(original.replace(marker, "", 1), encoding="utf-8")
+    if marker not in original:
+        raise AssertionError(f"self-test marker {marker!r} not found in {rel_path}")
+    mutated = original.replace(marker, "", 1)
+    path.write_text(mutated, encoding="utf-8")
     failures = validate(root)
     expected_failure = f"{label}:{expected_marker}"
     if expected_failure not in failures:
         raise AssertionError(f"missing expected failure {expected_failure!r}; got {failures!r}")
+
 
 def expect_exact_count_failure(root: Path, rel_path: str, marker: str, label: str) -> None:
     path = root / rel_path
@@ -306,6 +315,7 @@ def expect_exact_count_failure(root: Path, rel_path: str, marker: str, label: st
     if not any(failure.startswith(expected_prefix) for failure in failures):
         raise AssertionError(f"missing expected exact-count failure {expected_prefix!r}; got {failures!r}")
 
+
 def expect_forbidden_failure(root: Path, rel_path: str, marker: str) -> None:
     path = root / rel_path
     original = path.read_text(encoding="utf-8")
@@ -314,6 +324,7 @@ def expect_forbidden_failure(root: Path, rel_path: str, marker: str) -> None:
     expected_failure = f"forbidden_marker:{marker}"
     if expected_failure not in failures:
         raise AssertionError(f"missing expected forbidden-marker failure {expected_failure!r}; got {failures!r}")
+
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase11_contract_") as tmpdir:
@@ -348,6 +359,7 @@ def run_self_test() -> int:
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELFTEST=pass")
     print(f"PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT={PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT}")
     return 0
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check the shipped Phase 11 shared replay contract.")
