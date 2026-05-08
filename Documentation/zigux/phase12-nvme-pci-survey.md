@@ -33,9 +33,10 @@ This survey keeps that difference explicit so the lane does not overclaim produc
 - the live repo now ships `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, shared `zigux/tests/phase12_build.zig` wiring, and the tranche-level `phase12` make target in `zigux/Makefile`.
 - the broader Phase 12 tranche is now further along than this survey's earlier checkpoint: `drivers/net/virtio_net.zig` and `drivers/scsi/virtio_scsi.zig` are both landed bounded starters, so NVMe PCI should now be compared against peer driver starters rather than only against survey scaffolding.
 - the landed starter stays intentionally narrow: it validates queue geometry, computes combined queue bytes and rounded DMA page demand, negotiates and can reserve a bounded queue-count window, can replay one stale reserved queue-id window after reset once the admin queue has been replayed, assigns monotonic admin and I/O queue identifiers, derives doorbell offsets, freezes queue planning across reset generations, records a bounded PRP buffer shape through first-page offset, rounded span, tail-page count, and PRP list bound checks, records a bounded PRP metadata helper through command-inline data pointers, PRP-list-covered pages, extra descriptor DMA footprint, total DMA bytes, and reset-time descriptor rebuild need, and records a bounded recovery replay helper through reset-generation staleness, cached PRP metadata freshness, admin queue replay need, dropped I/O queue rebuild count, and post-reset queue numbering before any live DMA-backed queue work.
+- the current same-driver recovery-governance gap is now explicit too: the starter can keep the dropped-I/O backlog visible after reset, but it still has no bounded helper that retires only part of that backlog once post-reset queue rebuild work begins, so review passes should treat the rebuild count as a conservative pressure marker rather than proof that queue-local recovery work is already complete.
 - the shared Phase 12 packet now also keeps the focused smoke preflight explicit: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-smoke` rerun the direct `nvme pci` starter plus the dedicated `drivers/nvme/host/pci_verify.zig` shard ahead of the broader survey-backed replay, so this survey note should not leave that narrower driver-facing packet implied only by `zigux/tests/phase12_build.zig`, the Makefile, or the raw GitHub fallback map.
 - that footing is useful, but it still does not cover PRP or SGL descriptor construction, Host Memory Buffer policy, blk-mq request submission, live PCI queue creation, IRQ routing, MMIO access, or recovery parity.
-- the next honest driver-facing step is still not transport parity; the lane should stay parked until an explicitly approved transport-facing follow-up is ready beyond the now-landed queue-count reservation, queue-reservation replay, PRP buffer-shape, PRP metadata, and recovery replay helpers.
+- the next honest driver-facing step is still not transport parity; if this lane reopens, it should first land bounded post-reset rebuild-progress accounting for the existing dropped-queue marker before widening into any explicitly approved transport-facing follow-up beyond the now-landed queue-count reservation, queue-reservation replay, PRP buffer-shape, PRP metadata, and recovery replay helpers.
 
 ## Recorded gaps
 
@@ -59,7 +60,7 @@ The survey manifest now records:
 - the still-blocked `phase12-nvme-pci-dma-safe-transport-gap`
 - the still-blocked `phase12-nvme-pci-throughput-and-recovery-gap`
 
-This keeps the lane concrete and reviewable without overstating progress: the queue-planner plus queue-count reservation plus queue-reservation replay plus PRP-shape plus PRP-metadata plus recovery-replay starters are real, the direct verify shard is a distinct smoke proof, and the transport-heavy roadmap work is still intentionally blocked.
+This keeps the lane concrete and reviewable without overstating progress: the queue-planner plus queue-count reservation plus queue-reservation replay plus PRP-shape plus PRP-metadata plus recovery-replay starters are real, the direct verify shard is a distinct smoke proof, the rebuild-pressure marker is still conservative governance rather than recovery completion, and the transport-heavy roadmap work is still intentionally blocked.
 
 ## Non-goals
 
@@ -89,6 +90,8 @@ Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO compan
 
 ## Next bounded step
 
-Keep this Phase 12 nvme PCI lane parked unless the roadmap explicitly approves a transport-facing follow-up beyond the now-landed queue-count reservation, queue-reservation replay, PRP buffer-shape, PRP metadata, and recovery replay helpers.
+Keep this Phase 12 nvme PCI lane parked unless a same-driver reopen first lands bounded post-reset rebuild-progress accounting for the existing dropped-I/O backlog marker. Until that narrower recovery-governance follow-through exists, this survey should keep treating the backlog count as conservative evidence rather than as recovery completion.
+
+Only after that driver-local reopen is approved should the lane reconsider any transport-facing follow-up beyond the now-landed queue-count reservation, queue-reservation replay, PRP buffer-shape, PRP metadata, and recovery replay helpers.
 
 Until that driver-local reopen is approved, keep this survey aligned with the shared smoke-plus-build replay packet, including the dedicated `drivers/nvme/host/pci_verify.zig` shard, instead of letting the focused preflight route drift back into build-file-only, Makefile-only, or fallback-map-only knowledge.
