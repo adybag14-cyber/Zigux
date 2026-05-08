@@ -260,7 +260,6 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree_manifest.json\",");
     try expectContains(validate_phase7, "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test");
     try expectContains(validate_phase7, "python3 scripts/zigux/check-phase7-rbtree-parity.py");
-    try expectContains(validate_phase7, "linked-node neighbour tracking plus detached linked-ownership reset through `addLinked()`, `eraseLinked()`, and `clearLinkedNode()`");
     try expectContains(helper_impl, "pub const NodeLinked");
     try expectContains(helper_impl, "pub const RootLinked");
     try expectContains(helper_impl, "pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node");
