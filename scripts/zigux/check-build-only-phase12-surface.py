@@ -51,6 +51,7 @@ REQUIRED_FILE_MARKERS = {
     REVIEW_CHECKLIST_PATH: [
         "if the change touches the shared Phase 12 complex-driver packet",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`Documentation/zigux/phase12-release-readiness-survey.md`",
         "`Documentation/zigux/phase12-release-coordination-matrix.md`",
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
@@ -186,6 +187,7 @@ REQUIRED_FILE_MARKERS = {
     ],
     TESTS_README_PATH: [
         "keep `Documentation/zigux/phase12-release-closure-checklist.md` visible beside `Documentation/zigux/phase12-release-sequencing.md`",
+        "`Documentation/zigux/phase12-release-readiness-survey.md`",
         "`Documentation/zigux/phase12-release-coordination-matrix.md`",
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
