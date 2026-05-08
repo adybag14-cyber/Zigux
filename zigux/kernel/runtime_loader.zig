@@ -634,6 +634,102 @@ test "runtime loader facade keeps selftest-complete prepared snapshots stable ev
     ));
 }
 
+test "runtime loader facade keeps bitmap and kretprobe selftest-complete request shape parity explicit" {
+    const bitmap_selftested = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    var bitmap_request = try prepareRequest(bitmap_selftested);
+    try std.testing.expectEqual(RequestState.prepared, bitmap_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        bitmap_request,
+        .prepared,
+        bitmap_selftested,
+    ));
+    const bitmap_pending = try bitmap_request.requestRuntimeLoad();
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, bitmap_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        bitmap_request,
+        .waiting_on_runtime_substrate,
+        bitmap_selftested,
+    ));
+    try std.testing.expect(keepsAllocatorInitFlowConsistent(
+        bitmap_pending,
+        .arena,
+        bitmap_selftested.init_flow,
+    ));
+    try std.testing.expect(keepsSelftestHookEvidenceConsistent(bitmap_pending));
+
+    const kretprobe_selftested = LoadPlan{
+        .module_name = "runtime_kretprobe",
+        .anchor = "samples/kprobes/kretprobe_example.c",
+        .entry_symbol = "zigux_runtime_kretprobe_init",
+        .exit_symbol = "zigux_runtime_kretprobe_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .kernel_heap,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    var kretprobe_request = try prepareRequest(kretprobe_selftested);
+    try std.testing.expectEqual(RequestState.prepared, kretprobe_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        kretprobe_request,
+        .prepared,
+        kretprobe_selftested,
+    ));
+    const kretprobe_pending = try kretprobe_request.requestRuntimeLoad();
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, kretprobe_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        kretprobe_request,
+        .waiting_on_runtime_substrate,
+        kretprobe_selftested,
+    ));
+    try std.testing.expect(keepsAllocatorInitFlowConsistent(
+        kretprobe_pending,
+        .kernel_heap,
+        kretprobe_selftested.init_flow,
+    ));
+    try std.testing.expect(keepsSelftestHookEvidenceConsistent(kretprobe_pending));
+
+    try std.testing.expectEqual(bitmap_pending.init_flow.handoff_stage, kretprobe_pending.init_flow.handoff_stage);
+    try std.testing.expectEqual(bitmap_pending.init_flow.init_runs, kretprobe_pending.init_flow.init_runs);
+    try std.testing.expectEqual(bitmap_pending.init_flow.selftest_runs, kretprobe_pending.init_flow.selftest_runs);
+    try std.testing.expectEqual(bitmap_pending.init_flow.exit_runs, kretprobe_pending.init_flow.exit_runs);
+    try std.testing.expectEqual(bitmap_pending.requires_runtime_substrate, kretprobe_pending.requires_runtime_substrate);
+    try std.testing.expectEqual(bitmap_pending.provides_selftest_hook, kretprobe_pending.provides_selftest_hook);
+
+    try bitmap_request.releaseWithoutSubstrate();
+    try kretprobe_request.releaseWithoutSubstrate();
+    try std.testing.expectEqual(RequestState.released_without_substrate, bitmap_request.state);
+    try std.testing.expectEqual(RequestState.released_without_substrate, kretprobe_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        bitmap_request,
+        .released_without_substrate,
+        bitmap_selftested,
+    ));
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        kretprobe_request,
+        .released_without_substrate,
+        kretprobe_selftested,
+    ));
+}
+
 test "runtime loader facade rejects request state or plan drift" {
     const stable_plan = LoadPlan{
         .module_name = "runtime_atomic64",
