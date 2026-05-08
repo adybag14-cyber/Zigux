@@ -105,6 +105,33 @@ REVIEW_EXACT_COUNTS = {
     "shipped direct evidence beside `zigux/tests/phase13_landlock_syscalls.zig` rather than an extra shared replay step": 1,
 }
 
+RELEASE_NOTES_REQUIRED_MARKERS = [
+    "Documentation/zigux/phase13-roadmap-traceability.md",
+    "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
+    "Documentation/zigux/phase13-landlock-syscalls-governance.md",
+    "The helper-owned Landlock boundary notes stay in the broader shipped release packet because they record the current ruleset ownership and syscall-governance limits that still block tranche closure, but they do not add extra shared replay steps beyond the eight-test route above.",
+    "The current Phase 13 packet still ships with no dedicated `Documentation/zigux/phase13-closure.md` note on `master`.",
+    "the release-facing helper tranche remains active until the shared replay, the adjacent helper-owned Landlock boundary notes, and the remaining blocker posture all say the same thing",
+]
+
+RELEASE_NOTES_EXACT_COUNTS = {
+    "The helper-owned Landlock boundary notes stay in the broader shipped release packet because they record the current ruleset ownership and syscall-governance limits that still block tranche closure, but they do not add extra shared replay steps beyond the eight-test route above.": 1,
+    "The current Phase 13 packet still ships with no dedicated `Documentation/zigux/phase13-closure.md` note on `master`.": 1,
+}
+
+ROADMAP_TRACEABILITY_REQUIRED_MARKERS = [
+    "Documentation/zigux/phase13-release-notes-survey.md",
+    "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
+    "Documentation/zigux/phase13-landlock-syscalls-governance.md",
+    "The helper-owned Landlock boundary notes stay in that adjacent release packet because they document the shipped ownership and governance blockers that still prevent a closure claim without inflating the eight-test shared replay count.",
+    "the current shipped Phase 13 packet still has no dedicated `Documentation/zigux/phase13-closure.md`, so `Documentation/zigux/phase13-release-notes-survey.md` plus this traceability note carry the active tranche posture for the existing work",
+]
+
+ROADMAP_TRACEABILITY_EXACT_COUNTS = {
+    "The helper-owned Landlock boundary notes stay in that adjacent release packet because they document the shipped ownership and governance blockers that still prevent a closure claim without inflating the eight-test shared replay count.": 1,
+    "the current shipped Phase 13 packet still has no dedicated `Documentation/zigux/phase13-closure.md`, so `Documentation/zigux/phase13-release-notes-survey.md` plus this traceability note carry the active tranche posture for the existing work": 1,
+}
+
 CONTRIBUTOR_GUIDE_REQUIRED_MARKERS = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
@@ -432,6 +459,8 @@ def validate(root: Path) -> list[str]:
 
     docs_readme = _read(root / "Documentation/zigux/README.md")
     review_checklist = _read(root / "Documentation/zigux/review-checklist.md")
+    release_notes = _read(root / "Documentation/zigux/phase13-release-notes-survey.md")
+    roadmap_traceability = _read(root / "Documentation/zigux/phase13-roadmap-traceability.md")
     contributor_workflow_guide = _read(root / "Documentation/zigux/phase13-contributor-workflow-guide.md")
     contributor_surface_sync = _read(root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md")
     tests_review_companion = _read(root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
@@ -443,8 +472,24 @@ def validate(root: Path) -> list[str]:
 
     issues.extend(_collect_missing_markers(docs_readme, DOC_REQUIRED_MARKERS, "docs-readme"))
     issues.extend(_collect_missing_markers(review_checklist, REVIEW_REQUIRED_MARKERS, "review-checklist"))
+    issues.extend(_collect_missing_markers(release_notes, RELEASE_NOTES_REQUIRED_MARKERS, "release-notes"))
+    issues.extend(
+        _collect_missing_markers(
+            roadmap_traceability,
+            ROADMAP_TRACEABILITY_REQUIRED_MARKERS,
+            "roadmap-traceability",
+        )
+    )
     issues.extend(_collect_exact_count_issues(docs_readme, DOC_EXACT_COUNTS, "docs-readme-exact"))
     issues.extend(_collect_exact_count_issues(review_checklist, REVIEW_EXACT_COUNTS, "review-checklist-exact"))
+    issues.extend(_collect_exact_count_issues(release_notes, RELEASE_NOTES_EXACT_COUNTS, "release-notes-exact"))
+    issues.extend(
+        _collect_exact_count_issues(
+            roadmap_traceability,
+            ROADMAP_TRACEABILITY_EXACT_COUNTS,
+            "roadmap-traceability-exact",
+        )
+    )
     issues.extend(_collect_missing_markers(contributor_workflow_guide, CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, "contributor-workflow-guide"))
     issues.extend(_collect_exact_count_issues(contributor_workflow_guide, CONTRIBUTOR_GUIDE_EXACT_COUNTS, "contributor-workflow-guide-exact"))
     issues.extend(_collect_missing_markers(contributor_surface_sync, CONTRIBUTOR_SYNC_REQUIRED_MARKERS, "contributor-surface-sync"))
@@ -555,6 +600,16 @@ def run_self_test() -> int:
                 _write(path, _repeat_markers(DOC_REQUIRED_MARKERS, DOC_EXACT_COUNTS))
             elif rel == "Documentation/zigux/review-checklist.md":
                 _write(path, _repeat_markers(REVIEW_REQUIRED_MARKERS, REVIEW_EXACT_COUNTS))
+            elif rel == "Documentation/zigux/phase13-release-notes-survey.md":
+                _write(path, _repeat_markers(RELEASE_NOTES_REQUIRED_MARKERS, RELEASE_NOTES_EXACT_COUNTS))
+            elif rel == "Documentation/zigux/phase13-roadmap-traceability.md":
+                _write(
+                    path,
+                    _repeat_markers(
+                        ROADMAP_TRACEABILITY_REQUIRED_MARKERS,
+                        ROADMAP_TRACEABILITY_EXACT_COUNTS,
+                    ),
+                )
             elif rel == "Documentation/zigux/phase13-contributor-workflow-guide.md":
                 _write(
                     path,
@@ -617,6 +672,56 @@ def run_self_test() -> int:
             "missing_review_checklist_boundary_evidence_marker_failed",
         )
         _write(review_checklist_path, _repeat_markers(REVIEW_REQUIRED_MARKERS, REVIEW_EXACT_COUNTS))
+        case_count += 1
+
+        release_notes_path = root / "Documentation/zigux/phase13-release-notes-survey.md"
+        release_notes_path.write_text(
+            "\n".join(
+                marker
+                for marker in RELEASE_NOTES_REQUIRED_MARKERS
+                if marker
+                != "The current Phase 13 packet still ships with no dedicated `Documentation/zigux/phase13-closure.md` note on `master`."
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            [
+                "release-notes:The current Phase 13 packet still ships with no dedicated `Documentation/zigux/phase13-closure.md` note on `master`.",
+                "release-notes-exact:The current Phase 13 packet still ships with no dedicated `Documentation/zigux/phase13-closure.md` note on `master`.:expected=1:actual=0",
+            ],
+            "missing_release_notes_closure_posture_failed",
+        )
+        _write(release_notes_path, _repeat_markers(RELEASE_NOTES_REQUIRED_MARKERS, RELEASE_NOTES_EXACT_COUNTS))
+        case_count += 1
+
+        roadmap_traceability_path = root / "Documentation/zigux/phase13-roadmap-traceability.md"
+        roadmap_traceability_path.write_text(
+            "\n".join(
+                marker
+                for marker in ROADMAP_TRACEABILITY_REQUIRED_MARKERS
+                if marker
+                != "the current shipped Phase 13 packet still has no dedicated `Documentation/zigux/phase13-closure.md`, so `Documentation/zigux/phase13-release-notes-survey.md` plus this traceability note carry the active tranche posture for the existing work"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            [
+                "roadmap-traceability:the current shipped Phase 13 packet still has no dedicated `Documentation/zigux/phase13-closure.md`, so `Documentation/zigux/phase13-release-notes-survey.md` plus this traceability note carry the active tranche posture for the existing work",
+                "roadmap-traceability-exact:the current shipped Phase 13 packet still has no dedicated `Documentation/zigux/phase13-closure.md`, so `Documentation/zigux/phase13-release-notes-survey.md` plus this traceability note carry the active tranche posture for the existing work:expected=1:actual=0",
+            ],
+            "missing_roadmap_traceability_closure_posture_failed",
+        )
+        _write(
+            roadmap_traceability_path,
+            _repeat_markers(
+                ROADMAP_TRACEABILITY_REQUIRED_MARKERS,
+                ROADMAP_TRACEABILITY_EXACT_COUNTS,
+            ),
+        )
         case_count += 1
 
         tests_readme_path = root / "zigux/tests/README.md"
@@ -865,8 +970,12 @@ def main() -> int:
         len(REQUIRED_FILES)
         + len(DOC_REQUIRED_MARKERS)
         + len(REVIEW_REQUIRED_MARKERS)
+        + len(RELEASE_NOTES_REQUIRED_MARKERS)
+        + len(ROADMAP_TRACEABILITY_REQUIRED_MARKERS)
         + len(DOC_EXACT_COUNTS)
         + len(REVIEW_EXACT_COUNTS)
+        + len(RELEASE_NOTES_EXACT_COUNTS)
+        + len(ROADMAP_TRACEABILITY_EXACT_COUNTS)
         + len(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS)
         + len(CONTRIBUTOR_GUIDE_EXACT_COUNTS)
         + len(CONTRIBUTOR_SYNC_REQUIRED_MARKERS)
