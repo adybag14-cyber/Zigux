@@ -92,8 +92,12 @@ Current parked review packet:
 - `zigux/tests/phase8_libbpf_segments.zig`
 - `zigux/tests/phase8_libbpf_segments_only_build.zig`
 - `zigux/tests/phase8_build.zig`
+- `tools/lib/bpf/zigux_segments/cpu_mask.zig`
 - `tools/lib/bpf/zigux_segments/logging.zig`
 - `tools/lib/bpf/zigux_segments/pin_path.zig`
+- `tools/lib/bpf/zigux_segments/type_names.zig`
+- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+- `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
 - `tools/lib/bpf/zigux_segments/verify.zig`
 - `tools/lib/bpf/zigux_segments/manifest.json`
 
