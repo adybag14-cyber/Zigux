@@ -332,6 +332,44 @@ test "phase 7 rbtree detached nodes stay non-empty until callers clear them" {
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.prev(&replace_entries[0].node));
 }
 
+test "phase 7 rbtree replaceNode overwrites stale replacement ownership state before reconnecting" {
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var root_entry = Entry{ .key = 10 };
+    var left_entry = Entry{ .key = 5 };
+    var right_entry = Entry{ .key = 15 };
+    var replacement = Entry{ .key = 5 };
+    var stale_parent = rbtree.Node.init();
+    var stale_left = rbtree.Node.init();
+    var stale_right = rbtree.Node.init();
+    var root = rbtree.Root.init();
+
+    rbtree.add(&root_entry.node, &root, less);
+    rbtree.add(&left_entry.node, &root, less);
+    rbtree.add(&right_entry.node, &root, less);
+
+    replacement.node.parent = &stale_parent;
+    replacement.node.left = &stale_left;
+    replacement.node.right = &stale_right;
+    replacement.node.color = .red;
+
+    rbtree.replaceNode(&left_entry.node, &replacement.node, &root);
+
+    try std.testing.expectEqual(@as(?*rbtree.Node, &replacement.node), root_entry.node.left);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &root_entry.node), replacement.node.parent);
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), replacement.node.left);
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), replacement.node.right);
+    try std.testing.expectEqual(left_entry.node.color, replacement.node.color);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &replacement.node), rbtree.prev(&root_entry.node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &root_entry.node), rbtree.next(&replacement.node));
+}
+
 test "phase 7 rbtree clearNode marks detached nodes as empty" {
     var node = rbtree.Node.init();
 
