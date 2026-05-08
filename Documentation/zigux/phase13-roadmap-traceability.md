@@ -111,8 +111,10 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
   * `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
   * `Documentation/zigux/review-checklist.md`
-  * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
   * `Documentation/zigux/phase13-release-notes-survey.md`
+  * `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+  * `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+  * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
   * `scripts/zigux/validate-phase13-release.py`
   * `scripts/zigux/check-phase13-devres-packet.py`
   * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
@@ -135,6 +137,8 @@ The shipped validator-first route also stays in that adjacent evidence set: `scr
 
 The shipped `scripts/zigux/check-phase13-notifier-packet.py` route stays in that same adjacent evidence set: it fail-closes the notifier survey, manifest, reviewability replay, ABI header, and helper footholds without promoting that adjacent packet into a ninth shared replay step.
 
+The helper-owned Landlock boundary notes stay in that adjacent release packet because they document the shipped ownership and governance blockers that still prevent a closure claim without inflating the eight-test shared replay count.
+
 These files keep the shipped release surface reviewable, but they do not change the fact that the active shared replay remains the eight-test helper packet.
 
 ## Current decision
@@ -148,4 +152,5 @@ The honest current roadmap read is:
   * `landlock ruleset` remains bounded to helper-first ruleset planning with live-tree state still explicitly blocked
   * `landlock syscalls` remains bounded to helper-first syscall planning with the release-side handoff now explicitly shipped and the packet otherwise parked
   * `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` remains the owner-map companion for the active helper tranche rather than a replay-count expansion
+  * the current shipped Phase 13 packet still has no dedicated `Documentation/zigux/phase13-closure.md`, so `Documentation/zigux/phase13-release-notes-survey.md` plus this traceability note carry the active tranche posture for the existing work
   * release-facing docs must keep the shared replay count and the adjacent-evidence split exact so contributors do not mistake missing docs or implied replay expansion for product progress
