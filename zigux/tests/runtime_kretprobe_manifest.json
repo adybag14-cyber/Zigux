@@ -74,7 +74,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
-      "why_now": "A bounded loader handoff keeps the planned register_kretprobe and unregister_kretprobe lifecycle, entry or exit symbol naming, private-data size, idle registration snapshot, prepared-snapshot ownership, and failed-exit state retention explicit while the real runtime substrate is still unavailable."
+      "why_now": "A bounded loader handoff keeps the planned register_kretprobe and unregister_kretprobe lifecycle, entry or exit symbol naming, private-data size, idle registration snapshot, prepared-snapshot ownership, post-release snapshot ownership, and failed-exit state retention explicit while the real runtime substrate is still unavailable."
     },
     {
       "id": "runtime-kretprobe-loader-contract",
