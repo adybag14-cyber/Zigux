@@ -26,25 +26,37 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/bindings/abi.zig",
     "zigux/bindings/dev_t.zig",
     "zigux/bindings/notifier_abi.zig",
-    "zigux/kernel/export_shim.zig",
-    "zigux/uapi/version.zig",
     "zigux/helpers/layout_assert.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/atomic.zig",
     "zigux/helpers/barrier.zig",
     "zigux/helpers/mmio.zig",
+    "zigux/kernel/export_shim.zig",
     "zigux/unsafe/narrow.zig",
+    "zigux/uapi/version.zig",
     "zigux/tests/phase3_abi.zig",
+    "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
+    BUILD_FILE_REL,
+    "zigux/tests/fixtures/phase3_abi/expected.json",
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
+    "scripts/zigux/run-phase3-checks.py",
+    "scripts/zigux/phase3_check_lib.py",
+    "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/artifact_diff.py",
+    "scripts/zigux/survey-phase3-abi-constant-parity.py",
+    "scripts/zigux/validate-phase3.py",
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/check-phase3-policy-byte-guards.py",
-    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
-    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
 )
 LOW_LEVEL_WRAPPER_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
 LOW_LEVEL_WRAPPER_REQUIRED_MARKERS = (
@@ -166,16 +178,22 @@ def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str
             issues.append(f"{slug}:manifest_missing_file={rel}")
     return data
 
+def _required_doc_markers_for_slug(slug: str) -> tuple[str, ...]:
+    markers = (
+        "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+        "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+    )
+    if slug == "abi":
+        return (*markers, "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig")
+    return markers
+
 def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[str, object] | None, issues: list[str]) -> None:
     if not doc_path.exists():
         issues.append(f"{slug}:missing_doc:{doc_path.relative_to(root).as_posix()}")
         return
     doc = doc_path.read_text(encoding="utf-8")
     normalized_lines = Counter(_normalize_doc_marker_line(line) for line in doc.splitlines())
-    required_markers = [
-        "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-        "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-    ]
+    required_markers = list(_required_doc_markers_for_slug(slug))
     if manifest:
         required_markers.insert(0, f"PHASE3_STATUS={manifest.get('status')}")
         required_markers.insert(1, f"PHASE3_SLICE={manifest.get('slice')}")
@@ -369,499 +387,11 @@ def run_self_test() -> int:
                     'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");',
                     'const phase3_alpha_dump_step = b.step("phase3-alpha-dump", "Run Phase 3 alpha dump");',
                     'const phase3_beta_dump_step = b.step("phase3-beta-dump", "Run Phase 3 beta dump");',
+                    'const phase3_dump_step = b.step("phase3-dump", "Run Phase 3 ABI dump");',
                     "",
                 ]
             ),
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
-            "\n".join([*LOW_LEVEL_WRAPPER_REQUIRED_MARKERS, ""]),
-            encoding="utf-8",
-            newline="\n",
-        )
-
-        manifest_rel = "zigux/tests/fixtures/phase3_alpha/expected.json"
-        manifest = {
-            "phase": "Phase 3",
-            "status": "ready",
-            "slice": "alpha-slice",
-            "files": [manifest_rel],
-            "file_count": 1,
-        }
-        (fixture_dir / "phase3_alpha_manifest.json").write_text(
-            json.dumps(manifest),
-            encoding="utf-8",
-            newline="\n",
-        )
-        abi_manifest_path = root / "tmp" / "abi_manifest.json"
-        abi_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        abi_manifest_path.write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "abi-slice",
-                    "files": [ABI_REQUIRED_MANIFEST_FILES[0]],
-                    "file_count": 1,
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        abi_issues: list[str] = []
-        validate_manifest(root, abi_manifest_path, "abi", abi_issues)
-        for rel in ABI_REQUIRED_MANIFEST_FILES[1:]:
-            assert f"abi:manifest_missing_required_file={rel}" in abi_issues
-
-        abi_manifest_path.write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "abi-slice",
-                    "files": list(ABI_REQUIRED_MANIFEST_FILES),
-                    "file_count": len(ABI_REQUIRED_MANIFEST_FILES),
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        abi_issues = []
-        validate_manifest(root, abi_manifest_path, "abi", abi_issues)
-        validate_low_level_wrapper_markers(root, "abi", abi_issues)
-        assert abi_issues == []
-        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
-            "\n".join(LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[:-1]) + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        marker_issues: list[str] = []
-        validate_low_level_wrapper_markers(root, "abi", marker_issues)
-        assert marker_issues == [f"abi:missing_low_level_wrapper_marker={LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[-1]}"]
-        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
-            "\n".join([*LOW_LEVEL_WRAPPER_REQUIRED_MARKERS, ""]),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
-            "\n".join(
-                [
-                    "PHASE3_STATUS=ready",
-                    "PHASE3_SLICE=alpha-slice",
-                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha",
-                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.docs_dir / "phase3-beta-slice.md").write_text(
-            "\n".join(
-                [
-                    "PHASE3_STATUS=ready",
-                    "PHASE3_SLICE=beta-slice",
-                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug beta",
-                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        (paths.scripts_dir / "check-phase3-beta.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
-        (paths.tests_dir / "phase3_beta_dump.zig").write_text("// beta\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
-        beta_fixture_dir = paths.fixtures_dir / "phase3_beta"
-        beta_fixture_dir.mkdir(parents=True, exist_ok=True)
-        beta_manifest_rel = "zigux/tests/fixtures/phase3_beta/expected.json"
-        (beta_fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
-        (beta_fixture_dir / "phase3_beta_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
-        (beta_fixture_dir / "phase3_beta_manifest.json").write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "beta-slice",
-                    "files": [beta_manifest_rel],
-                    "file_count": 1,
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.docs_dir / "artifact-diff.md").write_text(
-            "\n".join(
-                [
-                    "# Artifact Diff Policy",
-                    "",
-                    "Current Phase 3 use",
-                    "- `zigux/tests/fixtures/phase3_alpha/expected.json` anchors the bounded Phase 3 alpha parity claim.",
-                    "- `python3 scripts/zigux/run-phase3-checks.py --slug alpha` compares that committed JSON fixture against both the bounded C harness and the Zig alpha dump.",
-                    "",
-                    "Rules",
-                    "- keep fixtures reviewable",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-
-        slices = discover_phase3_slices(paths)
-        assert [entry.slug for entry in select_slices(slices, [])] == ["alpha", "beta"]
-        assert [entry.slug for entry in select_slices(slices, ["alpha"])] == ["alpha"]
-        try:
-            select_slices(slices, ["missing"])
-        except SystemExit as exc:
-            assert str(exc) == "unknown Phase 3 slugs: missing"
-        else:
-            raise AssertionError("expected missing slug to fail")
-        alpha = [entry for entry in slices if entry.slug == "alpha"]
-        beta = [entry for entry in slices if entry.slug == "beta"]
-        assert len(alpha) == 1
-        assert len(beta) == 1
-        assert validate_slices(root, alpha) == []
-
-        paths.scripts_dir.joinpath("check-phase3-alpha.py").unlink()
-        assert validate_slices(root, alpha, check_artifact_diff=True) == []
-
-        obsolete_wrapper = paths.scripts_dir / "check-phase3-stale.py"
-        obsolete_wrapper.write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        issues = validate_slices(root, alpha, check_artifact_diff=True)
-        assert "obsolete_wrapper:scripts/zigux/check-phase3-stale.py" in issues
-        obsolete_wrapper.unlink()
-
-        support_checker = paths.scripts_dir / "check-phase3-support.py"
-        support_checker.write_text("# support\n", encoding="utf-8", newline="\n")
-        issues = validate_slices(root, alpha, check_artifact_diff=True)
-        assert "obsolete_wrapper:scripts/zigux/check-phase3-support.py" not in issues
-
-        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
-            "\n".join(
-                [
-                    "PHASE3_STATUS=ready",
-                    "PHASE3_SLICE=alpha-slice",
-                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py",
-                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        assert validate_slices(root, alpha, check_artifact_diff=True) == []
-
-        (fixture_dir / "phase3_alpha_manifest.json").write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "alpha-slice",
-                    "files": ["scripts/zigux/check-phase3-alpha.py", manifest_rel],
-                    "file_count": 2,
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_slices(root, alpha, check_artifact_diff=True)
-        assert "alpha:manifest_legacy_wrapper_file=scripts/zigux/check-phase3-alpha.py" in issues
-
-        (fixture_dir / "phase3_alpha_manifest.json").write_text(
-            json.dumps(manifest),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.scripts_dir / "check-phase3-alpha.py").write_text("# stale\n", encoding="utf-8", newline="\n")
-        issues = validate_slices(root, alpha, check_artifact_diff=True)
-        assert "alpha:wrapper_template_mismatch:scripts/zigux/check-phase3-alpha.py" in issues
-
-        (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        (paths.docs_dir / "phase3-alpha-slice.md").write_text("PHASE3_STATUS=ready\n", encoding="utf-8", newline="\n")
-        issues = validate_slices(root, alpha, check_artifact_diff=True)
-        assert "alpha:missing_doc_marker=PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py" in issues
-        assert (
-            "alpha:missing_doc_marker_one_of="
-            "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha"
-            "|PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py"
-        ) in issues
-
-        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
-            "\n".join(
-                [
-                    "- `PHASE3_STATUS=ready`",
-                    "- `PHASE3_SLICE=alpha-slice`",
-                    "- `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`",
-                    "- `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`",
-                    "- `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha`",
-                    "- `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_slices(root, alpha, check_artifact_diff=True)
-        assert (
-            "alpha:duplicate_doc_marker=PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py"
-            in issues
-        )
-
-        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
-            "\n".join(
-                [
-                    "- `PHASE3_STATUS=ready`",
-                    "- `PHASE3_SLICE=alpha-slice`",
-                    "- `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`",
-                    "- `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha`",
-                    "- `PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py`",
-                    "- `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_slices(root, alpha, check_artifact_diff=True)
-        assert (
-            "alpha:duplicate_doc_marker_one_of="
-            "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha"
-            "|PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py"
-        ) in issues
-
-        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
-            "\n".join(
-                [
-                    "PHASE3_STATUS=ready",
-                    "PHASE3_SLICE=alpha-slice",
-                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha",
-                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.docs_dir / "artifact-diff.md").write_text(
-            "\n".join(
-                [
-                    "# Artifact Diff Policy",
-                    "",
-                    "Current Phase 3 use",
-                    "- stale line",
-                    "",
-                    "Rules",
-                    "- keep fixtures reviewable",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_slices(root, alpha, check_artifact_diff=True)
-        assert "artifact_diff:stale_phase3_section:Documentation/zigux/artifact-diff.md" in issues
-
-        (paths.docs_dir / "artifact-diff.md").write_text(
-            "# Artifact Diff Policy\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_slices(root, alpha, check_artifact_diff=True)
-        assert "artifact_diff:missing_phase3_section:Documentation/zigux/artifact-diff.md" in issues
-
-        (paths.tests_dir / "build.zig").write_text(
-            'const phase3_alpha_dump_step = b.step("phase3-alpha-dump", "Run Phase 3 alpha dump");\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_slices(root, alpha, check_artifact_diff=False)
-        assert f"build:missing_step:{BUILD_FILE_REL}:phase3-test" in issues
-
-        (paths.tests_dir / "build.zig").write_text(
-            'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_slices(root, alpha, check_artifact_diff=False)
-        assert f"alpha:missing_build_step:{BUILD_FILE_REL}:phase3-alpha-dump" in issues
-
-        (paths.tests_dir / "build.zig").write_text(
-            "\n".join(
-                [
-                    'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");',
-                    'const phase3_alpha_dump_step = b.step("phase3-alpha-dump", "Run Phase 3 alpha dump");',
-                    'const phase3_beta_dump_step = b.step("phase3-beta-dump", "Run Phase 3 beta dump");',
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-
-        loop_slug = "loop-window-policy-budget-window-policy-budget-window-policy-budget-window-policy"
-        loop_fixture_dir = paths.fixtures_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy"
-        loop_fixture_dir.mkdir(parents=True, exist_ok=True)
-        loop_manifest_rel = f"{loop_fixture_dir.relative_to(root).as_posix()}/expected.json"
-        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_POLICY_budget_window_policy_manifest.json").write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "loop-slice",
-                    "files": [loop_manifest_rel],
-                    "file_count": 1,
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.docs_dir / f"phase3-{loop_slug}-slice.md").write_text(
-            "\n".join(
-                [
-                    "PHASE3_STATUS=ready",
-                    "PHASE3_SLICE=loop-slice",
-                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-                    f"PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug {loop_slug}",
-                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.tests_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy_dump.zig").write_text(
-            "// loop\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        (loop_fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
-        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_POLICY_c_harness.c" if False else loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy_c_harness.c").write_text(
-            "int main(void) { return 0; }\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        canonical_slug = "alpha-beta-gamma-delta"
-        (paths.docs_dir / f"phase3-{canonical_slug}-slice.md").write_text(
-            "canonical\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        overgrown_slug = "alpha-beta-gamma-delta-epsilon-zeta-eta-theta-iota-kappa-lambda-mu-nu"
-        overgrown_fixture_dir = paths.fixtures_dir / "phase3_alpha_beta_gamma_delta_epsilon_zeta_eta_theta_iota_kappa_lambda_mu_nu"
-        overgrown_fixture_dir.mkdir(parents=True, exist_ok=True)
-        overgrown_manifest_rel = f"{overgrown_fixture_dir.relative_to(root).as_posix()}/expected.json"
-        (
-            overgrown_fixture_dir
-            / "phase3_alpha_beta_gamma_delta_epsilon_zeta_eta_theta_iota_kappa_lambda_mu_nu_manifest.json"
-        ).write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "overgrown-slice",
-                    "files": [overgrown_manifest_rel],
-                    "file_count": 1,
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.docs_dir / f"phase3-{overgrown_slug}-slice.md").write_text(
-            "\n".join(
-                [
-                    "PHASE3_STATUS=ready",
-                    "PHASE3_SLICE=overgrown-slice",
-                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-                    f"PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug {overgrown_slug}",
-                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.tests_dir / "phase3_alpha_beta_gamma_delta_epsilon_zeta_eta_theta_iota_kappa_lambda_mu_nu_dump.zig").write_text(
-            "// overgrown\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        (overgrown_fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
-        (
-            overgrown_fixture_dir
-            / "phase3_alpha_beta_gamma_delta_epsilon_zeta_eta_theta_iota_kappa_lambda_mu_nu_c_harness.c"
-        ).write_text(
-            "int main(void) { return 0; }\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-
-        slices = discover_phase3_slices(paths)
-        issues = validate_slices(root, slices, check_slug_sanity=True)
-        assert any(issue.startswith(f"slug_audit:slug-too-many-tokens:{overgrown_slug}:") for issue in issues)
-        assert any(issue.startswith(f"slug_audit:slug-repeated-token:{loop_slug}:") for issue in issues)
-        assert any(issue.startswith(f"slug_audit:slug-repeated-phrase:{loop_slug}:") for issue in issues)
-        assert not any(
-            issue.startswith(f"slug_rename_candidate:{overgrown_slug}:")
-            for issue in issues
-        )
-
-    print("PHASE3_VALIDATE_SELF_TEST=pass")
-    return 0
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate discovered Phase 3 slice assets and documentation markers.")
-    parser.add_argument("--self-test", action="store_true", help="Run isolated Phase 3 validation coverage in a temporary workspace.")
-    parser.add_argument(
-        "--slug",
-        action="append",
-        default=[],
-        help="Only validate the named Phase 3 slug. Repeat to validate more than one bounded slice.",
-    )
-    parser.add_argument(
-        "--check-artifact-diff-phase3-section",
-        action="store_true",
-        help="Also require Documentation/zigux/artifact-diff.md to match the generated Phase 3 section from the catalog.",
-    )
-    parser.add_argument(
-        "--check-slug-sanity",
-        action="store_true",
-        help="Also require discovered Phase 3 slugs to pass the optional catalog sanity audit.",
-    )
-    args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
-
-    slices = select_slices(discover_phase3_slices(), args.slug)
-    if not slices:
-        raise SystemExit("no Phase 3 slices discovered")
-    issues = validate_slices(
-        ROOT,
-        slices,
-        check_artifact_diff=args.check_artifact_diff_phase3_section,
-        check_slug_sanity=args.check_slug_sanity,
-        check_all_wrappers=True,
-    )
-    if issues:
-        print("PHASE3_VALIDATION=fail")
-        print("MISSING_PHASE3_MARKERS_START")
-        for issue in issues:
-            print(issue)
-        print("MISSING_PHASE3_MARKERS_END")
-        return 1
-
-    print("PHASE3_VALIDATION=pass")
-    print(f"PHASE3_SLICE_COUNT={len(slices)}")
-    return 0
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        (paths.tests_dir / "phase3_low_level_wrappers.zig").writeText???
