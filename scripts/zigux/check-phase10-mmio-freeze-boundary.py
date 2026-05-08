@@ -55,14 +55,14 @@ EXPECTED_COMPONENTS = {
         "landed_helper_evidence": [
             "phase10-virtqueue-shape-helper",
             "phase10-used-buffer-polling-helper",
-            "phase10-callback-disable-helper",
             "phase10-callback-enable-helper",
-            "phase10-callback-enable-prepare-helper",
             "phase10-callback-delay-helper",
             "phase10-notify-prepare-helper",
-            "phase10-queue-reset-guard-helper",
+            "phase10-broken-queue-poll-guard",
             "phase10-queue-reset-helper",
-            "phase10-broken-queue-recovery-helper",
+            "phase10-queue-reset-readiness-helper",
+            "phase10-ring-verify-replay",
+            "phase10-virtio-ring-slice-note",
         ],
     },
     "input": {
@@ -78,7 +78,7 @@ EXPECTED_COMPONENTS = {
             "phase10-virtio-input-teardown-observation-helper",
             "phase10-virtio-input-registration-preflight-helper",
             "phase10-virtio-input-queue-callback-preflight-helper",
-            "phase10-virtio-input-probe-preflight-helper",
+            "phase10-virtio-input-status-drain-helper",
         ],
     },
     "mmio": {
@@ -92,6 +92,7 @@ EXPECTED_COMPONENTS = {
             "phase10-mmio-register-window-helper",
             "phase10-mmio-queue-size-helper",
             "phase10-mmio-feature-word-selector-helper",
+            "phase10-mmio-feature-negotiation-summary-helper",
             "phase10-mmio-config-window-helper",
             "phase10-mmio-config-write-plan-helper",
             "phase10-mmio-transport-identity-helper",
@@ -112,6 +113,7 @@ EXPECTED_RING_WRAPPER_EVIDENCE = [
 EXPECTED_MMIO_WRAPPER_EVIDENCE = [
     "drivers/virtio/virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
+    "drivers/virtio/virtio_mmio_verify.zig",
     MMIO_MANIFEST_PATH,
     "Documentation/zigux/phase10-virtio-mmio-slice.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
@@ -121,8 +123,10 @@ EXPECTED_LAB_VALIDATION_EVIDENCE = [
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_core_reset_queue.zig",
     "zigux/tests/phase10_virtio_driver_id.zig",
+    "drivers/virtio/virtio_verify.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "drivers/virtio/virtio_input_verify.zig",
+    "drivers/virtio/virtio_mmio_verify.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
@@ -462,7 +466,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_exact_check_marker_missing")
 
     print("PHASE10_MMIO_FREEZE_BOUNDARY=pass")
-    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
