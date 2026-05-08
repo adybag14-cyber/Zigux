@@ -16,6 +16,9 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 READINESS_NOTE_PATH = "Documentation/zigux/phase15-readiness-gate-survey.md"
 MANIFEST_PATH = "zigux/tests/phase15_readiness_gate_manifest.json"
 READINESS_TEST_PATH = "zigux/tests/phase15_readiness_gate.zig"
+SCORECARD_NOTE_PATH = "Documentation/zigux/phase15-parity-scorecard.md"
+SCORECARD_MANIFEST_PATH = "zigux/tests/phase15_parity_scorecard.json"
+SCORECARD_TEST_PATH = "zigux/tests/phase15_parity_scorecard.zig"
 BUILD_PATH = "zigux/tests/phase15_build.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
@@ -29,6 +32,9 @@ REQUIRED_FILES = (
     READINESS_NOTE_PATH,
     MANIFEST_PATH,
     READINESS_TEST_PATH,
+    SCORECARD_NOTE_PATH,
+    SCORECARD_MANIFEST_PATH,
+    SCORECARD_TEST_PATH,
     BUILD_PATH,
     MAKEFILE_PATH,
     WORKFLOW_PATH,
@@ -36,6 +42,7 @@ REQUIRED_FILES = (
 
 README_MARKERS = (
     "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
     "make -C zigux phase15-validate",
     "make -C zigux phase15",
 )
@@ -54,6 +61,8 @@ READINESS_NOTE_MARKERS = (
 MAKEFILE_MARKERS = (
     "PHONY += phase15-validate phase15-test phase15",
     "phase15-validate:",
+    f"$(PYTHON) {VALIDATOR_PATH} --self-test",
+    f"$(PYTHON) {VALIDATOR_PATH}",
     f"$(PYTHON) {CHECKER_ONE} --self-test",
     f"$(PYTHON) {CHECKER_ONE}",
     f"$(PYTHON) {CHECKER_TWO} --self-test",
@@ -71,7 +80,22 @@ WORKFLOW_MARKERS = (
 
 BUILD_MARKERS = (
     'b.path("phase15_readiness_gate.zig")',
+    'b.path("phase15_parity_scorecard.zig")',
     'b.step("test", "Run Phase 15 governance tests")',
+)
+
+SCORECARD_NOTE_MARKERS = (
+    "`PHASE15_LANE_KEY=P15-L10`",
+    "required review-process review-packet fields tracked in the manifest: `20`",
+    "required review-process ownership-evidence fields tracked in the manifest: `15`",
+    "active freeze-in-C anchor count: `4`",
+    "total tracked line count across those anchors: `31,437`",
+    "reserved decision-record templates: `4`",
+    "blocked status-change anchors: `4`",
+    "review-packet fields mirrored from the Architecture Council packet: `20`",
+    "ownership-evidence fields mirrored from the Architecture Council packet: `15`",
+    "check-phase15-review-process-handoff.py",
+    "make -C zigux phase15-validate",
 )
 
 
@@ -103,12 +127,14 @@ def validate(root: Path) -> list[str]:
 
     readme = read_text(root, README_PATH)
     readiness_note = read_text(root, READINESS_NOTE_PATH)
+    scorecard_note = read_text(root, SCORECARD_NOTE_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
     build = read_text(root, BUILD_PATH)
 
     require_markers(readme, README_MARKERS, "docs_readme", failures)
     require_markers(readiness_note, READINESS_NOTE_MARKERS, "readiness_note", failures)
+    require_markers(scorecard_note, SCORECARD_NOTE_MARKERS, "scorecard_note", failures)
     require_markers(makefile, MAKEFILE_MARKERS, "makefile", failures)
     require_markers(workflow, WORKFLOW_MARKERS, "workflow", failures)
     require_markers(build, BUILD_MARKERS, "build", failures)
@@ -175,6 +201,84 @@ def validate(root: Path) -> list[str]:
         if marker not in readiness_test:
             failures.append(f"readiness_test:missing:{marker}")
 
+    scorecard_test = read_text(root, SCORECARD_TEST_PATH)
+    for marker in (
+        "phase15_parity_scorecard.json",
+        "phase15-parity-scorecard.md",
+        "required review-process review-packet fields tracked in the manifest: `20`",
+        "required review-process ownership-evidence fields tracked in the manifest: `15`",
+        "phase15-review-process-field-coverage-metrics",
+        "phase15-aggregate-scorecard-metrics",
+    ):
+        if marker not in scorecard_test:
+            failures.append(f"scorecard_test:missing:{marker}")
+
+    try:
+        scorecard_manifest = json.loads(read_text(root, SCORECARD_MANIFEST_PATH))
+    except json.JSONDecodeError as exc:
+        failures.append(f"scorecard_manifest:invalid_json:{exc}")
+        return failures
+
+    if scorecard_manifest.get("lane_key") != "P15-L10":
+        failures.append(f"scorecard_manifest:lane_key:{scorecard_manifest.get('lane_key')}")
+    if scorecard_manifest.get("phase") != "Phase 15":
+        failures.append(f"scorecard_manifest:phase:{scorecard_manifest.get('phase')}")
+
+    review_process = scorecard_manifest.get("review_process")
+    if not isinstance(review_process, dict):
+        failures.append("scorecard_manifest:review_process")
+    else:
+        if review_process.get("required_record_field_count") != 20:
+            failures.append("scorecard_manifest:required_record_field_count")
+        if len(review_process.get("required_record_fields", [])) != 20:
+            failures.append("scorecard_manifest:required_record_fields")
+        if review_process.get("ownership_evidence_field_count") != 15:
+            failures.append("scorecard_manifest:ownership_evidence_field_count")
+        if len(review_process.get("ownership_evidence_fields", [])) != 15:
+            failures.append("scorecard_manifest:ownership_evidence_fields")
+        if len(review_process.get("reopen_trigger_catalog", [])) != 3:
+            failures.append("scorecard_manifest:reopen_trigger_catalog")
+
+    metrics = scorecard_manifest.get("metrics")
+    if not isinstance(metrics, dict):
+        failures.append("scorecard_manifest:metrics")
+    else:
+        expected_metrics = {
+            "active_freeze_in_c_anchor_count": 4,
+            "total_tracked_line_count": 31437,
+            "anchors_with_phase14_blocker_evidence": 2,
+            "anchors_without_phase14_blocker_evidence": 2,
+            "architecture_council_owned_anchor_count": 2,
+            "specialist_lane_owned_anchor_count": 2,
+            "reserved_decision_record_template_count": 4,
+            "blocked_status_change_anchor_count": 4,
+            "review_packet_field_count": 20,
+            "ownership_evidence_field_count": 15,
+        }
+        for key, expected_value in expected_metrics.items():
+            if metrics.get(key) != expected_value:
+                failures.append(f"scorecard_manifest:metrics:{key}")
+
+    anchors = scorecard_manifest.get("anchors")
+    if not isinstance(anchors, list) or len(anchors) != 4:
+        failures.append("scorecard_manifest:anchors")
+
+    repo_evidence = scorecard_manifest.get("repo_evidence")
+    if not isinstance(repo_evidence, dict):
+        failures.append("scorecard_manifest:repo_evidence")
+    else:
+        for key in (
+            "freeze_map_present",
+            "review_checklist_present",
+            "phase15_scorecard_note_present",
+            "phase15_scorecard_test_present",
+            "phase15_scorecard_manifest_present",
+            "phase15_build_present",
+            "phase15_make_target_present",
+        ):
+            if repo_evidence.get(key) is not True:
+                failures.append(f"scorecard_manifest:repo_evidence:{key}")
+
     return failures
 
 
@@ -183,6 +287,21 @@ def seed_fixture_tree(root: Path) -> None:
     write_text(root / REVIEW_CHECKLIST_PATH, "# fixture\n")
     write_text(root / READINESS_NOTE_PATH, "\n".join(READINESS_NOTE_MARKERS) + "\n")
     write_text(root / READINESS_TEST_PATH, "\n".join((CHECKER_ONE, CHECKER_TWO, "phase15-validate", "phase15_build.zig", "phase15-deep-core-status-change-blocker")) + "\n")
+    write_text(root / SCORECARD_NOTE_PATH, "\n".join(SCORECARD_NOTE_MARKERS) + "\n")
+    write_text(
+        root / SCORECARD_TEST_PATH,
+        "\n".join(
+            (
+                "phase15_parity_scorecard.json",
+                "phase15-parity-scorecard.md",
+                "required review-process review-packet fields tracked in the manifest: `20`",
+                "required review-process ownership-evidence fields tracked in the manifest: `15`",
+                "phase15-review-process-field-coverage-metrics",
+                "phase15-aggregate-scorecard-metrics",
+            )
+        )
+        + "\n",
+    )
     write_text(root / BUILD_PATH, "\n".join(BUILD_MARKERS) + "\n")
     write_text(root / MAKEFILE_PATH, "\n".join(MAKEFILE_MARKERS) + "\n")
     write_text(root / WORKFLOW_PATH, "\n".join(WORKFLOW_MARKERS) + "\n")
@@ -213,6 +332,55 @@ def seed_fixture_tree(root: Path) -> None:
                     }
                 ],
                 "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again or one of the two dedicated `phase15-validate` checker routes disappears.",
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    write_text(
+        root / SCORECARD_MANIFEST_PATH,
+        json.dumps(
+            {
+                "lane_key": "P15-L10",
+                "phase": "Phase 15",
+                "review_process": {
+                    "required_record_field_count": 20,
+                    "required_record_fields": [f"field-{index}" for index in range(20)],
+                    "ownership_evidence_field_count": 15,
+                    "ownership_evidence_fields": [f"ownership-{index}" for index in range(15)],
+                    "reopen_trigger_catalog": [
+                        "narrower_followup_answers_blocker",
+                        "evidence_packet_stale_or_contradictory",
+                        "ownership_or_validation_changed",
+                    ],
+                },
+                "metrics": {
+                    "active_freeze_in_c_anchor_count": 4,
+                    "total_tracked_line_count": 31437,
+                    "anchors_with_phase14_blocker_evidence": 2,
+                    "anchors_without_phase14_blocker_evidence": 2,
+                    "architecture_council_owned_anchor_count": 2,
+                    "specialist_lane_owned_anchor_count": 2,
+                    "reserved_decision_record_template_count": 4,
+                    "blocked_status_change_anchor_count": 4,
+                    "review_packet_field_count": 20,
+                    "ownership_evidence_field_count": 15,
+                },
+                "anchors": [
+                    {"path": "kernel/sched/core.c"},
+                    {"path": "mm/page_alloc.c"},
+                    {"path": "kernel/rcu/tree.c"},
+                    {"path": "net/core/skbuff.c"},
+                ],
+                "repo_evidence": {
+                    "freeze_map_present": True,
+                    "review_checklist_present": True,
+                    "phase15_scorecard_note_present": True,
+                    "phase15_scorecard_test_present": True,
+                    "phase15_scorecard_manifest_present": True,
+                    "phase15_build_present": True,
+                    "phase15_make_target_present": True,
+                },
             },
             indent=2,
         )
@@ -260,6 +428,49 @@ def run_self_test() -> int:
         workflow_path.write_text(baseline_workflow.replace("run: make -C zigux phase15-validate", "run: make -C zigux phase15-check", 1), encoding="utf-8")
         assert_only(validate(root), ["workflow:missing:run: make -C zigux phase15-validate"], "missing_workflow_validate")
         workflow_path.write_text(baseline_workflow, encoding="utf-8")
+        case_count += 1
+
+        scorecard_note_path = root / SCORECARD_NOTE_PATH
+        baseline_scorecard_note = read_text(root, SCORECARD_NOTE_PATH)
+        scorecard_note_path.write_text(
+            baseline_scorecard_note.replace(
+                "required review-process review-packet fields tracked in the manifest: `20`",
+                "required review-process review-packet fields tracked in the manifest: `19`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_only(
+            validate(root),
+            ["scorecard_note:missing:required review-process review-packet fields tracked in the manifest: `20`"],
+            "missing_scorecard_review_field_marker",
+        )
+        scorecard_note_path.write_text(baseline_scorecard_note, encoding="utf-8")
+        case_count += 1
+
+        scorecard_manifest_path = root / SCORECARD_MANIFEST_PATH
+        scorecard_manifest = json.loads(read_text(root, SCORECARD_MANIFEST_PATH))
+        scorecard_manifest["metrics"]["review_packet_field_count"] = 19
+        write_text(scorecard_manifest_path, json.dumps(scorecard_manifest, indent=2) + "\n")
+        assert_only(
+            validate(root),
+            ["scorecard_manifest:metrics:review_packet_field_count"],
+            "mismatched_scorecard_metric",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
+        baseline_makefile = read_text(root, MAKEFILE_PATH)
+        makefile_path.write_text(
+            baseline_makefile.replace(f"$(PYTHON) {VALIDATOR_PATH} --self-test", "$(PYTHON) scripts/zigux/missing-validator.py --self-test", 1),
+            encoding="utf-8",
+        )
+        assert_only(
+            validate(root),
+            [f"makefile:missing:$(PYTHON) {VALIDATOR_PATH} --self-test"],
+            "missing_makefile_validator_selftest",
+        )
+        makefile_path.write_text(baseline_makefile, encoding="utf-8")
         case_count += 1
 
         print("PHASE15_VALIDATE_SELF_TEST=pass")
