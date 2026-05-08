@@ -13,6 +13,7 @@ const SurveySummary = struct {
     shared_phase4_test_step_includes_survey: bool,
     benchmark_command_unapproved: bool,
     acceptable_limit_unapproved: bool,
+    atomic64_benchmark_command_approved: bool,
 };
 
 const DeterministicReplay = struct {
@@ -74,7 +75,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "ready_next");
 }
 
-test "phase4 perf baseline survey manifest keeps the current unapproved threshold posture explicit" {
+test "phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit" {
     const parsed = try std.json.parseFromSlice(
         Manifest,
         std.testing.allocator,
@@ -130,9 +131,10 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expect(!manifest.survey_summary.shared_phase4_test_step_includes_survey);
     try std.testing.expect(manifest.survey_summary.benchmark_command_unapproved);
     try std.testing.expect(manifest.survey_summary.acceptable_limit_unapproved);
+    try std.testing.expect(manifest.survey_summary.atomic64_benchmark_command_approved);
 
     try std.testing.expectEqualStrings(
-        "explicit_candidate_landed",
+        "benchmark_command_approved",
         manifest.command_evidence.atomic64.evidence_status,
     );
     try std.testing.expectEqualStrings(
@@ -233,14 +235,14 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
 
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-atomic64-command")) {
             saw_atomic64_command_gap = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings(
                 "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
                 gap.benchmark_command.?,
             );
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "structured form") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "approved for local Phase 4 perf review") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit remains explicitly unapproved") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared validator-first packet") != null);
         }
 
@@ -276,8 +278,8 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 4), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 2), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 5), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_manifest_gap);
     try std.testing.expect(saw_gate_gap);
     try std.testing.expect(saw_atomic64_command_evidence_gap);
