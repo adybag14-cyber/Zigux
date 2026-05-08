@@ -23,7 +23,9 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     try std.testing.expectEqual(@as(u32, 15), value);
     try std.testing.expectEqual(@as(u32, 15), atomic.fetchXor(u32, &value, 6, .seq_cst));
     try std.testing.expectEqual(@as(u32, 9), value);
-    try std.testing.expectEqual(@as(u32, 9), atomic.fetchMin(u32, &value, 4, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 9), atomic.fetchNand(u32, &value, 10, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 0xffff_fff7), value);
+    try std.testing.expectEqual(@as(u32, 0xffff_fff7), atomic.fetchMin(u32, &value, 4, .seq_cst));
     try std.testing.expectEqual(@as(u32, 4), value);
     try std.testing.expectEqual(@as(u32, 4), atomic.fetchMax(u32, &value, 19, .seq_cst));
     try std.testing.expectEqual(@as(u32, 19), value);
@@ -125,36 +127,20 @@ test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edg
     try std.testing.expectEqual(@as(i32, -4), signed_arithmetic_value);
 
     var monotonic_value: u32 = 5;
-    try std.testing.expectEqual(
-        @as(?u32, null),
-        atomic.compareExchange(u32, &monotonic_value, 5, 7, .monotonic, .monotonic),
-    );
+    try std.testing.expectEqual(@as(?u32, null), atomic.compareExchange(u32, &monotonic_value, 5, 7, .monotonic, .monotonic));
     try std.testing.expectEqual(@as(u32, 7), monotonic_value);
-    const monotonic_mismatch = atomic.compareExchange(
-        u32,
-        &monotonic_value,
-        5,
-        9,
-        .monotonic,
-        .monotonic,
-    );
+    const monotonic_mismatch = atomic.compareExchange(u32, &monotonic_value, 5, 9, .monotonic, .monotonic);
     try std.testing.expectEqual(@as(?u32, 7), monotonic_mismatch);
     try std.testing.expectEqual(@as(u32, 7), monotonic_value);
 
+    var monotonic_nand_value: u32 = 0x0000_00ff;
+    try std.testing.expectEqual(@as(u32, 0x0000_00ff), atomic.fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic));
+    try std.testing.expectEqual(@as(u32, 0xffff_fff0), monotonic_nand_value);
+
     var acq_rel_value: u32 = 7;
-    try std.testing.expectEqual(
-        @as(?u32, null),
-        atomic.compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire),
-    );
+    try std.testing.expectEqual(@as(?u32, null), atomic.compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire));
     try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
-    const acq_rel_mismatch = atomic.compareExchange(
-        u32,
-        &acq_rel_value,
-        7,
-        15,
-        .acq_rel,
-        .acquire,
-    );
+    const acq_rel_mismatch = atomic.compareExchange(u32, &acq_rel_value, 7, 15, .acq_rel, .acquire);
     try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);
     try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
 
@@ -168,14 +154,7 @@ test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edg
     }
     try std.testing.expectEqual(@as(u32, 19), weak_release_value);
 
-    const weak_release_mismatch = atomic.compareExchangeWeak(
-        u32,
-        &weak_release_value,
-        13,
-        23,
-        .release,
-        .monotonic,
-    );
+    const weak_release_mismatch = atomic.compareExchangeWeak(u32, &weak_release_value, 13, 23, .release, .monotonic);
     try std.testing.expectEqual(@as(?u32, 19), weak_release_mismatch);
     try std.testing.expectEqual(@as(u32, 19), weak_release_value);
 }
