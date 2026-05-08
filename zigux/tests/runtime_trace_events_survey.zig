@@ -461,9 +461,24 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "`Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` remains the shared owner map for the `runtime_loader` lane versus the four pilot-family packets") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "the Phase 9 loader packet remains a metadata-only handoff and should not be read as shipped runtime command or environment activation control on current `master`") != null);
 
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_sample_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "../../samples/zigux/runtime_trace_events.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_module.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_diff_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_loader_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-sample-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-module-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-diff-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-loader-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_trace_events_sample_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_trace_events_module_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_trace_events_diff_tests.step") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-loader-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_trace_events_loader_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_trace_events_survey_tests.step") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_loader_contract_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_loader_facade_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_loader_allocator_init_flow_module") != null);
