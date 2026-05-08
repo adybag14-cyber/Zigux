@@ -75,9 +75,11 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_LANE_KEY=P13-L12") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase13-landlock-ruleset-ownership.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, ownership_note, "PHASE13_LANE_KEY=P13-L12") != null);
+    try std.testing.expect(std.mem.indexOf(u8, ownership_note, "Documentation/zigux/phase13-landlock-ruleset-ownership.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, ownership_note, "security/landlock/syscalls.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, ownership_note, "rb_replace_node()") != null);
     try std.testing.expect(std.mem.indexOf(u8, ownership_note, "phase13_landlock_ruleset_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, ownership_note, "ownership note, manifest, survey, slice, checker, and test gate all move together") != null);
     try std.testing.expect(manifest.survey_summary.ruleset_c_lines >= 700);
     try std.testing.expect(manifest.survey_summary.landlock_security_file_count >= 20);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
@@ -155,7 +157,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase13-landlock-ruleset-ownership.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "security/landlock/syscalls.zig") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "manifest, survey, slice, and test gate move together") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ownership note, manifest, survey, slice, test gate, and checker move together") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-rule-layer-merge-followup")) {
             saw_merge_followup = true;
