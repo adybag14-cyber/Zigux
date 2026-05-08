@@ -323,6 +323,24 @@ pub fn str_ends_with(str: []const u8, suffix: []const u8) bool {
     return strEndsWith(str, suffix);
 }
 
+fn sysfsComparableLen(buf: []const u8) usize {
+    const len = cStringLen(buf);
+    if (len != 0 and buf[len - 1] == '\n') {
+        return len - 1;
+    }
+    return len;
+}
+
+pub fn sysfsStreq(lhs: []const u8, rhs: []const u8) bool {
+    const lhs_len = sysfsComparableLen(lhs);
+    const rhs_len = sysfsComparableLen(rhs);
+    if (lhs_len != rhs_len) {
+        return false;
+    }
+
+    return std.mem.eql(u8, lhs[0..lhs_len], rhs[0..rhs_len]);
+}
+
 test "strtobool accepts common Linux forms" {
     try std.testing.expect(try strtobool("y"));
     try std.testing.expect(try strtobool("On"));
@@ -442,6 +460,18 @@ test "strEndsWith honors C-string boundaries" {
     const trailing_miss = [_]u8{ 'x', 0, 'y' };
     try std.testing.expect(strEndsWith(&cstr, &embedded_suffix));
     try std.testing.expect(!strEndsWith(&cstr, &trailing_miss));
+}
+
+test "sysfsStreq treats trailing newline and NUL as equivalent" {
+    try std.testing.expect(sysfsStreq("zigux", "zigux\n"));
+    try std.testing.expect(sysfsStreq("zigux\n", "zigux"));
+    try std.testing.expect(sysfsStreq("zigux\n", "zigux\n"));
+    try std.testing.expect(!sysfsStreq("zigux-extra\n", "zigux"));
+    try std.testing.expect(!sysfsStreq("zig\nux", "zigux"));
+
+    const nul_terminated = [_]u8{ 'z', 'i', 'g', 0, '\n', 'x' };
+    const plain = [_]u8{ 'z', 'i', 'g', 0, 'y' };
+    try std.testing.expect(sysfsStreq(&nul_terminated, &plain));
 }
 
 test "memdup and memchrInv preserve byte content" {
