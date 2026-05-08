@@ -204,6 +204,7 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FOCUSED_SHARD_COUNT=1"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4"));
     try std.testing.expect(containsMarker(smoke_note_text, "kernel/rcu/tree_bridge.zig"));
+    try std.testing.expect(containsMarker(smoke_note_text, "This wrapper first runs `python3 scripts/zigux/validate-phase14.py --self-test` and then the shared packet validator."));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, smoke_note_text, "coverage `focused_and_full_bundle`"));
     try std.testing.expectEqual(@as(usize, 4), std.mem.count(u8, smoke_note_text, "coverage `full_bundle_only`"));
 
@@ -258,6 +259,7 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     defer std.testing.allocator.free(makefile_text);
     try std.testing.expect(containsMarker(makefile_text, "phase14-smoke:"));
     try std.testing.expect(containsMarker(makefile_text, "phase14-test:"));
+    try std.testing.expect(containsMarker(makefile_text, "scripts/zigux/validate-phase14.py --self-test"));
     try std.testing.expect(containsMarker(makefile_text, "scripts/zigux/check-phase14-docs-root-smoke-summary.py"));
     try std.testing.expect(containsMarker(makefile_text, "phase14: phase14-validate phase14-smoke phase14-test"));
     try std.testing.expect(containsMarker(makefile_text, "zigux/tests/phase14_build.zig"));
