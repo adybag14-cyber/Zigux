@@ -142,7 +142,7 @@ For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local single-w
 
 - `tools/lib/find_bit.zig`
 
-That means `test "single-word next scans honor start masks"` stays present and review-visible whenever `findNextBit()`, `findNextZeroBit()`, or `findNextAndBit()` changes. The shared Phase 1 parity fixture already locks the cross-word and tail-clamped `find_bit` results, but it does not isolate the same-word `start` masking path, so this helper-local test is the bounded proof that one-word scans still honor caller-selected start masks instead of re-reading earlier bits.
+That means `test "single-word next scans honor start masks"` stays present and review-visible whenever `findNextBit()`, `findNextZeroBit()`, or `findNextAndBit()` changes. This helper-local test is the bounded proof that one-word scans still honor caller-selected start masks instead of re-reading earlier bits.
 
 - `PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior`
 
@@ -270,6 +270,14 @@ The helper-local raw `bitmap_copy()` alias proof must also stay explicit through
 That means `test "bitmap copy alias preserves raw source words without tail clearing"` stays present and review-visible whenever `copy()` or `bitmap_copy()` changes. This helper-local test is the bounded proof that the raw alias entrypoint preserves unmasked source words instead of silently adopting the tail-clearing semantics reserved for `copyClearTail()` and `bitmap_copy_clear_tail()`.
 
 - `PHASE1_BITMAP_RAW_COPY_ALIAS_REVIEW=helper-local raw bitmap_copy alias proof stays explicit through the direct bitmap test anchor so copy and bitmap_copy preserve unmasked source words instead of silently adopting tail-clearing semantics`
+
+The helper-local zero-count and aligned-count copy proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+
+That means `test "bitmap copy and extend handles zero and aligned counts"` stays present and review-visible whenever `copyAndExtend()`, `bitmap_copy_and_extend()`, `copyClearTail()`, or `bitmap_copy_clear_tail()` changes. This helper-local test is the bounded proof that zero-count copies still clear the destination extension and that aligned word counts preserve the copied word without silently picking up partial-tail masking that belongs only to non-aligned windows.
+
+- `PHASE1_BITMAP_COPY_EXTEND_ZERO_ALIGNED_REVIEW=helper-local bitmap copy-and-extend zero-count and aligned-count proof stays explicit through the direct bitmap test anchor so zero-count copies clear the destination extension and aligned word counts preserve copied words without accidental tail masking`
 
 The helper-local zero-bit no-op proof must also stay explicit through:
 
