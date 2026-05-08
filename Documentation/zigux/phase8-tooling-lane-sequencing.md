@@ -147,7 +147,7 @@ That split matches the live docs-root Phase 8 summary and prevents scheduled too
 
 ## Next bounded step
 
-The older starter-to-libbpf tests-root reminder refresh is complete, but one bounded truthfulness follow-up still remains inside that same wording lane: `zigux/tests/README.md` should keep `zigux/tests/phase8_pin_path.zig` and `zigux/tests/phase8_bpf_type_names.zig` explicit inside the parked libbpf packet summary before this note treats the shared tests-root reminder as fully closed again.
+That older immediate next step is now complete: `zigux/tests/README.md` already keeps `zigux/tests/phase8_pin_path.zig` and `zigux/tests/phase8_bpf_type_names.zig` explicit inside the parked libbpf packet summary, so this sequencing note should treat the shared tests-root reminder as closed again until another same-lane drift appears.
 
 If another wording-only drift appears first, start by rereading `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` together so the parked libbpf shard markers, the focused help-plus-kallsyms shard reminders, the pin-path and type-name helper inventory, and the focused make routes stay aligned before reopening any helper-local Phase 8 follow-up.
 
