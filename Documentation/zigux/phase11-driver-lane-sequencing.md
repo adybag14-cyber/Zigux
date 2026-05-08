@@ -97,7 +97,7 @@ The DesignWare watchdog lane owns the `dw_wdt` platform-facing starter, its regi
 
 This lane may compare its platform-backed follow-through against the other watchdog packets, but it does not own their manifests, HVC teardown follow-through, or next-step selection. Its next bounded work stays inside DesignWare registration, registration-scaffold truthfulness, verify-backed handoff truthfulness, teardown-parity truthfulness, reset or clock ownership wording, or another direct `dw_wdt` handoff repair.
 
-The HVC console lane owns console-local starter, survey, archival-manifest, verify-backed, and teardown-adjacent evidence:
+The HVC console lane owns console-local starter, survey, archival-manifest, dedicated survey-checker-backed, verify-backed, and teardown-adjacent evidence:
 
 - `Documentation/zigux/phase11-hvc-console-slice.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
@@ -105,12 +105,13 @@ The HVC console lane owns console-local starter, survey, archival-manifest, veri
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `zigux/tests/phase11_hvc_console_manifest.json`
 - `zigux/tests/phase11_hvc_console_survey.zig`
+- `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `drivers/tty/hvc/hvc_console.zig`
 - `drivers/tty/hvc/hvc_console_verify.zig`
 - `zigux/tests/phase11_hvc_console.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 
-This lane may rely on the shared replay contract and may keep the bounded `hvc_cleanup()` teardown handoff, the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` archival route, and the `make -C zigux phase11-hvc-survey` replay reviewable beside the driver-local teardown note, but it does not own watchdog-local registration, timeout, reset, or poweroff follow-through. Its next bounded work stays inside HVC registration, verify-backed notifier or sysrq truthfulness, or teardown-parity truthfulness.
+This lane may rely on the shared replay contract and may keep the bounded `hvc_cleanup()` teardown handoff, the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` archival checker, and the checker-backed `make -C zigux phase11-hvc-survey` replay reviewable beside the driver-local teardown note, but it does not own watchdog-local registration, timeout, reset, or poweroff follow-through. Its next bounded work stays inside HVC registration, verify-backed notifier or sysrq truthfulness, or teardown-parity truthfulness.
 
 ## Anti-overlap rules
 
