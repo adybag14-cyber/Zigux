@@ -78,6 +78,7 @@ Own:
 
 - `samples/zigux/runtime_kretprobe.zig`
 - `samples/zigux/runtime_kretprobe_loader.zig`
+- `zigux/tests/runtime_kretprobe_manifest.json`
 - `zigux/tests/runtime_kretprobe_module.zig`
 - `zigux/tests/runtime_kretprobe_diff.zig`
 - `zigux/tests/runtime_kretprobe_survey.zig`
