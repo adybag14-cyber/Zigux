@@ -15,6 +15,7 @@ It is a fallback-read overview, not a closure claim, not a validator-first route
 - shared-tree-only anchors: `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
 - shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
+- freeze-boundary guard: `Documentation/zigux/freeze-map.md`; queueing, throughput, rollback, and recovery wording in this shared fallback overview must stay below active delivery claims against frozen `net/core/skbuff.c` and below boundary-study-only `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c`
 
 ## Coverage split
 
