@@ -82,9 +82,9 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/bitmap_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "shared Phase 4 gate-evidence note") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "phase4_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "scripts/zigux/README.md still appears to leave") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/phase4_bitmap_diff_manifest.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/phase4_bitmap_diff_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "reviewer-facing validation maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "directly coupled bitmap survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "shared validator or docs-side artifact") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/bitmap_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_bitmap_live_helper_replay.zig") != null);
@@ -95,9 +95,8 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "measurable and reversible") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "one bounded same-lane validation step") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "tighten scripts/zigux/README.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/phase4_bitmap_diff_manifest.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/phase4_bitmap_diff_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "directly coupled manifest-backed bitmap survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "reviewer-facing artifact") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared validator and reviewer-facing summaries still agree") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "sample packets, or perf-threshold approval") != null);
 }
@@ -138,8 +137,9 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
     try expectContains(gate_evidence_source, "final_nth_seven=123");
     try expectContains(gate_evidence_source, "thirteen bounded range and prefix cases");
     try expectContains(gate_evidence_source, "two `find_nth_bit` replays");
-    try expectContains(gate_evidence_source, "nine copy-tail cases");
-    try expectContains(gate_evidence_source, "13 `DiffCase`, 9 `CopyCase`, and 13 `mixThresholdChecksum()` checkpoints");
+    try expectContains(gate_evidence_source, "ten copy-tail cases");
+    try expectContains(gate_evidence_source, "bounded out-of-bounds rejection coverage");
+    try expectContains(gate_evidence_source, "13 `DiffCase`, 10 `CopyCase`, and 13 `mixThresholdChecksum()` checkpoints");
 }
 
 test "phase 4 bitmap survey keeps owner and rollback owner governance explicit" {
@@ -154,6 +154,6 @@ test "phase 4 bitmap survey keeps owner and rollback owner governance explicit" 
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", manifest.shared_matrix_path);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.shared_gate_evidence_path);
 
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "scripts/zigux/README.md still appears to leave") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "tighten scripts/zigux/README.md so its Phase 4 flow explicitly carries") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "reviewer-facing validation maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "refresh the directly coupled manifest-backed bitmap survey or reviewer-facing artifact") != null);
 }
