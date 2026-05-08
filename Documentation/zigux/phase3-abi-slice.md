@@ -121,7 +121,7 @@ It is a small substrate that makes future ports measurable:
 
 The current Phase 3 low-level wrapper packet is still intentionally small, but it now carries direct focused proof alongside the shared ABI packet:
 
-- `zigux/helpers/atomic.zig` now exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange()`, and `compareExchangeWeak()`.
+- `zigux/helpers/atomic.zig` now exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchNand`, `fetchMin`, `fetchMax`, `compareExchange()`, and `compareExchangeWeak()`.
 - `zigux/helpers/barrier.zig` now exposes `acquire`, `release`, `full`, and `acquireRelease()` through local compile-review scaffolding rather than a module-global fence word.
 - `zigux/helpers/mmio.zig` now exposes `range`, direct `read8` and `write8`, direct `read16` and `write16`, direct `read32` and `write32`, and direct `read64` and `write64`.
 - `zigux/tests/phase3_low_level_wrappers.zig` now directly replays the shipped helper surface, including signed `fetchAdd` and `fetchSub`, signed `fetchMin` and `fetchMax`, monotonic strong `compareExchange()`, `acq_rel` strong `compareExchange()` mismatch handling, direct barrier-locality proof, non-`seq_cst` ordering, plus byte-addressed 16-bit, 32-bit, and 64-bit MMIO range descriptors and odd-offset access routed through the narrow pointer bridge.
