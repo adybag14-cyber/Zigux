@@ -24,7 +24,9 @@
     "benchmark_command_unapproved": false,
     "acceptable_limit_unapproved": true,
     "atomic64_benchmark_command_approved": true,
-    "atomic64_acceptable_limit_approved": true
+    "atomic64_acceptable_limit_approved": true,
+    "bitmap_benchmark_command_approved": true,
+    "bitmap_acceptable_limit_approved": false
   },
   "command_evidence": {
     "atomic64": {
