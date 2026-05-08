@@ -13,6 +13,7 @@ It is a fallback-read overview, not a closure claim, not a validator-first route
 - scope: shared fallback-read coverage for the shipped `nvme_pci`, `virtio_net`, `virtio_scsi`, and libbpf Phase 12 packet plus the compact release-coordination matrix, PMO closure companion, and shared replay surfaces that travel with the active release-order packet
 - commit-pinned fallback artifacts: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - shared-tree-only anchors: `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md`
+- deterministic libbpf artifact companions: `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, and `zigux/tests/phase12_libbpf_snapshot_determinism.zig`
 - driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
 - shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
 - freeze-boundary guard: `Documentation/zigux/freeze-map.md`; queueing, throughput, rollback, and recovery wording in this shared fallback overview must stay below active delivery claims against frozen `net/core/skbuff.c` and below boundary-study-only `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c`
@@ -63,6 +64,8 @@ That same shared replay reminder still includes the attached-toolchain fallback 
 
 - current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - `PHASE12_SHARED_SMOKE_SURFACE_COUNT=6`
+- deterministic libbpf artifact companions that travel with the same shared release packet: `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, and `zigux/tests/phase12_libbpf_snapshot_determinism.zig`
+- `PHASE12_LIBBPF_TRACKED_HELPER_COUNT=5`
 
 1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
 2. `make -C zigux phase12-smoke`
@@ -75,15 +78,15 @@ That same shared replay reminder still includes the attached-toolchain fallback 
 
 Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether those same shipped surfaces are close enough to describe the active Phase 12 tranche as release-closed.
 
-Keep `Documentation/zigux/phase12-release-readiness-survey.md` visible beside this shared fallback overview, the PMO closure companion, and `Documentation/zigux/phase12-release-coordination-matrix.md` so adjacent tranche-readiness wording stays tied to the same two-artifact-plus-two-anchor split and smoke-first release packet instead of drifting into its own broader route.
+Keep `Documentation/zigux/phase12-release-readiness-survey.md` visible beside this shared fallback overview, the PMO closure companion, and `Documentation/zigux/phase12-release-coordination-matrix.md` so adjacent tranche-readiness wording stays tied to the same two-artifact-plus-two-anchor split, the deterministic libbpf artifact companions, and the smoke-first release packet instead of drifting into its own broader route.
 
-`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this shared fallback overview, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this survey into a second sequencing document.
+`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this shared fallback overview, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, deterministic libbpf artifact companions, and smoke-set summary remain reviewable together without turning this survey into a second sequencing document.
 
-`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, and `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` should keep this shared fallback overview visible beside that same PMO companion so the two-artifact-plus-two-anchor split, the freeze-boundary reminder, and the driver-only versus shared-libbpf anti-overlap map do not disappear from the shared release packet while the narrower driver-local fallback notes stay unchanged.
+`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, and `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` should keep this shared fallback overview visible beside that same PMO companion so the two-artifact-plus-two-anchor split, the deterministic libbpf artifact companions, the freeze-boundary reminder, and the driver-only versus shared-libbpf anti-overlap map do not disappear from the shared release packet while the narrower driver-local fallback notes stay unchanged.
 
 `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, and `zigux/tests/README.md` should stay aligned on that same split so the compact coordination view remains reviewable while the tests-root packet keeps the matrix reminder explicit.
 
-`Documentation/zigux/freeze-map.md` should stay visible beside this shared fallback overview whenever queueing, throughput, rollback, or recovery wording shifts so the two commit-pinned fallback artifacts, two shared-tree-only anchors, and smoke-first replay packet do not get rounded up into deep-core delivery claims.
+`Documentation/zigux/freeze-map.md` should stay visible beside this shared fallback overview whenever queueing, throughput, rollback, or recovery wording shifts so the two commit-pinned fallback artifacts, two shared-tree-only anchors, deterministic libbpf artifact companions, and smoke-first replay packet do not get rounded up into deep-core delivery claims.
 
 `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` should be reread beside this shared fallback overview whenever shared Phase 12 libbpf ownership wording changes so the fallback split does not blur the reviewability lane, the helper-sized ready-next lane, the deferred bridge and queue-routing lane, and the blocked object-model wall back into one vague `libbpf` bucket.
 
@@ -95,4 +98,4 @@ This overview should stay read-only and should not be used to imply an unshipped
 
 ## Update rule
 
-If the bounded Phase 12 packet gains or drops a shared-tree-only anchor or a commit-pinned fallback artifact, update this overview in the same change so the shared fallback split keeps matching the live reviewable packet on `master`.
+If the bounded Phase 12 packet gains or drops a shared-tree-only anchor, a commit-pinned fallback artifact, or one of the deterministic libbpf artifact companions, update this overview in the same change so the shared fallback split keeps matching the live reviewable packet on `master`.
