@@ -786,6 +786,14 @@ def run_self_test() -> None:
         make_fixture_root(tmp_root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        cached_root_followup_anchors = manifest["review_anchors"]["tools/lib/rbtree.zig"]["cached_root_followup_anchors"]
+        cached_root_followup_anchors.remove('test "rbtree eraseInitCached clears singleton cached roots before reseed"')
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "manifest:review_anchor_value=tools/lib/rbtree.zig:cached_root_followup_anchors" in missing
+        make_fixture_root(tmp_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         helper_test_anchors = manifest["review_anchors"]["tools/lib/string.zig"]["helper_test_anchors"]
         helper_test_anchors.remove('test "sysfsStreq treats trailing newline and NUL as equivalent"')
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -846,7 +854,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [".github/workflows/zigux-bootstrap.yml"]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=19")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=20")
 
 
 def main() -> int:
