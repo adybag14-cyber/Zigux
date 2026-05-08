@@ -78,6 +78,7 @@ The current tests check:
 - first-NUL stop behavior for both `count_argc()` and `argv_split()`
 - strict non-goal behavior where quote characters stay inside the returned tokens
 - null-terminated pointer-vector access through `cArgv()`
+- exported C-argv vector sizing to `argc + 1` so the trailing null sentinel stays aligned with `argvSplitWithArgc()` and `cArgv()`
 - copied-buffer ownership so later source mutation does not affect split results
 - copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated
 - separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results
