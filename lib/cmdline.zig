@@ -153,7 +153,7 @@ pub const NextArgResult = struct {
 
 pub fn nextArg(args: []u8) NextArgResult {
     if (args.len == 0) {
-        return .{ .rest = args, .param = "", .value = null };
+        return .{ .rest = args, .param = args[0..0], .value = null };
     }
 
     var start: usize = 0;
@@ -557,6 +557,18 @@ test "nextArg keeps param, value, and rest borrowed from the caller buffer" {
     try std.testing.expectEqual(@as(u8, 0), buffer[4]);
     try std.testing.expectEqual(@as(u8, 0), buffer[15]);
     try std.testing.expectEqual(@as(u8, 0), buffer[16]);
+}
+
+test "nextArg keeps empty-input param and rest borrowed from the caller slice" {
+    var buffer = [_]u8{};
+    const args = buffer[0..];
+    const parsed = nextArg(args);
+
+    try std.testing.expectEqualStrings("", parsed.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), parsed.value);
+    try std.testing.expectEqualStrings("", cStringPrefix(parsed.rest));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(args.ptr)), @as(usize, @intFromPtr(parsed.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(args.ptr)), @as(usize, @intFromPtr(parsed.rest.ptr)));
 }
 
 test "nextArg trims mixed trailing whitespace from rest and leaves whitespace-only tails empty" {
