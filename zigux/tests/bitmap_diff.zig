@@ -1,6 +1,33 @@
 const std = @import("std");
 
 const bitmap_diff_source = @embedFile("bitmap_diff.zig");
+const manifest_source = @embedFile("phase4_bitmap_diff_manifest.json");
+
+const Manifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    roadmap_target_path: []const u8,
+    roadmap_bitmap_diff_present: bool,
+    live_gate_path: []const u8,
+    live_gate_blob_sha: []const u8,
+    helper_replay_path: []const u8,
+    helper_replay_blob_sha: []const u8,
+    owner: []const u8,
+    rollback_owner: []const u8,
+    shared_validator_path: []const u8,
+    shared_matrix_path: []const u8,
+    shared_gate_evidence_path: []const u8,
+    gate_evidence_path: []const u8,
+    gate_evidence_blob_sha: []const u8,
+    phase4_build_present: bool,
+    phase4_build_uses_bitmap_diff: bool,
+    phase4_build_uses_bitmap_diff_survey: bool,
+    phase4_build_blob_sha: []const u8,
+    threshold_posture: []const u8,
+    roadmap_gap_summary: []const u8,
+    reversible_delivery_evidence: []const u8,
+    ready_next: []const u8,
+};
 
 const SummaryExpectation = struct {
     first_set: u32,
@@ -244,6 +271,15 @@ fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
         start = index + needle.len;
     }
     return count;
+}
+
+fn expectBlobShaShape(value: []const u8) !void {
+    try std.testing.expectEqual(@as(usize, 40), value.len);
+    for (value) |byte| {
+        const is_digit = byte >= '0' and byte <= '9';
+        const is_lower_hex = byte >= 'a' and byte <= 'f';
+        try std.testing.expect(is_digit or is_lower_hex);
+    }
 }
 
 fn expectSourceCaseGroupCardinality(
@@ -757,6 +793,40 @@ test "bitmap diff gate keeps rollback governance explicit" {
     );
 }
 
+test "bitmap diff gate keeps the manifest-backed rollback packet aligned" {
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_source, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
+    try std.testing.expectEqualStrings("P4-L07", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 4", manifest.phase);
+    try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.roadmap_target_path);
+    try std.testing.expect(manifest.roadmap_bitmap_diff_present);
+    try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.live_gate_path);
+    try std.testing.expectEqualStrings("zigux/tests/phase4_bitmap_live_helper_replay.zig", manifest.helper_replay_path);
+    try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.owner);
+    try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.rollback_owner);
+    try std.testing.expectEqualStrings("scripts/zigux/validate-phase4.py", manifest.shared_validator_path);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", manifest.shared_matrix_path);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.shared_gate_evidence_path);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.gate_evidence_path);
+    try std.testing.expect(manifest.phase4_build_present);
+    try std.testing.expect(manifest.phase4_build_uses_bitmap_diff);
+    try std.testing.expect(manifest.phase4_build_uses_bitmap_diff_survey);
+    try std.testing.expectEqualStrings(bitmap_diff_governance.threshold_posture, manifest.threshold_posture);
+    try expectBlobShaShape(manifest.live_gate_blob_sha);
+    try expectBlobShaShape(manifest.helper_replay_blob_sha);
+    try expectBlobShaShape(manifest.gate_evidence_blob_sha);
+    try expectBlobShaShape(manifest.phase4_build_blob_sha);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "reviewer-facing validation maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "shared validator or docs-side artifact") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/bitmap_diff.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_bitmap_diff_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "one bounded same-lane validation step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "reviewer-facing artifact") != null);
+}
+
 test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectSourceCaseGroupCardinality(
         "const cases = [_]DiffCase{",
@@ -797,6 +867,11 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, ".rollback_owner = \"Shared Subsystems Pod\",");
     try expectMarker(bitmap_diff_source, ".fallback_anchor = \"lib/test_bitmap.c\",");
     try expectMarker(bitmap_diff_source, ".threshold_posture = \"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\",");
+    try expectMarker(bitmap_diff_source, "const manifest_source = @embedFile(\"phase4_bitmap_diff_manifest.json\");");
+    try expectMarker(bitmap_diff_source, "fn expectBlobShaShape(value: []const u8) !void {");
+    try expectMarker(bitmap_diff_source, "test \"bitmap diff gate keeps the manifest-backed rollback packet aligned\" {");
+    try expectMarker(bitmap_diff_source, "try expectBlobShaShape(manifest.live_gate_blob_sha);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqualStrings(bitmap_diff_governance.threshold_posture, manifest.threshold_posture);");
     const replay_start = std.mem.indexOf(
         u8,
         bitmap_diff_source,
