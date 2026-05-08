@@ -85,12 +85,20 @@ pub fn keepsApprovedPilotFamilyContract(plan: LoadPlan) bool {
     );
 }
 
+fn validatePreparedPlan(plan: LoadPlan) !void {
+    if (!plan.requires_runtime_substrate) return error.LoaderNotRequired;
+    if (!keepsApprovedPilotFamilyContract(plan)) return error.InvalidPilotFamilyContract;
+    if (!keepsSelftestHookEvidenceConsistent(plan)) return error.InvalidSelftestHookEvidence;
+    if (!plan.init_flow.readyForRuntimeLoad()) return error.InvalidInitFlow;
+}
+
 pub const PreparedRequest = struct {
     state: RequestState = .prepared,
     plan: LoadPlan,
 
     pub fn requestRuntimeLoad(self: *PreparedRequest) !LoadPlan {
         if (self.state != .prepared) return error.InvalidLoaderState;
+        try validatePreparedPlan(self.plan);
 
         self.state = .waiting_on_runtime_substrate;
         return self.plan;
@@ -103,10 +111,7 @@ pub const PreparedRequest = struct {
 };
 
 pub fn prepareRequest(plan: LoadPlan) !PreparedRequest {
-    if (!plan.requires_runtime_substrate) return error.LoaderNotRequired;
-    if (!keepsApprovedPilotFamilyContract(plan)) return error.InvalidPilotFamilyContract;
-    if (!keepsSelftestHookEvidenceConsistent(plan)) return error.InvalidSelftestHookEvidence;
-    if (!plan.init_flow.readyForRuntimeLoad()) return error.InvalidInitFlow;
+    try validatePreparedPlan(plan);
 
     return .{ .plan = plan };
 }
@@ -580,6 +585,47 @@ test "shared runtime loader contract rejects request state, approved-family, or 
     var drifted_init_flow = stable_plan;
     drifted_init_flow.init_flow.selftest_runs = 1;
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_init_flow));
+}
+
+test "shared runtime loader contract keeps prepared-request drift from advancing runtime handoff state" {
+    const stable_plan = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+
+    var request = try prepareRequest(stable_plan);
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, stable_plan));
+
+    request.plan.requires_runtime_substrate = false;
+    try std.testing.expectError(error.LoaderNotRequired, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+
+    request.plan = stable_plan;
+    request.plan.module_name = "runtime_trace_events_drift";
+    try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+
+    request.plan = stable_plan;
+    request.plan.provides_selftest_hook = false;
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+
+    request.plan = stable_plan;
+    request.plan.init_flow.selftest_runs = 2;
+    try std.testing.expectError(error.InvalidInitFlow, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
 }
 
 test "shared runtime loader contract rejects stale state transitions across initialized and selftest-complete handoffs" {
