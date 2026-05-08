@@ -94,7 +94,7 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L14", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -194,7 +194,7 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
         try std.testing.expect(entry.surface.len > 0);
         try std.testing.expect(entry.role.len > 0);
         try std.testing.expect(entry.boundary.len > 0);
-        try std.testing.expectEqualStrings("P9-L14", entry.owner);
+        try std.testing.expectEqualStrings("P9-L10", entry.owner);
 
         if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-trace-events-survey.md")) saw_survey_note_owner = true;
         if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-trace-events-module-slice.md")) saw_module_slice_owner = true;
