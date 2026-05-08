@@ -226,6 +226,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
     const required_markers = [_][]const u8{
         "PHASE5_STATUS=parked",
         "PHASE5_LANE_KEY=P5-Y03",
+        "Documentation/zigux/phase5-sample-review-guide.md",
         "## Approved idiom for the landed kobject-style sample",
         "approved Phase 5 in-memory ownership-and-lifetime idiom",
         "before `registerAttributes()`, the sample still reports zero active attributes and blocks `showValue()` or `storeValue()`",
