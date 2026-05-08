@@ -321,6 +321,20 @@ pub fn build(b: *std.Build) void {
     );
     runtime_bitmap_top_bit_tests_step.dependOn(&run_runtime_bitmap_top_bit_contract_tests.step);
 
+    const runtime_bitmap_tests_step = b.step(
+        "phase9-runtime-bitmap-tests",
+        "Run the focused Phase 9 runtime bitmap sample, module, diff, loader, top-bit, survey, and shared runtime-loader tests",
+    );
+    runtime_bitmap_tests_step.dependOn(&run_runtime_bitmap_sample_tests.step);
+    runtime_bitmap_tests_step.dependOn(&run_runtime_bitmap_module_tests.step);
+    runtime_bitmap_tests_step.dependOn(&run_runtime_bitmap_diff_tests.step);
+    runtime_bitmap_tests_step.dependOn(&run_runtime_bitmap_loader_tests.step);
+    runtime_bitmap_tests_step.dependOn(&run_runtime_bitmap_top_bit_contract_tests.step);
+    runtime_bitmap_tests_step.dependOn(&run_runtime_bitmap_survey_tests.step);
+    runtime_bitmap_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
+    runtime_bitmap_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
+    runtime_bitmap_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
+
     const runtime_trace_events_tests_step = b.step(
         "phase9-runtime-trace-events-tests",
         "Run the focused Phase 9 runtime trace-events sample, module, loader, diff, and survey tests",
