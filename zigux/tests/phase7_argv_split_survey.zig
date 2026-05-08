@@ -144,6 +144,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_impl, "pub fn argvFree");
     try expectContains(helper_impl, "pub fn cArgv");
     try expectContains(helper_impl, "test \"argvSplit preserves C-string termination for the final token and argv vector\"");
+    try expectContains(helper_impl, "test \"argvSplit sizes argc and tokens from the owned copy prefix when copied storage contains an early NUL\"");
     try expectContains(helper_impl, "test \"argvSplit zeroes copied whitespace separators across the tokenized buffer\"");
     try expectContains(helper_impl, "test \"argvSplit treats whitespace before the first NUL as blank input\"");
     try expectContains(helper_impl, "test \"argvSplit reuses the exported empty argv view for blank input\"");
@@ -157,6 +158,9 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "phase 7 argvSplit token buffer does not alias the source text");
     try expectContains(helper_tests, "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy");
     try expectContains(helper_tests, "phase 7 argvSplitWithArgc reports the split length through the optional out parameter");
+    try expectContains(helper_tests, "phase 7 argvSplit keeps the exported C argv vector sized to argc plus one sentinel");
+    try expectContains(helper_tests, "try std.testing.expectEqual(argc + 1, split.argv_null_terminated.len);");
+    try expectContains(helper_tests, "try std.testing.expect(split.cArgv() == split.argv_null_terminated.ptr);");
     try expectContains(helper_tests, "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty exported argv view");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space");
