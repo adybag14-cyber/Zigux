@@ -823,9 +823,37 @@ test "runtime loader facade rejects request state or plan drift" {
         stable_plan,
     ));
 
+    var drifted_module = stable_plan;
+    drifted_module.module_name = "runtime_atomic64_drift";
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_module));
+
+    var drifted_anchor = stable_plan;
+    drifted_anchor.anchor = "lib/atomic64_test_drift.c";
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_anchor));
+
+    var drifted_entry_symbol = stable_plan;
+    drifted_entry_symbol.entry_symbol = "zigux_runtime_atomic64_init_drift";
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_entry_symbol));
+
     var drifted_plan = stable_plan;
     drifted_plan.exit_symbol = "zigux_runtime_atomic64_exit_drift";
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_plan));
+
+    var drifted_runtime_requirement = stable_plan;
+    drifted_runtime_requirement.requires_runtime_substrate = false;
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(
+        request,
+        .prepared,
+        drifted_runtime_requirement,
+    ));
+
+    var drifted_selftest_hook = stable_plan;
+    drifted_selftest_hook.provides_selftest_hook = false;
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(
+        request,
+        .prepared,
+        drifted_selftest_hook,
+    ));
 
     var drifted_allocator = stable_plan;
     drifted_allocator.allocator_handoff = .arena;
