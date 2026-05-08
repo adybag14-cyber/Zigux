@@ -5,7 +5,6 @@
     "target": "sample.o",
     "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample.o",
     "expected": "sample_expected.txt",
-    "expected_stdout": "sample_expected.txt",
     "expected_exit_code": 0
   },
   {
@@ -14,7 +13,6 @@
     "target": "sample_escaped_space.o",
     "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_escaped_space.o",
     "expected": "sample_escaped_space_expected.txt",
-    "expected_stdout": "sample_escaped_space_expected.txt",
     "expected_exit_code": 0
   },
   {
@@ -23,7 +21,6 @@
     "target": "module/sample2.o",
     "cmdline": "clang -Iinclude -DZIGUX_MULTI -c zigux/tests/fixtures/fixdep/sample2.c -o module/sample2.o",
     "expected": "sample_multi_target_expected.txt",
-    "expected_stdout": "sample_multi_target_expected.txt",
     "expected_exit_code": 0
   },
   {
@@ -32,7 +29,6 @@
     "target": "sample_comment_only.o",
     "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_comment_only.o",
     "expected": "sample_comment_only_expected.txt",
-    "expected_stdout": "sample_comment_only_expected.txt",
     "expected_stderr": "sample_comment_only_expected.stderr.txt",
     "expected_exit_code": 1
   },
@@ -42,7 +38,6 @@
     "target": "sample_missing_dep.o",
     "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_missing_dep_source.c -o sample_missing_dep.o",
     "expected": "sample_missing_dep_expected.txt",
-    "expected_stdout": "sample_missing_dep_expected.txt",
     "expected_stderr": "sample_missing_dep_expected.stderr.txt",
     "expected_exit_code": 2
   },
@@ -52,7 +47,6 @@
     "target": "sample_escaped_hash_comment_chain.o",
     "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_escaped_hash_comment_chain.o",
     "expected": "sample_escaped_hash_comment_chain_expected.txt",
-    "expected_stdout": "sample_escaped_hash_comment_chain_expected.txt",
     "expected_exit_code": 0
   }
 ]
