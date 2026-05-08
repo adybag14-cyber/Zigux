@@ -48,6 +48,7 @@ Keep the shared build-backed virtio packet explicit:
   * `zigux/tests/phase10_virtio_mmio_survey.zig`
   * `zigux/Makefile`
   * `zig build test --build-file zigux/tests/phase10_build.zig`
+  * `make -C zigux phase10-test`
   * `make -C zigux phase10`
 Tests-root reviewer prompt:
 
