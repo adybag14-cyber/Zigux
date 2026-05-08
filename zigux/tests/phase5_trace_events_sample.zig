@@ -19,6 +19,7 @@ test "phase 5 trace-events sample replays the bounded payload and callback idiom
     try std.testing.expectEqual(sample.SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expectEqualStrings("iter=7", replay.formatted_message);
     try std.testing.expectEqualStrings("Gandalf", replay.selected_string);
+    try std.testing.expectEqual(@as(usize, 2), replay.selected_index);
     try std.testing.expectEqual(@as(usize, 2), replay.array_prefix_len);
     try std.testing.expectEqual(@as(i32, 0), replay.array_sentinel);
     try std.testing.expectEqual(@as(usize, 0xdeadbeef), replay.bitmask_word);
@@ -53,12 +54,33 @@ test "phase 5 trace-events sample keeps the conditional-event boundary explicit"
     try std.testing.expectEqual(@as(i32, 0), conditional_boundary.main_count);
     try std.testing.expectEqualStrings("iter=0", conditional_boundary.formatted_message);
     try std.testing.expectEqualStrings("Mother Goose", conditional_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 0), conditional_boundary.selected_index);
     try std.testing.expectEqual(@as(usize, 0xdeadbeef), conditional_boundary.bitmask_word);
     try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, conditional_boundary.main_thread_event_calls);
     try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, conditional_boundary.total_event_calls_after_replay);
     try std.testing.expect(conditional_boundary.conditional_paths_checked);
     try std.testing.expect(conditional_boundary.vararg_payload_path_checked);
     try std.testing.expect(conditional_boundary.relative_location_path_checked);
+    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
+}
+
+test "phase 5 trace-events sample keeps the string wraparound boundary explicit" {
+    var module = sample.TraceEventsReferenceSample{};
+    try module.init();
+
+    const string_boundary = try module.runConditionalBoundaryReplay(5);
+    try std.testing.expectEqual(sample.SampleStage.initialized, string_boundary.stage_before_iteration);
+    try std.testing.expectEqual(sample.SampleStage.initialized, string_boundary.stage_after_iteration);
+    try std.testing.expectEqual(@as(i32, 5), string_boundary.main_count);
+    try std.testing.expectEqualStrings("iter=5", string_boundary.formatted_message);
+    try std.testing.expectEqual(@as(usize, 0), string_boundary.selected_index);
+    try std.testing.expectEqualStrings("Mother Goose", string_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 0xdeadbeef), string_boundary.bitmask_word);
+    try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, string_boundary.main_thread_event_calls);
+    try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, string_boundary.total_event_calls_after_replay);
+    try std.testing.expect(string_boundary.conditional_paths_checked);
+    try std.testing.expect(string_boundary.vararg_payload_path_checked);
+    try std.testing.expect(string_boundary.relative_location_path_checked);
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
 }
 
@@ -76,6 +98,7 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
     try std.testing.expectEqual(sample.SampleStage.initialized, payload_boundary.stage_after_iteration);
     try std.testing.expectEqualStrings("iter=4", payload_boundary.formatted_message);
     try std.testing.expectEqualStrings("One ring to rule them all", payload_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 4), payload_boundary.selected_index);
     try std.testing.expectEqual(@as(usize, 4), payload_boundary.payload_prefix_len);
     try std.testing.expectEqual(@as(i32, 1), payload_boundary.payload_prefix[0]);
     try std.testing.expectEqual(@as(i32, 2), payload_boundary.payload_prefix[1]);
