@@ -69,6 +69,7 @@ REQUIRED_HELPERS = (
     "check-phase14-docs-root-smoke-summary.py",
     "check-phase14-rollback-threshold-sequencing.py",
     "check-phase14-release-boundary-exact-counts.py",
+    "validate-phase15.py",
     "check-phase15-review-process-handoff.py",
     "check-phase15-scripts-readme-alignment.py",
     "run-phase3-checks.py",
@@ -175,6 +176,8 @@ PHASE13_VALIDATE_HELPERS = (
 )
 PHASE15_VALIDATE_TARGET = "phase15-validate"
 PHASE15_VALIDATE_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase15.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase15.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
