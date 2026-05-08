@@ -126,7 +126,10 @@ test "phase4 kprobe gap survey note stays honest about the parked boundary" {
         "zigux/tests/phase4_kprobe_example_survey.zig",
         "shared gate-evidence note now names that same survey note, manifest, and replay command",
         "`samples/zigux/kprobe_example.zig` is still absent",
-        "Land one manifest-backed Phase 4 test_fsmount gap survey packet",
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        "zigux/tests/phase4_test_fsmount_manifest.json",
+        "zigux/tests/phase4_test_fsmount_survey.zig",
+        "keep this parked packet adjacent to the shared gate-evidence note and the new `test_fsmount` gap packet",
         "treating adjacent gate-evidence visibility as a shipped Zig starter",
         "claiming approved hard perf thresholds for the kprobe anchor",
     };
