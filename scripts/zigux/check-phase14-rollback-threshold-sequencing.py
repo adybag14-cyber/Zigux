@@ -2,8 +2,8 @@
 """PHASE14_CHECK_PACKET=rollback_threshold_sequencing
 
 Fail-closed checker for the shared Phase 14 rollback-owner and sequencing-split packet.
-It keeps the manifest, shared smoke note, release-boundary note, and review checklist
-aligned around the current stay-in-C and freeze-in-C split on master.
+It keeps the manifest, shared smoke note, release-boundary note, review checklist,
+and scripts index aligned around the current stay-in-C and freeze-in-C split on master.
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ from pathlib import Path
 MARKER = "PHASE14_CHECK_PACKET=rollback_threshold_sequencing"
 SMOKE_SURVEY_PATH = "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
 MANIFEST_PATH = "zigux/tests/phase14_end_to_end_smoke_manifest.json"
+SCRIPTS_README_PATH = "scripts/zigux/README.md"
 REQUIRED_FILE_MARKERS = {
     MANIFEST_PATH: [
         '"rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence"',
@@ -51,6 +52,10 @@ REQUIRED_FILE_MARKERS = {
     "Documentation/zigux/review-checklist.md": [
         "if the change touches the shared Phase 14 smoke packet",
         "same study-only stay-in-C posture without implying an active deep-core port claim?",
+    ],
+    SCRIPTS_README_PATH: [
+        "keep the current Phase 14 smoke packet reviewable through",
+        "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.",
     ],
 }
 MANIFEST_EXACT_COUNT_MARKERS = [
@@ -89,6 +94,10 @@ RELEASE_BOUNDARY_EXACT_COUNT_MARKERS = [
 REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = [
     "if the change touches the shared Phase 14 smoke packet",
     "same study-only stay-in-C posture without implying an active deep-core port claim?",
+]
+SCRIPTS_README_EXACT_COUNT_MARKERS = [
+    "keep the current Phase 14 smoke packet reviewable through",
+    "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.",
 ]
 
 
@@ -150,6 +159,16 @@ def check(root: Path) -> list[str]:
                 errors.append(
                     "marker count drift in Documentation/zigux/review-checklist.md: "
                     f"{marker} (expected 1, found {actual_count})"
+                )
+    scripts_readme_path = root / SCRIPTS_README_PATH
+    if scripts_readme_path.exists():
+        scripts_readme_text = read_text(scripts_readme_path)
+        for marker in SCRIPTS_README_EXACT_COUNT_MARKERS:
+            actual_count = scripts_readme_text.count(marker)
+            if actual_count != 1:
+                errors.append(
+                    f"marker count drift in {SCRIPTS_README_PATH}: {marker} "
+                    f"(expected 1, found {actual_count})"
                 )
     return errors
 
@@ -635,6 +654,66 @@ def run_self_test() -> int:
             return 1
 
         write_text(broken_checklist_path, required_text("Documentation/zigux/review-checklist.md"))
+
+        broken_scripts_readme_path = root / SCRIPTS_README_PATH
+        broken_scripts_readme_path.write_text(
+            broken_scripts_readme_path.read_text(encoding="utf-8").replace(
+                "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in scripts/zigux/README.md: exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim."
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the scripts Phase 14 rollback-threshold summary drifted", file=sys.stderr)
+            return 1
+
+        write_text(broken_scripts_readme_path, required_text(SCRIPTS_README_PATH))
+
+        broken_scripts_readme_path.write_text(
+            broken_scripts_readme_path.read_text(encoding="utf-8").replace(
+                "keep the current Phase 14 smoke packet reviewable through\n",
+                "keep the current Phase 14 smoke packet reviewable through\n"
+                "keep the current Phase 14 smoke packet reviewable through\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in scripts/zigux/README.md: keep the current Phase 14 smoke packet reviewable through (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the scripts Phase 14 rollback-threshold intro duplicated", file=sys.stderr)
+            return 1
+
+        write_text(broken_scripts_readme_path, required_text(SCRIPTS_README_PATH))
+
+        broken_scripts_readme_path.write_text(
+            broken_scripts_readme_path.read_text(encoding="utf-8").replace(
+                "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.\n",
+                "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.\n"
+                "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in scripts/zigux/README.md: exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim. (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the scripts Phase 14 rollback-threshold summary duplicated", file=sys.stderr)
+            return 1
+
+        write_text(broken_scripts_readme_path, required_text(SCRIPTS_README_PATH))
 
         for rel_path in REQUIRED_FILE_MARKERS:
             broken_file = root / rel_path
