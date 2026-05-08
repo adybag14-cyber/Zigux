@@ -478,6 +478,13 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-cross.py"), "--self-test"],
+            ["PHASE2_CROSS_SELF_TEST=pass", "PHASE2_CROSS_SELF_TEST_CASE_COUNT=9"],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-cross.py")],
             ["PHASE2_CROSS=pass", "PHASE2_CROSS_TARGET_COUNT=", "PHASE2_CROSS_TOOL_COUNT="],
         )
@@ -563,6 +570,8 @@ def run_self_test() -> int:
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-genksyms-bridge.py"] == 1
     assert "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test"] == 1
+    assert "python3 scripts/zigux/check-phase2-cross.py --self-test" in REQUIRED_WORKFLOW_MARKERS
+    assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-phase2-cross.py --self-test"] == 1
     assert "python3 scripts/zigux/check-zig-toolchain.py --self-test" in REQUIRED_REVIEW_MARKERS
     with tempfile.TemporaryDirectory(prefix="phase2_required_files_root_") as tmp_dir:
         temp_root = Path(tmp_dir)
@@ -611,7 +620,7 @@ def run_self_test() -> int:
     assert missing
     assert missing[0] == "missing_file:scripts/zigux/fixdep.zig"
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=7")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
