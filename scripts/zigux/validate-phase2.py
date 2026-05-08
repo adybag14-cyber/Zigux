@@ -430,7 +430,7 @@ def validate_root(root: Path) -> list[str]:
         run_guard(
             root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"), "--self-test"],
-            ["PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass", "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=97"],
+            ["PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass", "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=99"],
         )
     )
     guard_issues.extend(
