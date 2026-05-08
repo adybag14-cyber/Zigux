@@ -768,6 +768,41 @@ test "bitmap diff gate rejects an empty threshold replay batch" {
     try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));
 }
 
+test "bitmap diff gate rejects out-of-bounds bitmap operations" {
+    var invalid_init = BitmapHarness{};
+    try std.testing.expectError(error.BitRangeOutOfBounds, invalid_init.initWithSetBits(&.{BitmapHarness.bitmap_nbits}));
+    try expectSummary(invalid_init.summary(), .{
+        .first_set = BitmapHarness.bitmap_nbits,
+        .first_zero = 0,
+        .weight = 0,
+    });
+
+    var bitmap = BitmapHarness{};
+    var other = BitmapHarness{};
+    try bitmap.initWithSetBits(&.{ 0, 63, BitmapHarness.bitmap_nbits - 1 });
+    const expected_summary = SummaryExpectation{
+        .first_set = 0,
+        .first_zero = 1,
+        .weight = 3,
+    };
+
+    try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.setRange(BitmapHarness.bitmap_nbits, 1));
+    try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.setRange(BitmapHarness.bitmap_nbits - 7, 8));
+    try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.clearRange(BitmapHarness.bitmap_nbits, 1));
+    try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.clearRange(BitmapHarness.bitmap_nbits - 3, 7));
+    try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.fillPrefix(BitmapHarness.bitmap_nbits + 1));
+    try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.zeroPrefix(BitmapHarness.bitmap_nbits + 1));
+    try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.copyFrom(&other, BitmapHarness.bitmap_nbits + 1));
+    try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.findNthSet(BitmapHarness.bitmap_nbits + 1, 0));
+
+    try expectSummary(bitmap.summary(), expected_summary);
+    try std.testing.expect(bitmap.isSet(0));
+    try std.testing.expect(bitmap.isSet(63));
+    try std.testing.expect(bitmap.isSet(BitmapHarness.bitmap_nbits - 1));
+    try std.testing.expect(!bitmap.isSet(1));
+    try std.testing.expect(!bitmap.isSet(BitmapHarness.bitmap_nbits - 2));
+}
+
 test "bitmap diff gate keeps a deterministic threshold replay batch ready for future perf baselines" {
     const single = try runThresholdReplay(1);
     const repeated = try runThresholdReplay(4);
@@ -886,6 +921,10 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "test \"bitmap diff gate keeps the manifest-backed rollback packet aligned\" {");
     try expectMarker(bitmap_diff_source, "try expectBlobShaShape(manifest.live_gate_blob_sha);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqualStrings(bitmap_diff_governance.threshold_posture, manifest.threshold_posture);");
+    try expectMarker(bitmap_diff_source, "test \"bitmap diff gate rejects out-of-bounds bitmap operations\" {");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.setRange(BitmapHarness.bitmap_nbits, 1));");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.zeroPrefix(BitmapHarness.bitmap_nbits + 1));");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.copyFrom(&other, BitmapHarness.bitmap_nbits + 1));");
     const replay_start = std.mem.indexOf(
         u8,
         bitmap_diff_source,
