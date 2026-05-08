@@ -37,6 +37,7 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "planning-only token-preparation gate");
     try expectContains(note, "broader bridge follow-through queued");
     try expectContains(note, "planning-only reopen-attempt disposition");
+    try expectContains(note, "resolveReusePinnedMapAttempt()");
     try expectContains(note, "planTokenPreparation()");
     try expectContains(note, "no direct procfs reads");
     try expectContains(note, "no `fopen()` or `fgets()` parity");
