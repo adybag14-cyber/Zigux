@@ -311,14 +311,6 @@ def _validate_target_commands(issues: list[str], makefile: str, target: str, req
     if [command for command in commands if command in required_commands] != expected:
         issues.append(f"makefile_command_order_drift:{target}")
 
-def _validate_substring_markers(issues: list[str], text: str, prefix: str, markers: tuple[str, ...]) -> None:
-    for marker in markers:
-        count = text.count(marker)
-        if count == 0:
-            issues.append(f"missing_{prefix}_marker:{marker}")
-        elif count != 1:
-            issues.append(f"unexpected_{prefix}_marker_count:{count}:{marker}")
-
 def _validate_tests_readme_phase3_markers(issues: list[str], text: str) -> None:
     for marker in TESTS_README_PHASE3_MARKERS:
         if marker.startswith("opt-in safety check"):
@@ -462,6 +454,16 @@ def run_self_test() -> int:
         tests = _baseline_tests_readme().replace("scripts/zigux/run-phase3-checks.py --self-test\n", "", 1)
         _write(root / TESTS_README_REL, tests)
         assert validate(root) == ["missing_tests_readme_phase3_marker:scripts/zigux/run-phase3-checks.py --self-test"]
+        _write(root / TESTS_README_REL, _baseline_tests_readme())
+        case_count += 1
+
+        readme = _baseline_readme().replace(
+            "while `make -C zigux phase6-perf` remains the narrow aggregate route for the checksum and hexdump perf packet rather than a bundle-wide Phase 6 perf closure",
+            "and there is no `make -C zigux phase6-perf` route on `master`",
+            1,
+        )
+        _write(root / README_REL, readme)
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[1]}"]
         case_count += 1
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
