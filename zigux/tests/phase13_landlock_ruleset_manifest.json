@@ -66,7 +66,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
-      "why_now": "A dedicated ownership note now fences `security/landlock/ruleset.zig` away from `security/landlock/syscalls.zig`, keeps old-rule cleanup after `rb_replace_node()` and object ownership inside the blocked live-tree state, and makes the manifest, survey, slice, and test gate move together when the helper-owned surface changes."
+      "why_now": "A dedicated ownership note now fences `security/landlock/ruleset.zig` away from `security/landlock/syscalls.zig`, keeps old-rule cleanup after `rb_replace_node()` and object ownership inside the blocked live-tree state, and makes the ownership note, manifest, survey, slice, test gate, and checker move together when the helper-owned surface changes."
     },
     {
       "id": "phase13-landlock-rule-layer-merge-followup",
