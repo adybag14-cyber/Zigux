@@ -140,6 +140,7 @@ MAKEFILE_MARKERS = [
     "PHONY += phase3-validate phase3-selftest phase3-abi phase3-interop phase3",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
+    "phase3-interop:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py",
     "phase3-selftest:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py",
     "phase3: phase3-validate phase3-abi phase3-interop",
 ]
@@ -523,6 +524,10 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             "makefile:PHONY += phase3-validate phase3-selftest phase3-abi phase3-interop phase3"
+            in issues
+        )
+        assert (
+            "makefile:phase3-interop:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py"
             in issues
         )
         assert "makefile:phase3: phase3-validate phase3-abi phase3-interop" in issues
