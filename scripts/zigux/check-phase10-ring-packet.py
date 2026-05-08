@@ -93,6 +93,12 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "owned by the adjacent `P10-L10` MMIO packet",
     "`drivers/virtio/virtio_ring_verify.zig`",
     "make -C zigux phase10-test",
+    "`Documentation/zigux/freeze-map.md` is the governing boundary note",
+    "freeze-boundary owner: `P10-L10`",
+    "`kernel/workqueue.c` or `kernel/trace/ring_buffer.c`",
+    "`kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`",
+    "roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
+    "does not claim a freeze-map status change or an attached Architecture Council reopen request",
 ]
 
 EXPECTED_COMPANION_MARKERS = [
@@ -233,6 +239,12 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
 - owned by the adjacent `P10-L10` MMIO packet
 - `drivers/virtio/virtio_ring_verify.zig`
 - `make -C zigux phase10-test`
+- `Documentation/zigux/freeze-map.md` is the governing boundary note
+- freeze-boundary owner: `P10-L10`
+- `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`
+- `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`
+- roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
+- does not claim a freeze-map status change or an attached Architecture Council reopen request
 """,
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": """- `scripts/zigux/check-phase10-ring-packet.py`
 - `drivers/virtio/virtio_ring_verify.zig`
@@ -460,7 +472,7 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:lane_key=P10-L07" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_lane_key_marker_missing")
-        manifest_path.write_text(original_manifest, encoding="utf-8")
+        manifest_path.writeText(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
             original_manifest.replace('\"freeze_boundary_status\": \"aligned\"', '\"freeze_boundary_status\": \"drifted\"', 1),
@@ -618,6 +630,67 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_survey_verify_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
+        survey_path.write_text(
+            original_survey.replace("freeze-boundary owner: `P10-L10`", "freeze-boundary owner: `P10-drift`", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:freeze-boundary owner: `P10-L10`" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_survey_freeze_owner_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
+                "roadmap-backed destination boundary through `drivers/virtio/*.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_survey_destination_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "`kernel/workqueue.c` or `kernel/trace/ring_buffer.c`",
+                "`kernel/workqueue.c` or `kernel/trace/ring_buffer_drift.c`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:`kernel/workqueue.c` or `kernel/trace/ring_buffer.c`" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_survey_study_only_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "`kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`",
+                "`kernel/sched/core.c`, `mm/page_alloc.c`, and `kernel/rcu/tree.c`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:`kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_survey_freeze_in_c_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "does not claim a freeze-map status change or an attached Architecture Council reopen request",
+                "does not claim a status change or reopen request",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:does not claim a freeze-map status change or an attached Architecture Council reopen request" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_survey_reopen_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
         companion_path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
         original_companion = companion_path.read_text(encoding="utf-8")
         companion_path.write_text(
@@ -669,7 +742,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_survey_test_verify_marker_missing")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
