@@ -15,6 +15,7 @@ BUILD_REL = "zigux/tests/build.zig"
 MAKEFILE_REL = "zigux/Makefile"
 DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
+SELF_REL = "scripts/zigux/check-phase3-abi-dump-gate.py"
 ABI_WRAPPER_REL = "scripts/zigux/check-phase3-abi.py"
 DUMP_GATE = "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig"
 BUILD_STEP = 'b.step("phase3-dump"'
@@ -204,7 +205,7 @@ def validate(root: Path) -> list[str]:
             for rel, count in sorted(counts.items()):
                 if count > 1:
                     issues.append(f"manifest_duplicate_file:{rel}:{count}")
-            for rel in (DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL):
+            for rel in (DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL, SELF_REL):
                 if rel not in counts:
                     issues.append(f"manifest_missing_file:{rel}")
 
@@ -277,8 +278,9 @@ def run_self_test() -> int:
         )
         (root / EXPORT_SHIM_REL).write_text("// export shim\n", encoding="utf-8", newline="\n")
         (root / UAPI_VERSION_REL).write_text("// uapi version\n", encoding="utf-8", newline="\n")
+        (root / SELF_REL).write_text("# self\n", encoding="utf-8", newline="\n")
         (root / MANIFEST_REL).write_text(
-            json.dumps({"file_count": 3, "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL]}),
+            json.dumps({"file_count": 4, "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL, SELF_REL]}),
             encoding="utf-8",
             newline="\n",
         )
@@ -388,7 +390,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (root / MANIFEST_REL).write_text(
-            json.dumps({"file_count": 2, "files": [DUMP_REL, EXPORT_SHIM_REL]}),
+            json.dumps({"file_count": 3, "files": [DUMP_REL, EXPORT_SHIM_REL, SELF_REL]}),
             encoding="utf-8",
             newline="\n",
         )
@@ -440,7 +442,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (root / MANIFEST_REL).write_text(
-            json.dumps({"file_count": 3, "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL]}),
+            json.dumps({"file_count": 4, "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL, SELF_REL]}),
             encoding="utf-8",
             newline="\n",
         )
@@ -494,7 +496,7 @@ def run_self_test() -> int:
         (root / MANIFEST_REL).write_text(
             json.dumps(
                 {
-                    "file_count": 2,
+                    "file_count": 3,
                     "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL],
                 }
             ),
@@ -502,13 +504,26 @@ def run_self_test() -> int:
             newline="\n",
         )
         issues = validate(root)
-        assert f"stale_manifest_file_count:{MANIFEST_REL}:2!=3" in issues
+        assert f"manifest_missing_file:{SELF_REL}" in issues
 
         (root / MANIFEST_REL).write_text(
             json.dumps(
                 {
-                    "file_count": 4,
-                    "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL, DUMP_REL],
+                    "file_count": 3,
+                    "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL, SELF_REL],
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert f"stale_manifest_file_count:{MANIFEST_REL}:3!=4" in issues
+
+        (root / MANIFEST_REL).write_text(
+            json.dumps(
+                {
+                    "file_count": 5,
+                    "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL, SELF_REL, DUMP_REL],
                 }
             ),
             encoding="utf-8",
@@ -518,7 +533,7 @@ def run_self_test() -> int:
         assert f"manifest_duplicate_file:{DUMP_REL}:2" in issues
 
     print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")
-    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
