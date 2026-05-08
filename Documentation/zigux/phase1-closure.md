@@ -163,6 +163,15 @@ That means `test "next scans past nbits return without reading bitmap words"` st
 
 - `PHASE1_FIND_BIT_PAST_NBITS_REVIEW=helper-local past-nbits short-circuit proof stays explicit through the direct find_bit test anchor so next scans starting at or beyond nbits return the boundary without reading bitmap words outside the caller-visible window`
 
+For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local tail-word skip proof explicit through:
+
+- `tools/lib/find_bit.zig`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+
+That means `test "tail-word next zero and shared scans skip earlier in-range matches before clamping"` stays present and review-visible whenever `findNextZeroBit()` or `findNextAndBit()` changes. This helper-local test is the bounded proof that tail-word next zero and shared scans still skip earlier in-range matches before clamping to `nbits` instead of returning stale earlier matches from the same last word. The Phase 1 helper manifest keeps that direct anchor explicit too, so the helper-local review inventory and the parked direct-anchor packet do not silently drift apart while the shared replay remains limited to the committed tail-clamped fixture keys.
+
+- `PHASE1_FIND_BIT_TAIL_WORD_SKIP_REVIEW=helper-local tail-word skip proof stays explicit through the direct find_bit test anchor and the Phase 1 helper manifest so tail-word next zero and shared scans skip earlier in-range matches before clamping to nbits`
+
 For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local underscore alias proof explicit through:
 
 - `tools/lib/find_bit.zig`
