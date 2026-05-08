@@ -82,8 +82,8 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     var saw_landed_perf_buffer_poll = false;
     var saw_landed_logging = false;
     var saw_landed_pin_path = false;
-    var saw_fdinfo_ready_next = false;
-    var saw_map_reuse_ready_next = false;
+    var saw_file_path_handle_foundation = false;
+    var saw_map_reuse_foundation = false;
     var saw_file_path_handle_bridge = false;
     var saw_perf_buffer_online_cpu_routing = false;
     var saw_blocked_skeleton = false;
@@ -107,8 +107,8 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
         }
         const exists = try pathExists(io_instance.io(), gap.zigux_destination);
         const shared_file_path_handle_destination =
-            std.mem.eql(u8, gap.id, "phase12-libbpf-fdinfo-map-info-helper-ready-next") or
-            std.mem.eql(u8, gap.id, "phase12-libbpf-map-reuse-compatibility-ready-next") or
+            std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-handle-helper-foundation") or
+            std.mem.eql(u8, gap.id, "phase12-libbpf-map-reuse-compatibility-helper-foundation") or
             std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge-boundary");
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             try std.testing.expect(exists);
@@ -141,12 +141,12 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             saw_landed_pin_path = true;
             try std.testing.expect(exists);
         }
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-fdinfo-map-info-helper-ready-next")) {
-            saw_fdinfo_ready_next = true;
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-handle-helper-foundation")) {
+            saw_file_path_handle_foundation = true;
             try std.testing.expect(exists);
         }
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-map-reuse-compatibility-ready-next")) {
-            saw_map_reuse_ready_next = true;
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-map-reuse-compatibility-helper-foundation")) {
+            saw_map_reuse_foundation = true;
             try std.testing.expect(exists);
         }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge-boundary")) {
@@ -161,7 +161,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             saw_blocked_skeleton = true;
             try std.testing.expect(!exists);
         }
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-object-loader-and-program-load")) {
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-object-and-elf-loader")) {
             saw_blocked_object_loader = true;
             try std.testing.expect(!exists);
         }
@@ -170,8 +170,8 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             try std.testing.expect(!exists);
         }
     }
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 2), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expectEqual(@as(usize, 4), deferred_count);
     try std.testing.expect(saw_landed_manifest);
@@ -180,8 +180,8 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     try std.testing.expect(saw_landed_perf_buffer_poll);
     try std.testing.expect(saw_landed_logging);
     try std.testing.expect(saw_landed_pin_path);
-    try std.testing.expect(saw_fdinfo_ready_next);
-    try std.testing.expect(saw_map_reuse_ready_next);
+    try std.testing.expect(saw_file_path_handle_foundation);
+    try std.testing.expect(saw_map_reuse_foundation);
     try std.testing.expect(saw_file_path_handle_bridge);
     try std.testing.expect(saw_perf_buffer_online_cpu_routing);
     try std.testing.expect(saw_blocked_skeleton);
@@ -204,8 +204,8 @@ test "phase12 libbpf reviewability gate exact-checks the shared bridge and heavy
     });
     defer parsed.deinit();
 
-    var saw_fdinfo_ready_next = false;
-    var saw_map_reuse_ready_next = false;
+    var saw_file_path_handle_foundation = false;
+    var saw_map_reuse_foundation = false;
     var saw_file_path_handle_bridge = false;
     var saw_perf_buffer_online_cpu_routing = false;
     var saw_skeleton_population = false;
@@ -213,14 +213,14 @@ test "phase12 libbpf reviewability gate exact-checks the shared bridge and heavy
     var saw_btf_relocation = false;
 
     for (parsed.value.gaps) |gap| {
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-fdinfo-map-info-helper-ready-next")) {
-            saw_fdinfo_ready_next = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-handle-helper-foundation")) {
+            saw_file_path_handle_foundation = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("helper_first", gap.kind);
         }
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-map-reuse-compatibility-ready-next")) {
-            saw_map_reuse_ready_next = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-map-reuse-compatibility-helper-foundation")) {
+            saw_map_reuse_foundation = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("helper_first", gap.kind);
         }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge-boundary")) {
@@ -238,7 +238,7 @@ test "phase12 libbpf reviewability gate exact-checks the shared bridge and heavy
             try std.testing.expectEqualStrings("blocked_on_object_model", gap.status);
             try std.testing.expectEqualStrings("object_adjacent", gap.kind);
         }
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-object-loader-and-program-load")) {
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-object-and-elf-loader")) {
             saw_object_loader = true;
             try std.testing.expectEqualStrings("deferred_high_risk", gap.status);
             try std.testing.expectEqualStrings("core_loader", gap.kind);
@@ -250,8 +250,8 @@ test "phase12 libbpf reviewability gate exact-checks the shared bridge and heavy
         }
     }
 
-    try std.testing.expect(saw_fdinfo_ready_next);
-    try std.testing.expect(saw_map_reuse_ready_next);
+    try std.testing.expect(saw_file_path_handle_foundation);
+    try std.testing.expect(saw_map_reuse_foundation);
     try std.testing.expect(saw_file_path_handle_bridge);
     try std.testing.expect(saw_perf_buffer_online_cpu_routing);
     try std.testing.expect(saw_skeleton_population);
