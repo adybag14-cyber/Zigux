@@ -53,6 +53,7 @@
         "test \"bitmap predicates ignore out-of-range tail bits\"",
         "test \"bitmap xor keeps caller-selected bit window\"",
         "test \"bitmap scnprintf collapses contiguous ranges\"",
+        "test \"bitmap scnprintf collapses contiguous ranges across word boundaries\"",
         "test \"bitmap scnprintf reports full length while truncating the buffer\"",
         "test \"bitmap scnprintf handles terminator-only and zero-length caller views\"",
         "test \"bitmap copy aliases preserve tail clearing and extension semantics\"",
@@ -76,6 +77,7 @@
         "partial_xor_nbits",
         "partial_xor_masked_values"
       ],
+      "cross_word_scnprintf_anchor": "test \"bitmap scnprintf collapses contiguous ranges across word boundaries\"",
       "scnprintf_truncation_anchor": "test \"bitmap scnprintf reports full length while truncating the buffer\"",
       "copy_alias_anchor": "test \"bitmap copy aliases preserve tail clearing and extension semantics\"",
       "copy_raw_alias_anchor": "test \"bitmap copy alias preserves raw source words without tail clearing\"",
