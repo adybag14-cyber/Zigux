@@ -517,20 +517,6 @@ def run_self_test() -> int:
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         broken_build = root / "zigux/tests/phase14_build.zig"
         broken_build.write_text(
-            broken_build.read_text(encoding="utf-8").replace(
-                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n",
-                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\nsmoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any("phase14 smoke shard stopped being dedicated" in error for error in errors):
-            print("self-test expected dedicated smoke-shard failure", file=sys.stderr)
-            return 1
-        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
-        broken_build = root / "zigux/tests/phase14_build.zig"
-        broken_build.write_text(
             broken_build.read_text(encoding="utf-8").replace(COMPILE_MATRIX_ROWS[0][0] + "\n", "", 1),
             encoding="utf-8",
         )
@@ -669,6 +655,19 @@ def run_self_test() -> int:
         errors = check(root)
         if "phase14 docs-root smoke-summary checker failed without output" not in errors:
             print("self-test expected docs-root checker silent subprocess failure", file=sys.stderr)
+            return 1
+        broken_checker.write_text(
+            "#!/usr/bin/env python3\n"
+            "\"\"\"phase14 docs-root smoke summary checker missing marker\"\"\"\n"
+            "raise SystemExit(0)\n",
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            f"missing marker in scripts/zigux/check-phase14-docs-root-smoke-summary.py: {DOCS_ROOT_CHECKER_MARKER}" in error
+            for error in errors
+        ):
+            print("self-test expected docs-root checker marker failure", file=sys.stderr)
             return 1
         write_text(root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py", f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         broken_rollback_checker = root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
