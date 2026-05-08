@@ -85,6 +85,8 @@ EXPECTED_NOTE_MARKERS = [
     "phase10_virtio_driver_id.zig",
     "driver-validation narrowing",
     "lab-only driver validation",
+    "status_show",
+    "features_show",
 ]
 
 EXPECTED_SURVEY_MARKERS = [
@@ -92,6 +94,7 @@ EXPECTED_SURVEY_MARKERS = [
     "phase10-driver-id-helper",
     "phase10-core-lab-validation-evidence",
     "phase10-driver-validation-narrowing-helper",
+    "phase10-core-attribute-summary-helper",
     "phase10-core-probe-remove-lifecycle",
     "phase10_virtio_core_reset_queue.zig",
     "phase10_virtio_driver_id.zig",
@@ -101,6 +104,8 @@ EXPECTED_SURVEY_MARKERS = [
     "lab-only driver validation",
     "true lab driver",
     "transport-backed probe or remove bridge",
+    "status_show",
+    "features_show",
 ]
 
 EXPECTED_RESET_QUEUE_MARKERS = [
@@ -133,6 +138,7 @@ EXPECTED_GAPS = {
     "phase10-virtio-core-survey-note": "starter_landed",
     "phase10-driver-id-helper": "starter_landed",
     "phase10-driver-validation-narrowing-helper": "starter_landed",
+    "phase10-core-attribute-summary-helper": "starter_landed",
     "phase10-driver-id-gate": "starter_landed",
     "phase10-core-lab-validation-evidence": "starter_landed",
     "phase10-core-probe-remove-lifecycle": "blocked_on_risky_transport",
@@ -242,7 +248,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"manifest:{key}")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 17:
+    if len(gaps) < 18:
         missing_markers.append("manifest:gaps")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     for gap_id, status in EXPECTED_GAPS.items():
@@ -525,6 +531,15 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_reset_queue_slice_marker_missing")
         slice_path.write_text(original_slice, encoding="utf-8")
 
+        slice_path.write_text(
+            original_slice.replace("status_show", "status_drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "slice_note:status_show" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_status_show_slice_marker_missing")
+        slice_path.write_text(original_slice, encoding="utf-8")
+
         survey_path = tmp_root / "Documentation/zigux/phase10-virtio-core-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
@@ -536,6 +551,15 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_driver_validation_survey_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
+        survey_path.write_text(
+            original_survey.replace("phase10-core-attribute-summary-helper", "phase10-core-attribute-summary-drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:phase10-core-attribute-summary-helper" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_attribute_summary_survey_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
         manifest_path.write_text(
             original_manifest.replace('"phase10-driver-validation-narrowing-helper"', '"phase10-driver-validation-drift"', 1),
             encoding="utf-8",
@@ -543,6 +567,15 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:gap:phase10-driver-validation-narrowing-helper" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_driver_validation_gap_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace('"phase10-core-attribute-summary-helper"', '"phase10-core-attribute-summary-drift"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:gap:phase10-core-attribute-summary-helper" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_attribute_summary_gap_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
@@ -612,7 +645,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_transport_bridge_wording_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=26")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
