@@ -58,9 +58,16 @@ REQUIRED_TEARDOWN_NOTE_MARKERS = [
     "summarizeCloseBoundary()",
     "summarizeCleanupHandoff()",
     "summarizeRemoveHandoff()",
+    "summarizeHangupDisconnect()",
     "tty_port_put()",
     "tty_vhangup()",
     "tty_kref_put()",
+    "resize-work cancellation",
+    "stale-count short-circuiting",
+    "tty detachment",
+    "buffered-write clearing",
+    "notifier-hangup ownership",
+    "kept console binding",
     "do not treat this note as evidence of live notifier callbacks",
 ]
 
@@ -99,6 +106,7 @@ REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS = [
     "`make -C zigux phase11-hvc-survey`",
     "`zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff",
     "`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet",
+    "`Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, remove, and hangup-disconnect ownership split explicit in one driver-local note",
 ]
 
 REQUIRED_VERIFY_REPLAY_MARKERS = [
@@ -157,7 +165,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 45
+SELF_TEST_CASE_COUNT = 53
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -285,9 +293,16 @@ The live archival packet now belongs to lane `P11-L16`.
 - `summarizeCloseBoundary()`
 - `summarizeCleanupHandoff()`
 - `summarizeRemoveHandoff()`
+- `summarizeHangupDisconnect()`
 - `tty_port_put()`
 - `tty_vhangup()`
 - `tty_kref_put()`
+- resize-work cancellation
+- stale-count short-circuiting
+- tty detachment
+- buffered-write clearing
+- notifier-hangup ownership
+- kept console binding
 - do not treat this note as evidence of live notifier callbacks
 """,
     )
@@ -334,6 +349,7 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 
 `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff reviewable without implying live tty teardown.
 `drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet.
+`Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, remove, and hangup-disconnect ownership split explicit in one driver-local note.
 """,
     )
     write_text(
@@ -560,20 +576,62 @@ def run_self_test() -> int:
             expect_failure(
                 root,
                 TEARDOWN_NOTE_PATH,
-                "`tty_port_put()`",
+                "summarizeHangupDisconnect()",
+                "teardown_note:summarizeHangupDisconnect()",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "tty_port_put()",
                 "teardown_note:tty_port_put()",
             )
             expect_failure(
                 root,
                 TEARDOWN_NOTE_PATH,
-                "`tty_vhangup()`",
+                "tty_vhangup()",
                 "teardown_note:tty_vhangup()",
             )
             expect_failure(
                 root,
                 TEARDOWN_NOTE_PATH,
-                "`tty_kref_put()`",
+                "tty_kref_put()",
                 "teardown_note:tty_kref_put()",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "resize-work cancellation",
+                "teardown_note:resize-work cancellation",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "stale-count short-circuiting",
+                "teardown_note:stale-count short-circuiting",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "tty detachment",
+                "teardown_note:tty detachment",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "buffered-write clearing",
+                "teardown_note:buffered-write clearing",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "notifier-hangup ownership",
+                "teardown_note:notifier-hangup ownership",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "kept console binding",
+                "teardown_note:kept console binding",
             )
             expect_failure(
                 root,
@@ -656,12 +714,6 @@ def run_self_test() -> int:
             expect_failure(
                 root,
                 SHARED_REPLAY_CONTRACT_PATH,
-                "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
-                "shared_replay_contract:`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
-            )
-            expect_failure(
-                root,
-                SHARED_REPLAY_CONTRACT_PATH,
                 "`make -C zigux phase11-hvc-survey`",
                 "shared_replay_contract:`make -C zigux phase11-hvc-survey`",
             )
@@ -676,6 +728,12 @@ def run_self_test() -> int:
                 SHARED_REPLAY_CONTRACT_PATH,
                 "`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet",
                 "shared_replay_contract:`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet",
+            )
+            expect_failure(
+                root,
+                SHARED_REPLAY_CONTRACT_PATH,
+                "`Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, remove, and hangup-disconnect ownership split explicit in one driver-local note",
+                "shared_replay_contract:`Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, remove, and hangup-disconnect ownership split explicit in one driver-local note",
             )
             expect_failure(
                 root,
@@ -734,8 +792,8 @@ def run_self_test() -> int:
             expect_failure(
                 root,
                 SURVEY_REPLAY_PATH,
-                'layout_assert.assertSize(HvOps, 72);',
-                'survey_replay:layout_assert.assertSize(HvOps, 72);',
+                "layout_assert.assertSize(HvOps, 72);",
+                "survey_replay:layout_assert.assertSize(HvOps, 72);",
             )
             expect_failure(
                 root,
