@@ -6,8 +6,8 @@ test "phase11 bcm2835_wdt reports bounded timeout limits and descriptor state" {
     try std.testing.expectEqualStrings("bcm2835_wdt_lab", descriptor.name);
     try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_simple_driver_starter);
-    try std.testing.expect(!descriptor.touches_platform_registration);
-    try std.testing.expect(!descriptor.touches_poweroff_plumbing);
+    try std.testing.expect(descriptor.touches_platform_registration);
+    try std.testing.expect(descriptor.touches_poweroff_plumbing);
 
     try std.testing.expectEqual(@as(u32, 15), bcm2835_wdt.max_timeout_sec);
     try std.testing.expectEqual(@as(u32, 15_999), bcm2835_wdt.max_hw_heartbeat_ms);
