@@ -41,6 +41,16 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(docs_root, "`make -C zigux phase7`");
     try expectContains(docs_root, "scripts/zigux/check-phase7-build-wiring.py");
 
+    const review_checklist = try readRepoFile(allocator, "Documentation/zigux/review-checklist.md");
+    defer allocator.free(review_checklist);
+    try expectContains(review_checklist, "shared Phase 7 leaf-helper packet");
+    try expectContains(review_checklist, "Documentation/zigux/phase7-cmdline-slice.md");
+    try expectContains(review_checklist, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectContains(review_checklist, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
+    try expectContains(review_checklist, "scripts/zigux/check-phase7-build-wiring.py");
+    try expectContains(review_checklist, "make -C zigux phase7-validate");
+    try expectContains(review_checklist, "make -C zigux phase7");
+
     const workflow = try readRepoFile(allocator, ".github/workflows/zigux-bootstrap.yml");
     defer allocator.free(workflow);
     try expectContains(workflow, "Validate Phase 7 runtime helper gates");
