@@ -192,3 +192,12 @@ pub fn main(init: std.process.Init) !void {
 
     if (failed) return error.ChecksumPerfRegression;
 }
+
+test "phase 6 checksum perf matrix preflight stays aligned with the documented packet" {
+    try validatePerfMatrix();
+}
+
+test "medianNs selects the middle sample after sorting" {
+    var samples = [_]u64{ 91, 12, 47 };
+    try std.testing.expectEqual(@as(u64, 47), medianNs(samples[0..]));
+}
