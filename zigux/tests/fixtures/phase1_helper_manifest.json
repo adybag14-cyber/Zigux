@@ -46,6 +46,7 @@
         "test \"bitmap size aliases round bit counts to full words in bytes\"",
         "test \"bitmap set clear weight and empty full helpers\"",
         "test \"bitmap range helpers honor exact first-word boundaries\"",
+        "test \"bitmap range helpers clamp the final partial word\"",
         "test \"bitmap fill clamps tail bits in partial words\"",
         "test \"bitmap and andnot equal intersects subset\"",
         "test \"bitmap and andnot clamp tail bits in partial words\"",
@@ -60,6 +61,7 @@
         "test \"bitmap Linux-style aliases mirror the primary helper surface\""
       ],
       "first_word_boundary_anchor": "test \"bitmap range helpers honor exact first-word boundaries\"",
+      "final_partial_word_anchor": "test \"bitmap range helpers clamp the final partial word\"",
       "predicate_tail_mask_anchor": "test \"bitmap predicates ignore out-of-range tail bits\"",
       "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
       "parity_fixture_keys": [
