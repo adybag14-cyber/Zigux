@@ -252,6 +252,30 @@ def run_self_test() -> int:
             ) + "\n",
         )
 
+        broken_manifest_path.unlink()
+        errors = check(root)
+        if not errors or f"missing file: {MANIFEST_PATH}" not in errors:
+            print(
+                "self-test expected failure when the shared smoke manifest file was missing",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    "surfaces": [
+                        {
+                            "path": CHECKER_PATH,
+                            "required_marker": MARKER,
+                        }
+                    ]
+                },
+                indent=2,
+            ) + "\n",
+        )
+
+        broken_manifest_path = root / MANIFEST_PATH
         broken_manifest_path.write_text("{\n", encoding="utf-8")
         errors = check(root)
         if not errors or not any(
