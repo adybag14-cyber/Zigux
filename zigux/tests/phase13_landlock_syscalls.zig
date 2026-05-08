@@ -73,10 +73,10 @@ test "phase13 landlock syscalls manifest records the landed helper packet truthf
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(slice_note);
-    try std.testing.expectEqualStrings("P13-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
-    try std.testing.expectEqualStrings("02f3325b2e289b7d492e022db0dbe7b61f2e22c3", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("599ee1519c5464bb86a0ffdcab52dfe958c40571", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.syscalls_c_lines >= 500);
     try std.testing.expect(manifest.survey_summary.landlock_security_file_count >= 20);
@@ -86,7 +86,7 @@ test "phase13 landlock syscalls manifest records the landed helper packet truthf
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -103,15 +103,18 @@ test "phase13 landlock syscalls manifest records the landed helper packet truthf
     var saw_path_followup = false;
     var saw_path_beneath_handoff = false;
     var saw_ruleset_release_followup = false;
+    var saw_ruleset_fd_install_followup = false;
     var saw_ruleset_fops_followup = false;
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "one in-memory `ruleset_fops` planner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "one in-memory ruleset-FD installation planner") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the new in-memory `ruleset_fops` planner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the in-memory ruleset-FD installation planner") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "ruleset_fops planning") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "FMODE_CAN_READ") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "FMODE_CAN_WRITE") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "-EINVAL") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "`anon_inode_getfd()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "`O_RDWR | O_CLOEXEC`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "`landlock_put_ruleset()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "direct helper evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "shared replay step") != null);
@@ -210,6 +213,14 @@ test "phase13 landlock syscalls manifest records the landed helper packet truthf
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_put_ruleset()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "private_data") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-fd-install-followup")) {
+            saw_ruleset_fd_install_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "anon_inode_getfd") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "O_RDWR | O_CLOEXEC") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_put_ruleset()") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-fops-followup")) {
             saw_ruleset_fops_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -225,7 +236,7 @@ test "phase13 landlock syscalls manifest records the landed helper packet truthf
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -240,6 +251,7 @@ test "phase13 landlock syscalls manifest records the landed helper packet truthf
     try std.testing.expect(saw_path_followup);
     try std.testing.expect(saw_path_beneath_handoff);
     try std.testing.expect(saw_ruleset_release_followup);
+    try std.testing.expect(saw_ruleset_fd_install_followup);
     try std.testing.expect(saw_ruleset_fops_followup);
 }
 
@@ -256,6 +268,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(descriptor.provides_path_fd_planning);
     try std.testing.expect(descriptor.provides_path_beneath_handoff_planning);
     try std.testing.expect(descriptor.provides_ruleset_release_planning);
+    try std.testing.expect(descriptor.provides_ruleset_fd_install_planning);
     try std.testing.expect(descriptor.provides_ruleset_fops_planning);
     try std.testing.expect(!descriptor.touches_live_fd_table);
     try std.testing.expect(!descriptor.touches_live_paths);
@@ -275,9 +288,10 @@ test "phase13 landlock syscalls survey note records the active lane key" {
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE13_LANE_KEY=P13-L16`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE13_LANE_KEY=P13-L13`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "special `ruleset_fd == -1` mute-subdomains-only case") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the in-memory `add_rule_path_beneath()` planner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the in-memory ruleset-FD installation planner") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the new in-memory `ruleset_fops` planner") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`") != null);
 }
