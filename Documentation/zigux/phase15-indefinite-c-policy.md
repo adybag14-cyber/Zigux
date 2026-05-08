@@ -6,9 +6,11 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 
 - `PHASE15_STATUS=indefinite_c_policy_survey_landed`
 - `PHASE15_LANE_KEY=P15-L16`
-- `PHASE15_SLICE=indefinite-c-policy-field-sync-followup`
-- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build, and the linked field-sync between the policy note, the shared scripts-root validator-first route, the review-process packet fields, the parity scorecard wording, the reserved evidence-archive templates, and the machine-checkable exception posture for retained stay-in-C closeouts
-- survey provenance refreshed against verified `master` head `2359c03fa82626b7359467c9b8bc9d0b092de5aa`
+- `PHASE15_SLICE=indefinite-c-policy-current-readback-provenance-sync`
+- `PHASE15_PROVENANCE_MODE=dated_master_readback`
+- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build, and one dated master-readback provenance sync that keeps the stay-in-C packet honest without reopening the parity scorecard, readiness note, handoff packet, or Architecture Council review-process packet
+- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-08` on 2026-05-08 because this policy packet reports current stay-in-C governance posture at the bounded packet level instead of implying exact post-commit branch-head parity
+- exact branch-head parity is not recorded for this packet; the current policy packet therefore uses an explicit dated readback marker instead of implying exact-head provenance
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -108,9 +110,9 @@ If those reopen conditions are not met, the anchor remains in C and the review c
 
 The bounded reopen-trigger catalog for a retained stay-in-C packet is:
 
-- `narrower_followup_answers_blocker`: a narrower seam inventory or follow-up now answers the latest blocker disposition without widening the approved boundary
-- `evidence_packet_stale_or_contradictory`: linked validation, benchmark, survey, or blocker evidence has become stale or contradictory enough that the closed packet no longer stands on its own
-- `ownership_or_validation_changed`: rollback ownership, lane ownership, or validation gates changed enough to invalidate the closed stay-in-C packet
+- `narrower_followup_answers_blocker`
+- `evidence_packet_stale_or_contradictory`
+- `ownership_or_validation_changed`
 
 Every retained stay-in-C closeout must cite at least one of these catalog items in its evidence archive so the policy note, review-process packet, parity scorecard, and per-anchor archive template keep the same reopen vocabulary.
 
@@ -124,9 +126,10 @@ The current lane state is:
 - landed `phase15-build-gate-indefinite-c-policy`
 - landed `phase15-indefinite-c-field-sync-followup`
 - landed `phase15-indefinite-c-exception-posture-manifest-sync`
+- landed `phase15-indefinite-c-readback-provenance-sync`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane narrow. Zigux gains a dedicated, reviewable Phase 15 policy for code that remains in C indefinitely, keeps the shared validator-first route explicit beside the dedicated policy note and its paired test, keeps the focused blocker-evidence and lane-owner-alignment replays inside the same bounded policy packet, exposes the no-silent-exception, retained-closeout, retained-blocker, and reopen-input posture in machine-checkable form, and still does not claim Architecture Council approval for any status change or any new deep-core Zig ownership.
+This keeps the lane narrow. Zigux gains a dedicated, reviewable Phase 15 policy for code that remains in C indefinitely, keeps the shared validator-first route explicit beside the dedicated policy note and its paired test, keeps the focused blocker-evidence and lane-owner-alignment replays inside the same bounded policy packet, exposes the no-silent-exception, retained-closeout, retained-blocker, and reopen-input posture in machine-checkable form, now keeps provenance in dated-readback form instead of carrying an older exact-head claim, and still does not claim Architecture Council approval for any status change or any new deep-core Zig ownership.
 
 ## Non-goals
 
