@@ -106,6 +106,9 @@ jobs:
       - name: Validate Phase 2 closure
         run: python3 scripts/zigux/validate-phase2-closure.py
 
+      - name: Self-test Phase 2 tests README alignment
+        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test
+
       - name: Check Phase 2 tests README alignment
         run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py
 
