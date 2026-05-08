@@ -440,7 +440,7 @@ def validate_root(root: Path) -> list[str]:
         run_guard(
             root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"), "--self-test"],
-            ["PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass", "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=111"],
+            ["PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass", "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=114"],
         )
     )
     guard_issues.extend(
@@ -482,7 +482,7 @@ def validate_root(root: Path) -> list[str]:
         run_guard(
             root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"), "--self-test"],
-            ["PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass", "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=13"],
+            ["PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass", "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=18"],
         )
     )
     guard_issues.extend(
