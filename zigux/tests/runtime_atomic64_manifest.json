@@ -69,7 +69,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_atomic64_loader.zig",
-      "why_now": "A bounded sample-side loader scaffold now makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, prepared handoff summaries, the shared `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` proof, and a no-substrate release path without pretending a real runtime loader already exists."
+      "why_now": "A bounded sample-side loader scaffold now makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, a prepared four-field atomic64 payload summary snapshot, the shared `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` proof, and a no-substrate release path without pretending a real runtime loader already exists."
     },
     {
       "id": "runtime-atomic64-live-loader-binding",
