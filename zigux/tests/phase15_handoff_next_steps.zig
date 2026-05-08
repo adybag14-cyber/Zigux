@@ -38,6 +38,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     cross_packet_truthfulness_mode: []const u8,
     paired_parity_scorecard_exact_head_matches: bool,
+    paired_parity_scorecard_verified_head: []const u8,
     paired_parity_scorecard_exact_head_fallback_reason: []const u8,
     roadmap_phase_title: []const u8,
     roadmap_requirements: []const []const u8,
@@ -69,6 +70,8 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expectEqualStrings("current-master-readback-2026-05-08", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback_blocker_posture_fallback", manifest.cross_packet_truthfulness_mode);
     try std.testing.expect(!manifest.paired_parity_scorecard_exact_head_matches);
+    try std.testing.expectEqualStrings("4fc891b380cdd2991dff7676ade7f844df1b55fd", manifest.paired_parity_scorecard_verified_head);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.paired_parity_scorecard_exact_head_fallback_reason, manifest.paired_parity_scorecard_verified_head) != null);
     try std.testing.expectEqualStrings("The handoff packet is refreshed against dated master readback marker current-master-readback-2026-05-08 on 2026-05-08, but the paired parity scorecard still records verified head 4fc891b380cdd2991dff7676ade7f844df1b55fd, so the parked governance packet currently matches on blocker posture rather than exact-head provenance.", manifest.paired_parity_scorecard_exact_head_fallback_reason);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
@@ -183,6 +186,7 @@ test "phase 15 handoff note keeps the repaired validator-first surface and remai
 
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_LANE_KEY=P15-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "reviewed handoff provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-08` on 2026-05-08 after live repo inspection confirmed current `master` moved ahead of the paired parity scorecard's last verified head") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "paired parity scorecard verified `master` head remains `4fc891b380cdd2991dff7676ade7f844df1b55fd`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "the paired current `Documentation/zigux/phase15-parity-scorecard.md` packet still records verified `master` head `4fc891b380cdd2991dff7676ade7f844df1b55fd`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "falls back to blocker-posture agreement instead of claiming exact-head parity across the parked governance bundle") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "machine-check `dated_master_readback_blocker_posture_fallback` as the active cross-packet truthfulness mode until the paired parity scorecard catches up again") != null);
