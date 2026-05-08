@@ -20,7 +20,7 @@ ABI_HEADER_REL = "include/zigux/abi.h"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 BUILD_FILE_REL = "zigux/tests/build.zig"
 EXPORT_UAPI_LAYOUT_REL = "zigux/tests/phase3_export_uapi_layout.zig"
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 9
 
 REQUIRED_FILES = (
     SURVEY_REL,
@@ -180,7 +180,7 @@ REQUIRED_MARKERS = {
 }
 
 DOCS_ROOT_REQUIRED_MARKERS = (
-    "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `Documentation/zigux/phase3-export-uapi-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
+    "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `Documentation/zigux/phase3-export-uapi-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/check-phase3-policy-byte-guards.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py` - `scripts/zigux/survey-phase3-abi-constant-parity.py` - `scripts/zigux/check-phase3-catalog-selftest.py` - `scripts/zigux/check-phase3-readme-tooling-inventory.py` - `scripts/zigux/check-phase3-abi-dump-gate.py` - `scripts/zigux/check-phase3-selftest-surface.py` - `scripts/zigux/phase3_catalog.py` - `scripts/zigux/phase3_check_lib.py` - `scripts/zigux/generate-phase3-check-wrappers.py` - `scripts/zigux/run-phase3-checks.py` - `scripts/zigux/validate_phase3_selftest.py` - `zigux/tests/README.md` - `zigux/Makefile` - `python3 scripts/zigux/validate-phase3.py`, `python3 scripts/zigux/validate-phase3.py --slug abi`, `python3 scripts/zigux/run-phase3-checks.py --slug abi`, `python3 scripts/zigux/phase3_catalog.py --audit-doc-sync`, `zig build phase3-test --build-file zigux/tests/build.zig`, `make -C zigux phase3-validate`, and `make -C zigux phase3` now keep the current ABI substrate reviewable through the shared `abi` slice, the policy-and-unsafe survey, the dedicated policy-byte guard, the low-level-wrapper survey, the export/UAPI boundary survey, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.",
     "the export/UAPI boundary survey, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.",
 )
 
@@ -591,7 +591,7 @@ def build_valid_workspace(root: Path) -> None:
         "\n".join(
             (
                 "# Zigux Documentation",
-                "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `Documentation/zigux/phase3-export-uapi-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
+                "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `Documentation/zigux/phase3-export-uapi-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/check-phase3-policy-byte-guards.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py` - `scripts/zigux/survey-phase3-abi-constant-parity.py` - `scripts/zigux/check-phase3-catalog-selftest.py` - `scripts/zigux/check-phase3-readme-tooling-inventory.py` - `scripts/zigux/check-phase3-abi-dump-gate.py` - `scripts/zigux/check-phase3-selftest-surface.py` - `scripts/zigux/phase3_catalog.py` - `scripts/zigux/phase3_check_lib.py` - `scripts/zigux/generate-phase3-check-wrappers.py` - `scripts/zigux/run-phase3-checks.py` - `scripts/zigux/validate_phase3_selftest.py` - `zigux/tests/README.md` - `zigux/Makefile` - `python3 scripts/zigux/validate-phase3.py`, `python3 scripts/zigux/validate-phase3.py --slug abi`, `python3 scripts/zigux/run-phase3-checks.py --slug abi`, `python3 scripts/zigux/phase3_catalog.py --audit-doc-sync`, `zig build phase3-test --build-file zigux/tests/build.zig`, `make -C zigux phase3-validate`, and `make -C zigux phase3` now keep the current ABI substrate reviewable through the shared `abi` slice, the policy-and-unsafe survey, the dedicated policy-byte guard, the low-level-wrapper survey, the export/UAPI boundary survey, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.",
                 "- the export/UAPI boundary survey, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.",
                 "",
             )
@@ -713,6 +713,21 @@ def run_self_test() -> int:
         )
         assert validate(root) == [
             "missing_workflow_marker:run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"
+        ]
+        build_valid_workspace(root)
+
+        docs_root_path = root / DOCS_ROOT_REL
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                " - `scripts/zigux/check-phase3-policy-byte-guards.py`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate(root) == [
+            f"missing_docs_root_marker:{DOCS_ROOT_REQUIRED_MARKERS[0]}"
         ]
         build_valid_workspace(root)
 
