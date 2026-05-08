@@ -54,8 +54,6 @@ READINESS_NOTE_MARKERS = (
 MAKEFILE_MARKERS = (
     "PHONY += phase15-validate phase15-test phase15",
     "phase15-validate:",
-    f"$(PYTHON) {VALIDATOR_PATH} --self-test",
-    f"$(PYTHON) {VALIDATOR_PATH}",
     f"$(PYTHON) {CHECKER_ONE} --self-test",
     f"$(PYTHON) {CHECKER_ONE}",
     f"$(PYTHON) {CHECKER_TWO} --self-test",
@@ -244,24 +242,8 @@ def run_self_test() -> int:
 
         makefile_path = root / MAKEFILE_PATH
         baseline_makefile = read_text(root, MAKEFILE_PATH)
-        validator_self_test_marker = f"$(PYTHON) {VALIDATOR_PATH} --self-test"
-        validator_run_marker = f"$(PYTHON) {VALIDATOR_PATH}"
-        makefile_path.write_text(
-            baseline_makefile.replace(validator_self_test_marker, "$(PYTHON) scripts/zigux/validate-phase15-missing.py --self-test", 1).replace(
-                validator_run_marker,
-                "$(PYTHON) scripts/zigux/validate-phase15-missing.py",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        assert_only(
-            validate(root),
-            [
-                f"makefile:missing:{validator_self_test_marker}",
-                f"makefile:missing:{validator_run_marker}",
-            ],
-            "missing_makefile_validator",
-        )
+        makefile_path.write_text(baseline_makefile.replace(f"$(PYTHON) {CHECKER_TWO} --self-test", "$(PYTHON) scripts/zigux/missing.py --self-test", 1), encoding="utf-8")
+        assert_only(validate(root), [f"makefile:missing:$(PYTHON) {CHECKER_TWO} --self-test"], "missing_makefile_checker")
         makefile_path.write_text(baseline_makefile, encoding="utf-8")
         case_count += 1
 
