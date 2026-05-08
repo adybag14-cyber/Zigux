@@ -65,6 +65,7 @@
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
     "scripts/zigux/README.md",
