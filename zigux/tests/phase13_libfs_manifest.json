@@ -14,6 +14,7 @@
     "preexisting_phase13_make_target_present": true,
     "preexisting_fs_libfs_zig_present": true,
     "preexisting_phase13_libfs_test_present": true,
+    "preexisting_phase13_libfs_addressability_test_present": true,
     "preexisting_phase13_slice_note_present": true,
     "preexisting_phase13_reviewability_present": true,
     "preexisting_phase13_survey_note_present": true
@@ -59,7 +60,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs_reviewability.zig",
-      "why_now": "A dedicated reviewability gate ties the current starter, tests, slice note, and survey note together so future runs can confirm the lane state before widening helper coverage."
+      "why_now": "A dedicated reviewability gate ties the current starter, the focused addressability shard, the starter tests, the slice note, and the survey note together so future runs can confirm the lane state before widening helper coverage."
     },
     {
       "id": "phase13-libfs-survey-note",
