@@ -34,10 +34,12 @@ FILES = [
 EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_input_module",
     "phase10_virtio_input_status_drain_module",
+    "phase10_virtio_input_queue_callback_preflight_module",
     "phase10_virtio_input_verify_module",
     "phase10_virtio_input_survey_module",
     '"phase10-virtio-input-tests"',
     '"phase10-virtio-input-status-drain-tests"',
+    '"phase10-virtio-input-queue-callback-preflight-tests"',
     '"phase10-virtio-input-verify-tests"',
     '"phase10-virtio-input-survey-tests"',
 ]
@@ -573,6 +575,17 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_makefile_marker_missing")
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        build_path = tmp_root / "zigux/tests/phase10_build.zig"
+        original_build = build_path.read_text(encoding="utf-8")
+        build_path.write_text(
+            original_build.replace("phase10_virtio_input_queue_callback_preflight_module", "phase10_virtio_input_queue_callback_preflight_drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "build:phase10_virtio_input_queue_callback_preflight_module" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_build_queue_callback_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
         scripts_readme_path = tmp_root / "scripts/zigux/README.md"
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
@@ -600,7 +613,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=18")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
