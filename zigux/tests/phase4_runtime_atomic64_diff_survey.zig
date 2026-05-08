@@ -106,7 +106,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob
 
     try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
-    try std.testing.expectEqualStrings("4b3798851901ab60ffbe8e7576bdba2988fd5346", manifest.phase4_validator_blob_sha);
+    try std.testing.expectEqualStrings("2ed1a2e7be2e9066f6d0e09ab59d3b2f95047679", manifest.phase4_validator_blob_sha);
     try std.testing.expectEqualStrings(
         "Documentation/zigux/phase4-gate-evidence.md",
         manifest.phase4_gate_evidence_path,
@@ -117,7 +117,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob
 
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("ac4b1297b4ddc9c1947f308bda7335315d402a72", manifest.phase4_validation_matrix_blob_sha);
+    try std.testing.expectEqualStrings("10b2c86768ecf61360ed7eb7ba38cbe4c9354e29", manifest.phase4_validation_matrix_blob_sha);
     try std.testing.expectEqualStrings("a64c4400f26216b266c5733fdf0b8bbd205a4b5b", manifest.phase4_review_checklist_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
@@ -148,7 +148,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "scripts/zigux/validate-phase4.py") != null,
     );
     try std.testing.expect(
-        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/phase4-gate-evidence.md") != null,
+        std.mem.indexOf(u8, manifest.reversibleDeliveryEvidence, "Documentation/zigux/phase4-gate-evidence.md") != null,
     );
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/review-checklist.md") != null,
