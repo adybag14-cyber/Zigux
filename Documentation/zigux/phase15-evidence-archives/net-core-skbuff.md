@@ -20,12 +20,14 @@ This template reserves the Architecture Council packet path named by the Phase 1
 
 - lane owner: `Shared Subsystems Pod`
 - rollback owner: `Architecture Council + Shared Subsystems Pod`
+- required approver set: `Architecture Council + Shared Subsystems Pod + Validation and Perf Team`
 
 ## Validation Gate Summary
 
 - validation gate summary: `phase15 scorecard replay and existing Phase 14 skbuff survey evidence remain the current bounded gates`
 - benchmark notes: `pending_until_skbuff_followup_is_narrower_than_lifetime_boundary`
 - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
+- rollback threshold: `return to blocked_packet_lifetime_boundary_still_too_wide if the seam inventory, validation plan, or linked evidence is weak, stale, or contradictory`
 
 ## Linked Evidence
 
