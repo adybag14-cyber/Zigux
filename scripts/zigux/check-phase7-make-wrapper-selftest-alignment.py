@@ -40,8 +40,10 @@ REQUIRED_WORKFLOW_LINES = (
 FORBIDDEN_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
     "run: python3 scripts/zigux/check-phase7-make-wrapper.py",
+    "run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 9
+EXPECTED_SELF_TEST_CASE_COUNT = 11
 
 
 def read_text(path: Path) -> str:
@@ -271,6 +273,28 @@ def run_self_test() -> int:
         )
         issues = collect_issues(root)
         assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[0]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + "        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[2]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + "        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[3]) in issues
         cases += 1
 
         build_self_test_root(root)
