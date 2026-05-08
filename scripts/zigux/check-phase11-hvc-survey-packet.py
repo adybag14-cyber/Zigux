@@ -41,6 +41,8 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
     "khvcd polling-contract follow-through",
     "`hvc_hangup()` disconnect boundary",
     "stale hangup short-circuit",
+    "targetless-sysrq",
+    "notifier-prerequisite failure-mode replays",
 ]
 
 REQUIRED_SLICE_NOTE_MARKERS = [
@@ -169,7 +171,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 57
+SELF_TEST_CASE_COUNT = 59
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -274,6 +276,8 @@ The live archival packet now belongs to lane `P11-L16`.
 - current `master` now also carries the bounded khvcd polling-contract follow-through
 - current `master` also keeps the bounded `hvc_hangup()` disconnect boundary explicit beside the same archival packet
 - the archived note still names the stale hangup short-circuit so buffered-write state does not get overstated when port count is already zero
+- the archived note still names the targetless-sysrq failure path so callback-free sysrq surfaces stay explicit
+- the archived note still names the notifier-prerequisite failure-mode replays so callback-free notifier boundaries stay reviewable
 """,
     )
     write_text(
@@ -566,6 +570,18 @@ def run_self_test() -> int:
                 SURVEY_NOTE_PATH,
                 "stale hangup short-circuit",
                 "survey_note:stale hangup short-circuit",
+            )
+            expect_failure(
+                root,
+                SURVEY_NOTE_PATH,
+                "targetless-sysrq",
+                "survey_note:targetless-sysrq",
+            )
+            expect_failure(
+                root,
+                SURVEY_NOTE_PATH,
+                "notifier-prerequisite failure-mode replays",
+                "survey_note:notifier-prerequisite failure-mode replays",
             )
             expect_failure(
                 root,
