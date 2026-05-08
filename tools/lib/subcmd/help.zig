@@ -272,6 +272,55 @@ pub fn addExecutableEntries(
     }
 }
 
+fn isExecutableStat(stat: std.Io.File.Stat) bool {
+    if (stat.kind != .file) {
+        return false;
+    }
+
+    if (!std.Io.File.Permissions.has_executable_bit) {
+        return true;
+    }
+
+    return (@intFromEnum(stat.permissions) & 0o100) != 0;
+}
+
+pub fn addExecutableEntriesFromDir(
+    cmds: *CmdNames,
+    io: std.Io,
+    dir: std.Io.Dir,
+    prefix: ?[]const u8,
+) !void {
+    const actual_prefix = prefix orelse "perf-";
+    var iterator = dir.iterate();
+
+    while (true) {
+        const entry = (iterator.next(io) catch return) orelse break;
+        if (!std.mem.startsWith(u8, entry.name, actual_prefix)) {
+            continue;
+        }
+
+        const stat = dir.statFile(io, entry.name, .{}) catch continue;
+        _ = try addExecutableEntry(cmds, entry.name, actual_prefix, isExecutableStat(stat));
+    }
+}
+
+pub fn loadCommandListFromDir(
+    cmds: *CmdNames,
+    io: std.Io,
+    path: []const u8,
+    prefix: ?[]const u8,
+) !void {
+    var dir = blk: {
+        if (std.fs.path.isAbsolute(path)) {
+            break :blk std.Io.Dir.openDirAbsolute(io, path, .{ .iterate = true }) catch return;
+        }
+        break :blk std.Io.Dir.cwd().openDir(io, path, .{ .iterate = true }) catch return;
+    };
+    defer dir.close(io);
+
+    try addExecutableEntriesFromDir(cmds, io, dir, prefix);
+}
+
 pub fn loadCommandListsFromSource(
     prefix: ?[]const u8,
     exec_path: ?[]const u8,
@@ -609,6 +658,118 @@ test "addExecutableEntry models load_command_list filtering without directory I/
     try std.testing.expectEqualStrings("", cmds.names.items[0].name);
     try std.testing.expectEqualStrings("report", cmds.names.items[1].name);
     try std.testing.expectEqualStrings("stat", cmds.names.items[2].name);
+}
+
+test "addExecutableEntriesFromDir keeps only prefixed executable files" {
+    const io = std.testing.io;
+    var tmp = std.testing.tmpDir(.{ .iterate = true });
+    defer tmp.cleanup();
+
+    try tmp.dir.writeFile(io, .{
+        .sub_path = "perf-stat",
+        .data = "",
+        .flags = .{ .permissions = .executable_file },
+    });
+    try tmp.dir.writeFile(io, .{
+        .sub_path = "perf-report.exe",
+        .data = "",
+        .flags = .{ .permissions = .executable_file },
+    });
+    try tmp.dir.writeFile(io, .{
+        .sub_path = "perf-diff",
+        .data = "",
+        .flags = .{},
+    });
+    try tmp.dir.writeFile(io, .{
+        .sub_path = "README.md",
+        .data = "",
+        .flags = .{ .permissions = .executable_file },
+    });
+
+    var cmds = CmdNames.init(std.testing.allocator);
+    defer cmds.deinit();
+
+    try addExecutableEntriesFromDir(&cmds, io, tmp.dir, null);
+    cmds.sort();
+    cmds.uniq();
+
+    try std.testing.expectEqual(@as(usize, 2), cmds.count());
+    try std.testing.expectEqualStrings("report", cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("stat", cmds.names.items[1].name);
+}
+
+test "loadCommandListFromDir integrates the filesystem-backed callback with exec-path priority" {
+    const io = std.testing.io;
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    var exec_dir = try tmp.dir.createDirPathOpen(io, "exec", .{ .open_options = .{ .iterate = true } });
+    defer exec_dir.close(io);
+    var other_dir = try tmp.dir.createDirPathOpen(io, "other", .{ .open_options = .{ .iterate = true } });
+    defer other_dir.close(io);
+
+    try exec_dir.writeFile(io, .{
+        .sub_path = "perf-stat",
+        .data = "",
+        .flags = .{ .permissions = .executable_file },
+    });
+    try exec_dir.writeFile(io, .{
+        .sub_path = "perf-report.exe",
+        .data = "",
+        .flags = .{ .permissions = .executable_file },
+    });
+
+    try other_dir.writeFile(io, .{
+        .sub_path = "perf-report.exe",
+        .data = "",
+        .flags = .{ .permissions = .executable_file },
+    });
+    try other_dir.writeFile(io, .{
+        .sub_path = "perf-trace",
+        .data = "",
+        .flags = .{ .permissions = .executable_file },
+    });
+    try other_dir.writeFile(io, .{
+        .sub_path = "perf-diff",
+        .data = "",
+        .flags = .{},
+    });
+
+    var exec_path_buf: [std.Io.Dir.max_path_bytes]u8 = undefined;
+    const exec_path_len = try exec_dir.realPath(io, &exec_path_buf);
+    const exec_path = exec_path_buf[0..exec_path_len];
+
+    var other_path_buf: [std.Io.Dir.max_path_bytes]u8 = undefined;
+    const other_path_len = try other_dir.realPath(io, &other_path_buf);
+    const other_path = other_path_buf[0..other_path_len];
+
+    const Source = struct {
+        fn populate(actual_io: std.Io, cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
+            try loadCommandListFromDir(cmds, actual_io, path, prefix);
+        }
+    };
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try loadCommandListsFromSource(
+        null,
+        exec_path,
+        &.{ exec_path, other_path },
+        &main_cmds,
+        &other_cmds,
+        io,
+        Source.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
+    try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
+
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
 }
 
 test "loadCommandListsFromSource keeps exec-path priority and filters duplicates across PATH" {
