@@ -146,22 +146,7 @@ jobs:
         run: python3 scripts/zigux/check-phase3-abi.py
 
       - name: Validate Phase 4 diff gates
-        run: python3 scripts/zigux/validate-phase4.py
-
-      - name: Self-test Phase 4 validator
-        run: python3 scripts/zigux/validate-phase4.py --self-test
-
-      - name: Self-test artifact diff helper
-        run: python3 scripts/zigux/artifact_diff.py --self-test
-
-      - name: Self-test artifact diff contract checker
-        run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test
-
-      - name: Check artifact diff contract replay
-        run: python3 scripts/zigux/check-artifact-diff-contract.py
-
-      - name: Self-test Phase 4 gate evidence checker
-        run: python3 scripts/zigux/check-phase4-gate-evidence.py --self-test
+        run: make -C zigux phase4-validate
 
       - name: Self-test Phase 3 validator
         run: python3 scripts/zigux/validate-phase3.py --self-test
