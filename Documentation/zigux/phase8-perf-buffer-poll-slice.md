@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-perf-buffer-poll`
-- scope: observed wait-result normalization, ready-buffer bookkeeping, bounded buffer-fd and buffer-window lookup plus return shaping, signaled-buffer ordinal lookup plus return shaping, and ordered record-processing summaries only
+- scope: observed wait-result normalization, ready-buffer bookkeeping, ordered ready-buffer ordinal lookup plus return shaping, bounded buffer-fd and buffer-window lookup plus return shaping, signaled-buffer ordinal lookup plus return shaping, and ordered record-processing summaries only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `zigux/tests/phase8_perf_buffer_poll.zig`
@@ -48,6 +48,7 @@ The current bounded helper covers:
 - `perf_buffer__poll(timeout_ms)` wait-result classification
 - normalized negative errno-or-ready-count wait results
 - ready-buffer bookkeeping after the observed wait result
+- explicit ready-buffer ordinal lookup classification across ready-bearing buffer observations
 - ordered `perf_buffer__process_records()` pass summaries
 - cumulative processed-record count across attempted ready buffers
 - first failing ready buffer and its error code
@@ -58,6 +59,7 @@ The current bounded helper covers:
 - return shaping for valid buffer windows, invalid indices, and missing buffers while preserving the caller-provided mmap size
 - explicit signaled-buffer ordinal lookup classification across ready and error-bearing buffer observations
 - return shaping for valid signal ordinals and out-of-range ordinals
+- return shaping for valid ready ordinals and out-of-range ready ordinals
 - ready-buffer processing attempts cannot exceed observed ready events
 - ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch
 - non-ready wait observations cannot claim record processing
@@ -74,6 +76,7 @@ The current tests check:
 - buffer-fd slot lookups and errno-shaped invalid-index or missing-fd returns
 - buffer-window slot lookups and return shaping for valid buffer windows, invalid indices, and missing buffers
 - signaled-buffer ordinal lookup and return shaping for valid signaled slots and out-of-range ordinals
+- ready-buffer ordinal lookup and return shaping for valid ready slots and out-of-range ready ordinals
 - impossible processing paths that overrun the observed ready-event budget
 - the narrower counted-ready-buffer guard trips before any broader observed-ready-event mismatch
 - impossible post-wait buffer state combinations that must stay rejected
@@ -92,4 +95,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Park `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` unless fresh repo review finds another tiny wait-summary, docs-truthfulness, or focused-gate drift in this same helper packet; keep future libbpf follow-up smaller than full routing, epoll, timer, clockevent, or object-model work.
+Park `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` unless fresh repo review finds another tiny wait-summary, ready-buffer-ordinal, docs-truthfulness, or focused-gate drift in this same helper packet; keep future libbpf follow-up smaller than full routing, epoll, timer, clockevent, or object-model work.
