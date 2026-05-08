@@ -152,6 +152,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "phase 7 argvSplit matches focused parity fixtures");
     try expectContains(helper_tests, "phase 7 argvSplit token buffer does not alias the source text");
     try expectContains(helper_tests, "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy");
+    try expectContains(helper_tests, "phase 7 argvSplitWithArgc reports the split length through the optional out parameter");
     try expectContains(helper_tests, "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty exported argv view");
     try expectContains(helper_tests, "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space");
