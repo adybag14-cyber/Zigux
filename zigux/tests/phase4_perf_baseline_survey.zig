@@ -205,4 +205,6 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "dedicated local-only perf-baseline posture packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "still-unapproved benchmark-command and acceptable-limit posture machine-checked locally") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "The dedicated exact-readback checker now also rereads that shipped perf-baseline manifest-and-survey pair") != null);
 }
