@@ -57,6 +57,7 @@ def required_files(root: Path) -> list[Path]:
         root / "scripts" / "zigux" / "check-fixdep-diff.py",
         root / "scripts" / "zigux" / "genksyms.zig",
         root / "scripts" / "zigux" / "check-genksyms-bridge.py",
+        root / "scripts" / "zigux" / "check-phase2-fixdep-gate.py",
         root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py",
         root / "scripts" / "zigux" / "genksyms_crc.zig",
         root / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
@@ -158,6 +159,8 @@ REQUIRED_WORKFLOW_MARKERS = [
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "python3 scripts/zigux/validate-phase2.py",
     "python3 scripts/zigux/validate-phase2-closure.py",
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py",
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
@@ -185,6 +188,8 @@ REQUIRED_WORKFLOW_MARKERS = [
 ]
 
 REQUIRED_EXACT_WORKFLOW_RUN_COUNTS = {
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py": 1,
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1,
     "python3 scripts/zigux/check-genksyms-crc-diff.py": 1,
@@ -217,6 +222,7 @@ REQUIRED_DOC_MARKERS = [
 REQUIRED_SCRIPT_MARKERS = [
     "check-zig-toolchain.py",
     "install-zig.py",
+    "check-phase2-fixdep-gate.py",
     "check-phase2-tests-readme-alignment.py",
     "check-phase2-cross-selftest-alignment.py",
     "check-phase2-kconfig-selftest-alignment.py",
@@ -368,6 +374,20 @@ def validate_root(root: Path) -> list[str]:
         return issues
 
     guard_issues: list[str] = []
+    guard_issues.extend(
+        run_guard(
+            root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"), "--self-test"],
+            ["PHASE2_FIXDEP_GATE_SELF_TEST=pass", "PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT=8"],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-fixdep-gate.py")],
+            ["PHASE2_FIXDEP_GATE=pass", "PHASE2_FIXDEP_GATE_WORKFLOW_MARKER_COUNT=5"],
+        )
+    )
     guard_issues.extend(
         run_guard(
             root,
