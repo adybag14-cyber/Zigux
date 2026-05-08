@@ -171,6 +171,7 @@ PHASE4_RUNTIME_ATOMIC64_EXPECTED_STRINGS = {
     "rollback_owner": "ABI and Runtime Team",
     "live_gate_path": "zigux/tests/runtime_atomic64_diff.zig",
     "runtime_replay_path": "zigux/tests/runtime_atomic64_diff.zig",
+    "phase4_gate_evidence_path": "Documentation/zigux/phase4-gate-evidence.md",
     "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
 }
 
@@ -208,6 +209,27 @@ PHASE4_RUNTIME_ATOMIC64_SURVEY_SHA_COUNTS = {
     "Documentation/zigux/phase4-validation-matrix.md": 1,
     "Documentation/zigux/review-checklist.md": 1,
     "zigux/tests/phase9_build.zig": 1,
+}
+
+PHASE4_RUNTIME_ATOMIC64_REQUIRED_FIELD_MARKERS = {
+    "roadmap_gap_summary": [
+        "zigux/tests/atomic64_diff.zig",
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+        "zigux/tests/phase4_perf_baseline_survey.zig",
+    ],
+    "reversible_delivery_evidence": [
+        "Documentation/zigux/phase4-gate-evidence.md",
+        "Documentation/zigux/review-checklist.md",
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+        "zigux/tests/phase4_perf_baseline_survey.zig",
+    ],
+    "ready_next": [
+        "Documentation/zigux/phase4-gate-evidence.md",
+        "Documentation/zigux/phase4-validation-matrix.md",
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+        "zigux/tests/phase4_perf_baseline_survey.zig",
+    ],
 }
 
 PHASE4_BITMAP_PIN_TARGETS = {
@@ -348,6 +370,15 @@ def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
     for field in PHASE4_RUNTIME_ATOMIC64_EXPECTED_TRUE_FIELDS:
         if manifest.get(field) is not True:
             problems.append(f"runtime_atomic64_manifest:{field}:{manifest.get(field)}:true")
+
+    for field, markers in PHASE4_RUNTIME_ATOMIC64_REQUIRED_FIELD_MARKERS.items():
+        value = manifest.get(field)
+        if not isinstance(value, str):
+            problems.append(f"runtime_atomic64_manifest:{field}:{value}:string")
+            continue
+        for marker in markers:
+            if marker not in value:
+                problems.append(f"runtime_atomic64_manifest_marker:{field}:{marker}")
 
     for field, relative_path in PHASE4_RUNTIME_ATOMIC64_MANIFEST_SHA_TARGETS.items():
         expected = _git_blob_sha1((root / relative_path).read_bytes())
@@ -629,6 +660,13 @@ def build_fixture_tree(root: Path) -> None:
             for field, path in PHASE4_RUNTIME_ATOMIC64_LINE_COUNT_TARGETS.items()
         }
     )
+    runtime_manifest.update(
+        {
+            "roadmap_gap_summary": "zigux/tests/atomic64_diff.zig and zigux/tests/phase4_perf_baseline_manifest.json plus zigux/tests/phase4_perf_baseline_survey.zig remain explicit in the bounded Phase 4 packet.",
+            "reversible_delivery_evidence": "Documentation/zigux/phase4-gate-evidence.md with Documentation/zigux/review-checklist.md and Documentation/zigux/phase4-validation-matrix.md stays aligned with zigux/tests/phase4_perf_baseline_manifest.json and zigux/tests/phase4_perf_baseline_survey.zig.",
+            "ready_next": "Keep Documentation/zigux/phase4-gate-evidence.md and Documentation/zigux/phase4-validation-matrix.md aligned with zigux/tests/phase4_perf_baseline_manifest.json and zigux/tests/phase4_perf_baseline_survey.zig.",
+        }
+    )
     _write(
         root,
         "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
@@ -758,6 +796,24 @@ def run_self_test() -> int:
         )
         failures = run_phase4_runtime_atomic64_packet_check(bad_root4)
         assert failures and failures[0].startswith("runtime_atomic64_manifest:live_gate_blob_sha:")
+
+        bad_root5 = Path(tmp_dir) / "bad5"
+        build_fixture_tree(bad_root5)
+        runtime_manifest_path = bad_root5 / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json"
+        runtime_manifest = json.loads(runtime_manifest_path.read_text(encoding="utf-8"))
+        runtime_manifest["ready_next"] = (
+            "Keep Documentation/zigux/phase4-validation-matrix.md aligned with "
+            "zigux/tests/phase4_perf_baseline_manifest.json and "
+            "zigux/tests/phase4_perf_baseline_survey.zig."
+        )
+        runtime_manifest_path.write_text(
+            json.dumps(runtime_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        failures = run_phase4_runtime_atomic64_packet_check(bad_root5)
+        assert failures == [
+            "runtime_atomic64_manifest_marker:ready_next:Documentation/zigux/phase4-gate-evidence.md"
+        ], failures
 
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
