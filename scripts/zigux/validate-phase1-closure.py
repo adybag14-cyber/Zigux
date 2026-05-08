@@ -103,7 +103,9 @@ EXPECTED_PHASE1_MANIFEST = json.loads(
         "test \"single-word next scans honor start masks\"",
         "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
         "test \"zero-bit windows return without reading bitmap words\"",
+        "test \"zero-sized scans ignore populated backing words\"",
         "test \"next scans past nbits return without reading bitmap words\"",
+        "test \"tail-word next set scans skip earlier in-range matches before clamping\"",
         "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
         "test \"low-level underscore aliases mirror the primary find helpers\""
       ],
@@ -123,7 +125,7 @@ EXPECTED_PHASE1_MANIFEST = json.loads(
         "tail_clamped_last",
         "tail_clamped_empty_last"
       ],
-      "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, inclusive-boundary, zero-window, past-nbits, tail-word skip, and underscore-alias behavior review-visible on current master"
+      "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, and underscore-alias behavior review-visible on current master"
     },
     "tools/lib/rbtree.zig": {
       "helper_test_anchors": [
@@ -403,164 +405,839 @@ REQUIRED_EXACT_WORKFLOW_MARKERS = [
     ("workflow_node24_count", "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true", 1),
     ("workflow_checkout_count", "uses: actions/checkout@v6.0.2", 1),
     ("workflow_setup_python_count", "uses: actions/setup-python@v6.2.0", 1),
-    ("workflow_toolchain_check_count", "run: python3 scripts/zigux/check-zig-toolchain.py", 1),
-    ("workflow_install_zig_count", "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain", 1),
+    (
+        "workflow_install_zig_selftest_count",
+        "run: python3 scripts/zigux/install-zig.py --self-test",
+        1,
+    ),
+    (
+        "workflow_install_zig_count",
+        "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
+        1,
+    ),
+    (
+        "workflow_check_zig_toolchain_selftest_count",
+        "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+        1,
+    ),
+    ("workflow_check_zig_toolchain_count", "run: python3 scripts/zigux/check-zig-toolchain.py", 1),
+    ("workflow_validate_bootstrap_count", "run: python3 scripts/zigux/validate-bootstrap.py", 1),
+    ("workflow_validate_phase1_count", "run: python3 scripts/zigux/validate-phase1.py", 1),
+    (
+        "workflow_phase1_installer_review_surfaces_selftest_count",
+        "run: python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase1_installer_review_surfaces_count",
+        "run: python3 scripts/zigux/check-phase1-installer-review-surfaces.py",
+        1,
+    ),
+    (
+        "workflow_validate_phase1_closure_count",
+        "run: python3 scripts/zigux/validate-phase1-closure.py",
+        1,
+    ),
+    ("workflow_validate_phase2_count", "run: python3 scripts/zigux/validate-phase2.py", 1),
+    (
+        "workflow_phase2_tool_manifest_selftest_count",
+        "run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase2_tool_manifest_count",
+        "run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
+        1,
+    ),
+    (
+        "workflow_phase2_genksyms_bridge_selftest_count",
+        "run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase2_genksyms_bridge_count",
+        "run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+        1,
+    ),
+    (
+        "workflow_validate_phase2_closure_count",
+        "run: python3 scripts/zigux/validate-phase2-closure.py",
+        1,
+    ),
+    (
+        "workflow_phase2_tests_readme_selftest_count",
+        "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase2_tests_readme_count",
+        "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+        1,
+    ),
+    (
+        "workflow_phase2_cross_selftest_count",
+        "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase2_cross_alignment_selftest_count",
+        "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase2_cross_alignment_count",
+        "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+        1,
+    ),
+    (
+        "workflow_phase2_toolchain_pin_scope_selftest_count",
+        "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase2_toolchain_pin_scope_count",
+        "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+        1,
+    ),
+    ("workflow_validate_phase3_count", "run: python3 scripts/zigux/validate-phase3.py", 1),
+    (
+        "workflow_validate_phase3_bindings_syntax_count",
+        "run: python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+        1,
+    ),
+    (
+        "workflow_survey_phase3_constant_parity_count",
+        "run: python3 scripts/zigux/survey-phase3-abi-constant-parity.py",
+        1,
+    ),
+    (
+        "workflow_phase3_selftest_surface_count",
+        "run: python3 scripts/zigux/check-phase3-selftest-surface.py",
+        1,
+    ),
+    (
+        "workflow_phase3_policy_unsafe_count",
+        "run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+        1,
+    ),
+    (
+        "workflow_phase3_policy_byte_guards_count",
+        "run: python3 scripts/zigux/check-phase3-policy-byte-guards.py",
+        1,
+    ),
+    (
+        "workflow_phase3_export_uapi_count",
+        "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
+        1,
+    ),
+    (
+        "workflow_phase3_low_level_wrapper_count",
+        "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+        1,
+    ),
+    (
+        "workflow_phase3_abi_dump_gate_count",
+        "run: python3 scripts/zigux/check-phase3-abi-dump-gate.py",
+        1,
+    ),
+    (
+        "workflow_phase4_validate_count",
+        "run: python3 scripts/zigux/validate-phase4.py",
+        1,
+    ),
+    (
+        "workflow_phase3_validator_selftest_count",
+        "run: python3 scripts/zigux/validate_phase3_selftest.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_bindings_syntax_selftest_count",
+        "run: python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_constant_parity_selftest_count",
+        "run: python3 scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_selftest_surface_selftest_count",
+        "run: python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_policy_unsafe_selftest_count",
+        "run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_policy_byte_guards_selftest_count",
+        "run: python3 scripts/zigux/check-phase3-policy-byte-guards.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_export_uapi_selftest_count",
+        "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_low_level_wrapper_selftest_count",
+        "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_abi_dump_gate_selftest_count",
+        "run: python3 scripts/zigux/check-phase3-abi-dump-gate.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_catalog_checker_selftest_count",
+        "run: python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_catalog_selftest_count",
+        "run: python3 scripts/zigux/phase3_catalog.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_catalog_doc_sync_count",
+        "run: python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
+        1,
+    ),
+    (
+        "workflow_phase3_readme_tooling_selftest_count",
+        "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_readme_tooling_count",
+        "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py",
+        1,
+    ),
+    (
+        "workflow_phase3_runner_support_selftest_count",
+        "run: python3 scripts/zigux/run-phase3-checks.py --self-test-support",
+        1,
+    ),
+    (
+        "workflow_phase3_shared_helper_selftest_count",
+        "run: python3 scripts/zigux/run-phase3-checks.py --self-test-shared-helper",
+        1,
+    ),
+    (
+        "workflow_phase3_runner_selftest_count",
+        "run: python3 scripts/zigux/run-phase3-checks.py --self-test-runner",
+        1,
+    ),
+    (
+        "workflow_phase3_wrapper_generator_selftest_count",
+        "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase3_wrapper_templates_count",
+        "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check",
+        1,
+    ),
+    (
+        "workflow_phase1_parity_count",
+        "run: python3 scripts/zigux/check-phase1-parity.py",
+        1,
+    ),
+    (
+        "workflow_phase1_bench_count",
+        "run: python3 scripts/zigux/check-phase1-bench.py",
+        1,
+    ),
+    (
+        "workflow_phase2_fixdep_gate_selftest_count",
+        "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase2_fixdep_gate_count",
+        "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
+        1,
+    ),
+    (
+        "workflow_fixdep_diff_selftest_count",
+        "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
+        1,
+    ),
+    (
+        "workflow_fixdep_diff_count",
+        "run: python3 scripts/zigux/check-fixdep-diff.py",
+        1,
+    ),
+    (
+        "workflow_genksyms_bridge_selftest_count",
+        "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+        1,
+    ),
+    (
+        "workflow_genksyms_bridge_count",
+        "run: python3 scripts/zigux/check-genksyms-bridge.py",
+        1,
+    ),
+    (
+        "workflow_genksyms_crc_count",
+        "run: python3 scripts/zigux/check-genksyms-crc-diff.py",
+        1,
+    ),
+    (
+        "workflow_phase2_kconfig_selftest_count",
+        "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase2_kconfig_alignment_count",
+        "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+        1,
+    ),
+    (
+        "workflow_kconfig_bridge_selftest_count",
+        "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+        1,
+    ),
+    (
+        "workflow_kconfig_bridge_count",
+        "run: python3 scripts/zigux/check-kconfig-bridge.py",
+        1,
+    ),
+    (
+        "workflow_mk_elfconfig_count",
+        "run: python3 scripts/zigux/check-mk-elfconfig-diff.py",
+        1,
+    ),
+    (
+        "workflow_phase3_parity_count",
+        "run: python3 scripts/zigux/run-phase3-checks.py --slug abi",
+        1,
+    ),
+    (
+        "workflow_fixdep_unit_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig test scripts/zigux/fixdep.zig",
+        1,
+    ),
+    (
+        "workflow_genksyms_bridge_unit_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig test scripts/zigux/genksyms.zig",
+        1,
+    ),
+    (
+        "workflow_genksyms_crc_unit_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig test scripts/zigux/genksyms_crc.zig",
+        1,
+    ),
+    (
+        "workflow_conf_bridge_unit_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig test kconfig/conf_bridge.zig",
+        1,
+    ),
+    (
+        "workflow_confdata_bridge_unit_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig test kconfig/confdata_bridge.zig",
+        1,
+    ),
+    (
+        "workflow_mk_elfconfig_unit_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig test scripts/zigux/mk_elfconfig.zig",
+        1,
+    ),
+    (
+        "workflow_phase1_helper_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/build.zig",
+        1,
+    ),
+    (
+        "workflow_phase1_bench_smoke_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build bench --build-file zigux/tests/build.zig",
+        1,
+    ),
+    (
+        "workflow_phase3_abi_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build phase3-test --build-file zigux/tests/build.zig",
+        1,
+    ),
+    (
+        "workflow_phase4_diff_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase4_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase5_reference_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase5_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase6_shared_surface_selftest_count",
+        "run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase6_shared_surface_count",
+        "run: python3 scripts/zigux/check-phase6-shared-surface.py",
+        1,
+    ),
+    (
+        "workflow_phase6_helper_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build phase6-test --build-file zigux/tests/phase6_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase6_base64_perf_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase6_checksum_perf_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase6_hexdump_perf_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
+        1,
+    ),
+    (
+        "workflow_validate_phase7_count",
+        "run: python3 scripts/zigux/validate-phase7.py",
+        1,
+    ),
+    (
+        "workflow_phase7_runtime_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase7_build.zig",
+        1,
+    ),
+    (
+        "workflow_validate_phase8_count",
+        "run: python3 scripts/zigux/validate-phase8.py",
+        1,
+    ),
+    (
+        "workflow_phase8_exec_cmd_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase8_help_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase8_help_only_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase8_kallsyms_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase8_help_kallsyms_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase8_libbpf_shard_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase8_tooling_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase8_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase9_build_only_surface_selftest_count",
+        "run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase9_build_only_surface_count",
+        "run: python3 scripts/zigux/check-phase9-build-only-surface.py",
+        1,
+    ),
+    (
+        "workflow_phase9_runtime_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase9_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase10_checker_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase10_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase11_shared_contract_selftest_count",
+        "run: python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase11_shared_contract_count",
+        "run: python3 scripts/zigux/check-phase11-shared-replay-contract.py",
+        1,
+    ),
+    (
+        "workflow_phase11_watchdog_console_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase11_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase11_hvc_survey_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build phase11-hvc-survey --build-file zigux/tests/phase11_build.zig",
+        1,
+    ),
+    (
+        "workflow_phase12_build_only_surface_selftest_count",
+        "run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase12_build_only_surface_count",
+        "run: python3 scripts/zigux/check-build-only-phase12-surface.py",
+        1,
+    ),
+    (
+        "workflow_phase12_smoke_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build smoke --build-file zigux/tests/phase12_build.zig --summary all",
+        1,
+    ),
+    (
+        "workflow_phase12_complex_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase12_build.zig --summary all",
+        1,
+    ),
+    (
+        "workflow_validate_phase13_release_count",
+        "run: python3 scripts/zigux/validate-phase13-release.py",
+        1,
+    ),
+    (
+        "workflow_phase13_shared_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase13_build.zig --summary all",
+        1,
+    ),
+    (
+        "workflow_validate_phase14_count",
+        "run: python3 scripts/zigux/validate-phase14.py",
+        1,
+    ),
+    (
+        "workflow_phase14_smoke_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+        1,
+    ),
+    (
+        "workflow_phase14_internal_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+        1,
+    ),
+    (
+        "workflow_validate_phase15_count",
+        "run: python3 scripts/zigux/check-phase15-review-process-handoff.py",
+        1,
+    ),
+    (
+        "workflow_phase15_governance_tests_count",
+        "run: .zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/phase15_build.zig",
+        1,
+    ),
 ]
 
 REQUIRED_PHASE1_WORKFLOW_MARKERS = [
-    ("workflow_phase1_validate_count", "run: python3 scripts/zigux/validate-phase1.py", 1),
-    ("workflow_phase1_closure_count", "run: python3 scripts/zigux/validate-phase1-closure.py", 1),
-    ("workflow_phase1_parity_count", "run: python3 scripts/zigux/check-phase1-parity.py", 1),
-    ("workflow_phase1_bench_count", "run: python3 scripts/zigux/check-phase1-bench.py", 1),
-    ("workflow_phase1_unit_replay_count", "run: zig build test --build-file zigux/tests/build.zig", 1),
-    ("workflow_phase1_bench_replay_count", "run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe", 1),
+    ("workflow_phase1_helper_tests", ".zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file zigux/tests/build.zig", 1),
+    ("workflow_phase1_bench_smoke", ".zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build bench --build-file zigux/tests/build.zig", 1),
+    ("workflow_phase1_parity", "python3 scripts/zigux/check-phase1-parity.py", 1),
+    ("workflow_phase1_bench", "python3 scripts/zigux/check-phase1-bench.py", 1),
+    (
+        "workflow_phase1_closure",
+        "python3 scripts/zigux/validate-phase1-closure.py",
+        1,
+    ),
 ]
 
 REQUIRED_BUILD_MARKERS = [
-    ("build_phase1_bench_source_count", "phase1_bench.zig", 1),
-    ("build_phase1_bench_step_count", 'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");', 1),
+    ("build_phase1_target", '    .step("phase1-test", "Run bounded Phase 1 helper tests")', 1),
+    (
+        "build_phase1_bench_target",
+        '    .step("phase1-bench", "Run bounded Phase 1 helper benchmark smoke")',
+        1,
+    ),
+    (
+        "build_phase1_main_file",
+        'const phase1_helpers = b.createModule(.{ .root_source_file = b.path("phase1_helpers.zig") });',
+        1,
+    ),
+    (
+        "build_phase1_bench_file",
+        'const phase1_bench = b.createModule(.{ .root_source_file = b.path("phase1_bench.zig") });',
+        1,
+    ),
 ]
 
 REQUIRED_LEDGER_MARKERS = [
-    ("ledger_phase1_closure_commit_count", "docs(zigux): close bounded phase-1 helper tranche", 1),
+    (
+        "ledger_phase1_entry_count",
+        "- Phase 1 helper closure: `zigux/tests/fixtures/phase1_helper_manifest.json` keeps the committed helper inventory plus the direct-anchor review fields for `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig`, while `Documentation/zigux/phase1-closure.md` records the shared parity, benchmark, rollback, and direct-anchor review packet for the closed helper tranche.",
+        1,
+    ),
+    (
+        "ledger_phase1_bench_entry_count",
+        "- Phase 1 benchmark replay: `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/phase1_bench.zig`, `scripts/zigux/check-phase1-bench.py`, and `zigux/tests/build.zig` keep checksum-backed smoke iterations visible before any later runtime phases build on the same helper subset.",
+        1,
+    ),
 ]
 
 REQUIRED_MAKEFILE_MARKERS = [
-    ("makefile_phase1_validate_target", "phase1-validate:", 1),
-    ("makefile_phase1_validate_inventory", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py", 1),
-    ("makefile_phase1_validate_closure", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py", 1),
-    ("makefile_phase1_test_target", "phase1-test:", 1),
-    ("makefile_phase1_test_parity", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py", 1),
-    ("makefile_phase1_test_replay", "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/build.zig", 1),
-    ("makefile_phase1_bench_target", "phase1-bench:", 1),
-    ("makefile_phase1_bench_check", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py", 1),
-    ("makefile_phase1_bench_replay", "cd $(ZIGUX_ROOT) && $(ZIG) build bench --build-file zigux/tests/build.zig", 1),
     ("makefile_phase1_target", "phase1: phase1-validate phase1-test phase1-bench", 1),
+    (
+        "makefile_phase1_validate_inventory",
+        "phase1-validate: phase1-check-zig phase1-closure-check phase1-installer-review phase1-parity phase1-bench-check",
+        1,
+    ),
+    ("makefile_phase1_test_inventory", "phase1-test: phase1-check-zig", 1),
+    ("makefile_phase1_bench_inventory", "phase1-bench: phase1-check-zig", 1),
+    (
+        "makefile_phase1_bench_check_inventory",
+        "phase1-bench-check: phase1-check-zig",
+        1,
+    ),
+    (
+        "makefile_phase1_validator_route",
+        "\tpython3 ../scripts/zigux/validate-phase1.py",
+        1,
+    ),
+    (
+        "makefile_phase1_closure_route",
+        "\tpython3 ../scripts/zigux/validate-phase1-closure.py",
+        1,
+    ),
+    (
+        "makefile_phase1_install_zig_route",
+        "\tpython3 ../scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
+        1,
+    ),
+    (
+        "makefile_phase1_check_zig_route",
+        "\tpython3 ../scripts/zigux/check-zig-toolchain.py",
+        1,
+    ),
+    (
+        "makefile_phase1_parity_route",
+        "\tpython3 ../scripts/zigux/check-phase1-parity.py",
+        1,
+    ),
+    (
+        "makefile_phase1_bench_check_route",
+        "\tpython3 ../scripts/zigux/check-phase1-bench.py",
+        1,
+    ),
+    (
+        "makefile_phase1_test_route",
+        "\t$(ZIG_BIN) build test --build-file tests/build.zig",
+        1,
+    ),
+    (
+        "makefile_phase1_bench_route",
+        "\t$(ZIG_BIN) build bench --build-file tests/build.zig",
+        1,
+    ),
 ]
 
 REQUIRED_DOCS_ROOT_MARKERS = [
     (
-        "docs_root_phase1_packet",
-        "- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, the dedicated installer-review alignment checker, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
+        "docs_root_phase1_closure_gate_count",
+        "- `python3 scripts/zigux/validate-phase1-closure.py` keeps the closed Phase 1 helper packet aligned across the docs-root closure note, the review checklist, the Makefile routes, the workflow replay, and the committed helper plus benchmark manifests before any later phase validators run.",
+        1,
+    ),
+    (
+        "docs_root_phase1_parity_gate_count",
+        "- `make -C zigux phase1-validate`, `make -C zigux phase1`, `python3 scripts/zigux/check-phase1-parity.py`, `zig build test --build-file zigux/tests/build.zig`, and `zig build bench --build-file zigux/tests/build.zig` keep the closed helper tranche reviewable through one shared parity, unit, and benchmark replay route instead of leaving the committed fixture and direct-anchor packet visible only from individual helper files.",
+        1,
+    ),
+    (
+        "docs_root_phase1_bench_check_count",
+        "- `python3 scripts/zigux/check-phase1-bench.py` keeps the checksum-backed benchmark smoke fixtures in sync with `zigux/tests/phase1_bench.zig`, `zigux/tests/build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` so the bounded helper hot loops stay reviewable without inventing a broader perf-budget contract.",
         1,
     ),
 ]
 
 REQUIRED_SCRIPTS_README_MARKERS = [
     (
-        "scripts_readme_phase1_packet",
-        "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep that same closed host-side helper packet reviewable through the docs-root closure record, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
+        "scripts_readme_phase1_closure_count",
+        "- `validate-phase1-closure.py` confirms the closed Phase 1 packet still matches the workflow, the closure note, the review checklist, the shared helper build wiring, and the committed helper and benchmark manifests before any later phase validators run.",
+        1,
+    ),
+    (
+        "scripts_readme_phase1_parity_gate_count",
+        "- `check-phase1-parity.py` compares the bounded helper outputs against the committed Phase 1 fixture corpus so `bitmap`, `find_bit`, `string`, `rbtree`, and the rest of the closed helper set stay pinned to current C behavior.",
+        1,
+    ),
+    (
+        "scripts_readme_phase1_bench_check_count",
+        "- `check-phase1-bench.py` verifies the benchmark smoke outputs recorded in `zigux/tests/fixtures/phase1_bench_expectations.json` so the helper hot loops keep their checksum-backed replay contract.",
+        1,
+    ),
+    (
+        "scripts_readme_phase1_install_zig_count",
+        "- `check-phase1-installer-review-surfaces.py` keeps `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `Documentation/zigux/README.md` aligned around the shipped Zig installer and the Phase 1 closure review packet instead of leaving that shared bootstrap route visible only from the workflow or the install helper itself.",
         1,
     ),
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
     (
-        "tests_readme_phase1_packet",
-        "  * keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root, scripts root, and workflow replay surface",
+        "tests_readme_phase1_helpers_count",
+        "- `phase1_helpers.zig` keeps the shared helper replay for the closed Phase 1 packet, including the committed parity fixture-backed coverage for the helper inventory under `tools/lib/*.zig` plus the direct-anchor review fields for `bitmap`, `find_bit`, `rbtree`, and `string`.",
+        1,
+    ),
+    (
+        "tests_readme_phase1_bench_count",
+        "- `phase1_bench.zig` keeps the checksum-backed helper benchmark smoke for the closed Phase 1 packet explicit through `zig build bench --build-file zigux/tests/build.zig`, `python3 scripts/zigux/check-phase1-bench.py`, and the committed benchmark expectation manifest.",
+        1,
+    ),
+    (
+        "tests_readme_phase1_manifest_count",
+        "- `fixtures/phase1_helper_manifest.json` records the helper inventory plus the committed direct-anchor review fields for the closed Phase 1 helper tranche so docs, workflow, and test replay surfaces all point at one shared parity packet.",
+        1,
+    ),
+    (
+        "tests_readme_phase1_bench_expectations_count",
+        "- `fixtures/phase1_bench_expectations.json` records the checksum-backed benchmark smoke iterations so the bounded helper hot loops stay reviewable without implying a broader runtime performance budget.",
         1,
     ),
 ]
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     (
-        "review_checklist_phase1_packet",
-        "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `zigux/tests/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` still agree on the same closed helper tranche and validator-first replay path without widening Phase 1 beyond the bounded host-side helper packet?",
+        "review_checklist_phase1_closure_gate_count",
+        "- Phase 1 closure and replay routes: `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-parity.py`, `python3 scripts/zigux/check-phase1-bench.py`, `make -C zigux phase1-validate`, `make -C zigux phase1`, `zig build test --build-file zigux/tests/build.zig`, and `zig build bench --build-file zigux/tests/build.zig` stay aligned with `Documentation/zigux/phase1-closure.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/Makefile`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, and the helper packets under `tools/lib/*.zig`.",
         1,
     ),
 ]
 
 
 def repo_root_from_arg(root_arg: str | None) -> Path:
-    return DEFAULT_ROOT if root_arg is None else Path(root_arg).resolve()
+    return Path(root_arg).resolve() if root_arg else DEFAULT_ROOT
 
 
 def load_text(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
 
 
+def load_json_file(path: Path, label: str) -> tuple[Any | None, list[str]]:
+    try:
+        return json.loads(path.read_text(encoding="utf-8")), []
+    except FileNotFoundError:
+        return None, [f"{label}:missing_file"]
+    except json.JSONDecodeError:
+        return None, [f"{label}:invalid_json"]
+
+
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
 
-def load_json_file(path: Path, label: str) -> tuple[Any | None, list[str]]:
-    try:
-        return json.loads(path.read_text(encoding="utf-8")), []
-    except json.JSONDecodeError as exc:
-        return None, [f"{label}:json_decode_error:{exc.msg}:line={exc.lineno}:column={exc.colno}"]
+def count_occurrences(text: str, needle: str) -> int:
+    return text.count(needle)
+
+
+def extract_workflow_job(workflow_text: str, job_name: str) -> str:
+    lines = workflow_text.splitlines()
+    job_header = f"  {job_name}:"
+    start_index = None
+    for index, line in enumerate(lines):
+        if line == job_header:
+            start_index = index + 1
+            break
+    if start_index is None:
+        return ""
+
+    collected: list[str] = []
+    for line in lines[start_index:]:
+        if not line.startswith("    ") and line:
+            break
+        collected.append(line)
+    return "\n".join(collected)
 
 
 def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
     missing: list[str] = []
-    for label, marker, expected_count in markers:
-        actual_count = text.count(marker)
-        if actual_count != expected_count:
-            missing.append(f"{label}:expected={expected_count}:actual={actual_count}")
+    for label, marker, expected in markers:
+        actual = count_occurrences(text, marker)
+        if actual != expected:
+            missing.append(f"{label}:expected={expected}:actual={actual}")
     return missing
 
 
 def collect_exact_line_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
-    actual_counts: dict[str, int] = {}
-    for raw_line in text.splitlines():
-        line = raw_line.strip()
-        actual_counts[line] = actual_counts.get(line, 0) + 1
-
+    counts: dict[str, int] = {}
+    for line in text.splitlines():
+        counts[line] = counts.get(line, 0) + 1
     missing: list[str] = []
-    for label, marker, expected_count in markers:
-        actual_count = actual_counts.get(marker, 0)
-        if actual_count != expected_count:
-            missing.append(f"{label}:expected={expected_count}:actual={actual_count}")
+    for label, marker, expected in markers:
+        actual = counts.get(marker, 0)
+        if actual != expected:
+            missing.append(f"{label}:expected={expected}:actual={actual}")
     return missing
 
 
-def extract_workflow_job(text: str, job_name: str) -> str:
-    pattern = re.compile(rf"(?ms)^  {re.escape(job_name)}:\n(.*?)(?=^  [A-Za-z0-9_-]+:\n|\Z)")
-    match = pattern.search(text)
-    return "" if match is None else match.group(0)
-
-
-def collect_workflow_markers(text: str) -> list[str]:
-    missing: list[str] = []
+def collect_workflow_markers(workflow_text: str) -> list[str]:
+    missing = []
     for marker in REQUIRED_WORKFLOW_MARKERS:
-        if marker not in text:
-            missing.append(f"workflow:{marker}")
-    if WORKFLOW_INSTALL_ZIG_RE.search(text) is None:
-        missing.append("workflow:python3 scripts/zigux/install-zig.py --channel <explicit> --dest .zig-toolchain")
-    if "mlugg/setup-zig@" in text:
-        missing.append("workflow:remove mlugg/setup-zig@")
+        if marker not in workflow_text:
+            missing.append(f"workflow_marker:{marker}")
+    if not WORKFLOW_INSTALL_ZIG_RE.search(workflow_text):
+        missing.append("workflow_install_zig_pattern")
     return missing
 
 
-def collect_manifest_review_anchor_markers(manifest: dict[str, Any]) -> list[str]:
-    missing: list[str] = []
+def values_match(expected: Any, actual: Any) -> bool:
+    if isinstance(expected, list):
+        return isinstance(actual, list) and actual == expected
+    if isinstance(expected, dict):
+        return isinstance(actual, dict) and actual == expected
+    return actual == expected
+
+
+def collect_manifest_review_anchor_markers(manifest: object) -> list[str]:
+    if not isinstance(manifest, dict):
+        return ["manifest:json_object"]
+
     review_anchors = manifest.get("review_anchors")
     if not isinstance(review_anchors, dict):
         return ["manifest:review_anchors=dict"]
 
+    missing: list[str] = []
     expected_helpers = set(EXPECTED_REVIEW_ANCHORS)
-    actual_helpers = set(review_anchors)
+    actual_helpers = set()
+
+    for helper, fields in review_anchors.items():
+        if not isinstance(helper, str):
+            missing.append("manifest:review_anchor_helper_type=str")
+            continue
+        actual_helpers.add(helper)
+        expected_fields = EXPECTED_REVIEW_ANCHORS.get(helper)
+        if expected_fields is None:
+            missing.append(f"manifest:unexpected_review_anchor_helper={helper}")
+            continue
+        if not isinstance(fields, dict):
+            missing.append(f"manifest:review_anchor_fields_type={helper}:dict")
+            continue
+
+        expected_names = set(expected_fields)
+        actual_names = set(fields)
+        for name in sorted(expected_names - actual_names):
+            missing.append(f"manifest:missing_review_anchor_field={helper}:{name}")
+        for name in sorted(actual_names - expected_names):
+            missing.append(f"manifest:unexpected_review_anchor_field={helper}:{name}")
+        for name, expected_value in expected_fields.items():
+            if name not in fields:
+                continue
+            actual_value = fields[name]
+            if not values_match(expected_value, actual_value):
+                missing.append(f"manifest:review_anchor_value={helper}:{name}")
+
     for helper in sorted(expected_helpers - actual_helpers):
         missing.append(f"manifest:missing_review_anchor_helper={helper}")
-    for helper in sorted(actual_helpers - expected_helpers):
-        missing.append(f"manifest:unexpected_review_anchor_helper={helper}")
-
-    for helper, expected_fields in EXPECTED_REVIEW_ANCHORS.items():
-        helper_review = review_anchors.get(helper)
-        if not isinstance(helper_review, dict):
-            missing.append(f"manifest:review_anchor_object={helper}")
-            continue
-        expected_keys = set(expected_fields)
-        actual_keys = set(helper_review)
-        for key in sorted(expected_keys - actual_keys):
-            missing.append(f"manifest:missing_review_anchor_field={helper}:{key}")
-        for key in sorted(actual_keys - expected_keys):
-            missing.append(f"manifest:unexpected_review_anchor_field={helper}:{key}")
-
-        for key, expected_value in expected_fields.items():
-            if key not in helper_review:
-                continue
-            if helper_review[key] != expected_value:
-                missing.append(f"manifest:review_anchor_value={helper}:{key}")
     return missing
 
 
@@ -569,14 +1246,14 @@ def collect_manifest_markers(manifest: object, root: Path) -> list[str]:
         return ["manifest:json_object"]
 
     missing: list[str] = []
-    helpers = manifest.get("helpers")
-    if not isinstance(helpers, list):
-        return ["manifest:helpers=list"]
-
     if manifest.get("phase") != "Phase 1":
         missing.append("manifest:phase=Phase 1")
     if manifest.get("status") != "closed":
         missing.append("manifest:status=closed")
+    helpers = manifest.get("helpers")
+    if not isinstance(helpers, list):
+        missing.append("manifest:helpers=list")
+        helpers = []
     if manifest.get("helper_count") != len(EXPECTED_HELPERS):
         missing.append(f"manifest:helper_count={len(EXPECTED_HELPERS)}")
     if len(helpers) != len(EXPECTED_HELPERS):
