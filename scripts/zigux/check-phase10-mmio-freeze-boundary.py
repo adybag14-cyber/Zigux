@@ -78,7 +78,7 @@ EXPECTED_COMPONENTS = {
             "phase10-virtio-input-teardown-observation-helper",
             "phase10-virtio-input-registration-preflight-helper",
             "phase10-virtio-input-queue-callback-preflight-helper",
-            "phase10-input-status-drain-helper",
+            "phase10-virtio-input-status-drain-helper",
         ],
     },
     "mmio": {
