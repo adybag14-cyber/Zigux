@@ -41,6 +41,41 @@ fn fixtureVariant(name: []const u8) base64.Variant {
     unreachable;
 }
 
+fn expectShortRoundtrip(length: usize, padding: bool, variant: base64.Variant) !void {
+    var encoded: [8]u8 = undefined;
+    var decoded: [2]u8 = undefined;
+
+    switch (length) {
+        1 => {
+            for (0..256) |a| {
+                const input = [_]u8{@intCast(a)};
+                const encoded_len = try base64.encode(encoded[0..], input[0..], padding, variant);
+                try std.testing.expectEqual(base64.chars(input.len, padding), encoded_len);
+                try std.testing.expectEqual(@as(usize, input.len), try base64.bytes(encoded[0..encoded_len], padding, variant));
+
+                const decoded_len = try base64.decode(decoded[0..], encoded[0..encoded_len], padding, variant);
+                try std.testing.expectEqual(@as(usize, 1), decoded_len);
+                try std.testing.expectEqualSlices(u8, input[0..], decoded[0..decoded_len]);
+            }
+        },
+        2 => {
+            for (0..256) |a| {
+                for (0..256) |b| {
+                    const input = [_]u8{ @intCast(a), @intCast(b) };
+                    const encoded_len = try base64.encode(encoded[0..], input[0..], padding, variant);
+                    try std.testing.expectEqual(base64.chars(input.len, padding), encoded_len);
+                    try std.testing.expectEqual(@as(usize, input.len), try base64.bytes(encoded[0..encoded_len], padding, variant));
+
+                    const decoded_len = try base64.decode(decoded[0..], encoded[0..encoded_len], padding, variant);
+                    try std.testing.expectEqual(@as(usize, 2), decoded_len);
+                    try std.testing.expectEqualSlices(u8, input[0..], decoded[0..decoded_len]);
+                }
+            }
+        },
+        else => unreachable,
+    }
+}
+
 test "phase 6 base64 module imports cleanly" {
     _ = base64;
 }
@@ -309,6 +344,18 @@ test "phase 6 base64 exact-fit encode and decode buffers stay accepted across st
 
         try std.testing.expectEqual(exact.len, written);
         try std.testing.expectEqualSlices(u8, case.expected, exact[0..written]);
+    }
+}
+
+test "phase 6 base64 exhaustive one-byte and two-byte roundtrip coverage stays aligned across std, urlsafe, and imap variants" {
+    const variants = [_]base64.Variant{ .std, .urlsafe, .imap };
+    const padding_modes = [_]bool{ true, false };
+
+    for (variants) |variant| {
+        for (padding_modes) |padding| {
+            try expectShortRoundtrip(1, padding, variant);
+            try expectShortRoundtrip(2, padding, variant);
+        }
     }
 }
 
