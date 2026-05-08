@@ -29,6 +29,7 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "wait-result classification");
     try expectContains(note, "normalized negative errno-or-ready-count wait results");
     try expectContains(note, "ready-buffer bookkeeping");
+    try expectContains(note, "ordered ready-buffer ordinal lookup plus return shaping");
     try expectContains(note, "ordered `perf_buffer__process_records()` pass");
     try expectContains(note, "cumulative processed-record count");
     try expectContains(note, "first failing ready buffer");
@@ -38,6 +39,8 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "valid buffer windows, invalid indices, and missing buffers");
     try expectContains(note, "signaled-buffer ordinal lookup plus return shaping");
     try expectContains(note, "valid signal ordinals and out-of-range ordinals");
+    try expectContains(note, "ready-buffer ordinal lookup plus return shaping");
+    try expectContains(note, "valid ready ordinals and out-of-range ready ordinals");
     try expectContains(note, "ready-buffer processing attempts cannot exceed observed ready events");
     try expectContains(note, "ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch");
     try expectContains(note, "non-ready wait observations cannot claim record processing");
@@ -257,6 +260,37 @@ test "phase 8 perf-buffer poll helper keeps signaled-buffer ordinal lookup and r
     const invalid = perf_buffer_poll.resolveSignaledBufferIndexResultFromSlots(&buffers, 4);
     try std.testing.expectEqual(
         perf_buffer_poll.SignaledBufferIndexDisposition.signal_ordinal_out_of_range,
+        invalid.disposition,
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        invalid.return_value,
+    );
+    try std.testing.expectEqual(@as(?usize, null), invalid.buffer_index);
+}
+
+test "phase 8 perf-buffer poll helper keeps ready-buffer ordinal lookup and return shaping explicit" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{ .error_code = -32 },
+        .{ .ready = true, .error_code = -11 },
+        .{ .ready = true },
+    };
+
+    const first = perf_buffer_poll.resolveReadyBufferIndexResultFromSlots(&buffers, 0);
+    try std.testing.expectEqual(perf_buffer_poll.ReadyBufferIndexDisposition.buffer_index, first.disposition);
+    try std.testing.expectEqual(@as(i32, 0), first.return_value);
+    try std.testing.expectEqual(@as(?usize, 1), first.buffer_index);
+
+    const third = perf_buffer_poll.resolveReadyBufferIndexResultFromSlots(&buffers, 2);
+    try std.testing.expectEqual(perf_buffer_poll.ReadyBufferIndexDisposition.buffer_index, third.disposition);
+    try std.testing.expectEqual(@as(i32, 0), third.return_value);
+    try std.testing.expectEqual(@as(?usize, 4), third.buffer_index);
+
+    const invalid = perf_buffer_poll.resolveReadyBufferIndexResultFromSlots(&buffers, 3);
+    try std.testing.expectEqual(
+        perf_buffer_poll.ReadyBufferIndexDisposition.ready_ordinal_out_of_range,
         invalid.disposition,
     );
     try std.testing.expectEqual(
