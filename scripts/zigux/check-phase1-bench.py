@@ -351,6 +351,25 @@ def run_self_test() -> None:
         'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
         'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=11',
     ])
+    find_bit_edge_iteration_mismatch_output = '\n'.join([
+        'PHASE1_BENCH=pass',
+        'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
+        'PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS=20000',
+        'PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000',
+        'PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=19999',
+        'PHASE1_BENCH_STRING_ITERATIONS=40000',
+        'PHASE1_BENCH_HWEIGHT_ITERATIONS=100000',
+        'PHASE1_BENCH_LIST_SORT_ITERATIONS=1000',
+        'PHASE1_BENCH_RBTREE_ITERATIONS=4000',
+        'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=2260000',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=620000',
+        'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=15621472',
+        f"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM']}",
+        'PHASE1_BENCH_STRING_CHECKSUM=100000',
+        'PHASE1_BENCH_HWEIGHT_CHECKSUM=1600000',
+        'PHASE1_BENCH_LIST_SORT_CHECKSUM=69300',
+        f"PHASE1_BENCH_RBTREE_CHECKSUM={full_exact_checksums['PHASE1_BENCH_RBTREE_CHECKSUM']}",
+    ])
     missing_checksum_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
@@ -476,6 +495,10 @@ def run_self_test() -> None:
     kind, payload = validate_output(expectations, invalid_iteration_output)
     assert kind == 'iteration_value_type'
     assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS', 'not-a-number')
+
+    kind, payload = validate_output(full_expectations, find_bit_edge_iteration_mismatch_output)
+    assert kind == 'iteration_mismatch'
+    assert payload == ('PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS', 20000, '19999')
 
     kind, payload = validate_output(expectations, missing_checksum_output)
     assert kind == 'missing'
@@ -714,7 +737,7 @@ def run_self_test() -> None:
     assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM', 'str')
 
     print('PHASE1_BENCH_CHECK_SELF_TEST=pass')
-    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=34')
+    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=35')
 
 
 def main() -> int:
