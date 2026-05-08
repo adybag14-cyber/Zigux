@@ -16,6 +16,7 @@ REQUIRED_FILES = [
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/phase8_build.zig",
     "zigux/tests/phase8_exec_cmd.zig",
     "zigux/tests/phase8_exec_cmd_only_build.zig",
@@ -29,6 +30,13 @@ EXACT_ONCE_SECTION_MARKERS = {
             "start": "  * `zigux/tests/phase8_build.zig`\n",
             "end": "  * `zigux/tests/phase9_build.zig`\n",
             "needle": "  * `zigux/tests/phase8_exec_cmd_only_build.zig`\n",
+        },
+    ],
+    ".github/workflows/zigux-bootstrap.yml": [
+        {
+            "start": "      - name: Validate Phase 8 tooling packet\n",
+            "end": "      - name: Run focused Phase 8 help and kallsyms tests\n",
+            "needle": "      - name: Run focused Phase 8 exec-cmd tests\n",
         },
     ],
 }
@@ -90,6 +98,14 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase8-exec-cmd-packet.py",
         "phase8-exec-cmd-test:",
         "$(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
+    ],
+    ".github/workflows/zigux-bootstrap.yml": [
+        "Validate Phase 8 tooling packet",
+        "make -C zigux phase8-validate",
+        "Run focused Phase 8 exec-cmd tests",
+        "make -C zigux phase8-exec-cmd-test",
+        "Run focused Phase 8 help and kallsyms tests",
+        "Run Phase 8 tooling tests",
     ],
     "zigux/tests/phase8_build.zig": [
         "../../tools/lib/subcmd/exec-cmd.zig",
@@ -194,8 +210,25 @@ def build_tests_readme_fixture() -> str:
     ) + "\n"
 
 
+def build_workflow_fixture() -> str:
+    return "\n".join(
+        [
+            "Validate Phase 8 tooling packet",
+            "      - name: Validate Phase 8 tooling packet",
+            "        run: make -C zigux phase8-validate",
+            "Run focused Phase 8 exec-cmd tests",
+            "      - name: Run focused Phase 8 exec-cmd tests",
+            "        run: make -C zigux phase8-exec-cmd-test",
+            "Run focused Phase 8 help and kallsyms tests",
+            "      - name: Run focused Phase 8 help and kallsyms tests",
+            "Run Phase 8 tooling tests",
+        ]
+    ) + "\n"
+
+
 FIXTURE_OVERRIDES = {
     "zigux/tests/README.md": build_tests_readme_fixture(),
+    ".github/workflows/zigux-bootstrap.yml": build_workflow_fixture(),
 }
 
 
@@ -238,6 +271,7 @@ def run_self_test() -> None:
         ("missing_scripts_readme", "scripts/zigux/README.md"),
         ("missing_tests_readme", "zigux/tests/README.md"),
         ("missing_makefile", "zigux/Makefile"),
+        ("missing_workflow", ".github/workflows/zigux-bootstrap.yml"),
         ("missing_phase8_build", "zigux/tests/phase8_build.zig"),
         ("missing_exec_cmd_test", "zigux/tests/phase8_exec_cmd.zig"),
         ("missing_exec_cmd_only_build", "zigux/tests/phase8_exec_cmd_only_build.zig"),
@@ -427,6 +461,27 @@ def run_self_test() -> None:
             "`kernel/workqueue.c`",
             "`kernel/sched/core.c`",
             "Documentation/zigux/review-checklist.md: `kernel/workqueue.c`",
+        ),
+        (
+            "workflow_step_name",
+            ".github/workflows/zigux-bootstrap.yml",
+            "Run focused Phase 8 exec-cmd tests",
+            "Run focused Phase 8 exec tests",
+            ".github/workflows/zigux-bootstrap.yml: Run focused Phase 8 exec-cmd tests",
+        ),
+        (
+            "workflow_make_route",
+            ".github/workflows/zigux-bootstrap.yml",
+            "make -C zigux phase8-exec-cmd-test",
+            "make -C zigux phase8-exec-test",
+            ".github/workflows/zigux-bootstrap.yml: make -C zigux phase8-exec-cmd-test",
+        ),
+        (
+            "workflow_exec_cmd_exact_once_duplicate",
+            ".github/workflows/zigux-bootstrap.yml",
+            "      - name: Run focused Phase 8 exec-cmd tests\n",
+            "      - name: Run focused Phase 8 exec-cmd tests\n      - name: Run focused Phase 8 exec-cmd tests\n",
+            ".github/workflows/zigux-bootstrap.yml: exact_once_section_marker:      - name: Run focused Phase 8 exec-cmd tests",
         ),
         (
             "shared_build_source",
