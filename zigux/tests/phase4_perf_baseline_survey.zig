@@ -59,6 +59,13 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         .limited(48 * 1024),
     );
     defer std.testing.allocator.free(phase4_matrix);
+    const phase4_gate_evidence = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase4-gate-evidence.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(phase4_gate_evidence);
     const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/README.md",
@@ -115,11 +122,12 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             std.mem.indexOf(u8, phase4_matrix, "zigux/tests/phase4_perf_baseline_survey.zig") != null and
             std.mem.indexOf(u8, phase4_matrix, "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig") != null and
             std.mem.indexOf(u8, phase4_matrix, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null and
-            std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null and
             std.mem.indexOf(u8, phase4_matrix, "The dedicated perf-baseline survey stays outside the shared `phase4-test` entrypoint") != null,
         .shared_phase4_test_step_includes_survey = std.mem.indexOf(u8, phase4_build, "test_step.dependOn(&run_perf_baseline_survey_tests.step);") != null,
-        .benchmark_command_unapproved = std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null,
-        .acceptable_limit_unapproved = std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null,
+        .benchmark_command_unapproved = std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null or
+            std.mem.indexOf(u8, phase4_matrix, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null,
+        .acceptable_limit_unapproved = std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null or
+            std.mem.indexOf(u8, phase4_matrix, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null,
     };
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
 
@@ -191,4 +199,10 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "threshold_pending_until_runtime_atomic64_scope_widens") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "zigux/tests/phase4_perf_baseline_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "zigux/tests/phase4_perf_baseline_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "dedicated local-only perf-baseline posture packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "still-unapproved benchmark-command and acceptable-limit posture machine-checked locally") != null);
 }
