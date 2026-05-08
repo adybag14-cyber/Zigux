@@ -227,6 +227,40 @@ test "phase 8 file-path handle bridge helper keeps planning-only reopen attempts
     try std.testing.expect(plan.should_attempt_reopen);
 }
 
+test "phase 8 file-path handle bridge helper keeps truncated-name recovery bounded to the kernel object-name limit" {
+    const expected = file_path_handle_bridge.MapReuseExpectation{
+        .name = "process_pinned_map",
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20,
+        .map_extra = 7,
+    };
+
+    const plan = file_path_handle_bridge.resolveReusePinnedMapAttempt("/sys/fs/bpf/stats", expected, .{
+        .name = "process_pinned",
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | file_path_handle_bridge.bpf_f_rdonly_prog,
+        .map_extra = 7,
+    });
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapAttemptDisposition.incompatible_name,
+        plan.disposition,
+    );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusedMapNameSource.kernel_name,
+        plan.resolved_name.?.source,
+    );
+    try std.testing.expectEqualStrings("process_pinned", plan.resolved_name.?.value);
+    try std.testing.expectEqualStrings("/sys/fs/bpf/stats", plan.pinned_path.?);
+    try std.testing.expectEqual(@as(?file_path_handle_bridge.MapReuseCompatibilitySummary, null), plan.compatibility);
+    try std.testing.expect(!plan.should_attempt_reopen);
+}
+
 test "phase 8 file-path handle bridge helper keeps planning-only token preparation explicit" {
     const expected = file_path_handle_bridge.MapReuseExpectation{
         .name = "process_pinned_map",
