@@ -110,10 +110,10 @@ const boundary_areas = [_]BoundaryArea{
     },
     .{
         .id = "rescuer-and-scheduler-hooks",
-        .summary = "Keep rescuer threads and scheduler-facing hooks explicitly in C.",
+        .summary = "Keep scheduler-visible worker-state hooks plus rescuer or mayday handling explicitly in C.",
         .ownership = .stay_in_c,
         .anchor_symbols = &[_][]const u8{ "rescuer_thread", "wq_worker_running", "wq_worker_sleeping" },
-        .rationale = "These hooks coordinate scheduler-visible worker state, rescue behavior, CPU association, and watchdog-adjacent progress signals, so Phase 14 should record them as stay-in-C decisions rather than pretend a wrapper can safely own them yet.",
+        .rationale = "wq_worker_running() and wq_worker_sleeping() toggle WORKER_NOT_RUNNING, adjust pool->nr_running, and coordinate idle wakeups under pool->lock, while rescuer_thread() walks wq->maydays and pwq->mayday_cursor to recover forward progress, so Phase 14 should record those scheduler-visible and rescuer ownership seams as stay-in-C decisions rather than pretend a wrapper can safely own them.",
     },
 };
 
@@ -229,10 +229,10 @@ const audit_checkpoints = [_]AuditCheckpoint{
     .{
         .id = "scheduler-running-hooks",
         .anchor_symbol = "wq_worker_running/wq_worker_sleeping",
-        .summary = "Track the scheduler-facing running and sleeping callbacks as a separate audit surface tied to worker flags and nr_running transitions.",
+        .summary = "Track the scheduler-visible running and sleeping callbacks as a separate audit surface tied to WORKER_NOT_RUNNING transitions, pool->nr_running accounting, and idle wakeup behavior.",
         .guard = .scheduler_callback_under_pool_lock,
         .observed_fields = &[_][]const u8{ "worker->flags", "pool->nr_running" },
-        .blocked_by = "The scheduler-visible hooks adjust WORKER_NOT_RUNNING state and nr_running while coordinating wakeups under pool->lock, which is exactly the sort of live concurrency ownership Zigux should keep in C.",
+        .blocked_by = "The scheduler-visible hooks toggle WORKER_NOT_RUNNING, adjust pool->nr_running, and coordinate idle wakeups under pool->lock, which is exactly the sort of live concurrency ownership Zigux should keep in C.",
         .ownership = .stay_in_c,
     },
     .{
@@ -303,7 +303,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Leave this lane in blocked maintenance; hotplug-driven worker migration via POOL_DISASSOCIATED, wq_online_cpumask, wq_unbound_cpumask, and unbound_wq_update_pwq() plus scheduler-visible worker-state behavior stay in C even after the flush-drain active-color governance note and the delayed-work requeue decision.";
+        return "Leave this lane in blocked maintenance; scheduler-visible worker-state behavior via WORKER_NOT_RUNNING and pool->nr_running plus hotplug-driven worker migration via POOL_DISASSOCIATED, wq_online_cpumask, wq_unbound_cpumask, and unbound_wq_update_pwq() stay in C even after the explicit scheduler-visible worker-state note, the flush-drain active-color governance note, and the delayed-work requeue decision.";
     }
 };
 
@@ -369,6 +369,9 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expect(map.areas[6].ownership == .stay_in_c);
     try std.testing.expectEqualStrings("wq_worker_running", map.areas[6].anchor_symbols[1]);
     try std.testing.expectEqualStrings("wq_worker_sleeping", map.areas[6].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[6].rationale, "WORKER_NOT_RUNNING") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[6].rationale, "pool->nr_running") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[6].rationale, "pwq->mayday_cursor") != null);
 }
 
 test "workqueue bridge concurrency audit stays review-only" {
@@ -384,6 +387,8 @@ test "workqueue bridge concurrency audit stays review-only" {
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "POOL_DISASSOCIATED") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "unbound_wq_update_pwq()") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "scheduler-visible worker-state behavior") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "WORKER_NOT_RUNNING") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "pool->nr_running") != null);
 
     try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .pool_lock_released_and_reacquired);
@@ -448,6 +453,9 @@ test "workqueue bridge concurrency audit stays review-only" {
     try std.testing.expectEqualStrings("scheduler-running-hooks", audit.checkpoints[12].id);
     try std.testing.expect(audit.checkpoints[12].guard == .scheduler_callback_under_pool_lock);
     try std.testing.expectEqualStrings("pool->nr_running", audit.checkpoints[12].observed_fields[1]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].summary, "WORKER_NOT_RUNNING") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].summary, "idle wakeup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "WORKER_NOT_RUNNING") != null);
 
     try std.testing.expectEqualStrings("rescuer-mayday-handoff", audit.checkpoints[13].id);
     try std.testing.expect(audit.checkpoints[13].guard == .mayday_lock_then_pool_lock);
