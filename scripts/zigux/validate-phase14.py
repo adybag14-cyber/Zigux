@@ -446,6 +446,24 @@ def run_self_test() -> int:
             for error in errors:
                 print(f"- {error}", file=sys.stderr)
             return 1
+        write_text(
+            root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+            f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nimport sys\nsys.stderr.write(\"synthetic phase14 release-boundary failure\\n\")\nraise SystemExit(1)\n",
+        )
+        errors = check(root)
+        if "synthetic phase14 release-boundary failure" not in errors:
+            print("self-test expected release-boundary checker stderr propagation", file=sys.stderr)
+            return 1
+        write_text(root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py", f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
+        write_text(
+            root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+            f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(1)\n",
+        )
+        errors = check(root)
+        if "phase14 docs-root smoke-summary checker failed without output" not in errors:
+            print("self-test expected docs-root checker no-output fallback", file=sys.stderr)
+            return 1
+        write_text(root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py", f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken_manifest["surfaces"].append({
             "path": "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
