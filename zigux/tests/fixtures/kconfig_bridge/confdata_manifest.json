@@ -59,6 +59,7 @@
     "confdata bridge ignores empty CONFIG symbol names",
     "confdata bridge keeps trailing escaped backslashes in quoted strings",
     "confdata bridge emits no entries for empty CONFIG symbol names",
-    "confdata bridge keeps only the last assignment for duplicate symbols"
+    "confdata bridge keeps only the last assignment for duplicate symbols",
+    "confdata bridge keeps only the last state across unset and set transitions"
   ]
 }
