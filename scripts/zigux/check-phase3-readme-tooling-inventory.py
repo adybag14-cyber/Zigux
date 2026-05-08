@@ -39,6 +39,7 @@ REQUIRED_HELPERS = (
     "check-artifact-diff-contract.py",
     "validate-phase4.py",
     "check-phase4-gate-evidence.py",
+    "check-phase4-artifact-diff-determinism.py",
     "check-phase6-shared-surface.py",
     "validate-phase7.py",
     "check-phase7-make-wrapper.py",
@@ -494,6 +495,11 @@ def run_self_test() -> int:
             f"makefile_command_order_drift:{PHASE4_VALIDATE_TARGET}",
         ]
         _write(root / MAKEFILE_REL, _baseline_makefile())
+        case_count += 1
+
+        (root / "scripts" / "zigux" / "check-phase4-artifact-diff-determinism.py").unlink()
+        assert validate(root) == ["missing_repo_file:scripts/zigux/check-phase4-artifact-diff-determinism.py"]
+        _write(root / "scripts" / "zigux" / "check-phase4-artifact-diff-determinism.py", "# stub\n")
         case_count += 1
 
         readme = _baseline_readme().replace(
