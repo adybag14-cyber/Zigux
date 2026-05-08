@@ -1,0 +1,28 @@
+# Phase 12 Release Readiness Survey
+
+This document records the current release-discipline reading for the active bounded Phase 12 complex-driver tranche without claiming that the roadmap phase is globally closed.
+
+## Status
+- `PHASE12_STATUS=active`
+- `PHASE12_TRANCHE=driver-and-libbpf-survey-bundle`
+- direct smoke preflight entrypoint: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+- focused smoke preflight entrypoint: `make -C zigux phase12-smoke`
+- shared build replay entrypoint: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+- Linux-style replay entrypoint: `make -C zigux phase12`
+- product boundary: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, the committed Phase 12 manifests under `zigux/tests/`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording
+
+## Current release reading
+The current shared Phase 12 packet on `master` is smoke-first plus shared build replay.
+
+It stays explicit through the PMO closure companion, the compact release-coordination matrix, the driver-only anti-overlap companion, the shared libbpf anti-overlap companion, the mixed raw-fallback overview note, the workflow-backed build-only contract, and the bounded `virtio_net`, `nvme_pci`, `virtio_scsi`, and libbpf survey packet.
+
+There is no shipped shared `scripts/zigux/validate-phase12.py`, no dedicated `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`, so this release-facing note should not imply validator-first, dedicated PMO checker, focused libbpf-only replay, raw-coverage checker, or cross-build routes as part of the active shared release path.
+
+The public fallback split must stay explicit: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are the only commit-pinned fallback artifacts, while `virtio_net` and `libbpf` remain shared-tree-only anchors.
+
+The bounded `virtio_scsi` rollback drill remains storage-lane-local release evidence, not a tranche-wide recovery claim.
+
+## Next bounded step
+Leave this note parked unless the shared Phase 12 packet drifts again.
+
+If the lane reopens, reread `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together before widening into any driver, DMA, queueing, throughput, recovery, object-model, loader, or relocation work.
