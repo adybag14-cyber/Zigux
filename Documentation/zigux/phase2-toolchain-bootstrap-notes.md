@@ -26,8 +26,6 @@ This note records the bounded Phase 2 x86_64-linux bootstrap archive-pin contrac
 - shared kconfig bridge self-test: `python3 scripts/zigux/check-kconfig-bridge.py --self-test`
 - shared kconfig bridge parity gate: `python3 scripts/zigux/check-kconfig-bridge.py`
 - shared tests README alignment gate: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
-- shared tool-manifest packet self-test: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`
-- shared tool-manifest packet guard: `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`
 - shared validator gate: `python3 scripts/zigux/validate-phase2.py`
 - closure validator gate: `python3 scripts/zigux/validate-phase2-closure.py`
 - closure note: `Documentation/zigux/phase2-closure.md`
