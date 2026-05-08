@@ -141,14 +141,18 @@ TESTS_README_MARKERS = [
     "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+    "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-genksyms-crc-diff.py",
+    "scripts/zigux/check-mk-elfconfig-diff.py",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "zig test scripts/zigux/fixdep.zig",
@@ -219,10 +223,14 @@ EXACT_COUNT_CHECKS = {
         "scripts/zigux/check-fixdep-diff.py": 1,
         "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
         "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1,
+        "scripts/zigux/check-genksyms-bridge.py": 1,
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
+        "scripts/zigux/check-kconfig-bridge.py": 1,
         "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
         "scripts/zigux/check-genksyms-crc-diff.py": 1,
+        "scripts/zigux/check-mk-elfconfig-diff.py": 1,
         "zigux/tests/fixtures/phase2_tool_manifest.json": 1,
+        "zigux/tests/fixtures/phase2_artifact_tools_manifest.json": 1,
         "zig test scripts/zigux/fixdep.zig": 1,
         "zig test scripts/zigux/genksyms.zig": 1,
         "zig test scripts/zigux/genksyms_crc.zig": 1,
@@ -380,7 +388,7 @@ def run_self_test() -> int:
             assert f"missing_file:{rel_path}" in issues
             case_count += 1
 
-    assert case_count == 114
+    assert case_count == 122
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
