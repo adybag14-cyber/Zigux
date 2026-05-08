@@ -426,6 +426,13 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-genksyms-bridge.py")],
+            ["GENKSYMS_BRIDGE_DIFF=pass", "GENKSYMS_BRIDGE_DETERMINISM=pass", "FIXTURE_DIR="],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"), "--self-test"],
             [
                 "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass",
@@ -545,6 +552,8 @@ def run_self_test() -> int:
     helper_block = REQUIRED_SCRIPT_HELPER_INDEX_MARKERS[0]
     assert "`check-phase2-kconfig-selftest-alignment.py`" in helper_block
     assert helper_block.index("check-phase2-kconfig-selftest-alignment.py") < helper_block.index("check-phase2-tests-readme-alignment.py")
+    assert "python3 scripts/zigux/check-genksyms-bridge.py" in REQUIRED_WORKFLOW_MARKERS
+    assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-genksyms-bridge.py"] == 1
     assert "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test"] == 1
     assert "python3 scripts/zigux/check-zig-toolchain.py --self-test" in REQUIRED_REVIEW_MARKERS
@@ -595,7 +604,7 @@ def run_self_test() -> int:
     assert missing
     assert missing[0] == "missing_file:scripts/zigux/fixdep.zig"
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=6")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
