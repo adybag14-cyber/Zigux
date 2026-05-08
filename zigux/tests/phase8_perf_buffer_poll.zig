@@ -36,6 +36,8 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "first processing failure");
     try expectContains(note, "buffer-window lookup plus return shaping");
     try expectContains(note, "valid buffer windows, invalid indices, and missing buffers");
+    try expectContains(note, "signaled-buffer ordinal lookup plus return shaping");
+    try expectContains(note, "valid signal ordinals and out-of-range ordinals");
     try expectContains(note, "ready-buffer processing attempts cannot exceed observed ready events");
     try expectContains(note, "ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch");
     try expectContains(note, "non-ready wait observations cannot claim record processing");
@@ -232,6 +234,36 @@ test "phase 8 perf-buffer poll helper keeps buffer-window lookup and return shap
         invalid.return_value,
     );
     try std.testing.expectEqual(@as(?perf_buffer_poll.BufferWindow, null), invalid.window);
+}
+
+test "phase 8 perf-buffer poll helper keeps signaled-buffer ordinal lookup and return shaping explicit" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{ .error_code = -32 },
+        .{ .ready = true, .error_code = -11 },
+    };
+
+    const first = perf_buffer_poll.resolveSignaledBufferIndexResultFromSlots(&buffers, 0);
+    try std.testing.expectEqual(perf_buffer_poll.SignaledBufferIndexDisposition.buffer_index, first.disposition);
+    try std.testing.expectEqual(@as(i32, 0), first.return_value);
+    try std.testing.expectEqual(@as(?usize, 1), first.buffer_index);
+
+    const second = perf_buffer_poll.resolveSignaledBufferIndexResultFromSlots(&buffers, 1);
+    try std.testing.expectEqual(perf_buffer_poll.SignaledBufferIndexDisposition.buffer_index, second.disposition);
+    try std.testing.expectEqual(@as(i32, 0), second.return_value);
+    try std.testing.expectEqual(@as(?usize, 2), second.buffer_index);
+
+    const invalid = perf_buffer_poll.resolveSignaledBufferIndexResultFromSlots(&buffers, 4);
+    try std.testing.expectEqual(
+        perf_buffer_poll.SignaledBufferIndexDisposition.signal_ordinal_out_of_range,
+        invalid.disposition,
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        invalid.return_value,
+    );
+    try std.testing.expectEqual(@as(?usize, null), invalid.buffer_index);
 }
 
 test "phase 8 perf-buffer poll helper keeps the final return-path choice explicit" {
