@@ -15,6 +15,8 @@ Key entrypoints
   * `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
   * `zigux/tests/bitmap_diff.zig`
   * `zigux/tests/phase4_bitmap_live_helper_replay.zig`
+  * `zigux/tests/phase4_bitmap_diff_manifest.json`
+  * `zigux/tests/phase4_bitmap_diff_survey.zig`
   * `zigux/tests/phase4_perf_baseline_manifest.json`
   * `zigux/tests/phase4_perf_baseline_survey.zig`
   * `zigux/tests/phase4_build.zig`
