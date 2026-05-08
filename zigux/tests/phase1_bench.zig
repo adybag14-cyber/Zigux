@@ -138,6 +138,12 @@ fn findBitEdgeBench() struct { checksum: u64 } {
 
 fn stringBench() !struct { checksum: u64 } {
     var checksum: u64 = 0;
+    var aligned_dirty = [_]u8{'a'} ** 160;
+    var misaligned_storage = [_]u8{'a'} ** 168;
+    const misaligned_start = (1 -% (@as(usize, @intCast(@intFromPtr(misaligned_storage[0..].ptr) & 7)))) & 7;
+    const misaligned_dirty = misaligned_storage[misaligned_start .. misaligned_start + 160];
+    std.debug.assert((@intFromPtr(misaligned_dirty.ptr) & 7) == 1);
+
     var idx: usize = 0;
     while (idx < iterations_string) : (idx += 1) {
         const enabled = try string.strtobool(if ((idx & 1) == 0) "on" else "0");
@@ -153,12 +159,28 @@ fn stringBench() !struct { checksum: u64 } {
         var strim_cstr_buf = [_]u8{ ' ', 'a', 'b', ' ', '\n', 0, alt_tail_byte, tail_byte };
         const strim_cstr = string.strim(&strim_cstr_buf);
 
+        const aligned_first: usize = if ((idx & 1) == 0) 64 else 72;
+        aligned_dirty[aligned_first] = 'X';
+        aligned_dirty[aligned_first + 4] = 'Y';
+        const aligned_dirty_idx = string.memchrInv(&aligned_dirty, 'a') orelse aligned_dirty.len;
+        aligned_dirty[aligned_first] = 'a';
+        aligned_dirty[aligned_first + 4] = 'a';
+
+        const misaligned_first: usize = if ((idx & 1) == 0) 80 else 88;
+        misaligned_dirty[misaligned_first] = 'X';
+        misaligned_dirty[misaligned_first + 4] = 'Y';
+        const misaligned_dirty_idx = string.memchrInv(misaligned_dirty, 'a') orelse misaligned_dirty.len;
+        misaligned_dirty[misaligned_first] = 'a';
+        misaligned_dirty[misaligned_first + 4] = 'a';
+
         checksum +%= @as(u64, @intFromBool(enabled));
         checksum +%= @intCast(trimmed.len);
         checksum +%= @intCast(trim_cstr.len);
         checksum +%= @intCast(strim_cstr.len);
         checksum +%= @as(u64, trim_cstr_buf[6]);
         checksum +%= @as(u64, strim_cstr_buf[7]);
+        checksum +%= @intCast(aligned_dirty_idx);
+        checksum +%= @intCast(misaligned_dirty_idx);
     }
 
     return .{ .checksum = checksum };
