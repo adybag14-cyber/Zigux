@@ -186,6 +186,20 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);"));
     try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);"));
 
+    const workflow_text = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        ".github/workflows/zigux-bootstrap.yml",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(workflow_text);
+    try std.testing.expect(containsMarker(workflow_text, "Validate Phase 14 shared smoke packet"));
+    try std.testing.expect(containsMarker(workflow_text, "run: make -C zigux phase14-validate"));
+    try std.testing.expect(containsMarker(workflow_text, "Run focused Phase 14 smoke shard"));
+    try std.testing.expect(containsMarker(workflow_text, "run: make -C zigux phase14-smoke"));
+    try std.testing.expect(containsMarker(workflow_text, "Run Phase 14 internal bridge tests"));
+    try std.testing.expect(containsMarker(workflow_text, "run: zig build test --build-file zigux/tests/phase14_build.zig --summary all"));
+
     for (expected_compile_artifacts) |expected| {
         const matrix_row = try std.fmt.allocPrint(
             std.testing.allocator,
