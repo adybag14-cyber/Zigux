@@ -9,6 +9,7 @@ pub const elf_stb_weak: u8 = 2;
 
 pub const elf_stt_object: u8 = 1;
 pub const elf_stt_func: u8 = 2;
+const max_buffered_line_len: usize = 64 + 3 + KSYM_NAME_LEN;
 
 pub const ParsedSymbol = struct {
     name: []const u8,
@@ -81,21 +82,46 @@ fn processParsedLine(
     try process_symbol(context, parsed);
 }
 
+const LineBufferState = struct {
+    dropping_tail: bool = false,
+};
+
+fn appendBoundedLineBytes(
+    pending: *std.ArrayList(u8),
+    allocator: std.mem.Allocator,
+    line_state: *LineBufferState,
+    bytes: []const u8,
+) !void {
+    if (line_state.dropping_tail or bytes.len == 0) return;
+
+    const remaining = max_buffered_line_len -| pending.items.len;
+    if (remaining == 0) {
+        line_state.dropping_tail = true;
+        return;
+    }
+
+    const kept = @min(remaining, bytes.len);
+    try pending.appendSlice(allocator, bytes[0..kept]);
+    if (kept != bytes.len) line_state.dropping_tail = true;
+}
+
 fn processParsedChunk(
     pending: *std.ArrayList(u8),
     allocator: std.mem.Allocator,
+    line_state: *LineBufferState,
     chunk: []const u8,
     context: anytype,
     comptime process_symbol: fn (@TypeOf(context), ParsedSymbol) anyerror!void,
 ) !void {
     var line_start: usize = 0;
     while (std.mem.indexOfScalarPos(u8, chunk, line_start, '\n')) |newline_index| {
-        try pending.appendSlice(allocator, chunk[line_start..newline_index]);
+        try appendBoundedLineBytes(pending, allocator, line_state, chunk[line_start..newline_index]);
         try processParsedLine(pending.items, context, process_symbol);
         pending.clearRetainingCapacity();
+        line_state.dropping_tail = false;
         line_start = newline_index + 1;
     }
-    try pending.appendSlice(allocator, chunk[line_start..]);
+    try appendBoundedLineBytes(pending, allocator, line_state, chunk[line_start..]);
 }
 
 pub fn forEachParsedChunked(
@@ -107,9 +133,10 @@ pub fn forEachParsedChunked(
 ) !void {
     var pending = std.ArrayList(u8).empty;
     defer pending.deinit(allocator);
+    var line_state = LineBufferState{};
 
     while (try next_chunk(reader_context)) |chunk| {
-        try processParsedChunk(&pending, allocator, chunk, process_context, process_symbol);
+        try processParsedChunk(&pending, allocator, &line_state, chunk, process_context, process_symbol);
     }
 
     if (pending.items.len != 0) {
@@ -128,11 +155,12 @@ pub fn forEachParsedReader(
 
     var pending = std.ArrayList(u8).empty;
     defer pending.deinit(allocator);
+    var line_state = LineBufferState{};
 
     while (true) {
         const bytes_read = try reader.read(scratch_buffer);
         if (bytes_read == 0) break;
-        try processParsedChunk(&pending, allocator, scratch_buffer[0..bytes_read], process_context, process_symbol);
+        try processParsedChunk(&pending, allocator, &line_state, scratch_buffer[0..bytes_read], process_context, process_symbol);
     }
 
     if (pending.items.len != 0) {
@@ -348,6 +376,62 @@ test "chunked parsing preserves split records and truncates oversized names" {
     try forEachParsedChunked(std.testing.allocator, &oversized_state, nextFixtureChunk, &parsed, Collector.append);
     try std.testing.expectEqual(@as(usize, 1), parsed.items.len);
     try std.testing.expectEqualStrings(too_long_name[0..KSYM_NAME_LEN], parsed.items[0].name);
+}
+
+test "chunked parsing bounds oversized line buffering to the current helper window" {
+    const OwnedParsedSymbol = struct {
+        name: []u8,
+        symbol_type: u8,
+        start: u64,
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            allocator.free(self.name);
+            self.* = undefined;
+        }
+    };
+
+    var backing_buffer: [2048]u8 = undefined;
+    var fixed_buffer = std.heap.FixedBufferAllocator.init(&backing_buffer);
+    const allocator = fixed_buffer.allocator();
+
+    const Collector = struct {
+        list: *std.ArrayList(OwnedParsedSymbol),
+        allocator: std.mem.Allocator,
+
+        fn append(self: *@This(), symbol: ParsedSymbol) !void {
+            try self.list.append(self.allocator, .{
+                .name = try self.allocator.dupe(u8, symbol.name),
+                .symbol_type = symbol.symbol_type,
+                .start = symbol.start,
+            });
+        }
+    };
+
+    const too_long_name = "a" ** (KSYM_NAME_LEN + 2048);
+    const first_chunk = try std.fmt.allocPrint(std.testing.allocator, "1 T {s}", .{too_long_name[0..100]});
+    defer std.testing.allocator.free(first_chunk);
+    const second_chunk = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}\n2 t done\n",
+        .{too_long_name[100..]},
+    );
+    defer std.testing.allocator.free(second_chunk);
+
+    var state = ChunkFixtureState{
+        .chunks = &.{ first_chunk, second_chunk },
+    };
+
+    var parsed = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (parsed.items) |*symbol| symbol.deinit(allocator);
+        parsed.deinit(allocator);
+    }
+    var collector = Collector{ .list = &parsed, .allocator = allocator };
+
+    try forEachParsedChunked(allocator, &state, nextFixtureChunk, &collector, Collector.append);
+    try std.testing.expectEqual(@as(usize, 2), parsed.items.len);
+    try std.testing.expectEqualStrings(too_long_name[0..KSYM_NAME_LEN], parsed.items[0].name);
+    try std.testing.expectEqualStrings("done", parsed.items[1].name);
 }
 
 test "reader, path, and callback wrappers preserve raw carriage returns before newline" {
