@@ -53,6 +53,7 @@ DOCS_ROOT_MARKERS = [
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "phase3_catalog.py --self-test",
     "make -C zigux phase3-validate",
+    "make -C zigux phase3-selftest",
     "without duplicating the default `phase3-validate` route",
 ]
 
