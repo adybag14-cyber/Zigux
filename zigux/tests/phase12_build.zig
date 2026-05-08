@@ -161,6 +161,12 @@ pub fn build(b: *std.Build) void {
     phase12_libbpf_reviewability_module.addImport("file_path_handle_bridge", libbpf_file_path_handle_bridge_module);
     phase12_libbpf_reviewability_module.addImport("perf_buffer_poll", libbpf_perf_buffer_poll_module);
 
+    const phase12_libbpf_snapshot_determinism_module = b.createModule(.{
+        .root_source_file = b.path("phase12_libbpf_snapshot_determinism.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const phase12_nvme_pci_tests = b.addTest(.{
         .name = "phase12-nvme-pci-tests",
         .root_module = phase12_nvme_pci_module,
@@ -233,6 +239,12 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase12_libbpf_reviewability_tests = b.addRunArtifact(phase12_libbpf_reviewability_tests);
 
+    const phase12_libbpf_snapshot_determinism_tests = b.addTest(.{
+        .name = "phase12-libbpf-snapshot-determinism-tests",
+        .root_module = phase12_libbpf_snapshot_determinism_module,
+    });
+    const run_phase12_libbpf_snapshot_determinism_tests = b.addRunArtifact(phase12_libbpf_snapshot_determinism_tests);
+
     const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");
     smoke_step.dependOn(&run_phase12_nvme_pci_tests.step);
     smoke_step.dependOn(&run_phase12_nvme_pci_verify_tests.step);
@@ -249,4 +261,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase12_libbpf_segments_tests.step);
     test_step.dependOn(&run_phase12_libbpf_segments_verify_tests.step);
     test_step.dependOn(&run_phase12_libbpf_reviewability_tests.step);
+    test_step.dependOn(&run_phase12_libbpf_snapshot_determinism_tests.step);
 }
