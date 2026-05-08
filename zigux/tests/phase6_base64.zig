@@ -178,6 +178,28 @@ test "phase 6 base64 invalid decode vectors leave destination bytes untouched" {
     }
 }
 
+test "phase 6 base64 successful decode leaves caller bytes past the returned payload untouched" {
+    const cases = [_]DecodeCase{
+        .{ .input = "Zg==", .expected = "f", .padding = true, .variant = .std },
+        .{ .input = "Zg", .expected = "f", .padding = false, .variant = .std },
+        .{ .input = "Zm8=", .expected = "fo", .padding = true, .variant = .std },
+        .{ .input = "Zm8", .expected = "fo", .padding = false, .variant = .std },
+        .{ .input = "APv_f4A", .expected = &fixtures.variant_sample, .padding = false, .variant = .urlsafe },
+        .{ .input = "APv,f4A=", .expected = &fixtures.variant_sample, .padding = true, .variant = .imap },
+    };
+
+    for (cases) |case| {
+        var decoded = [_]u8{0xaa} ** 8;
+        const written = try base64.decode(decoded[0..], case.input, case.padding, case.variant);
+
+        try std.testing.expectEqual(case.expected.len, written);
+        try std.testing.expectEqualSlices(u8, case.expected, decoded[0..written]);
+        for (decoded[written..]) |byte| {
+            try std.testing.expectEqual(@as(u8, 0xaa), byte);
+        }
+    }
+}
+
 test "phase 6 base64 bytes rejects malformed kernel-style vectors" {
     const cases = [_]struct {
         input: []const u8,
