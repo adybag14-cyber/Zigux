@@ -561,6 +561,24 @@ def run_self_test() -> None:
         cases += 1
         make_fixture_root(root)
 
+        path = root / "Documentation/zigux/phase1-closure.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[13] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        assert f"closure:{CLOSURE_MARKERS[13]}" in collect_missing_markers(root)
+        cases += 1
+        make_fixture_root(root)
+
+        path = root / "Documentation/zigux/phase1-closure.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[15] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        assert f"closure:{CLOSURE_MARKERS[15]}" in collect_missing_markers(root)
+        cases += 1
+        make_fixture_root(root)
+
         path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
         manifest = json.loads(path.read_text(encoding="utf-8"))
         manifest["helpers"] = manifest["helpers"][:-1]
