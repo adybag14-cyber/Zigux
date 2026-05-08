@@ -4,7 +4,7 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 
 ## Status
 
-- `PHASE14_STATUS=active`
+- `PHASE14_STATUS=blocked_maintenance`
 - `PHASE14_LANE_KEY=P14-L04`
 - `PHASE14_SURVEYED_COMMIT=9e278f632d6d5097cb8cfc2dc61744ae105baa8c`
 - `PHASE14_SLICE=workqueue-flush-drain-governance`
