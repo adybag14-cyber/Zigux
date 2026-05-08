@@ -531,3 +531,16 @@ test "genksyms bridge rejects more than sixteen reference files like the C harne
         else => return error.TestExpectedFailure,
     }
 }
+
+test "genksyms bridge reports missing short dump-types argument in getopt style" {
+    const args = [_][]const u8{ "-T" };
+    const outcome = try parseArgs(testing.allocator, &args);
+
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .missing_option_argument => |option| try testing.expectEqualStrings("T", option),
+            else => return error.UnexpectedParseFailure,
+        },
+        else => return error.TestExpectedFailure,
+    }
+}
