@@ -55,14 +55,27 @@ PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER = (
     "- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet"
 )
 
+PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER = (
+    "- `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` "
+    "remain Phase 2 config-surface bridge references"
+)
+
+PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER = (
+    "- `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references"
+)
+
 REQUIRED_PHASE9_LANE_SEQUENCING_MARKERS = [
     PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER,
     PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER,
+    PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER,
+    PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER,
 ]
 
 REQUIRED_PHASE9_LANE_SEQUENCING_EXACT_COUNTS = {
     PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER: 1,
     PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER: 1,
+    PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER: 1,
+    PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER: 1,
 }
 
 REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS = [
@@ -620,6 +633,7 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         makefile_path = base / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.writeText if False else None
         makefile_path.write_text(
             makefile.replace("phase9-runtime-loader-shared-tests:\n", "", 1),
             encoding="utf-8",
@@ -671,6 +685,50 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing.replace(PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing:{PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing + PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing_exact_count:{PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing.replace(PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing:{PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing + PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing_exact_count:{PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
             makefile + "phase9-runtime-loader-shared-tests:\n",
@@ -692,7 +750,7 @@ def run_self_test() -> int:
         expect_failure(base, f"missing_file:{REQUIRED_PHASE9_TEST_PACKET_PATHS[0]}")
 
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=12")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=16")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
