@@ -212,7 +212,6 @@ REQUIRED_TESTS_README_MARKERS = (
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_handoff_next_steps.zig",
-    "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
