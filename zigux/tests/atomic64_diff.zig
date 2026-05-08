@@ -327,6 +327,18 @@ test "atomic64 diff wrapper keeps phase4 gate-evidence atomic64 packet pins curr
     );
     defer std.testing.allocator.free(phase4_gate_evidence_source);
 
+    const phase4_validator_source = try readRepoFile(
+        std.testing.allocator,
+        "scripts/zigux/validate-phase4.py",
+    );
+    defer std.testing.allocator.free(phase4_validator_source);
+
+    const phase4_validation_matrix_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-validation-matrix.md",
+    );
+    defer std.testing.allocator.free(phase4_validation_matrix_source);
+
     const phase4_runtime_atomic64_survey_source = try readRepoFile(
         std.testing.allocator,
         "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
@@ -363,6 +375,21 @@ test "atomic64 diff wrapper keeps phase4 gate-evidence atomic64 packet pins curr
         phase4_gate_evidence_source,
         "PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA",
         review_checklist_source,
+    );
+    try expectPhase4GateEvidenceBlobPin(
+        phase4_gate_evidence_source,
+        "PHASE4_BUILD_BLOB_SHA",
+        phase4_build_source,
+    );
+    try expectPhase4GateEvidenceBlobPin(
+        phase4_gate_evidence_source,
+        "PHASE4_VALIDATOR_BLOB_SHA",
+        phase4_validator_source,
+    );
+    try expectPhase4GateEvidenceBlobPin(
+        phase4_gate_evidence_source,
+        "PHASE4_VALIDATION_MATRIX_BLOB_SHA",
+        phase4_validation_matrix_source,
     );
     try expectMarker(phase4_gate_evidence_source, "- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`");
 }
