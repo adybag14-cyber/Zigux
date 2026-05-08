@@ -22,6 +22,7 @@ It does not claim that all of Phase 11 is complete. It closes only the shared re
   - `Documentation/zigux/phase11-driver-lane-sequencing.md`
   - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
   - `Documentation/zigux/phase11-gpio-wdt-survey.md`
+  - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
   - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
   - `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
   - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
@@ -44,7 +45,7 @@ It does not claim that all of Phase 11 is complete. It closes only the shared re
 
 The current shared packet is already reviewable through one bounded route:
 
-- `drivers/watchdog/gpio_wdt.zig` plus its paired survey and validation-matrix packet
+- `drivers/watchdog/gpio_wdt.zig` plus `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, its paired survey, and validation-matrix packet
 - `drivers/watchdog/bcm2835_wdt.zig` plus `drivers/watchdog/bcm2835_wdt_verify.zig`, its manifest-backed survey, its validation matrix, and its dedicated archival checker route in `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
 - `drivers/watchdog/dw_wdt.zig` plus `drivers/watchdog/dw_wdt_verify.zig`, its manifest-backed survey, its registration-scaffold replay, its teardown note, and its validation matrix
 - `drivers/tty/hvc/hvc_console.zig` plus `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `Documentation/zigux/phase11-hvc-console-survey.md`, `zigux/tests/phase11_hvc_console_manifest.json`, its dedicated archival checker route in `scripts/zigux/check-phase11-hvc-survey-packet.py`, its checker-backed `make -C zigux phase11-hvc-survey` replay, its teardown note, and its validation matrix
