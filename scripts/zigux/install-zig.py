@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -19,6 +20,7 @@ import zipfile
 
 INDEX_URL = 'https://ziglang.org/download/index.json'
 VERSION_KEY_RE = re.compile(r'^\d+\.\d+\.\d+(?:-dev\.\d+(?:\+[0-9A-Za-z.-]+)?)?$')
+ARCHIVE_SHA256_RE = re.compile(r'^[0-9a-f]{64}$')
 RETRYABLE_HTTP_STATUS_CODES = {500, 502, 503, 504}
 DOWNLOAD_RETRIES = 4
 DOWNLOAD_TIMEOUT = 120.0
@@ -54,17 +56,63 @@ def is_explicit_version(channel: str) -> bool:
     return VERSION_KEY_RE.fullmatch(channel) is not None
 
 
-def load_policy_channel(policy_path: Path = TOOLCHAIN_POLICY, fallback: str = FALLBACK_CHANNEL) -> str:
+def load_policy(policy_path: Path = TOOLCHAIN_POLICY) -> dict[str, object] | None:
     if not policy_path.exists():
-        return fallback
+        return None
     try:
         payload = json.loads(policy_path.read_text(encoding='utf-8'))
     except json.JSONDecodeError as exc:
         raise SystemExit(f'invalid toolchain policy JSON in {policy_path}: {exc.msg}') from exc
+    if not isinstance(payload, dict):
+        raise SystemExit(f'invalid toolchain policy payload in {policy_path}: expected object')
+    return payload
+
+
+def load_policy_channel(policy_path: Path = TOOLCHAIN_POLICY, fallback: str = FALLBACK_CHANNEL) -> str:
+    payload = load_policy(policy_path)
+    if payload is None:
+        return fallback
     channel = payload.get('channel')
     if not isinstance(channel, str) or not channel.strip():
         raise SystemExit(f'invalid channel in {policy_path}')
     return channel.strip()
+
+
+def load_policy_archive_sha256(policy_path: Path, target_key: str) -> str | None:
+    payload = load_policy(policy_path)
+    if payload is None:
+        return None
+    archive_sha256 = payload.get('archive_sha256')
+    if archive_sha256 is None:
+        return None
+    if not isinstance(archive_sha256, dict):
+        raise SystemExit(f'invalid archive_sha256 in {policy_path}')
+    digest = archive_sha256.get(target_key)
+    if digest is None:
+        return None
+    if not isinstance(digest, str) or not ARCHIVE_SHA256_RE.fullmatch(digest.lower()):
+        raise SystemExit(f'invalid archive sha256 for {target_key} in {policy_path}')
+    return digest.lower()
+
+
+def calculate_sha256(path: Path) -> str:
+    sha256 = hashlib.sha256()
+    with open(path, 'rb') as fh:
+        while True:
+            chunk = fh.read(DOWNLOAD_CHUNK_SIZE)
+            if not chunk:
+                break
+            sha256.update(chunk)
+    return sha256.hexdigest()
+
+
+def verify_archive_sha256(path: Path, expected_sha256: str) -> str:
+    actual_sha256 = calculate_sha256(path)
+    if actual_sha256.lower() != expected_sha256.lower():
+        raise SystemExit(
+            f'zig archive sha256 mismatch for {path.name}: expected {expected_sha256.lower()}, got {actual_sha256.lower()}'
+        )
+    return actual_sha256.lower()
 
 
 def open_url(url: str | urllib.request.Request, *, retries: int = 3, timeout: float = 30.0):
@@ -307,8 +355,14 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix='zigux_install_zig_policy_') as tmp_dir:
         policy_path = Path(tmp_dir) / 'zig-toolchain-policy.json'
         assert load_policy_channel(policy_path, '0.15.0') == '0.15.0'
-        policy_path.write_text('{"channel":"0.17.0-dev.87+9b177a7d2"}\n', encoding='utf-8')
+        assert load_policy_archive_sha256(policy_path, 'x86_64-linux') is None
+        policy_path.write_text(
+            '{"channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77"}}\n',
+            encoding='utf-8',
+        )
         assert load_policy_channel(policy_path, '0.15.0') == '0.17.0-dev.87+9b177a7d2'
+        assert load_policy_archive_sha256(policy_path, 'x86_64-linux') == '313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77'
+        assert load_policy_archive_sha256(policy_path, 'aarch64-linux') is None
         policy_path.write_text('{"channel":7}\n', encoding='utf-8')
         try:
             load_policy_channel(policy_path, '0.15.0')
@@ -316,6 +370,20 @@ def run_self_test() -> int:
             assert 'invalid channel' in str(exc)
         else:
             raise AssertionError('expected invalid channel to fail')
+        policy_path.write_text('{"channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":7}\n', encoding='utf-8')
+        try:
+            load_policy_archive_sha256(policy_path, 'x86_64-linux')
+        except SystemExit as exc:
+            assert 'invalid archive_sha256' in str(exc)
+        else:
+            raise AssertionError('expected invalid archive_sha256 to fail')
+        policy_path.write_text('{"channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"short"}}\n', encoding='utf-8')
+        try:
+            load_policy_archive_sha256(policy_path, 'x86_64-linux')
+        except SystemExit as exc:
+            assert 'invalid archive sha256' in str(exc)
+        else:
+            raise AssertionError('expected invalid archive sha256 to fail')
         policy_path.write_text('{not-json}\n', encoding='utf-8')
         try:
             load_policy_channel(policy_path, '0.15.0')
@@ -323,6 +391,19 @@ def run_self_test() -> int:
             assert 'invalid toolchain policy JSON' in str(exc)
         else:
             raise AssertionError('expected invalid JSON policy to fail')
+
+    with tempfile.TemporaryDirectory(prefix='zigux_install_zig_sha_') as tmp_dir:
+        archive_path = Path(tmp_dir) / 'archive.tar.xz'
+        archive_path.write_bytes(b'zigux-archive')
+        expected_sha256 = hashlib.sha256(b'zigux-archive').hexdigest()
+        assert calculate_sha256(archive_path) == expected_sha256
+        assert verify_archive_sha256(archive_path, expected_sha256) == expected_sha256
+        try:
+            verify_archive_sha256(archive_path, '0' * 64)
+        except SystemExit as exc:
+            assert 'zig archive sha256 mismatch' in str(exc)
+        else:
+            raise AssertionError('expected sha mismatch to fail')
 
     class FakeResponse:
         def __init__(self, events: list[bytes | BaseException], *, status: int):
@@ -456,7 +537,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=19')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=27')
     return 0
 
 
@@ -473,17 +554,23 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    channel = args.channel or load_policy_channel()
+    policy_channel = load_policy_channel()
+    channel = args.channel or policy_channel
     system_key = args.system or normalize_os(platform.system())
     arch_key = args.arch or normalize_arch(platform.machine())
 
     index = load_index(channel)
     target_key, version, tarball_url = resolve_target(index, channel, arch_key, system_key)
+    expected_archive_sha256 = None
+    if channel == policy_channel:
+        expected_archive_sha256 = load_policy_archive_sha256(TOOLCHAIN_POLICY, target_key)
 
     print(f'ZIG_INSTALL_CHANNEL={channel}')
     print(f'ZIG_INSTALL_VERSION={version}')
     print(f'ZIG_INSTALL_TARGET={target_key}')
     print(f'ZIG_INSTALL_URL={tarball_url}')
+    if expected_archive_sha256 is not None:
+        print(f'ZIG_INSTALL_EXPECTED_ARCHIVE_SHA256={expected_archive_sha256}')
     if args.resolve_only:
         print('ZIG_INSTALL_STATUS=resolved')
         return 0
@@ -496,6 +583,12 @@ def main() -> int:
         archive_name = tarball_url.rsplit('/', 1)[-1]
         archive_path = tmpdir / archive_name
         copy_url_to_file(tarball_url, archive_path)
+        if expected_archive_sha256 is not None:
+            actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)
+            print(f'ZIG_INSTALL_ARCHIVE_SHA256={actual_archive_sha256}')
+            print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified')
+        else:
+            print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=unverified')
 
         extracted_root = extract_archive(archive_path, tmpdir / 'extract')
         final_root = install_root / extracted_root.name
