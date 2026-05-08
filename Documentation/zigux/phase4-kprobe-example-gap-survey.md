@@ -30,7 +30,7 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/kpr
 - the dedicated local survey wrapper now reruns this parked packet through `make -C zigux phase4-kprobe-example-survey` while the direct validation entrypoint stays `zig test zigux/tests/phase4_kprobe_example_survey.zig`
 - `samples/zigux/kprobe_example.zig` is still absent on current `master`
 - the dedicated parked gap packet already spans this note, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig`, and the shared gate-evidence note now names that same survey note, manifest, replay command, and local survey wrapper as adjacent evidence without claiming that a shipped Zig starter exists
-- `zigux/tests/README.md` still omits this adjacent parked kprobe survey packet from its compact Phase 4 reminder, so this dedicated note plus `make -C zigux phase4-kprobe-example-survey` remain the truthful handoff surfaces for the gap on current `master`
+- `zigux/tests/README.md` now explicitly names this adjacent parked kprobe survey packet and `make -C zigux phase4-kprobe-example-survey` inside its compact Phase 4 reminder, so the shared tests-root summary, the dedicated local survey wrapper, and this owner note are aligned on current `master`
 
 ## Non-Goals
 
@@ -40,4 +40,4 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/kpr
 
 ## Next Bounded Step
 
-keep this parked packet adjacent to the shared gate-evidence note and the dedicated local survey wrapper until a future bounded lane intentionally opens either the Zig starter or a broader validation-surface promotion. If the next same-lane slot still stays below starter work, teach `zigux/tests/README.md` to name this note, `zigux/tests/phase4_kprobe_example_manifest.json`, `zigux/tests/phase4_kprobe_example_survey.zig`, and `make -C zigux phase4-kprobe-example-survey` beside the already-listed local perf-baseline pair and parked `test_fsmount` packet.
+keep this parked packet adjacent to the shared gate-evidence note, the compact tests-root Phase 4 reminder, and the dedicated local survey wrapper until a future bounded lane intentionally opens either the Zig starter or a broader validation-surface promotion. If the next same-lane slot still stays below starter work, prefer the next one-file same-packet truthfulness repair that keeps the kprobe gap note, the shared gate-evidence note, `zigux/tests/README.md`, and `make -C zigux phase4-kprobe-example-survey` aligned.
