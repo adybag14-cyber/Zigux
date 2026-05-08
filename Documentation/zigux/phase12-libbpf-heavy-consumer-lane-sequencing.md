@@ -125,7 +125,7 @@ Keep this lane scoped to PMO release wording and shared reviewability only: it m
 ## Current anti-overlap correction
 
 Today the strongest Phase 12 libbpf sequencing correction is simple:
-- shared reviewability owns the survey, manifest, deterministic snapshot fixture, reviewability gate, build-only contract checker plus workflow-backed replay, and shared build alignment for the current libbpf packet
+- shared reviewability owns the survey, manifest, deterministic snapshot fixture, reviewability gate, and shared build alignment for the current libbpf packet, with the build-only contract checker plus workflow-backed replay kept explicit inside that same reviewability bundle
 - the two helper-sized `ready_next` promotions stay smaller than the deferred bridge and queue-routing bucket
 - the deferred bridge and queue-routing bucket stays smaller than the blocked object-model, loader, and relocation wall
 - wording-only shared-summary repairs stay separate from helper logic and from the other Phase 12 driver lanes
