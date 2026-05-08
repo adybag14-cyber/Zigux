@@ -275,6 +275,11 @@ def diff_text(expected: Path, actual: Path) -> None:
     run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'text', str(expected), str(actual)], cwd=str(ROOT))
 
 
+def require_empty_output(label: str, stream_name: str, actual_text: str) -> None:
+    if actual_text:
+        raise RuntimeError(f'{label} unexpected {stream_name} output')
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix='fixdep_checker_selftest_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
@@ -379,6 +384,14 @@ def run_self_test() -> int:
         else:
             raise RuntimeError('self-test expected bad exit code failure')
 
+        try:
+            require_empty_output('sample_success', 'stderr', 'unexpected noise\n')
+        except RuntimeError as exc:
+            if 'unexpected stderr output' not in str(exc):
+                raise
+        else:
+            raise RuntimeError('self-test expected unexpected stderr failure')
+
         cases_path.write_text(json.dumps(good_cases), encoding='utf-8')
         loaded_cases = load_cases(cases_path, fixture_dir)
 
@@ -479,6 +492,12 @@ def main() -> int:
             compare_returncode(f"{case['name']} C-vs-Zig", c_result.returncode, zig_result.returncode)
             compare_returncode(f"{case['name']} C repeat", c_result.returncode, c_repeat_result.returncode)
             compare_returncode(f"{case['name']} Zig repeat", zig_result.returncode, zig_repeat_result.returncode)
+
+            if expected_stderr is None:
+                require_empty_output(f"{case['name']} C", 'stderr', c_result.stderr)
+                require_empty_output(f"{case['name']} Zig", 'stderr', zig_result.stderr)
+                require_empty_output(f"{case['name']} C repeat", 'stderr', c_repeat_result.stderr)
+                require_empty_output(f"{case['name']} Zig repeat", 'stderr', zig_repeat_result.stderr)
 
             diff_text(expected_stdout, c_actual)
             diff_text(expected_stdout, zig_actual)
