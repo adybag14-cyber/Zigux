@@ -310,6 +310,44 @@ def run_self_test() -> int:
             ) + "\n",
         )
 
+        broken_manifest_path.write_text(
+            json.dumps(
+                {
+                    "surfaces": [
+                        {
+                            "path": CHECKER_PATH,
+                            "required_marker": "PHASE14_CHECK_PACKET=wrong_marker",
+                        }
+                    ]
+                },
+                indent=2,
+            ) + "\n",
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing docs-root smoke-summary checker surface" in error for error in errors
+        ):
+            print(
+                "self-test expected failure when the manifest kept the checker path but drifted its required marker",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    "surfaces": [
+                        {
+                            "path": CHECKER_PATH,
+                            "required_marker": MARKER,
+                        }
+                    ]
+                },
+                indent=2,
+            ) + "\n",
+        )
+
         broken_manifest_path.unlink()
         errors = check(root)
         if not errors or f"missing file: {MANIFEST_PATH}" not in errors:
