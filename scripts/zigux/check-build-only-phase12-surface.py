@@ -13,6 +13,7 @@ DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 PHASE12_SEQUENCE_PATH = "Documentation/zigux/phase12-release-sequencing.md"
 PHASE12_CLOSURE_CHECKLIST_PATH = "Documentation/zigux/phase12-release-closure-checklist.md"
+PHASE12_RELEASE_READINESS_SURVEY_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
 PHASE12_COMPLEX_DRIVER_LANE_PATH = "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
 PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH = "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
 PHASE12_RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
@@ -85,6 +86,11 @@ REQUIRED_FILE_MARKERS = {
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "the smallest same-lane follow-through is now shared-surface drift control",
+    ],
+    PHASE12_RELEASE_READINESS_SURVEY_PATH: [
+        "`PHASE12_TRANCHE=driver-and-libbpf-survey-bundle`",
+        "There is no shipped shared `scripts/zigux/validate-phase12.py`, no dedicated `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`, so this release-facing note should not imply validator-first, dedicated PMO checker, focused libbpf-only replay, raw-coverage checker, or cross-build routes as part of the active shared release path.",
+        "The public fallback split must stay explicit: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are the only commit-pinned fallback artifacts, while `virtio_net` and `libbpf` remain shared-tree-only anchors.",
     ],
     PHASE12_COMPLEX_DRIVER_LANE_PATH: [
         "complex-driver scope in this note: `virtio_net`, `nvme_pci`, and `virtio_scsi`",
