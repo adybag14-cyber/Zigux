@@ -163,12 +163,14 @@ SOURCE_MARKERS = {
         "tools/lib/bitmap.zig",
         [
             'test "bitmap range helpers honor exact first-word boundaries"',
+            'test "bitmap range helpers clamp the final partial word"',
             'test "bitmap predicates ignore out-of-range tail bits"',
             'test "bitmap scnprintf reports full length while truncating the buffer"',
             'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
             'test "bitmap copy aliases preserve tail clearing and extension semantics"',
             'test "bitmap copy alias preserves raw source words without tail clearing"',
             'test "bitmap zero-bit helpers stay explicit no-ops"',
+            'test "bitmap Linux-style aliases mirror the primary helper surface"',
         ],
     ),
     "string_test_anchor": (
@@ -595,6 +597,24 @@ def run_self_test() -> None:
         (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").write_text(json.dumps({"phase": "Phase 1", "status": "closed", "helper_count": len(EXPECTED_HELPERS), "helpers": EXPECTED_HELPERS, "lane_sequencing": EXPECTED_LANE_SEQUENCING, "review_anchors": EXPECTED_MANIFEST_HELPER_FIELDS}, indent=2) + "\n", encoding="utf-8")
         assert not collect_missing_markers(tmp_root)
 
+        bitmap_path = tmp_root / "tools" / "lib" / "bitmap.zig"
+        bitmap_text = bitmap_path.read_text(encoding="utf-8")
+        bitmap_path.write_text(
+            bitmap_text.replace('test "bitmap range helpers clamp the final partial word"\n', "", 1),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(tmp_root)
+        assert 'bitmap_test_anchor:test "bitmap range helpers clamp the final partial word":expected=1:actual=0' in missing
+        bitmap_path.write_text(bitmap_text, encoding="utf-8")
+
+        bitmap_path.write_text(
+            bitmap_text.replace('test "bitmap Linux-style aliases mirror the primary helper surface"\n', "", 1),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(tmp_root)
+        assert 'bitmap_test_anchor:test "bitmap Linux-style aliases mirror the primary helper surface":expected=1:actual=0' in missing
+        bitmap_path.write_text(bitmap_text, encoding="utf-8")
+
         manifest_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
         pristine_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
@@ -638,7 +658,7 @@ def run_self_test() -> None:
         missing = collect_missing_markers(tmp_root)
         assert "phase1_fixture_string:strtobool_y:expected=True:actual=False" in missing
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=11")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=13")
 
 
 def main() -> int:
