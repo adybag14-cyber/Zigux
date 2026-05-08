@@ -77,7 +77,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P13-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("10369315cba5d146a7c6c4c6480ef9d279dc490f", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("032c57dbde9a95ad6e28ad891cca54bd2e3bfcf1", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqual(@as(usize, 399), manifest.survey_summary.devres_c_lines);
