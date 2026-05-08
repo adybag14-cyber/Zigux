@@ -53,7 +53,7 @@ test "phase12 libbpf snapshot determinism evidence fixes the exact ordered helpe
         "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     };
 
-    try std.testing.expectEqualStrings("P12-L15", evidence.lane_key);
+    try std.testing.expectEqualStrings("P12-L16", evidence.lane_key);
     try std.testing.expectEqualStrings("Phase 12", evidence.phase);
     try std.testing.expectEqualStrings("c0ae127363e3d4e5feeb36efb665a12ece3392c7", evidence.surveyed_commit);
     try std.testing.expectEqual(@as(usize, expected_paths.len), evidence.ordered_path_count);
