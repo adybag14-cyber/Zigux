@@ -31,10 +31,11 @@ This matrix keeps the active Phase 12 release-facing packet explicit beside the 
 | Fallback posture | Anchors | Evidence |
 | --- | --- | --- |
 | commit-pinned raw fallback artifact | `nvme_pci`, `virtio_scsi` | `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` |
-| shared-tree-only public fallback anchors | `virtio_net`, `libbpf` | `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md` |
+| shared-tree-only public fallback anchors plus overview note | `virtio_net`, `libbpf` | `Documentation/zigux/phase12-raw-github-coverage-survey.md` (shared overview only), `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md` |
 
 - `PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2`
 - `PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2`
+- `Documentation/zigux/phase12-raw-github-coverage-survey.md` stays the shared fallback overview for those two anchors, not a third shared-tree-only anchor.
 
 ## Smoke-Set Summary
 
