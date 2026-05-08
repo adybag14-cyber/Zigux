@@ -6,7 +6,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings-plus-mmio-and-rbtree-views`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=a29e4bbf80c84e35f0836e08e59a3c5b15c6d28e`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=21b239f78ad5806868079f99cbf111d3cb97de25`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
 - `PHASE3_PANIC_POLICY_BLOB_SHA=c0d9d09ba2421cfc20813c94b3371498dcd9bd79`
@@ -17,7 +17,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_MMIO_BLOB_SHA=3e53168ff806ef94e691667f84ec871cfa6d4288`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
-- `PHASE3_UNSAFE_BLOB_SHA=36b4ac26dbd71daf7ed55bf5344c519f62c23ffb`
+- `PHASE3_UNSAFE_BLOB_SHA=78319221371f440f974759985dd667d63e617dc1`
 - `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
 - `PHASE3_ABI_TEST_BLOB_SHA=7c3c7887bb23d1acccd835ed3bb71eba3824c45d`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
