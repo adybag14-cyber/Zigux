@@ -441,7 +441,11 @@ test "phase 9 runtime loader allocator/init-flow replay keeps selftest-complete 
     ));
 }
 
-test "phase 9 runtime loader allocator/init-flow replay rejects exited, duplicate-init, duplicate-selftest, or incomplete handoffs" {
+test "phase 9 runtime loader allocator/init-flow replay rejects missing-init, premature-selftest, exited, duplicate-init, duplicate-selftest, or incomplete handoffs" {
+    const missing_init_plan = makePlan("runtime_atomic64", "lib/atomic64_test.c", "zigux_runtime_atomic64_init", "zigux_runtime_atomic64_exit", .caller_provided, .{ .handoff_stage = .initialized, .init_runs = 0, .selftest_runs = 0, .exit_runs = 0 });
+    try std.testing.expectError(error.InvalidInitFlow, runtime_loader.prepareRequest(missing_init_plan));
+    const premature_selftest_plan = makePlan("runtime_bitmap", "lib/test_bitmap.c", "zigux_runtime_bitmap_init", "zigux_runtime_bitmap_exit", .arena, .{ .handoff_stage = .initialized, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 });
+    try std.testing.expectError(error.InvalidInitFlow, runtime_loader.prepareRequest(premature_selftest_plan));
     const exited_plan = makePlan("runtime_bitmap", "lib/test_bitmap.c", "zigux_runtime_bitmap_init", "zigux_runtime_bitmap_exit", .arena, .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 1 });
     try std.testing.expectError(error.InvalidInitFlow, runtime_loader.prepareRequest(exited_plan));
     const duplicate_init_plan = makePlan("runtime_trace_events", "samples/trace_events/trace-events-sample.c", "zigux_runtime_trace_events_init", "zigux_runtime_trace_events_exit", .caller_provided, .{ .handoff_stage = .selftest_complete, .init_runs = 2, .selftest_runs = 1, .exit_runs = 0 });
