@@ -44,6 +44,7 @@ EXPECTED_HELPER_LOCAL_ANCHORS = [
     'dep parsing skips bytes after the first embedded NUL',
     'dependency file reads beyond the legacy one mebibyte ceiling',
     'output write failure uses C-style wording',
+    'escaped hash dependency survives concatenated target comment path',
 ]
 
 
