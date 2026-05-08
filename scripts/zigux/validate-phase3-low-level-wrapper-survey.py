@@ -27,7 +27,7 @@ ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 11
 MMIO_POINTER_AT_CALL_COUNT = 8
 MMIO_FORBIDDEN_RAW_POINTER_TOKENS = (
     "@ptrFromInt",
@@ -210,6 +210,9 @@ TOKEN_CHECKS = {
         "atomic.fetchMax(i32, &signed_value, 6, .seq_cst)",
         "const monotonic_mismatch = atomic.compareExchange(",
         "try std.testing.expectEqual(@as(?u32, 7), monotonic_mismatch);",
+        "var monotonic_nand_value: u32 = 0x0000_00ff;",
+        "atomic.fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic)",
+        "try std.testing.expectEqual(@as(u32, 0xffff_fff0), monotonic_nand_value);",
         "const acq_rel_mismatch = atomic.compareExchange(",
         "try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);",
         "const weak_release_mismatch = atomic.compareExchangeWeak(",
@@ -562,6 +565,15 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             "missing_token:zigux/tests/phase3_low_level_wrappers.zig:const weak_release_mismatch = atomic.compareExchangeWeak(" in issues
+        ), issues
+
+        build_valid_workspace(root)
+        write(root / LOW_LEVEL_TEST_REL, (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8").replace(
+            "atomic.fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic)", "", 1
+        ))
+        issues = validate(root)
+        assert (
+            "missing_token:zigux/tests/phase3_low_level_wrappers.zig:atomic.fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic)" in issues
         ), issues
 
         build_valid_workspace(root)
