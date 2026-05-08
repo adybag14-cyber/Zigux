@@ -53,6 +53,9 @@ EXPECTED_BUILD_MARKERS = [
 EXPECTED_DOCS_README_MARKERS = [
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "drivers/virtio/virtio_input_verify.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "make -C zigux phase10-test",
 ]
@@ -60,7 +63,10 @@ EXPECTED_DOCS_README_MARKERS = [
 EXPECTED_LANE_SEQUENCING_MARKERS = [
     "`P10-L13` input lane owns the lab-only input packet:",
     "drivers/virtio/virtio_input_verify.zig",
-    "the focused `zigux/tests/phase10_virtio_input_status_drain.zig` replay",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
     "that work belongs to the input lane.",
 ]
 
@@ -69,6 +75,9 @@ EXPECTED_COMPANION_MARKERS = [
     "drivers/virtio/virtio_input_verify.zig",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "zigux/tests/phase10_virtio_input_manifest.json",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "make -C zigux phase10-test",
 ]
@@ -77,9 +86,12 @@ EXPECTED_SCRIPTS_README_MARKERS = [
     "check-phase10-input-packet.py",
     "phase10_virtio_core_reset_queue.zig",
     "phase10_virtio_input.zig",
+    "phase10_virtio_input_queue_callback_preflight.zig",
+    "phase10_virtio_input_registration_preflight.zig",
+    "phase10_virtio_input_teardown_observation.zig",
     "phase10_virtio_input_status_drain.zig",
     "phase10_virtio_input_survey.zig",
-    "the lane-sequenced virtio input plus the focused input-verify and status-drain replays",
+    "the lane-sequenced virtio input plus the focused input-verify, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays",
     "make -C zigux phase10",
 ]
 
@@ -666,7 +678,7 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "scripts_readme:the lane-sequenced virtio input plus the focused input-verify and status-drain replays" not in missing_markers:
+        if "scripts_readme:the lane-sequenced virtio input plus the focused input-verify, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays" not in missing_markers:
             raise SystemExit("phase10-input-self-test:expected_scripts_readme_marker_missing")
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
