@@ -285,6 +285,14 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     );
     defer std.testing.allocator.free(sample_source);
 
+    const top_bit_contract_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_bitmap_top_bit_contract.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(top_bit_contract_source);
+
     const loader_source = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "samples/zigux/runtime_bitmap_loader.zig",
@@ -336,6 +344,15 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(ModuleStage.exited, initialized_snapshot.stage);") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(ModuleStage.exited, selftested_snapshot.stage);") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectError(error.InvalidLifecycleTransition, selftested.setRange(1, 1));") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, top_bit_contract_source, "test \"runtime bitmap top-bit contract keeps the highest valid bit explicit\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, top_bit_contract_source, "test \"runtime bitmap top-bit contract keeps boundary mutation and bounds checks reviewable\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, top_bit_contract_source, "const top_bit = runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits - 1;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, top_bit_contract_source, "try std.testing.expectEqual(top_bit, summary.first_set);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, top_bit_contract_source, "try std.testing.expectEqual(@as(u32, 1), summary.weight);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, top_bit_contract_source, "try std.testing.expectError(error.BitRangeOutOfBounds, module.setRange(top_bit + 1, 1));") != null);
+    try std.testing.expect(std.mem.indexOf(u8, top_bit_contract_source, "try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(top_bit + 1, 1));") != null);
+    try std.testing.expect(std.mem.indexOf(u8, top_bit_contract_source, "try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.initialized, module.stage());") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try module.clearRange(second_word_base, 2);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try module.setRange(9, 4);") != null);
