@@ -24,6 +24,29 @@
     "benchmark_command_unapproved": true,
     "acceptable_limit_unapproved": true
   },
+  "command_evidence": {
+    "atomic64": {
+      "evidence_status": "explicit_candidate_landed",
+      "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+      "acceptable_limit_status": "still_unapproved",
+      "deterministic_replays": [
+        {
+          "iterations": 1,
+          "checksum": 3626254113632800175,
+          "final_counter": 130322557735600377
+        },
+        {
+          "iterations": 4,
+          "checksum": 9210681150676220922,
+          "final_counter": 130322557735600376
+        }
+      ]
+    },
+    "bitmap": {
+      "evidence_status": "command_still_unapproved",
+      "acceptable_limit_status": "still_unapproved"
+    }
+  },
   "gaps": [
     {
       "id": "phase4-perf-baseline-survey-manifest",
@@ -40,18 +63,25 @@
       "why_now": "A dedicated Phase 4 survey gate keeps the current correctness-only posture for the shipped atomic64 and bitmap rollback gates measurable without treating that local survey route as shared CI perf approval. With the shared tests-root summary now naming this shipped local-only survey packet, the smaller same-lane follow-through is one bounded benchmark command plus one acceptable limit per shipped gate before command-approval work widens the lane."
     },
     {
+      "id": "phase4-perf-baseline-atomic64-command-evidence",
+      "status": "starter_landed",
+      "kind": "survey_evidence",
+      "zigux_destination": "zigux/tests/phase4_perf_baseline_manifest.json",
+      "why_now": "The local perf-baseline packet now exact-pins the current atomic64 benchmark-command candidate `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` plus the deterministic threshold replay evidence (`runThresholdReplay(1)` checksum `3626254113632800175` with final counter `130322557735600377`; `runThresholdReplay(4)` checksum `9210681150676220922` with final counter `130322557735600376`) without pretending that the acceptable limit is already approved or that shared CI owns the route."
+    },
+    {
       "id": "phase4-perf-baseline-atomic64-command",
       "status": "ready_next",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/atomic64_diff.zig",
-      "why_now": "Now that the shared tests-root summary names the landed local perf packet, the atomic64 rollback gate is still correctness-only, so the next bounded same-lane perf promotion is one benchmark command plus one acceptable limit for the existing atomic64 replay before Phase 4 claims perf coverage. The current local benchmark candidate remains `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig`, and the existing deterministic threshold batch in `zigux/tests/atomic64_diff.zig` already pins `runThresholdReplay(1)` to checksum `3626254113632800175` with final counter `130322557735600377` plus `runThresholdReplay(4)` to checksum `9210681150676220922` with final counter `130322557735600376`, so the next slot can promote that evidence without pretending the acceptable limit is approved yet."
+      "why_now": "Now that the local perf packet carries exact atomic64 benchmark-command evidence in structured form, the next bounded same-lane promotion can approve that replay command in the broader Phase 4 review packet only when the still-unapproved acceptable limit remains explicit and the shared validator-first packet does not widen by accident."
     },
     {
       "id": "phase4-perf-baseline-bitmap-command",
       "status": "ready_next",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/bitmap_diff.zig",
-      "why_now": "Now that the shared tests-root summary names the landed local perf packet, the bitmap rollback gate is still correctness-only, so the next bounded same-lane perf promotion is one benchmark command plus one acceptable limit for the existing bitmap replay before Phase 4 claims perf coverage."
+      "why_now": "With the atomic64 rollback gate now carrying explicit local command evidence, the bitmap rollback gate remains the other shipped surface whose benchmark command plus acceptable limit are still unapproved, so the next same-lane follow-through can stay bounded there if the atomic64 acceptable-limit work is not the narrower packet."
     }
   ]
 }
