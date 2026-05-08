@@ -50,7 +50,9 @@ REQUIRED_FILE_MARKERS = {
     REVIEW_CHECKLIST_PATH: [
         "if the change touches the shared Phase 12 complex-driver packet",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`Documentation/zigux/phase12-release-coordination-matrix.md`",
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
+        "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
         "`drivers/nvme/host/pci_verify.zig`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
