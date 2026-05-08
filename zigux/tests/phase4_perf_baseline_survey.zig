@@ -54,6 +54,7 @@ const Gap = struct {
     status: []const u8,
     kind: []const u8,
     zigux_destination: []const u8,
+    benchmark_command: ?[]const u8 = null,
     why_now: []const u8,
 };
 
@@ -200,6 +201,7 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             saw_manifest_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase4_perf_baseline_manifest.json", gap.zigux_destination);
+            try std.testing.expect(gap.benchmark_command == null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "manifest-backed survey packet") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without inventing numbers") != null);
         }
@@ -208,6 +210,7 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             saw_gate_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase4_perf_baseline_survey.zig", gap.zigux_destination);
+            try std.testing.expect(gap.benchmark_command == null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "correctness-only posture") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared CI perf approval") != null);
         }
@@ -216,6 +219,7 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             saw_atomic64_command_evidence_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase4_perf_baseline_manifest.json", gap.zigux_destination);
+            try std.testing.expect(gap.benchmark_command == null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact-pins") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runThresholdReplay(1)") != null);
@@ -231,6 +235,10 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             saw_atomic64_command_gap = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings(
+                "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+                gap.benchmark_command.?,
+            );
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "structured form") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared validator-first packet") != null);
@@ -240,6 +248,7 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             saw_bitmap_command_evidence_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase4_perf_baseline_manifest.json", gap.zigux_destination);
+            try std.testing.expect(gap.benchmark_command == null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact-pins") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runThresholdReplay(1)") != null);
@@ -257,6 +266,10 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             saw_bitmap_gap = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings(
+                "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+                gap.benchmark_command.?,
+            );
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact-pins") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "acceptable limit") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared validator-first packet") != null);
