@@ -283,10 +283,13 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_impl, "test \"stringUnescapeInplace reuses the in-place core path without touching bytes after the first NUL\"");
     try expectContains(helper_impl, "test \"stringEscapeMem reports truncated output length without forcing a terminator\"");
     try expectContains(helper_impl, "test \"stringEscapeMem zero-capacity destinations still report the full escaped length\"");
+    try expectContains(helper_impl, "test \"stringEscapeStr stops at the first NUL while keeping str-oriented escape semantics\"");
     try expectContains(helper_impl, "test \"kstrdupQuotable hex-escapes special log bytes while preserving ordinary characters\"");
     try expectContains(helper_impl, "test \"kstrdupQuotable returns null for null input, keeps empty results owned, and stops at the first NUL\"");
     try expectContains(helper_impl, "test \"kstrdupQuotable frees the owned copy when allocation fails\"");
+    try expectContains(helper_impl, "test \"kasprintfStrarray rejects usize overflow before allocation\"");
     try expectContains(helper_impl, "test \"kasprintfStrarray frees intermediate allocations when setup fails\"");
+    try expectContains(helper_impl, "test \"checkedCountWithSentinel rejects usize overflow for sentinel-backed allocations\"");
     try expectContains(helper_impl, "test \"kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe\"");
     try expectContains(helper_impl, "std.testing.checkAllAllocationFailures");
 }
