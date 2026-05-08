@@ -14,6 +14,8 @@ ARTIFACT_DIFF_NOTE = ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md'
 EXPECTED_CONTRACT_CASES = [
     'helper_self_test',
     'helper_self_test_repeat',
+    'cli_help_output',
+    'cli_help_output_repeat',
     'cli_missing_required_args',
     'cli_missing_actual_operand',
     'cli_invalid_mode',
@@ -41,6 +43,7 @@ EXPECTED_CONTRACT_CASES = [
 ]
 REPEAT_CONTRACT_CASES = [
     'helper_self_test_repeat',
+    'cli_help_output_repeat',
     'text_pass_repeat',
     'json_mismatch_repeat',
     'sha256_drift_repeat',
@@ -560,6 +563,8 @@ def main() -> int:
         ],
         repeat_count=2,
     )
+    covered_cases.append('cli_help_output')
+    covered_cases.append('cli_help_output_repeat')
 
     run_error_contract_case(
         [],
