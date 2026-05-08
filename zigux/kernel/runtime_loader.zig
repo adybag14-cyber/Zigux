@@ -233,6 +233,23 @@ test "runtime loader facade preserves shared runtime lifecycle failures" {
     };
     try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(mismatched_anchor));
 
+    const mismatched_entry_symbol = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init_drift",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(mismatched_entry_symbol));
+
     const unknown_family = LoadPlan{
         .module_name = "runtime_spinlock",
         .anchor = "kernel/locking/spinlock.c",
