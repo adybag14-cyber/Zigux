@@ -41,6 +41,75 @@ fn fixtureVariant(name: []const u8) base64.Variant {
     unreachable;
 }
 
+fn variantAlphabet(variant: base64.Variant) []const u8 {
+    return switch (variant) {
+        .std => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+        .urlsafe => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
+        .imap => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",
+    };
+}
+
+fn expectDecodeRejectsWithoutWrites(input: []const u8, padding: bool, variant: base64.Variant) !void {
+    var decoded = [_]u8{0xee} ** 2;
+
+    try std.testing.expectError(base64.DecodeError.InvalidInput, base64.bytes(input, padding, variant));
+    try std.testing.expectError(base64.DecodeError.InvalidInput, base64.decode(decoded[0..], input, padding, variant));
+    try std.testing.expectEqualSlices(u8, &([_]u8{ 0xee, 0xee }), decoded[0..]);
+}
+
+fn expectCanonicalTailAcceptance(padding: bool, variant: base64.Variant) !void {
+    const table = variantAlphabet(variant);
+    var encoded: [4]u8 = undefined;
+
+    for (0..64) |a| {
+        for (0..64) |b| {
+            encoded[0] = table[a];
+            encoded[1] = table[b];
+            if (padding) {
+                encoded[2] = '=';
+                encoded[3] = '=';
+            }
+
+            const tail = if (padding) encoded[0..4] else encoded[0..2];
+            if ((b & 0x0f) == 0) {
+                var decoded = [_]u8{ 0xaa, 0xaa };
+                const written = try base64.decode(decoded[0..], tail, padding, variant);
+                try std.testing.expectEqual(@as(usize, 1), try base64.bytes(tail, padding, variant));
+                try std.testing.expectEqual(@as(usize, 1), written);
+                try std.testing.expectEqual(@as(u8, @intCast((a << 2) | (b >> 4))), decoded[0]);
+                try std.testing.expectEqual(@as(u8, 0xaa), decoded[1]);
+            } else {
+                try expectDecodeRejectsWithoutWrites(tail, padding, variant);
+            }
+        }
+    }
+
+    for (0..64) |a| {
+        for (0..64) |b| {
+            for (0..64) |c| {
+                encoded[0] = table[a];
+                encoded[1] = table[b];
+                encoded[2] = table[c];
+                if (padding) {
+                    encoded[3] = '=';
+                }
+
+                const tail = if (padding) encoded[0..4] else encoded[0..3];
+                if ((c & 0x03) == 0) {
+                    var decoded = [_]u8{ 0xaa, 0xaa };
+                    const written = try base64.decode(decoded[0..], tail, padding, variant);
+                    try std.testing.expectEqual(@as(usize, 2), try base64.bytes(tail, padding, variant));
+                    try std.testing.expectEqual(@as(usize, 2), written);
+                    try std.testing.expectEqual(@as(u8, @intCast((a << 2) | (b >> 4))), decoded[0]);
+                    try std.testing.expectEqual(@as(u8, @intCast(((b & 0x0f) << 4) | (c >> 2))), decoded[1]);
+                } else {
+                    try expectDecodeRejectsWithoutWrites(tail, padding, variant);
+                }
+            }
+        }
+    }
+}
+
 fn expectShortRoundtrip(length: usize, padding: bool, variant: base64.Variant) !void {
     var encoded: [8]u8 = undefined;
     var decoded: [2]u8 = undefined;
@@ -344,6 +413,17 @@ test "phase 6 base64 exact-fit encode and decode buffers stay accepted across st
 
         try std.testing.expectEqual(exact.len, written);
         try std.testing.expectEqualSlices(u8, case.expected, exact[0..written]);
+    }
+}
+
+test "phase 6 base64 exhaustive canonical tail acceptance stays aligned across std, urlsafe, and imap variants" {
+    const variants = [_]base64.Variant{ .std, .urlsafe, .imap };
+    const padding_modes = [_]bool{ true, false };
+
+    for (variants) |variant| {
+        for (padding_modes) |padding| {
+            try expectCanonicalTailAcceptance(padding, variant);
+        }
     }
 }
 
