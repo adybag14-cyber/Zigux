@@ -60,6 +60,7 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
 - reset replay bookkeeping that keeps the negotiated-feature, queue-callback, config-generation, interrupt, and failed-status state that would be rebuilt after a reset-required path visible without pretending to run a transport-backed reset flow
 - bounded device-identity registration that keeps the `virtio%u` device name and `virtio:d...v...` modalias reviewable in memory without claiming bus registration
 - bounded driver-ID table matching that records exact, wildcard-device, wildcard-vendor, and unmatched `virtio_id_match()` outcomes without widening into probe or remove wiring
+- bounded driver-ID coverage disposition summaries that make exact coverage, wildcard coverage, wildcard shadowing, and unmatched rule-table outcomes explicit without widening into bus registration or probe behavior
 - reset handling that clears queue callback registrations along with negotiated feature state
 - a transport-acceptance toggle so the Phase 10 gate can model both successful `FEATURES_OK` handshakes and refusal paths
 - the direct `drivers/virtio/virtio_verify.zig` replay keeps the current wrapper-facing lifecycle guard checkpoints, narrowed-feature summaries, failed-status teardown, and reset-teardown bookkeeping visible beside the helper-local test packet
@@ -73,6 +74,7 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
   - core-side status sequencing and feature negotiation
   - bounded driver-validation narrowing, driver-name, status and feature attribute summaries, queue callback, queue shape, config-generation, interrupt-ack, lifecycle guard, and reset replay bookkeeping for reviewable lab tests
   - bounded device-identity and driver-ID review surfaces for `register_virtio_device()`, `virtio_uevent()`, `virtio_id_match()`, and `virtio_dev_match()`
+  - bounded driver-ID coverage disposition summaries that expose exact coverage, wildcard coverage, wildcard shadowing, and unmatched table outcomes as part of the reviewable identity packet
   - roadmap-facing `lab-only driver validation` evidence through the manifest, survey gate, survey note, dedicated checker, direct core-verify replay, shared build replay, and shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes
 - still intentionally missing:
   - real virtqueue wrappers from `virtio_ring.c`
