@@ -158,6 +158,18 @@ pub const RecoverySummary = struct {
     last_admin_queue_depth: u16,
 };
 
+pub const RecoveryRebuildProgressSummary = struct {
+    anchor: []const u8,
+    state: RecoveryState,
+    reset_generation: u32,
+    planned_io_queues: usize,
+    dropped_io_queues_initial: usize,
+    dropped_io_queues_retired: usize,
+    dropped_io_queues_remaining: usize,
+    queue_planning_blocked: bool,
+    admin_queue_must_be_replanned: bool,
+};
+
 pub const RecoveryReplayRequest = struct {
     cached_prp_metadata_generation: u32,
     had_prp_metadata_plan: bool,
@@ -199,6 +211,8 @@ pub const NvmePciQueueLab = struct {
     last_admin_queue_depth: u16 = min_queue_depth,
     last_admin_queue_generation: u32 = 0,
     last_reset_io_queue_count: usize = 0,
+    retired_reset_io_queue_rebuilds: usize = 0,
+    remaining_reset_io_queue_rebuilds: usize = 0,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -475,6 +489,8 @@ pub const NvmePciQueueLab = struct {
 
     pub fn beginReset(self: *Self) RecoverySummary {
         self.last_reset_io_queue_count = self.planned_io_queues;
+        self.retired_reset_io_queue_rebuilds = 0;
+        self.remaining_reset_io_queue_rebuilds = self.planned_io_queues;
         self.recovery_state = .reset_frozen;
         self.reset_generation += 1;
         return self.recoverySummary();
@@ -498,14 +514,51 @@ pub const NvmePciQueueLab = struct {
         };
     }
 
+    pub fn summarizeRecoveryRebuildProgress(self: *const Self) RecoveryRebuildProgressSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .state = self.recovery_state,
+            .reset_generation = self.reset_generation,
+            .planned_io_queues = self.planned_io_queues,
+            .dropped_io_queues_initial = self.last_reset_io_queue_count,
+            .dropped_io_queues_retired = self.retired_reset_io_queue_rebuilds,
+            .dropped_io_queues_remaining = self.remaining_reset_io_queue_rebuilds,
+            .queue_planning_blocked = self.recovery_state != .running,
+            .admin_queue_must_be_replanned = self.last_reset_io_queue_count != 0 and
+                self.last_admin_queue_generation != self.reset_generation,
+        };
+    }
+
+    pub fn retireRecoveredIoQueues(
+        self: *Self,
+        rebuilt_io_queues: usize,
+    ) !RecoveryRebuildProgressSummary {
+        if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
+        if (rebuilt_io_queues == 0) return error.InvalidRecoveredIoQueueCount;
+        if (self.last_reset_io_queue_count == 0 or self.reset_generation == 0) {
+            return error.NoRecoveryBacklog;
+        }
+        if (self.last_admin_queue_generation != self.reset_generation) {
+            return error.AdminQueueReplayRequired;
+        }
+        if (rebuilt_io_queues > self.remaining_reset_io_queue_rebuilds) {
+            return error.RebuiltIoQueuesExceedBacklog;
+        }
+
+        const retired_after_update = try checkedAddUsize(self.retired_reset_io_queue_rebuilds, rebuilt_io_queues);
+        if (retired_after_update > self.planned_io_queues) {
+            return error.RebuiltIoQueuesExceedPlanned;
+        }
+
+        self.retired_reset_io_queue_rebuilds = retired_after_update;
+        self.remaining_reset_io_queue_rebuilds -= rebuilt_io_queues;
+        return self.summarizeRecoveryRebuildProgress();
+    }
+
     pub fn summarizeRecoveryReplay(
         self: *const Self,
         request: RecoveryReplayRequest,
     ) RecoveryReplaySummary {
-        const io_queues_dropped_by_reset = if (self.recovery_state == .reset_frozen)
-            self.planned_io_queues
-        else
-            self.last_reset_io_queue_count;
         const cached_prp_metadata_stale = request.had_prp_metadata_plan and
             request.cached_prp_metadata_generation != self.reset_generation;
         const descriptor_rebuild_required = cached_prp_metadata_stale and
@@ -520,6 +573,10 @@ pub const NvmePciQueueLab = struct {
             request.cached_reserved_io_queues
         else
             0;
+        const io_queues_dropped_by_reset = if (self.reset_generation == 0)
+            0
+        else
+            self.remaining_reset_io_queue_rebuilds;
 
         return .{
             .anchor = descriptor().anchor,
