@@ -197,7 +197,7 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     try std.testing.expect(saw_platform_blocker);
 }
 
-test "phase11 dw_wdt survey note, slice note, and validation matrix stay aligned" {
+test "phase11 dw_wdt survey note, slice note, validation matrix, and teardown note stay aligned" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -207,8 +207,11 @@ test "phase11 dw_wdt survey note, slice note, and validation matrix stay aligned
     defer std.testing.allocator.free(validation_matrix);
     const slice_note = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "Documentation/zigux/phase11-dw-wdt-slice.md", std.testing.allocator, .limited(16 * 1024));
     defer std.testing.allocator.free(slice_note);
+    const teardown_note = try std.Io.Dir.cwd().readFileAlloc(io_instance.io(), "Documentation/zigux/phase11-dw-wdt-teardown-note.md", std.testing.allocator, .limited(16 * 1024));
+    defer std.testing.allocator.free(teardown_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-teardown-note.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded hardware-validation posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "teardown and failure-mode parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "platform-backed registration scaffolding") != null);
@@ -218,6 +221,7 @@ test "phase11 dw_wdt survey note, slice note, and validation matrix stay aligned
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "register-device request ordering") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-verify-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/watchdog/dw_wdt_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "stop or remove ownership split") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L05`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L12`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L10`") == null);
@@ -229,6 +233,7 @@ test "phase11 dw_wdt survey note, slice note, and validation matrix stay aligned
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11_dw_wdt.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11-dw-wdt-verify-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "drivers/watchdog/dw_wdt_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11-dw-wdt-teardown-note.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L05`") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L12`") == null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L10`") == null);
@@ -237,4 +242,12 @@ test "phase11 dw_wdt survey note, slice note, and validation matrix stay aligned
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "watchdog_register_device") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "platform-backed registration scaffolding") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase11-dw-wdt-validation-matrix.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase11-dw-wdt-teardown-note.md") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "drivers/watchdog/dw_wdt_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "phase11-dw-wdt-validation-matrix.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "continued-heartbeat") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "reset-backed quiesce") == null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "removeSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "teardownSummary()") != null);
 }
