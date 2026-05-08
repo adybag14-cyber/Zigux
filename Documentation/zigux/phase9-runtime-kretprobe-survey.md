@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
-- `PHASE9_SURVEYED_COMMIT=2a1851e145a648f0792e2bba2fee100e9884a1de`
+- `PHASE9_SURVEYED_COMMIT=5a88aec1d9c12e11745cb125b7c7fa56fd5e85f2`
 - `PHASE9_LANE_KEY=P9-L13`
 - scope: survey manifest, starter sample, dedicated module, survey, and diff gates, the bounded loader-handoff scaffold, the focused `phase9-runtime-kretprobe-tests` build step, and explicit adjacency to the separate shared runtime-loader lane that owns the facade, contract, allocator/init-flow replay, focused shared runtime-loader shard, and the workflow-backed `make -C zigux phase9` route
 - product boundary:
@@ -32,6 +32,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - the landed loader scaffold keeps `register_kretprobe` and `unregister_kretprobe` explicit as metadata-only labels inside a pre-execution handoff plan.
 - the loader handoff now refuses to prepare a shared request while an entry timestamp is still armed or a probe instance is still active, keeping the metadata-only registration snapshot idle before the shared runtime-loader request begins.
 - the bounded runtime kretprobe sample and dedicated module tests now also keep failed-exit state explicit: if `exit()` is attempted while an active probe is still armed, the initialized or selftest-complete stage stays intact until the active probe drains instead of silently widening into a partial teardown.
+- the bounded runtime kretprobe sample now also keeps maxactive-pressure recovery explicit: once `nmissed` increments because the active budget is exhausted, failed `exit()` calls keep that pressure state intact until every armed probe drains, and the final exit report still carries the retained missed-instance count.
 - the bounded runtime kretprobe sample and diff gate also keep overlapping entry stamps distinct under concurrent load, so the pilot records per-instance return timing instead of collapsing nested returns into one shared timestamp path.
 - the loader handoff also keeps the loader-owned prepared handoff snapshot explicit: once `prepare()` or `prepareSharedRequest()` captures an idle registration snapshot, later sample mutation or late selftest activity can be inspected separately but must not rewrite that parked handoff plan before runtime-substrate review.
 - the same loader-owned snapshot remains the post-release review surface after `releaseWithoutSubstrate()` or `releaseSharedWithoutSubstrate()` closes the waiting state without a real runtime substrate, so the pilot still records one consistent owner for the parked registration metadata instead of switching to a second release-only note path.
@@ -39,7 +40,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - the live repo also carries `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and the focused `phase9-runtime-loader-shared-tests` build step, so allocator handoff, init-flow counts, release-without-substrate behavior, and shared-request drift stay reviewable beside the kretprobe starter packet instead of hiding only inside the shared build.
 - the newer `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` now keeps those shared `runtime_loader`, `runtime_loader_contract`, `runtime_loader_allocator_init_flow`, and `phase9-runtime-loader-shared-tests` surfaces under the separate shared loader lane rather than inside the kretprobe pilot lane.
 - the shared `zigux/kernel/runtime_loader.zig` facade remains a review-only Phase 9 packet under the freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary, so this lane keeps the kretprobe handoff reviewable without claiming scheduler-facing substrate closure or a freeze-map status change.
-- runtime substrate work is still missing, so the starter intentionally stops at bounded lifecycle, bookkeeping, metadata-only registration labels, idle registration snapshot checks, failed-exit state retention until the active probe drains, overlapping entry stamps under concurrent load, loader-owned prepared handoff snapshot checks, post-release snapshot ownership, and loader-handoff behavior rather than claiming real module registration parity.
+- runtime substrate work is still missing, so the starter intentionally stops at bounded lifecycle, bookkeeping, metadata-only registration labels, idle registration snapshot checks, failed-exit state retention until the active probe drains, maxactive-pressure recovery after the active budget is exhausted, overlapping entry stamps under concurrent load, loader-owned prepared handoff snapshot checks, post-release snapshot ownership, and loader-handoff behavior rather than claiming real module registration parity.
 
 ## Roadmap gap vs current pilot
 
