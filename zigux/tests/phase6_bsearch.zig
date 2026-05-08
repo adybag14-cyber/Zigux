@@ -388,7 +388,7 @@ test "phase 6 bsearch keeps descending lookup work inside a binary-search budget
 }
 
 test "phase 6 bsearch raw lookup returns null for empty input without invoking the comparator" {
-    const empty = [_]u32{};
+    var empty = [_]u32{};
 
     counted_raw_compare_calls = 0;
     try std.testing.expectEqual(
@@ -398,6 +398,12 @@ test "phase 6 bsearch raw lookup returns null for empty input without invoking t
     try std.testing.expectEqual(@as(usize, 0), counted_raw_compare_calls);
     try std.testing.expect(
         bsearch.bsearch(&@as(u32, 5), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compareOpaqueU32Counted) == null,
+    );
+    try std.testing.expectEqual(@as(usize, 0), counted_raw_compare_calls);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expect(
+        bsearch.bsearchMutable(&@as(u32, 5), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compareOpaqueU32Counted) == null,
     );
     try std.testing.expectEqual(@as(usize, 0), counted_raw_compare_calls);
 }
