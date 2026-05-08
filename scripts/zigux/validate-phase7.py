@@ -76,6 +76,7 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/review-checklist.md": [
         "shared Phase 7 leaf-helper packet",
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
@@ -335,6 +336,7 @@ EXACT_COUNT_MARKERS = {
     ],
     "Documentation/zigux/review-checklist.md": [
         ("shared Phase 7 leaf-helper packet", 1),
+        ("Documentation/zigux/phase7-make-wrapper-selftest-alignment.md", 1),
         ("scripts/zigux/check-phase7-make-wrapper.py", 1),
         ("scripts/zigux/check-phase7-argv-split-packet.py", 1),
         ("scripts/zigux/check-phase7-rbtree-parity.py", 1),
