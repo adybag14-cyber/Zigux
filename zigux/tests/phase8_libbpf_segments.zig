@@ -373,6 +373,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/type_names.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
+    try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/verify.zig");
     try expectContains(phase8_note, "Documentation/zigux/phase8-file-path-handle-bridge-slice.md");
     try expectContains(phase8_note, "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md");
     try expectContains(phase8_note, "zigux/tests/phase8_file_path_handle_bridge.zig");
