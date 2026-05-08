@@ -100,7 +100,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 7), manifest.decision_checklist.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.decision_checklist.len);
     try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L13") != null);
@@ -162,6 +162,8 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
             try std.testing.expectEqualStrings("zigux/tests/phase14_rcu_tree_manifest.json", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "grace-period") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "NOCB") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "public wait and barrier") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "CPU-hotplug callback migration") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-boundary-map-starter")) {
             saw_boundary_map = true;
@@ -318,6 +320,18 @@ test "phase 14 rcu tree survey exposes the landed freeze-boundary checklist" {
     try std.testing.expectEqualStrings("call_rcu_core", checklist[6].anchor_symbols[1]);
     try std.testing.expectEqualStrings("rcu_do_batch", checklist[6].anchor_symbols[2]);
     try std.testing.expect(std.mem.indexOf(u8, checklist[6].rationale, "NOCB offload") != null);
+
+    try std.testing.expectEqualStrings("public-wait-and-barrier-contract", checklist[7].id);
+    try std.testing.expectEqualStrings("synchronize_rcu", checklist[7].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("start_poll_synchronize_rcu", checklist[7].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("rcu_barrier", checklist[7].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[7].rationale, "offloaded CPUs") != null);
+
+    try std.testing.expectEqualStrings("cpu-hotplug-callback-migration", checklist[8].id);
+    try std.testing.expectEqualStrings("rcutree_prepare_cpu", checklist[8].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("rcutree_report_cpu_dead", checklist[8].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("rcutree_migrate_callbacks", checklist[8].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[8].rationale, "callback ownership between CPUs") != null);
 }
 
 test "phase 14 rcu tree bridge catalog stays review-only and queryable" {
