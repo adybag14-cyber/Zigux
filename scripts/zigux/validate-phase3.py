@@ -412,6 +412,80 @@ def run_self_test() -> int:
         validate_wrapper_template(root, abi_wrapper, "abi", abi_issues)
         assert abi_issues == ["abi:wrapper_template_mismatch:scripts/zigux/check-phase3-abi.py"]
 
+        for rel in ABI_REQUIRED_MANIFEST_FILES:
+            target = root / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("// stub\n", encoding="utf-8", newline="\n")
+
+        manifest_path = root / "zigux/tests/fixtures/phase3_abi_manifest.json"
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        manifest_payload = {
+            "phase": "Phase 3",
+            "status": "ready",
+            "slice": "abi-substrate-skeleton",
+            "files": list(ABI_REQUIRED_MANIFEST_FILES),
+            "file_count": len(ABI_REQUIRED_MANIFEST_FILES),
+        }
+        manifest_path.write_text(
+            json.dumps(manifest_payload),
+            encoding="utf-8",
+            newline="\n",
+        )
+        manifest_issues: list[str] = []
+        manifest = validate_manifest(root, manifest_path, "abi", manifest_issues)
+        assert manifest is not None
+        assert manifest_issues == []
+
+        manifest_payload["files"] = list(ABI_REQUIRED_MANIFEST_FILES[:-1])
+        manifest_payload["file_count"] = len(manifest_payload["files"])
+        manifest_path.write_text(
+            json.dumps(manifest_payload),
+            encoding="utf-8",
+            newline="\n",
+        )
+        missing_required_issues: list[str] = []
+        validate_manifest(root, manifest_path, "abi", missing_required_issues)
+        assert missing_required_issues == [
+            f"abi:manifest_missing_required_file={ABI_REQUIRED_MANIFEST_FILES[-1]}"
+        ]
+
+        manifest_payload["files"] = list(ABI_REQUIRED_MANIFEST_FILES)
+        manifest_payload["file_count"] = len(manifest_payload["files"])
+        manifest_path.write_text(
+            json.dumps(manifest_payload),
+            encoding="utf-8",
+            newline="\n",
+        )
+        missing_manifest_file = root / ABI_REQUIRED_MANIFEST_FILES[13]
+        missing_manifest_file.unlink()
+        missing_manifest_file_issues: list[str] = []
+        validate_manifest(root, manifest_path, "abi", missing_manifest_file_issues)
+        assert missing_manifest_file_issues == [
+            f"abi:manifest_missing_file={ABI_REQUIRED_MANIFEST_FILES[13]}"
+        ]
+
+        wrapper_test_path = root / LOW_LEVEL_WRAPPER_TEST_REL
+        wrapper_test_path.parent.mkdir(parents=True, exist_ok=True)
+        wrapper_test_path.write_text(
+            "\n".join(LOW_LEVEL_WRAPPER_REQUIRED_MARKERS) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        low_level_issues: list[str] = []
+        validate_low_level_wrapper_markers(root, "abi", low_level_issues)
+        assert low_level_issues == []
+
+        wrapper_test_path.write_text(
+            "\n".join(LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[:-1]) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        missing_low_level_issues: list[str] = []
+        validate_low_level_wrapper_markers(root, "abi", missing_low_level_issues)
+        assert missing_low_level_issues == [
+            f"abi:missing_low_level_wrapper_marker={LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[-1]}"
+        ]
+
     print("PHASE3_VALIDATE_SELF_TEST=pass")
     return 0
 
