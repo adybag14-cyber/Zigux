@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import tempfile
 
 
@@ -88,6 +89,11 @@ def count_exact_substrings(text: str, marker: str) -> int:
     return text.count(marker)
 
 
+def count_validator_marker_lines(text: str, marker: str) -> int:
+    pattern = re.compile(rf'^\s*["\']{re.escape(marker)}["\'],?\s*$')
+    return sum(1 for line in text.splitlines() if line.strip() == marker or pattern.fullmatch(line))
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     checker_text = read_text(root / CHECKER)
@@ -106,7 +112,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("DUPLICATE_CHECKER_MARKERS", f"{marker}:count={count}:expected={expected_count}"))
 
     for marker in REQUIRED_VALIDATOR_MARKERS:
-        count = count_exact_lines(validator_text, marker)
+        count = count_validator_marker_lines(validator_text, marker)
         if count == 0:
             issues.append(("MISSING_VALIDATOR_MARKERS", marker))
         elif count != REQUIRED_VALIDATOR_EXACT_COUNTS[marker]:
