@@ -60,6 +60,13 @@
       "expected": "help_expected.json"
     },
     {
+      "name": "unexpected_help_argument",
+      "argv": ["--help=extra"],
+      "mode": "process_json",
+      "normalize_stderr": true,
+      "expected": "unexpected_help_argument_expected.json"
+    },
+    {
       "name": "version",
       "argv": ["-Vd", "--reference", "foo.symref"],
       "mode": "process_json",
