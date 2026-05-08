@@ -134,6 +134,7 @@ This shared note owns those exact convenience-target names for closure work; lat
 ## Current live follow-through state
 
 - `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`
+- `scripts/zigux/README.md` still collapses the focused shared-loader replay down to the bundled `make -C zigux phase9` route, so the next smallest shared reminder follow-through, if another reminder-only Phase 9 touch is justified, is a one-file scripts-root repair that adds `phase9-runtime-loader-shared-tests` without reopening pilot-family wording
 - the broad docs-root Phase 9 summary in `Documentation/zigux/README.md` should now be treated as parked shared-packet context, not as a request to reopen checker-local or pilot-family follow-through, because this sequencing note plus `scripts/zigux/check-phase9-build-only-surface.py` already record the shared loader packet as aligned on current `master`
 - `samples/zigux/README.md` already carries the bitmap-only top-bit companion reminder plus the older command and environment control boundaries, so later shared-loader follow-through should leave those pilot-local cues there instead of flattening them back into the loader packet
 - `Documentation/zigux/freeze-map.md` already keeps the shared Phase 9 runtime-loader packet explicit as a review-only boundary beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`, so the shared loader lane should treat freeze-map wording there as a review-surface cue rather than runtime-substrate closure or a status-change request
@@ -146,7 +147,7 @@ This shared note owns those exact convenience-target names for closure work; lat
 
 ## Recommended next-step order
 
-1. shared reminder refresh: only if another docs-root, scripts-root, tests-root, samples-root, or checklist surface drifts after this alignment, and treat any future docs-root Phase 9 wording refresh as a docs-only reminder repair unless the shared loader packet itself changes
+1. shared reminder refresh: only if another docs-root, scripts-root, tests-root, samples-root, or checklist surface drifts after this alignment; if a reminder-only follow-through is still justified without changing the shared loader packet, prefer the one-file `scripts/zigux/README.md` repair that adds `phase9-runtime-loader-shared-tests` beside the bundled `make -C zigux phase9` route before reopening broader docs-root, tests-root, samples-root, or checklist wording
 2. shared loader lane: if a new bounded validation surface lands, wire it through `scripts/zigux/check-phase9-build-only-surface.py` before reopening broader request-contract, allocator/init-flow, or build-only reviewability work
 3. bitmap lane: only if the goal is to refine the already-landed top-bit companion or the survey-local `phase9_build.zig` marker alignment inside `zigux/tests/runtime_bitmap_survey.zig`
 4. trace-events lane: only if the goal is to refine the trace-events-local registration-drain or failed-exit recovery proof inside `samples/zigux/runtime_trace_events_loader.zig`
