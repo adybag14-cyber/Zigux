@@ -360,8 +360,10 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "strHasPrefix honors C-string boundaries"',
             'test "strstarts mirrors the header-level prefix helper"',
             'test "strEndsWith honors C-string boundaries"',
+            'test "sysfsStreq treats trailing newline and NUL as equivalent"',
             'test "memdup and memchrInv preserve byte content"',
             'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
+            'test "memchrInv follows the earliest dirty byte as long buffers change"',
             'test "memparse handles decimal hexadecimal octal and suffixes"',
             'test "memparse keeps original rest when sign is not followed by digits"',
             'test "memparse saturates signed overflow instead of trapping"',
@@ -752,7 +754,15 @@ def run_self_test() -> None:
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         helper_test_anchors = manifest["review_anchors"]["tools/lib/string.zig"]["helper_test_anchors"]
-        helper_test_anchors.remove('test "memparse applies suffixes before signed clamping"')
+        helper_test_anchors.remove('test "sysfsStreq treats trailing newline and NUL as equivalent"')
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "manifest:review_anchor_value=tools/lib/string.zig:helper_test_anchors" in missing
+        make_fixture_root(tmp_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        helper_test_anchors = manifest["review_anchors"]["tools/lib/string.zig"]["helper_test_anchors"]
+        helper_test_anchors.remove('test "memchrInv follows the earliest dirty byte as long buffers change"')
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = collect_missing_markers(tmp_root)
         assert "manifest:review_anchor_value=tools/lib/string.zig:helper_test_anchors" in missing
@@ -803,7 +813,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [".github/workflows/zigux-bootstrap.yml"]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=18")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=19")
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 1 closure packet.")
