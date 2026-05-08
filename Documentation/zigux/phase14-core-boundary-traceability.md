@@ -33,7 +33,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 - survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`
 - lane key: `P14-L08`
 - surveyed commit: `946d5c73fdb763ba860a20879b05da54e1896e8c`
-- ready-next gap: none currently recorded
+- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`
 - blocked gap: `phase14-ring-buffer-zig-port-blocker`
 - retained-in-C boundary: reserve or commit publication, reader-page handoff, exported-page forced-copy decisions, remote-reader metadata, wakeup or watermark publication, mapped-reader limitations, concurrent mapped-reader governance, and tracefs splice or resize lockouts still stay with the shipped C implementation because they share per-CPU page choreography, reader-visible loss accounting, wait-queue state, and `resize_disabled` ownership.
 
@@ -41,7 +41,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_skbuff_bridge_manifest.json`
 - survey note: `Documentation/zigux/phase14-skbuff-bridge-survey.md`
-- lane key: `P14-L12`
+- lane key: `P14-Y03`
 - surveyed commit: `f05e02445443e7743c3675a6f8ca4f70f6e736fb`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-skbuff-live-ownership-blocker`
