@@ -59,6 +59,13 @@ EXPECTED_VERIFY_TEST_MARKERS = [
     "try testing.expect(!summary.should_poll);",
     "try testing.expectEqual(@as(u16, 1), summary.event_index_window);",
     "try testing.expect(summary.should_poll);",
+    'test "virtio ring clearBroken exposes the next reset blocker instead of hiding queue debt" {',
+    "_ = try lab.clearBroken(4);",
+    "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpublished_chains, readiness.blocker.?);",
+    "_ = try lab.clearBroken(5);",
+    "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.outstanding_chains, readiness.blocker.?);",
+    "_ = try lab.clearBroken(6);",
+    "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, readiness.blocker.?);",
 ]
 
 EXPECTED_TEST_MARKERS = [
@@ -204,7 +211,15 @@ pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueRes
 pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary { _ = self; _ = queue_index; }
 pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary { _ = self; _ = queue_index; }
 """,
-    "drivers/virtio/virtio_ring_verify.zig": """test \"virtio ring packed event-index summary stays queue-local and reports when polling can wait\" {
+    "drivers/virtio/virtio_ring_verify.zig": """test \"virtio ring clearBroken exposes the next reset blocker instead of hiding queue debt\" {
+    _ = try lab.clearBroken(4);
+    try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpublished_chains, readiness.blocker.?);
+    _ = try lab.clearBroken(5);
+    try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.outstanding_chains, readiness.blocker.?);
+    _ = try lab.clearBroken(6);
+    try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, readiness.blocker.?);
+}
+test \"virtio ring packed event-index summary stays queue-local and reports when polling can wait\" {
     try testing.expectError(error.QueueLayoutDoesNotSupportPackedEventIndex, lab.packedEventIndexSummary(1));
     try testing.expectError(error.QueueDoesNotUseEventIndex, lab.packedEventIndexSummary(2));
     try testing.expectEqual(@as(u16, 3), summary.event_index_window);
@@ -466,7 +481,7 @@ def run_self_test() -> int:
         manifest_path = tmp_root / "zigux/tests/phase10_virtio_ring_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
-            original_manifest.replace('\"lane_key\": \"P10-L07\"', '\"lane_key\": \"P10-drift\"', 1),
+            original_manifest.replace('"lane_key": "P10-L07"', '"lane_key": "P10-drift"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
@@ -475,7 +490,7 @@ def run_self_test() -> int:
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
-            original_manifest.replace('\"freeze_boundary_status\": \"aligned\"', '\"freeze_boundary_status\": \"drifted\"', 1),
+            original_manifest.replace('"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "drifted"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
@@ -484,7 +499,7 @@ def run_self_test() -> int:
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
-            original_manifest.replace('\"freeze_boundary_owner_lane\": \"P10-L10\"', '\"freeze_boundary_owner_lane\": \"P10-drift\"', 1),
+            original_manifest.replace('"freeze_boundary_owner_lane": "P10-L10"', '"freeze_boundary_owner_lane": "P10-drift"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
@@ -497,7 +512,7 @@ def run_self_test() -> int:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         _, missing_markers = validate(tmp_root)
         if "manifest:study_only_anchors" not in missing_markers:
-            raise SystemExit("phase10-ring-self-test:expected_study_only_anchor_marker_missing")
+            raise SystemExit("phase10-ring-self-test:expected_study_ONLY_anchor_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest = json.loads(original_manifest)
@@ -541,14 +556,14 @@ def run_self_test() -> int:
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
             original_build.replace(
-                '\"phase10-virtio-ring-verify-tests\"',
-                '\"phase10-virtio-ring-verify-drift-tests\"',
+                '"phase10-virtio-ring-verify-tests"',
+                '"phase10-virtio-ring-verify-drift-tests"',
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'build:\"phase10-virtio-ring-verify-tests\"' not in missing_markers:
+        if 'build:"phase10-virtio-ring-verify-tests"' not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_build_verify_marker_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
@@ -584,29 +599,55 @@ def run_self_test() -> int:
         original_verify = verify_path.read_text(encoding="utf-8")
         verify_path.write_text(
             original_verify.replace(
-                'test \"virtio ring packed event-index summary stays queue-local and reports when polling can wait\" {',
-                'test \"virtio ring packed event-index drift\" {',
+                'test "virtio ring packed event-index summary stays queue-local and reports when polling can wait" {',
+                'test "virtio ring packed event-index drift" {',
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'verify:test \"virtio ring packed event-index summary stays queue-local and reports when polling can wait\" {' not in missing_markers:
+        if 'verify:test "virtio ring packed event-index summary stays queue-local and reports when polling can wait" {' not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_verify_test_marker_missing")
+        verify_path.write_text(original_verify, encoding="utf-8")
+
+        verify_path.write_text(
+            original_verify.replace(
+                "_ = try lab.clearBroken(4);",
+                "_ = try lab.clearBroken(7);",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "verify:_ = try lab.clearBroken(4);" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_verify_clearbroken_marker_missing")
+        verify_path.write_text(original_verify, encoding="utf-8")
+
+        verify_path.write_text(
+            original_verify.replace(
+                "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, readiness.blocker.?);",
+                "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.queue_broken, readiness.blocker.?);",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "verify:try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, readiness.blocker.?);" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_verify_blocker_marker_missing")
         verify_path.write_text(original_verify, encoding="utf-8")
 
         test_path = tmp_root / "zigux/tests/phase10_virtio_ring.zig"
         original_test = test_path.read_text(encoding="utf-8")
         test_path.write_text(
             original_test.replace(
-                'test \"phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work\" {',
-                'test \"phase10 virtio ring blocks publish drift while a queue is broken\" {',
+                'test "phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work" {',
+                'test "phase10 virtio ring blocks publish drift while a queue is broken" {',
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'tests:test \"phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work\" {' not in missing_markers:
+        if 'tests:test "phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work" {' not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_test_marker_missing")
         test_path.write_text(original_test, encoding="utf-8")
 
@@ -742,7 +783,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_survey_test_verify_marker_missing")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=21")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
