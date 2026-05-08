@@ -53,6 +53,42 @@ test "virtio input wrapper-facing refill replay preserves queue-callback readine
     try std.testing.expectEqual(@as(u16, 16), preflight.queued_event_buffer_count);
 }
 
+test "virtio input wrapper-facing probe preflight stops before registration lifecycle claims" {
+    var missing_identity_device = try virtio_input.VirtioInputLab.init("", "verify-probe-empty", 36, null);
+    var summary = missing_identity_device.probePreflightSummary();
+    try std.testing.expectEqualStrings("identity_incomplete", @tagName(summary.blocker.?));
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    var device = try virtio_input.VirtioInputLab.init("verify-probe", "verify-probe-seq", 37, null);
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+
+    summary = device.probePreflightSummary();
+    try std.testing.expectEqualStrings("capability_setup_incomplete", @tagName(summary.blocker.?));
+    try std.testing.expect(summary.queue_plan_ready);
+    try std.testing.expect(!summary.capability_setup_ready);
+    try std.testing.expect(!summary.device_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{0});
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
+    try device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = 0,
+        .maximum = 2,
+    });
+
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.capability_setup_ready);
+    try std.testing.expect(!summary.device_ready);
+    try std.testing.expect(summary.ready_for_probe_handoff);
+    try std.testing.expect(summary.blocker == null);
+
+    const registration = device.registrationPreflightSummary();
+    try std.testing.expectEqualStrings("device_not_ready", @tagName(registration.blocker.?));
+    try std.testing.expect(!registration.ready_for_registration);
+}
+
 test "virtio input registration preflight keeps wrapper prerequisites ahead of registration claims" {
     var device = try virtio_input.VirtioInputLab.init("verify-touch", "verify-registration", 32, null);
 
