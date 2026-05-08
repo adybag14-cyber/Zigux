@@ -48,11 +48,9 @@ The current bsearch helper surface exercised by this slice covers:
 - `searchIndex`
 - `search`
 - `searchMutable`
-- `lowerBoundIndex`
 - `bsearchIndex`
 - `bsearch`
 - `bsearchMutable`
-- `bsearchLowerBoundIndex`
 - `Comparator`
 - `CComparator`
 - `RawComparator`
@@ -75,7 +73,6 @@ The current tests check:
 - runtime-selected raw native comparator pointer parity
 - runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses
 - representative lookup work stays inside a bounded binary-search comparison budget for both typed and raw lookup paths
-- typed and raw lower-bound insertion-point parity across duplicates, ascending and descending ranges, and packed record entries
 - raw record lookup parity that exercises `member_size` across packed record entries and mutable write-through directly in the focused Phase 6 packet
 - raw `bsearch` and `bsearchMutable` replay stays explicit as the roadmap-facing wrapper surface while the typed helpers prove the same comparison semantics without needing a separate C harness packet
 
