@@ -138,7 +138,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
             try std.testing.expectEqualStrings("blocked_phase14_followup_still_wider_than_allowed_rcu_seam", survey.current_blocker);
         } else if (std.mem.eql(u8, survey.anchor, "net/core/skbuff.c")) {
             try std.testing.expect(std.mem.indexOf(u8, survey.roadmap_basis, "narrower-than-lifetime") != null);
-            try std.testing.expect(std.mem.indexOf(u8, survey.repo_reality, "P14-L09") != null);
+            try std.testing.expect(std.mem.indexOf(u8, survey.repo_reality, "P14-L11") != null);
             try std.testing.expect(std.mem.indexOf(u8, survey.repo_reality, "phase14-skbuff-live-ownership-blocker") != null);
             try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", survey.current_blocker);
         }
@@ -218,7 +218,7 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Deep-core blockers versus roadmap and repo reality") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "no carried-forward Phase 14 blocker survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "lane P14-L13 still records blocked phase14-rcu-tree-bridge-blocker") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "lane P14-L09 still records blocked phase14-skbuff-live-ownership-blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "lane P14-L11 still records blocked phase14-skbuff-live-ownership-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "maintenance mode") != null);
 }
 
