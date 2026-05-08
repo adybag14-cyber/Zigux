@@ -4,6 +4,8 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 
 
@@ -400,6 +402,27 @@ def require_substrings(text: str, markers: list[str], prefix: str) -> list[str]:
     return missing
 
 
+def run_guard(root: Path, command: list[str], required_markers: list[str]) -> list[str]:
+    result = subprocess.run(
+        command,
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    issues: list[str] = []
+    label = " ".join(command[1:]) if len(command) > 1 else command[0]
+    if result.returncode != 0:
+        issues.append(f"guard_exit:{label}:returncode={result.returncode}")
+    combined_output = "\n".join(
+        part for part in (result.stdout.strip(), result.stderr.strip()) if part
+    )
+    for marker in required_markers:
+        if marker not in combined_output:
+            issues.append(f"guard_marker:{label}:{marker}")
+    return issues
+
+
 def collect_manifest_markers(manifest: object) -> list[str]:
     if not isinstance(manifest, dict):
         return ["manifest:type=dict"]
@@ -435,6 +458,31 @@ def collect_bench_markers(expectations: object) -> list[str]:
         if exact_checksums.get(key) != expected:
             missing.append(f"bench:exact_checksums:{key}={expected}")
     return missing
+
+
+def collect_guard_issues(root: Path) -> list[str]:
+    return run_guard(
+        root,
+        [
+            sys.executable,
+            str(root / "scripts" / "zigux" / "check-phase1-installer-review-surfaces.py"),
+            "--self-test",
+        ],
+        [
+            "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass",
+            "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=18",
+        ],
+    ) + run_guard(
+        root,
+        [
+            sys.executable,
+            str(root / "scripts" / "zigux" / "check-phase1-installer-review-surfaces.py"),
+        ],
+        [
+            "PHASE1_INSTALLER_REVIEW_SURFACES=pass",
+            "PHASE1_INSTALLER_REVIEW_SURFACES_MARKER_COUNT=17",
+        ],
+    )
 
 
 def collect_missing_markers(root: Path) -> list[str]:
@@ -606,6 +654,65 @@ def run_self_test() -> None:
         (root / "scripts/zigux/validate-phase1-closure.py").unlink()
         assert collect_missing_files(root) == ["scripts/zigux/validate-phase1-closure.py"]
         cases += 1
+        make_fixture_root(root)
+
+        checker_path = root / "phase1_installer_guard.py"
+        checker_path.write_text(
+            "print(\"PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass\")\n"
+            "print(\"PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=18\")\n",
+            encoding="utf-8",
+        )
+        assert run_guard(
+            root,
+            [sys.executable, str(checker_path)],
+            [
+                "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass",
+                "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=18",
+            ],
+        ) == []
+        cases += 1
+
+        checker_path.write_text(
+            "print(\"PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass\")\n",
+            encoding="utf-8",
+        )
+        issues = run_guard(
+            root,
+            [sys.executable, str(checker_path)],
+            [
+                "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass",
+                "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=18",
+            ],
+        )
+        assert any(
+            issue.endswith("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=18")
+            for issue in issues
+        )
+        cases += 1
+
+        checker_path.write_text("import sys\nsys.exit(1)\n", encoding="utf-8")
+        issues = run_guard(
+            root,
+            [sys.executable, str(checker_path)],
+            ["PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass"],
+        )
+        assert any(":returncode=1" in issue for issue in issues)
+        cases += 1
+
+        checker_path.write_text(
+            "print(\"PHASE1_INSTALLER_REVIEW_SURFACES=pass\")\n"
+            "print(\"PHASE1_INSTALLER_REVIEW_SURFACES_MARKER_COUNT=17\")\n",
+            encoding="utf-8",
+        )
+        assert run_guard(
+            root,
+            [sys.executable, str(checker_path)],
+            [
+                "PHASE1_INSTALLER_REVIEW_SURFACES=pass",
+                "PHASE1_INSTALLER_REVIEW_SURFACES_MARKER_COUNT=17",
+            ],
+        ) == []
+        cases += 1
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
     print(f"PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT={cases}")
@@ -638,6 +745,15 @@ def main() -> int:
         for item in missing_markers:
             print(item)
         print("MISSING_PHASE1_CLOSURE_MARKERS_END")
+        return 1
+
+    guard_issues = collect_guard_issues(root)
+    if guard_issues:
+        print("PHASE1_CLOSURE_VALIDATION=fail")
+        print("PHASE1_CLOSURE_GUARD_ISSUES_START")
+        for item in guard_issues:
+            print(item)
+        print("PHASE1_CLOSURE_GUARD_ISSUES_END")
         return 1
 
     print("PHASE1_CLOSURE_VALIDATION=pass")
