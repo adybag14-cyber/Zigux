@@ -56,7 +56,7 @@ test "phase4 test_fsmount gap manifest keeps the parked survey explicit" {
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
     try std.testing.expect(!manifest.shared_gate_evidence_packet_present);
     try std.testing.expectEqualStrings(
-        "zig test zigux/tests/phase4_test_fsmount_survey.zig",
+        "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
         manifest.validation_entrypoint,
     );
     try std.testing.expectEqual(@as(usize, 4), manifest.review_prompts.len);
@@ -132,4 +132,47 @@ test "phase4 test_fsmount gap survey note stays honest about the parked boundary
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.anchor_blob_sha) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.validation_entrypoint) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "claiming a shipped Zig starter") != null);
+}
+
+test "phase4 test_fsmount survey build replay stays aligned with the parked packet" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(note);
+
+    const phase4_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase4_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(phase4_build);
+
+    const required_build_markers = [_][]const u8{
+        "root_source_file = b.path(\"phase4_test_fsmount_survey.zig\")",
+        "name = \"phase4-test-fsmount-survey-tests\"",
+        "\"phase4-test-fsmount-survey\"",
+        "Run the dedicated Phase 4 test_fsmount gap survey without promoting a shipped Zig starter",
+    };
+
+    for (required_build_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, phase4_build, marker) != null);
+    }
+
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            note,
+            "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+        ) != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, note, "stays outside the shared gate-evidence packet") != null,
+    );
 }
