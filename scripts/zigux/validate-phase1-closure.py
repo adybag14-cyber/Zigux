@@ -95,7 +95,8 @@ EXPECTED_PHASE1_MANIFEST = json.loads(
       "scnprintf_truncation_anchor": "test \"bitmap scnprintf reports full length while truncating the buffer\"",
       "copy_alias_anchor": "test \"bitmap copy aliases preserve tail clearing and extension semantics\"",
       "copy_raw_alias_anchor": "test \"bitmap copy alias preserves raw source words without tail clearing\"",
-      "zero_bit_noop_anchor": "test \"bitmap zero-bit helpers stay explicit no-ops\""
+      "zero_bit_noop_anchor": "test \"bitmap zero-bit helpers stay explicit no-ops\"",
+      "linux_alias_anchor": "test \"bitmap Linux-style aliases mirror the primary helper surface\""
     },
     "tools/lib/find_bit.zig": {
       "helper_test_anchors": [
@@ -417,7 +418,7 @@ REQUIRED_PHASE1_WORKFLOW_MARKERS = [
 
 REQUIRED_BUILD_MARKERS = [
     ("build_phase1_bench_source_count", "phase1_bench.zig", 1),
-    ("build_phase1_bench_step_count", 'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");', 1),
+    ('const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");', 1),
 ]
 
 REQUIRED_LEDGER_MARKERS = [
@@ -425,38 +426,87 @@ REQUIRED_LEDGER_MARKERS = [
 ]
 
 REQUIRED_MAKEFILE_MARKERS = [
-    ("makefile_phase1_validate_target", "phase1-validate:", 1),
-    ("makefile_phase1_validate_inventory", "cd zigux && python3 ../scripts/zigux/validate-phase1.py", 1),
-    ("makefile_phase1_test_target", "phase1-test:", 1),
-    ("makefile_phase1_test_inventory", "cd zigux && ../.zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build test --build-file tests/build.zig", 1),
-    ("makefile_phase1_bench_target", "phase1-bench:", 1),
-    ("makefile_phase1_bench_inventory", "cd zigux && ../.zig-toolchain/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig build bench --build-file tests/build.zig -Doptimize=ReleaseSafe", 1),
-    ("makefile_phase1_bench_check_inventory", "cd zigux && python3 ../scripts/zigux/check-phase1-bench.py", 1),
     ("makefile_phase1_target", "phase1: phase1-validate phase1-test phase1-bench", 1),
+    (
+        "makefile_phase1_validate_inventory",
+        "phase1-validate: phase1-phase1-check phase1-closure phase1-parity phase1-installer-review-surfaces",
+        1,
+    ),
+    ("makefile_phase1_test_inventory", "phase1-test:", 1),
+    ("makefile_phase1_bench_inventory", "phase1-bench:", 1),
+    ("makefile_phase1_bench_check_inventory", "phase1-bench-check:", 1),
 ]
 
 REQUIRED_DOCS_ROOT_MARKERS = [
-    ("docs_root_phase1_manifest_count", "phase1_helper_manifest.json", 1),
-    ("docs_root_phase1_parity_gate_count", "python3 scripts/zigux/check-phase1-parity.py", 1),
-    ("docs_root_phase1_bench_check_count", "python3 scripts/zigux/check-phase1-bench.py", 1),
+    (
+        "docs_root_phase1_packet_count",
+        "Phase 1 notes\n  - `Documentation/zigux/phase1-closure.md`\n  - `scripts/zigux/README.md`\n  - `scripts/zigux/check-phase1-parity.py`\n  - `scripts/zigux/check-phase1-bench.py`\n  - `scripts/zigux/install-zig.py`\n  - `scripts/zigux/check-phase1-installer-review-surfaces.py`",
+        1,
+    ),
+    (
+        "docs_root_phase1_parity_gate_count",
+        "- `python3 scripts/zigux/check-phase1-parity.py` compares the committed helper manifest, shared replay commands, direct helper-local review anchors, and the parity fixture keys that stay owned by the shared Phase 1 replay.",
+        1,
+    ),
+    (
+        "docs_root_phase1_bench_check_count",
+        "- `python3 scripts/zigux/check-phase1-bench.py` checks the committed Phase 1 helper benchmark iteration counts and checksum environment variables before the benchmark smoke route is treated as closed.",
+        1,
+    ),
 ]
 
 REQUIRED_SCRIPTS_README_MARKERS = [
-    ("scripts_readme_phase1_parity_gate_count", "check-phase1-parity.py", 1),
-    ("scripts_readme_phase1_bench_check_count", "check-phase1-bench.py", 1),
-    ("scripts_readme_phase1_install_zig_count", "install-zig.py", 1),
+    (
+        "scripts_readme_phase1_packet_count",
+        "- `validate-phase1.py` validates the bounded Phase 1 helper closure packet, the shared helper manifest, and the direct helper-local review anchors that still remain parked outside the shared parity fixture.",
+        1,
+    ),
+    (
+        "scripts_readme_phase1_parity_gate_count",
+        "- `check-phase1-parity.py` compares the committed helper manifest, shared replay commands, direct helper-local review anchors, and the parity fixture keys that stay owned by the shared Phase 1 replay.",
+        1,
+    ),
+    (
+        "scripts_readme_phase1_bench_check_count",
+        "- `check-phase1-bench.py` checks the committed Phase 1 helper benchmark iteration counts and checksum environment variables before the benchmark smoke route is treated as closed.",
+        1,
+    ),
+    (
+        "scripts_readme_phase1_install_zig_count",
+        "- `install-zig.py` installs the pinned Zig toolchain used by the bootstrap workflow and Phase 1 helper replay routes, including checksum verification for the downloaded archive.",
+        1,
+    ),
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
-    ("tests_readme_phase1_helpers_count", "phase1_helpers.zig", 1),
-    ("tests_readme_phase1_bench_count", "phase1_bench.zig", 1),
-    ("tests_readme_phase1_manifest_count", "phase1_helper_manifest.json", 1),
-    ("tests_readme_phase1_bench_expectations_count", "phase1_bench_expectations.json", 1),
+    (
+        "tests_readme_phase1_helpers_count",
+        "- `phase1_helpers.zig` is the shared replay for the committed Phase 1 parity fixture plus the direct helper-local review anchors that remain bounded on current master.",
+        1,
+    ),
+    (
+        "tests_readme_phase1_bench_count",
+        "- `phase1_bench.zig` is the benchmark smoke route for the committed Phase 1 helper benchmark iteration counts and checksum environment variables.",
+        1,
+    ),
+    (
+        "tests_readme_phase1_manifest_count",
+        "- `fixtures/phase1_helper_manifest.json` records the committed Phase 1 helper manifest, the direct helper-local review anchors, and the shared parity fixture keys that stay owned by the shared replay.",
+        1,
+    ),
+    (
+        "tests_readme_phase1_bench_expectations_count",
+        "- `fixtures/phase1_bench_expectations.json` records the committed Phase 1 helper benchmark iteration counts and checksum environment variables checked by `scripts/zigux/check-phase1-bench.py`.",
+        1,
+    ),
 ]
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
-    ("review_checklist_phase1_closure_gate_count", "python3 scripts/zigux/validate-phase1-closure.py", 1),
-    ("review_checklist_phase1_manifest_count", "phase1_helper_manifest.json", 1),
+    (
+        "review_checklist_phase1_closure_gate_count",
+        "- [ ] Run `python3 scripts/zigux/validate-phase1-closure.py` after editing any Phase 1 helper packet, helper benchmark packet, workflow inventory, or review-anchor manifest entry so the closure note, workflow, Makefile, docs-root packet, tests packet, and review checklist stay exact-count aligned.",
+        1,
+    ),
 ]
 
 
@@ -466,12 +516,8 @@ def repo_root_from_arg(root_arg: str | None) -> Path:
     return DEFAULT_ROOT
 
 
-def load_text(root: Path, rel_path: str) -> str:
-    return (root / rel_path).read_text(encoding="utf-8")
-
-
-def collect_missing_files(root: Path) -> list[str]:
-    return [rel for rel in REQUIRED_FILES if not (root / rel).is_file()]
+def load_text(root: Path, relative: str) -> str:
+    return (root / relative).read_text(encoding="utf-8")
 
 
 def load_json_file(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -479,28 +525,40 @@ def load_json_file(path: Path, label: str) -> tuple[object | None, list[str]]:
         return json.loads(path.read_text(encoding="utf-8")), []
     except FileNotFoundError:
         return None, [f"{label}:missing_file"]
-    except json.JSONDecodeError:
-        return None, [f"{label}:invalid_json"]
+    except json.JSONDecodeError as exc:
+        return None, [f"{label}:json_decode:{exc.lineno}:{exc.colno}"]
+
+
+def count_occurrences(text: str, marker: str) -> int:
+    return text.count(marker)
+
+
+def collect_missing_files(root: Path) -> list[str]:
+    return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
+
+
+def extract_workflow_job(workflow_text: str, job_name: str) -> str:
+    marker = f"jobs:\n  {job_name}:\n"
+    start = workflow_text.find(marker)
+    if start == -1:
+        return ""
+    return workflow_text[start + len(marker) :]
 
 
 def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
     missing: list[str] = []
     for label, marker, expected in markers:
-        actual = text.count(marker)
+        actual = count_occurrences(text, marker)
         if actual != expected:
             missing.append(f"{label}:expected={expected}:actual={actual}")
     return missing
 
 
 def collect_exact_line_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
-    line_counts: dict[str, int] = {}
-    for line in text.splitlines():
-        stripped = line.strip()
-        line_counts[stripped] = line_counts.get(stripped, 0) + 1
-
+    text_lines = text.splitlines()
     missing: list[str] = []
     for label, marker, expected in markers:
-        actual = line_counts.get(marker, 0)
+        actual = sum(1 for line in text_lines if line.strip() == marker)
         if actual != expected:
             missing.append(f"{label}:expected={expected}:actual={actual}")
     return missing
@@ -508,47 +566,20 @@ def collect_exact_line_count_markers(text: str, markers: list[tuple[str, str, in
 
 def collect_workflow_markers(workflow_text: str) -> list[str]:
     missing: list[str] = []
-    if not WORKFLOW_INSTALL_ZIG_RE.search(workflow_text):
-        missing.append("workflow:install_zig_command")
     for marker in REQUIRED_WORKFLOW_MARKERS:
+        if marker == "python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain":
+            if WORKFLOW_INSTALL_ZIG_RE.search(workflow_text) is None:
+                missing.append(marker)
+            continue
         if marker not in workflow_text:
-            missing.append(f"workflow:{marker}")
+            missing.append(marker)
     return missing
-
-
-def extract_workflow_job(workflow_text: str, job_name: str) -> str:
-    lines = workflow_text.splitlines()
-    in_jobs = False
-    in_target = False
-    target_indent = 0
-    collected: list[str] = []
-
-    for line in lines:
-        stripped = line.strip()
-        indent = len(line) - len(line.lstrip(" "))
-
-        if not in_jobs:
-            if stripped == "jobs:":
-                in_jobs = True
-            continue
-
-        if not in_target:
-            if indent == 2 and stripped == f"{job_name}:":
-                in_target = True
-                target_indent = indent
-                collected.append(line)
-            continue
-
-        if indent <= target_indent and stripped and not stripped.startswith("#"):
-            break
-        collected.append(line)
-
-    return "\n".join(collected)
 
 
 def collect_manifest_review_anchor_markers(manifest: object) -> list[str]:
     if not isinstance(manifest, dict):
-        return ["manifest:json_object"]
+        return ["manifest:review_anchors=dict"]
+
     review_anchors = manifest.get("review_anchors")
     if not isinstance(review_anchors, dict):
         return ["manifest:review_anchors=dict"]
@@ -860,6 +891,18 @@ def run_self_test() -> None:
                 )
             )(load_manifest()),
             "manifest:missing_review_anchor_field=tools/lib/bitmap.zig:predicate_tail_mask_anchor",
+        )
+        self_test_case_count += 1
+
+        assert_missing_marker_case(
+            tmp_root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("linux_alias_anchor"),
+                    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8"),
+                )
+            )(load_manifest()),
+            "manifest:missing_review_anchor_field=tools/lib/bitmap.zig:linux_alias_anchor",
         )
         self_test_case_count += 1
 
