@@ -43,8 +43,27 @@
       ]
     },
     "bitmap": {
-      "evidence_status": "command_still_unapproved",
-      "acceptable_limit_status": "still_unapproved"
+      "evidence_status": "explicit_candidate_landed",
+      "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+      "acceptable_limit_status": "still_unapproved",
+      "deterministic_replays": [
+        {
+          "iterations": 1,
+          "checksum": 5216946504564592253,
+          "final_first_set": 0,
+          "final_first_zero": 109,
+          "final_weight": 1005,
+          "final_nth_seven": 123
+        },
+        {
+          "iterations": 4,
+          "checksum": 7942141539243507472,
+          "final_first_set": 0,
+          "final_first_zero": 109,
+          "final_weight": 1005,
+          "final_nth_seven": 123
+        }
+      ]
     }
   },
   "gaps": [
@@ -77,11 +96,18 @@
       "why_now": "Now that the local perf packet carries exact atomic64 benchmark-command evidence in structured form, the next bounded same-lane promotion can approve that replay command in the broader Phase 4 review packet only when the still-unapproved acceptable limit remains explicit and the shared validator-first packet does not widen by accident."
     },
     {
+      "id": "phase4-perf-baseline-bitmap-command-evidence",
+      "status": "starter_landed",
+      "kind": "survey_evidence",
+      "zigux_destination": "zigux/tests/phase4_perf_baseline_manifest.json",
+      "why_now": "The local perf-baseline packet now exact-pins the current bitmap benchmark-command candidate `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` plus the deterministic threshold replay evidence (`runThresholdReplay(1)` checksum `5216946504564592253` with final first-set `0`, final first-zero `109`, final weight `1005`, and final nth-seven `123`; `runThresholdReplay(4)` checksum `7942141539243507472` with the same final first-set, first-zero, weight, and nth-seven packet) without pretending that the acceptable limit is already approved or that shared CI owns the route."
+    },
+    {
       "id": "phase4-perf-baseline-bitmap-command",
       "status": "ready_next",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/bitmap_diff.zig",
-      "why_now": "With the atomic64 rollback gate now carrying explicit local command evidence, the bitmap rollback gate remains the other shipped surface whose benchmark command plus acceptable limit are still unapproved, so the next same-lane follow-through can stay bounded there if the atomic64 acceptable-limit work is not the narrower packet."
+      "why_now": "Now that the local perf packet exact-pins the bitmap benchmark-command candidate and deterministic replay evidence in structured form, the next same-lane follow-through can approve that replay command in the broader Phase 4 review packet only when the still-unapproved acceptable limit stays explicit and the shared validator-first packet does not widen by accident."
     }
   ]
 }
