@@ -406,3 +406,96 @@ test "phase12 virtio net syntax lab keeps recovery ownership planning reachable"
     try std.testing.expect(data_only_ownership.requires_fresh_probe_snapshot);
     try std.testing.expect(data_only_ownership.requires_post_restore_probe_replay);
 }
+
+test "phase12 virtio net syntax lab keeps mergeable buffer length planning reachable" {
+    var mergeable_lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_hash_report,
+    });
+    _ = try mergeable_lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_hash_report,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+    _ = try mergeable_lab.freezeForRecovery();
+
+    const observed_average = try mergeable_lab.planMergeableBufferLength(.{
+        .observed_average_packet_len_bytes = 1800,
+        .min_buf_len_bytes = 1024,
+    });
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", observed_average.anchor);
+    try std.testing.expectEqual(
+        virtio_net.MergeableBufferLengthSource.observed_average_packet,
+        observed_average.source,
+    );
+    try std.testing.expectEqual(@as(u16, 1800), observed_average.observed_average_packet_len_bytes);
+    try std.testing.expectEqual(@as(u16, 1024), observed_average.min_buf_len_bytes);
+    try std.testing.expectEqual(@as(u16, 0), observed_average.xdp_headroom_bytes);
+    try std.testing.expectEqual(@as(u16, 0), observed_average.tailroom_bytes);
+    try std.testing.expectEqual(@as(u16, 0), observed_average.room_bytes);
+    try std.testing.expectEqual(@as(u16, 4076), observed_average.payload_limit_bytes);
+    try std.testing.expectEqual(@as(u16, 1800), observed_average.selected_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 20), observed_average.hdr_len_bytes);
+    try std.testing.expectEqual(@as(u16, 1856), observed_average.submit_len_bytes);
+    try std.testing.expectEqual(@as(u16, 1856), observed_average.allocation_len_bytes);
+
+    const minimum_floor = try mergeable_lab.planMergeableBufferLength(.{
+        .observed_average_packet_len_bytes = 512,
+        .min_buf_len_bytes = 1024,
+    });
+    try std.testing.expectEqual(
+        virtio_net.MergeableBufferLengthSource.minimum_buffer_floor,
+        minimum_floor.source,
+    );
+    try std.testing.expectEqual(@as(u16, 1024), minimum_floor.selected_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 1088), minimum_floor.submit_len_bytes);
+    try std.testing.expectEqual(@as(u16, 1088), minimum_floor.allocation_len_bytes);
+
+    const page_size_cap = try mergeable_lab.planMergeableBufferLength(.{
+        .observed_average_packet_len_bytes = 5000,
+        .min_buf_len_bytes = 512,
+    });
+    try std.testing.expectEqual(
+        virtio_net.MergeableBufferLengthSource.page_size_cap,
+        page_size_cap.source,
+    );
+    try std.testing.expectEqual(@as(u16, 4076), page_size_cap.selected_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 4096), page_size_cap.submit_len_bytes);
+    try std.testing.expectEqual(@as(u16, 4096), page_size_cap.allocation_len_bytes);
+
+    const page_minus_room = try mergeable_lab.planMergeableBufferLength(.{
+        .observed_average_packet_len_bytes = 1800,
+        .min_buf_len_bytes = 1024,
+        .xdp_headroom_bytes = 192,
+    });
+    try std.testing.expectEqual(
+        virtio_net.MergeableBufferLengthSource.page_minus_room,
+        page_minus_room.source,
+    );
+    try std.testing.expectEqual(@as(u16, 192), page_minus_room.xdp_headroom_bytes);
+    try std.testing.expectEqual(@as(u16, 320), page_minus_room.tailroom_bytes);
+    try std.testing.expectEqual(@as(u16, 512), page_minus_room.room_bytes);
+    try std.testing.expectEqual(@as(u16, 4076), page_minus_room.payload_limit_bytes);
+    try std.testing.expectEqual(@as(u16, 3564), page_minus_room.selected_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 20), page_minus_room.hdr_len_bytes);
+    try std.testing.expectEqual(@as(u16, 3584), page_minus_room.submit_len_bytes);
+    try std.testing.expectEqual(@as(u16, 4096), page_minus_room.allocation_len_bytes);
+
+    var one_buffer_lab = try virtio_net.VirtioNetProbeLab.init(&.{});
+    _ = try one_buffer_lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{},
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+    _ = try one_buffer_lab.freezeForRecovery();
+    try std.testing.expectError(
+        error.ReceiveBufferModeNotMergeable,
+        one_buffer_lab.planMergeableBufferLength(.{
+            .observed_average_packet_len_bytes = 512,
+            .min_buf_len_bytes = 256,
+        }),
+    );
+}
