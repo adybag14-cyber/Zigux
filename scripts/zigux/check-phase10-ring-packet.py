@@ -487,7 +487,7 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:lane_key=P10-L07" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_lane_key_marker_missing")
-        manifest_path.writeText(original_manifest, encoding="utf-8")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
             original_manifest.replace('"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "drifted"', 1),
