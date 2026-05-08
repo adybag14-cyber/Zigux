@@ -36,6 +36,7 @@ Current bootstrap helpers
 - `check-artifact-diff-contract.py`
 - `validate-phase4.py`
 - `check-phase4-gate-evidence.py`
+- `check-phase4-artifact-diff-determinism.py`
 - `check-phase6-shared-surface.py`
 - `validate-phase7.py`
 - `check-phase7-make-wrapper.py`
