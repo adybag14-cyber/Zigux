@@ -41,9 +41,10 @@ SURVEY_MARKERS = [
 
 OWNERSHIP_MARKERS = [
     "`PHASE13_LANE_KEY=P13-L12`",
+    "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
     "matched-rule replacement planning",
     "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
-    "manifest, survey, slice, and test gate move together",
+    "ownership note, manifest, survey, slice, checker, and test gate all move together",
     "live-tree blocker",
 ]
 
@@ -67,7 +68,8 @@ BUILD_MARKERS = [
 TEST_MARKERS = [
     'try std.testing.expectEqualStrings("P13-L12", manifest.lane_key);',
     'try std.testing.expectEqualStrings("security/landlock/ruleset.c", manifest.anchor);',
-    'try std.testing.expect(std.mem.indexOf(u8, ownership_note, "PHASE13_LANE_KEY=P13-L12") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, ownership_note, "Documentation/zigux/phase13-landlock-ruleset-ownership.md") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, ownership_note, "ownership note, manifest, survey, slice, checker, and test gate all move together") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, ownership_note, "phase13_landlock_ruleset_manifest.json") != null);',
     'try std.testing.expect(descriptor.provides_rule_tree_replacement_planning);',
     'ruleset.RulesetHelperLab.planRuleTreeReplacement(',
@@ -237,9 +239,10 @@ def run_self_test() -> int:
             validate(root),
             [
                 "phase13-landlock-ruleset-ownership:`PHASE13_LANE_KEY=P13-L12`",
+                "phase13-landlock-ruleset-ownership:Documentation/zigux/phase13-landlock-ruleset-ownership.md",
                 "phase13-landlock-ruleset-ownership:matched-rule replacement planning",
                 "phase13-landlock-ruleset-ownership:scripts/zigux/check-phase13-landlock-ruleset-packet.py",
-                "phase13-landlock-ruleset-ownership:manifest, survey, slice, and test gate move together",
+                "phase13-landlock-ruleset-ownership:ownership note, manifest, survey, slice, checker, and test gate all move together",
             ],
             "ownership_guard_failed",
         )
