@@ -23,6 +23,7 @@ REQUIRED_FILES = [
 
 SLICE_MARKERS = [
     "devm_arch_phys_wc_add()",
+    "keep the `devm_iounmap()` pointer match exact",
     "device-tree walking",
     "live arch memtype reservation or removal side effects",
 ]
@@ -32,6 +33,7 @@ SURVEY_MARKERS = [
     "blocked `phase13-devres-live-dma-backed-helpers`",
     "blocked `phase13-devres-live-scatterlist-ownership`",
     "helper-only DMA/scatterlist boundary",
+    "keeps `devm_iounmap()` pointer matching exact",
     "devm_ioremap_uc()",
     "devm_ioremap_resource_wc()",
 ]
@@ -74,12 +76,16 @@ RELEASE_MARKERS = [
 
 DEVRES_HELPER_MARKERS = [
     "fail_pretty_name_allocation: bool = false,",
+    "pub fn ioremapReleaseMatches(tracked_address: usize, candidate_address: usize) bool {",
+    "return tracked_address == candidate_address;",
     "const reported_size = if (input.report_size) translated_size else null;",
     ".fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
 ]
 
 DEVRES_TEST_MARKERS = [
     'test "phase13 devres uncached ioremap wrapper preserves the managed lifetime path" {',
+    'test "phase13 devres release matching stays pointer-exact" {',
+    "try std.testing.expect(devres.DevresHelperLab.ioremapReleaseMatches(0x4000, 0x4000));",
     'test "phase13 devres WC resource wrapper preserves the requested WC mapping type" {',
     'test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning" {',
     "try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);",
@@ -220,6 +226,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                "phase13-devres-slice:keep the `devm_iounmap()` pointer match exact",
                 "phase13-devres-slice:device-tree walking",
                 "phase13-devres-slice:live arch memtype reservation or removal side effects",
             ],
@@ -235,6 +242,7 @@ def run_self_test() -> int:
                 "phase13-devres-survey:blocked `phase13-devres-live-dma-backed-helpers`",
                 "phase13-devres-survey:blocked `phase13-devres-live-scatterlist-ownership`",
                 "phase13-devres-survey:helper-only DMA/scatterlist boundary",
+                "phase13-devres-survey:keeps `devm_iounmap()` pointer matching exact",
                 "phase13-devres-survey:devm_ioremap_uc()",
                 "phase13-devres-survey:devm_ioremap_resource_wc()",
             ],
@@ -247,6 +255,8 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                "devres-helper:pub fn ioremapReleaseMatches(tracked_address: usize, candidate_address: usize) bool {",
+                "devres-helper:return tracked_address == candidate_address;",
                 "devres-helper:const reported_size = if (input.report_size) translated_size else null;",
                 "devres-helper:.fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
             ],
@@ -282,6 +292,8 @@ def run_self_test() -> int:
             validate(root),
             [
                 'phase13-devres-test:test "phase13 devres uncached ioremap wrapper preserves the managed lifetime path" {',
+                'phase13-devres-test:test "phase13 devres release matching stays pointer-exact" {',
+                "phase13-devres-test:try std.testing.expect(devres.DevresHelperLab.ioremapReleaseMatches(0x4000, 0x4000));",
                 'phase13-devres-test:test "phase13 devres WC resource wrapper preserves the requested WC mapping type" {',
                 "phase13-devres-test:try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);",
                 "phase13-devres-test:try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);",
