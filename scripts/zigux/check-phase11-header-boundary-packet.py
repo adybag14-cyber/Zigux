@@ -76,8 +76,11 @@ REQUIRED_NOTE_MARKERS = [
     "phase11-dw-wdt-watchdog-header-boundary",
     "phase11-dw-wdt-watchdog-info-layout-assert",
     "phase11-hvc-console-winsize-layout-assert",
+    "phase11-hvc-console-header-constant-assert",
     "phase11-hvc-console-export-signature-assert",
     "phase11-uapi-header-parity-surface",
+    "MAX_NR_HVC_CONSOLES",
+    "HVC_ALLOC_TTY_ADAPTERS",
     "notifier_hangup_irq",
     "dedicated `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` step",
     "rather than the shared `test` step",
@@ -134,6 +137,8 @@ REQUIRED_CONTRACT_MARKERS = [
 ]
 
 REQUIRED_HVC_HEADER_MARKERS = [
+    "#define MAX_NR_HVC_CONSOLES\t16",
+    "#define HVC_ALLOC_TTY_ADAPTERS\t8",
     "extern int hvc_instantiate(uint32_t vtermno, int index,",
     "extern struct hvc_struct * hvc_alloc(uint32_t vtermno, int data,",
     "extern void hvc_remove(struct hvc_struct *hp);",
@@ -305,6 +310,13 @@ def run_self_test() -> int:
         expect_failure(
             root,
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+            "phase11-hvc-console-header-constant-assert",
+            "phase11-hvc-console-header-constant-proof",
+            "note missing markers",
+        )
+        expect_failure(
+            root,
+            "Documentation/zigux/phase11-uapi-header-parity-survey.md",
             "rather than the shared `test` step",
             "through the shared test step",
             "note missing markers",
@@ -315,6 +327,13 @@ def run_self_test() -> int:
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
             "zigux/tests/phase11_header_packet_absent.zig",
             "contract missing markers",
+        )
+        expect_failure(
+            root,
+            "drivers/tty/hvc/hvc_console.h",
+            "#define HVC_ALLOC_TTY_ADAPTERS\t8",
+            "#define HVC_ALLOC_TTY_ADAPTERS\t4",
+            "hvc_header missing markers",
         )
         expect_failure(
             root,
@@ -352,7 +371,7 @@ def run_self_test() -> int:
             "survey missing markers",
         )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=10")
+    print("phase11-header-boundary-packet: self-test cases=11")
     return 0
 
 
