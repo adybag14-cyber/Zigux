@@ -24,7 +24,7 @@ That same parked command-boundary packet now also sits inside the shared Phase 8
 
 The live helper already carries the low-level trailing-colon `PATH` edge, rooted `argv[0]` slash-avoidance edge, logical-`PWD` alias acceptance proof, the `collectExeclArgs()` overflow and missing-null guards, and the integrated `planDeferredExecvCall()` plus `planDeferredExeclCall()` planner packet in its own unit tests. The focused Phase 8 replay stays on that integrated deferred-exec packet, live C helper anchors, checklist hook, and validator route instead of restaging every helper-local edge.
 
-That validator-first coverage still needs a strict boundary. This Phase 8 slice stops before any ownership of `execv_cmd()` or `execvp()`, avoids scheduler-facing transport or queue claims, and leaves `kernel/workqueue.c` in the later Phase 14 boundary-study tranche rather than treating this tooling helper as an early workqueue port.
+That validator-first coverage still needs a strict boundary. This Phase 8 slice stops before any ownership of `execv_cmd()` or `execvp()`, avoids scheduler-facing transport or queue claims, and leaves `kernel/workqueue.c` in the later Phase 14 boundary-study tranche rather than treating this tooling helper as an early workqueue port. When that later lane reopens, the roadmap still keeps the first Zigux-owned move on the study-only `kernel/workqueue_bridge.zig` path instead of a direct `kernel/workqueue.c` rewrite.
 
 The same deferred boundary also stops before any ownership of `execl_cmd()`: the parked `collectExeclArgs()` and `buildDeferredExeclCall()` helpers keep argv-handoff planning reviewable without claiming the direct varargs launch path or any broader deferred queue execution surface.
 
