@@ -165,6 +165,23 @@ test "runtime loader facade preserves shared runtime lifecycle failures" {
     };
     try std.testing.expectError(error.InvalidInitFlow, prepareRequest(duplicate_init));
 
+    const duplicate_selftest = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 2,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expectError(error.InvalidInitFlow, prepareRequest(duplicate_selftest));
+
     const exited_plan = LoadPlan{
         .module_name = "runtime_bitmap",
         .anchor = "lib/test_bitmap.c",
