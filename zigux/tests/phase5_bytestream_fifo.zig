@@ -130,6 +130,12 @@ test "phase 5 bytestream fifo sample makes preview truncation and lifetime bound
     try std.testing.expect(preview_replay.preview_truncated);
     try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, preview_replay.preview_prefix[0..]);
     try std.testing.expectEqual(@as(usize, 10), preview_replay.queue_len_after_preview);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 10), preview_replay.available_after_preview);
+    try std.testing.expect(!preview_replay.wrapped_window_after_preview);
+    try std.testing.expectEqual(@as(usize, 10), preview_replay.visible_spans_after_preview.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), preview_replay.visible_spans_after_preview.second_span_len);
+    try std.testing.expectEqual(@as(usize, 10), preview_replay.visible_spans_after_preview.total_visible);
+    try std.testing.expect(!preview_replay.visible_spans_after_preview.wrapped);
     try std.testing.expectEqual(@as(usize, 3), preview_replay.checked_focus.len);
     try std.testing.expectEqual(sample.SampleFocus.wraparound_requeue, preview_replay.checked_focus[0]);
     try std.testing.expectEqual(sample.SampleFocus.non_destructive_snapshot, preview_replay.checked_focus[1]);
