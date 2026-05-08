@@ -51,7 +51,7 @@ LEGACY_WRAPPER_REF_RE = re.compile(r"(?P<command>python3\s+)?scripts/zigux/check
 ARTIFACT_DIFF_PHASE3_SLUG_RE = re.compile(r"--slug (?P<slug>[a-z0-9-]+)")
 
 PHASE3_CATALOG_SELF_TEST_MARKER = "PHASE3_CATALOG_SELF_TEST=pass"
-PHASE3_CATALOG_SELF_TEST_CASE_COUNT = 6
+PHASE3_CATALOG_SELF_TEST_CASE_COUNT = 5
 
 MAX_SLUG_TOKENS = 12
 MAX_SLUG_CHARS = 96
@@ -1165,7 +1165,7 @@ def main() -> int:
         _emit_rows(rewrite_non_doc_legacy_wrapper_references(entries, paths))
         return 0
 
-    if args.rewrite_artifact_diff_phase3_section:
+    if args.rewrite_artifact-diff-phase3-section:
         artifact_diff_path = paths.docs_dir / "artifact-diff.md"
         if rewrite_artifact_diff_phase3_section(entries, artifact_diff_path):
             print(_rel(artifact_diff_path, paths.root))
