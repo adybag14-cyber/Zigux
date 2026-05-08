@@ -28,6 +28,7 @@ EXPECTED_SURVEY_SUMMARY = {
     "shared_phase11_header_survey_present": True,
     "watchdog_info_layout_assert_present": True,
     "winsize_layout_assert_present": True,
+    "hvc_header_constants_checked": True,
     "hvc_export_surface_checked": True,
 }
 
@@ -61,6 +62,12 @@ REQUIRED_GAP_SPECS = {
         "kind": "header_layout",
         "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
         "why_now_contains": "size 8, alignment 2",
+    },
+    "phase11-hvc-console-header-constant-assert": {
+        "status": "starter_landed",
+        "kind": "header_constants",
+        "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+        "why_now_contains": "MAX_NR_HVC_CONSOLES and HVC_ALLOC_TTY_ADAPTERS",
     },
     "phase11-hvc-console-export-signature-assert": {
         "status": "starter_landed",
@@ -96,6 +103,7 @@ REQUIRED_SURVEY_MARKERS = [
     "phase11 shared header parity survey keeps a bounded winsize layout proof",
     "phase11 shared header parity survey keeps the note pinned to the manifest provenance",
     "phase11 shared header parity survey keeps shared replay markers explicit without a missing inventory fixture",
+    "phase11 shared header parity survey keeps the hvc header constants explicit",
     "phase11 shared header parity survey keeps the exported hvc header declarations explicit",
     "phase11 shared header parity survey keeps the shared build hook explicit",
     "layout_assert.assertSize(WatchdogInfo, 40);",
@@ -116,6 +124,8 @@ REQUIRED_SURVEY_MARKERS = [
     'layout_assert.assertOffset(WinSize, "ws_col", 2);',
     'layout_assert.assertOffset(WinSize, "ws_xpixel", 4);',
     'layout_assert.assertOffset(WinSize, "ws_ypixel", 6);',
+    'try expectContains(hvc_header, "#define MAX_NR_HVC_CONSOLES\\t16");',
+    'try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS\\t8");',
 ]
 
 REQUIRED_BUILD_MARKERS = [
@@ -370,8 +380,15 @@ def run_self_test() -> int:
             'layout_assert.assertFieldType(WinSize, "ws_ypixel", u32);',
             "survey missing markers",
         )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            'try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS\\t8");',
+            'try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS\\t4");',
+            "survey missing markers",
+        )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=11")
+    print("phase11-header-boundary-packet: self-test cases=12")
     return 0
 
 
