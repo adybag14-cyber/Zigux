@@ -148,6 +148,9 @@ REQUIRED_MARKERS = {
         "lib/rbtree.zig",
         "zigux/tests/phase7_rbtree.zig",
         "zigux/tests/phase7_rbtree_survey.zig",
+        "zigux/tests/phase7_rbtree_manifest.json",
+        "zigux/tests/fixtures/phase7_rbtree.json",
+        "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
         "scripts/zigux/check-phase7-rbtree-parity.py",
     ],
     "scripts/zigux/README.md": [
@@ -376,6 +379,9 @@ EXACT_COUNT_MARKERS = {
         ("current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;", 1),
         ("scripts/zigux/check-phase7-argv-split-packet.py", 1),
         ("current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;", 1),
+        ("zigux/tests/phase7_rbtree_manifest.json", 1),
+        ("zigux/tests/fixtures/phase7_rbtree.json", 1),
+        ("zigux/tests/fixtures/phase7_rbtree_c_harness.c", 1),
         ("scripts/zigux/check-phase7-rbtree-parity.py", 1),
     ],
     "scripts/zigux/README.md": [
