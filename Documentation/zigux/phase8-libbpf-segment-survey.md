@@ -110,6 +110,9 @@ The current tests check:
 - bounded perf-buffer buffer-fd slot lookups keep valid descriptors plus invalid-index and missing-buffer-fd errno returns explicit
 - bounded perf-buffer buffer-window lookups keep valid buffer windows, invalid indices, and missing-buffer errno returns explicit while preserving the caller-provided mmap size
 - ready-buffer processing attempts cannot exceed observed ready events
+- ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch
+- non-ready wait observations cannot claim record processing
+- the final perf-buffer return-path choice stays explicit across success, wait-error, and processing-failure summaries
 
 ## Gates
 1. run the shared Phase 8 validator route first
