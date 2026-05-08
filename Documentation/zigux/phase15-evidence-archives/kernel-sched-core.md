@@ -20,12 +20,14 @@ This template reserves the Architecture Council packet path named by the Phase 1
 
 - lane owner: `Architecture Council`
 - rollback owner: `Architecture Council + PMO / Release Management`
+- required approver set: `Architecture Council + PMO / Release Management + Validation and Perf Team`
 
 ## Validation Gate Summary
 
 - validation gate summary: `phase15 scorecard replay remains the current bounded gate`
 - benchmark notes: `pending_until_bounded_scheduler_seam_exists`
 - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
+- rollback threshold: `return to blocked_no_bounded_scheduler_seam if the seam inventory, validation plan, or linked evidence is weak, stale, or contradictory`
 
 ## Linked Evidence
 
