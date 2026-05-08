@@ -116,6 +116,11 @@ REQUIRED_SCRIPT_README_MARKERS = [
 REQUIRED_TESTS_README_MARKERS = [
     "keep the shared-versus-dedicated Phase 11 simple-driver packet explicit in the tests root too:",
     "`Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `zig build test --build-file zigux/tests/phase11_build.zig --summary all`, and `make -C zigux phase11` should continue to keep the shipped shared replay route, the focused shared header-boundary packet, the dedicated `hvc_console` archival survey note and replay, the bounded `hvc_cleanup()` teardown handoff, and the four driver-local validation matrices reviewable from the tests root without implying a removed `validate-phase11.py`, a shipped `zigux/tests/fixtures/phase11_build_inventory.json`, or a broader checker-script packet than the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` archival route plus the shipped `check-phase11-shared-replay-contract.py` and `check-phase11-header-boundary-packet.py` routes on `master`",
+    "`Documentation/zigux/phase11-closure-note.md`",
+    "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+    "`zigux/tests/phase11_hvc_console_manifest.json`",
+    "`make -C zigux phase11-hvc-survey`",
 ]
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "* if the change touches the shared Phase 11 simple-driver packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/README.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `zig build test --build-file zigux/tests/phase11_build.zig --summary all`, `make -C zigux phase11`, and `make -C zigux phase11-hvc-survey` still agree on the same shared-versus-dedicated replay split, the focused header-boundary note plus manifest-backed survey packet, the four driver-local validation matrices, the bounded `hvc_cleanup()` teardown handoff, and the dedicated archival `hvc_console` survey plus checker-backed replay route without implying a removed `validate-phase11.py`, missing build-inventory fixture, or a broader validator stack than the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` archival route plus the shipped `check-phase11-shared-replay-contract.py` and `check-phase11-header-boundary-packet.py` routes on `master`?",
@@ -151,7 +156,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 44
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 49
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -186,6 +191,11 @@ SELF_TEST_CASES = [
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
     (TESTS_README_PATH, "tests_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_TESTS_README_MARKERS[1]),
     (TESTS_README_PATH, "tests_readme", "`Documentation/zigux/phase11-driver-lane-sequencing.md`, ", REQUIRED_TESTS_README_MARKERS[1]),
+    (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[2], REQUIRED_TESTS_README_MARKERS[2]),
+    (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[3], REQUIRED_TESTS_README_MARKERS[3]),
+    (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[4], REQUIRED_TESTS_README_MARKERS[4]),
+    (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[5], REQUIRED_TESTS_README_MARKERS[5]),
+    (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[6], REQUIRED_TESTS_README_MARKERS[6]),
     (REVIEW_CHECKLIST_PATH, "review_checklist", "`Documentation/zigux/phase11-driver-lane-sequencing.md`, ", REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
     (REVIEW_CHECKLIST_PATH, "review_checklist", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
     (REVIEW_CHECKLIST_PATH, "review_checklist", "`zigux/tests/phase11_hvc_console_manifest.json`, ", REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
