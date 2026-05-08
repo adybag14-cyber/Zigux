@@ -456,6 +456,32 @@ test "phase 9 runtime loader allocator/init-flow replay rejects missing-init, pr
     try std.testing.expectError(error.InvalidSelftestHookEvidence, runtime_loader.prepareRequest(incomplete_plan));
 }
 
+test "phase 9 runtime loader allocator/init-flow replay rejects direct approved-pilot-family drift" {
+    const stable_bitmap = makePlan("runtime_bitmap", "lib/test_bitmap.c", "zigux_runtime_bitmap_init", "zigux_runtime_bitmap_exit", .arena, .{ .handoff_stage = .initialized, .init_runs = 1, .selftest_runs = 0, .exit_runs = 0 });
+
+    var drifted_module = stable_bitmap;
+    drifted_module.module_name = "runtime_bitmap_drift";
+    try std.testing.expect(!runtime_loader.keepsApprovedPilotFamilyContract(drifted_module));
+    try std.testing.expectError(error.InvalidPilotFamilyContract, runtime_loader.prepareRequest(drifted_module));
+
+    var drifted_anchor = stable_bitmap;
+    drifted_anchor.anchor = "lib/test_bitmap_drift.c";
+    try std.testing.expect(!runtime_loader.keepsApprovedPilotFamilyContract(drifted_anchor));
+    try std.testing.expectError(error.InvalidPilotFamilyContract, runtime_loader.prepareRequest(drifted_anchor));
+
+    const stable_trace_events = makePlan("runtime_trace_events", "samples/trace_events/trace-events-sample.c", "zigux_runtime_trace_events_init", "zigux_runtime_trace_events_exit", .caller_provided, .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 });
+
+    var drifted_entry_symbol = stable_trace_events;
+    drifted_entry_symbol.entry_symbol = "zigux_runtime_trace_events_init_drift";
+    try std.testing.expect(!runtime_loader.keepsApprovedPilotFamilyContract(drifted_entry_symbol));
+    try std.testing.expectError(error.InvalidPilotFamilyContract, runtime_loader.prepareRequest(drifted_entry_symbol));
+
+    var drifted_exit_symbol = stable_trace_events;
+    drifted_exit_symbol.exit_symbol = "zigux_runtime_trace_events_exit_drift";
+    try std.testing.expect(!runtime_loader.keepsApprovedPilotFamilyContract(drifted_exit_symbol));
+    try std.testing.expectError(error.InvalidPilotFamilyContract, runtime_loader.prepareRequest(drifted_exit_symbol));
+}
+
 test "phase 9 runtime loader allocator/init-flow replay rejects selftest-hook evidence drift" {
     var missing_hook_after_selftest = makePlan("runtime_trace_events", "samples/trace_events/trace-events-sample.c", "zigux_runtime_trace_events_init", "zigux_runtime_trace_events_exit", .caller_provided, .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 });
     missing_hook_after_selftest.provides_selftest_hook = false;
