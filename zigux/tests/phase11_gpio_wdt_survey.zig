@@ -328,6 +328,7 @@ test "phase11 gpio_wdt module-slice note stays wired into the review packet" {
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "gpio_wdt_lab") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "descriptorPreflightSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "timeoutPropertyCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "platformDrvdataCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "drvdataCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "registerDeviceCallSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "watchdog_set_drvdata()") != null);
