@@ -7,7 +7,12 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parent
+def resolve_root(script_path: Path) -> Path:
+    resolved = script_path.resolve()
+    return resolved.parents[2] if len(resolved.parents) > 2 else Path.cwd()
+
+
+ROOT = resolve_root(Path(__file__))
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase13-landlock-ruleset-slice.md",
@@ -202,6 +207,15 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         assert_only(validate(root), [], "baseline_failed")
+        case_count += 1
+
+        synthetic_script_path = root / "scripts/zigux/check-phase13-landlock-ruleset-packet.py"
+        synthetic_script_path.parent.mkdir(parents=True, exist_ok=True)
+        assert_only(
+            [str(resolve_root(synthetic_script_path))],
+            [str(root)],
+            "root_resolution_guard_failed",
+        )
         case_count += 1
 
         write_text(root / "Documentation/zigux/phase13-landlock-ruleset-survey.md", "`PHASE13_LANE_KEY=P13-L12`\n")
