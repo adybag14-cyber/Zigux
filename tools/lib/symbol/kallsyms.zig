@@ -548,4 +548,19 @@ test "reader, path, and callback wrappers preserve raw carriage returns before n
     try std.testing.expectEqual(@as(usize, 2), callback_state.names.items.len);
     try std.testing.expectEqualStrings("startup_64\r", callback_state.names.items[0]);
     try std.testing.expectEqualStrings("weak_tail", callback_state.names.items[1]);
+
+    var parse_state = CallbackFixture.init();
+    defer parse_state.deinit(std.testing.allocator);
+    const parse_result = try kallsymsParse(
+        std.testing.allocator,
+        io,
+        temp_dir.dir,
+        "kallsyms.map",
+        &parse_state,
+        CallbackFixture.collect,
+    );
+    try std.testing.expectEqual(@as(i32, 23), parse_result);
+    try std.testing.expectEqual(@as(usize, 2), parse_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64\r", parse_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_tail", parse_state.names.items[1]);
 }
