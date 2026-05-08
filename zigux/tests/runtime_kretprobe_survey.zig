@@ -208,6 +208,8 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(module_slice_doc, "Roadmap gap vs current pilot");
     try expectContains(module_slice_doc, "starter_landed_without_loadable_runtime_substrate");
     try expectContains(module_slice_doc, "loadable Phase 9 runtime kretprobe pilot module parity");
+    try expectContains(module_slice_doc, "make -C zigux phase9-runtime-loader-shared-tests");
+    try expectContains(module_slice_doc, "make -C zigux phase9-runtime-kretprobe-test");
 
     try expectContains(loader_source, "error.OutstandingProbeStateForLoader");
     try expectContains(loader_source, "summary.active_instances != 0 or summary.entry_timestamp_armed");
