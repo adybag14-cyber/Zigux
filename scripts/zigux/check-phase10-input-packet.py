@@ -169,6 +169,8 @@ EXPECTED_SURVEY_TEST_MARKERS = [
 EXPECTED_SLICE_MARKERS = [
     "wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay",
     "drivers/virtio/virtio_input_verify.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "focused queue-callback-preflight replay",
     "bounded status-completion drain summaries",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "transport-backed probe, remove, freeze, restore, or reset paths",
@@ -176,6 +178,8 @@ EXPECTED_SLICE_MARKERS = [
 
 EXPECTED_MODULE_MARKERS = [
     "drivers/virtio/virtio_input_verify.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "dedicated queue-callback-preflight replay",
     "bounded status-drain helper",
     "reclaims queued status completions in memory",
     "queue callbacks",
