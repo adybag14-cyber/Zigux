@@ -399,6 +399,9 @@ test "nvme pci recovery replay keeps combined stale metadata and queue reservati
 
 test "nvme pci recovery replay carries multi-page PRP descriptor DMA through reset" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    const descriptor = nvme_pci.NvmePciQueueLab.descriptor();
+    try testing.expect(descriptor.provides_prp_shape_helper);
+    try testing.expect(descriptor.provides_prp_metadata_helper);
     _ = try lab.planAdminQueue(32, 64, false);
     const metadata = try lab.planPrpMetadata(4096 * 515, 0);
     try testing.expectEqual(@as(u16, 2), metadata.prp_list_pages);
