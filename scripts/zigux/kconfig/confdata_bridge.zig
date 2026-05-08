@@ -267,11 +267,11 @@ pub fn main(init: std.process.Init) !void {
 test "confdata bridge parses bounded config states" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA=y
-        \\CONFIG_BETA=m
-        \\CONFIG_COUNT=7
-        \\CONFIG_NAME="zigux"
-        \\# CONFIG_DEBUG is not set
+        \\\CONFIG_ALPHA=y
+        \\\CONFIG_BETA=m
+        \\\CONFIG_COUNT=7
+        \\\CONFIG_NAME=\"zigux\"
+        \\\# CONFIG_DEBUG is not set
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -317,8 +317,8 @@ test "confdata bridge emits bounded json output" {
     defer capture.deinit();
 
     try runConfdataBridge(std.testing.allocator,
-        \\CONFIG_ALPHA=y
-        \\# CONFIG_DEBUG is not set
+        \\\CONFIG_ALPHA=y
+        \\\# CONFIG_DEBUG is not set
         \\
     , &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"set\":1") != null);
@@ -329,9 +329,9 @@ test "confdata bridge emits bounded json output" {
 test "confdata bridge decodes escaped quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_BANNER="zigux \"bridge\""
-        \\CONFIG_PATH="drivers\\zigux"
-        \\CONFIG_SUFFIX="zigux"tail
+        \\\CONFIG_BANNER=\"zigux \\\"bridge\\\"\"
+        \\\CONFIG_PATH=\"drivers\\\\zigux\"
+        \\\CONFIG_SUFFIX=\"zigux\"tail
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -347,7 +347,7 @@ test "confdata bridge decodes escaped quoted strings" {
 test "confdata bridge strips backslashes from escaped control sequences like upstream confdata" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_TEXT="line\nindent\tmark\bslot\fform\rend"
+        \\\CONFIG_TEXT=\"line\\nindent\\tmark\\bslot\\fform\\rend\"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -436,10 +436,10 @@ test "confdata bridge ignores unterminated unset comment with trailing carriage 
 test "confdata bridge keeps explicit n assignments as tristate values" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA=y
-        \\CONFIG_ALPHA=n
-        \\CONFIG_BETA=y
-        \\# CONFIG_BETA is not set
+        \\\CONFIG_ALPHA=y
+        \\\CONFIG_ALPHA=n
+        \\\CONFIG_BETA=y
+        \\\# CONFIG_BETA is not set
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -456,9 +456,9 @@ test "confdata bridge keeps explicit n assignments as tristate values" {
 test "confdata bridge recognizes uppercase tristate assignments" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA=Y
-        \\CONFIG_BETA=M
-        \\CONFIG_DEBUG=N
+        \\\CONFIG_ALPHA=Y
+        \\\CONFIG_BETA=M
+        \\\CONFIG_DEBUG=N
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -477,10 +477,10 @@ test "confdata bridge recognizes uppercase tristate assignments" {
 test "confdata bridge ignores non-CONFIG lines like upstream confdata" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA=y
-        \\BROKEN_ENTRY=1
-        \\# BROKEN_DEBUG is not set
-        \\not-even-kconfig
+        \\\CONFIG_ALPHA=y
+        \\\BROKEN_ENTRY=1
+        \\\# BROKEN_DEBUG is not set
+        \\\not-even-kconfig
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -495,9 +495,9 @@ test "confdata bridge ignores non-CONFIG lines like upstream confdata" {
 test "confdata bridge ignores empty CONFIG symbol names" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_=y
-        \\# CONFIG_ is not set
-        \\CONFIG_VALID=m
+        \\\CONFIG_=y
+        \\\# CONFIG_ is not set
+        \\\CONFIG_VALID=m
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -611,9 +611,9 @@ test "confdata bridge emits no entries for empty CONFIG symbol names" {
     defer capture.deinit();
 
     try runConfdataBridge(std.testing.allocator,
-        \\CONFIG_=y
-        \\# CONFIG_ is not set
-        \\CONFIG_VALID=m
+        \\\CONFIG_=y
+        \\\# CONFIG_ is not set
+        \\\CONFIG_VALID=m
         \\
     , &capture);
 
@@ -626,10 +626,10 @@ test "confdata bridge emits no entries for empty CONFIG symbol names" {
 test "confdata bridge keeps only the last assignment for duplicate symbols" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA=y
-        \\CONFIG_BETA=7
-        \\CONFIG_ALPHA="final"
-        \\CONFIG_BETA=m
+        \\\CONFIG_ALPHA=y
+        \\\CONFIG_BETA=7
+        \\\CONFIG_ALPHA=\"final\"
+        \\\CONFIG_BETA=m
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -643,4 +643,27 @@ test "confdata bridge keeps only the last assignment for duplicate symbols" {
     try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[1].name);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
     try std.testing.expectEqualStrings("m", summary.entries[1].value);
+}
+
+test "confdata bridge keeps only the last state across unset and set transitions" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\\# CONFIG_ALPHA is not set
+        \\\CONFIG_ALPHA=\"enabled\"
+        \\\CONFIG_BETA=m
+        \\\# CONFIG_BETA is not set
+        \\\CONFIG_BETA=7
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("enabled", summary.entries[0].value);
+    try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[1].name);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("7", summary.entries[1].value);
 }
