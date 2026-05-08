@@ -87,7 +87,9 @@
         "test \"single-word next scans honor start masks\"",
         "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
         "test \"zero-bit windows return without reading bitmap words\"",
+        "test \"zero-sized scans ignore populated backing words\"",
         "test \"next scans past nbits return without reading bitmap words\"",
+        "test \"tail-word next set scans skip earlier in-range matches before clamping\"",
         "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
         "test \"low-level underscore aliases mirror the primary find helpers\""
       ],
@@ -107,7 +109,7 @@
         "tail_clamped_last",
         "tail_clamped_empty_last"
       ],
-      "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, inclusive-boundary, zero-window, past-nbits, tail-word skip, and underscore-alias behavior review-visible on current master"
+      "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, and underscore-alias behavior review-visible on current master"
     },
     "tools/lib/rbtree.zig": {
       "helper_test_anchors": [
