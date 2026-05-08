@@ -413,6 +413,64 @@ test "kretprobe sample preserves failed-exit state until the active probe drains
     try std.testing.expect(!exited_summary.entry_timestamp_armed);
 }
 
+test "kretprobe sample preserves selftest-ready timestamp-order failure state until the active probe recovers" {
+    var module = RuntimeKretprobeSample{};
+    try module.init();
+
+    const selftest_summary = try module.runSelftest();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqualStrings(RuntimeKretprobeSample.default_symbol_name, selftest_summary.symbol_name);
+    try std.testing.expectEqual(@as(usize, 42), selftest_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), selftest_summary.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.nmissed);
+
+    try std.testing.expect(try module.entryHandler(true, 400));
+
+    const before_failed_return = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), before_failed_return.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_return.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_return.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), before_failed_return.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), before_failed_return.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_return.selftest_runs);
+    try std.testing.expect(before_failed_return.entry_timestamp_armed);
+
+    try std.testing.expectError(error.InvalidTimestampOrder, module.retHandler(7, 399));
+
+    const after_failed_return = module.summary();
+    try std.testing.expectEqualStrings(before_failed_return.symbol_name, after_failed_return.symbol_name);
+    try std.testing.expectEqual(before_failed_return.maxactive, after_failed_return.maxactive);
+    try std.testing.expectEqual(before_failed_return.active_instances, after_failed_return.active_instances);
+    try std.testing.expectEqual(before_failed_return.skipped_kernel_threads, after_failed_return.skipped_kernel_threads);
+    try std.testing.expectEqual(before_failed_return.nmissed, after_failed_return.nmissed);
+    try std.testing.expectEqual(before_failed_return.last_retval, after_failed_return.last_retval);
+    try std.testing.expectEqual(before_failed_return.last_duration_ns, after_failed_return.last_duration_ns);
+    try std.testing.expectEqual(before_failed_return.selftest_runs, after_failed_return.selftest_runs);
+    try std.testing.expectEqual(before_failed_return.entry_timestamp_armed, after_failed_return.entry_timestamp_armed);
+
+    const recovered = try module.retHandler(7, 455);
+    try std.testing.expectEqual(@as(usize, 7), recovered.retval);
+    try std.testing.expectEqual(@as(i64, 55), recovered.duration_ns);
+
+    const after_recovery = module.summary();
+    try std.testing.expectEqual(@as(usize, 0), after_recovery.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), after_recovery.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), after_recovery.nmissed);
+    try std.testing.expectEqual(@as(usize, 7), after_recovery.last_retval);
+    try std.testing.expectEqual(@as(i64, 55), after_recovery.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), after_recovery.selftest_runs);
+    try std.testing.expect(!after_recovery.entry_timestamp_armed);
+
+    const exit_report = try module.exit();
+    try std.testing.expectEqualStrings(RuntimeKretprobeSample.default_symbol_name, exit_report.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.missed_instances);
+    try std.testing.expectEqual(@as(usize, 7), exit_report.last_retval);
+    try std.testing.expectEqual(@as(i64, 55), exit_report.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.selftest_runs);
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+}
+
 test "kretprobe sample keeps per-instance entry stamps distinct across overlapping probes" {
     var module = RuntimeKretprobeSample{ .maxactive = 2 };
     try module.init();
