@@ -63,6 +63,8 @@ This keeps the survey honest about the difference between the shipped in-memory 
 
 The current direct bitmap sample contract is verified through these exact checks:
 
+This bounded packet summary intentionally includes the directly coupled module, diff, loader, and top-bit companion checks alongside the sample-local checks, because the runtime bitmap family is reviewed as one Phase 9 packet rather than as a sample-only surface.
+
 - summary stability: initializing bits `0`, `5`, `64`, and `70` still yields `first_set=0`, `first_zero=1`, `weight=4`, and `nbits=128`
 - descriptor contract: the sample still advertises `name=runtime_bitmap`, `anchor=lib/test_bitmap.c`, `requires_runtime_substrate=true`, and `provides_selftest_hook=true`
 - lifecycle and mutation path: the sample still starts cold, rejects selftest before init, records one init run, clears bits `64..65`, adds bits `9..12`, and reaches weight `7` while keeping bit `70`
