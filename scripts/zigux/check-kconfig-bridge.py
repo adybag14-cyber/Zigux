@@ -44,6 +44,7 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge ignores non-CONFIG lines like upstream confdata",
     "confdata bridge ignores empty CONFIG symbol names",
     "confdata bridge keeps trailing escaped backslashes in quoted strings",
+    "confdata bridge emits no entries for empty CONFIG symbol names",
 ]
 
 REQUIRED_CONF_CASE_MODES = [
