@@ -14,7 +14,7 @@ pub const Request = struct {
 };
 
 pub const Command = union(enum) {
-    help,
+    help: usize,
     version,
     request: Request,
 };
@@ -237,7 +237,7 @@ fn parseLongOption(
     }
 
     switch (option.kind) {
-        .help => return .{ .command = .help },
+        .help => return .{ .command = .{ .help = request.version_count } },
         .version => {
             request.version_count += 1;
             return .none;
@@ -293,7 +293,7 @@ fn parseShortOptions(
     var short_index: usize = 1;
     while (short_index < arg.len) : (short_index += 1) {
         switch (arg[short_index]) {
-            'h' => return .{ .command = .help },
+            'h' => return .{ .command = .{ .help = request.version_count } },
             'V' => request.version_count += 1,
             'd' => request.debug_level += 1,
             'w' => request.warnings = true,
@@ -417,9 +417,12 @@ pub fn main(init: std.process.Init) !void {
     };
 
     switch (command) {
-        .help => {
+        .help => |version_count| {
             var stderr_buffer: [512]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            for (0..version_count) |_| {
+                try stderr_writer.interface.writeAll(version_text);
+            }
             try stderr_writer.interface.writeAll(usage_text);
             try stderr_writer.interface.flush();
         },
@@ -462,6 +465,32 @@ test "parseArgs reports ambiguous abbreviated long options" {
             else => return error.UnexpectedParseFailure,
         },
         else => return error.ExpectedAmbiguousLongOptionFailure,
+    }
+}
+
+test "genksyms bridge keeps version side effect before short help" {
+    const args = [_][]const u8{ "-Vh" };
+    const outcome = try parseArgs(testing.allocator, &args);
+
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .help => |version_count| try testing.expectEqual(@as(usize, 1), version_count),
+            else => return error.ExpectedHelpCommand,
+        },
+        else => return error.ExpectedCommand,
+    }
+}
+
+test "genksyms bridge keeps version side effect before long help" {
+    const args = [_][]const u8{ "-V", "--help" };
+    const outcome = try parseArgs(testing.allocator, &args);
+
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .help => |version_count| try testing.expectEqual(@as(usize, 1), version_count),
+            else => return error.ExpectedHelpCommand,
+        },
+        else => return error.ExpectedCommand,
     }
 }
 
