@@ -109,6 +109,7 @@ REQUIRED_DOCS_README_MARKERS = [
 REQUIRED_SCRIPT_README_MARKERS = [
     "Phase 11 notes",
     "- `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` now keep the shared-versus-dedicated Phase 11 packet honest: the shipped contract checker plus the dedicated bcm2835 archival checker route, the focused header-boundary checker, the dedicated bcm2835 manifest-backed survey checkpoint, the dedicated HVC survey checker route and manifest-backed archival checkpoint, the shared build-and-make packet, the parked shared closure checkpoint, the parked driver-lane owner map, the dedicated DesignWare teardown companion, the dedicated `hvc_console` survey note, teardown note, and checker-backed `make -C zigux phase11-hvc-survey` replay, the bounded `hvc_cleanup()` handoff, the focused shared header-boundary note and manifest-backed survey replay, and the four driver-local validation matrices all remain reviewable without implying a removed `validate-phase11.py`, a missing build inventory, or a broader checker-script packet that does not exist on `master`.",
+    "the dedicated DesignWare teardown companion",
     "`Documentation/zigux/phase11-closure-note.md`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`scripts/zigux/check-phase11-shared-replay-contract.py`",
@@ -156,7 +157,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 55
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 56
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -191,6 +192,7 @@ SELF_TEST_CASES = [
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
     (SCRIPTS_README_PATH, "scripts_readme", REQUIRED_SCRIPT_README_MARKERS[2], REQUIRED_SCRIPT_README_MARKERS[2]),
     (SCRIPTS_README_PATH, "scripts_readme", REQUIRED_SCRIPT_README_MARKERS[3], REQUIRED_SCRIPT_README_MARKERS[3]),
+    (SCRIPTS_README_PATH, "scripts_readme", REQUIRED_SCRIPT_README_MARKERS[4], REQUIRED_SCRIPT_README_MARKERS[4]),
     (TESTS_README_PATH, "tests_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_TESTS_README_MARKERS[1]),
     (TESTS_README_PATH, "tests_readme", "`Documentation/zigux/phase11-driver-lane-sequencing.md`, ", REQUIRED_TESTS_README_MARKERS[1]),
     (TESTS_README_PATH, "tests_readme", REQUIRED_TESTS_README_MARKERS[2], REQUIRED_TESTS_README_MARKERS[2]),
