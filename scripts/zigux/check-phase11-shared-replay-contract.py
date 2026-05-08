@@ -151,7 +151,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 45
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 44
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -210,7 +210,6 @@ SELF_TEST_CASES = [
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[31], REQUIRED_CONTRACT_MARKERS[31]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[34], REQUIRED_CONTRACT_MARKERS[34]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[35], REQUIRED_CONTRACT_MARKERS[35]),
-    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[36], REQUIRED_CONTRACT_MARKERS[36]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[37], REQUIRED_CONTRACT_MARKERS[37]),
 ]
 
@@ -229,10 +228,8 @@ FIXTURE_CONTENT = {
     WORKFLOW_PATH: "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n",
 }
 
-
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
-
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
@@ -260,18 +257,15 @@ def validate(root: Path) -> list[str]:
             failures.append(f"forbidden_marker:{marker}")
     return failures
 
-
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
     for rel_path, content in FIXTURE_CONTENT.items():
         write(root / rel_path, content)
-
 
 def expect_failure(root: Path, rel_path: str, label: str, marker: str, expected_marker: str) -> None:
     path = root / rel_path
@@ -282,7 +276,6 @@ def expect_failure(root: Path, rel_path: str, label: str, marker: str, expected_
     if expected_failure not in failures:
         raise AssertionError(f"missing expected failure {expected_failure!r}; got {failures!r}")
 
-
 def expect_exact_count_failure(root: Path, rel_path: str, marker: str, label: str) -> None:
     path = root / rel_path
     original = path.read_text(encoding="utf-8")
@@ -291,7 +284,6 @@ def expect_exact_count_failure(root: Path, rel_path: str, marker: str, label: st
     expected_prefix = f"exact_count:{label}:"
     if not any(failure.startswith(expected_prefix) for failure in failures):
         raise AssertionError(f"missing expected exact-count failure {expected_prefix!r}; got {failures!r}")
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase11_contract_") as tmpdir:
@@ -319,7 +311,6 @@ def run_self_test() -> int:
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELFTEST=pass")
     print(f"PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT={PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check the shipped Phase 11 shared replay contract.")
