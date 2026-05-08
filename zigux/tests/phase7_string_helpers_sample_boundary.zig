@@ -170,6 +170,13 @@ test "phase 7 helper packet keeps the exact sample-boundary guard and Phase 5 bu
     try expectNotContains(phase5_build, "runtime_bitmap.zig");
     try expectNotContains(phase5_build, "runtime_trace_events.zig");
 
+    const phase5_guide = try readRepoFile(allocator, "Documentation/zigux/phase5-sample-review-guide.md");
+    defer allocator.free(phase5_guide);
+    try expectContains(phase5_guide, "The four shipped Phase 5 samples are the whole current reference-sample packet; later `samples/zigux/runtime_*` files belong to Phase 9.");
+    try expectContains(phase5_guide, "Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, or direct `*bitmap*` Phase 5 reference sample.");
+    try expectContains(phase5_guide, "keep treating the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` as the approved formatting idiom cue.");
+    try expectContains(phase5_guide, "Formatting-helper reviewability still stays with the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet;");
+
     const tests_readme = try readRepoFile(allocator, "zigux/tests/README.md");
     defer allocator.free(tests_readme);
     try expectContains(tests_readme, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
