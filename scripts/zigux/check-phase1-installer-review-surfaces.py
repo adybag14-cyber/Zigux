@@ -52,6 +52,7 @@ REVIEW_CHECKLIST_MARKERS = [
 CLOSURE_MARKERS = [
     "- `scripts/zigux/install-zig.py`",
     "- `python3 scripts/zigux/install-zig.py --self-test`",
+    "- `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`",
     "- explicit opt-in to Node 24 action execution on GitHub-hosted runners",
     "- no known dependency on the deprecated Node 20 runtime",
     "- Zig installation through an in-repo official-download step instead of a Node 20-bound action",
