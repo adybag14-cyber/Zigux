@@ -81,7 +81,10 @@ test "phase 4 atomic64 survey keeps wrapper handoff and sibling blob pins explic
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "single bounded replay body") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Phase 9") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "same current matrix, validator, and review-checklist surfaces again") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "acceptable-limit threshold packet is still pending") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/phase4_perf_baseline_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/phase4_perf_baseline_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "still-unapproved benchmark-command and acceptable-limit posture measurable") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "next atomic64-only perf promotion") != null);
 
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/atomic64_diff.zig") != null,
@@ -101,9 +104,16 @@ test "phase 4 atomic64 survey keeps wrapper handoff and sibling blob pins explic
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/phase4-validation-matrix.md") != null,
     );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_perf_baseline_manifest.json") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_perf_baseline_survey.zig") != null,
+    );
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "validator-first bootstrap replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "shared reviewer checklist") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "rollback-owner matrix") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "local-only perf-baseline survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "measurable and reversible") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "same rollback surfaces pinned") != null);
 
@@ -111,6 +121,8 @@ test "phase 4 atomic64 survey keeps wrapper handoff and sibling blob pins explic
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "acceptable limit") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Documentation/zigux/phase4-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Documentation/zigux/phase4-gate-evidence.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/phase4_perf_baseline_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/phase4_perf_baseline_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "atomic64 handoff packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "correctness-only replay routes") != null);
 }
