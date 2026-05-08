@@ -10,6 +10,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase8-help-slice.md",
     "Documentation/zigux/phase8-kallsyms-slice.md",
     "scripts/zigux/README.md",
@@ -27,6 +28,11 @@ REQUIRED_FILES = [
 ]
 
 REQUIRED_MARKERS = {
+    "Documentation/zigux/README.md": [
+        "Phase 8 notes -",
+        "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        "`make -C zigux phase8-help-kallsyms-test`",
+    ],
     "Documentation/zigux/phase8-help-slice.md": [
         "serious repo-hosted tooling",
         "output-stable pretty-print emission",
@@ -229,6 +235,7 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 def run_self_test() -> None:
     missing_file_cases = [
         ("missing_checker", "scripts/zigux/check-phase8-help-kallsyms-packet.py"),
+        ("missing_docs_root_readme", "Documentation/zigux/README.md"),
         ("missing_scripts_readme", "scripts/zigux/README.md"),
         ("missing_workflow", ".github/workflows/zigux-bootstrap.yml"),
         ("missing_help_slice", "Documentation/zigux/phase8-help-slice.md"),
@@ -241,6 +248,20 @@ def run_self_test() -> None:
     ]
 
     marker_cases = [
+        (
+            "docs_root_combined_build_anchor",
+            "Documentation/zigux/README.md",
+            "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+            "`zigux/tests/phase8_help_only_build.zig`",
+            "Documentation/zigux/README.md: `zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        ),
+        (
+            "docs_root_combined_route_anchor",
+            "Documentation/zigux/README.md",
+            "`make -C zigux phase8-help-kallsyms-test`",
+            "`make -C zigux phase8-help-test`",
+            "Documentation/zigux/README.md: `make -C zigux phase8-help-kallsyms-test`",
+        ),
         (
             "help_slice_combined_route",
             "Documentation/zigux/phase8-help-slice.md",
@@ -280,7 +301,7 @@ def run_self_test() -> None:
             "workflow_help_step_command",
             ".github/workflows/zigux-bootstrap.yml",
             "make -C zigux phase8-help-test",
-            "make -C zigux phase8-help-tests",
+            "make -C zigux phase8-help-route",
             ".github/workflows/zigux-bootstrap.yml: make -C zigux phase8-help-test",
         ),
         (
@@ -294,7 +315,7 @@ def run_self_test() -> None:
             "workflow_kallsyms_step_command",
             ".github/workflows/zigux-bootstrap.yml",
             "make -C zigux phase8-kallsyms-test",
-            "make -C zigux phase8-symbol-test",
+            "make -C zigux phase8-symbol-route",
             ".github/workflows/zigux-bootstrap.yml: make -C zigux phase8-kallsyms-test",
         ),
         (
