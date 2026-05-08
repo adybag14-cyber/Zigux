@@ -63,6 +63,7 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase7-cmdline-slice.md",
         "Documentation/zigux/phase7-argv-split-slice.md",
         "Documentation/zigux/phase7-rbtree-slice.md",
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "`scripts/zigux/validate-phase7.py`",
         "`scripts/zigux/check-phase7-make-wrapper.py`",
         "`scripts/zigux/check-phase7-argv-split-packet.py`",
@@ -149,6 +150,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-rbtree-parity.py",
     ],
     "scripts/zigux/README.md": [
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
@@ -191,6 +193,7 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/README.md": [
         "Documentation/zigux/README.md",
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "scripts/zigux/README.md",
         "scripts/zigux/validate-phase7.py",
         "scripts/zigux/check-phase7-make-wrapper.py",
@@ -320,6 +323,7 @@ EXACT_COUNT_MARKERS = {
     "Documentation/zigux/README.md": [
         ("Phase 7 notes -", 1),
         ("Documentation/zigux/phase7-argv-split-slice.md", 1),
+        ("Documentation/zigux/phase7-make-wrapper-selftest-alignment.md", 1),
         ("`scripts/zigux/check-phase7-make-wrapper.py`", 1),
         ("`scripts/zigux/check-phase7-argv-split-packet.py`", 1),
         ("`scripts/zigux/check-phase7-rbtree-parity.py`", 1),
@@ -372,6 +376,7 @@ EXACT_COUNT_MARKERS = {
         ("scripts/zigux/check-phase7-rbtree-parity.py", 1),
     ],
     "scripts/zigux/README.md": [
+        ("Documentation/zigux/phase7-make-wrapper-selftest-alignment.md", 1),
         ("scripts/zigux/check-phase7-make-wrapper.py", 1),
         ("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py", 1),
         ("scripts/zigux/check-phase7-argv-split-packet.py", 1),
@@ -400,6 +405,7 @@ EXACT_COUNT_MARKERS = {
     ],
     "zigux/tests/README.md": [
         ("`Documentation/zigux/README.md`", 1),
+        ("`Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`", 1),
         ("`scripts/zigux/README.md`", 1),
         ("`scripts/zigux/validate-phase7.py`", 1),
         ("`scripts/zigux/check-phase7-make-wrapper.py`", 1),
