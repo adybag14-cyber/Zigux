@@ -328,7 +328,17 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
 
     const tests_root_markers = [_][]const u8{
         "keep the shared Phase 5 reference-sample checks wired through `zigux/tests/phase5_build.zig`",
-        "four shipped sample-backed surveys stay reviewable without implying runtime-substrate closure",
+        "the four shipped sample-backed surveys stay reviewable without implying runtime-substrate closure",
+        "keep the landed Phase 5 `bytestream_fifo` packet explicit in the tests root too",
+        "Documentation/zigux/phase5-kfifo-sample-survey.md",
+        "samples/zigux/bytestream_fifo.zig",
+        "zigux/tests/phase5_bytestream_fifo_manifest.json",
+        "zigux/tests/phase5_bytestream_fifo.zig",
+        "zigux/tests/phase5_bytestream_fifo_survey.zig",
+        "exact queue-order drain contract",
+        "non-destructive `snapshotInto()` cue",
+        "short-drain `\"hel\"` plus queued `\"lo\"` helper boundary",
+        "`init()` -> `runAnchorReplay()` -> `exit()` ownership path",
     };
 
     for (tests_root_markers) |needle| {
