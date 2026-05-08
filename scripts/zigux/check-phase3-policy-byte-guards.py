@@ -17,8 +17,8 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py",
 )
 
-REQUIRED_SURVEY_SNIPPETS = (
-    "`PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`",
+REQUIRED_SURVEY_EXACT_LINES = (
+    "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig",
     "`zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
     "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte or typed shared callers infer behavior elsewhere in the packet.",
     "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.",
@@ -134,8 +134,9 @@ def validate(root: Path) -> list[str]:
 
     for marker in REQUIRED_SURVEY_MARKERS:
         require_exact_line_count(issues, survey, "survey_marker", marker, normalized=True)
+    for line in REQUIRED_SURVEY_EXACT_LINES:
+        require_exact_line_count(issues, survey, "survey_line", line, normalized=True)
 
-    require_snippets(issues, survey, "survey", REQUIRED_SURVEY_SNIPPETS)
     require_snippets(issues, panic, "panic", REQUIRED_PANIC_SNIPPETS)
     require_snippets(issues, allocator, "allocator", REQUIRED_ALLOCATOR_SNIPPETS)
     require_snippets(issues, unsafe, "unsafe", REQUIRED_UNSAFE_SNIPPETS)
@@ -150,7 +151,7 @@ def write(path: Path, content: str) -> None:
 def build_valid_workspace(root: Path) -> None:
     survey_lines = ["# survey"]
     survey_lines.extend(f"`{marker}`" for marker in REQUIRED_SURVEY_MARKERS)
-    survey_lines.extend(REQUIRED_SURVEY_SNIPPETS)
+    survey_lines.extend(f"- `{line}`" if line.startswith("PHASE3_") else f"- {line}" for line in REQUIRED_SURVEY_EXACT_LINES)
     survey_lines.append("")
     write(root / SURVEY_REL, "\n".join(survey_lines))
     write(root / PANIC_POLICY_REL, "\n".join([*REQUIRED_PANIC_SNIPPETS, ""]))
@@ -177,6 +178,17 @@ def run_self_test() -> int:
         )
 
         build_valid_workspace(root)
+        duplicate_validate_marker = (root / SURVEY_REL).read_text(encoding="utf-8") + (
+            "`PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`\n"
+        )
+        write(root / SURVEY_REL, duplicate_validate_marker)
+        issues = validate(root)
+        assert (
+            "duplicate_survey_marker:PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi:2"
+            in issues
+        )
+
+        build_valid_workspace(root)
         broken_guard_marker = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
             "`PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py`\n",
             "",
@@ -197,28 +209,37 @@ def run_self_test() -> int:
         )
         write(root / SURVEY_REL, broken_survey)
         issues = validate(root)
-        assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
+        assert any(issue.startswith("missing_survey_line:") for issue in issues)
 
         build_valid_workspace(root)
         broken_allocator_survey = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_SURVEY_SNIPPETS[2] + "\n",
+            REQUIRED_SURVEY_EXACT_LINES[2] + "\n",
             "",
             1,
         )
         write(root / SURVEY_REL, broken_allocator_survey)
         issues = validate(root)
-        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[2]}" in issues
+        assert f"missing_survey_line:{REQUIRED_SURVEY_EXACT_LINES[2]}" in issues
+
+        build_valid_workspace(root)
+        duplicate_dump_gate = (root / SURVEY_REL).read_text(encoding="utf-8") + "- `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`\n"
+        write(root / SURVEY_REL, duplicate_dump_gate)
+        issues = validate(root)
+        assert (
+            "duplicate_survey_line:PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig:2"
+            in issues
+        )
 
         build_valid_workspace(root)
         broken_dump_gate = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "`PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`\n",
+            "- `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`\n",
             "",
             1,
         )
         write(root / SURVEY_REL, broken_dump_gate)
         issues = validate(root)
         assert (
-            "missing_survey_snippet:`PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`"
+            "missing_survey_line:PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig"
             in issues
         )
 
@@ -276,7 +297,7 @@ def run_self_test() -> int:
         assert "missing_unsafe_snippet:pub fn recognizesByte(unsafe_scope: u8) bool {" in issues
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=10")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
