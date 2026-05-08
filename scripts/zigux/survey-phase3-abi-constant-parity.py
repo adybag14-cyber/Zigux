@@ -14,11 +14,12 @@ DEFAULT_BINDINGS = ROOT / "zigux" / "bindings" / "abi.zig"
 DEFAULT_DUMP = ROOT / "zigux" / "tests" / "phase3_abi_dump.zig"
 DEFAULT_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3_abi_c_harness.c"
 DEFAULT_EXPECTED = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
+PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 6
 
 BASELINE_CONSTANTS = (
     ("ZIGUX_FACILITY_KERNEL", "FACILITY_KERNEL", "facility_kernel", 1),
     ("ZIGUX_STATUS_FLAG_ERROR", "STATUS_FLAG_ERROR", "status_flag_error", 1),
-    ("ZIGUX_PANIC_ABORT", "PANIC_ABORT", "panic_abort", 0),
+    ("ZIGUX_PANIC_ABORT", "Panic_ABORT", "panic_abort", 0),
     ("ZIGUX_ALLOC_CALLER_PROVIDED", "ALLOC_CALLER_PROVIDED", "allocator_caller_provided", 0),
     ("ZIGUX_UNSAFE_RAW_POINTER_BRIDGE", "UNSAFE_RAW_POINTER_BRIDGE", "unsafe_scope_raw_pointer_bridge", 2),
 )
@@ -104,6 +105,7 @@ def validate_constant_parity(
 
 
 def run_self_test() -> int:
+    case_count = 0
     with tempfile.TemporaryDirectory(prefix="phase3_abi_constant_parity_") as tmp_dir_str:
         root = Path(tmp_dir_str)
         header = root / "include" / "zigux" / "abi.h"
@@ -115,67 +117,81 @@ def run_self_test() -> int:
         for path in (header.parent, bindings.parent, dump.parent, harness.parent, expected.parent):
             path.mkdir(parents=True, exist_ok=True)
 
-        header.write_text(
-            "\n".join(f"#define {header_name} {value}U" for header_name, _, _, value in BASELINE_CONSTANTS) + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        bindings.write_text(
-            "\n".join(
-                [*(f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in BASELINE_CONSTANTS)]
-                + [f"pub const {binding_name}: u32 = 1;" for binding_name in REQUIRED_BINDING_MARKERS]
+        def reset_all() -> None:
+            header.write_text(
+                "\n".join(f"#define {header_name} {value}U" for header_name, _, _, value in BASELINE_CONSTANTS) + "\n",
+                encoding="utf-8",
+                newline="\n",
             )
-            + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        dump.write_text(
-            "\n".join(f"// \"{json_key}\":" for _, _, json_key, _ in BASELINE_CONSTANTS) + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        harness.write_text(
-            "\n".join(f"/* \"{json_key}\": */" for _, _, json_key, _ in BASELINE_CONSTANTS) + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        expected.write_text(
-            json.dumps({"constants": {json_key: value for _, _, json_key, value in BASELINE_CONSTANTS}}),
-            encoding="utf-8",
-            newline="\n",
-        )
+            bindings.write_text(
+                "\n".join(
+                    [*(f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in BASELINE_CONSTANTS)]
+                    + [f"pub const {binding_name}: u32 = 1;" for binding_name in REQUIRED_BINDING_MARKERS]
+                )
+                + "\n",
+                encoding="utf-8",
+                newline="\n",
+            )
+            dump.write_text(
+                "\n".join(f"// \"{json_key}\":" for _, _, json_key, _ in BASELINE_CONSTANTS) + "\n",
+                encoding="utf-8",
+                newline="\n",
+            )
+            harness.write_text(
+                "\n".join(f"/* \"{json_key}\": */" for _, _, json_key, _ in BASELINE_CONSTANTS) + "\n",
+                encoding="utf-8",
+                newline="\n",
+            )
+            expected.write_text(
+                json.dumps({"constants": {json_key: value for _, _, json_key, value in BASELINE_CONSTANTS}}),
+                encoding="utf-8",
+                newline="\n",
+            )
 
+        reset_all()
         assert validate_constant_parity(header, bindings, dump, harness, expected) == []
+        case_count += 1
 
         bindings.write_text("pub const STATUS_FLAG_ERROR: u16 = 1;\n", encoding="utf-8", newline="\n")
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
         assert f"{bindings}:missing_binding_constant:FACILITY_KERNEL" in issues
         assert f"{bindings}:missing_binding_marker:{REQUIRED_BINDING_MARKERS[0]}" in issues
+        case_count += 1
 
-        bindings.write_text(
-            "\n".join(
-                [*(f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in BASELINE_CONSTANTS)]
-                + [f"pub const {binding_name}: u32 = 1;" for binding_name in REQUIRED_BINDING_MARKERS]
-            )
-            + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
+        reset_all()
         dump.write_text("// \"facility_kernel\":\n", encoding="utf-8", newline="\n")
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
         assert f"{dump}:missing_dump_key:status_flag_error" in issues
+        case_count += 1
 
-        dump.write_text(
-            "\n".join(f"// \"{json_key}\":" for _, _, json_key, _ in BASELINE_CONSTANTS) + "\n",
+        reset_all()
+        harness.write_text("/* \"facility_kernel\": */\n", encoding="utf-8", newline="\n")
+        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        assert f"{harness}:missing_harness_key:status_flag_error" in issues
+        case_count += 1
+
+        reset_all()
+        header.write_text(
+            "\n".join(
+                [f"#define {BASELINE_CONSTANTS[0][0]} 7U"]
+                + [f"#define {header_name} {value}U" for header_name, _, _, value in BASELINE_CONSTANTS[1:]]
+            ) + "\n",
             encoding="utf-8",
             newline="\n",
         )
+        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        assert f"{header}:wrong_header_value:{BASELINE_CONSTANTS[0][0]}:7" in issues
+        case_count += 1
+
+        reset_all()
         expected.write_text(json.dumps({"constants": {"facility_kernel": 7}}), encoding="utf-8", newline="\n")
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
         assert f"{expected}:wrong_expected_value:facility_kernel:7" in issues
         assert f"{expected}:missing_expected_key:status_flag_error" in issues
+        case_count += 1
 
     print("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass")
+    print(f"PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
