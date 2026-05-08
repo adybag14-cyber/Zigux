@@ -19,7 +19,7 @@ This is still an active helper-first tranche, not a globally closed roadmap phas
 ## Keep In Sync
 
 When a Phase 13 change is real, keep these surfaces aligned together:
-  * contributor-facing docs: `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and this guide
+  * contributor-facing docs: `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and this guide
   * validator-first wiring and adjacent packet guards: `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-packet.py`, `scripts/zigux/README.md`, and `zigux/Makefile`
   * shared replay entrypoint: `zigux/tests/phase13_build.zig`
   * manifest-backed anchor packets: `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`
