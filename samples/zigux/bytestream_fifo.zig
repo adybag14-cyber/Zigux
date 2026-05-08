@@ -38,7 +38,6 @@ const sample_review_focus = [_]SampleFocus{
 };
 
 const preview_boundary_focus = [_]SampleFocus{
-    .wraparound_requeue,
     .non_destructive_snapshot,
     .preview_truncation,
 };
