@@ -384,8 +384,13 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "missing_file:zigux/tests/fixtures/phase2_cross_targets.json" in issues
 
+        build_self_test_root(root)
+        abspath(root, REVIEW_CHECKLIST).unlink()
+        issues = validate_root(root)
+        assert "missing_file:Documentation/zigux/review-checklist.md" in issues
+
     print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=14")
+    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
