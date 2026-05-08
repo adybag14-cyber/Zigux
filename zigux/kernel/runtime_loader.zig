@@ -401,6 +401,123 @@ test "runtime loader facade keeps initialized bitmap and kretprobe requests pinn
     try std.testing.expectEqual(RequestState.released_without_substrate, kretprobe_request.state);
 }
 
+test "runtime loader facade keeps selftest-complete prepared snapshots stable even if later live state would look exited" {
+    const atomic64_selftested = LoadPlan{
+        .module_name = "runtime_atomic64",
+        .anchor = "lib/atomic64_test.c",
+        .entry_symbol = "zigux_runtime_atomic64_init",
+        .exit_symbol = "zigux_runtime_atomic64_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    var atomic64_request = try prepareRequest(atomic64_selftested);
+    try std.testing.expectEqual(RequestState.prepared, atomic64_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        atomic64_request,
+        .prepared,
+        atomic64_selftested,
+    ));
+
+    var atomic64_live_exited = atomic64_selftested;
+    atomic64_live_exited.init_flow.exit_runs = 1;
+    try std.testing.expect(!atomic64_live_exited.init_flow.readyForRuntimeLoad());
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(
+        atomic64_request,
+        .prepared,
+        atomic64_live_exited,
+    ));
+
+    const atomic64_pending = try atomic64_request.requestRuntimeLoad();
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, atomic64_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        atomic64_request,
+        .waiting_on_runtime_substrate,
+        atomic64_selftested,
+    ));
+    try std.testing.expect(keepsAllocatorInitFlowConsistent(
+        atomic64_pending,
+        .caller_provided,
+        atomic64_selftested.init_flow,
+    ));
+    try std.testing.expect(keepsSelftestHookEvidenceConsistent(atomic64_pending));
+
+    const trace_events_selftested = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    var trace_events_request = try prepareRequest(trace_events_selftested);
+    try std.testing.expectEqual(RequestState.prepared, trace_events_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        trace_events_request,
+        .prepared,
+        trace_events_selftested,
+    ));
+
+    var trace_events_live_exited = trace_events_selftested;
+    trace_events_live_exited.init_flow.exit_runs = 1;
+    try std.testing.expect(!trace_events_live_exited.init_flow.readyForRuntimeLoad());
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(
+        trace_events_request,
+        .prepared,
+        trace_events_live_exited,
+    ));
+
+    const trace_events_pending = try trace_events_request.requestRuntimeLoad();
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, trace_events_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        trace_events_request,
+        .waiting_on_runtime_substrate,
+        trace_events_selftested,
+    ));
+    try std.testing.expect(keepsAllocatorInitFlowConsistent(
+        trace_events_pending,
+        .caller_provided,
+        trace_events_selftested.init_flow,
+    ));
+    try std.testing.expect(keepsSelftestHookEvidenceConsistent(trace_events_pending));
+
+    try std.testing.expectEqual(atomic64_pending.allocator_handoff, trace_events_pending.allocator_handoff);
+    try std.testing.expectEqual(atomic64_pending.init_flow.handoff_stage, trace_events_pending.init_flow.handoff_stage);
+    try std.testing.expectEqual(atomic64_pending.init_flow.init_runs, trace_events_pending.init_flow.init_runs);
+    try std.testing.expectEqual(atomic64_pending.init_flow.selftest_runs, trace_events_pending.init_flow.selftest_runs);
+    try std.testing.expectEqual(atomic64_pending.init_flow.exit_runs, trace_events_pending.init_flow.exit_runs);
+    try std.testing.expectEqual(atomic64_pending.requires_runtime_substrate, trace_events_pending.requires_runtime_substrate);
+    try std.testing.expectEqual(atomic64_pending.provides_selftest_hook, trace_events_pending.provides_selftest_hook);
+
+    try atomic64_request.releaseWithoutSubstrate();
+    try trace_events_request.releaseWithoutSubstrate();
+    try std.testing.expectEqual(RequestState.released_without_substrate, atomic64_request.state);
+    try std.testing.expectEqual(RequestState.released_without_substrate, trace_events_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        atomic64_request,
+        .released_without_substrate,
+        atomic64_selftested,
+    ));
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        trace_events_request,
+        .released_without_substrate,
+        trace_events_selftested,
+    ));
+}
+
 test "runtime loader facade rejects request state or plan drift" {
     const stable_plan = LoadPlan{
         .module_name = "runtime_atomic64",
