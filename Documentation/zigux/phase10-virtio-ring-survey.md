@@ -32,8 +32,8 @@ The live repo already has a bounded `drivers/virtio/virtio.zig` core starter plu
 
 - `drivers/virtio/virtio_ring.c` is present on `master` and still spans split rings, packed rings, descriptor state, DMA mapping helpers, callback toggling, notification bookkeeping, queue reset, resize, and break or unbreak handling.
 - the live repo already ships `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, and `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`.
-- the current Zigux VirtIO ring surface includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing, broken-queue discipline, queue-local reset bookkeeping, reset-readiness preflight, and notify-prepare bookkeeping.
-- the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay keeps reset-readiness blockers and delayed-callback pacing live beside the direct ring-helper replay.
+- the current Zigux VirtIO ring surface includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback disable and re-enable bookkeeping, delayed-callback pacing, packed-ring event-index summaries, broken-queue discipline, clear-broken recovery, queue-local reset bookkeeping, reset-readiness preflight, and notify-prepare bookkeeping.
+- the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay keeps reset-readiness blockers, delayed-callback pacing, clear-broken blocker exposure, and packed-ring event-index polling thresholds live beside the direct ring-helper replay.
 - the honest roadmap gap is no longer missing queue-local virtqueue evidence. The remaining blocked bridge is transport-backed queue discovery, IRQ acknowledgement, queue reset execution, and probe/remove lifecycle behavior needed to turn the queue-local helper into a true lab driver.
 - that blocked bridge is owned by the adjacent `P10-L10` MMIO packet. This ring survey may name that dependency, but it does not absorb MMIO helper growth or MMIO next-step selection.
 
@@ -57,7 +57,7 @@ The survey manifest now records:
 - the landed `phase10-virtio-ring-slice-note`
 - the still-blocked `phase10-ring-lab-driver-bridge`
 
-This keeps the lane concrete without overstating progress. The queue-local wrapper foothold is real and reviewable today, and the remaining roadmap gap is the transport-backed lab-driver bridge rather than another missing ring-local helper.
+This keeps the lane concrete without overstating progress. The queue-local wrapper foothold is real and reviewable today, and the remaining roadmap gap is the transport-backed lab-driver bridge rather than another missing ring-local helper. The wrapper-facing verifier follow-through for clear-broken blocker exposure and packed-ring event-index review is already part of the landed packet, so this note should not keep presenting those verifier checks as future work.
 
 ## Freeze boundary
 
@@ -100,4 +100,4 @@ Taken together, these gates keep the bounded virtqueue-wrapper packet reviewable
 
 ## Next bounded step
 
-Keep the broader Phase 10 virtio lane parked unless fresh repo inspection shows the ring packet itself drifted. Inside this ring lane, the only honest next bounded step is one more wrapper-facing verifier follow-up in `drivers/virtio/virtio_ring_verify.zig` for broken-queue recovery or packed-ring event-index behavior if the live repo shows a truthfulness gap. Do not reopen MMIO helper growth, DMA, interrupt delivery, queue discovery, reset execution, or probe/remove lifecycle work from this note.
+Keep the broader Phase 10 virtio lane parked unless fresh repo inspection shows the ring packet itself drifted. Inside this ring lane, the only honest next bounded step is another note- or manifest-level truthfulness sync if this survey packet falls behind already-landed queue-local helper or verifier coverage again. Do not reopen MMIO helper growth, DMA, interrupt delivery, queue discovery, reset execution, or probe/remove lifecycle work from this note.
