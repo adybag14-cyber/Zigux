@@ -81,16 +81,16 @@ test "phase3 allocator policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(9, 0));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(2, 1));
 
-    try std.testing.expect(recognizesByte(0));
-    try std.testing.expect(recognizesByte(1));
-    try std.testing.expect(recognizesByte(2));
-    try std.testing.expect(!recognizesByte(9));
-
     try std.testing.expect(recognizesInteropPolicyBytes(0, 0));
     try std.testing.expect(recognizesInteropPolicyBytes(1, 0));
     try std.testing.expect(recognizesInteropPolicyBytes(2, 0));
     try std.testing.expect(!recognizesInteropPolicyBytes(9, 0));
     try std.testing.expect(!recognizesInteropPolicyBytes(2, 1));
+
+    try std.testing.expect(recognizesByte(0));
+    try std.testing.expect(recognizesByte(1));
+    try std.testing.expect(recognizesByte(2));
+    try std.testing.expect(!recognizesByte(9));
 
     const caller_policy = abi.InteropPolicy{
         .panic_mode = 0,
@@ -110,13 +110,22 @@ test "phase3 allocator policy stays explicit" {
         .unsafe_scope = 2,
         .reserved = 1,
     };
+    const unknown_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 9,
+        .unsafe_scope = 0,
+        .reserved = 0,
+    };
+
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), modeFromInteropPolicy(caller_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .kernel_heap), modeFromInteropPolicy(heap_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(unknown_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(reserved_policy));
 
     try std.testing.expect(recognizesInteropPolicy(caller_policy));
     try std.testing.expect(recognizesInteropPolicy(heap_policy));
+    try std.testing.expect(!recognizesInteropPolicy(unknown_policy));
     try std.testing.expect(!recognizesInteropPolicy(reserved_policy));
-    try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), modeFromInteropPolicy(caller_policy));
-    try std.testing.expectEqual(@as(?abi.AllocatorMode, .kernel_heap), modeFromInteropPolicy(heap_policy));
-    try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(reserved_policy));
 
     try std.testing.expect(requiresExplicitCaller(.caller_provided));
     try std.testing.expect(requiresExplicitCallerByte(0));
