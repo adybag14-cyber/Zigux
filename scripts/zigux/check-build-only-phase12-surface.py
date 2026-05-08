@@ -216,6 +216,7 @@ REQUIRED_FILE_MARKERS = {
         "run_phase12_virtio_scsi_syntax_lab_tests.step",
         "phase12_libbpf_reviewability_module",
         "phase12_libbpf_snapshot_determinism_module",
+        "run_phase12_libbpf_snapshot_determinism_tests.step",
     ],
     MAKEFILE_PATH: [
         "PHONY += phase12-smoke",
