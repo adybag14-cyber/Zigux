@@ -165,7 +165,7 @@
         "tools/lib/bpf/libbpf.c:14482-14771"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/skeleton.zig",
-      "why_now": "This remains the nearest post-helper cluster, but it depends on bpf_object, bpf_map, and bpf_program model parity that the repo has not started yet."
+      "why_now": "This remains the nearest post-helper cluster and the next explicit promotable helper slice, but it depends on bpf_object, bpf_map, and bpf_program model parity that the repo has not started yet."
     },
     {
       "id": "P8-L15-S10",
