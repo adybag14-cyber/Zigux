@@ -179,6 +179,8 @@ TOKEN_CHECKS = {
         "atomic.fetchSub(i32, &signed_arithmetic_value, 7, .seq_cst)",
         "atomic.fetchMin(i32, &signed_value, -3, .seq_cst)",
         "atomic.fetchMax(i32, &signed_value, 6, .seq_cst)",
+        "atomic.fetchNand(u32, &value, 10, .seq_cst)",
+        "atomic.fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic)",
         "const monotonic_mismatch = atomic.compareExchange(",
         "try std.testing.expectEqual(@as(?u32, 7), monotonic_mismatch);",
         "const acq_rel_mismatch = atomic.compareExchange(",
