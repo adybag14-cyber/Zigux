@@ -89,6 +89,20 @@
       "why_now": "The live repo now has a dedicated queue-callback-preflight replay that keeps the bounded blocker ordering explicit beside the helper-facing tests, wrapper-facing verify replay, and focused status-drain replay instead of leaving that input-lane evidence implicit inside broader packet summaries."
     },
     {
+      "id": "phase10-virtio-input-registration-preflight-replay",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+      "why_now": "The live repo now has a dedicated registration-preflight replay that keeps the bounded pre-registration blocker ladder explicit beside the helper-facing tests, wrapper-facing verify replay, focused queue-callback-preflight replay, and focused status-drain replay instead of leaving that pre-registration evidence implicit inside broader packet summaries."
+    },
+    {
+      "id": "phase10-virtio-input-teardown-observation-replay",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+      "why_now": "The live repo now has a dedicated teardown-observation replay that keeps the reset-local cleanup and identity-preservation evidence explicit beside the helper-facing tests, wrapper-facing verify replay, focused queue-callback-preflight replay, and focused status-drain replay without widening into transport-backed remove, freeze, or restore claims."
+    },
+    {
       "id": "phase10-virtio-input-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
