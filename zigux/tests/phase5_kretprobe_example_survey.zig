@@ -12,6 +12,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     sample_path: []const u8,
+    focused_boundary_test_path: []const u8,
     validation_entrypoint: []const u8,
     review_prompts: []const []const u8,
     exact_checks: []const ExactCheck,
@@ -51,6 +52,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
+    try std.testing.expectEqualStrings("zigux/tests/phase5_kretprobe_example.zig", manifest.focused_boundary_test_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
@@ -64,6 +66,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     var saw_budget_prompt = false;
     var saw_non_goal_prompt = false;
     var saw_retarget_prompt = false;
+    var saw_focused_boundary_prompt = false;
     var saw_private_data_check = false;
     var saw_symbol_check = false;
     var saw_retarget_check = false;
@@ -113,6 +116,11 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "pt_regs") != null)
         {
             saw_non_goal_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, manifest.focused_boundary_test_path) != null and
+            std.mem.indexOf(u8, prompt, "focused boundary replay") != null)
+        {
+            saw_focused_boundary_prompt = true;
         }
     }
 
@@ -177,6 +185,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_budget_prompt);
     try std.testing.expect(saw_ownership_prompt);
     try std.testing.expect(saw_non_goal_prompt);
+    try std.testing.expect(saw_focused_boundary_prompt);
     try std.testing.expect(saw_private_data_check);
     try std.testing.expect(saw_symbol_check);
     try std.testing.expect(saw_retarget_check);
@@ -296,6 +305,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
     try std.testing.expect(std.mem.indexOf(u8, survey_note, review_gate_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, lane_key_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.focused_boundary_test_path) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "one bounded self-check through `runAnchorReplay()`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/build.zig") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_kretprobe_example_build.zig") == null);
