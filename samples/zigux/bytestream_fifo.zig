@@ -605,11 +605,24 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     var sample = BytestreamFifoSample{};
     const descriptor = BytestreamFifoSample.descriptor();
     const review_contract = BytestreamFifoSample.reviewContract();
+    const expected_non_goals = [_][]const u8{
+        "procfs parity",
+        "kfifo_from_user or kfifo_to_user parity",
+        "loadable module registration",
+        "locking or blocking semantics",
+    };
+    try std.testing.expectEqualStrings("bytestream_fifo", descriptor.name);
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", descriptor.anchor);
+    try std.testing.expect(!descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selfcheck);
     try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, descriptor.storage_backing);
     try std.testing.expectEqual(@as(usize, sample_review_focus.len), review_contract.focus.len);
     for (sample_review_focus, review_contract.focus) |expected, actual| {
         try std.testing.expectEqual(expected, actual);
+    }
+    try std.testing.expectEqual(@as(usize, expected_non_goals.len), review_contract.non_goals.len);
+    for (expected_non_goals, review_contract.non_goals) |expected, actual| {
+        try std.testing.expectEqualStrings(expected, actual);
     }
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
