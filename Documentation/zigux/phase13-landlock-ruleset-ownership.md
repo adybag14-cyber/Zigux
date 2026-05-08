@@ -18,6 +18,7 @@ This note closes one narrow reviewability gap around `security/landlock/ruleset.
 - tree-search outcome planning around `get_root()` and `walker_node`
 - no-match tree-link mode planning around `rb_link_node()` and `rb_insert_color()`
 - matched-rule replacement planning around `create_rule()` and `rb_replace_node()` when a merged layer appends to an existing hierarchical rule
+- helper-local fail-closed policy guards that reject empty-access level-zero extensions and malformed root or attachment search-state before any tree-link plan is emitted
 
 ## Not owned here
 
