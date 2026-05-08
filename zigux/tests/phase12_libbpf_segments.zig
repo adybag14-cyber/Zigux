@@ -228,7 +228,7 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge")) {
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge-boundary")) {
             saw_file_path_handle_bridge = true;
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("deferred_high_risk", gap.status);
@@ -236,9 +236,9 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fd ownership semantics") != null);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing")) {
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing-boundary")) {
             saw_perf_buffer_online_cpu_routing = true;
-            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/cpu_mask.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("deferred_high_risk", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "perf_event_open") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queueing-risk bucket") != null);
@@ -247,7 +247,7 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-object-loader-and-program-load")) {
             saw_object_loader_blocker = true;
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/object_loader.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("blocked_on_object_model", gap.status);
+            try std.testing.expectEqualStrings("deferred_high_risk", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "loader setup") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skeleton-population") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "object-model progress") != null);
@@ -268,8 +268,8 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
 
     try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 2), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 2), blocked_count);
-    try std.testing.expectEqual(@as(usize, 3), deferred_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expectEqual(@as(usize, 4), deferred_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_manifest_foundation);
