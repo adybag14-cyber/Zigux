@@ -96,11 +96,12 @@ Primary Phase 5 packet
 
 Keep explicit
 - `runRetargetReplay()` plus pre-init retargeting, empty-symbol rejection, and post-init retarget rejection
+- `runAnchorReplay()` plus kernel-thread skip behavior, the one-word private entry timestamp cue, return value `42`, duration `75 ns`, and the missed-instance summary contract
 - `runLifecycleGuardReplay()` plus the pre-init and post-init guard boundaries
 - the fixed `maxactiveBudget()` cue at `20`
+- `ownershipSummary()` plus the `cold`, `initialized`, `armed`, `replay_complete`, and `exited` lifecycle snapshots with active-instance and entry-timestamp state
 - `runRecoveryReplay()` plus outstanding-instance rejection
 - timestamp-order rejection and recovery plus post-exit handler rejection
-- the sample-owned lifecycle summary packet
 
 Keep out of scope
 - `register_kretprobe()` parity
