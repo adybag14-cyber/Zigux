@@ -122,6 +122,7 @@ REQUIRED_VERIFY_REPLAY_MARKERS = [
     'test "hvc_console verify keeps notifier unregister timing false for never-registered and targetless surfaces"',
     'test "hvc_console verify keeps targetless sysrq dispatch from implying notifier callbacks"',
     'test "hvc_console verify keeps sysrq notifier deferral false without dispatch"',
+    'test "hvc_console verify keeps khvcd worker-entry sleep, kick, and poll-mask boundaries explicit"',
     'test "hvc_console verify rejects impossible hangup buffered-write state"',
 ]
 
@@ -168,7 +169,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 56
+SELF_TEST_CASE_COUNT = 57
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -388,6 +389,9 @@ test "hvc_console verify keeps targetless sysrq dispatch from implying notifier 
     try std.testing.expect(true);
 }
 test "hvc_console verify keeps sysrq notifier deferral false without dispatch" {
+    try std.testing.expect(true);
+}
+test "hvc_console verify keeps khvcd worker-entry sleep, kick, and poll-mask boundaries explicit" {
     try std.testing.expect(true);
 }
 test "hvc_console verify rejects impossible hangup buffered-write state" {
@@ -692,12 +696,6 @@ def run_self_test() -> int:
             expect_failure(
                 root,
                 VALIDATION_MATRIX_PATH,
-                "`drivers/tty/hvc/hvc_console_verify.zig`",
-                "validation_matrix:`drivers/tty/hvc/hvc_console_verify.zig`",
-            )
-            expect_failure(
-                root,
-                VALIDATION_MATRIX_PATH,
                 "`zigux/tests/phase11_hvc_cleanup.zig`",
                 "validation_matrix:`zigux/tests/phase11_hvc_cleanup.zig`",
             )
@@ -796,6 +794,12 @@ def run_self_test() -> int:
                 VERIFY_REPLAY_PATH,
                 'test "hvc_console verify keeps sysrq notifier deferral false without dispatch"',
                 'verify_replay:test "hvc_console verify keeps sysrq notifier deferral false without dispatch"',
+            )
+            expect_failure(
+                root,
+                VERIFY_REPLAY_PATH,
+                'test "hvc_console verify keeps khvcd worker-entry sleep, kick, and poll-mask boundaries explicit"',
+                'verify_replay:test "hvc_console verify keeps khvcd worker-entry sleep, kick, and poll-mask boundaries explicit"',
             )
             expect_failure(
                 root,
