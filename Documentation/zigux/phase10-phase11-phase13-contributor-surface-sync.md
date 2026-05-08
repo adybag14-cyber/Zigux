@@ -19,6 +19,8 @@ Update these surfaces together when they describe the same active contributor pa
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+- `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `zigux/tests/phase13_notifier_list_manifest.json`
@@ -38,7 +40,7 @@ Also refresh the packet-local docs-root or scripts-root note when the wording ch
 
 1. Start from the packet-local source of truth.
 2. Refresh `Documentation/zigux/README.md` so the exact checker stack, replay route, and evidence names stay visible from the top-level product index.
-3. Refresh `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` when the change sharpens the shared validator-first replay route, the owner-map split, or the broader shipped adjacent release-surface evidence for Phase 13 contributors, including the release-notes note, the roadmap-traceability note, the notifier survey plus checker route, and the adjacent notifier manifest, reviewability, ABI, and helper evidence.
+3. Refresh `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, and `Documentation/zigux/phase13-landlock-syscalls-governance.md` when the change sharpens the shared validator-first replay route, the owner-map split, the helper-owned boundary notes, or the broader shipped adjacent release-surface evidence for Phase 13 contributors, including the release-notes note, the roadmap-traceability note, the notifier survey plus checker route, and the adjacent notifier manifest, reviewability, ABI, and helper evidence.
 4. Refresh the compact tests-root companion so the same packet stays reviewable in the short form.
 5. Refresh `scripts/zigux/README.md` when the wording change affects the scripts-root validator-first replay summary, checker inventory, or Linux-style command wording.
 6. Refresh `Documentation/zigux/review-checklist.md` if the change alters a shared reviewer prompt or release-discipline question.
@@ -144,7 +146,7 @@ For the active simple-driver contributor packet, confirm wording still matches:
 - `make -C zigux phase11`
 - `make -C zigux phase11-hvc-survey`
 
-Keep the shared `zig build test --build-file zigux/tests/phase11_build.zig --summary all` plus `make -C zigux phase11` replay route separate from the dedicated `python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py` plus `make -C zigux phase11-hvc-survey` archival routes so contributor guidance does not collapse the shipped shared-versus-dedicated split around `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_survey.zig`.
+Keep the shared `zig build test --build-file zigux/tests/phase11_build.zig --summary all` plus `make -C zigux phase11` replay route separate from the dedicated `python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py` plus `make -C zigux phase11-hvc-survey` archival routes so contributor guidance does not collapse the shipped shared-versus-dedicated split around `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `drivers/watchdog/bcm2835_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_survey.zig`.
 
 ## Phase 13 anchors
 
@@ -160,8 +162,10 @@ For the active shared-helper release packet, keep the shared validator-first rep
 - `Documentation/zigux/phase13-devres-survey.md`
 - `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+- `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
+- `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
@@ -201,6 +205,7 @@ Before closing a contributor-guidance change, ask:
 - Did the compact tests-root companion now explicitly keep `Documentation/zigux/README.md` in its opening shared-surface sentence while this sync note or another shared contributor prompt still leaves the docs-root README implicit?
 - Did a short-form companion note gain wording that the broad tests-root prompt still skips?
 - Did a shared scripts-root Phase 13 summary keep `zigux/tests/phase13_landlock_syscalls_reviewability.zig` implicit after the contributor guide, compact tests-root companion, or review checklist made that focused landlock reviewability shard explicit as direct evidence beside `zigux/tests/phase13_landlock_syscalls.zig`?
+- Did a shared Phase 13 prompt leave `Documentation/zigux/phase13-landlock-ruleset-ownership.md` or `Documentation/zigux/phase13-landlock-syscalls-governance.md` implicit after the contributor guide, compact tests-root companion, or lane-sequencing note made those helper-owned boundary notes explicit as part of the live contributor packet?
 - Did a shared Phase 13 prompt keep `zigux/tests/phase13_libfs_addressability.zig` implicit after the contributor guide or compact tests-root companion made that focused libfs addressability shard explicit as shipped direct evidence beside `zigux/tests/phase13_libfs.zig`?
 - Did a checklist prompt keep an old replay count after the docs-root summary changed?
 - Did docs-root or scripts-root add a new replay, checker, manifest, survey, reviewability shard, or adjacent ABI/helper evidence file that the shared contributor prompts still compress into older shorthand?
