@@ -322,6 +322,9 @@ jobs:
       - name: Validate Phase 8 tooling packet
         run: make -C zigux phase8-validate
 
+      - name: Run focused Phase 8 exec-cmd tests
+        run: make -C zigux phase8-exec-cmd-test
+
       - name: Run focused Phase 8 help and kallsyms tests
         run: make -C zigux phase8-help-kallsyms-test
 
