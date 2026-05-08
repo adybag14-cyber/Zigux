@@ -54,6 +54,13 @@ REQUIRED_FILE_MARKERS = {
     ],
 }
 SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
+    "- rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`",
+    "Attached-toolchain fallback examples:",
+    "This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.",
+    "Fallback path:",
+    "Keep `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` as the source of truth and keep the shared smoke packet limited to survey-backed reviewability evidence.",
+    "Leave this shared smoke lane parked unless one of the four anchor-local manifests, the cross-anchor traceability note, the shared replay wiring, or the paired Phase 14 docs surfaces drift.",
+    "- review blocker status: `blocked_on_stay_in_c_evidence`",
     "- `zigux/tests/phase14_workqueue_bridge_manifest.json`",
     "- `zigux/tests/phase14_skbuff_bridge_manifest.json`",
     "- `zigux/tests/phase14_ring_buffer_manifest.json`",
@@ -121,7 +128,7 @@ def required_text(rel_path: str) -> str:
         ) + "\n"
     markers = list(REQUIRED_FILE_MARKERS[rel_path])
     if rel_path == SMOKE_SURVEY_PATH:
-        markers.extend(SMOKE_SURVEY_EXACT_COUNT_MARKERS)
+        markers.extend(SMOKE_SURVEY_EXACT_COUNT_MARKERS[7:])
     return "\n".join(markers) + "\n"
 
 
@@ -190,6 +197,45 @@ def run_self_test() -> int:
             for error in errors
         ):
             print("self-test expected failure when shared smoke manifest inventory duplicated", file=sys.stderr)
+            return 1
+
+        write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
+
+        broken_smoke_path.write_text(
+            broken_smoke_path.read_text(encoding="utf-8").replace(
+                "- rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`\n",
+                "- rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`\n"
+                "- rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence` (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the rollback-owner line duplicated", file=sys.stderr)
+            return 1
+
+        write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
+
+        broken_smoke_path.write_text(
+            broken_smoke_path.read_text(encoding="utf-8").replace(
+                "Attached-toolchain fallback examples:\n",
+                "Attached-toolchain fallback examples:\nAttached-toolchain fallback examples:\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: Attached-toolchain fallback examples: (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the attached-toolchain fallback heading duplicated", file=sys.stderr)
             return 1
 
         write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
