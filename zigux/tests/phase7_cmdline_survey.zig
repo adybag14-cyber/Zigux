@@ -144,6 +144,12 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(helper_impl, "try std.testing.expect(!parseOptionStr(\"debug,\", \"\"));");
     try expectContains(helper_impl, "test \"nextArg keeps embedded equals inside quoted values\"");
     try expectContains(helper_impl, "test \"nextArg keeps param, value, and rest borrowed from the caller buffer\"");
+    try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[0])), @as(usize, @intFromPtr(parsed.param.ptr)));");
+    try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[6])), @as(usize, @intFromPtr(parsed.value.?.ptr)));");
+    try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[17])), @as(usize, @intFromPtr(parsed.rest.ptr)));");
+    try expectContains(helper_impl, "try std.testing.expectEqual(@as(u8, 0), buffer[4]);");
+    try expectContains(helper_impl, "try std.testing.expectEqual(@as(u8, 0), buffer[15]);");
+    try expectContains(helper_impl, "try std.testing.expectEqual(@as(u8, 0), buffer[16]);");
     try expectContains(helper_impl, "test \"nextArg does not treat a leading equals sign as a value separator\"");
     try expectCount(helper_impl, "test \"nextArg keeps param, value, and rest borrowed from the caller buffer\"", 1);
 
@@ -185,6 +191,13 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(cmdline_tests, "try std.testing.expect(!cmdline.parseOptionStr(\"debug,\", \"\"));");
     try expectContains(cmdline_tests, "phase 7 nextArg matches serialized edge fixtures");
     try expectContains(cmdline_tests, "for (next_arg_vectors.next_arg_cases) |fixture| {");
+    try expectContains(cmdline_tests, "phase 7 nextArg keeps caller-owned buffer slices and sentinel writes explicit");
+    try expectContains(cmdline_tests, "try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[0])), @as(usize, @intFromPtr(parsed.param.ptr)));");
+    try expectContains(cmdline_tests, "try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[6])), @as(usize, @intFromPtr(parsed.value.?.ptr)));");
+    try expectContains(cmdline_tests, "try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[17])), @as(usize, @intFromPtr(parsed.rest.ptr)));");
+    try expectContains(cmdline_tests, "try std.testing.expectEqual(@as(u8, 0), buffer[4]);");
+    try expectContains(cmdline_tests, "try std.testing.expectEqual(@as(u8, 0), buffer[15]);");
+    try expectContains(cmdline_tests, "try std.testing.expectEqual(@as(u8, 0), buffer[16]);");
     try expectContains(cmdline_tests, "cmdline.nextArg");
     try expectCount(cmdline_tests, "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");", 1);
     try expectCount(cmdline_tests, "phase 7 getOption preserves validator-only numeric acceptance", 1);
