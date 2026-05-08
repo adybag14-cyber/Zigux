@@ -61,7 +61,7 @@
     {
       "id": "callback-registration-balance",
       "kind": "ownership_lifetime",
-      "expected": "the public runCallbackBoundaryReplay() helper records the callback path, the count-specific callback replay, the registration depth rising to 1 after register and returning to 0 after unregister, and the restored registration balance at zero without private sample-state reads before the sample completes"
+      "expected": "the public runCallbackBoundaryReplay() helper records the exact checked_focus order, the callback path, the count-specific callback replay, the registration depth rising to 1 after register and returning to 0 after unregister, unregisterFunctionCallback() underflow plus OutstandingRegistration rejection, and the restored registration balance at zero without private sample-state reads before the sample completes"
     },
     {
       "id": "post-exit-rejection",
