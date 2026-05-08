@@ -31,6 +31,14 @@ pub const SelftestSummary = struct {
     checked_guard_paths: bool,
 };
 
+pub const LifecycleSnapshot = struct {
+    stage: ModuleStage,
+    init_runs: usize,
+    selftest_runs: usize,
+    exit_runs: usize,
+    allows_counter_ops: bool,
+};
+
 pub const CompareExchangeResult = struct {
     previous: i64,
     stored: bool,
@@ -59,6 +67,17 @@ pub const RuntimeAtomic64Sample = struct {
         };
     }
 
+    pub fn lifecycleSnapshot(self: *const Self) LifecycleSnapshot {
+        const current_stage = self.stage();
+        return .{
+            .stage = current_stage,
+            .init_runs = self.init_runs,
+            .selftest_runs = self.selftest_runs,
+            .exit_runs = self.exit_runs,
+            .allows_counter_ops = stageAllowsCounterOps(current_stage),
+        };
+    }
+
     pub fn stage(self: *const Self) ModuleStage {
         return @enumFromInt(atomic.load(u8, &self.stage_bits, .seq_cst));
     }
@@ -67,11 +86,15 @@ pub const RuntimeAtomic64Sample = struct {
         atomic.store(u8, &self.stage_bits, @intFromEnum(next), .seq_cst);
     }
 
-    fn ensureActive(self: *const Self) !void {
-        return switch (self.stage()) {
-            .initialized, .selftest_complete => {},
-            else => error.InvalidLifecycleTransition,
+    fn stageAllowsCounterOps(current_stage: ModuleStage) bool {
+        return switch (current_stage) {
+            .initialized, .selftest_complete => true,
+            else => false,
         };
+    }
+
+    fn ensureActive(self: *const Self) !void {
+        if (!stageAllowsCounterOps(self.stage())) return error.InvalidLifecycleTransition;
     }
 
     pub fn init(self: *Self, seed: i64) !void {
@@ -222,6 +245,41 @@ pub const RuntimeAtomic64Sample = struct {
         self.setStage(.exited);
     }
 };
+
+test "runtime atomic64 sample keeps lifecycle snapshots explicit" {
+    var module = RuntimeAtomic64Sample{};
+
+    const cold = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.cold, cold.stage);
+    try std.testing.expectEqual(@as(usize, 0), cold.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold.exit_runs);
+    try std.testing.expect(!cold.allows_counter_ops);
+
+    try module.init(11);
+    const initialized = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.initialized, initialized.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.exit_runs);
+    try std.testing.expect(initialized.allows_counter_ops);
+
+    _ = try module.runSelftest();
+    const selftested = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, selftested.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftested.exit_runs);
+    try std.testing.expect(selftested.allows_counter_ops);
+
+    try module.exit();
+    const exited = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, exited.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);
+    try std.testing.expect(!exited.allows_counter_ops);
+}
 
 test "runtime atomic64 sample keeps selftest-complete replay local to the sample" {
     const descriptor = RuntimeAtomic64Sample.descriptor();
