@@ -217,6 +217,7 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase8-file-path-handle-bridge-test`",
         "`make -C zigux phase8-libbpf-segments-test`",
         "`make -C zigux phase8-perf-buffer-poll-test`",
+        "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
         "the libbpf packet is only honest when the docs-root summary keeps the dedicated file-path bridge, libbpf segment-survey, perf-buffer-poll, and shared help-kallsyms shard routes explicit beside `phase8_build.zig`",
     ],
     "scripts/zigux/README.md": [
@@ -226,6 +227,7 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase8-kallsyms-slice.md",
         "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md",
         "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        "Documentation/zigux/phase8-tooling-lane-sequencing.md",
         "scripts/zigux/check-phase8-exec-cmd-packet.py",
         "zigux/tests/phase8_exec_cmd.zig",
         "zigux/tests/phase8_exec_cmd_only_build.zig",
@@ -684,6 +686,20 @@ def run_self_test() -> None:
             "`make -C zigux phase8-help-kallsyms-test`",
             "`make -C zigux phase8-help-test`",
             "Documentation/zigux/README.md: `make -C zigux phase8-help-kallsyms-test`",
+        ),
+        (
+            "docs_root_phase8_owner_map_note",
+            "Documentation/zigux/README.md",
+            "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
+            "`Documentation/zigux/phase8-owner-map.md`",
+            "Documentation/zigux/README.md: `Documentation/zigux/phase8-tooling-lane-sequencing.md`",
+        ),
+        (
+            "scripts_root_phase8_owner_map_note",
+            "scripts/zigux/README.md",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "Documentation/zigux/phase8-owner-map.md",
+            "scripts/zigux/README.md: Documentation/zigux/phase8-tooling-lane-sequencing.md",
         ),
         (
             "tests_root_libbpf_segments_only_build",
