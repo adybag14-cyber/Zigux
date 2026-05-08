@@ -18,6 +18,10 @@ pub const rule_type_net_port: u32 = 2;
 pub const fmode_can_read: u32 = 1 << 0;
 pub const fmode_can_write: u32 = 1 << 1;
 
+pub const ruleset_fd_display_name = "[landlock-ruleset]";
+pub const ruleset_fd_open_rdwr: u32 = 0x2;
+pub const ruleset_fd_open_cloexec: u32 = 0x80000;
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -30,6 +34,7 @@ pub const ModuleDescriptor = struct {
     provides_path_fd_planning: bool,
     provides_path_beneath_handoff_planning: bool,
     provides_ruleset_release_planning: bool,
+    provides_ruleset_fd_install_planning: bool,
     provides_ruleset_fops_planning: bool,
     touches_live_fd_table: bool,
     touches_live_paths: bool,
@@ -242,6 +247,22 @@ pub const RulesetFopsPlan = struct {
     returns_einval: bool = false,
 };
 
+pub const RulesetFdInstallRequest = struct {
+    ruleset_created: bool = true,
+    install_errno: ?i32 = null,
+};
+
+pub const RulesetFdInstallPlan = struct {
+    anchor: []const u8,
+    display_name: []const u8,
+    uses_ruleset_fops: bool,
+    exposes_read_write_fd: bool,
+    cloexec: bool,
+    returns_installed_fd: bool,
+    releases_ruleset_on_failure: bool,
+    failure_errno: ?i32 = null,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -256,6 +277,7 @@ pub const SyscallsHelperLab = struct {
             .provides_path_fd_planning = true,
             .provides_path_beneath_handoff_planning = true,
             .provides_ruleset_release_planning = true,
+            .provides_ruleset_fd_install_planning = true,
             .provides_ruleset_fops_planning = true,
             .touches_live_fd_table = false,
             .touches_live_paths = false,
@@ -577,6 +599,28 @@ pub const SyscallsHelperLab = struct {
         };
     }
 
+    pub fn planInstallRulesetFd(request: RulesetFdInstallRequest) !RulesetFdInstallPlan {
+        if (!request.ruleset_created) {
+            return error.MissingRuleset;
+        }
+        if (request.install_errno) |install_errno| {
+            if (install_errno >= 0) {
+                return error.InvalidInstallErrno;
+            }
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .display_name = ruleset_fd_display_name,
+            .uses_ruleset_fops = true,
+            .exposes_read_write_fd = true,
+            .cloexec = true,
+            .returns_installed_fd = request.install_errno == null,
+            .releases_ruleset_on_failure = request.install_errno != null,
+            .failure_errno = request.install_errno,
+        };
+    }
+
     pub fn planRulesetFops(operation: RulesetFopsOperation) RulesetFopsPlan {
         return switch (operation) {
             .release => .{
@@ -711,6 +755,37 @@ test "landlock add-rule syscall planning rejects disabled state flags and non-wr
         .rule_type = rule_type_net_port,
         .handled_access_net = 0x1,
         .net_port_attr = .{ .allowed_access = 0x1, .port = 80 },
+    }));
+}
+
+test "landlock ruleset-fd install planning keeps anon-fd handoff explicit" {
+    const descriptor = SyscallsHelperLab.descriptor();
+    try std.testing.expect(descriptor.provides_ruleset_fd_install_planning);
+
+    const plan = try SyscallsHelperLab.planInstallRulesetFd(.{});
+    try std.testing.expectEqualStrings(descriptor.anchor, plan.anchor);
+    try std.testing.expectEqualStrings(ruleset_fd_display_name, plan.display_name);
+    try std.testing.expect(plan.uses_ruleset_fops);
+    try std.testing.expect(plan.exposes_read_write_fd);
+    try std.testing.expect(plan.cloexec);
+    try std.testing.expect(plan.returns_installed_fd);
+    try std.testing.expect(!plan.releases_ruleset_on_failure);
+    try std.testing.expectEqual(@as(?i32, null), plan.failure_errno);
+}
+
+test "landlock ruleset-fd install planning releases the ruleset on anon-fd failure" {
+    const plan = try SyscallsHelperLab.planInstallRulesetFd(.{
+        .install_errno = -24,
+    });
+    try std.testing.expect(!plan.returns_installed_fd);
+    try std.testing.expect(plan.releases_ruleset_on_failure);
+    try std.testing.expectEqual(@as(?i32, -24), plan.failure_errno);
+
+    try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planInstallRulesetFd(.{
+        .ruleset_created = false,
+    }));
+    try std.testing.expectError(error.InvalidInstallErrno, SyscallsHelperLab.planInstallRulesetFd(.{
+        .install_errno = 0,
     }));
 }
 
