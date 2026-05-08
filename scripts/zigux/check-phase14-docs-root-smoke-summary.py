@@ -69,6 +69,9 @@ def read_text(path: Path) -> str:
 
 def check(root: Path) -> list[str]:
     errors: list[str] = []
+    if MARKER not in read_text(Path(__file__)):
+        errors.append("checker marker missing from checker source")
+
     docs_root_path = root / DOCS_ROOT_PATH
     if not docs_root_path.exists():
         return [f"missing file: {DOCS_ROOT_PATH}"]
@@ -127,6 +130,8 @@ def write_text(path: Path, text: str) -> None:
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
+        current_checker_path = Path(__file__)
+        original_checker_source = current_checker_path.read_text(encoding="utf-8")
         good_text = "\n".join(REQUIRED_MARKERS) + "\n"
         good_smoke_text = "\n".join(REQUIRED_SMOKE_SURVEY_MARKERS) + "\n"
         write_text(root / DOCS_ROOT_PATH, good_text)
@@ -322,6 +327,21 @@ def run_self_test() -> int:
                 file=sys.stderr,
             )
             return 1
+        write_text(root / MAKEFILE_PATH, f"phase14-validate:\n\tpython3 {CHECKER_PATH}\n")
+
+        current_checker_path.write_text(
+            original_checker_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or "checker marker missing from checker source" not in errors:
+            print(
+                "self-test expected failure when the checker source marker drifted",
+                file=sys.stderr,
+            )
+            current_checker_path.write_text(original_checker_source, encoding="utf-8")
+            return 1
+        current_checker_path.write_text(original_checker_source, encoding="utf-8")
 
     return 0
 
