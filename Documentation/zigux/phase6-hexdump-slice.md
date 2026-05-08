@@ -24,7 +24,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 - leaf-oriented
 - string and formatting sensitive enough to justify a focused gate
-- already partially ported, with the committed Phase 6 harness now covering the formatter path too
+- already landed as a bounded helper packet, with the committed Phase 6 harness covering the formatter path too
 
 ## Gates
 
