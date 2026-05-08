@@ -14,9 +14,9 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
   - `Documentation/zigux/phase5-sample-review-guide.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
-  - `samples/zigux/README.md`
   - `scripts/zigux/README.md`
   - `zigux/tests/README.md`
+  - `samples/zigux/README.md`
   - `samples/zigux/trace_events_sample.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_trace_events_sample.zig`
@@ -27,7 +27,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/trace_events/trace-events-sample.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection already showed landed Phase 5 FIFO, kobject, and kretprobe reference samples plus a later Phase 9 runtime `trace-events` starter. The missing Phase 5 job was still the earlier non-runtime reading of the same Linux anchor so reviewers can see the payload, callback, and ownership-lifetime idioms without confusing them with runtime substrate work.
+Fresh repo inspection now shows the bounded roadmap anchor already landed as `samples/zigux/trace_events_sample.zig` inside the four-sample Phase 5 packet, with the separate Phase 9 `runtime_trace_events` family still kept distinct. The remaining same-lane job is no longer to add a missing trace-events anchor; it is to keep the payload, callback, and ownership-lifetime idiom and its coupled contributor surfaces truthful without implying runtime substrate closure.
 
 ## Survey findings
 
