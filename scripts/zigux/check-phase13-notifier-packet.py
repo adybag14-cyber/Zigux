@@ -12,6 +12,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
@@ -59,6 +60,20 @@ REVIEW_CHECKLIST_MARKERS = [
     "zigux/helpers/notifier_chain_view.zig",
     "shipped adjacent release-surface evidence rather than implying they are missing from the broader Phase 13 packet or that they add extra shared replay steps on `master`",
 ]
+
+SCRIPTS_README_MARKERS = [
+    "scripts/zigux/check-phase13-notifier-packet.py",
+    "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/tests/phase13_notifier_list_reviewability.zig",
+    "include/zigux/notifier_abi.h",
+    "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/notifier_chain_view.zig",
+    "adjacent review evidence instead of adding extra shared replay steps on `master`",
+]
+
+SCRIPTS_README_EXACT_COUNTS = {
+    "scripts/zigux/check-phase13-notifier-packet.py": 1,
+}
 
 TESTS_README_MARKERS = [
     "scripts/zigux/check-phase13-notifier-packet.py",
@@ -248,6 +263,7 @@ def validate(root: Path) -> list[str]:
         root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
     )
     review_checklist_text = read_text(root / "Documentation/zigux/review-checklist.md")
+    scripts_readme_text = read_text(root / "scripts/zigux/README.md")
     tests_readme_text = read_text(root / "zigux/tests/README.md")
     manifest_text = read_text(root / "zigux/tests/phase13_notifier_list_manifest.json")
     reviewability_text = read_text(root / "zigux/tests/phase13_notifier_list_reviewability.zig")
@@ -281,6 +297,20 @@ def validate(root: Path) -> list[str]:
             review_checklist_text,
             REVIEW_CHECKLIST_MARKERS,
             "phase13-review-checklist",
+        )
+    )
+    issues.extend(
+        collect_missing(
+            scripts_readme_text,
+            SCRIPTS_README_MARKERS,
+            "phase13-scripts-readme",
+        )
+    )
+    issues.extend(
+        collect_exact_count_issues(
+            scripts_readme_text,
+            SCRIPTS_README_EXACT_COUNTS,
+            "phase13-scripts-readme-exact",
         )
     )
     issues.extend(collect_missing(tests_readme_text, TESTS_README_MARKERS, "phase13-tests-readme"))
@@ -332,6 +362,21 @@ def seed_fixture_tree(root: Path) -> None:
     write_text(
         root / "Documentation/zigux/review-checklist.md",
         "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
+    )
+    write_text(
+        root / "scripts/zigux/README.md",
+        "\n".join(
+            [
+                "scripts/zigux/check-phase13-notifier-packet.py",
+                "zigux/tests/phase13_notifier_list_manifest.json",
+                "zigux/tests/phase13_notifier_list_reviewability.zig",
+                "include/zigux/notifier_abi.h",
+                "zigux/bindings/notifier_abi.zig",
+                "zigux/helpers/notifier_chain_view.zig",
+                "adjacent review evidence instead of adding extra shared replay steps on `master`",
+            ]
+        )
+        + "\n",
     )
     write_text(
         root / "zigux/tests/README.md",
@@ -463,6 +508,31 @@ def run_self_test() -> int:
                 "phase13-review-checklist:scripts/zigux/check-phase13-notifier-packet.py",
             ],
             "review_checklist_guard_failed",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
+        write_text(
+            root / "scripts/zigux/README.md",
+            "\n".join(
+                [
+                    "zigux/tests/phase13_notifier_list_manifest.json",
+                    "zigux/tests/phase13_notifier_list_reviewability.zig",
+                    "include/zigux/notifier_abi.h",
+                    "zigux/bindings/notifier_abi.zig",
+                    "zigux/helpers/notifier_chain_view.zig",
+                    "adjacent review evidence instead of adding extra shared replay steps on `master`",
+                ]
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "phase13-scripts-readme:scripts/zigux/check-phase13-notifier-packet.py",
+                "phase13-scripts-readme-exact:scripts/zigux/check-phase13-notifier-packet.py:expected=1:actual=0",
+            ],
+            "scripts_readme_guard_failed",
         )
         seed_fixture_tree(root)
         case_count += 1
