@@ -51,6 +51,21 @@ pub const RequestQueueSummary = struct {
     kind: RequestQueueKind,
 };
 
+pub const QueueWindowSummary = struct {
+    anchor: []const u8,
+    control_queue_index: u16,
+    event_queue_index: u16,
+    first_default_queue_index: u16,
+    last_default_queue_index: u16,
+    default_queue_count: u16,
+    first_poll_queue_index: ?u16,
+    last_poll_queue_index: ?u16,
+    poll_queue_count: u16,
+    total_queues: u16,
+    preserves_control_event_gap: bool,
+    keeps_default_queues_before_poll_queues: bool,
+};
+
 pub const ProbeConfigSnapshot = struct {
     anchor: []const u8,
     num_queues: u16,
@@ -340,6 +355,40 @@ pub const VirtioScsiQueueLab = struct {
             .local_index = local_index,
             .global_index = try checkedAddU16(request_queue_base, local_index),
             .kind = if (local_index < layout.default_queues) .request else .request_poll,
+        };
+    }
+
+    pub fn queueWindowSummary(self: *const Self) !QueueWindowSummary {
+        if (self.transport_frozen) {
+            return error.TransportFrozen;
+        }
+
+        const layout = self.last_layout orelse return error.QueueLayoutUnavailable;
+        const last_default_queue_index = try checkedAddU16(
+            layout.first_request_queue_index,
+            layout.default_queues - 1,
+        );
+        const last_poll_queue_index = if (layout.first_poll_queue_index) |first_poll_queue_index|
+            try checkedAddU16(first_poll_queue_index, layout.poll_queues - 1)
+        else
+            null;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .control_queue_index = layout.control_queue_index,
+            .event_queue_index = layout.event_queue_index,
+            .first_default_queue_index = layout.first_request_queue_index,
+            .last_default_queue_index = last_default_queue_index,
+            .default_queue_count = layout.default_queues,
+            .first_poll_queue_index = layout.first_poll_queue_index,
+            .last_poll_queue_index = last_poll_queue_index,
+            .poll_queue_count = layout.poll_queues,
+            .total_queues = layout.total_queues,
+            .preserves_control_event_gap = layout.first_request_queue_index == request_queue_base,
+            .keeps_default_queues_before_poll_queues = if (layout.first_poll_queue_index) |first_poll_queue_index|
+                last_default_queue_index < first_poll_queue_index
+            else
+                true,
         };
     }
 
