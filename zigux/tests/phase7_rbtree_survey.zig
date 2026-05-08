@@ -279,8 +279,10 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(helper_tests, "phase 7 rbtree replaceNode and postorder helpers preserve structure");
     try expectContains(helper_tests, "phase 7 rbtree balancing helpers keep ordered insert erase traversal stable");
     try expectContains(helper_tests, "phase 7 rbtree cached helpers return leftmost handoff state");
+    try expectContains(helper_tests, "phase 7 rbtree eraseCached clears final cached-leftmost handoff state");
     try expectContains(helper_tests, "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable");
     try expectContains(helper_tests, "phase 7 rbtree detached nodes stay non-empty until callers clear them");
+    try expectContains(helper_tests, "phase 7 rbtree replaceNode overwrites stale replacement ownership state before reconnecting");
     try expectContains(helper_tests, "phase 7 rbtree clearNode marks detached nodes as empty");
     try expectContains(helper_tests, "phase 7 rbtree eraseLinked clears detached linked ownership state and reconnects neighbours");
     try expectContains(helper_tests, "phase 7 rbtree find helpers walk duplicate-key ranges");
