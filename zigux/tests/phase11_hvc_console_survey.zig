@@ -206,6 +206,11 @@ test "phase11 hvc console survey note records the bounded layout checkpoints" {
     try expectContains(note, "Documentation/zigux/phase11-hvc-console-teardown-note.md");
     try expectContains(note, "close, cleanup, and remove ownership split");
     try expectContains(note, "current driver, verifier, tests, archival manifest, validation matrix, and shared replay contract");
+    try expectContains(note, "khvcd polling-contract follow-through");
+    try expectContains(note, "`hvc_hangup()` disconnect boundary");
+    try expectContains(note, "stale hangup short-circuit");
+    try expectContains(note, "targetless-sysrq");
+    try expectContains(note, "notifier-prerequisite failure-mode replays");
 }
 
 test "phase11 hvc console teardown note keeps the bounded ownership split explicit" {
@@ -236,6 +241,15 @@ test "phase11 hvc_console survey gate proves validation matrix coverage directly
     try std.testing.expect(std.mem.indexOf(u8, matrix, "zigux/tests/phase11_hvc_console_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "drivers/tty/hvc/hvc_console_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "cleanup-prerequisite failure replays in `drivers/tty/hvc/hvc_console_verify.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "targetless-dispatch and no-dispatch notifier-deferral replays in `drivers/tty/hvc/hvc_console_verify.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "notifier prerequisite, never-registered, targetless, and targetless-sysrq failure-mode replays in `drivers/tty/hvc/hvc_console_verify.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "khvcd polling contract boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "notifier-driven versus polling-driven wakeups") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "`hvc_hangup()` disconnect boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "stale-count short-circuiting") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "preserving buffered-write state when the stale port-count guard wins") != null);
 }
 
 test "phase11 hvc console survey gate keeps the shared replay contract aligned with the archival HVC checkpoint" {
