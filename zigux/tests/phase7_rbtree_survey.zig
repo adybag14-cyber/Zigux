@@ -290,6 +290,9 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(samples_readme, "lib/rbtree.zig");
     try expectContains(samples_readme, "zigux/tests/phase7_rbtree.zig");
     try expectContains(samples_readme, "zigux/tests/phase7_rbtree_survey.zig");
+    try expectContains(samples_readme, "zigux/tests/phase7_rbtree_manifest.json");
+    try expectContains(samples_readme, "zigux/tests/fixtures/phase7_rbtree.json");
+    try expectContains(samples_readme, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectContains(samples_readme, "scripts/zigux/check-phase7-rbtree-parity.py");
     try expectContains(samples_readme, "zigux/tests/phase7_build.zig");
     try expectContains(zigux_makefile, "phase7-validate:");
