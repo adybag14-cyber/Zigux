@@ -37,4 +37,4 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/kpr
 
 ## Next Bounded Step
 
-Land one manifest-backed Phase 4 test_fsmount gap survey packet that keeps the current C anchor, replay command, owner, and rollback owner reviewable without claiming a shipped Zig starter.
+keep this parked packet adjacent to the shared gate-evidence note until a future bounded lane intentionally opens either the Zig starter or a broader validation-surface promotion.
