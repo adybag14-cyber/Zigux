@@ -100,6 +100,34 @@ pub fn searchMutable(
     return &items[index];
 }
 
+pub fn lowerBoundIndex(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) usize {
+    comptime validateComparator(Key, T, @TypeOf(compare));
+
+    var base: usize = 0;
+    var num = items.len;
+
+    while (num > 0) {
+        const half = num >> 1;
+        const pivot_index = base + half;
+        const pivot: *const T = &items[pivot_index];
+
+        if (compare(key, pivot) > 0) {
+            base = pivot_index + 1;
+            num -= half + 1;
+        } else {
+            num = half;
+        }
+    }
+
+    return base;
+}
+
 pub fn bsearchIndex(
     key: *const anyopaque,
     base: [*]const u8,
@@ -155,6 +183,36 @@ pub fn bsearchMutable(
 ) ?*anyopaque {
     const index = bsearchIndex(key, base, num_members, member_size, compare) orelse return null;
     return @ptrCast(base + (index * member_size));
+}
+
+pub fn bsearchLowerBoundIndex(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num_members: usize,
+    member_size: usize,
+    compare: anytype,
+) usize {
+    comptime validateRawComparator(@TypeOf(compare));
+
+    std.debug.assert(member_size > 0 or num_members == 0);
+
+    var base_index: usize = 0;
+    var num = num_members;
+
+    while (num > 0) {
+        const half = num >> 1;
+        const pivot_index = base_index + half;
+        const pivot: *const anyopaque = @ptrCast(base + (pivot_index * member_size));
+
+        if (compare(key, pivot) > 0) {
+            base_index = pivot_index + 1;
+            num -= half + 1;
+        } else {
+            num = half;
+        }
+    }
+
+    return base_index;
 }
 
 fn compareInt(key: *const i32, item: *const i32) i32 {
@@ -350,6 +408,24 @@ test "search accepts duplicate keys without claiming stable selection" {
     try std.testing.expectEqual(@as(i32, 4), values[index]);
     try std.testing.expect(found_index >= 1 and found_index <= 3);
     try std.testing.expectEqual(@as(i32, 4), found.*);
+}
+
+test "lowerBoundIndex returns the first duplicate and insertion edges" {
+    const values = [_]i32{ 1, 4, 4, 4, 9, 16 };
+
+    try std.testing.expectEqual(@as(usize, 0), lowerBoundIndex(i32, i32, &@as(i32, 0), values[0..], compareInt));
+    try std.testing.expectEqual(@as(usize, 1), lowerBoundIndex(i32, i32, &@as(i32, 4), values[0..], compareInt));
+    try std.testing.expectEqual(@as(usize, 4), lowerBoundIndex(i32, i32, &@as(i32, 5), values[0..], compareInt));
+    try std.testing.expectEqual(@as(usize, values.len), lowerBoundIndex(i32, i32, &@as(i32, 20), values[0..], compareInt));
+}
+
+test "lowerBoundIndex preserves descending comparator ordering" {
+    const values = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+
+    try std.testing.expectEqual(@as(usize, 0), lowerBoundIndex(i32, i32, &@as(i32, 50), values[0..], compareIntDescending));
+    try std.testing.expectEqual(@as(usize, 4), lowerBoundIndex(i32, i32, &@as(i32, 7), values[0..], compareIntDescending));
+    try std.testing.expectEqual(@as(usize, 6), lowerBoundIndex(i32, i32, &@as(i32, 3), values[0..], compareIntDescending));
+    try std.testing.expectEqual(@as(usize, values.len), lowerBoundIndex(i32, i32, &@as(i32, 1), values[0..], compareIntDescending));
 }
 
 test "search supports heterogeneous keys through the comparator" {
@@ -822,6 +898,27 @@ test "bsearchIndex matches linear equality probes across bounded ascending and d
     }
 }
 
+test "bsearchLowerBoundIndex returns the first duplicate and insertion edges" {
+    const values = [_]i32{ 1, 4, 4, 4, 9, 16 };
+
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        bsearchLowerBoundIndex(&@as(i32, 0), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        bsearchLowerBoundIndex(&@as(i32, 4), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        bsearchLowerBoundIndex(&@as(i32, 5), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt),
+    );
+    try std.testing.expectEqual(
+        @as(usize, values.len),
+        bsearchLowerBoundIndex(&@as(i32, 20), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt),
+    );
+}
+
 test "bsearchMutable returns a mutable pointer to the matching element" {
     var values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
     const found = bsearchMutable(&@as(i32, 16), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
@@ -830,6 +927,29 @@ test "bsearchMutable returns a mutable pointer to the matching element" {
     typed_found.* = 17;
     try std.testing.expectEqual(@as(i32, 17), values[4]);
     try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_found));
+}
+
+test "bsearchLowerBoundIndex honors member_size across record entries" {
+    const records = [_]RawRecord{
+        .{ .key = 2, .tag = 10, .flags = 0, .value = 20 },
+        .{ .key = 4, .tag = 11, .flags = 1, .value = 40 },
+        .{ .key = 4, .tag = 12, .flags = 0, .value = 41 },
+        .{ .key = 11, .tag = 13, .flags = 2, .value = 110 },
+        .{ .key = 16, .tag = 14, .flags = 0, .value = 160 },
+    };
+
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        bsearchLowerBoundIndex(&@as(i32, 4), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareOpaqueRecordKey),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 3),
+        bsearchLowerBoundIndex(&@as(i32, 10), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareOpaqueRecordKey),
+    );
+    try std.testing.expectEqual(
+        @as(usize, records.len),
+        bsearchLowerBoundIndex(&@as(i32, 42), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareOpaqueRecordKey),
+    );
 }
 
 test "raw helpers honor member_size across record entries and preserve mutable write-through" {
