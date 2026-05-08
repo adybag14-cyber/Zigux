@@ -229,6 +229,11 @@ test "phase11 hvc console teardown note keeps the bounded ownership split explic
     try expectContains(teardown_note, "tty_vhangup()");
     try expectContains(teardown_note, "tty_kref_put()");
     try expectContains(teardown_note, "resize-work cancellation");
+    try expectContains(teardown_note, "stale-count short-circuiting");
+    try expectContains(teardown_note, "tty detachment");
+    try expectContains(teardown_note, "buffered-write clearing");
+    try expectContains(teardown_note, "notifier-hangup ownership");
+    try expectContains(teardown_note, "kept console binding");
     try expectContains(teardown_note, "do not treat this note as evidence of live notifier callbacks");
 }
 
