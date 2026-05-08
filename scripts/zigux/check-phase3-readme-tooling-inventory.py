@@ -217,12 +217,15 @@ TESTS_README_PHASE3_MARKERS = (
     "opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`",
 )
 
+
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
 
+
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
     found = False
@@ -246,6 +249,7 @@ def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
         issues.append("missing_readme_helper_entries")
     return entries, issues
 
+
 def _is_makefile_target_header(raw: str) -> bool:
     if raw.startswith((" ", "\t")):
         return False
@@ -255,6 +259,7 @@ def _is_makefile_target_header(raw: str) -> bool:
     if ":=" in stripped or "?=" in stripped or "+=" in stripped or "!=" in stripped:
         return False
     return ":" in stripped
+
 
 def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | None:
     in_target = False
@@ -271,6 +276,7 @@ def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | No
         lines.append(raw)
     return lines if in_target else None
 
+
 def _collect_target_helpers(makefile: str, target: str) -> list[str]:
     lines = _collect_makefile_target_lines(makefile, target)
     if lines is None:
@@ -284,6 +290,7 @@ def _collect_target_helpers(makefile: str, target: str) -> list[str]:
         if rel.endswith(".py"):
             helpers.append(Path(rel).name)
     return helpers
+
 
 def _validate_target_helpers(issues: list[str], makefile: str, target: str, required_helpers: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
@@ -302,6 +309,7 @@ def _validate_target_helpers(issues: list[str], makefile: str, target: str, requ
             issues.append(f"unexpected_makefile_helper:{target}:{helper}")
     if [helper for helper in helpers if helper in required_helpers] != list(required_helpers):
         issues.append(f"makefile_helper_order_drift:{target}")
+
 
 def _validate_target_commands(issues: list[str], makefile: str, target: str, required_commands: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
@@ -322,6 +330,7 @@ def _validate_target_commands(issues: list[str], makefile: str, target: str, req
     if [command for command in commands if command in required_commands] != expected:
         issues.append(f"makefile_command_order_drift:{target}")
 
+
 def _validate_tests_readme_phase3_markers(issues: list[str], text: str) -> None:
     for marker in TESTS_README_PHASE3_MARKERS:
         if marker.startswith("opt-in safety check"):
@@ -333,6 +342,7 @@ def _validate_tests_readme_phase3_markers(issues: list[str], text: str) -> None:
             issues.append(f"missing_tests_readme_phase3_marker:{marker}")
         elif count != 1:
             issues.append(f"unexpected_tests_readme_phase3_marker_count:{count}:{marker}")
+
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
@@ -392,12 +402,15 @@ def validate(root: Path) -> list[str]:
     _validate_tests_readme_phase3_markers(issues, tests_readme)
     return issues
 
+
 def _baseline_readme() -> str:
     helper_lines = "\n".join(f"- `{helper}`" for helper in REQUIRED_HELPERS)
     return "\n".join(["# scripts/zigux", "", README_HELPER_SECTION, helper_lines, "", *REQUIRED_README_SNIPPETS, ""])
 
+
 def _baseline_tests_readme() -> str:
     return "\n".join(["# zigux/tests", "", *TESTS_README_PHASE3_MARKERS, ""])
+
 
 def _baseline_makefile() -> str:
     return "\n".join((
@@ -433,12 +446,14 @@ def _baseline_makefile() -> str:
         "",
     ))
 
+
 def _populate_repo(root: Path) -> None:
     _write(root / README_REL, _baseline_readme())
     _write(root / TESTS_README_REL, _baseline_tests_readme())
     _write(root / MAKEFILE_REL, _baseline_makefile())
     for helper in REQUIRED_HELPERS:
         _write(root / "scripts" / "zigux" / helper, "# stub\n")
+
 
 def run_self_test() -> int:
     case_count = 0
@@ -484,6 +499,24 @@ def run_self_test() -> int:
         _write(root / TESTS_README_REL, _baseline_tests_readme())
         case_count += 1
 
+        tests = _baseline_tests_readme().replace("python3 scripts/zigux/validate_phase3_selftest.py\n", "", 1)
+        _write(root / TESTS_README_REL, tests)
+        assert validate(root) == ["missing_tests_readme_phase3_marker:python3 scripts/zigux/validate_phase3_selftest.py"]
+        _write(root / TESTS_README_REL, _baseline_tests_readme())
+        case_count += 1
+
+        tests = _baseline_tests_readme().replace(
+            "scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
+            "scripts/zigux/check-phase3-readme-tooling-inventory.py\nscripts/zigux/check-phase3-readme-tooling-inventory.py\n",
+            1,
+        )
+        _write(root / TESTS_README_REL, tests)
+        assert validate(root) == [
+            "unexpected_tests_readme_phase3_marker_count:2:scripts/zigux/check-phase3-readme-tooling-inventory.py"
+        ]
+        _write(root / TESTS_README_REL, _baseline_tests_readme())
+        case_count += 1
+
         makefile = _baseline_makefile().replace(
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py\n",
             "",
@@ -524,12 +557,13 @@ def run_self_test() -> int:
 
         readme = _baseline_readme().replace("`zigux/tests/phase8_help_kallsyms_only_build.zig`, ", "", 1)
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[4]}"]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[4]}]
         case_count += 1
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
     print(f"PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT={case_count}")
     return 0
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Keep the scripts/zigux README tooling inventory aligned with the shipped repo-tooling packet.")
@@ -548,6 +582,7 @@ def main() -> int:
     print("PHASE3_README_TOOLING_INVENTORY=pass")
     print(f"PHASE3_README_TOOLING_INVENTORY_HELPER_COUNT={len(REQUIRED_HELPERS)}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
