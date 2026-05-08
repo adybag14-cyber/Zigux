@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import tempfile
 
 
@@ -14,12 +15,13 @@ DEFAULT_DEV_T_BINDINGS = ROOT / "zigux" / "bindings" / "dev_t.zig"
 DEFAULT_NOTIFIER_BINDINGS = ROOT / "zigux" / "bindings" / "notifier_abi.zig"
 DEFAULT_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi_manifest.json"
 DEFAULT_DOC = ROOT / "Documentation" / "zigux" / "phase3-abi-slice.md"
-FUSED_MARKER = ";pub const "
-HEADER_FUSED_MARKERS = (
-    "};#define ",
-    "};struct ",
-    "};typedef ",
-    ";#define ",
+BINDINGS_FUSED_PATTERN = re.compile(r";\s*pub const ")
+BINDINGS_FUSED_LABEL = "; pub const"
+HEADER_FUSED_PATTERNS = (
+    (re.compile(r"};\s*#define\b"), "}; #define"),
+    (re.compile(r"};\s*struct\b"), "}; struct"),
+    (re.compile(r"};\s*typedef\b"), "}; typedef"),
+    (re.compile(r";\s*#define\b"), "; #define"),
 )
 REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
@@ -55,28 +57,32 @@ REQUIRED_EXPORT_UAPI_DOC_MARKERS = (
 )
 
 
-def find_fused_pub_const_lines(source: str) -> list[int]:
-    return [index for index, line in enumerate(source.splitlines(), start=1) if FUSED_MARKER in line]
+def find_fused_pub_const_lines(source: str) -> list[tuple[int, str]]:
+    issues: list[tuple[int, str]] = []
+    for index, line in enumerate(source.splitlines(), start=1):
+        if BINDINGS_FUSED_PATTERN.search(line):
+            issues.append((index, BINDINGS_FUSED_LABEL))
+    return issues
 
 
 def find_fused_header_lines(source: str) -> list[tuple[int, str]]:
     issues: list[tuple[int, str]] = []
     for index, line in enumerate(source.splitlines(), start=1):
-        for marker in HEADER_FUSED_MARKERS:
-            if marker in line:
-                issues.append((index, marker.strip()))
+        for pattern, label in HEADER_FUSED_PATTERNS:
+            if pattern.search(line):
+                issues.append((index, label))
                 break
     return issues
 
 
 def validate_header(path: Path) -> list[str]:
     source = path.read_text(encoding="utf-8")
-    return [f"{path}:{line}:{marker}" for line, marker in find_fused_header_lines(source)]
+    return [f"{path}:{line}:{label}" for line, label in find_fused_header_lines(source)]
 
 
 def validate_bindings(path: Path) -> list[str]:
     source = path.read_text(encoding="utf-8")
-    return [f"{path}:{line}:{FUSED_MARKER.strip()}" for line in find_fused_pub_const_lines(source)]
+    return [f"{path}:{line}:{label}" for line, label in find_fused_pub_const_lines(source)]
 
 
 def _load_manifest(path: Path) -> dict[str, object]:
@@ -250,12 +256,12 @@ def run_self_test() -> int:
         assert validate_gate_contract(manifest, doc) == []
 
         abi_header.write_text(
-            "struct zigux_boundary_header { unsigned int size; };#define ZIGUX_ABI_VERSION 1U\n",
+            "struct zigux_boundary_header { unsigned int size; }; #define ZIGUX_ABI_VERSION 1U\n",
             encoding="utf-8",
             newline="\n",
         )
         fused_header_issues = validate_header(abi_header)
-        assert fused_header_issues == [f"{abi_header}:1:{HEADER_FUSED_MARKERS[0].strip()}"]
+        assert fused_header_issues == [f"{abi_header}:1:{HEADER_FUSED_PATTERNS[0][1]}"]
 
         abi_header.write_text(
             "\n".join(
@@ -274,12 +280,12 @@ def run_self_test() -> int:
             newline="\n",
         )
         abi_bindings.write_text(
-            "pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED: u32 = 6;pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED: u32 = 1;\n",
+            "pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED: u32 = 6; pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED: u32 = 1;\n",
             encoding="utf-8",
             newline="\n",
         )
         fused_abi_issues = validate_bindings(abi_bindings)
-        assert fused_abi_issues == [f"{abi_bindings}:1:{FUSED_MARKER.strip()}"]
+        assert fused_abi_issues == [f"{abi_bindings}:1:{BINDINGS_FUSED_LABEL}"]
 
         abi_bindings.write_text(
             "\n".join(
@@ -293,12 +299,12 @@ def run_self_test() -> int:
             newline="\n",
         )
         dev_t_bindings.write_text(
-            "pub const minor_bits: u5 = 20;pub const minor_mask: u32 = (1 << minor_bits) - 1;\n",
+            "pub const minor_bits: u5 = 20; pub const minor_mask: u32 = (1 << minor_bits) - 1;\n",
             encoding="utf-8",
             newline="\n",
         )
         fused_dev_t_issues = validate_bindings(dev_t_bindings)
-        assert fused_dev_t_issues == [f"{dev_t_bindings}:1:{FUSED_MARKER.strip()}"]
+        assert fused_dev_t_issues == [f"{dev_t_bindings}:1:{BINDINGS_FUSED_LABEL}"]
 
         dev_t_bindings.write_text(
             "\n".join(
@@ -312,12 +318,12 @@ def run_self_test() -> int:
             newline="\n",
         )
         notifier_bindings.write_text(
-            "pub const NOTIFIER_CHAIN_FLAG_EMPTY: u32 = 1;pub const NOTIFIER_CHAIN_FLAG_TERMINATED: u32 = 2;\n",
+            "pub const NOTIFIER_CHAIN_FLAG_EMPTY: u32 = 1; pub const NOTIFIER_CHAIN_FLAG_TERMINATED: u32 = 2;\n",
             encoding="utf-8",
             newline="\n",
         )
         fused_notifier_issues = validate_bindings(notifier_bindings)
-        assert fused_notifier_issues == [f"{notifier_bindings}:1:{FUSED_MARKER.strip()}"]
+        assert fused_notifier_issues == [f"{notifier_bindings}:1:{BINDINGS_FUSED_LABEL}"]
 
         notifier_bindings.write_text(
             "\n".join(
