@@ -36,6 +36,24 @@ EXPECTED_PACKET_TOOL_FIELDS = {
     "kconfig_conf_bridge_packet": "scripts/zigux/kconfig/conf_bridge.zig",
     "kconfig_confdata_bridge_packet": "scripts/zigux/kconfig/confdata_bridge.zig",
 }
+OPTIONAL_ARTIFACT_PACKET_FIELD = "artifact_tools_packet"
+OPTIONAL_ARTIFACT_PACKET_PATH = "zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
+OPTIONAL_ARTIFACT_PACKET_TOOLS = [
+    "scripts/zigux/genksyms_crc.zig",
+    "scripts/zigux/mk_elfconfig.zig",
+]
+OPTIONAL_ARTIFACT_PACKET_INPUTS = [
+    "zigux/tests/fixtures/genksyms_crc/inputs.txt",
+    "zigux/tests/fixtures/mk_elfconfig/cases.json",
+]
+OPTIONAL_ARTIFACT_PACKET_EXPECTED = [
+    "zigux/tests/fixtures/genksyms_crc/expected.json",
+    "zigux/tests/fixtures/mk_elfconfig/elf32_expected.json",
+    "zigux/tests/fixtures/mk_elfconfig/elf64_expected.json",
+    "zigux/tests/fixtures/mk_elfconfig/invalid_class_expected.json",
+    "zigux/tests/fixtures/mk_elfconfig/not_elf_expected.json",
+    "zigux/tests/fixtures/mk_elfconfig/truncated_expected.json",
+]
 EXPECTED_TOOLS = [
     "scripts/zigux/fixdep.zig",
     "scripts/zigux/genksyms.zig",
@@ -182,8 +200,53 @@ def validate_root(root: Path) -> list[str]:
                 f"packet_status:{field_name}:value={packet.get('status')!r}:expected={EXPECTED_PACKET_STATUS!r}"
             )
 
+    artifact_packet = manifest.get(OPTIONAL_ARTIFACT_PACKET_FIELD)
+    if artifact_packet is not None:
+        if artifact_packet != OPTIONAL_ARTIFACT_PACKET_PATH:
+            issues.append(
+                f"optional_manifest_field:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_packet!r}:expected={OPTIONAL_ARTIFACT_PACKET_PATH!r}"
+            )
+        else:
+            if artifact_packet in seen_packet_paths:
+                issues.append(
+                    f"optional_manifest_field:{OPTIONAL_ARTIFACT_PACKET_FIELD}:duplicate_packet_path:{artifact_packet}"
+                )
+            else:
+                seen_packet_paths.add(artifact_packet)
+                artifact_packet_path = root / artifact_packet
+                if not artifact_packet_path.exists():
+                    issues.append(f"missing_file:{artifact_packet}")
+                else:
+                    artifact_manifest = load_json_object(
+                        artifact_packet_path, label=OPTIONAL_ARTIFACT_PACKET_FIELD
+                    )
+                    if artifact_manifest.get("phase") != EXPECTED_MANIFEST_PHASE:
+                        issues.append(
+                            f"optional_packet_phase:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('phase')!r}:expected={EXPECTED_MANIFEST_PHASE!r}"
+                        )
+                    if artifact_manifest.get("status") != EXPECTED_PACKET_STATUS:
+                        issues.append(
+                            f"optional_packet_status:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('status')!r}:expected={EXPECTED_PACKET_STATUS!r}"
+                        )
+                    if artifact_manifest.get("tools") != OPTIONAL_ARTIFACT_PACKET_TOOLS:
+                        issues.append(
+                            f"optional_packet_tools:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('tools')!r}:expected={OPTIONAL_ARTIFACT_PACKET_TOOLS!r}"
+                        )
+                    if artifact_manifest.get("fixture_inputs") != OPTIONAL_ARTIFACT_PACKET_INPUTS:
+                        issues.append(
+                            f"optional_packet_inputs:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('fixture_inputs')!r}:expected={OPTIONAL_ARTIFACT_PACKET_INPUTS!r}"
+                        )
+                    if artifact_manifest.get("expected_packets") != OPTIONAL_ARTIFACT_PACKET_EXPECTED:
+                        issues.append(
+                            f"optional_packet_expected:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('expected_packets')!r}:expected={OPTIONAL_ARTIFACT_PACKET_EXPECTED!r}"
+                        )
+
     for field_name in sorted(
-        key for key in manifest if key.endswith("_packet") and key not in EXPECTED_PACKET_FIELDS
+        key
+        for key in manifest
+        if key.endswith("_packet")
+        and key not in EXPECTED_PACKET_FIELDS
+        and key != OPTIONAL_ARTIFACT_PACKET_FIELD
     ):
         issues.append(f"unexpected_packet_field:{field_name}")
 
@@ -293,6 +356,7 @@ def build_self_test_root(root: Path) -> None:
             "tool_count": EXPECTED_TOOL_COUNT,
             "tools": EXPECTED_TOOLS,
             **EXPECTED_PACKET_FIELDS,
+            OPTIONAL_ARTIFACT_PACKET_FIELD: OPTIONAL_ARTIFACT_PACKET_PATH,
         },
     )
     for rel_path in EXPECTED_TOOLS:
@@ -305,6 +369,16 @@ def build_self_test_root(root: Path) -> None:
                 "status": EXPECTED_PACKET_STATUS,
             },
         )
+    write_json(
+        root / OPTIONAL_ARTIFACT_PACKET_PATH,
+        {
+            "phase": EXPECTED_MANIFEST_PHASE,
+            "status": EXPECTED_PACKET_STATUS,
+            "tools": OPTIONAL_ARTIFACT_PACKET_TOOLS,
+            "fixture_inputs": OPTIONAL_ARTIFACT_PACKET_INPUTS,
+            "expected_packets": OPTIONAL_ARTIFACT_PACKET_EXPECTED,
+        },
+    )
 
     write_text(root / "Documentation/zigux/phase2-closure.md", "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n")
     write_text(
@@ -386,6 +460,27 @@ def run_self_test() -> int:
         write_json(packet_path, packet)
         issues = validate_root(root)
         assert "packet_status:kconfig_conf_bridge_packet:value='open':expected='closed'" in issues
+
+        build_self_test_root(root)
+        manifest = load_json_object(manifest_path, label="phase2_tool_manifest")
+        manifest[OPTIONAL_ARTIFACT_PACKET_FIELD] = "zigux/tests/fixtures/phase2_artifact_manifest.json"
+        write_json(manifest_path, manifest)
+        issues = validate_root(root)
+        assert "optional_manifest_field:artifact_tools_packet:value='zigux/tests/fixtures/phase2_artifact_manifest.json':expected='zigux/tests/fixtures/phase2_artifact_tools_manifest.json'" in issues
+
+        build_self_test_root(root)
+        artifact_manifest_path = root / OPTIONAL_ARTIFACT_PACKET_PATH
+        artifact_manifest = load_json_object(artifact_manifest_path, label=OPTIONAL_ARTIFACT_PACKET_FIELD)
+        artifact_manifest["tools"] = ["scripts/zigux/genksyms_crc.zig"]
+        write_json(artifact_manifest_path, artifact_manifest)
+        issues = validate_root(root)
+        assert "optional_packet_tools:artifact_tools_packet:value=['scripts/zigux/genksyms_crc.zig']:expected=['scripts/zigux/genksyms_crc.zig', 'scripts/zigux/mk_elfconfig.zig']" in issues
+
+        build_self_test_root(root)
+        artifact_manifest_path = root / OPTIONAL_ARTIFACT_PACKET_PATH
+        artifact_manifest_path.unlink()
+        issues = validate_root(root)
+        assert "missing_file:zigux/tests/fixtures/phase2_artifact_tools_manifest.json" in issues
 
         build_self_test_root(root)
         manifest = load_json_object(manifest_path, label="phase2_tool_manifest")
@@ -547,7 +642,7 @@ def run_self_test() -> int:
         assert f"workflow_line:{REQUIRED_WORKFLOW_LINES[1]}:count=2:expected=1" in issues
 
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
-    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=32")
+    print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=35")
     return 0
 
 
@@ -570,8 +665,10 @@ def main() -> int:
         print("PHASE2_TOOL_MANIFEST_PACKETS_ISSUES_END")
         return 1
 
+    manifest = load_json_object(ROOT / PHASE2_TOOL_MANIFEST.relative_to(ROOT), label="phase2_tool_manifest")
+    packet_field_count = len([key for key in manifest if key.endswith("_packet")])
     print("PHASE2_TOOL_MANIFEST_PACKETS=pass")
-    print(f"PHASE2_TOOL_MANIFEST_PACKET_FIELD_COUNT={len(EXPECTED_PACKET_FIELDS)}")
+    print(f"PHASE2_TOOL_MANIFEST_PACKET_FIELD_COUNT={packet_field_count}")
     print(f"PHASE2_TOOL_MANIFEST_TOOL_COUNT={EXPECTED_TOOL_COUNT}")
     return 0
 
