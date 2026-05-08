@@ -14,6 +14,7 @@ import tempfile
 from pathlib import Path
 
 MARKER = "PHASE14_CHECK_PACKET=rollback_threshold_sequencing"
+SMOKE_SURVEY_PATH = "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
 REQUIRED_FILE_MARKERS = {
     "zigux/tests/phase14_end_to_end_smoke_manifest.json": [
         '"rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence"',
@@ -22,7 +23,7 @@ REQUIRED_FILE_MARKERS = {
         '"kernel/rcu/tree.c"',
         '"net/core/skbuff.c"',
     ],
-    "Documentation/zigux/phase14-end-to-end-smoke-survey.md": [
+    SMOKE_SURVEY_PATH: [
         "`PHASE14_STAY_IN_C_BOUNDARY=explicit`",
         "- rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`",
         "Attached-toolchain fallback examples:",
@@ -35,10 +36,6 @@ REQUIRED_FILE_MARKERS = {
         "Keep `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` as the source of truth and keep the shared smoke packet limited to survey-backed reviewability evidence.",
         "Leave this shared smoke lane parked unless one of the four anchor-local manifests, the cross-anchor traceability note, the shared replay wiring, or the paired Phase 14 docs surfaces drift.",
         "- review blocker status: `blocked_on_stay_in_c_evidence`",
-        "- `zigux/tests/phase14_workqueue_bridge_manifest.json`",
-        "- `zigux/tests/phase14_skbuff_bridge_manifest.json`",
-        "- `zigux/tests/phase14_ring_buffer_manifest.json`",
-        "- `zigux/tests/phase14_rcu_tree_manifest.json`",
     ],
     "Documentation/zigux/phase14-release-boundary-survey.md": [
         "`PHASE14_STUDY_ONLY_ANCHOR_COUNT=2`",
@@ -54,6 +51,12 @@ REQUIRED_FILE_MARKERS = {
         "same study-only stay-in-C posture without implying an active deep-core port claim?",
     ],
 }
+SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
+    "- `zigux/tests/phase14_workqueue_bridge_manifest.json`",
+    "- `zigux/tests/phase14_skbuff_bridge_manifest.json`",
+    "- `zigux/tests/phase14_ring_buffer_manifest.json`",
+    "- `zigux/tests/phase14_rcu_tree_manifest.json`",
+]
 
 
 def repo_root() -> Path:
@@ -77,12 +80,28 @@ def check(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 errors.append(f"missing marker in {rel_path}: {marker}")
+    smoke_survey_path = root / SMOKE_SURVEY_PATH
+    if smoke_survey_path.exists():
+        smoke_text = read_text(smoke_survey_path)
+        for marker in SMOKE_SURVEY_EXACT_COUNT_MARKERS:
+            actual_count = smoke_text.count(marker)
+            if actual_count != 1:
+                errors.append(
+                    f"marker count drift in {SMOKE_SURVEY_PATH}: {marker} (expected 1, found {actual_count})"
+                )
     return errors
 
 
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def required_text(rel_path: str) -> str:
+    markers = list(REQUIRED_FILE_MARKERS[rel_path])
+    if rel_path == SMOKE_SURVEY_PATH:
+        markers.extend(SMOKE_SURVEY_EXACT_COUNT_MARKERS)
+    return "\n".join(markers) + "\n"
 
 
 def run_self_test() -> int:
@@ -94,8 +113,8 @@ def run_self_test() -> int:
             root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
             MARKER + "\nraise SystemExit(0)\n",
         )
-        for rel_path, markers in REQUIRED_FILE_MARKERS.items():
-            write_text(root / rel_path, "\n".join(markers) + "\n")
+        for rel_path in REQUIRED_FILE_MARKERS:
+            write_text(root / rel_path, required_text(rel_path))
 
         errors = check(root)
         if errors:
@@ -113,10 +132,10 @@ def run_self_test() -> int:
 
         write_text(
             broken_path,
-            "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/phase14-release-boundary-survey.md"]) + "\n",
+            required_text("Documentation/zigux/phase14-release-boundary-survey.md"),
         )
 
-        broken_smoke_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
+        broken_smoke_path = root / SMOKE_SURVEY_PATH
         broken_smoke_path.write_text(
             broken_smoke_path.read_text(encoding="utf-8").replace(
                 "- `zigux/tests/phase14_rcu_tree_manifest.json`\n",
@@ -126,17 +145,33 @@ def run_self_test() -> int:
         )
         errors = check(root)
         if not errors or not any(
-            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `zigux/tests/phase14_rcu_tree_manifest.json`"
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `zigux/tests/phase14_rcu_tree_manifest.json` (expected 1, found 0)"
             in error
             for error in errors
         ):
             print("self-test expected failure when shared smoke manifest inventory drifted", file=sys.stderr)
             return 1
 
-        write_text(
-            broken_smoke_path,
-            "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/phase14-end-to-end-smoke-survey.md"]) + "\n",
+        write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
+
+        broken_smoke_path.write_text(
+            broken_smoke_path.read_text(encoding="utf-8").replace(
+                "- `zigux/tests/phase14_rcu_tree_manifest.json`\n",
+                "- `zigux/tests/phase14_rcu_tree_manifest.json`\n- `zigux/tests/phase14_rcu_tree_manifest.json`\n",
+                1,
+            ),
+            encoding="utf-8",
         )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `zigux/tests/phase14_rcu_tree_manifest.json` (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when shared smoke manifest inventory duplicated", file=sys.stderr)
+            return 1
+
+        write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
 
         broken_smoke_path.write_text(
             broken_smoke_path.read_text(encoding="utf-8").replace(
@@ -155,10 +190,7 @@ def run_self_test() -> int:
             print("self-test expected failure when the attached-toolchain fallback example drifted", file=sys.stderr)
             return 1
 
-        write_text(
-            broken_smoke_path,
-            "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/phase14-end-to-end-smoke-survey.md"]) + "\n",
-        )
+        write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
 
         broken_smoke_path.write_text(
             broken_smoke_path.read_text(encoding="utf-8").replace(
@@ -185,7 +217,7 @@ def run_self_test() -> int:
             if expected_error not in errors:
                 print(f"self-test expected missing-file failure for {rel_path}", file=sys.stderr)
                 return 1
-            write_text(broken_file, "\n".join(REQUIRED_FILE_MARKERS[rel_path]) + "\n")
+            write_text(broken_file, required_text(rel_path))
 
         current_checker_path.write_text(
             original_checker_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
