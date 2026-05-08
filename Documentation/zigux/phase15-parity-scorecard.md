@@ -9,8 +9,8 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 - `PHASE15_LANE_KEY=P15-L10`
 - scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking, one machine-checked aggregate metrics block for the active freeze-in-C anchors, and one machine-checked mirror of the live Architecture Council review-packet and ownership-evidence field inventory
 - survey provenance refreshed against verified `master` head `4fc891b380cdd2991dff7676ade7f844df1b55fd`
-- required review-process review-packet fields tracked in the manifest: `19`
-- required review-process ownership-evidence fields tracked in the manifest: `14`
+- required review-process review-packet fields tracked in the manifest: `20`
+- required review-process ownership-evidence fields tracked in the manifest: `15`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -157,8 +157,8 @@ The machine-checked aggregate scorecard metrics currently record:
 - specialist lane-owned anchors: `2`
 - reserved decision-record templates: `4`
 - blocked status-change anchors: `4`
-- review-packet fields mirrored from the Architecture Council packet: `19`
-- ownership-evidence fields mirrored from the Architecture Council packet: `14`
+- review-packet fields mirrored from the Architecture Council packet: `20`
+- ownership-evidence fields mirrored from the Architecture Council packet: `15`
 
 These metrics do not claim forward implementation progress. They keep the parked freeze set reviewable without forcing later runs to recompute anchor totals, ownership split, template coverage, or review-packet field coverage by hand from the prose packet.
 
@@ -186,7 +186,7 @@ The current lane state is:
 - landed `phase15-aggregate-scorecard-metrics`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, machine-counted review-packet and ownership-evidence field coverage metrics that keep rollback-threshold, parity-scorecard, indefinite-C policy, explicit non-goal, and rationale reporting visible beside the benchmark-note and replay-command cues, and one machine-checked aggregate metrics block that makes the parked freeze set easier to review, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
+This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, machine-counted review-packet and ownership-evidence field coverage metrics that keep required-approver-set, rollback-threshold, parity-scorecard, indefinite-C policy, explicit non-goal, and rationale reporting visible beside the benchmark-note and replay-command cues, and one machine-checked aggregate metrics block that makes the parked freeze set easier to review, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
 
 ## Architecture Council Review Gate
 
@@ -204,9 +204,9 @@ A frozen anchor leaves active discussion only after the Architecture Council sig
 
 If any one of those fields is missing, stale, or contradicted by the linked evidence, the anchor remains in the freeze-in-C set and the review closes with an explicit stay-in-C outcome.
 
-The mirrored review packet keeps these exact fields explicit in the scorecard packet: `linux anchor path`, `phase`, `current status bucket`, `requested decision bucket`, `decision record ID`, `owner`, `rollback owner`, `validation gate summary`, `evidence archive path`, `latest blocker disposition`, `benchmark notes`, `replay command`, `rollback threshold`, `retained discussion state`, `reopen triggers`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, `explicit non-goals`, and `written rationale`.
+The mirrored review packet keeps these exact fields explicit in the scorecard packet: `linux anchor path`, `phase`, `current status bucket`, `requested decision bucket`, `decision record ID`, `owner`, `rollback owner`, `required approver set`, `validation gate summary`, `evidence archive path`, `latest blocker disposition`, `benchmark notes`, `replay command`, `rollback threshold`, `retained discussion state`, `reopen triggers`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, `explicit non-goals`, and `written rationale`.
 
-The mirrored ownership-evidence subset stays limited to `phase`, `current status bucket`, `owner`, `rollback owner`, `validation gate summary`, `indefinite-C policy link or non-applicability note`, `evidence archive path`, `latest blocker disposition`, `benchmark notes`, `replay command`, `rollback threshold`, `retained discussion state`, `reopen triggers`, and `parity scorecard link or blocker record`.
+The mirrored ownership-evidence subset stays limited to `phase`, `current status bucket`, `owner`, `rollback owner`, `required approver set`, `validation gate summary`, `indefinite-C policy link or non-applicability note`, `evidence archive path`, `latest blocker disposition`, `benchmark notes`, `replay command`, `rollback threshold`, `retained discussion state`, `reopen triggers`, and `parity scorecard link or blocker record`.
 
 ## Stay-in-C Retirement Rule
 
