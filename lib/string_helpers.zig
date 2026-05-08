@@ -268,10 +268,11 @@ pub fn kasprintfStrarray(
         };
     }
 
+    const slot_count = try std.math.add(usize, n, 1);
     var names = try allocator.alloc([:0]u8, n);
     errdefer allocator.free(names);
 
-    var names_null_terminated = try allocator.alloc(?[*:0]const u8, n + 1);
+    var names_null_terminated = try allocator.alloc(?[*:0]const u8, slot_count);
     errdefer allocator.free(names_null_terminated);
 
     var allocated: usize = 0;
@@ -847,6 +848,13 @@ test "kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated tea
     try std.testing.expectEqual(@as(?[*:0]const u8, null), empty.cArray()[0]);
     kfreeStrarray(std.testing.allocator, &empty);
     kfreeStrarray(std.testing.allocator, &empty);
+}
+
+test "kasprintfStrarray rejects usize overflow before allocation" {
+    try std.testing.expectError(
+        error.Overflow,
+        kasprintfStrarray(std.testing.allocator, "cpu", std.math.maxInt(usize)),
+    );
 }
 
 test "kasprintfStrarray frees intermediate allocations when setup fails" {
