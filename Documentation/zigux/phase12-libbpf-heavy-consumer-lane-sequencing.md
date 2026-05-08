@@ -103,6 +103,7 @@ Use this lane only when the shared wording surfaces drift away from the live Pha
 Allowed surfaces:
 - `Documentation/zigux/phase12-release-sequencing.md`
 - `Documentation/zigux/phase12-release-closure-checklist.md`
+- `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/phase12-release-coordination-matrix.md`
 - `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - `Documentation/zigux/README.md`
