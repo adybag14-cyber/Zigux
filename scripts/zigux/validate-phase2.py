@@ -275,6 +275,7 @@ REQUIRED_REVIEW_MARKERS = [
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
@@ -558,7 +559,7 @@ def run_self_test() -> int:
         "`Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, "
         "`zigux/tests/fixtures/phase2_cross_targets.json`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/README.md`, "
         "`scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, "
-        "`scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross.py`, "
+        "`scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross.py`, "
         "`scripts/zigux/check-phase2-cross-selftest-alignment.py`, "
         "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, "
         "`scripts/zigux/check-phase2-tool-manifest-packets.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, "
