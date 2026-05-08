@@ -143,8 +143,22 @@ fn stringBench() !struct { checksum: u64 } {
         const enabled = try string.strtobool(if ((idx & 1) == 0) "on" else "0");
         var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
         const trimmed = string.trimSpaces(&trim_buf);
+
+        const tail_byte: u8 = if ((idx & 1) == 0) 'x' else 'y';
+        const alt_tail_byte: u8 = if ((idx & 1) == 0) 'y' else 'x';
+
+        var trim_cstr_buf = [_]u8{ ' ', 'a', 'b', ' ', '\n', 0, tail_byte, alt_tail_byte };
+        const trim_cstr = string.trimSpaces(&trim_cstr_buf);
+
+        var strim_cstr_buf = [_]u8{ ' ', 'a', 'b', ' ', '\n', 0, alt_tail_byte, tail_byte };
+        const strim_cstr = string.strim(&strim_cstr_buf);
+
         checksum +%= @as(u64, @intFromBool(enabled));
         checksum +%= @intCast(trimmed.len);
+        checksum +%= @intCast(trim_cstr.len);
+        checksum +%= @intCast(strim_cstr.len);
+        checksum +%= @as(u64, trim_cstr_buf[6]);
+        checksum +%= @as(u64, strim_cstr_buf[7]);
     }
 
     return .{ .checksum = checksum };
