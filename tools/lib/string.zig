@@ -136,10 +136,55 @@ pub fn strreplace(buf: []u8, old: u8, new: u8) usize {
     return replaceChar(buf, old, new);
 }
 
-pub fn memchrInv(buf: []const u8, value: u8) ?usize {
+fn repeatedByteWord(value: u8) u64 {
+    var repeated = @as(u64, value);
+    repeated |= repeated << 8;
+    repeated |= repeated << 16;
+    repeated |= repeated << 32;
+    return repeated;
+}
+
+fn firstMismatchingWordByte(word: u64, repeated: u64) usize {
+    const diff = word ^ repeated;
+    return @as(usize, @intCast(@ctz(diff) >> 3));
+}
+
+fn checkBytes(buf: []const u8, value: u8) ?usize {
     for (buf, 0..) |ch, idx| {
         if (ch != value) {
             return idx;
+        }
+    }
+    return null;
+}
+
+pub fn memchrInv(buf: []const u8, value: u8) ?usize {
+    if (buf.len <= 16) {
+        return checkBytes(buf, value);
+    }
+
+    const prefix = @intFromPtr(buf.ptr) & 7;
+    var start: usize = 0;
+    if (prefix != 0) {
+        const prefix_bytes = @min(buf.len, 8 - prefix);
+        if (checkBytes(buf[0..prefix_bytes], value)) |idx| {
+            return idx;
+        }
+        start = prefix_bytes;
+    }
+
+    const repeated = repeatedByteWord(value);
+    var word_start = start;
+    while (word_start + 8 <= buf.len) : (word_start += 8) {
+        const word = std.mem.readInt(u64, buf[word_start .. word_start + 8][0..8], .little);
+        if (word != repeated) {
+            return word_start + firstMismatchingWordByte(word, repeated);
+        }
+    }
+
+    if (word_start < buf.len) {
+        if (checkBytes(buf[word_start..], value)) |idx| {
+            return word_start + idx;
         }
     }
     return null;
@@ -522,6 +567,21 @@ test "memchrInv follows the earliest dirty byte as long buffers change" {
 
     moving_dirty[96] = 'a';
     try std.testing.expectEqual(@as(?usize, null), memchrInv(&moving_dirty, 'a'));
+}
+
+test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries" {
+    var aligned = [_]u8{0} ** 24;
+    aligned[8] = 1;
+    aligned[15] = 2;
+    try std.testing.expectEqual(@as(?usize, 8), memchrInv(&aligned, 0));
+
+    var misaligned_storage = [_]u8{0} ** 32;
+    const start = (1 -% (@as(usize, @intCast(@intFromPtr(misaligned_storage[0..].ptr) & 7)))) & 7;
+    const misaligned = misaligned_storage[start .. start + 24];
+    try std.testing.expect((@intFromPtr(misaligned.ptr) & 7) == 1);
+    misaligned[8] = 1;
+    misaligned[15] = 2;
+    try std.testing.expectEqual(@as(?usize, 8), memchrInv(misaligned, 0));
 }
 
 test "memparse handles decimal hexadecimal octal and suffixes" {
