@@ -142,6 +142,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_impl, "pub fn argvFree");
     try expectContains(helper_impl, "pub fn cArgv");
     try expectContains(helper_impl, "test \"argvSplit preserves C-string termination for the final token and argv vector\"");
+    try expectContains(helper_impl, "test \"argvSplit zeroes copied whitespace separators across the tokenized buffer\"");
+    try expectContains(helper_impl, "test \"argvSplit treats whitespace before the first NUL as blank input\"");
     try expectContains(helper_impl, "test \"argvSplit reuses the exported empty argv view for blank input\"");
     try expectContains(helper_impl, "test \"ArgvSplitResult deinit clears exported storage and argv views\"");
     try expectContains(helper_impl, "test \"argvSplit frees intermediate allocations when allocator failure interrupts setup\"");
