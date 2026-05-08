@@ -135,6 +135,7 @@ REQUIRED_FILE_MARKERS = {
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion",
+        "Keep `Documentation/zigux/phase12-release-readiness-survey.md` visible beside this shared fallback overview, the PMO closure companion, and `Documentation/zigux/phase12-release-coordination-matrix.md` so adjacent tranche-readiness wording stays tied to the same two-artifact-plus-two-anchor split and smoke-first release packet instead of drifting into its own broader route.",
         "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this shared fallback overview",
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` should be reread beside this shared fallback overview whenever shared Phase 12 libbpf ownership wording changes so the fallback split does not blur the reviewability lane, the helper-sized ready-next lane, the deferred bridge and queue-routing lane, and the blocked object-model wall back into one vague `libbpf` bucket.",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
