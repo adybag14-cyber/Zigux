@@ -77,9 +77,11 @@ REVIEW_REQUIRED_MARKERS = [
     "zigux/bindings/notifier_abi.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig",
     "zigux/tests/phase13_devres_boundary_evidence.zig",
+    "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
     "the same validator-first eight-test shared-helper release packet",
+    "shipped direct evidence beside `zigux/tests/phase13_landlock_syscalls.zig` rather than an extra shared replay step",
 ]
 
 DOC_EXACT_COUNTS = {
@@ -95,9 +97,11 @@ REVIEW_EXACT_COUNTS = {
     "Documentation/zigux/phase13-notifier-list-survey.md": 1,
     "zigux/tests/phase13_notifier_list_manifest.json": 1,
     "zigux/bindings/notifier_abi.zig": 1,
+    "zigux/tests/phase13_landlock_syscalls_reviewability.zig": 1,
     "include/zigux/notifier_abi.h": 1,
     "zigux/helpers/notifier_chain_view.zig": 1,
     "the same validator-first eight-test shared-helper release packet": 1,
+    "shipped direct evidence beside `zigux/tests/phase13_landlock_syscalls.zig` rather than an extra shared replay step": 1,
 }
 
 CONTRIBUTOR_GUIDE_REQUIRED_MARKERS = [
