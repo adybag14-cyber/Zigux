@@ -130,6 +130,11 @@ pub const DeviceTreeIomapPlan = struct {
     index: usize,
     reported_size: ?u64,
     mapping: ManagedIoremapPlan,
+
+    pub fn deinit(self: *DeviceTreeIomapPlan, allocator: std.mem.Allocator) void {
+        self.mapping.deinit(allocator);
+        self.reported_size = null;
+    }
 };
 
 pub const DeviceTreeIomapFailure = struct {
