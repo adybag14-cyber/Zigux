@@ -68,7 +68,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-slice.md",
-      "why_now": "The slice note records what the landed queue planner, queue-count reservation helper, queue-reservation replay helper, PRP buffer-shape helper, PRP metadata helper, and recovery replay helper cover so the survey can focus on the remaining roadmap gap instead of re-explaining the starter surface."
+      "why_now": "The slice note records what the landed queue planner, queue-count reservation helper, queue-reservation replay helper, PRP buffer-shape helper, PRP metadata helper, recovery replay helper, and bounded dropped-I/O backlog retirement helper cover so the survey can focus on the remaining roadmap gap instead of re-explaining the starter surface."
     },
     {
       "id": "phase12-virtio-net-driver-starter",
