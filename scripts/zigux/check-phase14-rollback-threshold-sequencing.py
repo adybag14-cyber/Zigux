@@ -209,6 +209,25 @@ def run_self_test() -> int:
             print("self-test expected failure when the attached-toolchain scope boundary drifted", file=sys.stderr)
             return 1
 
+        write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
+
+        broken_smoke_path.write_text(
+            broken_smoke_path.read_text(encoding="utf-8").replace(
+                "- review blocker status: `blocked_on_stay_in_c_evidence`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - review blocker status: `blocked_on_stay_in_c_evidence`"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the explicit review-blocker status drifted", file=sys.stderr)
+            return 1
+
         for rel_path in REQUIRED_FILE_MARKERS:
             broken_file = root / rel_path
             broken_file.unlink()
