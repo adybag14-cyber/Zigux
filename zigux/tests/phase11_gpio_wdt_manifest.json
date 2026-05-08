@@ -62,6 +62,13 @@
       "why_now": "A bounded slice note records exactly what the gpio_wdt starter, probe-summary helper, descriptor preflight helper, timeout-property checkpoint, drvdata checkpoint, stop-policy helper, registration handoff summary, and register-device call summary cover so later Phase 11 work can extend the model without reopening the starter contract."
     },
     {
+      "id": "phase11-gpio-wdt-teardown-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-teardown-note.md",
+      "why_now": "A dedicated teardown note now keeps the bounded teardown ownership explicit by separating the stop-policy split, the stop transition, and the `teardownSummary()` handoff beside the starter so the review packet does not blur host-free teardown evidence into live GPIO, remove hooks, or reboot-backed shutdown behavior."
+    },
+    {
       "id": "phase11-gpio-wdt-validation-matrix",
       "status": "starter_landed",
       "kind": "documentation",
