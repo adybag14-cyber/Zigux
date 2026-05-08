@@ -90,6 +90,18 @@
       ]
     }
   ],
+  "exception_posture": {
+    "silent_exception_path": "forbidden",
+    "only_allowed_exception": "architecture_council_reopen_request",
+    "retained_closeout_state": "retired_from_active_discussion",
+    "blocker_requirement": "existing_blocker_remains_recorded_until_reopen_approved",
+    "required_reopen_inputs": [
+      "new bounded seam inventory",
+      "updated validation plan",
+      "fresh linked evidence",
+      "Architecture Council review request"
+    ]
+  },
   "gaps": [
     {
       "id": "phase15-indefinite-c-policy-note",
@@ -125,6 +137,13 @@
       "kind": "followup",
       "zigux_destination": "Documentation/zigux/phase15-evidence-archives/",
       "why_now": "The policy note now reuses the shared scripts-root validator-first route, the review-process packet fields, retained discussion state, reopen-trigger catalog, per-anchor archive vocabulary, blocker-evidence replay, and lane-owner-alignment replay so stay-in-C records cannot drift silently."
+    },
+    {
+      "id": "phase15-indefinite-c-exception-posture-manifest-sync",
+      "status": "starter_landed",
+      "kind": "followup",
+      "zigux_destination": "zigux/tests/phase15_indefinite_c_policy.json",
+      "why_now": "The policy packet previously kept its no-silent-exception, retained closeout, and retained-blocker rules only as prose requirements, so the manifest now exposes that exception posture directly instead of forcing future policy checks to infer it from long-form text."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
