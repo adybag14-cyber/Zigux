@@ -62,3 +62,32 @@ test "phase3 export shim and uapi keep canonical boundary layout" {
     try std.testing.expect(export_shim.canonicalizeHeader(version_mismatch) == null);
     try std.testing.expect(uapi_version.canonicalizeHeader(version_mismatch) == null);
 }
+
+test "phase3 export shim keeps compatibility status relays explicit" {
+    const canonical = export_shim.boundaryHeader(0x66);
+    const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 32, 0x66);
+    const undersized = export_shim.compatibleHeader(export_shim.header_size - 1, 0x66);
+    const version_mismatch = export_shim.versionedHeader(
+        export_shim.header_size,
+        export_shim.abi_version + 1,
+        0x66,
+    );
+
+    const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);
+    const future_status = export_shim.compatibilityStatus(future_compatible, -75, .helpers);
+    const undersized_status = export_shim.compatibilityStatus(undersized, -22, .drivers);
+    const mismatch_status = export_shim.compatibilityStatus(version_mismatch, -71, .kernel);
+
+    try std.testing.expect(export_shim.isOk(canonical_status));
+    try std.testing.expect(export_shim.isOk(future_status));
+    try std.testing.expectEqual(@as(i32, 0), canonical_status.code);
+    try std.testing.expectEqual(@as(i32, 0), future_status.code);
+
+    try std.testing.expect(!export_shim.isOk(undersized_status));
+    try std.testing.expectEqual(@as(i32, -22), undersized_status.code);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), undersized_status.flags);
+
+    try std.testing.expect(!export_shim.isOk(mismatch_status));
+    try std.testing.expectEqual(@as(i32, -71), mismatch_status.code);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), mismatch_status.flags);
+}
