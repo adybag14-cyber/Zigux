@@ -7,6 +7,7 @@ const SurveySummary = struct {
     shared_phase11_header_survey_present: bool,
     watchdog_info_layout_assert_present: bool,
     winsize_layout_assert_present: bool,
+    hvc_header_constants_checked: bool,
     hvc_export_surface_checked: bool,
 };
 
@@ -73,6 +74,7 @@ test "phase11 shared header parity survey manifest records the maintained packet
     try std.testing.expect(manifest.survey_summary.shared_phase11_header_survey_present);
     try std.testing.expect(manifest.survey_summary.watchdog_info_layout_assert_present);
     try std.testing.expect(manifest.survey_summary.winsize_layout_assert_present);
+    try std.testing.expect(manifest.survey_summary.hvc_header_constants_checked);
     try std.testing.expect(manifest.survey_summary.hvc_export_surface_checked);
 
     var saw_build_gate = false;
