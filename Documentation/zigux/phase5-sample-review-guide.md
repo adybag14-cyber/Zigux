@@ -70,7 +70,7 @@ Primary Phase 5 packet
 Keep explicit
 - `runPreRegistrationBoundaryReplay()` for the initialized-but-not-registered zero-active-attributes plus show-or-store rejection boundary
 - `runRegisteredBoundaryReplay()` for the already-registered duplicate-registration and replay-restart rejection packet plus the still-usable bounded foo roundtrip afterward
-- `runInputValidationReplay()` for the shared `baz` or `bar` dispatch plus parse-failure visibility while the sample stays registered
+- `runInputValidationReplay()` for the shared `baz`/`bar` dispatch plus parse-failure visibility while the sample stays registered
 - `ownershipSummary()` plus sample-owned `runOwnershipReplay()` for the `cold`, `initialized`, `registered`, and `exited` lifecycle packet
 - `runTeardownReplay()` for the registered teardown reset plus post-`exit()` show-or-store, second-`exit()`, and anchor-replay rejection cues
 - the unnamed attribute-group shape
@@ -97,10 +97,10 @@ Primary Phase 5 packet
 Keep explicit
 - `runRetargetReplay()` plus pre-init retargeting, empty-symbol rejection, and post-init retarget rejection
 - `runAnchorReplay()` plus kernel-thread skip behavior, the one-word private entry timestamp cue, return value `42`, duration `75 ns`, and the missed-instance summary contract
-- `runLifecycleGuardReplay()` plus the pre-init and post-init guard boundaries
+- `runLifecycleGuardReplay()` plus the pre-init and post-init guard boundaries, including the pre-init anchor and exit rejections plus double-init rejection
 - the fixed `maxactiveBudget()` cue at `20`
 - `ownershipSummary()` plus the `cold`, `initialized`, `armed`, `replay_complete`, and `exited` lifecycle snapshots with active-instance and entry-timestamp state
-- `runRecoveryReplay()` plus outstanding-instance rejection
+- `runRecoveryReplay()` plus outstanding-instance rejection, the recovered duration `60 ns`, and the sample-owned teardown recovery packet
 - timestamp-order rejection and recovery plus post-exit handler rejection
 
 Keep out of scope
