@@ -75,8 +75,27 @@ fn nextConfigLine(input: []const u8, cursor: *usize) ?[]const u8 {
     return remaining;
 }
 
-fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8 {
-    const inner = raw_value[1 .. raw_value.len - 1];
+fn findClosingQuote(raw_value: []const u8) ?usize {
+    if (raw_value.len < 2 or raw_value[0] != '"') return null;
+
+    var index: usize = 1;
+    while (index < raw_value.len) : (index += 1) {
+        if (raw_value[index] == '\\') {
+            if (index + 1 < raw_value.len) {
+                index += 1;
+            }
+            continue;
+        }
+        if (raw_value[index] == '"') {
+            return index;
+        }
+    }
+
+    return null;
+}
+
+fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8, closing_quote_index: usize) ![]u8 {
+    const inner = raw_value[1..closing_quote_index];
     var decoded = std.ArrayList(u8).empty;
     errdefer decoded.deinit(allocator);
 
@@ -153,16 +172,17 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         const name = line[0..eq_index];
         if (!isConfigSymbol(name)) continue;
         const raw_value = line[eq_index + 1 ..];
+        const closing_quote_index = findClosingQuote(raw_value);
 
         const kind: EntryKind = if (isTristateValue(raw_value))
             .tristate
-        else if (raw_value.len >= 2 and raw_value[0] == '"' and raw_value[raw_value.len - 1] == '"')
+        else if (closing_quote_index != null)
             .string
         else
             .value;
 
-        const cooked_value = if (kind == .string)
-            try decodeQuotedString(allocator, raw_value)
+        const cooked_value = if (closing_quote_index) |index|
+            try decodeQuotedString(allocator, raw_value, index)
         else
             try allocator.dupe(u8, raw_value);
 
@@ -310,14 +330,17 @@ test "confdata bridge decodes escaped quoted strings" {
     var summary = try parseConfig(allocator,
         \\CONFIG_BANNER="zigux \"bridge\""
         \\CONFIG_PATH="drivers\\zigux"
+        \\CONFIG_SUFFIX="zigux"tail
         \\
     );
     defer deinitSummary(allocator, &summary);
 
-    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
     try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
     try std.testing.expectEqualStrings("zigux \"bridge\"", summary.entries[0].value);
     try std.testing.expectEqualStrings("drivers\\zigux", summary.entries[1].value);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[2].kind);
+    try std.testing.expectEqualStrings("zigux", summary.entries[2].value);
 }
 
 test "confdata bridge strips backslashes from escaped control sequences like upstream confdata" {
@@ -487,7 +510,7 @@ test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
         allocator,
-        "CONFIG_PATH=\"" ++ "drivers\\\\\\" ++ "\"\n",
+        "CONFIG_PATH=\"" ++ "drivers\\\\" ++ "\"\n",
     );
     defer deinitSummary(allocator, &summary);
 
