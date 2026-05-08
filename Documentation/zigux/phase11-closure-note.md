@@ -24,6 +24,7 @@ It does not claim that all of Phase 11 is complete. It closes only the shared re
   - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
   - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
   - `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
+  - `Documentation/zigux/phase11-hvc-console-survey.md`
   - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
   - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
   - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
@@ -32,6 +33,8 @@ It does not claim that all of Phase 11 is complete. It closes only the shared re
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
   - `scripts/zigux/check-phase11-hvc-survey-packet.py`
   - `zigux/tests/phase11_build.zig`
+  - `zigux/tests/phase11_hvc_console_manifest.json`
+  - `zigux/tests/phase11_uapi_header_parity_manifest.json`
   - `zigux/Makefile`
 
 ## What Is Already Landed
@@ -41,8 +44,8 @@ The current shared packet is already reviewable through one bounded route:
 - `drivers/watchdog/gpio_wdt.zig` plus its paired survey and validation-matrix packet
 - `drivers/watchdog/bcm2835_wdt.zig` plus `drivers/watchdog/bcm2835_wdt_verify.zig`, its manifest-backed survey, its validation matrix, and its dedicated archival checker route in `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
 - `drivers/watchdog/dw_wdt.zig` plus `drivers/watchdog/dw_wdt_verify.zig`, its manifest-backed survey, its registration-scaffold replay, its teardown note, and its validation matrix
-- `drivers/tty/hvc/hvc_console.zig` plus `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, its manifest-backed archival survey, its teardown note, and its validation matrix
-- `Documentation/zigux/phase11-uapi-header-parity-survey.md` plus the focused `scripts/zigux/check-phase11-header-boundary-packet.py` and manifest-backed survey replay
+- `drivers/tty/hvc/hvc_console.zig` plus `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `Documentation/zigux/phase11-hvc-console-survey.md`, `zigux/tests/phase11_hvc_console_manifest.json`, its teardown note, and its validation matrix
+- `Documentation/zigux/phase11-uapi-header-parity-survey.md` plus `zigux/tests/phase11_uapi_header_parity_manifest.json`, the focused `scripts/zigux/check-phase11-header-boundary-packet.py`, and the manifest-backed survey replay
 - the shared contract and lane-sequencing notes that keep the shared-versus-driver-local split explicit
 
 ## What This Note Does Not Claim
