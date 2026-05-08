@@ -9,6 +9,8 @@ Current Phase 5 reference anchors
 - `samples/zigux/trace_events_sample.zig`
 
 Boundary notes
+- the four anchors above are the full freeze-aware Phase 5 sample set on current `master`; do not add `samples/zigux/` follow-ons derived from freeze-in-C anchors `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`, and keep the study-only `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c` families out of this directory until a later roadmap-backed lane explicitly reopens that boundary
+- if a proposed sample needs runtime-loader wiring, workqueue handoff, ring-buffer substrate, scheduler-visible execution, or other non-sample kernel execution context to make its contract honest, route it to the separate Phase 9 or Phase 14 packets instead of widening the four shipped Phase 5 reference anchors
 - current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample; treat any new `samples/zigux/*string*.zig` file as review-blocking until the roadmap boundary is revisited
 - the separate string-helper packet lives under `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, and `zigux/tests/phase7_build.zig`
 - current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample
