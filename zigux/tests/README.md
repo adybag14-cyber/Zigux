@@ -56,6 +56,7 @@ Key entrypoints
   * `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
   * `zigux/tests/phase8_build.zig`
   * `zigux/tests/phase8_exec_cmd.zig`
+  * `zigux/tests/phase8_exec_cmd_only_build.zig`
   * `zigux/tests/phase8_help.zig`
   * `zigux/tests/phase8_kallsyms.zig`
   * `zigux/tests/phase8_cpu_mask.zig`
