@@ -163,12 +163,51 @@ FORBIDDEN_SCRIPT_README_MARKERS = [
     "phase4-perf-baseline-survey",
 ]
 
-PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS = {
+PHASE4_RUNTIME_ATOMIC64_EXPECTED_STRINGS = {
+    "lane_key": "P4-L02",
+    "phase": "Phase 4",
+    "roadmap_target_path": "zigux/tests/atomic64_diff.zig",
+    "owner": "ABI and Runtime Team",
+    "rollback_owner": "ABI and Runtime Team",
+    "live_gate_path": "zigux/tests/runtime_atomic64_diff.zig",
+    "runtime_replay_path": "zigux/tests/runtime_atomic64_diff.zig",
+    "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
+}
+
+PHASE4_RUNTIME_ATOMIC64_EXPECTED_TRUE_FIELDS = [
+    "roadmap_atomic64_diff_present",
+    "roadmap_atomic64_wrapper_targets_runtime_diff",
+    "phase4_build_present",
+    "phase4_build_uses_atomic64_wrapper",
+    "phase4_validator_atomic64_diff_present",
+    "phase4_validator_runtime_atomic64_diff_present",
+    "phase9_build_present",
+    "phase4_validation_matrix_atomic64_diff_note_present",
+    "phase4_validation_matrix_runtime_atomic64_note_present",
+]
+
+PHASE4_RUNTIME_ATOMIC64_MANIFEST_SHA_TARGETS = {
+    "live_gate_blob_sha": "zigux/tests/runtime_atomic64_diff.zig",
+    "runtime_replay_blob_sha": "zigux/tests/runtime_atomic64_diff.zig",
     "phase4_build_blob_sha": "zigux/tests/phase4_build.zig",
     "phase4_validator_blob_sha": "scripts/zigux/validate-phase4.py",
     "phase4_validation_matrix_blob_sha": "Documentation/zigux/phase4-validation-matrix.md",
     "phase4_review_checklist_blob_sha": "Documentation/zigux/review-checklist.md",
     "phase9_build_blob_sha": "zigux/tests/phase9_build.zig",
+}
+
+PHASE4_RUNTIME_ATOMIC64_LINE_COUNT_TARGETS = {
+    "live_gate_line_count": "zigux/tests/runtime_atomic64_diff.zig",
+    "runtime_replay_line_count": "zigux/tests/runtime_atomic64_diff.zig",
+}
+
+PHASE4_RUNTIME_ATOMIC64_SURVEY_SHA_COUNTS = {
+    "zigux/tests/runtime_atomic64_diff.zig": 2,
+    "zigux/tests/phase4_build.zig": 1,
+    "scripts/zigux/validate-phase4.py": 1,
+    "Documentation/zigux/phase4-validation-matrix.md": 1,
+    "Documentation/zigux/review-checklist.md": 1,
+    "zigux/tests/phase9_build.zig": 1,
 }
 
 PHASE4_BITMAP_PIN_TARGETS = {
@@ -301,13 +340,34 @@ def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
         encoding="utf-8"
     )
     problems: list[str] = []
-    for field, relative_path in PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS.items():
+
+    for field, expected in PHASE4_RUNTIME_ATOMIC64_EXPECTED_STRINGS.items():
+        if manifest.get(field) != expected:
+            problems.append(f"runtime_atomic64_manifest:{field}:{manifest.get(field)}:{expected}")
+
+    for field in PHASE4_RUNTIME_ATOMIC64_EXPECTED_TRUE_FIELDS:
+        if manifest.get(field) is not True:
+            problems.append(f"runtime_atomic64_manifest:{field}:{manifest.get(field)}:true")
+
+    for field, relative_path in PHASE4_RUNTIME_ATOMIC64_MANIFEST_SHA_TARGETS.items():
         expected = _git_blob_sha1((root / relative_path).read_bytes())
         actual = manifest.get(field)
         if actual != expected:
             problems.append(f"runtime_atomic64_manifest:{field}:{actual}:{expected}")
-        if survey.count(expected) != 1:
-            problems.append(f"runtime_atomic64_survey:{field}:{expected}:{survey.count(expected)}")
+
+    for field, relative_path in PHASE4_RUNTIME_ATOMIC64_LINE_COUNT_TARGETS.items():
+        expected = len((root / relative_path).read_text(encoding="utf-8").splitlines())
+        actual = manifest.get(field)
+        if actual != expected:
+            problems.append(f"runtime_atomic64_manifest_line_count:{field}:{actual}:{expected}")
+
+    for relative_path, expected_count in PHASE4_RUNTIME_ATOMIC64_SURVEY_SHA_COUNTS.items():
+        expected = _git_blob_sha1((root / relative_path).read_bytes())
+        actual_count = survey.count(expected)
+        if actual_count != expected_count:
+            problems.append(
+                f"runtime_atomic64_survey_sha_count:{relative_path}:{expected}:{actual_count}:{expected_count}"
+            )
     return problems
 
 
@@ -315,7 +375,9 @@ def run_phase4_bitmap_packet_check(root: Path) -> list[str]:
     manifest = json.loads(
         (root / "zigux/tests/phase4_bitmap_diff_manifest.json").read_text(encoding="utf-8")
     )
-    survey = (root / "zigux/tests/phase4_bitmap_diff_survey.zig").read_text(encoding="utf-8")
+    survey = (root / "zigux/tests/phase4_bitmap_diff_survey.zig").read_text(
+        encoding="utf-8"
+    )
     problems: list[str] = []
 
     expected_strings = {
@@ -553,10 +615,20 @@ def build_fixture_tree(root: Path) -> None:
     )
     _write(root, "zigux/tests/phase9_build.zig", "// phase9 build\n")
 
-    runtime_manifest = {
-        field: _git_blob_sha1((root / path).read_bytes())
-        for field, path in PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS.items()
-    }
+    runtime_manifest = dict(PHASE4_RUNTIME_ATOMIC64_EXPECTED_STRINGS)
+    runtime_manifest.update({field: True for field in PHASE4_RUNTIME_ATOMIC64_EXPECTED_TRUE_FIELDS})
+    runtime_manifest.update(
+        {
+            field: _git_blob_sha1((root / path).read_bytes())
+            for field, path in PHASE4_RUNTIME_ATOMIC64_MANIFEST_SHA_TARGETS.items()
+        }
+    )
+    runtime_manifest.update(
+        {
+            field: len((root / path).read_text(encoding="utf-8").splitlines())
+            for field, path in PHASE4_RUNTIME_ATOMIC64_LINE_COUNT_TARGETS.items()
+        }
+    )
     _write(
         root,
         "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
@@ -565,7 +637,19 @@ def build_fixture_tree(root: Path) -> None:
     _write(
         root,
         "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
-        "\n".join(runtime_manifest.values()) + "\n",
+        "\n".join(
+            runtime_manifest[field]
+            for field in (
+                "live_gate_blob_sha",
+                "runtime_replay_blob_sha",
+                "phase4_build_blob_sha",
+                "phase4_validator_blob_sha",
+                "phase4_validation_matrix_blob_sha",
+                "phase4_review_checklist_blob_sha",
+                "phase9_build_blob_sha",
+            )
+        )
+        + "\n",
     )
 
     bitmap_manifest = {
@@ -662,6 +746,18 @@ def run_self_test() -> int:
         assert validate_root(bad_root3) == [
             'phase4_build:root_source_file = b.path("phase4_perf_baseline_survey.zig")'
         ]
+
+        bad_root4 = Path(tmp_dir) / "bad4"
+        build_fixture_tree(bad_root4)
+        runtime_manifest_path = bad_root4 / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json"
+        runtime_manifest = json.loads(runtime_manifest_path.read_text(encoding="utf-8"))
+        runtime_manifest["live_gate_blob_sha"] = "0" * 40
+        runtime_manifest_path.write_text(
+            json.dumps(runtime_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        failures = run_phase4_runtime_atomic64_packet_check(bad_root4)
+        assert failures and failures[0].startswith("runtime_atomic64_manifest:live_gate_blob_sha:")
 
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
