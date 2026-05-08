@@ -104,6 +104,28 @@
         "rcu_do_batch"
       ],
       "rationale": "Callback enqueue still routes through per-CPU segmented callback lists, overload tracking, NOCB offload selection, grace-period forcing, and time-bounded batch execution, so this seam is still coupled to live Tree RCU state rather than a narrow wrapper contract."
+    },
+    {
+      "id": "public-wait-and-barrier-contract",
+      "summary": "Keep public wait, polling-cookie startup, and callback-barrier ownership in C while the survey records the contract boundary.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "synchronize_rcu",
+        "start_poll_synchronize_rcu",
+        "rcu_barrier"
+      ],
+      "rationale": "Public wait and barrier APIs still choose between normal and expedited grace-period machinery, can lock live root-node state when polling starts a new GP, and must drain callbacks across online, offline, and offloaded CPUs, so this seam remains study-only."
+    },
+    {
+      "id": "cpu-hotplug-callback-migration",
+      "summary": "Keep CPU enrollment, teardown, and callback migration in C while the survey records the hotplug boundary.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "rcutree_prepare_cpu",
+        "rcutree_report_cpu_dead",
+        "rcutree_migrate_callbacks"
+      ],
+      "rationale": "CPU hotplug still rewires the live hierarchy, quiescent-state bookkeeping, and callback ownership between CPUs while preserving the same wakeup and ordering guarantees as normal execution, so this seam remains study-only."
     }
   ],
   "gaps": [
@@ -147,7 +169,7 @@
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "zigux/tests/phase14_rcu_tree_manifest.json",
-      "why_now": "This lane now carries a small freeze-boundary checklist around grace-period sequencing, expedited-GP funnel state, and NOCB wakeup handoffs so future runs can deepen the survey without pretending Phase 14 already owns tree.c or NOCB behavior."
+      "why_now": "This lane now carries a small freeze-boundary checklist around grace-period sequencing, expedited-GP funnel state, NOCB wakeup handoffs, public wait and barrier ownership, and CPU-hotplug callback migration so future runs can deepen the survey without pretending Phase 14 already owns tree.c or live Tree RCU behavior."
     },
     {
       "id": "phase14-rcu-tree-boundary-map-starter",
