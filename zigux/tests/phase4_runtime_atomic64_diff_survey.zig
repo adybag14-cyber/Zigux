@@ -148,7 +148,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "scripts/zigux/validate-phase4.py") != null,
     );
     try std.testing.expect(
-        std.mem.indexOf(u8, manifest.reversibleDeliveryEvidence, "Documentation/zigux/phase4-gate-evidence.md") != null,
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/phase4-gate-evidence.md") != null,
     );
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/review-checklist.md") != null,
