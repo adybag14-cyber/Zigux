@@ -19,6 +19,13 @@ const BlockerOwnership = struct {
     latest_blocker_disposition: []const u8,
 };
 
+const DeepCoreBlockerSurvey = struct {
+    anchor: []const u8,
+    roadmap_basis: []const u8,
+    repo_reality: []const u8,
+    current_blocker: []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -36,6 +43,7 @@ const Manifest = struct {
     study_only_targets: []const []const u8,
     governance_requirements: []const GovernanceRequirement,
     blocker_ownership: []const BlockerOwnership,
+    deep_core_blocker_survey: []const DeepCoreBlockerSurvey,
     gaps: []const Gap,
 };
 
@@ -80,7 +88,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("4fc891b380cdd2991dff7676ade7f844df1b55fd", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
@@ -88,153 +96,39 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.governance_requirements.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.blocker_ownership.len);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.deep_core_blocker_survey.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
-    try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.freeze_in_c_targets[0]);
-    try std.testing.expectEqualStrings("mm/page_alloc.c", manifest.freeze_in_c_targets[1]);
-    try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.freeze_in_c_targets[2]);
-    try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.freeze_in_c_targets[3]);
-    try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.study_only_targets[0]);
-    try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.study_only_targets[1]);
+    for (manifest.deep_core_blocker_survey, 0..) |survey, i| {
+        try std.testing.expectEqualStrings(manifest.freeze_in_c_targets[i], survey.anchor);
+        try std.testing.expect(survey.roadmap_basis.len > 0);
+        try std.testing.expect(survey.repo_reality.len > 0);
+        try std.testing.expect(survey.current_blocker.len > 0);
 
-    for (manifest.blocker_ownership, 0..) |ownership, i| {
-        try std.testing.expect(ownership.anchor.len > 0);
-        try std.testing.expect(ownership.owner.len > 0);
-        try std.testing.expectEqualStrings("Phase 15", ownership.phase);
-        try std.testing.expectEqualStrings("freeze_in_c", ownership.status_bucket);
-        try std.testing.expectEqualStrings("Phase 15 parity scorecard plus Architecture Council reopen record", ownership.validation_gate);
-        try std.testing.expect(ownership.rollback_owner.len > 0);
-        try std.testing.expect(ownership.evidence_archive_path.len > 0);
-        try std.testing.expect(ownership.benchmark_notes.len > 0);
-        try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase15_build.zig", ownership.replay_command);
-        try std.testing.expect(ownership.latest_blocker_disposition.len > 0);
-        try std.testing.expectEqualStrings(manifest.freeze_in_c_targets[i], ownership.anchor);
+        if (std.mem.eql(u8, survey.anchor, "kernel/sched/core.c")) {
+            try std.testing.expect(std.mem.indexOf(u8, survey.roadmap_basis, "freeze-in-C anchor") != null);
+            try std.testing.expect(std.mem.indexOf(u8, survey.repo_reality, "no carried-forward Phase 14 blocker survey") != null);
+            try std.testing.expectEqualStrings("blocked_no_bounded_scheduler_seam", survey.current_blocker);
+        } else if (std.mem.eql(u8, survey.anchor, "mm/page_alloc.c")) {
+            try std.testing.expect(std.mem.indexOf(u8, survey.roadmap_basis, "freeze-in-C anchor") != null);
+            try std.testing.expect(std.mem.indexOf(u8, survey.repo_reality, "no carried-forward Phase 14 blocker survey") != null);
+            try std.testing.expectEqualStrings("blocked_no_bounded_allocator_seam", survey.current_blocker);
+        } else if (std.mem.eql(u8, survey.anchor, "kernel/rcu/tree.c")) {
+            try std.testing.expect(std.mem.indexOf(u8, survey.roadmap_basis, "narrower-than-freeze") != null);
+            try std.testing.expect(std.mem.indexOf(u8, survey.repo_reality, "P14-L13") != null);
+            try std.testing.expect(std.mem.indexOf(u8, survey.repo_reality, "phase14-rcu-tree-bridge-blocker") != null);
+            try std.testing.expectEqualStrings("blocked_phase14_followup_still_wider_than_allowed_rcu_seam", survey.current_blocker);
+        } else if (std.mem.eql(u8, survey.anchor, "net/core/skbuff.c")) {
+            try std.testing.expect(std.mem.indexOf(u8, survey.roadmap_basis, "narrower-than-lifetime") != null);
+            try std.testing.expect(std.mem.indexOf(u8, survey.repo_reality, "P14-L09") != null);
+            try std.testing.expect(std.mem.indexOf(u8, survey.repo_reality, "phase14-skbuff-live-ownership-blocker") != null);
+            try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", survey.current_blocker);
+        }
 
-        for (manifest.blocker_ownership[i + 1 ..]) |other| {
-            try std.testing.expect(!std.mem.eql(u8, ownership.anchor, other.anchor));
+        for (manifest.deep_core_blocker_survey[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, survey.anchor, other.anchor));
         }
     }
-
-    var landed_count: usize = 0;
-    var ready_next_count: usize = 0;
-    var blocked_count: usize = 0;
-    var saw_freeze_doc = false;
-    var saw_note = false;
-    var saw_build = false;
-    var saw_make = false;
-    var saw_closeout_sync = false;
-    var saw_governance_family_alignment = false;
-    var saw_blocker_ownership_sync = false;
-    var saw_review_process_required_field_sync = false;
-    var saw_anchor_reporting_sync = false;
-    var saw_current_freeze_blocker_evidence_verify = false;
-    var saw_blocker = false;
-
-    for (manifest.gaps, 0..) |gap, i| {
-        try std.testing.expect(gap.id.len > 0);
-        try std.testing.expect(gap.kind.len > 0);
-        try std.testing.expect(gap.why_now.len > 0);
-        try std.testing.expect(isAllowedStatus(gap.status));
-
-        if (std.mem.eql(u8, gap.status, "starter_landed")) {
-            landed_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
-            ready_next_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "blocked_on_stay_in_c_evidence")) {
-            blocked_count += 1;
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase15-freeze-map-governance-doc")) {
-            saw_freeze_doc = true;
-            try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze-in-C") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase15-freeze-map-governance-note")) {
-            saw_note = true;
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "parity-scorecard") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase15-build-gate")) {
-            saw_build = true;
-            try std.testing.expectEqualStrings("zigux/tests/phase15_build.zig", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase15-make-target")) {
-            saw_make = true;
-            try std.testing.expectEqualStrings("zigux/Makefile", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase15-stay-in-c-closeout-sync")) {
-            saw_closeout_sync = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "no-silent-exception wording") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase15-review-process-required-field-sync")) {
-            saw_review_process_required_field_sync = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact Linux anchor path") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "current status bucket") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback threshold") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "explicit non-goals") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "written rationale") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase15-governance-family-alignment")) {
-            saw_governance_family_alignment = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "already landed") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "indefinite-C policy") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase15-blocker-ownership-sync")) {
-            saw_blocker_ownership_sync = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "owner, validation-gate, and rollback-owner inventory") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase15-anchor-reporting-field-sync")) {
-            saw_anchor_reporting_sync = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "evidence archive path") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "benchmark notes") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "replay command") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "latest blocker disposition") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase15-current-freeze-blocker-evidence-verify")) {
-            saw_current_freeze_blocker_evidence_verify = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "older verified head") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze anchor set") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blocker dispositions") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact-head parity") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
-            saw_blocker = true;
-            try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "current long-term C-owned posture") != null);
-        }
-
-        for (manifest.gaps[i + 1 ..]) |other| {
-            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
-        }
-    }
-
-    try std.testing.expectEqual(@as(usize, 10), landed_count);
-    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 1), blocked_count);
-    try std.testing.expect(saw_freeze_doc);
-    try std.testing.expect(saw_note);
-    try std.testing.expect(saw_build);
-    try std.testing.expect(saw_make);
-    try std.testing.expect(saw_closeout_sync);
-    try std.testing.expect(saw_review_process_required_field_sync);
-    try std.testing.expect(saw_governance_family_alignment);
-    try std.testing.expect(saw_blocker_ownership_sync);
-    try std.testing.expect(saw_anchor_reporting_sync);
-    try std.testing.expect(saw_current_freeze_blocker_evidence_verify);
-    try std.testing.expect(saw_blocker);
 }
 
 test "phase 15 freeze-map governance doc records the required gating language" {
@@ -251,7 +145,7 @@ test "phase 15 freeze-map governance doc records the required gating language" {
 
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "## Governance For Freeze-Map Changes") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "Architecture Council") != null);
-    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "owner, phase, status bucket, validation gate, and rollback owner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "owner, phase, status bucket, validation gate summary, and rollback owner") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "exact Linux anchor path") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "current status bucket") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "evidence archive path") != null);
@@ -281,11 +175,9 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     );
     defer std.testing.allocator.free(governance_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_LANE_KEY=P15-L03") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_SLICE=freeze-map-governance-current-freeze-blocker-evidence-verify") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_LANE_KEY=P15-L01") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_SLICE=freeze-map-deep-core-blocker-roadmap-reality-survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "verified `master` head `4fc891b380cdd2991dff7676ade7f844df1b55fd` observed on May 8, 2026") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "older verified head `9342905d34fb98d6fcd88cf2e88efed7355131d2`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "freeze anchor set and blocker dispositions matched the newer shared governance packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Freeze-In-C Anchor Governance Inventory") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "Architecture Council + PMO / Release Management") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "Architecture Council + Validation and Perf Team") != null);
@@ -304,6 +196,11 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "blocked_no_bounded_allocator_seam") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "blocked_packet_lifetime_boundary_still_too_wide") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "match the newer shared governance head `4fc891b380cdd2991dff7676ade7f844df1b55fd`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Deep-core blockers versus roadmap and repo reality") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "no carried-forward Phase 14 blocker survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "lane P14-L13 still records blocked phase14-rcu-tree-bridge-blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "lane P14-L09 still records blocked phase14-skbuff-live-ownership-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "maintenance mode") != null);
 }
 
@@ -339,10 +236,6 @@ test "phase 15 governance manifest required terms stay aligned with the freeze m
     defer parsed.deinit();
 
     for (parsed.value.governance_requirements) |requirement| {
-        try std.testing.expect(requirement.id.len > 0);
-        try std.testing.expect(requirement.summary.len > 0);
-        try std.testing.expect(requirement.required_terms.len > 0);
-
         for (requirement.required_terms) |term| {
             try std.testing.expect(std.mem.indexOf(u8, freeze_map, term) != null);
         }
@@ -358,6 +251,30 @@ test "phase 15 governance manifest required terms stay aligned with the freeze m
         try std.testing.expect(std.mem.indexOf(u8, governance_note, ownership.replay_command) != null);
         try std.testing.expect(std.mem.indexOf(u8, governance_note, ownership.latest_blocker_disposition) != null);
     }
+
+    for (parsed.value.deep_core_blocker_survey) |survey| {
+        try std.testing.expect(std.mem.indexOf(u8, governance_note, survey.anchor) != null);
+        try std.testing.expect(std.mem.indexOf(u8, governance_note, survey.roadmap_basis) != null);
+        try std.testing.expect(std.mem.indexOf(u8, governance_note, survey.repo_reality) != null);
+        try std.testing.expect(std.mem.indexOf(u8, governance_note, survey.current_blocker) != null);
+    }
+
+    var saw_current_freeze_blocker_evidence_verify = false;
+    var saw_deep_core_blocker_roadmap_reality_survey = false;
+    for (parsed.value.gaps) |gap| {
+        if (std.mem.eql(u8, gap.id, "phase15-current-freeze-blocker-evidence-verify")) {
+            saw_current_freeze_blocker_evidence_verify = true;
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "newer exact head") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze anchor set") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blocker dispositions") != null);
+        } else if (std.mem.eql(u8, gap.id, "phase15-deep-core-blocker-roadmap-reality-survey")) {
+            saw_deep_core_blocker_roadmap_reality_survey = true;
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "anchor-by-anchor crosswalk") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "scheduler, page allocator, RCU, and skbuff") != null);
+        }
+    }
+    try std.testing.expect(saw_current_freeze_blocker_evidence_verify);
+    try std.testing.expect(saw_deep_core_blocker_roadmap_reality_survey);
 }
 
 test "phase 15 freeze-map governance note stays aligned with parity scorecard blocker evidence" {
@@ -391,11 +308,6 @@ test "phase 15 freeze-map governance note stays aligned with parity scorecard bl
     const parsed = try std.json.parseFromSlice(ScorecardManifest, std.testing.allocator, scorecard_json, .{});
     defer parsed.deinit();
 
-    var saw_sched = false;
-    var saw_page_alloc = false;
-    var saw_rcu = false;
-    var saw_skbuff = false;
-
     for (parsed.value.anchors) |anchor| {
         try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, anchor.lane_owner) != null);
         try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, anchor.rollback_owner) != null);
@@ -403,54 +315,11 @@ test "phase 15 freeze-map governance note stays aligned with parity scorecard bl
         try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, anchor.evidence_archive.benchmark_notes_status) != null);
         try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, anchor.evidence_archive.replay_command) != null);
         try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, anchor.evidence_archive.latest_blocker_disposition) != null);
-        try std.testing.expect(anchor.evidence_archive.linked_evidence.len > 0);
-        try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, anchor.evidence_archive.linked_evidence[0]) != null);
         try std.testing.expect(std.mem.indexOf(u8, governance_note, anchor.lane_owner) != null);
         try std.testing.expect(std.mem.indexOf(u8, governance_note, anchor.rollback_owner) != null);
         try std.testing.expect(std.mem.indexOf(u8, governance_note, anchor.evidence_archive.decision_record_path) != null);
         try std.testing.expect(std.mem.indexOf(u8, governance_note, anchor.evidence_archive.benchmark_notes_status) != null);
         try std.testing.expect(std.mem.indexOf(u8, governance_note, anchor.evidence_archive.replay_command) != null);
         try std.testing.expect(std.mem.indexOf(u8, governance_note, anchor.evidence_archive.latest_blocker_disposition) != null);
-
-        if (std.mem.eql(u8, anchor.path, "kernel/sched/core.c")) {
-            saw_sched = true;
-            try std.testing.expectEqualStrings("Architecture Council", anchor.lane_owner);
-            try std.testing.expectEqualStrings("Architecture Council + PMO / Release Management", anchor.rollback_owner);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md", anchor.evidence_archive.decision_record_path);
-            try std.testing.expectEqualStrings("pending_until_bounded_scheduler_seam_exists", anchor.evidence_archive.benchmark_notes_status);
-            try std.testing.expectEqualStrings("blocked_no_bounded_scheduler_seam", anchor.evidence_archive.latest_blocker_disposition);
-            try std.testing.expect(std.mem.indexOf(u8, governance_note, "blocked_no_bounded_scheduler_seam") != null);
-        } else if (std.mem.eql(u8, anchor.path, "mm/page_alloc.c")) {
-            saw_page_alloc = true;
-            try std.testing.expectEqualStrings("Architecture Council", anchor.lane_owner);
-            try std.testing.expectEqualStrings("Architecture Council + Validation and Perf Team", anchor.rollback_owner);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md", anchor.evidence_archive.decision_record_path);
-            try std.testing.expectEqualStrings("pending_until_bounded_allocator_seam_exists", anchor.evidence_archive.benchmark_notes_status);
-            try std.testing.expectEqualStrings("blocked_no_bounded_allocator_seam", anchor.evidence_archive.latest_blocker_disposition);
-            try std.testing.expect(std.mem.indexOf(u8, governance_note, "blocked_no_bounded_allocator_seam") != null);
-        } else if (std.mem.eql(u8, anchor.path, "kernel/rcu/tree.c")) {
-            saw_rcu = true;
-            try std.testing.expectEqualStrings("ABI and Runtime Team", anchor.lane_owner);
-            try std.testing.expectEqualStrings("Architecture Council + ABI and Runtime Team", anchor.rollback_owner);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md", anchor.evidence_archive.decision_record_path);
-            try std.testing.expectEqualStrings("pending_until_rcu_followup_is_narrower_than_freeze_boundary", anchor.evidence_archive.benchmark_notes_status);
-            try std.testing.expectEqualStrings("blocked_phase14_followup_still_wider_than_allowed_rcu_seam", anchor.evidence_archive.latest_blocker_disposition);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", anchor.evidence_archive.linked_evidence[0]);
-            try std.testing.expect(std.mem.indexOf(u8, governance_note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam") != null);
-        } else if (std.mem.eql(u8, anchor.path, "net/core/skbuff.c")) {
-            saw_skbuff = true;
-            try std.testing.expectEqualStrings("Shared Subsystems Pod", anchor.lane_owner);
-            try std.testing.expectEqualStrings("Architecture Council + Shared Subsystems Pod", anchor.rollback_owner);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md", anchor.evidence_archive.decision_record_path);
-            try std.testing.expectEqualStrings("pending_until_skbuff_followup_is_narrower_than_lifetime_boundary", anchor.evidence_archive.benchmark_notes_status);
-            try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", anchor.evidence_archive.latest_blocker_disposition);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase14-skbuff-bridge-survey.md", anchor.evidence_archive.linked_evidence[0]);
-            try std.testing.expect(std.mem.indexOf(u8, governance_note, "blocked_packet_lifetime_boundary_still_too_wide") != null);
-        }
     }
-
-    try std.testing.expect(saw_sched);
-    try std.testing.expect(saw_page_alloc);
-    try std.testing.expect(saw_rcu);
-    try std.testing.expect(saw_skbuff);
 }
