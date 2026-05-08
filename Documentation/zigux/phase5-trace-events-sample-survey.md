@@ -57,7 +57,7 @@ The sample intentionally stays small:
 - it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit as part of the same bounded trace-events idiom
 - it keeps its sample-owned replay entrypoints bounded through `runAnchorReplay()`, `runPayloadBoundaryReplay()`, `runConditionalBoundaryReplay()`, and `runCallbackBoundaryReplay()` so the payload-shape, conditional-family, formatted-message, callback-boundary, and ownership-lifetime checks stay public instead of implying a runtime-ready trace-events module
 
-The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
+The exact checks now exercised through `zigux/tests/phase5_build.zig` and the directly coupled focused sample packet are:
 
 - the in-memory sample keeps `samples/trace_events/trace-events-sample.c` explicit and stays in the non-runtime reference-sample lane
 - `runAnchorReplay()` formats `iter=7` and selects `Gandalf` from the Linux `random_strings` table for `len = 2`
