@@ -52,6 +52,9 @@ test "dw_wdt platform handoff flattens imported pretimeout when irq wiring is ab
     try std.testing.expect(handoff.reset_control_available);
     try std.testing.expect(!handoff.irq_registration_ready);
     try std.testing.expect(handoff.drvdata_ready);
+    try std.testing.expectEqual(dw_wdt.RegistrationScaffoldState.import_running_state_then_register, handoff.registration_state);
+    try std.testing.expect(handoff.registration_ready);
+    try std.testing.expect(!handoff.preserves_pretimeout_irq);
     try std.testing.expect(!handoff.nowayout);
     try std.testing.expectEqual(dw_wdt.default_restart_priority, handoff.restart_priority);
     try std.testing.expect(handoff.stop_on_reboot);
@@ -83,6 +86,9 @@ test "dw_wdt platform handoff keeps imported running state explicit when drvdata
     try std.testing.expect(handoff.reset_control_available);
     try std.testing.expect(handoff.irq_registration_ready);
     try std.testing.expect(!handoff.drvdata_ready);
+    try std.testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_missing_drvdata, handoff.registration_state);
+    try std.testing.expect(!handoff.registration_ready);
+    try std.testing.expect(handoff.preserves_pretimeout_irq);
     try std.testing.expect(!handoff.nowayout);
     try std.testing.expectEqual(dw_wdt.default_restart_priority, handoff.restart_priority);
     try std.testing.expect(handoff.stop_on_reboot);
@@ -113,6 +119,9 @@ test "dw_wdt platform handoff stays blocked-but-reviewable when drvdata or irq w
     try std.testing.expect(!handoff.reset_control_available);
     try std.testing.expect(!handoff.irq_registration_ready);
     try std.testing.expect(!handoff.drvdata_ready);
+    try std.testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_missing_drvdata, handoff.registration_state);
+    try std.testing.expect(!handoff.registration_ready);
+    try std.testing.expect(!handoff.preserves_pretimeout_irq);
     try std.testing.expect(handoff.nowayout);
     try std.testing.expect(handoff.stop_on_reboot);
     try std.testing.expect(!handoff.can_stop);
