@@ -137,10 +137,11 @@ The dedicated perf-baseline survey stays outside the shared `phase4-test` entryp
 ### `samples/zigux/kprobe_example.zig`
 - current C anchor: `samples/kprobes/kprobe_example.c`
 - current replay path: `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`
+- dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`
 - survey owner: `Validation and Perf Team`
 - rollback owner: `Validation and Perf Team`
-- current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` keeps the current C anchor, replay command, owner, and rollback owner reviewable, and `Documentation/zigux/phase4-gate-evidence.md` now names that same adjacent survey note, manifest, and replay command without claiming a shipped Zig starter
-- next bounded evidence step: keep the dedicated parked survey packet adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either a broader validation-surface promotion or the Zig starter itself
+- current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` keeps the current C anchor, replay command, dedicated local survey wrapper, owner, and rollback owner reviewable, and `Documentation/zigux/phase4-gate-evidence.md` now names that same adjacent survey note, manifest, replay command, and local survey wrapper without claiming a shipped Zig starter
+- next bounded evidence step: keep the dedicated parked survey packet and the dedicated local survey wrapper adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either a broader validation-surface promotion or the Zig starter itself
 
 ### `samples/zigux/test_fsmount.zig`
 - current C anchor: `samples/vfs/test-fsmount.c`
