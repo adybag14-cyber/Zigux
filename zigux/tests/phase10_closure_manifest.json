@@ -100,14 +100,12 @@
     "runtime_starters": {
       "status": "out_of_scope",
       "evidence": [
-        "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+        "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
         "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
-        "zigux/tests/runtime_loader_gap_manifest.json",
-        "zigux/tests/runtime_loader_gap_survey.zig",
-        "zigux/tests/runtime_trace_events_manifest.json",
         "zigux/tests/phase9_build.zig",
+        "zigux/tests/runtime_loader_allocator_init_flow.zig",
         "zigux/kernel/runtime_loader.zig",
-        "zigux/helpers/allocator_policy.zig",
+        "zigux/kernel/runtime_loader_contract.zig",
         "samples/zigux/runtime_atomic64_loader.zig",
         "samples/zigux/runtime_bitmap_loader.zig",
         "samples/zigux/runtime_kretprobe_loader.zig",
