@@ -114,6 +114,15 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `make -C zigux phase11-hvc-survey`
 
+Repo reality now carries one bounded starter and validation matrix for each Phase 11 simple-production-driver roadmap anchor at starter depth:
+
+- `drivers/watchdog/gpio_wdt.zig`
+- `drivers/watchdog/bcm2835_wdt.zig`
+- `drivers/watchdog/dw_wdt.zig`
+- `drivers/tty/hvc/hvc_console.zig`
+
+That means the remaining Phase 11 gap is live integration depth, not missing starter coverage.
+
 The focused shared header-boundary evidence also stays explicit beside that shared route:
 
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
