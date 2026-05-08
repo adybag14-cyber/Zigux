@@ -567,12 +567,17 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/check-phase3-policy-byte-guards.py" in issues
 
         build_self_test_root(root)
+        (root / "scripts/zigux/check-phase3-policy-byte-guards.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/check-phase3-policy-byte-guards.py" in issues
+
+        build_self_test_root(root)
         (root / "scripts/zigux/survey-phase3-abi-constant-parity.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=34")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=35")
     return 0
 
 
