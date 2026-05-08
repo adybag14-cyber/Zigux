@@ -38,7 +38,7 @@ This note records the bounded Phase 2 x86_64-linux bootstrap archive-pin contrac
 - current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`
 - current minimum Zig version: `0.17.0-dev.87+9b177a7d2`
 - current pinned bootstrap archive target: `x86_64-linux`
-- current pinned bootstrap archive sha256 (`x86_64-linux`): `313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`
+- current pinned bootstrap archive sha256 (`x86_64-linux`): `a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858`
 - the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
 - the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin
 - the shared tests README alignment gate keeps this dedicated bootstrap note aligned with `zigux/tests/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/Makefile`, and the Linux-style `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay surface instead of leaving this note coupled to the broader Phase 2 packet by implication alone
