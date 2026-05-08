@@ -126,6 +126,7 @@ pub const OwnershipMatrixPath = enum {
     claimed_poweroff_handler,
     conflicting_poweroff_handler,
     failed_registration,
+    not_system_power_controller,
 };
 
 pub const OwnershipMatrixRow = struct {
@@ -147,7 +148,7 @@ pub const OwnershipMatrixRow = struct {
 
 pub const OwnershipMatrixSummary = struct {
     anchor: []const u8,
-    rows: [3]OwnershipMatrixRow,
+    rows: [4]OwnershipMatrixRow,
 };
 
 pub const RuntimeSnapshot = struct {
@@ -364,6 +365,7 @@ pub const Bcm2835WatchdogLab = struct {
                 self.ownershipMatrixRow(.claimed_poweroff_handler, true, false, true),
                 self.ownershipMatrixRow(.conflicting_poweroff_handler, true, true, true),
                 self.ownershipMatrixRow(.failed_registration, true, false, false),
+                self.ownershipMatrixRow(.not_system_power_controller, false, false, true),
             },
         };
     }
@@ -572,4 +574,19 @@ test "ownership matrix keeps registration poweroff and teardown outcomes aligned
     try std.testing.expect(!failed.poweroff_path_ready);
     try std.testing.expect(!failed.clear_poweroff_handler_requested);
     try std.testing.expect(!failed.poweroff_handler_left_in_place);
+
+    const not_controller = matrix.rows[3];
+    try std.testing.expectEqual(OwnershipMatrixPath.not_system_power_controller, not_controller.path);
+    try std.testing.expect(!not_controller.system_power_controller);
+    try std.testing.expect(not_controller.registration_succeeded);
+    try std.testing.expect(!not_controller.probe_error_returned);
+    try std.testing.expect(!not_controller.poweroff_handler_present_before_probe);
+    try std.testing.expect(!not_controller.poweroff_handler_present_after_probe);
+    try std.testing.expect(!not_controller.poweroff_handler_claimed);
+    try std.testing.expect(!not_controller.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!not_controller.poweroff_path_ready);
+    try std.testing.expect(!not_controller.halt_partition_requested);
+    try std.testing.expect(!not_controller.restart_armed);
+    try std.testing.expect(!not_controller.clear_poweroff_handler_requested);
+    try std.testing.expect(!not_controller.poweroff_handler_left_in_place);
 }
