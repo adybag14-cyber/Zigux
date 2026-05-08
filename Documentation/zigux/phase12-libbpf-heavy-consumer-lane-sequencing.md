@@ -110,7 +110,7 @@ Allowed surfaces:
 
 Do not use this lane to land helper code, manifest churn, or new test logic.
 
-Keep this lane scoped to PMO release wording and shared reviewability only: it may realign the PMO closure companion, compact release-coordination matrix, shared fallback overview, and the broad docs-root, scripts-root, or tests-root reminders with the libbpf ownership split, but it must not absorb the separate driver-only anti-overlap note or reopen driver-local Phase 12 follow-through.
+Keep this lane scoped to PMO release wording and shared reviewability only: it may realign the release-order note, PMO closure companion, compact release-coordination matrix, shared fallback overview, and the broad docs-root, scripts-root, or tests-root reminders with the libbpf ownership split, but it must not absorb the separate driver-only anti-overlap note or reopen driver-local Phase 12 follow-through.
 
 ## Sequencing rule
 1. Re-read the shared Phase 12 libbpf survey and reviewability packet first.
@@ -127,7 +127,7 @@ Today the strongest Phase 12 libbpf sequencing correction is simple:
 - the two helper-sized `ready_next` promotions stay smaller than the deferred bridge and queue-routing bucket
 - the deferred bridge and queue-routing bucket stays smaller than the blocked object-model, loader, and relocation wall
 - wording-only shared-summary repairs stay separate from helper logic and from the other Phase 12 driver lanes
-- PMO release coordination surfaces should keep the closure companion, compact release-coordination matrix, shared fallback overview, the direct `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` preflight, the attached-toolchain Make override, and the libbpf reviewability packet aligned without turning this heavy-consumer lane into a driver-owner map or a closure claim
+- PMO release coordination surfaces should keep the release-order note, closure companion, compact release-coordination matrix, shared fallback overview, the direct `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` preflight, the attached-toolchain Make override, and the libbpf reviewability packet aligned without turning this heavy-consumer lane into a driver-owner map or a closure claim
 
 That split matches the live survey packet and keeps future scheduled runs from turning one honest heavy-consumer tranche into overlapping docs, helper, and object-model churn.
 
