@@ -121,7 +121,7 @@ Anchor packets in the current smoke bundle:
 ## Shared Smoke Findings
 
 - `zigux/Makefile`, `scripts/zigux/validate-phase14.py`, the docs-root smoke-summary checker, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and this smoke note align on the shipped validator, focused smoke shard, shared full-bundle replay, and convenience wrapper for the current study-only packet.
-- `scripts/zigux/validate-phase14.py --self-test` now gives the shared smoke packet a direct validator-local replay route for the built-in checker-failure coverage, so the silent-failure proof inside the validator no longer stays implicit behind the broader `make -C zigux phase14-validate` path.
+- `make -C zigux phase14-validate` now starts by running `python3 scripts/zigux/validate-phase14.py --self-test`, so the validator-local checker-failure replay is exercised through the default Linux-style wrapper instead of living only as a direct side command.
 - The docs-root smoke-summary checker now also keeps this shared smoke note and the manifest-backed packet inventory tied to the shipped `phase14-validate` route instead of leaving that check implicit in `zigux/Makefile` alone.
 - `Documentation/zigux/phase14-core-boundary-traceability.md` keeps the current ring-buffer, skbuff, and RCU lane keys, surveyed commits, ready-next posture, blocked gaps, and stay-in-C decisions visible in one cross-anchor note instead of leaving that boundary evidence to separate lane notes or run memory alone.
 - The shared smoke packet now names the full review-only bridge root set beside the ring-buffer survey root: `kernel/workqueue_bridge.zig`, `net/core/skbuff_bridge.zig`, `kernel/rcu/tree_bridge.zig`, and `phase14_ring_buffer_survey.zig`.
@@ -135,7 +135,7 @@ Anchor packets in the current smoke bundle:
 
 - named owner: `Core-Adjacent Pod`
 - status bucket: `study_only`
-- validation gate: `python3 scripts/zigux/validate-phase14.py --self-test && make -C zigux phase14-validate && make -C zigux phase14-smoke && make -C zigux phase14-test && make -C zigux phase14`
+- validation gate: `make -C zigux phase14-validate && make -C zigux phase14-smoke && make -C zigux phase14-test && make -C zigux phase14`
 - rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`
 - review blocker status: `blocked_on_stay_in_c_evidence`
 
@@ -162,10 +162,11 @@ This shared smoke slice does not claim:
 
 ## Gates
 
-1. Run the validator self-test.
+1. Run the validator self-test directly when you need the standalone checker replay.
    `python3 scripts/zigux/validate-phase14.py --self-test`
-2. Run the shared validator.
+2. Run the shared validator wrapper.
    `make -C zigux phase14-validate`
+   This wrapper first runs `python3 scripts/zigux/validate-phase14.py --self-test` and then the shared packet validator.
 3. Run the focused smoke shard.
    `make -C zigux phase14-smoke`
    `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
