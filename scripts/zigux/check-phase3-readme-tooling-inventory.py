@@ -218,6 +218,16 @@ TESTS_README_PHASE3_MARKERS = (
     "opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`",
 )
 
+TESTS_README_PHASE8_MARKERS = (
+    "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+    "zigux/tests/phase8_bpf_type_names.zig",
+    "zigux/tests/phase8_file_path_handle_bridge.zig",
+    "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
+    "make -C zigux phase8-file-path-handle-bridge-test",
+    "make -C zigux phase8-libbpf-segments-test",
+    "make -C zigux phase8-perf-buffer-poll-test",
+)
+
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
@@ -344,6 +354,16 @@ def _validate_tests_readme_phase3_markers(issues: list[str], text: str) -> None:
             issues.append(f"unexpected_tests_readme_phase3_marker_count:{count}:{marker}")
 
 
+def _validate_tests_readme_phase8_markers(issues: list[str], text: str) -> None:
+    for marker in TESTS_README_PHASE8_MARKERS:
+        count = text.count(f"`{marker}`")
+        count += sum(1 for line in text.splitlines() if line.strip() == marker)
+        if count == 0:
+            issues.append(f"missing_tests_readme_phase8_marker:{marker}")
+        elif count != 1:
+            issues.append(f"unexpected_tests_readme_phase8_marker_count:{count}:{marker}")
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
     try:
@@ -400,6 +420,7 @@ def validate(root: Path) -> list[str]:
             issues.append(f"unexpected_readme_snippet_count:{count}:{snippet}")
 
     _validate_tests_readme_phase3_markers(issues, tests_readme)
+    _validate_tests_readme_phase8_markers(issues, tests_readme)
     return issues
 
 
@@ -409,7 +430,7 @@ def _baseline_readme() -> str:
 
 
 def _baseline_tests_readme() -> str:
-    return "\n".join(["# zigux/tests", "", *TESTS_README_PHASE3_MARKERS, ""])
+    return "\n".join(["# zigux/tests", "", *TESTS_README_PHASE3_MARKERS, *TESTS_README_PHASE8_MARKERS, ""])
 
 
 def _baseline_makefile() -> str:
@@ -525,6 +546,24 @@ def run_self_test() -> int:
         _write(root / TESTS_README_REL, tests)
         assert validate(root) == [
             "unexpected_tests_readme_phase3_marker_count:2:scripts/zigux/check-phase3-readme-tooling-inventory.py"
+        ]
+        _write(root / TESTS_README_REL, _baseline_tests_readme())
+        case_count += 1
+
+        tests = _baseline_tests_readme().replace("make -C zigux phase8-perf-buffer-poll-test\n", "", 1)
+        _write(root / TESTS_README_REL, tests)
+        assert validate(root) == ["missing_tests_readme_phase8_marker:make -C zigux phase8-perf-buffer-poll-test"]
+        _write(root / TESTS_README_REL, _baseline_tests_readme())
+        case_count += 1
+
+        tests = _baseline_tests_readme().replace(
+            "make -C zigux phase8-file-path-handle-bridge-test\n",
+            "make -C zigux phase8-file-path-handle-bridge-test\nmake -C zigux phase8-file-path-handle-bridge-test\n",
+            1,
+        )
+        _write(root / TESTS_README_REL, tests)
+        assert validate(root) == [
+            "unexpected_tests_readme_phase8_marker_count:2:make -C zigux phase8-file-path-handle-bridge-test"
         ]
         _write(root / TESTS_README_REL, _baseline_tests_readme())
         case_count += 1
