@@ -163,6 +163,7 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
         .limited(128 * 1024),
     );
     defer std.testing.allocator.free(smoke_note_text);
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_VALIDATE_SELF_TEST=python3 scripts/zigux/validate-phase14.py --self-test"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_COMPILE_ARTIFACT_COUNT=5"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FOCUSED_SHARD_COUNT=1"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4"));
@@ -224,6 +225,17 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     try std.testing.expect(containsMarker(makefile_text, "scripts/zigux/check-phase14-docs-root-smoke-summary.py"));
     try std.testing.expect(containsMarker(makefile_text, "phase14: phase14-validate phase14-smoke phase14-test"));
     try std.testing.expect(containsMarker(makefile_text, "zigux/tests/phase14_build.zig"));
+
+    const validator_text = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/validate-phase14.py",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(validator_text);
+    try std.testing.expect(containsMarker(validator_text, "parser.add_argument(\"--self-test\""));
+    try std.testing.expect(containsMarker(validator_text, "if args.self_test:"));
+    try std.testing.expect(containsMarker(validator_text, "return run_self_test()"));
 
     const traceability_text = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
