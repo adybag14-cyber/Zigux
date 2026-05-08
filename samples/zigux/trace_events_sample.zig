@@ -34,6 +34,7 @@ pub const ReplaySummary = struct {
     stage_after_replay: SampleStage,
     formatted_message: []const u8,
     selected_string: []const u8,
+    selected_index: usize,
     array_prefix_len: usize,
     array_sentinel: i32,
     bitmask_word: usize,
@@ -53,6 +54,7 @@ pub const PayloadBoundarySummary = struct {
     stage_after_iteration: SampleStage,
     formatted_message: []const u8,
     selected_string: []const u8,
+    selected_index: usize,
     payload_prefix_len: usize,
     payload_prefix: [4]i32,
     payload_sentinel: i32,
@@ -68,6 +70,7 @@ pub const ConditionalBoundarySummary = struct {
     main_count: i32,
     formatted_message: []const u8,
     selected_string: []const u8,
+    selected_index: usize,
     bitmask_word: usize,
     main_thread_event_calls: usize,
     total_event_calls_after_replay: usize,
@@ -127,6 +130,7 @@ pub const TraceEventsReferenceSample = struct {
     last_function_count: i32 = -1,
     array_payload: [6]i32 = [_]i32{0} ** 6,
     selected_string: []const u8 = "",
+    selected_index: usize = 0,
     bitmask_word: usize = 0,
     saw_vararg_payload: bool = false,
     saw_rel_loc_payload: bool = false,
@@ -168,6 +172,7 @@ pub const TraceEventsReferenceSample = struct {
         self.last_function_count = -1;
         self.array_payload = [_]i32{0} ** 6;
         self.selected_string = "";
+        self.selected_index = 0;
         self.bitmask_word = 0;
         self.saw_vararg_payload = false;
         self.saw_rel_loc_payload = false;
@@ -198,6 +203,7 @@ pub const TraceEventsReferenceSample = struct {
         self.array_payload[len] = 0;
 
         self.last_main_count = count;
+        self.selected_index = len;
         self.selected_string = random_strings[len];
         self.bitmask_word = 0xdeadbeef;
         const message = try std.fmt.bufPrint(&self.message_buffer, "iter={d}", .{count});
@@ -242,6 +248,7 @@ pub const TraceEventsReferenceSample = struct {
             .stage_after_replay = .replay_complete,
             .formatted_message = self.formattedMessage(),
             .selected_string = self.selected_string,
+            .selected_index = self.selected_index,
             .array_prefix_len = 2,
             .array_sentinel = self.array_payload[2],
             .bitmask_word = self.bitmask_word,
@@ -268,6 +275,7 @@ pub const TraceEventsReferenceSample = struct {
             .stage_after_iteration = self.stage(),
             .formatted_message = self.formattedMessage(),
             .selected_string = self.selected_string,
+            .selected_index = self.selected_index,
             .payload_prefix_len = 4,
             .payload_prefix = .{
                 self.array_payload[0],
@@ -295,6 +303,7 @@ pub const TraceEventsReferenceSample = struct {
             .main_count = self.last_main_count,
             .formatted_message = self.formattedMessage(),
             .selected_string = self.selected_string,
+            .selected_index = self.selected_index,
             .bitmask_word = self.bitmask_word,
             .main_thread_event_calls = self.total_event_calls - events_before,
             .total_event_calls_after_replay = self.total_event_calls,
@@ -368,6 +377,7 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expectEqualStrings("iter=7", replay.formatted_message);
     try std.testing.expectEqualStrings("Gandalf", replay.selected_string);
+    try std.testing.expectEqual(@as(usize, 2), replay.selected_index);
     try std.testing.expectEqual(@as(usize, 2), replay.array_prefix_len);
     try std.testing.expectEqual(@as(i32, 0), replay.array_sentinel);
     try std.testing.expectEqual(@as(usize, 0xdeadbeef), replay.bitmask_word);
@@ -402,6 +412,7 @@ test "trace-events sample keeps the conditional-event boundary explicit" {
     try std.testing.expectEqual(@as(i32, 0), conditional_boundary.main_count);
     try std.testing.expectEqualStrings("iter=0", conditional_boundary.formatted_message);
     try std.testing.expectEqualStrings("Mother Goose", conditional_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 0), conditional_boundary.selected_index);
     try std.testing.expectEqual(@as(usize, 0xdeadbeef), conditional_boundary.bitmask_word);
     try std.testing.expectEqual(TraceEventsReferenceSample.event_family_count, conditional_boundary.main_thread_event_calls);
     try std.testing.expectEqual(TraceEventsReferenceSample.event_family_count, conditional_boundary.total_event_calls_after_replay);
@@ -409,6 +420,25 @@ test "trace-events sample keeps the conditional-event boundary explicit" {
     try std.testing.expect(conditional_boundary.vararg_payload_path_checked);
     try std.testing.expect(conditional_boundary.relative_location_path_checked);
     try std.testing.expectEqual(SampleStage.initialized, module.stage());
+}
+
+test "trace-events sample keeps string selection wraparound public" {
+    var module = TraceEventsReferenceSample{};
+    try module.init();
+
+    const string_boundary = try module.runConditionalBoundaryReplay(5);
+    try std.testing.expectEqual(SampleStage.initialized, string_boundary.stage_before_iteration);
+    try std.testing.expectEqual(SampleStage.initialized, string_boundary.stage_after_iteration);
+    try std.testing.expectEqual(@as(i32, 5), string_boundary.main_count);
+    try std.testing.expectEqualStrings("iter=5", string_boundary.formatted_message);
+    try std.testing.expectEqual(@as(usize, 0), string_boundary.selected_index);
+    try std.testing.expectEqualStrings("Mother Goose", string_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 0xdeadbeef), string_boundary.bitmask_word);
+    try std.testing.expectEqual(TraceEventsReferenceSample.event_family_count, string_boundary.main_thread_event_calls);
+    try std.testing.expectEqual(TraceEventsReferenceSample.event_family_count, string_boundary.total_event_calls_after_replay);
+    try std.testing.expect(string_boundary.conditional_paths_checked);
+    try std.testing.expect(string_boundary.vararg_payload_path_checked);
+    try std.testing.expect(string_boundary.relative_location_path_checked);
 }
 
 test "trace-events sample keeps payload and callback boundaries explicit" {
@@ -425,6 +455,7 @@ test "trace-events sample keeps payload and callback boundaries explicit" {
     try std.testing.expectEqual(SampleStage.initialized, payload_boundary.stage_after_iteration);
     try std.testing.expectEqualStrings("iter=4", payload_boundary.formatted_message);
     try std.testing.expectEqualStrings("One ring to rule them all", payload_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 4), payload_boundary.selected_index);
     try std.testing.expectEqual(@as(usize, 4), payload_boundary.payload_prefix_len);
     try std.testing.expectEqual(@as(i32, 1), payload_boundary.payload_prefix[0]);
     try std.testing.expectEqual(@as(i32, 2), payload_boundary.payload_prefix[1]);
