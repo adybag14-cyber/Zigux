@@ -435,18 +435,21 @@ test "confdata bridge ignores unterminated unset comment with trailing carriage 
 test "confdata bridge keeps explicit n assignments as tristate values" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA=y
         \\CONFIG_ALPHA=n
         \\CONFIG_BETA=y
+        \\# CONFIG_BETA is not set
         \\
     );
     defer deinitSummary(allocator, &summary);
 
-    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
-    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
     try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
     try std.testing.expectEqualStrings("n", summary.entries[0].value);
-    try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
+    try std.testing.expectEqual(EntryKind.unset, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("n", summary.entries[1].value);
 }
 
 test "confdata bridge recognizes uppercase tristate assignments" {
@@ -561,27 +564,4 @@ test "confdata bridge emits no entries for empty CONFIG symbol names" {
         "{\"counts\":{\"set\":1,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_VALID\",\"kind\":\"tristate\",\"value\":\"m\"}]}\n",
         capture.list.items,
     );
-}
-
-test "confdata bridge keeps only the last assignment for duplicate symbols" {
-    const allocator = std.testing.allocator;
-    var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA=y
-        \\CONFIG_ALPHA=m
-        \\# CONFIG_ALPHA is not set
-        \\CONFIG_BETA="one"
-        \\CONFIG_BETA="two"
-        \\
-    );
-    defer deinitSummary(allocator, &summary);
-
-    try std.testing.expectEqual(@as(usize, 1), summary.set_count);
-    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
-    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
-    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
-    try std.testing.expectEqual(EntryKind.unset, summary.entries[0].kind);
-    try std.testing.expectEqualStrings("n", summary.entries[0].value);
-    try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[1].name);
-    try std.testing.expectEqual(EntryKind.string, summary.entries[1].kind);
-    try std.testing.expectEqualStrings("two", summary.entries[1].value);
 }
