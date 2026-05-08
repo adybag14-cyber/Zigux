@@ -216,6 +216,7 @@ REQUIRED_EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
     "python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test": 1,
+    "python3 scripts/zigux/check-mk-elfconfig-diff.py": 1,
 }
 
 REQUIRED_DOC_MARKERS = [
