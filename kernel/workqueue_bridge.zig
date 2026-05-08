@@ -81,20 +81,6 @@ const boundary_areas = [_]BoundaryArea{
         .rationale = "Allocation and attrs are reviewable metadata boundaries, but the real implementation still depends on worker_pool lifetime, rescue policy, pod affinity, and memory-ordering rules that remain in C.",
     },
     .{
-        .id = "flush-and-cancel",
-        .summary = "Capture flush and cancellation coordination as boundary-map checkpoints before any completion or draining behavior is wrapped.",
-        .ownership = .boundary_map_only,
-        .anchor_symbols = &[_][]const u8{ "__flush_workqueue", "cancel_work_sync" },
-        .rationale = "Flush and cancel are caller-facing synchronization surfaces, but their correctness still depends on active-color accounting, pool state, and worker progress under the shipped C implementation.",
-    },
-    .{
-        .id = "worker-pool-concurrency",
-        .summary = "Keep worker-pool concurrency management explicitly in C.",
-        .ownership = .stay_in_c,
-        .anchor_symbols = &[_][]const u8{ "manage_workers", "struct worker_pool" },
-        .rationale = "The pool manager owns worker creation, idle culling, busy hashing, and forward-progress checks, so this is the central concurrency boundary that Zigux should audit rather than execute.",
-    },
-    .{
         .id = "delayed-requeue-governance",
         .summary = "Keep delayed-work requeue state and flush-drain governance explicitly in C.",
         .ownership = .stay_in_c,
@@ -107,6 +93,27 @@ const boundary_areas = [_]BoundaryArea{
         .ownership = .stay_in_c,
         .anchor_symbols = &[_][]const u8{ "POOL_DISASSOCIATED", "wq_online_cpumask", "wq_unbound_cpumask", "unbound_wq_update_pwq" },
         .rationale = "Hotplug-driven worker migration and unbound topology rebinding still belong to the existing C implementation and should stay named as stay-in-C governance only.",
+    },
+    .{
+        .id = "max-active-reconfiguration",
+        .summary = "Keep runtime max_active retuning and ordered-workqueue rebalance ownership explicitly in C.",
+        .ownership = .stay_in_c,
+        .anchor_symbols = &[_][]const u8{ "workqueue_set_max_active", "pwq_adjust_max_active" },
+        .rationale = "Runtime max_active retuning can rebalance inactive_works against execution-eligible state under the shipped C locking model, so Zigux should record the boundary without claiming ownership of the retune path.",
+    },
+    .{
+        .id = "flush-and-cancel",
+        .summary = "Capture flush and cancellation coordination as boundary-map checkpoints before any completion or draining behavior is wrapped.",
+        .ownership = .boundary_map_only,
+        .anchor_symbols = &[_][]const u8{ "__flush_workqueue", "cancel_work_sync" },
+        .rationale = "Flush and cancel are caller-facing synchronization surfaces, but their correctness still depends on active-color accounting, pool state, and worker progress under the shipped C implementation.",
+    },
+    .{
+        .id = "worker-pool-concurrency",
+        .summary = "Keep worker-pool concurrency management explicitly in C.",
+        .ownership = .stay_in_c,
+        .anchor_symbols = &[_][]const u8{ "manage_workers", "struct worker_pool" },
+        .rationale = "The pool manager owns worker creation, idle culling, busy hashing, and forward-progress checks, so this is the central concurrency boundary that Zigux should audit rather than execute.",
     },
     .{
         .id = "rescuer-and-scheduler-hooks",
@@ -143,6 +150,15 @@ const audit_checkpoints = [_]AuditCheckpoint{
         .guard = .pool_lock_held,
         .observed_fields = &[_][]const u8{ "pwq->inactive_works", "pwq->nr_active", "wq->max_active", "pool->lock" },
         .blocked_by = "__queue_work() decides between pool->worklist and pwq->inactive_works while holding pool->lock, preserving ordered-workqueue sequencing and leaving workqueue_set_max_active() review-only.",
+        .ownership = .stay_in_c,
+    },
+    .{
+        .id = "max-active-reconfiguration-gate",
+        .anchor_symbol = "workqueue_set_max_active/pwq_adjust_max_active",
+        .summary = "Keep runtime max_active retuning and inactive-list rebalance decisions under the existing workqueue and pwq locking model.",
+        .guard = .pool_lock_held,
+        .observed_fields = &[_][]const u8{ "wq->max_active", "pwq->max_active", "pwq->inactive_works", "pwq->nr_active" },
+        .blocked_by = "workqueue_set_max_active() and pwq_adjust_max_active() can rebalance inactive_works against execution-eligible state while ordered-workqueue limits remain enforced under the shipped C locking model, so Zigux should record the retuning seam without claiming ownership.",
         .ownership = .stay_in_c,
     },
     .{
@@ -248,6 +264,7 @@ const audit_checkpoints = [_]AuditCheckpoint{
 
 const blocked_live_behaviors = [_][]const u8{
     "live worker_pool execution",
+    "runtime max_active retuning ownership",
     "pool draining and flush completion",
     "delayed-work requeue ownership",
     "scheduler callback parity",
@@ -315,7 +332,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Leave this lane in blocked maintenance unless the shared Phase 14 smoke packet or this workqueue survey drifts; any reopen should stay review-only and keep the flush-drain active-color governance note, timer-base, CPU-affinity, delayed-work requeue ownership, and live execution in C.";
+        return "Leave this lane in blocked maintenance unless the shared Phase 14 smoke packet or this workqueue survey drifts; any reopen should stay review-only and keep the flush-drain active-color governance note, timer-base, CPU-affinity, delayed-work requeue ownership, the runtime max_active retuning boundary, and live execution in C.";
     }
 };
 
@@ -337,10 +354,11 @@ test "workqueue bridge current phase14 packet counts stay aligned" {
     const map = WorkqueueBridgeLab.boundaryMap();
     const audit = WorkqueueBridgeLab.concurrencyAudit();
 
-    try std.testing.expectEqual(@as(usize, 7), map.areas.len);
-    try std.testing.expectEqual(@as(usize, 4), WorkqueueBridgeLab.stayInCDecisionCount());
-    try std.testing.expectEqual(@as(usize, 14), audit.checkpoints.len);
-    try std.testing.expectEqual(@as(usize, 6), audit.blocked_live_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 8), map.areas.len);
+    try std.testing.expectEqual(@as(usize, 5), WorkqueueBridgeLab.stayInCDecisionCount());
+    try std.testing.expectEqual(@as(usize, 15), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 7), audit.blocked_live_behaviors.len);
     try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "blocked maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "flush-drain active-color governance note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "runtime max_active retuning boundary") != null);
 }
