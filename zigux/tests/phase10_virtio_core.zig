@@ -801,3 +801,58 @@ test "phase10 virtio core reaches queue runtime readiness after validated featur
     try std.testing.expect(!(try device.hasNegotiatedFeature(7)));
     try std.testing.expect(try device.hasNegotiatedFeature(33));
 }
+
+test "phase10 virtio core renders the bounded status_show surface after driver-model milestones" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 1, 7, 33 });
+
+    var summary = try device.statusAttributeSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expectEqualStrings("0x00000000\n", summary.value());
+
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_blk_lab");
+    try device.offerDriverFeature(1);
+    try device.offerDriverFeature(33);
+    _ = try device.finalizeFeatures();
+    try device.markDriverReady();
+
+    summary = try device.statusAttributeSummary();
+    try std.testing.expectEqualStrings("0x0000000f\n", summary.value());
+}
+
+test "phase10 virtio core renders bounded features_show bitstrings across device, driver, and negotiated views" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 1, 7, 33 });
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_blk_lab");
+    try device.offerDriverFeature(1);
+    try device.offerDriverFeature(7);
+    try device.offerDriverFeature(33);
+
+    var device_bits = device.featureAttributeSummary(.device);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", device_bits.anchor);
+    try std.testing.expectEqual(virtio_core.FeatureAttributeKind.device, device_bits.kind);
+    try std.testing.expectEqual(@as(usize, virtio_core.feature_bit_capacity + 1), device_bits.value().len);
+    try std.testing.expectEqual(@as(u8, '1'), device_bits.value()[1]);
+    try std.testing.expectEqual(@as(u8, '1'), device_bits.value()[7]);
+    try std.testing.expectEqual(@as(u8, '1'), device_bits.value()[33]);
+    try std.testing.expectEqual(@as(u8, '\n'), device_bits.value()[virtio_core.feature_bit_capacity]);
+
+    var driver_bits = device.featureAttributeSummary(.driver);
+    try std.testing.expectEqual(virtio_core.FeatureAttributeKind.driver, driver_bits.kind);
+    try std.testing.expectEqual(@as(u8, '1'), driver_bits.value()[1]);
+    try std.testing.expectEqual(@as(u8, '1'), driver_bits.value()[7]);
+    try std.testing.expectEqual(@as(u8, '1'), driver_bits.value()[33]);
+
+    _ = try device.finalizeFeaturesWithDriverValidation(&.{ 1, 33 });
+
+    driver_bits = device.featureAttributeSummary(.driver);
+    try std.testing.expectEqual(@as(u8, '1'), driver_bits.value()[1]);
+    try std.testing.expectEqual(@as(u8, '0'), driver_bits.value()[7]);
+    try std.testing.expectEqual(@as(u8, '1'), driver_bits.value()[33]);
+
+    const negotiated_bits = device.featureAttributeSummary(.negotiated);
+    try std.testing.expectEqual(virtio_core.FeatureAttributeKind.negotiated, negotiated_bits.kind);
+    try std.testing.expectEqual(@as(u8, '1'), negotiated_bits.value()[1]);
+    try std.testing.expectEqual(@as(u8, '0'), negotiated_bits.value()[7]);
+    try std.testing.expectEqual(@as(u8, '1'), negotiated_bits.value()[33]);
+}
