@@ -26,6 +26,7 @@ REQUIRED_NOTE_MARKERS = (
     "no Architecture Council approval is currently recorded for a freeze-map status change",
     "current review-process evidence is limited to named `phase`",
     "`current status bucket`",
+    "`required approver set`",
     "`validation gate summary`",
     "`parity scorecard link or blocker record`",
     "`indefinite-C policy link or non-applicability note`",
@@ -341,7 +342,7 @@ def write_fixture_tree(root: Path) -> None:
         REQUIRED_NOTE_MARKERS[0],
         PRODUCT_BOUNDARY_MARKER,
         "## Current Approval Posture",
-        "- current review-process evidence is limited to named `phase`, `current status bucket`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records",
+        "- current review-process evidence is limited to named `phase`, `current status bucket`, `required approver set`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records",
         "## Recorded Gaps",
         "- landed `phase15-roadmap-minimum-field-sync`",
         "- no Architecture Council approval is currently recorded for a freeze-map status change",
@@ -398,6 +399,11 @@ def run_self_test() -> int:
 
         note_path = root / NOTE_PATH
         original_note = note_path.read_text(encoding="utf-8")
+        note_path.write_text(original_note.replace("`required approver set`", "`approver set`", 1), encoding="utf-8")
+        expect_only(root, ["note:`required approver set`"], "missing_required_approver_set_marker")
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
         note_path.write_text(original_note.replace("`rollback-threshold`", "`rollback ceiling`", 1), encoding="utf-8")
         expect_only(root, ["note:`rollback-threshold`"], "missing_rollback_threshold_marker")
         note_path.write_text(original_note, encoding="utf-8")
