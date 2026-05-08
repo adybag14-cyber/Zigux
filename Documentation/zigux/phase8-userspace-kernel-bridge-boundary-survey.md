@@ -12,6 +12,7 @@ This document records the bounded Phase 8 userspace-adjacent tooling boundary ar
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `zigux/tests/phase8_file_path_handle_bridge.zig`
   - `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
+  - `zigux/tests/phase8_help_kallsyms_only_build.zig`
   - `zigux/tests/phase8_perf_buffer_poll.zig`
   - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
   - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
@@ -37,6 +38,7 @@ The currently landed bridge-side helper remains intentionally small:
 - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` keeps exact `"/proc/%d/fdinfo/%d"` assembly, bounded fdinfo map-info parsing, explicit decimal or octal or hex numeric handling, compact completion summaries, the helper-only `mapReuseObservationFromFdinfo()` handoff from parsed fdinfo fields into reuse planning, planning-only reuse-pinned-map attempt gating, and the planning-only `planTokenPreparation()` gate reviewable
 - the landed reuse-planning helper requires a non-empty pinned path plus compatible fdinfo-derived map info before any real reopen attempt can even be considered, while the landed token-preparation helper requires a non-empty token path plus a ready reused-map bridge plan before any future token open attempt can be considered, and both gates still keep actual bpffs opens and handle replacement outside the current Zig slice
 - `zigux/tests/phase8_file_path_handle_bridge.zig` keeps the helper packet wired to stable path, ignored-line, repeated-field, numeric-base, summary, planning-only reopen-attempt, and planning-only token-preparation expectations
+- `zigux/tests/phase8_help_kallsyms_only_build.zig` keeps the already-parked stable-output help-and-kallsyms shard visible beside the bridge-side helper family so the shared Phase 8 survey still points back to that command-and-symbol review surface without recasting it as active-by-default libbpf work
 - the adjacent `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` packet keeps bounded `perf_buffer__poll(timeout_ms)` wait-result classification, poll waits, ready-buffer bookkeeping, explicit `perf_buffer__buffer_fd(buf_idx)` and `perf_buffer__buffer(buf_idx)` slot lookup plus errno-shaped return shaping, and ordered record-processing summaries reviewable without claiming live epoll wiring, per-CPU setup, mmap-backed ring ownership, or standalone timer or clockevent helper behavior
 - the helper family stays smaller than direct procfs reads, pinned-object reopen flow, token creation, descriptor lifecycle behavior, and the still-deferred `perf_buffer__new()` online-CPU routing packet
 
@@ -63,15 +65,19 @@ The current packet is productively landed, but the remaining bridge-facing work 
 3. run the shared Phase 8 validator
 - `python3 scripts/zigux/validate-phase8.py`
 
-4. run the focused file-path bridge wrapper
+4. run the focused shared help and symbol wrapper
+- `make -C zigux phase8-help-kallsyms-test`
+- `zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all`
+
+5. run the focused file-path bridge wrapper
 - `make -C zigux phase8-file-path-handle-bridge-test`
 - `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`
 
-5. run the focused perf-buffer poll wrapper
+6. run the focused perf-buffer poll wrapper
 - `make -C zigux phase8-perf-buffer-poll-test`
 - `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
 
-6. run the shared Phase 8 replay
+7. run the shared Phase 8 replay
 - `make -C zigux phase8-test`
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 - `make -C zigux phase8`
@@ -94,4 +100,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-Keep this survey parked beside the landed fdinfo helper packet, the explicit fdinfo-to-observation handoff, the planning-only reopen gate, the planning-only token-preparation gate, and the adjacent bounded poll helper until one adjacent bridge step is ready to move as a single bounded review surface. Keep the shared `make -C zigux phase8-validate` route explicit in that parked boundary so validator-first review stays ahead of the bridge-side replay, keep the Phase 8 roadmap ownership pinned to `tools/lib/bpf/libbpf.c` plus `tools/lib/bpf/zigux_segments/`, and keep the deferred `perf-buffer-online-cpu-routing` packet explicitly parked beside the current helper family so the file-path bridge note does not accidentally over-claim libbpf parity or absorb the separate command-boundary packet. The next honest reopen remains the smallest helper-first packet that can connect the current fdinfo note, the planning-only reopen gate, and the planning-only token-preparation gate to actual reopen handling without widening into direct procfs reads, bpffs opens, loader-facing libbpf work, live interrupt-routing behavior, or the parked `exec-cmd` and `help` tooling slices.
+Keep this survey parked beside the landed fdinfo helper packet, the explicit fdinfo-to-observation handoff, the planning-only reopen gate, the planning-only token-preparation gate, the shared stable-output help-and-kallsyms shard, and the adjacent bounded poll helper until one adjacent bridge step is ready to move as a single bounded review surface. Keep the shared `make -C zigux phase8-validate` route explicit in that parked boundary so validator-first review stays ahead of the bridge-side replay, keep the Phase 8 roadmap ownership pinned to `tools/lib/bpf/libbpf.c` plus `tools/lib/bpf/zigux_segments/`, and keep the deferred `perf-buffer-online-cpu-routing` packet explicitly parked beside the current helper family so the file-path bridge note does not accidentally over-claim libbpf parity or absorb the separate command-boundary packet. The next honest reopen remains the smallest helper-first packet that can connect the current fdinfo note, the planning-only reopen gate, and the planning-only token-preparation gate to actual reopen handling without widening into direct procfs reads, bpffs opens, loader-facing libbpf work, live interrupt-routing behavior, or the parked `exec-cmd` and `help` tooling slices.
