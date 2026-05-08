@@ -80,6 +80,12 @@ def extract_bullets(text: str, heading: str) -> list[str]:
     return items
 
 
+def require_exact_line_count(errors: list[str], rel_path: str, text: str, line: str, label: str) -> None:
+    actual_count = text.count(line)
+    if actual_count != 1:
+        errors.append(f"marker count drift in {rel_path}: {label} (expected 1, found {actual_count})")
+
+
 def check(root: Path) -> list[str]:
     errors: list[str] = []
 
@@ -110,11 +116,21 @@ def check(root: Path) -> list[str]:
 
     for marker, expected in REQUIRED_COUNTS.items():
         line = f"- `{marker}={expected}`"
-        if line not in release_text:
-            errors.append(f"missing exact-count marker in {release_path.relative_to(root).as_posix()}: {marker}={expected}")
+        require_exact_line_count(
+            errors,
+            release_path.relative_to(root).as_posix(),
+            release_text,
+            line,
+            f"{marker}={expected}",
+        )
 
-    if "- `PHASE14_ANCHOR_PACKET_COUNT=4`" not in smoke_text:
-        errors.append("shared smoke survey drifted from the four-anchor packet count")
+    require_exact_line_count(
+        errors,
+        smoke_path.relative_to(root).as_posix(),
+        smoke_text,
+        "- `PHASE14_ANCHOR_PACKET_COUNT=4`",
+        "PHASE14_ANCHOR_PACKET_COUNT=4",
+    )
 
     roadmap_anchors = extract_bullets(roadmap_text, "Primary Linux anchors:")
     if roadmap_anchors != ROADMAP_PHASE14_ANCHORS:
@@ -222,6 +238,42 @@ def run_self_test() -> int:
             return 1
 
         release_path = root / "Documentation/zigux/phase14-release-boundary-survey.md"
+        write_text(
+            release_path,
+            read_text(release_path).replace(
+                "- `PHASE14_ROADMAP_ANCHOR_COUNT=4`\n",
+                "- `PHASE14_ROADMAP_ANCHOR_COUNT=4`\n- `PHASE14_ROADMAP_ANCHOR_COUNT=4`\n",
+                1,
+            ),
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-release-boundary-survey.md: PHASE14_ROADMAP_ANCHOR_COUNT=4 (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate release-count failure", file=sys.stderr)
+            return 1
+        write_text(release_path, expected_release_text)
+
+        smoke_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
+        write_text(
+            smoke_path,
+            read_text(smoke_path).replace(
+                "- `PHASE14_ANCHOR_PACKET_COUNT=4`\n",
+                "- `PHASE14_ANCHOR_PACKET_COUNT=4`\n- `PHASE14_ANCHOR_PACKET_COUNT=4`\n",
+                1,
+            ),
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_ANCHOR_PACKET_COUNT=4 (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate smoke-count failure", file=sys.stderr)
+            return 1
+        write_text(smoke_path, expected_smoke_text)
 
         def expect_release_count_failure(old_line: str, new_line: str, expected_error: str, label: str) -> int:
             write_text(
@@ -271,7 +323,6 @@ def run_self_test() -> int:
             if expect_release_count_failure(old_line, new_line, expected_error, label):
                 return 1
 
-        smoke_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
         write_text(
             smoke_path,
             read_text(smoke_path).replace(
@@ -280,7 +331,7 @@ def run_self_test() -> int:
             ),
         )
         errors = check(root)
-        if not any("shared smoke survey drifted from the four-anchor packet count" in error for error in errors):
+        if not any("marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_ANCHOR_PACKET_COUNT=4 (expected 1, found 0)" in error for error in errors):
             print("self-test expected failure when shared smoke anchor count drifted", file=sys.stderr)
             return 1
         write_text(smoke_path, expected_smoke_text)
