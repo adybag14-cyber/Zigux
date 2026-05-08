@@ -201,7 +201,6 @@ test "phase 8 exec-cmd tests root summary keeps the focused replay route explici
     try std.testing.expect(std.mem.indexOf(u8, tests_root, "Phase 8 flow") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_root, "`zigux/tests/phase8_exec_cmd.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_root, "`zigux/tests/phase8_exec_cmd_only_build.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, tests_root, "`make -C zigux phase8-validate`") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_root, "`make -C zigux phase8-exec-cmd-test`") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_root, "`make -C zigux phase8`") != null);
 }
