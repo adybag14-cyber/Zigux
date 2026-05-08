@@ -37,29 +37,21 @@ pub fn isFunction(symbol_type: u8) bool {
     };
 }
 
-fn trimTrailingCarriageReturn(line: []const u8) []const u8 {
-    if (line.len != 0 and line[line.len - 1] == '\r') {
-        return line[0 .. line.len - 1];
-    }
-    return line;
-}
-
 fn normalizeName(name: []const u8) []const u8 {
     return if (name.len > KSYM_NAME_LEN) name[0..KSYM_NAME_LEN] else name;
 }
 
 pub fn parseLine(line: []const u8) ?ParsedSymbol {
-    const trimmed = trimTrailingCarriageReturn(line);
-    if (trimmed.len == 0) return null;
+    if (line.len == 0) return null;
 
-    const first_space = std.mem.indexOfScalar(u8, trimmed, ' ') orelse return null;
-    if (first_space == 0 or first_space + 2 >= trimmed.len) return null;
+    const first_space = std.mem.indexOfScalar(u8, line, ' ') orelse return null;
+    if (first_space == 0 or first_space + 2 >= line.len) return null;
 
-    const symbol_type = trimmed[first_space + 1];
-    if (symbol_type == ' ' or trimmed[first_space + 2] != ' ') return null;
+    const symbol_type = line[first_space + 1];
+    if (symbol_type == ' ' or line[first_space + 2] != ' ') return null;
 
-    const start = std.fmt.parseUnsigned(u64, trimmed[0..first_space], 16) catch return null;
-    const name = normalizeName(trimmed[first_space + 3 ..]);
+    const start = std.fmt.parseUnsigned(u64, line[0..first_space], 16) catch return null;
+    const name = normalizeName(line[first_space + 3 ..]);
 
     return .{
         .name = name,
@@ -358,7 +350,7 @@ test "chunked parsing preserves split records and truncates oversized names" {
     try std.testing.expectEqualStrings(too_long_name[0..KSYM_NAME_LEN], parsed.items[0].name);
 }
 
-test "reader, path, and callback wrappers preserve the parked parser contract" {
+test "reader, path, and callback wrappers preserve raw carriage returns before newline" {
     const SliceReader = struct {
         bytes: []const u8,
         index: usize = 0,
@@ -429,6 +421,8 @@ test "reader, path, and callback wrappers preserve the parked parser contract" {
 
     try forEachParsedReader(std.testing.allocator, &stream, &scratch_buffer, &from_reader, Collector.append);
     try std.testing.expectEqual(@as(usize, 2), from_reader.items.len);
+    try std.testing.expectEqualStrings("startup_64\r", from_reader.items[0].name);
+    try std.testing.expectEqualStrings("weak_tail", from_reader.items[1].name);
 
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
@@ -450,6 +444,8 @@ test "reader, path, and callback wrappers preserve the parked parser contract" {
     }
     try forEachParsedPath(std.testing.allocator, io, temp_dir.dir, "kallsyms.map", &scratch_buffer, &from_path, Collector.append);
     try std.testing.expectEqual(@as(usize, 2), from_path.items.len);
+    try std.testing.expectEqualStrings("startup_64\r", from_path.items[0].name);
+    try std.testing.expectEqualStrings("weak_tail", from_path.items[1].name);
 
     const file = try temp_dir.dir.openFile(io, "kallsyms.map", .{});
     defer file.close(io);
@@ -466,4 +462,6 @@ test "reader, path, and callback wrappers preserve the parked parser contract" {
     );
     try std.testing.expectEqual(@as(i32, 23), result);
     try std.testing.expectEqual(@as(usize, 2), callback_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64\r", callback_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_tail", callback_state.names.items[1]);
 }
