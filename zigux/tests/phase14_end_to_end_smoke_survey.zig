@@ -192,6 +192,7 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     );
     defer std.testing.allocator.free(smoke_note_text);
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_VALIDATE_SELF_TEST=python3 scripts/zigux/validate-phase14.py --self-test"));
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_SHARED_SURFACE_COUNT=28"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_DOC_SURFACE_COUNT=6"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_SCRIPT_SURFACE_COUNT=5"));
