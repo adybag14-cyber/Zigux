@@ -67,6 +67,7 @@ REQUIRED_SNIPPETS = {
         "\"id\": \"hexdump\"",
         "\"Documentation/zigux/phase6-helper-parity-catalog.md\",",
         "\"Documentation/zigux/phase6-perf-gate-survey.md\",",
+        "\"Documentation/zigux/phase6-leaf-helper-lane-sequencing.md\",",
         "\"scripts/zigux/check-phase6-shared-surface.py\",",
         "\"make -C zigux phase6-validate\",",
         "\"make -C zigux phase6\",",
@@ -439,6 +440,12 @@ def run_self_test() -> None:
             "zigux/tests/phase6_helper_parity_manifest.json",
             "\"tranche\": \"leaf-helper-parity\",",
             "\"tranche\": \"leaf-helper\",",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_helper_parity_manifest.json",
+            "\"Documentation/zigux/phase6-leaf-helper-lane-sequencing.md\",",
+            "\"Documentation/zigux/phase6-lane-sequencing.md\",",
         )
         assert_failure(
             root,
