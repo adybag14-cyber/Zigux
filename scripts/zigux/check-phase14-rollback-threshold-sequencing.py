@@ -43,6 +43,8 @@ REQUIRED_FILE_MARKERS = {
         "- `make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig`",
         "- `make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig`",
         "- `make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig`",
+        "- `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`",
+        "- `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
         "This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.",
         "Fallback path:",
         "Keep `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` as the source of truth and keep the shared smoke packet limited to survey-backed reviewability evidence.",
@@ -310,6 +312,43 @@ def run_self_test() -> int:
             print("self-test expected missing rollback-owner failure", file=sys.stderr)
             return 1
         write_text(broken_manifest_path, required_text(root, MANIFEST_PATH))
+
+        broken_smoke_note_path = root / SMOKE_SURVEY_PATH
+        broken_smoke_note_path.write_text(
+            broken_smoke_note_path.read_text(encoding="utf-8").replace(
+                "- `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`"
+            in error
+            for error in errors
+        ):
+            print("self-test expected missing direct smoke fallback example failure", file=sys.stderr)
+            return 1
+        write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
+
+        broken_smoke_note_path.write_text(
+            broken_smoke_note_path.read_text(encoding="utf-8").replace(
+                "This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope."
+            in error
+            for error in errors
+        ):
+            print("self-test expected missing note-local fallback scope failure", file=sys.stderr)
+            return 1
+        write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
 
         broken_scripts_readme_path = root / SCRIPTS_README_PATH
         broken_scripts_readme_path.write_text(
