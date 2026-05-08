@@ -11,7 +11,7 @@ This document records the bounded shared closure packet for the active Phase 10 
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
-- scope: one shared closure note for the shipped virtio core, ring, input, and MMIO lab slices plus their current manifest-backed checker, 11-file tests-root build packet, four driver-local verifier replays, and Linux-style replay routes
+- scope: one shared closure note for the shipped virtio core, ring, input, and MMIO lab slices plus their current manifest-backed checker, 12-file tests-root build packet, four driver-local verifier replays, and Linux-style replay routes
 
 ## Why this note exists
 
@@ -72,6 +72,7 @@ The shared Phase 10 closure packet currently stays inside:
 - `zigux/tests/phase10_virtio_ring.zig`
 - `zigux/tests/phase10_virtio_ring_survey.zig`
 - `zigux/tests/phase10_virtio_input.zig`
+- `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
 - `zigux/tests/phase10_virtio_input_status_drain.zig`
 - `zigux/tests/phase10_virtio_input_survey.zig`
 - `zigux/tests/phase10_virtio_mmio.zig`
@@ -126,4 +127,4 @@ Reviewers should treat any future claim that the active Phase 10 tranche already
 
 ## Next bounded step
 
-Keep the shared Phase 10 tranche parked unless fresh inspection finds another equally small closure-note, manifest, checker, or shared-scoreboard truthfulness gap inside the already-landed virtio lab packet. Fresh live readback on `master` now shows `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `zigux/tests/README.md`, and `zigux/tests/phase10_closure_manifest.json` already keep the shared verifier packet, the MMIO freeze-boundary contract, and the shared closure manifest explicit. The next same-lane follow-through should therefore stay parked until a fresh one-file Phase 10 drift appears, rather than reopening settled driver-local helper, manifest, or survey work.
+Keep the shared Phase 10 tranche parked unless fresh inspection finds another equally small closure-note, manifest, checker, or shared-scoreboard truthfulness gap inside the already-landed virtio lab packet. Fresh live readback on `master` now shows `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `zigux/tests/README.md`, and `zigux/tests/phase10_closure_manifest.json` already keep the shared verifier packet, the dedicated input queue-callback-preflight replay, the MMIO freeze-boundary contract, and the shared closure manifest explicit. The next same-lane follow-through should therefore stay parked until a fresh one-file Phase 10 drift appears, rather than reopening settled driver-local helper, manifest, or survey work.
