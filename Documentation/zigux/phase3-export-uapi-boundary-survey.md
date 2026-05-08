@@ -5,10 +5,10 @@ This note records the current export-shim and starter UAPI boundary that still s
 ## Status
 
 - `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-readback-from-public-github-fallback`
-- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`
-- `PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`
+- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=shared-abi-slice-owns-linux-header-governance-export-uapi-packet-owns-starter-boundary-wording-only`
+- `PHASE3_C_HEADER_GROWTH_RULE=shared-abi-resurvey-for-linux-header-growth-packet-local-resurvey-for-starter-entry-point-growth`
 - `PHASE3_REVIEW_ROOT_RULE=export-uapi-growth-requires-survey-plus-layout-replay-plus-shared-review-surface-refresh`
-- `PHASE3_LAYOUT_REPLAY_OWNERSHIP=export-uapi-packet-owns-shared-boundary-header-layout-replay`
+- `PHASE3_LAYOUT_REPLAY_OWNERSHIP=export-uapi-packet-owns-focused-starter-boundary-layout-replay`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_BLOB_SHA=c04698d10959a6020f33ac6df85083ccf833d9db`
 - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
@@ -34,7 +34,7 @@ The blob markers above are the authoritative packet-local evidence for the curre
 
 The Phase 3 roadmap wants one blessed export surface with explicit ownership and human review. The current packet stays honest only if that review split stays narrow and explicit.
 
-- the export/UAPI packet owns the starter boundary wording, the shared header relay contract, and the focused `zigux/tests/phase3_export_uapi_layout.zig` replay for this surface.
+- the export/UAPI packet owns only the starter boundary wording and the focused `zigux/tests/phase3_export_uapi_layout.zig` replay for this surface; it does not own the broader Linux-header aggregation rule.
 - the shared ABI slice in `Documentation/zigux/phase3-abi-slice.md` still owns the broader `include/linux/zigux.h` aggregation rule, so this packet-local survey proves only the starter export/UAPI subset it directly replays rather than claiming the whole Linux-facing header.
 - helper-local slices still own semantic growth once a new helper family stops being just starter export/UAPI boundary plumbing.
 - on current `master`, the required shared review-surface refresh should keep this packet-local survey explicit beside `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/README.md`, and `scripts/zigux/README.md` so the starter export/UAPI boundary does not collapse back into an implied header-only claim.
@@ -46,7 +46,7 @@ The Phase 3 roadmap calls for the first permanent C/Zigux boundary through expli
 
 - `zigux/uapi/` still ships only `version.zig`, so the current UAPI surface remains a starter boundary-header contract rather than a wider exported family.
 - the export shim still operates as a relay plus status-normalization layer; it does not yet claim broader header governance, generated bindings growth, or new Linux-facing entry points beyond the already-landed starter helpers.
-- `include/linux/zigux.h` now aggregates many approved Phase 3 helper families, so any new top-level export/UAPI entry point has to land with a fresh shared-ABI readback and an explicit packet-local resurvey instead of being implied by that broader header.
+- `include/linux/zigux.h` now aggregates many approved Phase 3 helper families, so any new top-level export/UAPI entry point has to land with a fresh shared-ABI readback and an explicit packet-local resurvey instead of being implied by this packet alone or by broader header growth.
 - the shared review surface for this packet is intentionally narrow, so future growth should refresh the dedicated survey, the focused layout replay, and one shared review surface together rather than relying on header growth alone to imply review coverage.
 
 ## Scope
