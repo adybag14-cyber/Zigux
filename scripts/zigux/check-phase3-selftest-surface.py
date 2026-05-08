@@ -108,9 +108,19 @@ ABI_SLICE_MARKERS = [
 SCRIPTS_README_MARKERS = [
     "validate_phase3_selftest.py",
     "The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`",
+    "check-phase3-abi-dump-gate.py",
+    "check-phase3-catalog-selftest.py",
     "survey-phase3-abi-constant-parity.py",
+    "validate-phase3-policy-unsafe-survey.py",
+    "check-phase3-policy-byte-guards.py",
+    "validate-phase3-low-level-wrapper-survey.py",
+    "validate-phase3-export-uapi-survey.py",
+    "validate-phase3-abi-bindings-syntax.py",
     "phase3_catalog.py --self-test",
     "phase3_catalog.py --audit-doc-sync",
+    "phase3_check_lib.py",
+    "generate-phase3-check-wrappers.py",
+    "run-phase3-checks.py",
     "make -C zigux phase3-selftest",
     "manual or targeted safety check instead of duplicating the default validation route",
 ]
@@ -452,9 +462,19 @@ def run_self_test() -> int:
             "scripts_readme:The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`"
             in issues
         )
+        assert "scripts_readme:check-phase3-abi-dump-gate.py" in issues
+        assert "scripts_readme:check-phase3-catalog-selftest.py" in issues
         assert "scripts_readme:survey-phase3-abi-constant-parity.py" in issues
+        assert "scripts_readme:validate-phase3-policy-unsafe-survey.py" in issues
+        assert "scripts_readme:check-phase3-policy-byte-guards.py" in issues
+        assert "scripts_readme:validate-phase3-low-level-wrapper-survey.py" in issues
+        assert "scripts_readme:validate-phase3-export-uapi-survey.py" in issues
+        assert "scripts_readme:validate-phase3-abi-bindings-syntax.py" in issues
         assert "scripts_readme:phase3_catalog.py --self-test" in issues
         assert "scripts_readme:phase3_catalog.py --audit-doc-sync" in issues
+        assert "scripts_readme:phase3_check_lib.py" in issues
+        assert "scripts_readme:generate-phase3-check-wrappers.py" in issues
+        assert "scripts_readme:run-phase3-checks.py" in issues
         assert "scripts_readme:make -C zigux phase3-selftest" in issues
 
         build_self_test_root(root)
