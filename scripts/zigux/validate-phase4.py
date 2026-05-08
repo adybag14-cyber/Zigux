@@ -73,6 +73,14 @@ REQUIRED_ARTIFACT_DOC_MARKERS = [
     "Documentation/zigux/phase4-validation-matrix.md",
 ]
 
+REQUIRED_ARTIFACT_DIFF_TOOLING_NOTE_MARKERS = [
+    "- owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`",
+    "- rollback owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`",
+    "- fallback rule: if `scripts/zigux/artifact_diff.py` regresses, keep the committed expected artifact plus the current authoritative C or documented replay command as the source of truth until the helper contract is repaired",
+    "- deterministic replay entrypoint: `python3 scripts/zigux/check-artifact-diff-contract.py` is the reviewable contract rerun for the shared host-side helper and should stay aligned with the outward line rules below",
+    "- review rule: any change to the helper's emitted `ARTIFACT_DIFF=*`, `MODE=*`, `EXPECTED=*`, `ACTUAL=*`, `SHA256=*`, `EXPECTED_EXISTS=*`, `ACTUAL_EXISTS=*`, `EXPECTED_JSON_ERROR=*`, or `ACTUAL_JSON_ERROR=*` lines must update this note in the same change so the published host-side artifact packet stays reviewable",
+]
+
 REQUIRED_DOC_README_MARKERS = [
     "Phase 4 notes",
     "validate-phase4.py",
@@ -323,6 +331,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_ARTIFACT_DOC_MARKERS:
         if marker not in artifact_doc:
             problems.append(f"artifact_doc:{marker}")
+    for marker in REQUIRED_ARTIFACT_DIFF_TOOLING_NOTE_MARKERS:
+        if marker not in artifact_doc:
+            problems.append(f"artifact_doc_tooling_note:{marker}")
     for marker in REQUIRED_DOC_README_MARKERS:
         if marker not in doc_readme:
             problems.append(f"doc_readme:{marker}")
@@ -558,6 +569,10 @@ def build_fixture_tree(root: Path) -> None:
                 "zigux/tests/phase4_build.zig",
                 "scripts/zigux/validate-phase4.py",
                 "Documentation/zigux/phase4-validation-matrix.md",
+                "",
+                "## Phase 4 Tooling Review Note",
+                "",
+                *REQUIRED_ARTIFACT_DIFF_TOOLING_NOTE_MARKERS,
                 "",
             ]
         ),
@@ -881,6 +896,20 @@ def run_self_test() -> int:
         failures = run_artifact_diff_contract_self_test_check(bad_root7)
         assert failures and failures[0] == "artifact_diff_contract_self_test:unexpected_output", failures
 
+        bad_root8 = Path(tmp_dir) / "bad8"
+        build_fixture_tree(bad_root8)
+        artifact_note = bad_root8 / "Documentation/zigux/artifact-diff.md"
+        artifact_note.write_text(
+            artifact_note.read_text(encoding="utf-8").replace(
+                "- fallback rule: if `scripts/zigux/artifact_diff.py` regresses, keep the committed expected artifact plus the current authoritative C or documented replay command as the source of truth until the helper contract is repaired\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        assert validate_root(bad_root8) == [
+            "artifact_doc_tooling_note:- fallback rule: if `scripts/zigux/artifact_diff.py` regresses, keep the committed expected artifact plus the current authoritative C or documented replay command as the source of truth until the helper contract is repaired"
+        ]
+
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
 
@@ -935,6 +964,7 @@ def main() -> int:
             REQUIRED_MAKE_MARKERS,
             REQUIRED_WORKFLOW_MARKERS,
             REQUIRED_ARTIFACT_DOC_MARKERS,
+            REQUIRED_ARTIFACT_DIFF_TOOLING_NOTE_MARKERS,
             REQUIRED_DOC_README_MARKERS,
             REQUIRED_SCRIPT_README_MARKERS,
             REQUIRED_TESTS_README_MARKERS,
