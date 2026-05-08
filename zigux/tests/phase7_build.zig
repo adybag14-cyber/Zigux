@@ -76,6 +76,12 @@ pub fn build(b: *std.Build) void {
     const run_argv_split_survey_tests = b.addRunArtifact(argv_split_survey_tests);
     run_argv_split_survey_tests.setCwd(b.path("../.."));
 
+    const argv_split_survey_step = b.step(
+        "phase7-argv-split-survey",
+        "Run the dedicated Phase 7 argv_split survey gate",
+    );
+    argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step);
+
     const rbtree_module = b.createModule(.{
         .root_source_file = b.path("../../lib/rbtree.zig"),
         .target = target,
