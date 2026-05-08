@@ -47,14 +47,14 @@
       "status": "starter_landed",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/nvme/host/pci.zig",
-      "why_now": "The first bounded starter is now landed around a lab-only queue planner that validates queue geometry, computes DMA page demand, negotiates one checked queue-count reservation window, assigns monotonic queue identifiers, tracks doorbell offsets, and now also records PRP buffer-shape, PRP metadata, and recovery replay summaries without claiming live PCI behavior."
+      "why_now": "The first bounded starter is now landed around a lab-only queue planner that validates queue geometry, computes DMA page demand, negotiates one checked queue-count reservation window, assigns monotonic queue identifiers, tracks doorbell offsets, records PRP buffer-shape, PRP metadata, and recovery replay summaries, and can now retire a bounded portion of the dropped-I/O backlog after reset once replacement queue plans exist, without claiming live PCI behavior."
     },
     {
       "id": "phase12-nvme-pci-verify-shard",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "drivers/nvme/host/pci_verify.zig",
-      "why_now": "The direct verify shard keeps the smoke-first Phase 12 packet honest around queue-count planning, reset-time replay pressure, descriptor rebuild demand, and stale reservation renegotiation without implying the broader survey gate is the only nvme PCI proof."
+      "why_now": "The direct verify shard keeps the smoke-first Phase 12 packet honest around queue-count planning, reset-time replay pressure, bounded dropped-I/O backlog retirement, descriptor rebuild demand, and stale reservation renegotiation without implying the broader survey gate is the only nvme PCI proof."
     },
     {
       "id": "phase12-nvme-pci-driver-tests",
@@ -96,7 +96,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
-      "why_now": "The lane needs an archival note that compares the current starter against the roadmap's segmented-rollout rule so future runs do not mistake the queue planner, queue-count reservation helper, queue-reservation replay helper, PRP helpers, direct verify shard, and recovery replay helper for a production PCI port."
+      "why_now": "The lane needs an archival note that compares the current starter against the roadmap's segmented-rollout rule so future runs do not mistake the queue planner, queue-count reservation helper, queue-reservation replay helper, PRP helpers, direct verify shard, recovery replay helper, and bounded backlog-retirement bookkeeping for a production PCI port."
     },
     {
       "id": "phase12-nvme-pci-queue-count-reservation-helper",
@@ -131,7 +131,7 @@
       "status": "starter_landed",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/nvme/host/pci.zig",
-      "why_now": "The landed recovery replay helper now reports reset-generation staleness for cached PRP metadata, admin-queue replay need, dropped I/O queue rebuild count, and post-reset queue numbering without claiming live timeout recovery, IRQ handling, or hardware-backed reset transport."
+      "why_now": "The landed recovery replay helper now reports reset-generation staleness, admin-queue replay need, dropped I/O queue rebuild count, and post-reset queue numbering, and pairs that review surface with bounded dropped-I/O backlog retirement once rebuilt queue plans are present, without claiming live timeout recovery, IRQ handling, or hardware-backed reset transport."
     },
     {
       "id": "phase12-nvme-pci-dma-safe-transport-gap",
