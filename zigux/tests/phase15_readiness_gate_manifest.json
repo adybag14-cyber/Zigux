@@ -31,6 +31,10 @@
     "phase15_replay_green_on_current_master": true,
     "deep_core_status_change_ready": false
   },
+  "phase15_validate_checkers": [
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py"
+  ],
   "deep_core_blockers": [
     {
       "anchor": "kernel/sched/core.c",
