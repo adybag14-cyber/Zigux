@@ -97,6 +97,9 @@ EXPECTED_SCRIPTS_README_MARKERS = [
 
 EXPECTED_TESTS_README_MARKERS = [
     "phase10_virtio_input.zig",
+    "phase10_virtio_input_queue_callback_preflight.zig",
+    "phase10_virtio_input_registration_preflight.zig",
+    "phase10_virtio_input_teardown_observation.zig",
     "phase10_virtio_input_status_drain.zig",
     "phase10_virtio_input_survey.zig",
 ]
@@ -671,7 +674,7 @@ def run_self_test() -> int:
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
             original_scripts_readme.replace(
-                "the lane-sequenced virtio input plus the focused input-verify and status-drain replays",
+                "the lane-sequenced virtio input plus the focused input-verify, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays",
                 "the lane-sequenced virtio input plus a drifted verifier summary",
                 1,
             ),
@@ -693,8 +696,21 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_tests_readme_marker_missing")
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "phase10_virtio_input_queue_callback_preflight.zig",
+                "phase10_virtio_input_queue_callback_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "tests_readme:phase10_virtio_input_queue_callback_preflight.zig" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_queue_callback_tests_readme_marker_missing")
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=22")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
