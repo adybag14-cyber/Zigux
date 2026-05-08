@@ -119,7 +119,9 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(slice_note, "first-NUL C-string bounds on both counting and splitting");
     try expectContains(slice_note, "strict non-goal behavior where quote characters stay inside the returned tokens");
     try expectContains(slice_note, "stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path");
+    try expectContains(slice_note, "copied-buffer ownership so later source mutation does not affect split results");
     try expectContains(slice_note, "copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated");
+    try expectContains(slice_note, "separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results");
     try expectContains(slice_note, "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`");
     try expectContains(slice_note, "exported storage and argv views resetting back to the canonical empty sentinels after teardown");
     try expectContains(slice_note, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
