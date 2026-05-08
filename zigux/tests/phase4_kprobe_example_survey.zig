@@ -57,7 +57,7 @@ test "phase4 kprobe gap manifest keeps the parked survey explicit" {
     );
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.survey_owner);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
-    try std.testing.expect(!manifest.shared_gate_evidence_packet_present);
+    try std.testing.expect(manifest.shared_gate_evidence_packet_present);
     try std.testing.expectEqualStrings(
         "zig test zigux/tests/phase4_kprobe_example_survey.zig",
         manifest.validation_entrypoint,
@@ -76,12 +76,15 @@ test "phase4 kprobe gap manifest keeps the parked survey explicit" {
         manifest.review_prompts[2],
     );
     try std.testing.expectEqualStrings(
-        "the packet stays outside the shared gate-evidence target set until a later bounded promotion lands",
+        "the packet now stays explicit in the shared gate-evidence note while still not claiming a shipped Zig sample",
         manifest.review_prompts[3],
     );
     try std.testing.expectEqual(@as(usize, 3), manifest.non_goals.len);
     try std.testing.expectEqualStrings("shipped kprobe Zig starter", manifest.non_goals[0]);
-    try std.testing.expectEqualStrings("shared gate-evidence promotion", manifest.non_goals[1]);
+    try std.testing.expectEqualStrings(
+        "treating adjacent gate-evidence visibility as a shipped Zig starter",
+        manifest.non_goals[1],
+    );
     try std.testing.expectEqualStrings("approved kprobe perf threshold", manifest.non_goals[2]);
 }
 
@@ -118,12 +121,13 @@ test "phase4 kprobe gap survey note stays honest about the parked boundary" {
         "PHASE4_CURRENT_REPLAY=make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
         "PHASE4_SURVEY_OWNER=Validation and Perf Team",
         "PHASE4_ROLLBACK_OWNER=Validation and Perf Team",
-        "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false",
+        "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=true",
         "zigux/tests/phase4_kprobe_example_manifest.json",
         "zigux/tests/phase4_kprobe_example_survey.zig",
+        "shared gate-evidence note now names that same survey note, manifest, and replay command",
         "`samples/zigux/kprobe_example.zig` is still absent",
-        "Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet",
-        "claiming that the shared Phase 4 exact-readback gate already carries this packet",
+        "Land one manifest-backed Phase 4 test_fsmount gap survey packet",
+        "treating adjacent gate-evidence visibility as a shipped Zig starter",
         "claiming approved hard perf thresholds for the kprobe anchor",
     };
 
