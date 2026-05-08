@@ -42,25 +42,23 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expectEqualStrings("iter=%d", main_payload.format_template);
 
     try module.registerFunctionThread();
-    try module.registerFunctionThread();
-    try std.testing.expectEqual(@as(usize, 2), module.summary().registration_depth);
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
+    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
     try std.testing.expectEqual(@as(usize, 1), module.summary().registration_start_runs);
     const fn_events = try module.emitFunctionIteration(9);
     try std.testing.expectEqual(@as(usize, 2), fn_events);
     const after_function = module.summary();
     try std.testing.expectEqual(@as(usize, 1), after_function.fn_iterations);
-    try std.testing.expectEqual(@as(usize, 2), after_function.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), after_function.registration_depth);
     try std.testing.expectEqual(@as(usize, 8), after_function.total_events);
     try std.testing.expectEqual(@as(i32, 9), after_function.last_fn_count);
     const fn_payload = after_function.last_function_payload orelse return error.ExpectedFunctionPayload;
     try std.testing.expectEqualStrings("Look at me", fn_payload.foo_bar_message);
     try std.testing.expectEqualStrings("Look at me too", fn_payload.template_message);
     try module.unregisterFunctionThread();
-    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
-    try std.testing.expectEqual(@as(usize, 0), module.summary().registration_stop_runs);
-    try module.unregisterFunctionThread();
     try std.testing.expectEqual(@as(usize, 0), module.summary().registration_depth);
     try std.testing.expectEqual(@as(usize, 1), module.summary().registration_stop_runs);
+    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
 
     const selftest_summary = try module.runSelftest();
     const post_selftest = module.summary();
@@ -74,8 +72,8 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expect(selftest_summary.registration_paths_checked);
     try std.testing.expectEqual(@as(usize, 0), post_selftest.registration_depth);
     try std.testing.expectEqual(@as(usize, 1), post_selftest.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 3), post_selftest.register_runs);
-    try std.testing.expectEqual(@as(usize, 3), post_selftest.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 2), post_selftest.register_runs);
+    try std.testing.expectEqual(@as(usize, 2), post_selftest.unregister_runs);
     try std.testing.expectEqual(@as(usize, 2), post_selftest.registration_start_runs);
     try std.testing.expectEqual(@as(usize, 2), post_selftest.registration_stop_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
@@ -100,13 +98,9 @@ test "runtime trace-events sample keeps registration balance explicit" {
 
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
     try module.registerFunctionThread();
-    try module.registerFunctionThread();
-    try std.testing.expectEqual(@as(usize, 2), module.registration_depth);
-    try std.testing.expectEqual(@as(usize, 1), module.registration_start_runs);
-    try std.testing.expectError(error.OutstandingRegistration, module.exit());
-    try module.unregisterFunctionThread();
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
     try std.testing.expectEqual(@as(usize, 1), module.registration_depth);
-    try std.testing.expectEqual(@as(usize, 0), module.registration_stop_runs);
+    try std.testing.expectEqual(@as(usize, 1), module.registration_start_runs);
     try std.testing.expectError(error.OutstandingRegistration, module.exit());
     try module.unregisterFunctionThread();
     try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
@@ -119,13 +113,13 @@ test "runtime trace-events sample keeps nested callback-registration rollback ex
     try module.init();
 
     try module.registerFunctionThread();
-    try module.registerFunctionThread();
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
     _ = try module.emitFunctionIteration(2);
 
     const before_failed_exit = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.initialized, before_failed_exit.stage);
-    try std.testing.expectEqual(@as(usize, 2), before_failed_exit.registration_depth);
-    try std.testing.expectEqual(@as(usize, 2), before_failed_exit.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.register_runs);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.unregister_runs);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_start_runs);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.registration_stop_runs);
@@ -165,24 +159,9 @@ test "runtime trace-events sample keeps nested callback-registration rollback ex
     try std.testing.expectEqualStrings("Look at me too", after_payload.template_message);
 
     try module.unregisterFunctionThread();
-    const after_partial_drain = module.summary();
-    try std.testing.expectEqual(sample.ModuleStage.initialized, after_partial_drain.stage);
-    try std.testing.expectEqual(@as(usize, 1), after_partial_drain.registration_depth);
-    try std.testing.expectEqual(@as(usize, 2), after_partial_drain.register_runs);
-    try std.testing.expectEqual(@as(usize, 1), after_partial_drain.unregister_runs);
-    try std.testing.expectEqual(@as(usize, 1), after_partial_drain.registration_start_runs);
-    try std.testing.expectEqual(@as(usize, 0), after_partial_drain.registration_stop_runs);
-    try std.testing.expectEqual(before_failed_exit.total_events, after_partial_drain.total_events);
-    try std.testing.expectEqual(before_failed_exit.last_fn_count, after_partial_drain.last_fn_count);
-    try std.testing.expectEqual(before_failed_exit.last_fn_emitted_events, after_partial_drain.last_fn_emitted_events);
-    try std.testing.expectEqual(before_failed_exit.selftest_runs, after_partial_drain.selftest_runs);
-    try std.testing.expectEqual(before_failed_exit.exit_runs, after_partial_drain.exit_runs);
-    try std.testing.expectError(error.OutstandingRegistration, module.exit());
-
-    try module.unregisterFunctionThread();
     const drained = module.summary();
     try std.testing.expectEqual(@as(usize, 0), drained.registration_depth);
-    try std.testing.expectEqual(@as(usize, 2), drained.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 1), drained.unregister_runs);
     try std.testing.expectEqual(@as(usize, 1), drained.registration_stop_runs);
     try std.testing.expectEqual(before_failed_exit.total_events, drained.total_events);
 
@@ -190,8 +169,8 @@ test "runtime trace-events sample keeps nested callback-registration rollback ex
     const exited = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.exited, exited.stage);
     try std.testing.expectEqual(@as(usize, 0), exited.registration_depth);
-    try std.testing.expectEqual(@as(usize, 2), exited.register_runs);
-    try std.testing.expectEqual(@as(usize, 2), exited.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.unregister_runs);
     try std.testing.expectEqual(@as(usize, 1), exited.registration_start_runs);
     try std.testing.expectEqual(@as(usize, 1), exited.registration_stop_runs);
     try std.testing.expectEqual(before_failed_exit.total_events, exited.total_events);
