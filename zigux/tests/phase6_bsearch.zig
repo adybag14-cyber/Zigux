@@ -38,6 +38,10 @@ fn compareOpaqueU32(key: *const anyopaque, item: *const anyopaque) i32 {
     return compareU32(typed_key, typed_item);
 }
 
+fn compareOpaqueU32Alias(key: *const anyopaque, item: *const anyopaque) i32 {
+    return compareOpaqueU32(key, item);
+}
+
 fn compareOpaqueU32Counted(key: *const anyopaque, item: *const anyopaque) i32 {
     counted_raw_compare_calls += 1;
     return compareOpaqueU32(key, item);
@@ -599,6 +603,44 @@ test "phase 6 bsearch accepts runtime-selected raw native comparator pointers" {
             @as(?usize, null),
             bsearch.bsearchIndex(&@as(u32, 7), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare),
         );
+    }
+}
+
+test "phase 6 bsearch raw native comparator alias pointers preserve mutable write-through" {
+    var values = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
+    const comparators = [_]bsearch.RawComparator{ compareOpaqueU32, compareOpaqueU32Alias };
+
+    for (comparators) |compare| {
+        try std.testing.expectEqual(
+            @as(?usize, 4),
+            bsearch.bsearchIndex(&@as(u32, 34), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare),
+        );
+
+        const found = bsearch.bsearch(&@as(u32, 13), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare) orelse return error.TestUnexpectedResult;
+        const typed_found: *const u32 = @ptrCast(@alignCast(found));
+        try std.testing.expectEqual(@as(u32, 13), typed_found.*);
+        try std.testing.expectEqual(@intFromPtr(&values[2]), @intFromPtr(typed_found));
+
+        try std.testing.expectEqual(
+            @as(?usize, null),
+            bsearch.bsearchIndex(&@as(u32, 7), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare),
+        );
+        try std.testing.expect(
+            bsearch.bsearch(&@as(u32, 7), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare) == null,
+        );
+
+        const mutable = bsearch.bsearchMutable(
+            &@as(u32, 34),
+            @ptrCast(values[0..].ptr),
+            values.len,
+            @sizeOf(u32),
+            compare,
+        ) orelse return error.TestUnexpectedResult;
+        const typed_mutable: *u32 = @ptrCast(@alignCast(mutable));
+        try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_mutable));
+        typed_mutable.* = 35;
+        try std.testing.expectEqual(@as(u32, 35), values[4]);
+        typed_mutable.* = 34;
     }
 }
 
