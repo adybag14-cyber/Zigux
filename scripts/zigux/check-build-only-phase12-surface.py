@@ -40,6 +40,7 @@ REQUIRED_FILE_MARKERS = {
     DOCS_README_PATH: [
         "Phase 12 notes",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`Documentation/zigux/phase12-release-readiness-survey.md`",
         "`Documentation/zigux/phase12-release-coordination-matrix.md`",
         "`drivers/nvme/host/pci_verify.zig`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
