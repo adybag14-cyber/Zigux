@@ -60,6 +60,7 @@ The Phase 5 gap is now narrowed to one landed sample-backed reference pattern fo
 Until a bounded runtime substrate exists, the landed Phase 5 `samples/zigux/` reference sample for this anchor should:
 
 - model FIFO state and ordered operations entirely in memory
+- keep the storage backing explicit as an embedded fixed-buffer ring, so the approved idiom stays reviewable as a bounded sample instead of drifting toward an implicit allocation or runtime-substrate claim
 - keep the Linux anchor path explicit in a descriptor or note
 - include a tiny self-check or fixture-backed replay for the queue-order expectations that make the sample useful to reviewers
 - show ownership and lifetime boundaries clearly, especially initialization, reset, and teardown
@@ -75,6 +76,7 @@ The repo now carries that first bounded sample in `samples/zigux/bytestream_fifo
 The sample intentionally stays small:
 
 - it models only bounded in-memory FIFO state with a fixed 32-byte ring buffer
+- it keeps `StorageBacking.embedded_fixed_buffer` explicit, making the roadmap-backed idiom a fixed in-memory ring rather than an allocation-backed or substrate-dependent queue claim
 - it replays the Linux anchor's queue-order behavior without any procfs or user-copy substrate
 - it now makes ownership and lifetime explicit through a tiny `init()` -> `runAnchorReplay()` -> `exit()` flow instead of implying a runtime-ready module lifecycle
 - it now records one non-destructive snapshot of the filled queue before the final drain so reviewers can confirm the exact anchor sequence without inferring hidden mutation
@@ -104,6 +106,7 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
 - does `BytestreamFifoSample.descriptor()` still name the Linux anchor `samples/kfifo/bytestream-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
+- does the same sample packet still keep `StorageBacking.embedded_fixed_buffer` explicit so reviewers can read the approved idiom as a bounded fixed-buffer ring instead of an implied allocation-backed runtime queue?
 - do `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` still describe the exact queue-order replay, preview truncation boundary, the non-destructive snapshot contract, lifecycle boundary, bounded helper contract, and remaining-capacity evidence run through `zigux/tests/phase5_build.zig`?
 - does that same approved in-memory FIFO idiom still keep queue-shape evidence explicit so `available()` and `usesWrappedStorageWindow()` stay aligned with the `visibleSpanSummary()` split cues across the same cold, full, and rollover boundaries reviewers expect from a bounded ring sample?
 - do `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still point at this exact sample packet and keep it separate from the later Phase 9 runtime starters instead of leaving this note to carry the boundary alone?
@@ -121,6 +124,7 @@ The current gap is not "Zigux lacks every sample." The more precise gap is:
 - the repo now has four reviewable Phase 5 samples plus later runtime-oriented starters and loader-side follow-ons in `samples/zigux/`
 - the completed Phase 5 sample set still has to stay visibly separate from the later Phase 9 runtime starters and loader-side follow-ons for `trace-events`, `kretprobe`, `bitmap`, and `atomic64`
 - the shared docs-root, Phase 5 guide, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too, so this survey note does not understate the already-shipped review surface for the landed sample
+- the approved kfifo idiom should keep the embedded fixed-buffer storage cue explicit in the survey note as part of what makes the landed sample reviewable and repeatable instead of leaving that storage boundary implicit in code only
 - the kfifo sample now covers queue-order replay, explicit queue-shape rollover cues, and one ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
 
 This slice closes the `kfifo` survey-only gap by landing the first sample-backed replay and documenting its exact checks so future Phase 5 work can advance from a concrete baseline instead of another round of ambiguous sample naming.
