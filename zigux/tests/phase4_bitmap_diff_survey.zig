@@ -142,6 +142,20 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
     try expectContains(gate_evidence_source, "13 `DiffCase`, 10 `CopyCase`, and 13 `mixThresholdChecksum()` checkpoints");
 }
 
+test "phase 4 bitmap survey keeps zero-length and copy-alignment rollback checks explicit" {
+    try expectContains(bitmap_diff_source, "test_zero_nbits zero-length range and prefix edits leave seeded bits unchanged");
+    try expectContains(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
+    try expectContains(
+        bitmap_diff_source,
+        "test_copy aligned 97-bit replay keeps the full second word before the filled tail resumes",
+    );
+    try expectContains(bitmap_diff_source, "test \"bitmap diff gate rejects out-of-bounds bitmap operations\" {");
+    try expectContains(
+        bitmap_diff_source,
+        "try std.testing.expectError(error.BitRangeOutOfBounds, bitmap.findNthSet(BitmapHarness.bitmap_nbits + 1, 0));",
+    );
+}
+
 test "phase 4 bitmap survey keeps owner and rollback owner governance explicit" {
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_source, .{});
     defer parsed.deinit();
