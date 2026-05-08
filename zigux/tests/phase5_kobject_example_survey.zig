@@ -313,6 +313,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         "phase5-kobject-sample-survey.md",
         "phase5_kobject_example_survey.zig",
         "`ownershipSummary()` and sample-owned `runOwnershipReplay()` explicit as the reviewable lifecycle cues",
+        "`runInputValidationReplay()` explicit for the shared `baz`/`bar` dispatch plus parse-failure visibility",
         "initialized-only abandonment cue",
         "already-registered duplicate-registration and replay-restart rejection",
         "registered teardown reset",
