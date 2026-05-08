@@ -21,7 +21,7 @@
     "phase4_build_step_present": true,
     "phase4_validation_matrix_present": true,
     "shared_phase4_test_step_includes_survey": false,
-    "benchmark_command_unapproved": true,
+    "benchmark_command_unapproved": false,
     "acceptable_limit_unapproved": true,
     "atomic64_benchmark_command_approved": true
   },
@@ -44,7 +44,7 @@
       ]
     },
     "bitmap": {
-      "evidence_status": "explicit_candidate_landed",
+      "evidence_status": "benchmark_command_approved",
       "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
       "acceptable_limit_status": "still_unapproved",
       "deterministic_replays": [
@@ -80,7 +80,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase4_perf_baseline_survey.zig",
-      "why_now": "A dedicated Phase 4 survey gate keeps the current correctness-only posture for the shipped atomic64 and bitmap rollback gates measurable without treating that local survey route as shared CI perf approval. With the shared tests-root summary now naming this shipped local-only survey packet, the smaller same-lane follow-through is one bounded benchmark command plus one acceptable limit per shipped gate before command-approval work widens the lane."
+      "why_now": "A dedicated Phase 4 survey gate keeps the current correctness-only posture for the shipped atomic64 and bitmap rollback gates measurable without treating that local survey route as shared CI perf approval. With the shared tests-root summary now naming this shipped local-only survey packet, the smaller same-lane follow-through is one bounded acceptable limit per shipped gate now that both local benchmark commands are approved."
     },
     {
       "id": "phase4-perf-baseline-atomic64-command-evidence",
@@ -106,11 +106,11 @@
     },
     {
       "id": "phase4-perf-baseline-bitmap-command",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/bitmap_diff.zig",
       "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
-      "why_now": "Now that the local perf packet exact-pins the bitmap benchmark-command candidate and deterministic replay evidence in structured form, the next same-lane follow-through can approve that replay command in the broader Phase 4 review packet only when the still-unapproved acceptable limit stays explicit and the shared validator-first packet does not widen by accident."
+      "why_now": "The bounded bitmap replay command is now approved for local Phase 4 perf review because the dedicated survey packet already exact-pins the same replay route and deterministic evidence, while the acceptable limit remains explicitly unapproved and the shared validator-first packet still stays narrower than full perf coverage."
     }
   ]
 }
