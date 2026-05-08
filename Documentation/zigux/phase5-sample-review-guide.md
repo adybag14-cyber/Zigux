@@ -47,7 +47,7 @@ Keep explicit
 - the non-destructive `snapshotInto()` cue
 - the short-drain `"hel"` plus queued `"lo"` helper boundary
 - the `init()` -> `runAnchorReplay()` -> `exit()` ownership path
-- the bounded preview and rollover cues around `previewInto()`, `available()`, and `usesWrappedStorageWindow()`
+- the bounded preview and rollover cues around `previewInto()`, `available()`, and `usesWrappedStorageWindow()`, plus the `visibleSpanSummary()` split cue that keeps the fixed-buffer ring shape reviewable instead of implicit
 
 Keep out of scope
 - procfs parity
