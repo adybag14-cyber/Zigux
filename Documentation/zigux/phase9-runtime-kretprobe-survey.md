@@ -7,7 +7,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
 - `PHASE9_SURVEYED_COMMIT=2a1851e145a648f0792e2bba2fee100e9884a1de`
-- lane: `P9-L13`
+- `PHASE9_LANE_KEY=P9-L13`
 - scope: survey manifest, starter sample, dedicated module, survey, and diff gates, the bounded loader-handoff scaffold, the focused `phase9-runtime-kretprobe-tests` build step, and explicit adjacency to the separate shared runtime-loader lane that owns the facade, contract, allocator/init-flow replay, focused shared runtime-loader shard, and the workflow-backed `make -C zigux phase9` route
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
@@ -22,7 +22,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 The Phase 9 roadmap explicitly names `samples/kprobes/kretprobe_example.c` as a runtime pilot-module anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
-The live Phase 9 runtime kretprobe packet also stays separate from the already-approved non-runtime Phase 5 reference-sample packet: `samples/zigux/runtime_kretprobe.zig` and `samples/zigux/runtime_kretprobe_loader.zig` remain the separate runtime family rooted in `samples/kprobes/kretprobe_example.c`, not a second owner for the already-approved `samples/zigux/kretprobe_example.zig` cue under `Documentation/zigux/phase5-kretprobe-sample-survey.md`.
+The live Phase 9 runtime kretprobe packet also stays separate from the already-approved non-runtime Phase 5 reference-sample packet: `samples/zigux/runtime_kretprobe.zig` and `samples/zigux/runtime_kretprobe_loader.zig` remain the separate runtime family rooted in `samples/kprobes/kretprobe_example.c`, not a second owner for the already-approved non-runtime `samples/zigux/kretprobe_example.zig` cue under `Documentation/zigux/phase5-kretprobe-sample-survey.md`.
 The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchor explicit through `samples/zigux/kretprobe_example.zig` while listing the runtime kretprobe pair only under the separate Phase 9 runtime pilot family.
 
 ## Survey findings
