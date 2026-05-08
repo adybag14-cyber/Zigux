@@ -261,7 +261,21 @@ REQUIRED_FILE_MARKERS = {
 
 EXACT_COUNT_FILE_MARKERS = {
     SCRIPTS_README_PATH: {
+        "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`": 1,
         "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`": 1,
+        "`make -C zigux phase12-smoke`": 1,
+        "`make -C zigux phase12`": 1,
+    },
+    TESTS_README_PATH: {
+        "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`": 1,
+        "`make -C zigux phase12-smoke`": 1,
+        "`make -C zigux phase12`": 1,
+    },
+    PHASE12_RAW_GITHUB_COVERAGE_PATH: {
+        "PHASE12_SHARED_SMOKE_SURFACE_COUNT=6": 1,
+        "current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`": 1,
+        "`make -C zigux phase12-smoke`": 1,
+        "`make -C zigux phase12`": 1,
     },
 }
 
@@ -370,27 +384,26 @@ def run_self_test() -> int:
                 path.write_text(original, encoding="utf-8")
                 case_count += 1
 
-        scripts_readme = root / SCRIPTS_README_PATH
-        original_scripts_readme = scripts_readme.read_text(encoding="utf-8")
-        direct_shared_replay_marker = (
-            "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`"
-        )
-        scripts_readme.write_text(
-            original_scripts_readme + f"- duplicate {direct_shared_replay_marker}\n",
-            encoding="utf-8",
-        )
-        failures = validate(root)
-        expected_exact_count = (
-            f"{SCRIPTS_README_PATH}:{direct_shared_replay_marker}:expected=1:actual=2"
-        )
-        if expected_exact_count not in failures:
-            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
-            print("phase12-scripts-readme-shared-build-replay-exact-count-guard")
-            for failure in failures:
-                print(failure)
-            return 1
-        scripts_readme.write_text(original_scripts_readme, encoding="utf-8")
-        case_count += 1
+        for rel_path, markers in EXACT_COUNT_FILE_MARKERS.items():
+            path = root / rel_path
+            original = path.read_text(encoding="utf-8")
+            for marker, expected_count in markers.items():
+                path.write_text(
+                    original + f"- duplicate {marker}\n",
+                    encoding="utf-8",
+                )
+                failures = validate(root)
+                expected_exact_count = (
+                    f"{rel_path}:{marker}:expected={expected_count}:actual={expected_count + 1}"
+                )
+                if expected_exact_count not in failures:
+                    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+                    print(mutation_label(rel_path, marker))
+                    for failure in failures:
+                        print(failure)
+                    return 1
+                path.write_text(original, encoding="utf-8")
+                case_count += 1
 
         missing_required = root / PHASE12_CLOSURE_CHECKLIST_PATH
         missing_required.unlink()
