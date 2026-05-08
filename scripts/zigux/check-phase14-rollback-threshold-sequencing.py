@@ -53,6 +53,13 @@ REQUIRED_FILE_MARKERS = {
         "same study-only stay-in-C posture without implying an active deep-core port claim?",
     ],
 }
+MANIFEST_EXACT_COUNT_MARKERS = [
+    '"rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence"',
+    '"kernel/workqueue.c"',
+    '"kernel/trace/ring_buffer.c"',
+    '"kernel/rcu/tree.c"',
+    '"net/core/skbuff.c"',
+]
 SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     "- rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`",
     "Attached-toolchain fallback examples:",
@@ -84,6 +91,14 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def require_exact_marker_count(errors: list[str], rel_path: str, text: str, marker: str) -> None:
+    actual_count = text.count(marker)
+    if actual_count != 1:
+        errors.append(
+            f"marker count drift in {rel_path}: {marker} (expected 1, found {actual_count})"
+        )
+
+
 def check(root: Path) -> list[str]:
     errors: list[str] = []
     if MARKER not in read_text(Path(__file__)):
@@ -100,6 +115,8 @@ def check(root: Path) -> list[str]:
             except json.JSONDecodeError as exc:
                 errors.append(f"invalid json in {MANIFEST_PATH}: {exc}")
                 continue
+            for marker in MANIFEST_EXACT_COUNT_MARKERS:
+                require_exact_marker_count(errors, rel_path, text, marker)
         for marker in markers:
             if marker not in text:
                 errors.append(f"missing marker in {rel_path}: {marker}")
@@ -274,6 +291,45 @@ def run_self_test() -> int:
             for error in errors
         ):
             print("self-test expected failure when the shared smoke manifest lost the rollback-owner marker", file=sys.stderr)
+            return 1
+
+        write_text(broken_manifest_path, required_text(MANIFEST_PATH))
+
+        broken_manifest_path.write_text(
+            broken_manifest_path.read_text(encoding="utf-8").replace(
+                '  "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",\n',
+                '  "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",\n'
+                '  "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            'marker count drift in zigux/tests/phase14_end_to_end_smoke_manifest.json: "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence" (expected 1, found 2)'
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the shared smoke manifest duplicated the rollback-owner marker", file=sys.stderr)
+            return 1
+
+        write_text(broken_manifest_path, required_text(MANIFEST_PATH))
+
+        broken_manifest_path.write_text(
+            broken_manifest_path.read_text(encoding="utf-8").replace(
+                '    "kernel/rcu/tree.c",\n',
+                '    "kernel/rcu/tree.c",\n    "kernel/rcu/tree.c",\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            'marker count drift in zigux/tests/phase14_end_to_end_smoke_manifest.json: "kernel/rcu/tree.c" (expected 1, found 2)'
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the shared smoke manifest duplicated a blocked anchor marker", file=sys.stderr)
             return 1
 
         write_text(broken_manifest_path, required_text(MANIFEST_PATH))
