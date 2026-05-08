@@ -171,7 +171,10 @@ REQUIRED_FILE_MARKERS = {
     LIBBPF_SURVEY_PATH: [
         "public fallback posture: shared-tree-only anchor",
         "Documentation/zigux/phase12-release-closure-checklist.md",
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
+        "keep the five shipped helper paths explicit in a deterministic tracked-helper snapshot fixture",
+        "exact-check the ordered helper-path snapshot digest through a dedicated replay",
         "the older segment catalog still leaves two bounded shared-bridge helpers explicitly nearer than the object-model wall",
     ],
     SCRIPTS_README_PATH: [
