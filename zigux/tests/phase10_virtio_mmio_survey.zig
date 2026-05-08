@@ -141,6 +141,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-core-packet.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-ring-packet.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-input-packet.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-mmio-freeze-boundary.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_ring_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_input_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio_verify.zig") != null);
@@ -174,6 +175,8 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase10_virtio_mmio_verify_tests.step") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "scripts/zigux/check-phase10-ring-packet.py --self-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "scripts/zigux/check-phase10-input-packet.py --self-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "scripts/zigux/check-phase10-mmio-freeze-boundary.py --self-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "scripts/zigux/check-phase10-mmio-freeze-boundary.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "$(ZIG) build test --build-file zigux/tests/phase10_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_ring_verify.zig") != null);
