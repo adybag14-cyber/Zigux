@@ -8,6 +8,7 @@ pub const ModuleDescriptor = struct {
     provides_ioremap_uc_wrapper_planning: bool,
     provides_ioremap_wc_wrapper_planning: bool,
     provides_release_pointer_match: bool,
+    provides_iounmap_call_planning: bool,
     provides_ioremap_resource_planning: bool,
     provides_ioremap_resource_plain_wrapper_planning: bool,
     provides_ioremap_resource_wc_wrapper_planning: bool,
@@ -46,6 +47,14 @@ pub const ManagedIoremapAcquireResult = struct {
     release_record_retained: bool,
     release_record_freed: bool,
     should_unmap_on_detach: bool,
+};
+
+pub const ManagedIounmapPlan = struct {
+    anchor: []const u8,
+    tracked_address: usize,
+    candidate_address: usize,
+    release_matches: bool,
+    warns_on_release_miss: bool,
 };
 
 pub const IoremapType = enum {
@@ -264,6 +273,7 @@ pub const DevresHelperLab = struct {
             .provides_ioremap_uc_wrapper_planning = true,
             .provides_ioremap_wc_wrapper_planning = true,
             .provides_release_pointer_match = true,
+            .provides_iounmap_call_planning = true,
             .provides_ioremap_resource_planning = true,
             .provides_ioremap_resource_plain_wrapper_planning = true,
             .provides_ioremap_resource_wc_wrapper_planning = true,
@@ -326,6 +336,17 @@ pub const DevresHelperLab = struct {
 
     pub fn ioremapReleaseMatches(tracked_address: usize, candidate_address: usize) bool {
         return tracked_address == candidate_address;
+    }
+
+    pub fn planManagedIounmap(tracked_address: usize, candidate_address: usize) ManagedIounmapPlan {
+        const release_matches = ioremapReleaseMatches(tracked_address, candidate_address);
+        return .{
+            .anchor = descriptor().anchor,
+            .tracked_address = tracked_address,
+            .candidate_address = candidate_address,
+            .release_matches = release_matches,
+            .warns_on_release_miss = !release_matches,
+        };
     }
 
     pub fn resolveIoremapType(resource: Resource, requested_type: IoremapType) IoremapType {
