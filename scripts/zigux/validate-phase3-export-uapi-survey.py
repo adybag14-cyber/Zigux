@@ -147,6 +147,7 @@ REQUIRED_MARKERS = {
         "try std.testing.expect(export_shim.headerCompatibility(version_mismatch) == null);",
         "try std.testing.expect(uapi_version.compatibility(version_mismatch) == null);",
         'test "phase3 export shim keeps compatibility status relays explicit" {',
+        "const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);",
     ),
 }
 
@@ -470,6 +471,8 @@ def run_self_test() -> int:
             '}',
             "",
             'test "phase3 export shim keeps compatibility status relays explicit" {',
+            '    const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);',
+            '    _ = canonical_status;',
             '    _ = .{};',
             '}',
             "",
@@ -701,6 +704,18 @@ def run_self_test() -> int:
         _write(root / EXPORT_UAPI_LAYOUT_REL, export_uapi_layout_text)
 
         _write(
+            root / EXPORT_UAPI_LAYOUT_REL,
+            export_uapi_layout_text.replace('    const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);\n', "", 1),
+        )
+        issues = validate(root)
+        expected = [
+            'missing_marker:zigux/tests/phase3_export_uapi_layout.zig:const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);'
+        ]
+        if issues != expected:
+            raise SystemExit(f"phase3-export-uapi-self-test:status_relay_marker_guard_failed:{issues}")
+        _write(root / EXPORT_UAPI_LAYOUT_REL, export_uapi_layout_text)
+
+        _write(
             root / EXPORT_SHIM_REL,
             export_shim_text.replace('test "phase3 export shim relays compatibility through explicit status packets" {\n', "", 1),
         )
@@ -776,7 +791,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:manifest_required_file_guard_failed:{issues}")
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=15")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
