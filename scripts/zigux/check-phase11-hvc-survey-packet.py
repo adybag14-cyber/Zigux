@@ -101,6 +101,10 @@ REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS = [
 ]
 
 REQUIRED_VERIFY_REPLAY_MARKERS = [
+    'test "hvc_console verify keeps final-close teardown handoff ordering explicit"',
+    'test "hvc_console verify keeps hung-up and detached teardown matrix truthful"',
+    'test "hvc_console verify keeps remove handoff explicit when tty teardown outlives console binding"',
+    'test "hvc_console verify keeps remove handoff explicit when tty is already absent"',
     'test "hvc_console verify keeps cleanup prerequisite failures explicit"',
     'test "hvc_console verify keeps open notifier-state failures explicit"',
     'test "hvc_console verify keeps notifier prerequisite failures explicit"',
@@ -137,7 +141,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 36
+SELF_TEST_CASE_COUNT = 40
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -314,6 +318,18 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
     write_text(
         root / VERIFY_REPLAY_PATH,
         """const std = @import("std");
+test "hvc_console verify keeps final-close teardown handoff ordering explicit" {
+    try std.testing.expect(true);
+}
+test "hvc_console verify keeps hung-up and detached teardown matrix truthful" {
+    try std.testing.expect(true);
+}
+test "hvc_console verify keeps remove handoff explicit when tty teardown outlives console binding" {
+    try std.testing.expect(true);
+}
+test "hvc_console verify keeps remove handoff explicit when tty is already absent" {
+    try std.testing.expect(true);
+}
 test "hvc_console verify keeps cleanup prerequisite failures explicit" {
     try std.testing.expect(true);
 }
@@ -606,6 +622,30 @@ def run_self_test() -> int:
                 SHARED_REPLAY_CONTRACT_PATH,
                 "`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet",
                 "shared_replay_contract:`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet",
+            )
+            expect_failure(
+                root,
+                VERIFY_REPLAY_PATH,
+                'test "hvc_console verify keeps final-close teardown handoff ordering explicit"',
+                'verify_replay:test "hvc_console verify keeps final-close teardown handoff ordering explicit"',
+            )
+            expect_failure(
+                root,
+                VERIFY_REPLAY_PATH,
+                'test "hvc_console verify keeps hung-up and detached teardown matrix truthful"',
+                'verify_replay:test "hvc_console verify keeps hung-up and detached teardown matrix truthful"',
+            )
+            expect_failure(
+                root,
+                VERIFY_REPLAY_PATH,
+                'test "hvc_console verify keeps remove handoff explicit when tty teardown outlives console binding"',
+                'verify_replay:test "hvc_console verify keeps remove handoff explicit when tty teardown outlives console binding"',
+            )
+            expect_failure(
+                root,
+                VERIFY_REPLAY_PATH,
+                'test "hvc_console verify keeps remove handoff explicit when tty is already absent"',
+                'verify_replay:test "hvc_console verify keeps remove handoff explicit when tty is already absent"',
             )
             expect_failure(
                 root,
