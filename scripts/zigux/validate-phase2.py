@@ -85,6 +85,7 @@ def required_files(root: Path) -> list[Path]:
         root / "scripts" / "zigux" / "validate-phase2-closure.py",
         root / "scripts" / "zigux" / "zig-toolchain-policy.json",
         root / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json",
+        root / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json",
         root / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
         root / "zigux" / "tests" / "fixtures" / "fixdep" / "cases.json",
         root / "zigux" / "tests" / "fixtures" / "fixdep" / "manifest.json",
