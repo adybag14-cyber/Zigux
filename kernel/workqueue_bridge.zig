@@ -317,6 +317,13 @@ pub const WorkqueueBridgeLab = struct {
         return audit_checkpoints.len;
     }
 
+    pub fn boundaryAreaById(id: []const u8) ?BoundaryArea {
+        for (boundary_areas) |area| {
+            if (std.mem.eql(u8, area.id, id)) return area;
+        }
+        return null;
+    }
+
     pub fn checkpointById(id: []const u8) ?AuditCheckpoint {
         for (audit_checkpoints) |checkpoint| {
             if (std.mem.eql(u8, checkpoint.id, id)) return checkpoint;
@@ -361,4 +368,31 @@ test "workqueue bridge current phase14 packet counts stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "blocked maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "flush-drain active-color governance note") != null);
     try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "runtime max_active retuning boundary") != null);
+}
+
+test "workqueue bridge boundary areas keep core stay-in-c seams explicit" {
+    const hotplug = WorkqueueBridgeLab.boundaryAreaById("hotplug-topology-rebinding").?;
+    try std.testing.expect(hotplug.ownership == .stay_in_c);
+    try std.testing.expectEqualStrings("POOL_DISASSOCIATED", hotplug.anchor_symbols[0]);
+    try std.testing.expect(std.mem.indexOf(u8, hotplug.rationale, "unbound topology rebinding") != null);
+
+    const max_active = WorkqueueBridgeLab.boundaryAreaById("max-active-reconfiguration").?;
+    try std.testing.expect(max_active.ownership == .stay_in_c);
+    try std.testing.expectEqualStrings("workqueue_set_max_active", max_active.anchor_symbols[0]);
+    try std.testing.expect(std.mem.indexOf(u8, max_active.summary, "ordered-workqueue") != null);
+    try std.testing.expect(std.mem.indexOf(u8, max_active.rationale, "inactive_works") != null);
+
+    const rescuer = WorkqueueBridgeLab.boundaryAreaById("rescuer-and-scheduler-hooks").?;
+    try std.testing.expect(rescuer.ownership == .stay_in_c);
+    try std.testing.expectEqualStrings("rescuer_thread", rescuer.anchor_symbols[0]);
+    try std.testing.expectEqualStrings("wq_worker_running", rescuer.anchor_symbols[1]);
+    try std.testing.expectEqualStrings("wq_worker_sleeping", rescuer.anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, rescuer.rationale, "scheduler-visible worker state") != null);
+
+    try std.testing.expect(WorkqueueBridgeLab.boundaryAreaById("not-a-real-boundary") == null);
+    try std.testing.expect(WorkqueueBridgeLab.blocksLiveBehavior("runtime max_active retuning ownership"));
+    try std.testing.expect(WorkqueueBridgeLab.blocksLiveBehavior("scheduler callback parity"));
+    try std.testing.expect(WorkqueueBridgeLab.blocksLiveBehavior("rescuer execution ownership"));
+    try std.testing.expect(WorkqueueBridgeLab.blocksLiveBehavior("hotplug-driven worker migration"));
+    try std.testing.expect(!WorkqueueBridgeLab.blocksLiveBehavior("synthetic behavior"));
 }
