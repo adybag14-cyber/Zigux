@@ -279,6 +279,15 @@ That means `test "bitmap zero-bit helpers stay explicit no-ops"` stays present a
 
 - `PHASE1_BITMAP_ZERO_BIT_NOOP_REVIEW=helper-local bitmap zero-bit no-op proof stays explicit through the direct bitmap test anchor so zero-bit windows keep mutating helpers, boolean queries, and the rendered empty-window path from touching caller-visible storage or writing hidden bytes`
 
+The helper-local Linux-style alias proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+
+That means `test "bitmap Linux-style aliases mirror the primary helper surface"` stays present and review-visible whenever the alias entrypoints change. This helper-local test is the bounded proof that the Linux-style bitmap alloc/free, zero/fill, predicate, mutation, and render aliases stay behaviorally locked to the primary helper surface instead of drifting into a second semantics path, and the Phase 1 helper manifest keeps that alias anchor visible inside the direct review packet.
+
+- `PHASE1_BITMAP_LINUX_ALIAS_REVIEW=helper-local bitmap Linux-style alias proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so the Linux-style bitmap alloc/free, zero/fill, predicate, mutation, and render aliases remain behaviorally locked to the primary helper surface`
+
 ## Rbtree Review Rule
 
 For `tools/lib/rbtree.zig`, reviewers must keep the current bounded Phase 1 rbtree surface explicit through:
@@ -292,7 +301,7 @@ That means `test "rbtree inserts and traverses in sorted order"`, `test "rbtree 
 
 - `PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while match-iterator coverage plus cached-root insert-miss, replacement, detach, and reseed behavior keep direct review anchors without implying a broader shared iterator or cached-root fixture packet than current master ships`
 
-The committed shared replay in `zigux/tests/phase1_helpers.zig` now consumes `find_found_key`, `find_missing`, `find_first_serial`, `next_match_serials`, and `next_match_terminal_null` directly, so duplicate-search parity is shared-replay-owned as well as helper-local. Reviewers should keep those shared fixture fields and the direct helper-local duplicate-search anchors `test "rbtree findAdd keeps the first duplicate and inserts new keys"`, `test "rbtree nextMatch walks the duplicate range in order"`, and `test "rbtree matchIterator walks the duplicate range in order"` aligned whenever `find()`, `findFirst()`, `findAdd()`, `nextMatch()`, or `matchIterator()` changes.
+The committed shared replay in `zigux/tests/phase1_helpers.zig` now consumes `find_found_key`, `find_missing`, `find_first_serial`, and `next_match_serials` and `next_match_terminal_null` directly, so duplicate-search parity is shared-replay-owned as well as helper-local. Reviewers should keep those shared fixture fields and the direct helper-local duplicate-search anchors `test "rbtree findAdd keeps the first duplicate and inserts new keys"`, `test "rbtree nextMatch walks the duplicate range in order"`, and `test "rbtree matchIterator walks the duplicate range in order"` aligned whenever `find()`, `findFirst()`, `findAdd()`, `nextMatch()`, or `matchIterator()` changes.
 
 The direct helper-local cached-root follow-up anchors `test "rbtree addCached returns the inserted node only when it becomes leftmost"`, `test "rbtree findAddCached keeps cached leftmost stable while inserting misses"`, `test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"`, `test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"`, and `test "rbtree eraseInitCached clears singleton cached roots before reseed"` are also owning proofs for now. The shared Phase 1 replay does not consume committed cached-root insert-miss, replacement, detach, or reseed fixture fields directly yet, so reviewers must keep those five helper-local anchors explicit whenever `addCached()`, `findAddCached()`, `replaceNodeCached()`, or `eraseInitCached()` changes.
 
