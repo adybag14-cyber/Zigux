@@ -234,6 +234,15 @@ test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery 
     try std.testing.expectEqual(@as(u16, 1), second_plan.poll_queues);
     try std.testing.expectEqual(@as(u16, 6), second_plan.total_queues);
     try std.testing.expectEqual(@as(?u16, 5), second_plan.first_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.control_queue_index), second_plan.control_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), second_plan.event_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.request_queue_base), second_plan.first_request_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), second_plan.event_buffer_count);
+    try std.testing.expect(second_plan.requires_find_vqs);
+    try std.testing.expect(second_plan.find_vqs_before_device_ready);
+    try std.testing.expect(second_plan.device_ready_before_event_rearm);
+    try std.testing.expect(second_plan.preserves_scsi_host_registration);
+    try std.testing.expect(!second_plan.reruns_host_scan);
 
     const second_rebind = try lab.recoveryRestoreQueueRebindSummary();
     try std.testing.expectEqual(@as(u16, 3), second_rebind.default_queue_count);
