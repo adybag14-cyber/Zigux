@@ -4,6 +4,13 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectSliceContains(haystack: []const []const u8, needle: []const u8) !void {
+    for (haystack) |entry| {
+        if (std.mem.eql(u8, entry, needle)) return;
+    }
+    try std.testing.expect(false);
+}
+
 const Handoff = struct {
     current_mode: []const u8,
     replay_commands: []const []const u8,
@@ -102,6 +109,27 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
+    try std.testing.expectEqual(@as(usize, 15), manifest.ownership_evidence_fields.len);
+    try expectSliceContains(manifest.ownership_evidence_fields, "phase");
+    try expectSliceContains(manifest.ownership_evidence_fields, "owner");
+    try expectSliceContains(manifest.ownership_evidence_fields, "rollback owner");
+    try expectSliceContains(manifest.ownership_evidence_fields, "required approver set");
+    try expectSliceContains(manifest.ownership_evidence_fields, "validation gate summary");
+    try expectSliceContains(manifest.ownership_evidence_fields, "indefinite-C policy link or non-applicability note");
+    try expectSliceContains(manifest.ownership_evidence_fields, "rollback threshold");
+    try expectSliceContains(manifest.ownership_evidence_fields, "retained discussion state");
+    try expectSliceContains(manifest.ownership_evidence_fields, "reopen triggers");
+    try expectSliceContains(manifest.ownership_evidence_fields, "parity scorecard link or blocker record");
+    try std.testing.expectEqual(@as(usize, 4), manifest.trigger_conditions.len);
+    try std.testing.expectEqual(@as(usize, 20), manifest.required_review_packet_fields.len);
+    try expectSliceContains(manifest.required_review_packet_fields, "requested decision bucket");
+    try expectSliceContains(manifest.required_review_packet_fields, "required approver set");
+    try expectSliceContains(manifest.required_review_packet_fields, "rollback threshold");
+    try expectSliceContains(manifest.required_review_packet_fields, "retained discussion state");
+    try expectSliceContains(manifest.required_review_packet_fields, "reopen triggers");
+    try expectSliceContains(manifest.required_review_packet_fields, "explicit non-goals");
+    try expectSliceContains(manifest.required_review_packet_fields, "written rationale");
+    try std.testing.expectEqual(@as(usize, 3), manifest.reopen_trigger_catalog.len);
     try std.testing.expectEqualStrings("keep_in_c", manifest.decision_buckets[0]);
     try std.testing.expectEqualStrings("bounded_dual_implementation", manifest.decision_buckets[2]);
     try std.testing.expectEqualStrings("maintenance_mode", manifest.handoff.current_mode);
@@ -124,6 +152,8 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(review_checklist, "scripts/zigux/check-phase15-review-process-handoff.py");
     try expectContains(review_checklist, "zigux/tests/phase15_architecture_council_review_process_manifest.json");
     try expectContains(review_checklist, "zigux/tests/phase15_architecture_council_review_process.zig");
+    try expectContains(review_checklist, "if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, parity scorecard link or blocker record, indefinite-C policy link or non-applicability note, explicit non-goals, and written rationale explicit?");
+    try expectContains(review_checklist, "if a freeze-map anchor is closing review with a stay-in-C outcome, are the retained discussion state, the current blocker, and reopen triggers explicit?");
 
     try expectContains(survey_doc, "## Trigger Conditions");
     try expectContains(survey_doc, "## Required Review Packet");
