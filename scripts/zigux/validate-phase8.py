@@ -742,6 +742,13 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-libbpf-segment-survey.md: helper-only reused-map name resolution",
         ),
         (
+            "libbpf_survey_wrapper_route",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "make -C zigux phase8-libbpf-segments-test",
+            "make -C zigux phase8-libbpf-segments-survey-test",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-libbpf-segments-test",
+        ),
+        (
             "perf_buffer_poll_slice_validator_self_test",
             "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
             "python3 scripts/zigux/validate-phase8.py --self-test",
