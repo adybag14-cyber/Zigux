@@ -172,8 +172,9 @@ pub const RuntimeTraceEventsSample = struct {
 
     pub fn registerFunctionThread(self: *Self) !void {
         try self.ensureMutable();
-        if (self.registration_depth == 0) self.registration_start_runs += 1;
-        self.registration_depth += 1;
+        if (self.registration_depth != 0) return error.FunctionThreadAlreadyRegistered;
+        self.registration_start_runs += 1;
+        self.registration_depth = 1;
         self.register_runs += 1;
     }
 
@@ -428,22 +429,17 @@ test "trace-events sample keeps callback-registration edge refcounts explicit" {
     try module.init();
 
     try module.registerFunctionThread();
-    try module.registerFunctionThread();
-    try std.testing.expectEqual(@as(usize, 2), module.registration_depth);
-    try std.testing.expectEqual(@as(usize, 2), module.register_runs);
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
+    try std.testing.expectEqual(@as(usize, 1), module.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), module.register_runs);
     try std.testing.expectEqual(@as(usize, 1), module.registration_start_runs);
 
     _ = try module.emitFunctionIteration(2);
     try module.unregisterFunctionThread();
-    try std.testing.expectEqual(@as(usize, 1), module.registration_depth);
-    try std.testing.expectEqual(@as(usize, 1), module.unregister_runs);
-    try std.testing.expectEqual(@as(usize, 0), module.registration_stop_runs);
-    try std.testing.expectError(error.OutstandingRegistration, module.exit());
-
-    try module.unregisterFunctionThread();
     try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
-    try std.testing.expectEqual(@as(usize, 2), module.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 1), module.unregister_runs);
     try std.testing.expectEqual(@as(usize, 1), module.registration_stop_runs);
+    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
 
     try module.exit();
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
@@ -496,4 +492,17 @@ test "trace-events sample rejects selftest when callback registration is already
     try std.testing.expectEqual(@as(usize, 12), selftest_summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), selftest_summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 16), selftest_summary.total_events);
+}
+
+test "trace-events sample rejects duplicate function-thread registration" {
+    var module = RuntimeTraceEventsSample{};
+    try module.init();
+
+    try module.registerFunctionThread();
+    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
+    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
+    _ = try module.emitFunctionIteration(2);
+    try module.unregisterFunctionThread();
+    try std.testing.expectEqual(@as(usize, 0), module.summary().registration_depth);
 }
