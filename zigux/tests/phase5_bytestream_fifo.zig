@@ -114,6 +114,112 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     try std.testing.expect(!module.usesWrappedStorageWindow());
 }
 
+test "phase 5 bytestream fifo sample keeps queue-shape boundaries explicit" {
+    var module = sample.BytestreamFifoSample{};
+    const queue_shape = try module.runQueueShapeReplay();
+
+    try std.testing.expectEqual(sample.SampleStage.cold, queue_shape.stage_before_replay);
+
+    try std.testing.expectEqual(sample.SampleStage.cold, queue_shape.cold.stage);
+    try std.testing.expect(queue_shape.cold.is_empty);
+    try std.testing.expect(!queue_shape.cold.is_full);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.cold.count);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), queue_shape.cold.available);
+    try std.testing.expect(!queue_shape.cold.wrapped_window);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.cold.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.cold.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.cold.spans.total_visible);
+    try std.testing.expect(!queue_shape.cold.spans.wrapped);
+
+    try std.testing.expectEqual(sample.SampleStage.initialized, queue_shape.after_init.stage);
+    try std.testing.expect(queue_shape.after_init.is_empty);
+    try std.testing.expect(!queue_shape.after_init.is_full);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_init.count);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), queue_shape.after_init.available);
+    try std.testing.expect(!queue_shape.after_init.wrapped_window);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_init.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_init.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_init.spans.total_visible);
+    try std.testing.expect(!queue_shape.after_init.spans.wrapped);
+
+    try std.testing.expectEqual(@as(usize, 5), queue_shape.hello_copy_count);
+    try std.testing.expectEqual(sample.SampleStage.initialized, queue_shape.after_hello.stage);
+    try std.testing.expect(!queue_shape.after_hello.is_empty);
+    try std.testing.expect(!queue_shape.after_hello.is_full);
+    try std.testing.expectEqual(@as(usize, 5), queue_shape.after_hello.count);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 5), queue_shape.after_hello.available);
+    try std.testing.expect(!queue_shape.after_hello.wrapped_window);
+    try std.testing.expectEqual(@as(usize, 5), queue_shape.after_hello.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_hello.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 5), queue_shape.after_hello.spans.total_visible);
+    try std.testing.expect(!queue_shape.after_hello.spans.wrapped);
+
+    try std.testing.expectEqual(sample.SampleStage.initialized, queue_shape.at_capacity.stage);
+    try std.testing.expect(!queue_shape.at_capacity.is_empty);
+    try std.testing.expect(queue_shape.at_capacity.is_full);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), queue_shape.at_capacity.count);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.at_capacity.available);
+    try std.testing.expect(!queue_shape.at_capacity.wrapped_window);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), queue_shape.at_capacity.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.at_capacity.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), queue_shape.at_capacity.spans.total_visible);
+    try std.testing.expect(!queue_shape.at_capacity.spans.wrapped);
+    try std.testing.expect(queue_shape.overflow_rejected);
+
+    try std.testing.expectEqual(@as(u8, 'h'), queue_shape.skipped_at_capacity);
+    try std.testing.expectEqual(sample.SampleStage.initialized, queue_shape.post_skip.stage);
+    try std.testing.expect(!queue_shape.post_skip.is_empty);
+    try std.testing.expect(!queue_shape.post_skip.is_full);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 1), queue_shape.post_skip.count);
+    try std.testing.expectEqual(@as(usize, 1), queue_shape.post_skip.available);
+    try std.testing.expect(!queue_shape.post_skip.wrapped_window);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 1), queue_shape.post_skip.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.post_skip.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 1), queue_shape.post_skip.spans.total_visible);
+    try std.testing.expect(!queue_shape.post_skip.spans.wrapped);
+
+    try std.testing.expectEqual(@as(u8, 255), queue_shape.refill_value);
+    try std.testing.expectEqual(sample.SampleStage.initialized, queue_shape.wrapped_refill.stage);
+    try std.testing.expect(!queue_shape.wrapped_refill.is_empty);
+    try std.testing.expect(queue_shape.wrapped_refill.is_full);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), queue_shape.wrapped_refill.count);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.wrapped_refill.available);
+    try std.testing.expect(queue_shape.wrapped_refill.wrapped_window);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 1), queue_shape.wrapped_refill.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 1), queue_shape.wrapped_refill.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), queue_shape.wrapped_refill.spans.total_visible);
+    try std.testing.expect(queue_shape.wrapped_refill.spans.wrapped);
+
+    try std.testing.expectEqual(sample.SampleStage.initialized, queue_shape.after_reset.stage);
+    try std.testing.expect(queue_shape.after_reset.is_empty);
+    try std.testing.expect(!queue_shape.after_reset.is_full);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_reset.count);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), queue_shape.after_reset.available);
+    try std.testing.expect(!queue_shape.after_reset.wrapped_window);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_reset.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_reset.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_reset.spans.total_visible);
+    try std.testing.expect(!queue_shape.after_reset.spans.wrapped);
+
+    try std.testing.expectEqual(sample.SampleStage.exited, queue_shape.after_exit.stage);
+    try std.testing.expect(queue_shape.after_exit.is_empty);
+    try std.testing.expect(!queue_shape.after_exit.is_full);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_exit.count);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), queue_shape.after_exit.available);
+    try std.testing.expect(!queue_shape.after_exit.wrapped_window);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_exit.spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_exit.spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, 0), queue_shape.after_exit.spans.total_visible);
+    try std.testing.expect(!queue_shape.after_exit.spans.wrapped);
+
+    try std.testing.expectEqual(@as(usize, 1), queue_shape.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), queue_shape.exit_runs);
+    try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 0), module.count());
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.available());
+    try std.testing.expect(!module.usesWrappedStorageWindow());
+}
+
 test "phase 5 bytestream fifo sample makes preview truncation and lifetime boundaries explicit" {
     var module = sample.BytestreamFifoSample{};
 
