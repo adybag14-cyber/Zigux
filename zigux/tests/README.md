@@ -140,6 +140,9 @@ Key entrypoints
   * `zigux/tests/phase3_abi.zig`
   * `zigux/tests/phase3_low_level_wrappers.zig`
   * `zigux/tests/phase3_export_uapi_layout.zig`
+  * `zigux/tests/phase3_abi_dump.zig`
+  * `zigux/tests/fixtures/phase3_abi/expected.json`
+  * `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
   * `zigux/tests/phase14_build.zig`
   * `zigux/tests/phase14_ring_buffer_survey.zig`
   * `zigux/tests/phase14_rcu_tree_survey.zig`
