@@ -151,6 +151,10 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(helper_impl, "try std.testing.expectEqual(@as(u8, 0), buffer[15]);");
     try expectContains(helper_impl, "try std.testing.expectEqual(@as(u8, 0), buffer[16]);");
     try expectContains(helper_impl, "test \"nextArg does not treat a leading equals sign as a value separator\"");
+    try expectContains(helper_impl, "test \"nextArg keeps empty-input param and rest borrowed from the caller slice\"");
+    try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(args.ptr)), @as(usize, @intFromPtr(parsed.param.ptr)));");
+    try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(args.ptr)), @as(usize, @intFromPtr(parsed.rest.ptr)));");
+    try expectContains(helper_impl, "test \"nextArg returns an empty sentinel token before leading whitespace and trims the following rest\"");
     try expectCount(helper_impl, "test \"nextArg keeps param, value, and rest borrowed from the caller buffer\"", 1);
 
     const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
