@@ -57,6 +57,7 @@ LOW_LEVEL_WRAPPER_REQUIRED_MARKERS = (
     "atomic.fetchAnd(u32, &value, 12, .seq_cst)",
     "atomic.fetchOr(u32, &value, 3, .seq_cst)",
     "atomic.fetchXor(u32, &value, 6, .seq_cst)",
+    "atomic.fetchNand(u32, &value, 10, .seq_cst)",
     "atomic.fetchMin(u32, &value, 4, .seq_cst)",
     "atomic.fetchMax(u32, &value, 19, .seq_cst)",
     "atomic.compareExchange(u32, &value, 13, 21, .seq_cst, .seq_cst)",
@@ -475,6 +476,22 @@ def run_self_test() -> int:
         low_level_issues: list[str] = []
         validate_low_level_wrapper_markers(root, "abi", low_level_issues)
         assert low_level_issues == []
+
+        wrapper_test_path.write_text(
+            "\n".join(
+                marker
+                for marker in LOW_LEVEL_WRAPPER_REQUIRED_MARKERS
+                if marker != "atomic.fetchNand(u32, &value, 10, .seq_cst)"
+            )
+            + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        missing_fetch_nand_issues: list[str] = []
+        validate_low_level_wrapper_markers(root, "abi", missing_fetch_nand_issues)
+        assert missing_fetch_nand_issues == [
+            "abi:missing_low_level_wrapper_marker=atomic.fetchNand(u32, &value, 10, .seq_cst)"
+        ]
 
         wrapper_test_path.write_text(
             "\n".join(LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[:-1]) + "\n",
