@@ -11,7 +11,7 @@ This catalog records the current shared review surface for the bounded Phase 6 l
   - `lib/bsearch.c`
   - `lib/checksum.c`
   - `lib/hexdump.c`
-- verification note: this catalog was refreshed by direct readback of the current `master` Phase 6 slice notes, shared docs indexes, perf survey, build entrypoint, Makefile routes, helper parity manifest, and the shared owner map on `2026-05-07`, with inspected head `edc1367`
+- verification note: this catalog was refreshed by direct readback of the current `master` Phase 6 slice notes, shared docs indexes, perf survey, build entrypoint, Makefile routes, helper parity manifest, and the shared owner map on `2026-05-08`
 
 ## Why this catalog exists
 
@@ -70,11 +70,11 @@ Use `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` before reopening
 - dedicated perf replay: `zigux/tests/phase6_hexdump_perf.zig`
 - committed fixture surface: `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
-- current review posture: helper parity is now individually rerunnable through `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`, alongside the shipped formatter-sensitive slowdown gate exposed through `make -C zigux phase6-hexdump-perf`
+- current review posture: helper parity is now individually rerunnable through `make -C zigux phase6-hexdump-test`, alongside the shipped formatter-sensitive slowdown gate exposed through `make -C zigux phase6-hexdump-perf`
 
 ## Shared Replay Reminders
 
-- `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`
+- `make -C zigux phase6-hexdump-test`
 - `make -C zigux phase6-validate`
 - `make -C zigux phase6`
 - `make -C zigux phase6-base64-perf`
