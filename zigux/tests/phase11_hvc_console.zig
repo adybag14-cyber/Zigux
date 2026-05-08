@@ -473,6 +473,52 @@ test "phase11 hvc console keeps khvcd polling wakeups and teardown pressure revi
     try std.testing.expectError(error.ConsoleUnavailable, console.summarizeKhvcdPollingContract(.{}));
 }
 
+test "phase11 hvc console keeps poll-only khvcd wakeups reviewable without notifier carryover" {
+    var console = try hvc_console.HvcConsoleLab.init(13);
+    _ = console.instantiate(0xd5);
+
+    const read_only = try console.summarizeKhvcdPollingContract(.{
+        .close = .{
+            .port_initialized = false,
+            .open_count_before_close = 2,
+        },
+        .read_poll_pending = true,
+    });
+    try std.testing.expect(!read_only.final_close_wait_required);
+    try std.testing.expect(!read_only.clears_port_initialized_on_final_close);
+    try std.testing.expect(!read_only.notifier_add_pending);
+    try std.testing.expect(!read_only.notifier_hangup_pending);
+    try std.testing.expect(!read_only.notifier_driven_wakeup_pending);
+    try std.testing.expect(read_only.read_poll_pending);
+    try std.testing.expect(!read_only.write_poll_pending);
+    try std.testing.expect(read_only.poll_driven_wakeup_pending);
+    try std.testing.expect(read_only.khvcd_polling_pending);
+    try std.testing.expect(read_only.bounded_reschedule_pending);
+    try std.testing.expect(read_only.teardown_host_io_pending);
+
+    const write_only = try console.summarizeKhvcdPollingContract(.{
+        .close = .{
+            .port_initialized = false,
+            .open_count_before_close = 2,
+        },
+        .write_poll_pending = true,
+    });
+    try std.testing.expect(!write_only.final_close_wait_required);
+    try std.testing.expect(!write_only.clears_port_initialized_on_final_close);
+    try std.testing.expect(!write_only.notifier_add_pending);
+    try std.testing.expect(!write_only.notifier_hangup_pending);
+    try std.testing.expect(!write_only.notifier_driven_wakeup_pending);
+    try std.testing.expect(!write_only.read_poll_pending);
+    try std.testing.expect(write_only.write_poll_pending);
+    try std.testing.expect(write_only.poll_driven_wakeup_pending);
+    try std.testing.expect(write_only.khvcd_polling_pending);
+    try std.testing.expect(write_only.bounded_reschedule_pending);
+    try std.testing.expect(write_only.teardown_host_io_pending);
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeKhvcdPollingContract(.{}));
+}
+
 test "phase11 hvc console keeps hangup disconnect teardown boundaries reviewable" {
     var console = try hvc_console.HvcConsoleLab.init(9);
     _ = console.instantiate(0x90);
