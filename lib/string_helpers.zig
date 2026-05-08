@@ -415,6 +415,10 @@ pub fn stringEscapeMem(src: []const u8, dst: []u8, flags: u32, only: ?[]const u8
     return dst_index;
 }
 
+pub fn stringEscapeStr(src: []const u8, dst: []u8, flags: u32, only: ?[]const u8) usize {
+    return stringEscapeMem(cStringPrefix(src), dst, flags, only);
+}
+
 pub fn skipSpaces(s: []const u8) []const u8 {
     const prefix = cStringPrefix(s);
     var start: usize = 0;
@@ -976,6 +980,18 @@ test "stringEscapeMem zero-capacity destinations still report the full escaped l
     const single_len = stringEscapeMem("\n", &single, ESCAPE_HEX, null);
     try std.testing.expectEqual(@as(usize, 4), single_len);
     try std.testing.expectEqual(@as(u8, '\\'), single[0]);
+}
+
+test "stringEscapeStr stops at the first NUL while keeping str-oriented escape semantics" {
+    var out = [_]u8{0} ** 16;
+
+    const stopped_len = stringEscapeStr("A\n\x00tail", &out, ESCAPE_SPACE, null);
+    try std.testing.expectEqual(@as(usize, 3), stopped_len);
+    try std.testing.expectEqualSlices(u8, "A\\n", out[0..stopped_len]);
+
+    const escaped_len = stringEscapeStr("A\x01z", &out, ESCAPE_NP | ESCAPE_HEX, null);
+    try std.testing.expectEqual(@as(usize, 6), escaped_len);
+    try std.testing.expectEqualSlices(u8, "A\\x01z", out[0..escaped_len]);
 }
 
 test "skipSpaces returns the first non-whitespace byte before the first NUL" {
