@@ -98,6 +98,7 @@ This keeps the survey useful after the first starter, selftest-hook surface, mod
 
 2. run the focused top-bit companion replay
 - `zig build phase9-runtime-bitmap-top-bit-tests --build-file zigux/tests/phase9_build.zig`
+- `make -C zigux phase9-runtime-bitmap-top-bit-test`
 
 3. run the focused shared runtime-loader replay
 - `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
