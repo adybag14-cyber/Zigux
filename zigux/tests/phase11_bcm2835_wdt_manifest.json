@@ -99,14 +99,14 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
-      "why_now": "The lane now lands a tiny platform-registration and PM-base handoff summary that keeps parent attachment, PM-base readiness, register-device intent, and poweroff claim-vs-conflict reviewable before any live platform registration, MMIO, or shared poweroff-handler behavior lands."
+      "why_now": "The lane now lands a tiny platform-registration and PM-base handoff summary that keeps parent attachment, PM-base readiness, and register-device intent reviewable before any live platform registration, MMIO, or shared poweroff-handler behavior lands."
     },
     {
       "id": "phase11-bcm2835-wdt-poweroff-summary",
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
-      "why_now": "The lane now records a tiny poweroff-path summary that keeps the shared system-poweroff callback ownership preconditions, Raspberry Pi halt-partition request bits, and short watchdog restart arming sequence reviewable before any live poweroff callback installation or PM base plumbing."
+      "why_now": "The lane now records a tiny poweroff-path summary that keeps the shared system-poweroff callback ownership preconditions, halt-partition request intent, and short watchdog restart arming sequence reviewable before any live poweroff callback installation or PM base plumbing."
     },
     {
       "id": "phase11-bcm2835-wdt-remove-summary",
