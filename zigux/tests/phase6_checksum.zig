@@ -144,6 +144,7 @@ test "pseudo header accumulation matches the fixture-backed reference checksum" 
         const combined_partial = checksum.blockAdd(pseudo_partial, payload_partial, pseudo_header.len);
         const helper_partial = checksum.tcpUdpNofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto);
         const actual = checksum.fold(helper_partial);
+        const magic = checksum.tcpUdpMagic(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto);
 
         var pseudo_and_payload: [64]u8 = undefined;
         const combined_len = 12 + case.payload.len;
@@ -152,6 +153,7 @@ test "pseudo header accumulation matches the fixture-backed reference checksum" 
 
         try std.testing.expectEqual(combined_partial, helper_partial);
         try std.testing.expectEqual(case.expected_compute, actual);
+        try std.testing.expectEqual(actual, magic);
         try std.testing.expectEqual(referenceInternetChecksum(pseudo_and_payload[0..combined_len]), actual);
     }
 }
@@ -212,9 +214,11 @@ test "ipv6 pseudo header accumulation stays aligned across representative lanes"
 
         const payload_partial = checksum.partial(case.payload, 0);
         const helper_partial = checksum.tcpUdpV6Nofold(payload_partial, &case.saddr, &case.daddr, case.len, case.proto);
+        const magic = checksum.tcpUdpV6Magic(payload_partial, &case.saddr, &case.daddr, case.len, case.proto);
         const reference_partial = referencePartial(pseudo_header[0..], payload_partial);
 
         try std.testing.expectEqual(reference_partial, helper_partial);
+        try std.testing.expectEqual(checksum.fold(helper_partial), magic);
 
         if (case.check_full_checksum) {
             var packet: [64]u8 = undefined;
@@ -222,6 +226,7 @@ test "ipv6 pseudo header accumulation stays aligned across representative lanes"
             @memcpy(packet[0..pseudo_header.len], pseudo_header[0..]);
             @memcpy(packet[pseudo_header.len..packet_len], case.payload);
             try std.testing.expectEqual(referenceInternetChecksum(packet[0..packet_len]), checksum.fold(helper_partial));
+            try std.testing.expectEqual(referenceInternetChecksum(packet[0..packet_len]), magic);
         }
     }
 }
