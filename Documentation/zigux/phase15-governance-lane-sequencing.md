@@ -129,6 +129,7 @@ The strongest current Phase 15 sequencing rule is simple:
 - keep every Phase 15 governance run parked unless a named reopen trigger fires or the deep-core blocker posture changes
 - current `master` already closed the older shared tests-root follow-through: `zigux/tests/README.md` explicitly carries both `zigux/tests/phase15_indefinite_c_blocker_evidence.zig` and `zigux/tests/phase15_governance_lane_sequencing.zig`, so future `P15-Y06` runs should not reopen that tests-root touch unless one of those anchors disappears again
 - current `master` also already closed the earlier docs-root workflow follow-through: `Documentation/zigux/README.md` explicitly carries `.github/workflows/zigux-bootstrap.yml` beside the checker-backed and build-backed replay routes, so future `P15-Y06` runs should not reopen that docs-root touch unless the workflow pointer or the shared owner split drifts again
+- current `master` also already closed the earlier review-checklist workflow-and-build follow-through: `Documentation/zigux/review-checklist.md` explicitly carries `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `zig build test --build-file zigux/tests/phase15_build.zig`, and `make -C zigux phase15-validate`, so future `P15-Y06` runs should not reopen that checklist touch unless one of those shared governance anchors drifts again
 
 ## Recommended next-step order
 
