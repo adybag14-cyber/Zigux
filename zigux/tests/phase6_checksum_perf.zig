@@ -49,6 +49,9 @@ fn validatePerfMatrix() !void {
         if (case.bytes.len == 0 or case.iterations == 0 or case.max_slowdown_pct == 0) {
             return error.ChecksumPerfMatrixMismatch;
         }
+        if (checksum.compute(case.bytes) != referenceInternetChecksum(case.bytes)) {
+            return error.ChecksumPerfMatrixMismatch;
+        }
 
         if (std.mem.eql(u8, case.label, "64B")) {
             if (case.bytes.len != 64 or case.iterations != 200_000 or case.max_slowdown_pct != 150 or saw_64b) {
