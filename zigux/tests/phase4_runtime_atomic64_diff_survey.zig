@@ -106,7 +106,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob
 
     try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
-    try std.testing.expectEqualStrings("d3f208106ad4ca905cf2eae3c1c55937cd8a7779", manifest.phase4_validator_blob_sha);
+    try std.testing.expectEqualStrings("4b3798851901ab60ffbe8e7576bdba2988fd5346", manifest.phase4_validator_blob_sha);
     try std.testing.expectEqualStrings(
         "Documentation/zigux/phase4-gate-evidence.md",
         manifest.phase4_gate_evidence_path,
@@ -117,8 +117,8 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob
 
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("55dfa2ef288e8052ce4505bc39209595c0fc0c4f", manifest.phase4_validation_matrix_blob_sha);
-    try std.testing.expectEqualStrings("a7803e891f84333f4791a2dd0d0733b8bb46c4a9", manifest.phase4_review_checklist_blob_sha);
+    try std.testing.expectEqualStrings("ac4b1297b4ddc9c1947f308bda7335315d402a72", manifest.phase4_validation_matrix_blob_sha);
+    try std.testing.expectEqualStrings("a64c4400f26216b266c5733fdf0b8bbd205a4b5b", manifest.phase4_review_checklist_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
