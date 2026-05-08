@@ -63,6 +63,9 @@ REVIEW_CHECKLIST_MARKERS = [
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "make -C zigux phase2-validate",
+    "make -C zigux phase2-tools",
+    "make -C zigux phase2-kconfig",
+    "make -C zigux phase2-cross",
     "make -C zigux phase2",
 ]
 
@@ -150,6 +153,9 @@ EXACT_SURFACE_COUNTS = {
         "if the change touches the shared Phase 2 toolchain packet": 1,
         "python3 scripts/zigux/check-zig-toolchain.py --self-test": 1,
         "make -C zigux phase2-validate": 1,
+        "make -C zigux phase2-tools": 1,
+        "make -C zigux phase2-kconfig": 1,
+        "make -C zigux phase2-cross": 1,
     },
     "phase2_closure_doc": {
         "PHASE2_TOOLCHAIN_PIN_TARGET_COUNT=1": 1,
@@ -416,7 +422,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=15")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
