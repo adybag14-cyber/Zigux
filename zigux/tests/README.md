@@ -93,13 +93,18 @@ Key entrypoints
   * `zigux/tests/phase10_virtio_mmio_manifest.json`
   * `zigux/tests/phase11_build.zig`
   * `zigux/tests/phase11_gpio_wdt.zig`
+  * `zigux/tests/phase11_gpio_wdt_manifest.json`
   * `zigux/tests/phase11_gpio_wdt_survey.zig`
   * `zigux/tests/phase11_bcm2835_wdt.zig`
+  * `zigux/tests/phase11_bcm2835_wdt_manifest.json`
   * `zigux/tests/phase11_bcm2835_wdt_survey.zig`
   * `zigux/tests/phase11_dw_wdt.zig`
+  * `zigux/tests/phase11_dw_wdt_manifest.json`
+  * `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
   * `zigux/tests/phase11_dw_wdt_survey.zig`
   * `zigux/tests/phase11_hvc_console.zig`
   * `zigux/tests/phase11_hvc_cleanup.zig`
+  * `zigux/tests/phase11_hvc_console_manifest.json`
   * `zigux/tests/phase11_hvc_console_survey.zig`
   * `zigux/tests/phase11_uapi_header_parity_manifest.json`
   * `zigux/tests/phase11_uapi_header_parity_survey.zig`
