@@ -109,6 +109,26 @@ pub const OwnershipSummary = struct {
     saw_function_callback_path: bool,
 };
 
+pub const OwnershipReplaySummary = struct {
+    stage_before_init: SampleStage,
+    stage_after_init: SampleStage,
+    stage_after_replay: SampleStage,
+    stage_after_exit: SampleStage,
+    init_runs: usize,
+    replay_runs: usize,
+    exit_runs: usize,
+    total_event_calls: usize,
+    selected_string: []const u8,
+    selected_index: usize,
+    formatted_message: []const u8,
+    function_callback_event_calls: usize,
+    registration_balance_restored: bool,
+    saw_conditional_path: bool,
+    saw_vararg_payload: bool,
+    saw_rel_loc_payload: bool,
+    saw_function_callback_path: bool,
+};
+
 pub const TraceEventsReferenceSample = struct {
     const Self = @This();
 
@@ -375,6 +395,38 @@ pub const TraceEventsReferenceSample = struct {
         };
     }
 
+    pub fn runOwnershipReplay(self: *Self) !OwnershipReplaySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        const stage_before_init = self.stage();
+        try self.init();
+        const stage_after_init = self.stage();
+        const replay = try self.runAnchorReplay();
+        const stage_after_replay = self.stage();
+        try self.exit();
+        const exit_summary = self.ownershipSummary();
+
+        return .{
+            .stage_before_init = stage_before_init,
+            .stage_after_init = stage_after_init,
+            .stage_after_replay = stage_after_replay,
+            .stage_after_exit = exit_summary.stage,
+            .init_runs = exit_summary.init_runs,
+            .replay_runs = exit_summary.replay_runs,
+            .exit_runs = exit_summary.exit_runs,
+            .total_event_calls = exit_summary.total_event_calls,
+            .selected_string = exit_summary.selected_string,
+            .selected_index = exit_summary.selected_index,
+            .formatted_message = exit_summary.formatted_message,
+            .function_callback_event_calls = replay.function_callback_event_calls,
+            .registration_balance_restored = replay.registration_balance_restored and exit_summary.registration_depth == 0,
+            .saw_conditional_path = exit_summary.saw_conditional_path,
+            .saw_vararg_payload = exit_summary.saw_vararg_payload,
+            .saw_rel_loc_payload = exit_summary.saw_rel_loc_payload,
+            .saw_function_callback_path = exit_summary.saw_function_callback_path,
+        };
+    }
+
     pub fn exit(self: *Self) !void {
         switch (self.stage()) {
             .initialized, .replay_complete => {},
@@ -565,6 +617,30 @@ test "trace-events sample ownership summary keeps lifecycle snapshots public" {
     try std.testing.expectEqual(SampleStage.exited, summary.stage);
     try std.testing.expectEqual(@as(usize, 1), summary.exit_runs);
     try std.testing.expectEqual(@as(usize, 0), summary.registration_depth);
+}
+
+test "trace-events sample ownership replay keeps the lifecycle helper public" {
+    var module = TraceEventsReferenceSample{};
+    const ownership_replay = try module.runOwnershipReplay();
+
+    try std.testing.expectEqual(SampleStage.cold, ownership_replay.stage_before_init);
+    try std.testing.expectEqual(SampleStage.initialized, ownership_replay.stage_after_init);
+    try std.testing.expectEqual(SampleStage.replay_complete, ownership_replay.stage_after_replay);
+    try std.testing.expectEqual(SampleStage.exited, ownership_replay.stage_after_exit);
+    try std.testing.expectEqual(@as(usize, 1), ownership_replay.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), ownership_replay.replay_runs);
+    try std.testing.expectEqual(@as(usize, 1), ownership_replay.exit_runs);
+    try std.testing.expectEqual(@as(usize, 8), ownership_replay.total_event_calls);
+    try std.testing.expectEqualStrings("Gandalf", ownership_replay.selected_string);
+    try std.testing.expectEqual(@as(usize, 2), ownership_replay.selected_index);
+    try std.testing.expectEqualStrings("iter=7", ownership_replay.formatted_message);
+    try std.testing.expectEqual(@as(usize, 2), ownership_replay.function_callback_event_calls);
+    try std.testing.expect(ownership_replay.registration_balance_restored);
+    try std.testing.expect(ownership_replay.saw_conditional_path);
+    try std.testing.expect(ownership_replay.saw_vararg_payload);
+    try std.testing.expect(ownership_replay.saw_rel_loc_payload);
+    try std.testing.expect(ownership_replay.saw_function_callback_path);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runOwnershipReplay());
 }
 
 test "trace-events sample makes ownership and teardown boundaries explicit" {
