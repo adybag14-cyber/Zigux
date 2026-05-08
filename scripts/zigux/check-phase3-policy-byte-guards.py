@@ -28,11 +28,19 @@ REQUIRED_SURVEY_SNIPPETS = (
 REQUIRED_PANIC_SNIPPETS = (
     "pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.PanicMode {",
     "if (reserved != 0) return null;",
+    "pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "return modeFromInteropPolicy(policy) != null;",
+    "pub fn recognizesByte(mode: u8) bool {",
+    "return recognizesInteropPolicyBytes(mode, 0);",
     "pub fn actionForInteropPolicyBytes(mode: u8, reserved: u8) ?Action {",
     "return actionFor(modeFromInteropPolicyBytes(mode, reserved) orelse return null);",
     "pub fn canReturnInteropPolicyBytes(mode: u8, reserved: u8) bool {",
     "return actionForInteropPolicyBytes(mode, reserved) == .warn_and_return;",
+    "try std.testing.expect(recognizesByte(0));",
+    "try std.testing.expect(!recognizesByte(9));",
     "try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicyBytes(2, 1));",
+    "try std.testing.expect(recognizesInteropPolicy(abort_policy));",
+    "try std.testing.expect(!recognizesInteropPolicy(reserved_policy));",
     "try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicyBytes(2, 1));",
     "try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));",
 )
@@ -40,11 +48,20 @@ REQUIRED_PANIC_SNIPPETS = (
 REQUIRED_ALLOCATOR_SNIPPETS = (
     "pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.AllocatorMode {",
     "if (reserved != 0) return null;",
+    "pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "return modeFromInteropPolicy(policy) != null;",
+    "pub fn recognizesByte(mode: u8) bool {",
+    "return recognizesInteropPolicyBytes(mode, 0);",
     "pub fn requiresExplicitCallerPolicyBytes(mode: u8, reserved: u8) bool {",
     "return modeFromInteropPolicyBytes(mode, reserved) == .caller_provided;",
     "pub fn permitsGlobalFallbackPolicyBytes(mode: u8, reserved: u8) bool {",
     "return switch (modeFromInteropPolicyBytes(mode, reserved) orelse return false) {",
+    "try std.testing.expect(recognizesByte(0));",
+    "try std.testing.expect(!recognizesByte(9));",
     "try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(2, 1));",
+    "try std.testing.expect(recognizesInteropPolicy(caller_policy));",
+    "try std.testing.expect(!recognizesInteropPolicy(unknown_policy));",
+    "try std.testing.expect(!recognizesInteropPolicy(reserved_policy));",
     "try std.testing.expect(!requiresExplicitCallerPolicyBytes(2, 1));",
     "try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));",
 )
@@ -53,17 +70,28 @@ REQUIRED_UNSAFE_SNIPPETS = (
     "const abi = @import(\"abi_bindings\");",
     "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?UnsafeScopeTag {",
     "pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn recognizesByte(unsafe_scope: u8) bool {",
+    "return recognizesInteropPolicyBytes(unsafe_scope, 0);",
     "pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
     "if (reserved != 0) return null;",
+    "try std.testing.expect(recognizesByte(0));",
+    "try std.testing.expect(!recognizesByte(9));",
     "try std.testing.expect(!recognizesInteropPolicyBytes(1, 1));",
     "try std.testing.expectEqual(@as(?UnsafeScopeTag, .raw_pointer_bridge), scopeFromInteropPolicy(raw_policy));",
+    "try std.testing.expect(recognizesInteropPolicy(raw_policy));",
     "try std.testing.expect(!recognizesInteropPolicy(reserved_policy));",
     "try std.testing.expect(permitsNoUnsafeInteropPolicy(none_policy));",
     "try std.testing.expect(permitsVolatileMmioInteropPolicy(mmio_policy));",
     "try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(reserved_policy));",
 )
+
+
+def require_snippets(issues: list[str], text: str, prefix: str, snippets: tuple[str, ...]) -> None:
+    for snippet in snippets:
+        if snippet not in text:
+            issues.append(f"missing_{prefix}_snippet:{snippet}")
 
 
 def normalized_marker_lines(text: str) -> list[str]:
@@ -95,12 +123,6 @@ def require_exact_line_count(
         issues.append(f"missing_{prefix}:{line}")
         return
     issues.append(f"duplicate_{prefix}:{line}:{count}")
-
-
-def require_snippets(issues: list[str], text: str, prefix: str, snippets: tuple[str, ...]) -> None:
-    for snippet in snippets:
-        if snippet not in text:
-            issues.append(f"missing_{prefix}_snippet:{snippet}")
 
 
 def validate(root: Path) -> list[str]:
@@ -192,26 +214,24 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         broken_panic = (root / PANIC_POLICY_REL).read_text(encoding="utf-8").replace(
-            "try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));\n",
+            "try std.testing.expect(recognizesInteropPolicy(abort_policy));\n",
             "",
             1,
         )
         write(root / PANIC_POLICY_REL, broken_panic)
         issues = validate(root)
-        assert (
-            "missing_panic_snippet:try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));" in issues
-        )
+        assert "missing_panic_snippet:try std.testing.expect(recognizesInteropPolicy(abort_policy));" in issues
 
         build_valid_workspace(root)
         broken_allocator = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8").replace(
-            "try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));\n",
+            "try std.testing.expect(!recognizesInteropPolicy(unknown_policy));\n",
             "",
             1,
         )
         write(root / ALLOCATOR_POLICY_REL, broken_allocator)
         issues = validate(root)
         assert (
-            "missing_allocator_snippet:try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));"
+            "missing_allocator_snippet:try std.testing.expect(!recognizesInteropPolicy(unknown_policy));"
             in issues
         )
 
@@ -235,8 +255,18 @@ def run_self_test() -> int:
         issues = validate(root)
         assert "missing_unsafe_snippet:pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {" in issues
 
+        build_valid_workspace(root)
+        broken_unsafe_recognizes_byte = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8").replace(
+            "pub fn recognizesByte(unsafe_scope: u8) bool {\n",
+            "",
+            1,
+        )
+        write(root / UNSAFE_NARROW_REL, broken_unsafe_recognizes_byte)
+        issues = validate(root)
+        assert "missing_unsafe_snippet:pub fn recognizesByte(unsafe_scope: u8) bool {" in issues
+
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
