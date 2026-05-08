@@ -17,6 +17,8 @@ The current shared Phase 12 packet on `master` is smoke-first plus shared build 
 
 If the local runtime does not provide `zig` on `PATH`, keep that same smoke-first release packet and rerun only the shipped Make routes as `make -C zigux phase12-smoke ZIG=<attached-zig-path>` and `make -C zigux phase12 ZIG=<attached-zig-path>`.
 
+Keep the same degraded-workflow validation pair explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` should run before or beside those attached-toolchain Make reruns so build-only contract drift still fails closed when the local runtime needs the fallback path.
+
 This is an environment override for the existing replay packet, not a validator-first or `phase12-validate` route.
 
 It stays explicit through the PMO closure companion, the compact release-coordination matrix, the driver-only anti-overlap companion, the shared libbpf anti-overlap companion, the mixed raw-fallback overview note, the workflow-backed build-only contract, and the bounded `virtio_net`, `nvme_pci`, `virtio_scsi`, and libbpf survey packet.
