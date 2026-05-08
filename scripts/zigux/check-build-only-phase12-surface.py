@@ -162,12 +162,14 @@ REQUIRED_FILE_MARKERS = {
     ],
     TESTS_README_PATH: [
         "keep `Documentation/zigux/phase12-release-closure-checklist.md` visible beside `Documentation/zigux/phase12-release-sequencing.md`",
+        "`Documentation/zigux/phase12-release-coordination-matrix.md`",
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`scripts/zigux/check-build-only-phase12-surface.py`",
+        "`make -C zigux phase12-smoke`",
         "`make -C zigux phase12`",
     ],
     PHASE12_BUILD_PATH: [
