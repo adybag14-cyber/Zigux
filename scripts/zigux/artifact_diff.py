@@ -7,6 +7,8 @@ import hashlib
 import io
 import json
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 
 
@@ -132,6 +134,48 @@ def capture_emit_result(matched: bool, details: dict[str, object]) -> tuple[int,
     return exit_code, stream.getvalue().splitlines()
 
 
+def assert_cli_contract_case(
+    args: list[str],
+    expected_exit: int,
+    expected_stdout_lines: list[str],
+    *,
+    expected_stderr_normalized: str | None,
+    repeat_count: int = 1,
+) -> None:
+    if repeat_count < 1:
+        raise ValueError(f'repeat_count must be positive, got {repeat_count}')
+
+    script_path = Path(__file__).resolve()
+    for _ in range(repeat_count):
+        completed = subprocess.run(
+            [sys.executable, str(script_path), *args],
+            check=False,
+            capture_output=True,
+            text=True,
+            cwd=script_path.parent,
+        )
+        stdout_lines = completed.stdout.splitlines()
+        if completed.returncode != expected_exit:
+            raise AssertionError(
+                f'expected exit {expected_exit}, got {completed.returncode}: {stdout_lines}'
+            )
+        if stdout_lines != expected_stdout_lines:
+            raise AssertionError(f'unexpected stdout lines: {stdout_lines}')
+        stderr_lines = completed.stderr.splitlines()
+        normalized_stderr = ' '.join(completed.stderr.split())
+        if expected_stderr_normalized is None:
+            if stderr_lines:
+                raise AssertionError(f'unexpected stderr lines: {stderr_lines}')
+            continue
+        if not stderr_lines:
+            raise AssertionError('expected parser stderr output, got none')
+        if normalized_stderr != expected_stderr_normalized:
+            raise AssertionError(
+                'unexpected normalized parser stderr: '
+                f'expected {expected_stderr_normalized!r}, got {normalized_stderr!r}'
+            )
+
+
 EXPECTED_SELF_TEST_CASES = [
     'text_pass',
     'text_mismatch',
@@ -151,6 +195,10 @@ EXPECTED_SELF_TEST_CASES = [
     'sha256_missing_expected',
     'sha256_missing_actual',
     'sha256_missing_both',
+    'cli_help_output',
+    'cli_missing_required_args',
+    'cli_missing_actual_operand',
+    'cli_invalid_mode',
     'invalid_mode_rejected',
 ]
 
@@ -622,6 +670,56 @@ def run_self_test() -> int:
             False,
             render_result_lines(matched, details),
         )
+
+        assert_cli_contract_case(
+            ['-h'],
+            0,
+            [
+                'usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test]',
+                '                        [expected] [actual]',
+                '',
+                'Compare two artifacts in a stable mode.',
+                '',
+                'positional arguments:',
+                '  expected',
+                '  actual',
+                '',
+                'options:',
+                '  -h, --help            show this help message and exit',
+                '  --mode {text,json,sha256}',
+                '  --self-test           Run built-in deterministic comparison checks.',
+            ],
+            expected_stderr_normalized=None,
+            repeat_count=2,
+        )
+        covered_cases.append('cli_help_output')
+
+        assert_cli_contract_case(
+            [],
+            2,
+            [],
+            expected_stderr_normalized='usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] [expected] [actual] artifact_diff.py: error: --mode, expected, and actual are required unless --self-test is set',
+            repeat_count=2,
+        )
+        covered_cases.append('cli_missing_required_args')
+
+        assert_cli_contract_case(
+            ['--mode', 'text', str(text_a)],
+            2,
+            [],
+            expected_stderr_normalized='usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] [expected] [actual] artifact_diff.py: error: --mode, expected, and actual are required unless --self-test is set',
+            repeat_count=2,
+        )
+        covered_cases.append('cli_missing_actual_operand')
+
+        assert_cli_contract_case(
+            ['--mode', 'yaml', str(text_a), str(text_b)],
+            2,
+            [],
+            expected_stderr_normalized="usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] [expected] [actual] artifact_diff.py: error: argument --mode: invalid choice: 'yaml' (choose from text, json, sha256)",
+            repeat_count=2,
+        )
+        covered_cases.append('cli_invalid_mode')
 
         try:
             compare_artifacts('yaml', text_a, text_b)
