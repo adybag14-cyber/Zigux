@@ -104,6 +104,7 @@ REQUIRED_MARKERS = {
         "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {",
         'test "phase3 export shim keeps failure encoding explicit" {',
         'test "phase3 export shim reuses the shared boundary-header compatibility rules" {',
+        'test "phase3 export shim relays compatibility through explicit status packets" {',
     ),
     UAPI_VERSION_REL: (
         "pub const Compatibility = enum {",
@@ -115,6 +116,7 @@ REQUIRED_MARKERS = {
         "pub fn compatibleHeader(size: u32, flags: u16) Header {",
         "pub fn canonicalizeHeader(header: Header) ?Header {",
         'test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes" {',
+        'test "phase3 uapi canonicalizes compatible headers without widening the boundary" {',
     ),
     LINUX_HEADER_REL: (
         "#include <zigux/abi.h>",
@@ -144,6 +146,7 @@ REQUIRED_MARKERS = {
         "try std.testing.expect(uapi_version.canonicalizeHeader(uapi_undersized) == null);",
         "try std.testing.expect(export_shim.headerCompatibility(version_mismatch) == null);",
         "try std.testing.expect(uapi_version.compatibility(version_mismatch) == null);",
+        'test "phase3 export shim keeps compatibility status relays explicit" {',
     ),
 }
 
@@ -370,6 +373,9 @@ def run_self_test() -> int:
             'test "phase3 export shim reuses the shared boundary-header compatibility rules" {',
             "    _ = .{};",
             "}",
+            'test "phase3 export shim relays compatibility through explicit status packets" {',
+            "    _ = .{};",
+            "}",
             "",
         )
     )
@@ -395,6 +401,9 @@ def run_self_test() -> int:
             "    return header;",
             "}",
             'test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes" {',
+            "    _ = .{};",
+            "}",
+            'test "phase3 uapi canonicalizes compatible headers without widening the boundary" {',
             "    _ = .{};",
             "}",
             "",
@@ -458,6 +467,10 @@ def run_self_test() -> int:
             '    try std.testing.expect(uapi_version.compatibility(version_mismatch) == null);',
             '    _ = abi;',
             '    _ = future_compatible;',
+            '}',
+            "",
+            'test "phase3 export shim keeps compatibility status relays explicit" {',
+            '    _ = .{};',
             '}',
             "",
         )
@@ -687,6 +700,42 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:replay_marker_guard_failed:{issues}")
         _write(root / EXPORT_UAPI_LAYOUT_REL, export_uapi_layout_text)
 
+        _write(
+            root / EXPORT_SHIM_REL,
+            export_shim_text.replace('test "phase3 export shim relays compatibility through explicit status packets" {\n', "", 1),
+        )
+        issues = validate(root)
+        expected = [
+            'missing_marker:zigux/kernel/export_shim.zig:test "phase3 export shim relays compatibility through explicit status packets" {'
+        ]
+        if issues != expected:
+            raise SystemExit(f"phase3-export-uapi-self-test:status_packet_test_guard_failed:{issues}")
+        _write(root / EXPORT_SHIM_REL, export_shim_text)
+
+        _write(
+            root / UAPI_VERSION_REL,
+            uapi_version_text.replace('test "phase3 uapi canonicalizes compatible headers without widening the boundary" {\n', "", 1),
+        )
+        issues = validate(root)
+        expected = [
+            'missing_marker:zigux/uapi/version.zig:test "phase3 uapi canonicalizes compatible headers without widening the boundary" {'
+        ]
+        if issues != expected:
+            raise SystemExit(f"phase3-export-uapi-self-test:uapi_canonicalization_test_guard_failed:{issues}")
+        _write(root / UAPI_VERSION_REL, uapi_version_text)
+
+        _write(
+            root / EXPORT_UAPI_LAYOUT_REL,
+            export_uapi_layout_text.replace('test "phase3 export shim keeps compatibility status relays explicit" {\n', "", 1),
+        )
+        issues = validate(root)
+        expected = [
+            'missing_marker:zigux/tests/phase3_export_uapi_layout.zig:test "phase3 export shim keeps compatibility status relays explicit" {'
+        ]
+        if issues != expected:
+            raise SystemExit(f"phase3-export-uapi-self-test:status_relay_layout_test_guard_failed:{issues}")
+        _write(root / EXPORT_UAPI_LAYOUT_REL, export_uapi_layout_text)
+
         workflow_path = root / WORKFLOW_REL
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -727,7 +776,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:manifest_required_file_guard_failed:{issues}")
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
