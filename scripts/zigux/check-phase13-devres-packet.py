@@ -115,7 +115,7 @@ DEVRES_TEST_MARKERS = [
 ]
 
 MANIFEST_EXPECTED_LANE_KEY = "P13-L05"
-MANIFEST_EXPECTED_SURVEYED_COMMIT = "10369315cba5d146a7c6c4c6480ef9d279dc490f"
+MANIFEST_EXPECTED_SURVEYED_COMMIT = "032c57dbde9a95ad6e28ad891cca54bd2e3bfcf1"
 MANIFEST_SUMMARY_KEYS = [
     "preexisting_phase13_devres_test_present",
     "preexisting_phase13_devres_reviewability_present",
