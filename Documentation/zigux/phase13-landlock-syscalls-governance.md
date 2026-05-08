@@ -56,7 +56,7 @@ Future fixtures, survey notes, and helper-local tests for this lane must follow 
 
 ## Ownership boundary with nearby lanes
 
-This note keeps `P13-L13` inside `security/landlock/syscalls.zig` only.
+This note keeps `P13-L16` inside `security/landlock/syscalls.zig` only.
 
 It does not transfer ownership of:
 
