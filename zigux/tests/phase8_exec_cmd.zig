@@ -67,6 +67,37 @@ test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet 
     try std.testing.expectEqual(@as(?[]const u8, null), deferred_execl.call.argv[4]);
 }
 
+test "phase 8 exec-cmd focused replay accepts the last deferred execl handoff before overflow" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var argv_tail: [30]?[]const u8 = undefined;
+    for (argv_tail[0..29]) |*slot| {
+        slot.* = "x";
+    }
+    argv_tail[29] = null;
+
+    var deferred = try exec_cmd.buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "record",
+        &argv_tail,
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 32), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    for (deferred.argv[2..31]) |arg| {
+        try std.testing.expectEqualStrings("x", arg.?);
+    }
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[31]);
+}
+
 test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary explicit" {
     const io = std.testing.io;
     const slice = try std.Io.Dir.cwd().readFileAlloc(
