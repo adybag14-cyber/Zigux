@@ -6,6 +6,7 @@ This note records the latest scratch verification I could run for the shipped Ph
 
 - sample under test: `samples/zigux/bytestream_fifo.zig`
 - roadmap anchor: `samples/kfifo/bytestream-example.c`
+- packet-level survey note still owned separately by `Documentation/zigux/phase5-kfifo-sample-survey.md`
 - sample commit inspected on current `master`: `143114851eaf241a06d274f2eea981715f9c7376`
 - verification date: `2026-05-08`
 - toolchain: `0.17.0-dev.87+9b177a7d2`
@@ -45,4 +46,6 @@ The sample self-check route passed `5/5` tests:
 
 This was a sample-only scratch replay. I could not honestly rerun the repo-local `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `make -C zigux phase5-test`, or `make -C zigux phase5` routes in this workspace because there is no writable Zigux checkout here.
 
-Treat this note as confirmation that the current shipped sample file still passes its own exact bounded self-checks with the attached Zig toolchain. Keep the broader Phase 5 packet truthfulness in `Documentation/zigux/phase5-kfifo-sample-survey.md`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` until a later pass can rerun the full repo-local packet on a writable checkout.
+Treat this note as confirmation that the current shipped sample file still passes its own exact bounded self-checks with the attached Zig toolchain.
+
+It complements `Documentation/zigux/phase5-kfifo-sample-survey.md` rather than replacing it: keep the broader packet truth source in that survey note, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` until those three surfaces are rerun together on a writable checkout.
