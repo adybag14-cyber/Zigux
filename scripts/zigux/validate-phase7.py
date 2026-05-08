@@ -114,7 +114,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-rbtree-slice.md": [
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "zig build test --build-file zigux/tests/phase7_build.zig",
-        "this slice does not carry an open parity-fixture follow-up",
+        "This slice does not carry an open parity-fixture follow-up",
     ],
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
         "PHASE7_LANE_KEY=P7-Y05",
