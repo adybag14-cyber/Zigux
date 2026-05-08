@@ -182,6 +182,7 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
 
     try expectContains(io_instance.io(), "Documentation/zigux/phase15-indefinite-c-policy.md", &.{
         "PHASE15_LANE_KEY=P15-L16",
+        "PHASE15_SLICE=indefinite-c-policy-current-readback-provenance-sync",
         "PHASE15_PROVENANCE_MODE=dated_master_readback",
         "survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-08` on 2026-05-08 because this policy packet reports current stay-in-C governance posture at the bounded packet level instead of implying exact post-commit branch-head parity",
         "exact branch-head parity is not recorded for this packet; the current policy packet therefore uses an explicit dated readback marker instead of implying exact-head provenance",
