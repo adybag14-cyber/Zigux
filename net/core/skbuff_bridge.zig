@@ -269,6 +269,18 @@ const decision_checklist = [_]DecisionChecklistEntry{
     },
 };
 
+const roadmap_boundary_study_area_ids = [_][]const u8{
+    "allocation-entrypoints",
+    "clone-and-private-copy",
+    "headroom-and-linearization-mutation",
+    "checksum-and-segmentation-surface",
+};
+
+const stay_in_c_boundary_area_ids = [_][]const u8{
+    "shared-info-refcount-ownership",
+    "destructor-and-free-path",
+};
+
 const blocked_live_behaviors = [_][]const u8{
     "live skbuff allocation and cache ownership",
     "shared-data refcount transitions",
@@ -369,6 +381,53 @@ pub const SkbuffBridgeLab = struct {
             }
         }
         return null;
+    }
+
+    pub fn boundaryAreaCount() usize {
+        return boundary_areas.len;
+    }
+
+    pub fn boundaryAreaById(id: []const u8) ?BoundaryArea {
+        for (boundary_areas) |area| {
+            if (std.mem.eql(u8, area.id, id)) {
+                return area;
+            }
+        }
+        return null;
+    }
+
+    pub fn roadmapBoundaryStudyAreaIds() []const []const u8 {
+        return roadmap_boundary_study_area_ids[0..];
+    }
+
+    pub fn roadmapBoundaryStudyAreaCount() usize {
+        return roadmap_boundary_study_area_ids.len;
+    }
+
+    pub fn isRoadmapBoundaryStudyArea(id: []const u8) bool {
+        for (roadmap_boundary_study_area_ids) |area_id| {
+            if (std.mem.eql(u8, area_id, id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pub fn stayInCBoundaryAreaIds() []const []const u8 {
+        return stay_in_c_boundary_area_ids[0..];
+    }
+
+    pub fn stayInCBoundaryAreaCount() usize {
+        return stay_in_c_boundary_area_ids.len;
+    }
+
+    pub fn isStayInCBoundaryArea(id: []const u8) bool {
+        for (stay_in_c_boundary_area_ids) |area_id| {
+            if (std.mem.eql(u8, area_id, id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     pub fn stayInCDecisionCount() usize {
@@ -488,6 +547,7 @@ test "skbuff bridge boundary map records stay-in-c lifetime decisions" {
     try std.testing.expectEqualStrings("net/core/skbuff.c", map.anchor);
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 6), map.areas.len);
+    try std.testing.expectEqual(@as(usize, 6), SkbuffBridgeLab.boundaryAreaCount());
     try std.testing.expectEqual(@as(usize, 2), SkbuffBridgeLab.stayInCDecisionCount());
     try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "qdisc publication") != null);
     try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "stay-in-C evidence") != null);
@@ -532,6 +592,36 @@ test "skbuff bridge decision checklist exposes the stay-in-c review packet" {
     try std.testing.expectEqualStrings("validate_xmit_skb_list", tail_publication.anchor_symbols[2]);
 
     try std.testing.expect(SkbuffBridgeLab.decisionChecklistEntryById("missing-checklist-entry") == null);
+}
+
+test "skbuff bridge roadmap boundary-study helpers stay aligned" {
+    try std.testing.expectEqual(@as(usize, 4), SkbuffBridgeLab.roadmapBoundaryStudyAreaCount());
+    try std.testing.expectEqual(@as(usize, 4), SkbuffBridgeLab.roadmapBoundaryStudyAreaIds().len);
+    try std.testing.expectEqual(@as(usize, 2), SkbuffBridgeLab.stayInCBoundaryAreaCount());
+    try std.testing.expectEqual(@as(usize, 2), SkbuffBridgeLab.stayInCBoundaryAreaIds().len);
+
+    for (SkbuffBridgeLab.roadmapBoundaryStudyAreaIds()) |area_id| {
+        const area = SkbuffBridgeLab.boundaryAreaById(area_id) orelse return error.MissingBoundaryArea;
+        try std.testing.expect(area.ownership == .boundary_map_only);
+        try std.testing.expect(SkbuffBridgeLab.isRoadmapBoundaryStudyArea(area_id));
+        try std.testing.expect(!SkbuffBridgeLab.isStayInCBoundaryArea(area_id));
+    }
+
+    for (SkbuffBridgeLab.stayInCBoundaryAreaIds()) |area_id| {
+        const area = SkbuffBridgeLab.boundaryAreaById(area_id) orelse return error.MissingBoundaryArea;
+        try std.testing.expect(area.ownership == .stay_in_c);
+        try std.testing.expect(SkbuffBridgeLab.isStayInCBoundaryArea(area_id));
+        try std.testing.expect(!SkbuffBridgeLab.isRoadmapBoundaryStudyArea(area_id));
+    }
+
+    const checksum_surface = SkbuffBridgeLab.boundaryAreaById("checksum-and-segmentation-surface") orelse return error.MissingBoundaryArea;
+    try std.testing.expectEqualStrings("__skb_checksum_complete", checksum_surface.anchor_symbols[0]);
+    try std.testing.expectEqualStrings("skb_segment", checksum_surface.anchor_symbols[1]);
+    try std.testing.expect(std.mem.indexOf(u8, checksum_surface.rationale, "GSO bookkeeping") != null);
+
+    try std.testing.expect(SkbuffBridgeLab.boundaryAreaById("missing-boundary-area") == null);
+    try std.testing.expect(!SkbuffBridgeLab.isRoadmapBoundaryStudyArea("segmentation-tail-publication-consumer-contract"));
+    try std.testing.expect(!SkbuffBridgeLab.isStayInCBoundaryArea("allocation-entrypoints"));
 }
 
 test "skbuff bridge lifetime audit stays review-only" {
