@@ -233,7 +233,10 @@ fn listSortBench() struct { checksum: u64 } {
     return .{ .checksum = checksum };
 }
 
-fn rbtreeBench() struct { checksum: u64 } {
+fn rbtreeBench() struct {
+    checksum: u64,
+    duplicate_mutation_checksum: u64,
+} {
     const RbEntry = struct {
         key: i32,
         serial: usize = 0,
@@ -280,6 +283,7 @@ fn rbtreeBench() struct { checksum: u64 } {
     }.compare;
 
     var checksum: u64 = 0;
+    var duplicate_mutation_checksum: u64 = 0;
     var iter: usize = 0;
     while (iter < iterations_rbtree) : (iter += 1) {
         var entries = [_]RbEntry{
@@ -376,7 +380,9 @@ fn rbtreeBench() struct { checksum: u64 } {
         var after_erase = rbtree.findFirst(&wanted, &duplicate_mutation_root, cmpKey) orelse unreachable;
         while (true) {
             const entry: *const RbEntry = @fieldParentPtr("node", after_erase);
-            checksum +%= entry.serial + 97;
+            const contribution = entry.serial + 97;
+            checksum +%= contribution;
+            duplicate_mutation_checksum +%= contribution;
             after_erase = rbtree.nextMatch(&wanted, after_erase, cmpKey) orelse break;
         }
 
@@ -384,7 +390,9 @@ fn rbtreeBench() struct { checksum: u64 } {
         var after_replace = rbtree.findFirst(&wanted, &duplicate_mutation_root, cmpKey) orelse unreachable;
         while (true) {
             const entry: *const RbEntry = @fieldParentPtr("node", after_replace);
-            checksum +%= entry.serial + 107;
+            const contribution = entry.serial + 107;
+            checksum +%= contribution;
+            duplicate_mutation_checksum +%= contribution;
             after_replace = rbtree.nextMatch(&wanted, after_replace, cmpKey) orelse break;
         }
 
@@ -424,7 +432,10 @@ fn rbtreeBench() struct { checksum: u64 } {
         checksum +%= @as(u64, @intFromBool(rbtree.first(&cached_root.root) == rbtree.firstCached(&cached_root)));
     }
 
-    return .{ .checksum = checksum };
+    return .{
+        .checksum = checksum,
+        .duplicate_mutation_checksum = duplicate_mutation_checksum,
+    };
 }
 
 pub fn main(init: std.process.Init) !void {
@@ -449,6 +460,7 @@ pub fn main(init: std.process.Init) !void {
     std.debug.assert(hweight_result.checksum != 0);
     std.debug.assert(list_sort_result.checksum != 0);
     std.debug.assert(rbtree_result.checksum != 0);
+    std.debug.assert(rbtree_result.duplicate_mutation_checksum != 0);
 
     try stdout_writer.interface.print("PHASE1_BENCH=pass\n", .{});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS={d}\n", .{iterations_bitmap});
@@ -467,5 +479,6 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_LIST_SORT_CHECKSUM={d}\n", .{list_sort_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_ITERATIONS={d}\n", .{iterations_rbtree});
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_CHECKSUM={d}\n", .{rbtree_result.checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM={d}\n", .{rbtree_result.duplicate_mutation_checksum});
     try stdout_writer.interface.flush();
 }
