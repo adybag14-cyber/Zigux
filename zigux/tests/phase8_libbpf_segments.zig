@@ -358,6 +358,14 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
     );
     defer std.testing.allocator.free(workflow_note);
 
+    const cpu_mask_only_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase8_cpu_mask_only_build.zig",
+        std.testing.allocator,
+        .limited(8 * 1024),
+    );
+    defer std.testing.allocator.free(cpu_mask_only_build);
+
     const product_boundary = try requireSection(
         phase8_note,
         "product boundary:\n",
@@ -376,6 +384,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/verify.zig");
     try expectContains(phase8_note, "Documentation/zigux/phase8-file-path-handle-bridge-slice.md");
     try expectContains(phase8_note, "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md");
+    try expectContains(phase8_note, "zigux/tests/phase8_cpu_mask_only_build.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_file_path_handle_bridge.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_bpf_type_names.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_perf_buffer_poll.zig");
@@ -384,6 +393,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
         product_boundary,
         "  - `zigux/tests/phase8_libbpf_segments_only_build.zig`\n",
     );
+    try expectContains(phase8_note, "zig build test --build-file zigux/tests/phase8_cpu_mask_only_build.zig --summary all");
     try expectContains(phase8_note, "make -C zigux phase8-libbpf-segments-test");
     try expectContains(phase8_note, "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all");
     try expectContains(phase8_note, "make -C zigux phase8-file-path-handle-bridge-test");
@@ -409,6 +419,8 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
 
     try expectContains(cpu_mask_note, "PHASE8_STATUS=parked");
     try expectContains(cpu_mask_note, "tools/lib/bpf/zigux_segments/cpu_mask.zig");
+    try expectContains(cpu_mask_note, "zigux/tests/phase8_cpu_mask_only_build.zig");
+    try expectContains(cpu_mask_note, "zig build test --build-file zigux/tests/phase8_cpu_mask_only_build.zig --summary all");
     try expectContains(cpu_mask_note, "zigux/tests/phase8_build.zig");
     try expectContains(cpu_mask_note, "perf-buffer or feature-probe integration");
 
@@ -454,4 +466,9 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
     try expectContains(workflow_note, "make -C zigux phase8-perf-buffer-poll-test");
     try expectContains(workflow_note, "Run Phase 8 tooling tests");
     try expectContains(workflow_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
+
+    try expectContains(cpu_mask_only_build, "../../tools/lib/bpf/zigux_segments/cpu_mask.zig");
+    try expectContains(cpu_mask_only_build, "phase8_cpu_mask.zig");
+    try expectContains(cpu_mask_only_build, "phase8-cpu-mask-tests");
+    try expectContains(cpu_mask_only_build, "Run focused Phase 8 cpu-mask tests");
 }
