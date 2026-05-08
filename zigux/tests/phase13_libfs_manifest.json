@@ -112,6 +112,13 @@
       "why_now": "The libfs helper lab now models the pure dcache_dir_open() setup path, including cursor allocation from file->f_path.dentry, the private_data handoff, and the -ENOMEM fallback before any sibling traversal, lock ordering, or live cursor mutation is claimed."
     },
     {
+      "id": "phase13-libfs-dcache-dir-close-helper",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models the pure dcache_dir_close() release path, including the file->private_data release decision, the null-cursor no-op allowance, and the unconditional zero return path before any sibling traversal, lock ordering, or live cursor mutation is claimed."
+    },
+    {
       "id": "phase13-libfs-addressability-helper",
       "status": "starter_landed",
       "kind": "filesystem_helper_surface",
