@@ -4,7 +4,7 @@
   "surveyed_commit": "4fc891b380cdd2991dff7676ade7f844df1b55fd",
   "review_process": {
     "decision_record_required": true,
-    "required_record_field_count": 19,
+    "required_record_field_count": 20,
     "required_record_fields": [
       "linux anchor path",
       "phase",
@@ -13,6 +13,7 @@
       "decision record ID",
       "owner",
       "rollback owner",
+      "required approver set",
       "validation gate summary",
       "evidence archive path",
       "latest blocker disposition",
@@ -26,12 +27,13 @@
       "explicit non-goals",
       "written rationale"
     ],
-    "ownership_evidence_field_count": 14,
+    "ownership_evidence_field_count": 15,
     "ownership_evidence_fields": [
       "phase",
       "current status bucket",
       "owner",
       "rollback owner",
+      "required approver set",
       "validation gate summary",
       "indefinite-C policy link or non-applicability note",
       "evidence archive path",
@@ -76,8 +78,8 @@
     "specialist_lane_owned_anchor_count": 2,
     "reserved_decision_record_template_count": 4,
     "blocked_status_change_anchor_count": 4,
-    "review_packet_field_count": 19,
-    "ownership_evidence_field_count": 14
+    "review_packet_field_count": 20,
+    "ownership_evidence_field_count": 15
   },
   "anchors": [
     {
