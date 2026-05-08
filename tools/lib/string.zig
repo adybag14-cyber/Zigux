@@ -598,6 +598,19 @@ test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries"
     try std.testing.expectEqual(@as(?usize, 8), memchrInv(misaligned, 0));
 }
 
+test "memchrInv short zero-value scans stay byte-accurate" {
+    const clean = [_]u8{0} ** 8;
+    try std.testing.expectEqual(@as(?usize, null), memchrInv(&clean, 0));
+
+    var dirty = [_]u8{0} ** 8;
+    dirty[5] = 3;
+    try std.testing.expectEqual(@as(?usize, 5), memchrInv(&dirty, 0));
+
+    var head_dirty = [_]u8{0} ** 8;
+    head_dirty[0] = 1;
+    try std.testing.expectEqual(@as(?usize, 0), memchrInv(&head_dirty, 0));
+}
+
 test "memparse handles decimal hexadecimal octal and suffixes" {
     const decimal = memparse("64KiB rest");
     try std.testing.expectEqual(@as(u64, 64 << 10), decimal.value);
