@@ -428,7 +428,6 @@ def write_fixture_tree(root: Path) -> None:
         "",
     )), encoding="utf-8")
 
-    (root / MAKEFILE_PATH).writeText = None
     (root / MAKEFILE_PATH).write_text("\n".join((
         *REQUIRED_MAKEFILE_MARKERS,
         "",
