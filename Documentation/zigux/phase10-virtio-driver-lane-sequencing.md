@@ -10,6 +10,7 @@ This note turns the currently landed Phase 10 virtio evidence into one bounded a
 - scope: use the current core, ring, input, and MMIO survey packets to say which Phase 10 driver lane owns which already-landed evidence and which next bounded step still belongs to that lane
 - product boundary:
   - `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
+  - `Documentation/zigux/phase10-closure-evidence.md`
   - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 
 ## Why this note exists
@@ -21,7 +22,7 @@ The live repo already has four distinct Phase 10 driver packets:
 - the input survey packet around `drivers/virtio/virtio_input.c`
 - the MMIO survey packet around `drivers/virtio/virtio_mmio.c`
 
-Those packets now share build wiring, one closure manifest, the direct `zig build test --build-file zigux/tests/phase10_build.zig` route, shared `make -C zigux phase10-test` and `make -C zigux phase10` routes, and adjacent checker references. That shared replay surface is useful, but it also makes it easier for nearby scheduled runs to borrow each other's helper scope or reopen the wrong survey packet.
+Those packets now share build wiring, one closure manifest, one shared closure note, the direct `zig build test --build-file zigux/tests/phase10_build.zig` route, shared `make -C zigux phase10-test` and `make -C zigux phase10` routes, and adjacent checker references. That shared replay surface is useful, but it also makes it easier for nearby scheduled runs to borrow each other's helper scope or reopen the wrong survey packet.
 
 This note keeps the Phase 10 driver tranche honest by separating shared replay routes from per-lane ownership.
 
@@ -32,6 +33,7 @@ Shared Phase 10 replay surface:
 - `Documentation/zigux/README.md`
 - `scripts/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase10-closure-evidence.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase10_build.zig`
@@ -46,7 +48,7 @@ Shared Phase 10 replay surface:
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-These shared docs, packet guards, the MMIO freeze-boundary checker, the direct `zig build` route, the make routes, plus the shared closure manifest prove that the current bounded virtio packet still replays together. They do not change which lane owns a helper, verify replay, manifest, survey gate, or next bounded follow-up. When those shared summaries call out the current focused replay evidence, keep `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `drivers/virtio/virtio_mmio_verify.zig`, and `zigux/tests/phase10_virtio_mmio.zig` explicit as lane-owned replays instead of collapsing them into generic focused-test shorthand.
+These shared docs, the shared closure note, packet guards, the MMIO freeze-boundary checker, the direct `zig build` route, the make routes, plus the shared closure manifest prove that the current bounded virtio packet still replays together. They do not change which lane owns a helper, verify replay, manifest, survey gate, or next bounded follow-up. When those shared summaries call out the current focused replay evidence, keep `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `drivers/virtio/virtio_mmio_verify.zig`, and `zigux/tests/phase10_virtio_mmio.zig` explicit as lane-owned replays instead of collapsing them into generic focused-test shorthand.
 
 ## Lane map
 
@@ -112,8 +114,8 @@ Ring, core, and input lanes may cite this packet as adjacent evidence, but they 
 - If a Phase 10 run changes `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, the input manifest, the direct `zigux/tests/phase10_virtio_input.zig` replay, the focused `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, or `zigux/tests/phase10_virtio_input_status_drain.zig` replays, the input survey gate, or the input checker, that work belongs to the input lane.
 - If a Phase 10 run changes `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, the direct `zigux/tests/phase10_virtio_mmio.zig` replay, the MMIO manifest, the MMIO survey gate, the MMIO checker, or `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, that work belongs to the MMIO packet instead of ring, input, or core follow-through.
 - Shared build or make replay drift should only reopen the smallest directly coupled lane packet unless the break truly spans multiple driver packets at once.
-- If a Phase 10 run only changes `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/README.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_closure_manifest.json`, `zigux/Makefile`, or the shared Phase 10 packet guards, it should reopen the smallest directly coupled shared review surface first instead of quietly consuming one of the driver lanes.
+- If a Phase 10 run only changes `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/README.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_closure_manifest.json`, `zigux/Makefile`, or the shared Phase 10 packet guards, it should reopen the smallest directly coupled shared review surface first instead of quietly consuming one of the driver lanes.
 
 ## Next bounded step
 
-Keep this sequencing note parked unless future repo drift blurs the ownership boundary between the Phase 10 core, ring, input, and MMIO driver packets again. Fresh shared-surface readback shows the dedicated input queue-callback-preflight, registration-preflight, and teardown-observation replays now stay explicit in the shared owner map beside the existing input verify and status-drain reminders, so the next same-lane follow-through should leave this shared note parked until a fresh one-file checker, manifest, survey, or shared-summary truthfulness gap appears, rather than reopening settled driver-local helper, manifest, or survey work.
+Keep this sequencing note parked unless future repo drift blurs the ownership boundary between the Phase 10 core, ring, input, and MMIO driver packets again. Fresh shared-surface readback shows the dedicated input queue-callback-preflight, registration-preflight, and teardown-observation replays now stay explicit in the shared owner map beside the existing input verify and status-drain reminders, and the shared closure note now stays explicit beside the shared closure manifest and tests-root review companion, so the next same-lane follow-through should leave this shared note parked until a fresh one-file checker, manifest, survey, or shared-summary truthfulness gap appears, rather than reopening settled driver-local helper, manifest, or survey work.
