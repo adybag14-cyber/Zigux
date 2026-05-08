@@ -375,7 +375,7 @@ def validate_root(root: Path) -> list[str]:
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"), "--self-test"],
             [
                 "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass",
-                "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=4",
+                "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=15",
             ],
         )
     )
@@ -390,7 +390,7 @@ def validate_root(root: Path) -> list[str]:
         run_guard(
             root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"), "--self-test"],
-            ["PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass", "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=89"],
+            ["PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass", "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=97"],
         )
     )
     guard_issues.extend(
@@ -418,7 +418,7 @@ def validate_root(root: Path) -> list[str]:
         run_guard(
             root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"), "--self-test"],
-            ["PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass", "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32"],
+            ["PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass", "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=13"],
         )
     )
     guard_issues.extend(
@@ -432,7 +432,7 @@ def validate_root(root: Path) -> list[str]:
         run_guard(
             root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"), "--self-test"],
-            ["PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass", "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=18"],
+            ["PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass", "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=38"],
         )
     )
     guard_issues.extend(
@@ -446,7 +446,7 @@ def validate_root(root: Path) -> list[str]:
         run_guard(
             root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-kconfig-bridge.py"), "--self-test"],
-            ["KCONFIG_BRIDGE_SELF_TEST=pass", "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=12"],
+            ["KCONFIG_BRIDGE_SELF_TEST=pass", "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=17"],
         )
     )
     guard_issues.extend(
