@@ -205,8 +205,11 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
     "tools/lib/bitmap.zig": {
         "helper_test_anchors": [
             'test "bitmap predicates ignore out-of-range tail bits"',
+            'test "bitmap range helpers clamp the final partial word"',
+            'test "bitmap Linux-style aliases mirror the primary helper surface"',
         ],
         "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
+        "final_partial_word_anchor": 'test "bitmap range helpers clamp the final partial word"',
         "predicate_tail_mask_anchor": 'test "bitmap predicates ignore out-of-range tail bits"',
         "parity_fixture_keys": [
             "scnprintf",
@@ -592,12 +595,31 @@ def run_self_test() -> None:
         assert not collect_missing_markers(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        pristine_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+        manifest = json.loads(json.dumps(pristine_manifest))
         manifest["lane_sequencing"]["direct_anchor_followup_helpers"] = manifest["lane_sequencing"]["direct_anchor_followup_helpers"][:-1]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = collect_missing_markers(tmp_root)
         assert "phase1_manifest:lane_sequencing:direct_anchor_followup_helpers" in missing
-        manifest["lane_sequencing"] = dict(EXPECTED_LANE_SEQUENCING)
+
+        manifest = json.loads(json.dumps(pristine_manifest))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("final_partial_word_anchor")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:final_partial_word_anchor" in missing
+
+        manifest = json.loads(json.dumps(pristine_manifest))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"]["helper_test_anchors"] = [
+            anchor
+            for anchor in manifest["review_anchors"]["tools/lib/bitmap.zig"]["helper_test_anchors"]
+            if anchor != 'test "bitmap Linux-style aliases mirror the primary helper surface"'
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert 'phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:helper_test_anchors:test "bitmap Linux-style aliases mirror the primary helper surface"' in missing
+
+        manifest = json.loads(json.dumps(pristine_manifest))
         manifest["review_anchors"]["tools/lib/string.zig"]["helper_test_anchors"] = ['test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"']
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = collect_missing_markers(tmp_root)
@@ -609,7 +631,7 @@ def run_self_test() -> None:
         missing = collect_missing_markers(tmp_root)
         assert "phase1_fixture_string:strtobool_y:expected=True:actual=False" in missing
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=8")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=10")
 
 
 def main() -> int:
