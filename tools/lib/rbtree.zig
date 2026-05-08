@@ -229,6 +229,29 @@ pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
     return if (leftmost) node else null;
 }
 
+pub fn findAddCached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {
+    var link = &root.root.node;
+    var parent: ?*Node = null;
+    var leftmost = true;
+
+    while (link.*) |current| {
+        parent = current;
+        const order = cmp(node, current);
+        if (order < 0) {
+            link = &current.left;
+        } else if (order > 0) {
+            link = &current.right;
+            leftmost = false;
+        } else {
+            return current;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColorCached(node, root, leftmost);
+    return null;
+}
+
 pub fn findAdd(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {
     var link = &root.node;
     var parent: ?*Node = null;
@@ -989,6 +1012,61 @@ test "rbtree addCached returns the inserted node only when it becomes leftmost" 
     try std.testing.expectEqual(@as(?*Node, null), addCached(&duplicate_entry.node, &root, less));
     try std.testing.expectEqual(@as(?*Node, &smaller_entry.node), firstCached(&root));
     try std.testing.expectEqual(first(&root.root), firstCached(&root));
+}
+
+test "rbtree findAddCached keeps cached leftmost stable while inserting misses" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const cmp = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) i32 {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key < rhs_entry.key) return -1;
+            if (lhs_entry.key > rhs_entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var first_entry = Entry{ .key = 10, .serial = 0 };
+    var larger_entry = Entry{ .key = 14, .serial = 1 };
+    var duplicate_first = Entry{ .key = 10, .serial = 2 };
+    var smaller_entry = Entry{ .key = 5, .serial = 3 };
+    var duplicate_smaller = Entry{ .key = 5, .serial = 4 };
+    var root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&first_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&larger_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), firstCached(&root));
+
+    const existing_first = findAddCached(&duplicate_first.node, &root, cmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*Node, &first_entry.node), existing_first);
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&smaller_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, &smaller_entry.node), firstCached(&root));
+
+    const existing_smaller = findAddCached(&duplicate_smaller.node, &root, cmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*Node, &smaller_entry.node), existing_smaller);
+    try std.testing.expectEqual(@as(?*Node, &smaller_entry.node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+
+    var order: [3]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root.root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 14 }, order[0..count]);
 }
 
 test "rbtree cached root keeps the leftmost pointer in sync" {
