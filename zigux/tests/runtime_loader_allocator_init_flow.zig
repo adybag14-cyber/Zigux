@@ -356,6 +356,91 @@ test "phase 9 runtime loader allocator/init-flow replay keeps initialized prepar
     ));
 }
 
+test "phase 9 runtime loader allocator/init-flow replay keeps selftest-complete prepared snapshots stable even if later live state would look exited" {
+    const expected_atomic64 = makePlan("runtime_atomic64", "lib/atomic64_test.c", "zigux_runtime_atomic64_init", "zigux_runtime_atomic64_exit", .caller_provided, .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 });
+    var atomic64_request = try runtime_loader.prepareRequest(expected_atomic64);
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, atomic64_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(atomic64_request, .prepared, expected_atomic64));
+
+    var atomic64_live_exited = expected_atomic64;
+    atomic64_live_exited.init_flow.exit_runs = 1;
+    try std.testing.expect(!atomic64_live_exited.init_flow.readyForRuntimeLoad());
+    try std.testing.expect(!runtime_loader.keepsRequestStateAndPlanExplicit(
+        atomic64_request,
+        .prepared,
+        atomic64_live_exited,
+    ));
+
+    const atomic64_pending = try atomic64_request.requestRuntimeLoad();
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, atomic64_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        atomic64_request,
+        .waiting_on_runtime_substrate,
+        expected_atomic64,
+    ));
+    try expectExactLoadPlanParity(expected_atomic64, atomic64_pending);
+    try expectCallerProvidedSelftestCompleteSharedRequestShape(atomic64_pending);
+    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+        atomic64_pending,
+        .caller_provided,
+        expected_atomic64.init_flow,
+    ));
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(atomic64_pending));
+
+    const expected_trace_events = makePlan("runtime_trace_events", "samples/trace_events/trace-events-sample.c", "zigux_runtime_trace_events_init", "zigux_runtime_trace_events_exit", .caller_provided, .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 });
+    var trace_events_request = try runtime_loader.prepareRequest(expected_trace_events);
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, trace_events_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(trace_events_request, .prepared, expected_trace_events));
+
+    var trace_events_live_exited = expected_trace_events;
+    trace_events_live_exited.init_flow.exit_runs = 1;
+    try std.testing.expect(!trace_events_live_exited.init_flow.readyForRuntimeLoad());
+    try std.testing.expect(!runtime_loader.keepsRequestStateAndPlanExplicit(
+        trace_events_request,
+        .prepared,
+        trace_events_live_exited,
+    ));
+
+    const trace_events_pending = try trace_events_request.requestRuntimeLoad();
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, trace_events_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        trace_events_request,
+        .waiting_on_runtime_substrate,
+        expected_trace_events,
+    ));
+    try expectExactLoadPlanParity(expected_trace_events, trace_events_pending);
+    try expectCallerProvidedSelftestCompleteSharedRequestShape(trace_events_pending);
+    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+        trace_events_pending,
+        .caller_provided,
+        expected_trace_events.init_flow,
+    ));
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(trace_events_pending));
+
+    try std.testing.expectEqual(atomic64_pending.allocator_handoff, trace_events_pending.allocator_handoff);
+    try std.testing.expectEqual(atomic64_pending.init_flow.handoff_stage, trace_events_pending.init_flow.handoff_stage);
+    try std.testing.expectEqual(atomic64_pending.init_flow.init_runs, trace_events_pending.init_flow.init_runs);
+    try std.testing.expectEqual(atomic64_pending.init_flow.selftest_runs, trace_events_pending.init_flow.selftest_runs);
+    try std.testing.expectEqual(atomic64_pending.init_flow.exit_runs, trace_events_pending.init_flow.exit_runs);
+    try std.testing.expectEqual(atomic64_pending.requires_runtime_substrate, trace_events_pending.requires_runtime_substrate);
+    try std.testing.expectEqual(atomic64_pending.provides_selftest_hook, trace_events_pending.provides_selftest_hook);
+
+    try atomic64_request.releaseWithoutSubstrate();
+    try trace_events_request.releaseWithoutSubstrate();
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, atomic64_request.state);
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, trace_events_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        atomic64_request,
+        .released_without_substrate,
+        expected_atomic64,
+    ));
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        trace_events_request,
+        .released_without_substrate,
+        expected_trace_events,
+    ));
+}
+
 test "phase 9 runtime loader allocator/init-flow replay rejects exited, duplicate-init, or incomplete handoffs" {
     const exited_plan = makePlan("runtime_bitmap", "lib/test_bitmap.c", "zigux_runtime_bitmap_init", "zigux_runtime_bitmap_exit", .arena, .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 1 });
     try std.testing.expectError(error.InvalidInitFlow, runtime_loader.prepareRequest(exited_plan));
