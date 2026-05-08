@@ -416,7 +416,6 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_freeze_boundary_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
-        manifest_path.writeText if False else None
         manifest_path.write_text(
             original_manifest.replace(
                 '"risky_transport_posture": "blocked_on_risky_transport"',
