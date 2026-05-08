@@ -63,36 +63,48 @@ pub fn recognizesByte(unsafe_scope: u8) bool {
     return recognizesInteropPolicyBytes(unsafe_scope, 0);
 }
 
+pub fn permitsNoUnsafe(scope: UnsafeScopeTag) bool {
+    return scope == .none;
+}
+
 pub fn permitsNoUnsafePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
-    return scopeFromInteropPolicyBytes(unsafe_scope, reserved) == .none;
+    return permitsNoUnsafe(scopeFromInteropPolicyBytes(unsafe_scope, reserved) orelse return false);
 }
 
 pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {
-    return scopeFromInteropPolicy(policy) == .none;
+    return permitsNoUnsafe(scopeFromInteropPolicy(policy) orelse return false);
 }
 
 pub fn permitsNoUnsafeByte(unsafe_scope: u8) bool {
     return permitsNoUnsafePolicyBytes(unsafe_scope, 0);
 }
 
+pub fn permitsVolatileMmio(scope: UnsafeScopeTag) bool {
+    return scope == .volatile_mmio;
+}
+
 pub fn permitsVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
-    return scopeFromInteropPolicyBytes(unsafe_scope, reserved) == .volatile_mmio;
+    return permitsVolatileMmio(scopeFromInteropPolicyBytes(unsafe_scope, reserved) orelse return false);
 }
 
 pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {
-    return scopeFromInteropPolicy(policy) == .volatile_mmio;
+    return permitsVolatileMmio(scopeFromInteropPolicy(policy) orelse return false);
 }
 
 pub fn permitsVolatileMmioByte(unsafe_scope: u8) bool {
     return permitsVolatileMmioPolicyBytes(unsafe_scope, 0);
 }
 
+pub fn permitsRawPointerBridge(scope: UnsafeScopeTag) bool {
+    return scope == .raw_pointer_bridge;
+}
+
 pub fn permitsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
-    return scopeFromInteropPolicyBytes(unsafe_scope, reserved) == .raw_pointer_bridge;
+    return permitsRawPointerBridge(scopeFromInteropPolicyBytes(unsafe_scope, reserved) orelse return false);
 }
 
 pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {
-    return scopeFromInteropPolicy(policy) == .raw_pointer_bridge;
+    return permitsRawPointerBridge(scopeFromInteropPolicy(policy) orelse return false);
 }
 
 pub fn permitsRawPointerBridgeByte(unsafe_scope: u8) bool {
@@ -146,6 +158,9 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expect(!recognizesInteropPolicyBytes(9, 0));
     try std.testing.expect(!recognizesInteropPolicyBytes(1, 1));
 
+    try std.testing.expect(permitsNoUnsafe(.none));
+    try std.testing.expect(!permitsNoUnsafe(.volatile_mmio));
+    try std.testing.expect(!permitsNoUnsafe(.raw_pointer_bridge));
     try std.testing.expect(permitsNoUnsafeByte(0));
     try std.testing.expect(!permitsNoUnsafeByte(1));
     try std.testing.expect(!permitsNoUnsafeByte(2));
@@ -157,6 +172,9 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expect(!permitsNoUnsafePolicyBytes(9, 0));
     try std.testing.expect(!permitsNoUnsafePolicyBytes(0, 1));
 
+    try std.testing.expect(!permitsVolatileMmio(.none));
+    try std.testing.expect(permitsVolatileMmio(.volatile_mmio));
+    try std.testing.expect(!permitsVolatileMmio(.raw_pointer_bridge));
     try std.testing.expect(!permitsVolatileMmioByte(0));
     try std.testing.expect(permitsVolatileMmioByte(1));
     try std.testing.expect(!permitsVolatileMmioByte(2));
@@ -167,6 +185,9 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expect(!permitsVolatileMmioPolicyBytes(2, 0));
     try std.testing.expect(!permitsVolatileMmioPolicyBytes(9, 0));
 
+    try std.testing.expect(!permitsRawPointerBridge(.none));
+    try std.testing.expect(!permitsRawPointerBridge(.volatile_mmio));
+    try std.testing.expect(permitsRawPointerBridge(.raw_pointer_bridge));
     try std.testing.expect(!permitsRawPointerBridgeByte(0));
     try std.testing.expect(!permitsRawPointerBridgeByte(1));
     try std.testing.expect(permitsRawPointerBridgeByte(2));
