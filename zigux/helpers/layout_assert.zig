@@ -115,8 +115,10 @@ test "phase3 layout assertions cover canonical bindings" {
         assertFieldType(abi.InteropPolicy, "allocator_mode", u8);
         assertFieldType(abi.InteropPolicy, "unsafe_scope", u8);
         assertFieldType(abi.InteropPolicy, "reserved", u8);
+        assertOffset(abi.InteropPolicy, "panic_mode", 0);
         assertOffset(abi.InteropPolicy, "allocator_mode", 1);
         assertOffset(abi.InteropPolicy, "unsafe_scope", 2);
+        assertOffset(abi.InteropPolicy, "reserved", 3);
         assertInteropPolicyModeValues();
         assertMmioRangeLayout();
         assertRbtreeRootViewLayout();
