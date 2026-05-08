@@ -219,36 +219,52 @@ def run_self_test() -> int:
             "",
         ]
     )
+    case_count = 0
     assert render_wrapper_stub() == expected_wrapper
+    case_count += 1
 
     assert slug_from_wrapper_path("/tmp/check-phase3-alpha-beta.py") == "alpha-beta"
+    case_count += 1
     try:
         slug_from_wrapper_path("/tmp/phase3-alpha-beta.py")
     except SystemExit as exc:
         assert str(exc) == "unsupported Phase 3 wrapper path: /tmp/phase3-alpha-beta.py"
     else:
         raise AssertionError("expected invalid wrapper path to fail")
+    case_count += 1
 
     assert fixture_key_for_slug("alpha-beta") == "phase3_alpha_beta"
+    case_count += 1
     assert build_step_for_slug("alpha-beta") == "phase3-alpha-beta-dump"
+    case_count += 1
     assert build_step_for_slug("abi") == "phase3-dump"
+    case_count += 1
     assert description_for_slug("bitmap-cpumask") == "bitmap/cpumask"
+    case_count += 1
     assert description_for_slug("alpha-beta") == "alpha beta"
+    case_count += 1
     assert status_name_for_slug("alpha-beta") == "PHASE3_ALPHA_BETA_DIFF"
+    case_count += 1
     assert shared_runner_gate_for_slug("alpha-beta") == "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha-beta"
+    case_count += 1
     assert legacy_wrapper_gate_for_slug("alpha-beta") == "PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha-beta.py"
+    case_count += 1
     parsed = parse_phase3_args(["--cc", "/tmp/cc", "--zig", "/tmp/zig"])
     assert parsed.cc == "/tmp/cc"
     assert parsed.zig == "/tmp/zig"
+    case_count += 1
     assert [path.as_posix() for path in preflight_scripts_for_slug("abi")] == [
         (ROOT / "scripts/zigux/validate-phase3-abi-bindings-syntax.py").as_posix(),
         (ROOT / "scripts/zigux/survey-phase3-abi-constant-parity.py").as_posix(),
         (ROOT / "scripts/zigux/validate-phase3-policy-unsafe-survey.py").as_posix(),
         (ROOT / "scripts/zigux/check-phase3-policy-byte-guards.py").as_posix(),
     ]
+    case_count += 1
     assert preflight_scripts_for_slug("bitmap-cpumask") == ()
+    case_count += 1
 
     print("PHASE3_CHECK_LIB_SELF_TEST=pass")
+    print(f"PHASE3_CHECK_LIB_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
