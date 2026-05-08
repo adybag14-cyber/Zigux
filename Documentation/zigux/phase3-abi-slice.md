@@ -45,7 +45,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
   - the current shared ABI packet also keeps the focused low-level-wrapper boundary packet explicit across `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `zigux/tests/phase3_low_level_wrappers.zig`, and `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` so the landed signed atomic edges, direct barrier-locality proof, and byte, 16-bit, 32-bit, and 64-bit MMIO replay stay reviewable beside the broader compile, layout, and dump packet
   - the current shared ABI packet also keeps the focused export/UAPI boundary replay explicit across `zigux/tests/phase3_export_uapi_layout.zig`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and `Documentation/zigux/phase3-export-uapi-boundary-survey.md` so the manifest-backed replay surface matches the shipped packet-local starter proof
   - the current shared ABI packet also keeps the focused baseline constant-parity survey explicit across `include/zigux/abi.h`, `zigux/bindings/abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json` through `scripts/zigux/survey-phase3-abi-constant-parity.py`
-  - the current shared ABI packet also keeps the direct ABI interop gate explicit through `scripts/zigux/check-phase3-abi.py` so the shared syntax, constant-parity, policy-byte, and bounded slug-backed interop replay route stays reviewable beside the Linux-style `make -C zigux phase3-abi` and `make -C zigux phase3` entrypoints
+  - the current shared ABI packet also keeps the direct ABI interop route explicit through the shared `scripts/zigux/run-phase3-checks.py --slug abi` entrypoint, with `scripts/zigux/check-phase3-abi.py` retained only as the generated legacy wrapper alias, so the shared syntax, constant-parity, policy-byte, and bounded slug-backed interop replay route stays reviewable beside the Linux-style `make -C zigux phase3-abi` and `make -C zigux phase3` entrypoints
   - the current shared ABI packet also keeps the focused policy-and-unsafe survey packet explicit across `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`, `scripts/zigux/validate-phase3-policy-unsafe-survey.py`, and `scripts/zigux/check-phase3-policy-byte-guards.py` so the narrow panic, allocator, MMIO, and unsafe-scope boundary wording stays reviewable without pretending the still-missing dedicated replay pair already exists
 
 ## Why this slice exists
@@ -71,8 +71,8 @@ It is a small substrate that makes future ports measurable:
   `python3 scripts/zigux/validate-phase3.py --slug abi`
 
 2. check the shared Phase 3 ABI interop packet and C-vs-Zig ABI layout parity
-- `python3 scripts/zigux/check-phase3-abi.py`
 - `python3 scripts/zigux/run-phase3-checks.py --slug abi`
+- `python3 scripts/zigux/check-phase3-abi.py`
 
 3. run Zig substrate tests and the direct ABI dump replay
 - `zig build phase3-test --build-file zigux/tests/build.zig`
