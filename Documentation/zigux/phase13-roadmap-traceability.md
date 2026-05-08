@@ -106,6 +106,8 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
   * `Documentation/zigux/phase13-release-notes-survey.md`
   * `scripts/zigux/validate-phase13-release.py`
+  * `scripts/zigux/check-phase13-devres-packet.py`
+  * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
   * `scripts/zigux/check-phase13-notifier-packet.py`
   * `Documentation/zigux/phase13-notifier-list-survey.md`
   * `zigux/tests/phase13_notifier_list_manifest.json`
