@@ -39,7 +39,7 @@ Fresh repo inspection already showed landed Phase 5 FIFO and kobject reference s
   - return-value and duration reporting from the stored entry timestamp
   - real registration and teardown substrate through `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs`, and module init or exit hooks
 - the honest Phase 5 move is to make symbol choice, skip behavior, the one-word private timestamp record, return-duration bookkeeping, the fixed `maxactiveBudget()` review cue at `20`, the `nmissed` summary, and ownership snapshots reviewable in memory while leaving probe registration and module plumbing out of scope.
-- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now keep this kretprobe note aligned with the same four-sample Phase 5 packet described from the docs root, guide, sample root, scripts root, and tests root.
+- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now keep this kretprobe note aligned with the same four-sample Phase 5 packet described from the docs root, guide, sample root, scripts root, and tests root.
 - the narrower same-lane guidance risk on current `master` is no longer missing broad shared-packet coverage; it is sample-local drift between this survey note, the shared Phase 5 guide, and the manifest-backed replay prompts whenever sample-owned retargeting, lifecycle-guard, recovery-replay, or teardown wording changes.
 
 ## Landed sample and exact checks
@@ -134,4 +134,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection shows the kretprobe-owned survey note, the shared Phase 5 guide, or the manifest-backed replay prompts drifting apart. If that happens, keep the follow-through limited to the smallest truthfulness repair across those existing sample-owned surfaces and the shipped `phase5_build.zig` plus make replay route instead of widening into new sample semantics or runtime substrate claims.
+Leave this lane parked unless fresh repo inspection shows the kretprobe-owned survey note, the shared Phase 5 guide, and the manifest-backed replay prompts drifting apart. If that happens, keep the follow-through limited to the smallest truthfulness repair across those existing sample-owned surfaces and the shipped `phase5_build.zig` plus make replay route instead of widening into new sample semantics or runtime substrate claims.
