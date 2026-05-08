@@ -62,3 +62,15 @@ test "phase13 libfs addressability planning accepts bounded sector and page-cach
     try std.testing.expect(!ok.page_limit_exceeded);
     try std.testing.expectEqual(@as(i32, 0), ok.return_code);
 }
+
+test "phase13 libfs addressability planning accepts the exact addressable boundary" {
+    const exact_boundary = libfs.LibFsHelperLab.genericCheckAddressablePlan(12, 131_072, .{
+        .sector_bits = 20,
+        .page_index_bits = 17,
+    });
+    try std.testing.expect(exact_boundary.checks_sector_limit);
+    try std.testing.expect(exact_boundary.checks_page_limit);
+    try std.testing.expect(!exact_boundary.sector_limit_exceeded);
+    try std.testing.expect(!exact_boundary.page_limit_exceeded);
+    try std.testing.expectEqual(@as(i32, 0), exact_boundary.return_code);
+}
