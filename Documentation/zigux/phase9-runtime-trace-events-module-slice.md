@@ -7,7 +7,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
 - `PHASE9_SURVEYED_COMMIT=ccd5361c3b193d26587c6396f029fc335c783c6e`
-- scope: lifecycle starter, bounded event-emission and registration behavior, a tiny payload-oriented diff gate, a loader-handoff scaffold, the focused `phase9-runtime-trace-events-tests` build step, the adjacent lane-sequencing owner map reference, and lane-local survey-note plus manifest closure while the shared runtime-loader lane keeps the reusable facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` shard adjacent but separately owned
+- scope: lifecycle starter, bounded event-emission and registration behavior, a tiny payload-oriented diff gate, a loader-handoff scaffold, the focused `phase9-runtime-trace-events-tests` build step, the adjacent lane-sequencing owner map reference, and lane-local survey note, module-slice note, and manifest closure while the shared runtime-loader lane keeps the reusable facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` shard adjacent but separately owned
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
   - `samples/zigux/runtime_trace_events_loader.zig`
@@ -15,6 +15,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
   - `zigux/tests/runtime_trace_events_diff.zig`
   - `zigux/tests/runtime_trace_events_manifest.json`
   - `zigux/tests/runtime_trace_events_survey.zig`
+  - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
   - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
   - `zigux/tests/phase9_build.zig`
 - adjacent owner-map and shared-loader reminder surfaces:
