@@ -195,7 +195,7 @@ The bounded Phase 2 bootstrap archive pin stays separate from the cross-target c
 - `PHASE2_TOOLCHAIN_PIN_TARGETS=x86_64-linux`
 - `scripts/zigux/zig-toolchain-policy.json` keeps the current bootstrap archive pin limited to `x86_64-linux` until new runner evidence lands.
 - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` keep that pinning note tied to the same shared validator and closure packet instead of leaving it as stand-alone reference text.
-- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed tool-local packets for `fixdep`, `genksyms`, `kconfig`, and `confdata` instead of leaving that manifest linkage implicit inside the broader validator stack.
+- `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed tool-local packets for `fixdep`, `genksyms`, `artifact_tools` (`genksyms_crc` plus `mk_elfconfig`), `kconfig`, and `confdata` instead of leaving that manifest linkage implicit inside the broader validator stack.
 - `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-tests-readme-alignment.py` keep the shared docs, tests, review, Makefile, and workflow route inventory aligned before the broader Phase 2 replay packet runs.
 
 ## Linux-Style Entry Point
