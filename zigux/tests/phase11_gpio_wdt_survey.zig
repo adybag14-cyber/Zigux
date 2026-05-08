@@ -280,6 +280,7 @@ test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE11_LANE_KEY=P11-L04") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "descriptorPreflightSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "timeoutPropertyCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "platformDrvdataCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drvdataCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "registerDeviceCallSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_set_drvdata()") != null);
