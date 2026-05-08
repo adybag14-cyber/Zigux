@@ -12,6 +12,7 @@ The current helper lab stays intentionally narrow:
 - adds one follow-on in-memory tree-search planner around `get_root()`, `walker_node`, and parent or insertion-side selection so the no-match search outcome is reviewable before any `rb_link_node()` or `rb_insert_color()` work is attempted
 - adds one tiny tree-link planner for the no-match branch so the `rb_link_node()` and `rb_insert_color()` handoff is reviewable as an explicit root or left or right link mode before any live rb-tree mutation or object ownership is claimed
 - adds one matched-rule replacement planner for the merged-layer branch so the `create_rule()` plus `rb_replace_node()` handoff is reviewable as a pure in-memory rule-shape and rule-count update before any old-rule cleanup or live object ownership is claimed
+- makes the lane's fail-closed policy explicit by rejecting empty-access level-zero extensions, retained root-search state, and attachment plans with no recorded descent before any tree-link handoff is treated as reviewable
 
 The dedicated ownership note in `Documentation/zigux/phase13-landlock-ruleset-ownership.md` keeps the helper boundary explicit and requires the slice note, survey note, manifest, and test gate to move together whenever this helper packet changes.
 
