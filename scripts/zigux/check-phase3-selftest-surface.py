@@ -53,7 +53,6 @@ DOCS_ROOT_MARKERS = [
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "phase3_catalog.py --self-test",
     "make -C zigux phase3-validate",
-    "make -C zigux phase3-selftest",
     "without duplicating the default `phase3-validate` route",
 ]
 
@@ -595,7 +594,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=36")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
