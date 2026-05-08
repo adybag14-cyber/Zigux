@@ -9,6 +9,8 @@ const SurveySummary = struct {
     preexisting_phase13_devres_test_present: bool,
     preexisting_phase13_devres_slice_present: bool,
     preexisting_phase13_devres_reviewability_present: bool,
+    preexisting_phase13_devres_dma_coherent_present: bool,
+    preexisting_phase13_devres_boundary_evidence_present: bool,
     preexisting_phase13_devres_survey_present: bool,
 };
 
@@ -85,6 +87,8 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_slice_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_boundary_evidence_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
     try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
 
