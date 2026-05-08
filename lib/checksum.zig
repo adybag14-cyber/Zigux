@@ -60,29 +60,26 @@ pub fn unfold(sum: u16) u32 {
 }
 
 pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
-    var result = normalize(sum);
-    result = add(result, saddr >> 16);
-    result = add(result, saddr & 0xffff);
-    result = add(result, daddr >> 16);
-    result = add(result, daddr & 0xffff);
-    result = add(result, proto);
-    result = add(result, len);
-    return normalize(result);
+    var result: u64 = normalize(sum);
+    result += saddr;
+    result += daddr;
+    result += proto;
+    result += len;
+    return normalize(from64to32(result));
 }
 
 pub fn tcpUdpV6Nofold(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) u32 {
-    var result = normalize(sum);
+    var result: u64 = normalize(sum);
 
     for (0..4) |index| {
         const offset = index * 4;
-        result = add(result, readBigEndianU32(saddr[offset .. offset + 4]));
-        result = add(result, readBigEndianU32(daddr[offset .. offset + 4]));
+        result += readBigEndianU32(saddr[offset .. offset + 4]);
+        result += readBigEndianU32(daddr[offset .. offset + 4]);
     }
 
-    result = add(result, len >> 16);
-    result = add(result, len & 0xffff);
-    result = add(result, proto);
-    return normalize(result);
+    result += len;
+    result += proto;
+    return normalize(from64to32(result));
 }
 
 pub fn partial(bytes: []const u8, seed: u32) u32 {
@@ -115,6 +112,12 @@ fn normalize(sum: u32) u32 {
         value = (value & 0xffff) + (value >> 16);
     }
     return value;
+}
+
+fn from64to32(sum: u64) u32 {
+    var value = (sum & 0xffff_ffff) + (sum >> 32);
+    value = (value & 0xffff_ffff) + (value >> 32);
+    return @intCast(value);
 }
 
 fn normalizeWide(sum: u64) u32 {
@@ -335,5 +338,34 @@ test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
     manual_v6 = add(manual_v6, v6_len >> 16);
     manual_v6 = add(manual_v6, v6_len & 0xffff);
     manual_v6 = add(manual_v6, v6_proto);
+    try std.testing.expectEqual(normalize(manual_v6), v6_result);
+}
+
+test "pseudo-header helpers keep carry-heavy folding stable" {
+    const seed: u32 = 0xffff_fffe;
+
+    const v4_result = tcpUdpNofold(seed, 0xffff_ffff, 0xffff_ffff, 0xffff, 0xff);
+    var manual_v4 = normalize(seed);
+    manual_v4 = add(manual_v4, 0xffff);
+    manual_v4 = add(manual_v4, 0xffff);
+    manual_v4 = add(manual_v4, 0xffff);
+    manual_v4 = add(manual_v4, 0xffff);
+    manual_v4 = add(manual_v4, 0x00ff);
+    manual_v4 = add(manual_v4, 0xffff);
+    try std.testing.expectEqual(normalize(manual_v4), v4_result);
+
+    const v6_saddr = [_]u8{0xff} ** 16;
+    const v6_daddr = [_]u8{0xff} ** 16;
+    const v6_result = tcpUdpV6Nofold(seed, &v6_saddr, &v6_daddr, 0xffff_fffe, 0xff);
+    var manual_v6 = normalize(seed);
+
+    for (0..4) |_| {
+        manual_v6 = add(manual_v6, 0xffff_ffff);
+        manual_v6 = add(manual_v6, 0xffff_ffff);
+    }
+
+    manual_v6 = add(manual_v6, 0xffff);
+    manual_v6 = add(manual_v6, 0xfffe);
+    manual_v6 = add(manual_v6, 0x00ff);
     try std.testing.expectEqual(normalize(manual_v6), v6_result);
 }
