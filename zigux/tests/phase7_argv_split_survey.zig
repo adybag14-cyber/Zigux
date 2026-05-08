@@ -166,6 +166,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable");
     try expectContains(helper_tests, "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup");
     try expectContains(helper_tests, "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers");
+    try expectContains(helper_tests, "phase 7 argvFree on one live split result does not disturb another caller");
+    try expectContains(helper_tests, "phase 7 blank argvSplit teardown on one caller keeps shared empty sentinels stable for another caller");
     try expectContains(helper_tests, "split.cArgv()");
 
     try expectContains(fixture_module, ".name = \"whitespace before first NUL stays blank\",");
