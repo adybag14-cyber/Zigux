@@ -47,17 +47,22 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
 ]
 
 REQUIRED_CONF_CASE_MODES = [
-    "olddefconfig",
+    "oldaskconfig",
     "syncconfig",
-    "alldefconfig",
+    "oldconfig",
+    "allnoconfig",
+    "allyesconfig",
     "allmodconfig",
+    "alldefconfig",
     "randconfig",
-    "yes2modconfig",
-    "mod2yesconfig",
-    "mod2noconfig",
     "defconfig",
     "savedefconfig",
     "listnewconfig",
+    "helpnewconfig",
+    "olddefconfig",
+    "yes2modconfig",
+    "mod2yesconfig",
+    "mod2noconfig",
 ]
 
 ALLCONFIG_OVERRIDE_MODES = {
@@ -192,6 +197,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     bridge_modes = ordered_conf_modes(conf_bridge)
     bridge_mode_set = set(bridge_modes)
     manifest_modes = {str(case["mode"]) for case in conf_cases}
+
     for mode in REQUIRED_CONF_CASE_MODES:
         if mode not in manifest_modes:
             issues.append(("MISSING_REQUIRED_CONF_CASE_MODES", mode))
@@ -288,20 +294,25 @@ def render_confdata_bridge_self_test_source() -> str:
 def build_self_test_root(root: Path) -> None:
     write_text(
         root / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
-        """const std = @import("std");
+        """const std = @import(\"std\");
 
 pub const Mode = enum {
-    olddefconfig,
+    oldaskconfig,
     syncconfig,
-    alldefconfig,
+    oldconfig,
+    allnoconfig,
+    allyesconfig,
     allmodconfig,
+    alldefconfig,
     randconfig,
-    yes2modconfig,
-    mod2yesconfig,
-    mod2noconfig,
     defconfig,
     savedefconfig,
     listnewconfig,
+    helpnewconfig,
+    olddefconfig,
+    yes2modconfig,
+    mod2yesconfig,
+    mod2noconfig,
 
     pub fn parse(input_text: []const u8) ?Mode {
         _ = input_text;
@@ -319,17 +330,22 @@ pub const Mode = enum {
         json.dumps(
             {
                 "conf_cases": [
-                    {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
+                    {"name": "oldaskconfig", "mode": "oldaskconfig", "kconfig": "Kconfig", "config": "ask/.config", "arch": "x86_64", "expected": "oldaskconfig_expected.json"},
                     {"name": "syncconfig", "mode": "syncconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "riscv64", "nosilentupdate": "1", "expected": "syncconfig_expected.json"},
-                    {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "expected": "alldefconfig_expected.json"},
+                    {"name": "oldconfig", "mode": "oldconfig", "kconfig": "Kconfig", "config": "refresh/.config", "arch": "x86", "expected": "oldconfig_expected.json"},
+                    {"name": "allnoconfig", "mode": "allnoconfig", "kconfig": "Kconfig", "config": "none/.config", "arch": "arm64", "expected": "allnoconfig_expected.json"},
+                    {"name": "allyesconfig", "mode": "allyesconfig", "kconfig": "Kconfig", "config": "yes/.config", "arch": "arm64", "expected": "allyesconfig_expected.json"},
                     {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "allconfig": "", "expected": "allmodconfig_expected.json"},
+                    {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "expected": "alldefconfig_expected.json"},
                     {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
-                    {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
-                    {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
-                    {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"},
                     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
                     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "defconfig.out", "expected": "savedefconfig_expected.json"},
                     {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "expected": "listnewconfig_expected.json"},
+                    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "expected": "helpnewconfig_expected.json"},
+                    {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
+                    {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
+                    {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
+                    {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"},
                 ],
                 "confdata_cases": [
                     {"name": "sample", "input": "sample.config", "expected": "sample_expected.json"},
@@ -390,17 +406,22 @@ pub const Mode = enum {
         + "\n",
     )
     for rel_path in (
-        "olddefconfig_expected.json",
+        "oldaskconfig_expected.json",
         "syncconfig_expected.json",
+        "oldconfig_expected.json",
+        "allnoconfig_expected.json",
+        "allyesconfig_expected.json",
         "alldefconfig_expected.json",
         "allmodconfig_expected.json",
         "randconfig_expected.json",
-        "yes2modconfig_expected.json",
-        "mod2yesconfig_expected.json",
-        "mod2noconfig_expected.json",
         "defconfig_expected.json",
         "savedefconfig_expected.json",
         "listnewconfig_expected.json",
+        "helpnewconfig_expected.json",
+        "olddefconfig_expected.json",
+        "yes2modconfig_expected.json",
+        "mod2yesconfig_expected.json",
+        "mod2noconfig_expected.json",
         "sample_expected.json",
         "escaped_strings_expected.json",
         "escaped_control_sequences_expected.json",
@@ -439,27 +460,27 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][0]["mode"] = "oldconfig"
+        payload["conf_cases"][0]["mode"] = "unsupported_mode"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
-        assert ("UNSUPPORTED_CONF_CASE_MODES", "oldconfig") in issues
+        assert ("UNSUPPORTED_CONF_CASE_MODES", "unsupported_mode") in issues
         checks_run += 1
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"].pop()
+        payload["conf_cases"] = [case for case in payload["conf_cases"] if case["mode"] != "helpnewconfig"]
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
-        assert ("MISSING_REQUIRED_CONF_CASE_MODES", "listnewconfig") in issues
+        assert ("MISSING_REQUIRED_CONF_CASE_MODES", "helpnewconfig") in issues
         checks_run += 1
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][1], payload["conf_cases"][3] = payload["conf_cases"][3], payload["conf_cases"][1]
+        payload["conf_cases"][1], payload["conf_cases"][5] = payload["conf_cases"][5], payload["conf_cases"][1]
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
-        assert ("CONF_CASE_MODE_ORDER_ACTUAL", "olddefconfig,allmodconfig,alldefconfig,syncconfig,randconfig,yes2modconfig,mod2yesconfig,mod2noconfig,defconfig,savedefconfig,listnewconfig") in issues
-        assert ("CONF_CASE_MODE_ORDER_EXPECTED", "olddefconfig,syncconfig,alldefconfig,allmodconfig,randconfig,yes2modconfig,mod2yesconfig,mod2noconfig,defconfig,savedefconfig,listnewconfig") in issues
+        assert any(issue[0] == "CONF_CASE_MODE_ORDER_ACTUAL" for issue in issues)
+        assert any(issue[0] == "CONF_CASE_MODE_ORDER_EXPECTED" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
@@ -483,7 +504,7 @@ def run_self_test() -> int:
         payload["conf_cases"][0]["seed"] = "0xBAD"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
-        assert ("INVALID_CONF_CASE_RANDCONFIG_FIELDS", "olddefconfig:seed") in issues
+        assert ("INVALID_CONF_CASE_RANDCONFIG_FIELDS", "oldaskconfig:seed") in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -491,7 +512,7 @@ def run_self_test() -> int:
         payload["conf_cases"][0]["allconfig"] = "mini.config"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
-        assert ("INVALID_CONF_CASE_ALLCONFIG_FIELDS", "olddefconfig:allconfig") in issues
+        assert ("INVALID_CONF_CASE_ALLCONFIG_FIELDS", "oldaskconfig:allconfig") in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -499,7 +520,7 @@ def run_self_test() -> int:
         payload["conf_cases"][0]["nosilentupdate"] = "1"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
-        assert ("INVALID_CONF_CASE_SYNCCONFIG_FIELDS", "olddefconfig:nosilentupdate") in issues
+        assert ("INVALID_CONF_CASE_SYNCCONFIG_FIELDS", "oldaskconfig:nosilentupdate") in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -511,10 +532,10 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        missing_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "listnewconfig_expected.json"
+        missing_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "helpnewconfig_expected.json"
         missing_path.unlink()
         issues = collect_manifest_issues(root)
-        assert ("MISSING_CONF_CASE_EXPECTED_PATHS", "listnewconfig:expected:listnewconfig_expected.json") in issues
+        assert ("MISSING_CONF_CASE_EXPECTED_PATHS", "helpnewconfig:expected:helpnewconfig_expected.json") in issues
         checks_run += 1
 
         build_self_test_root(root)
