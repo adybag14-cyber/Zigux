@@ -71,6 +71,7 @@ EXPECTED_SCRIPTS_README_MARKERS = [
     "phase10_virtio_input.zig",
     "phase10_virtio_input_status_drain.zig",
     "phase10_virtio_input_survey.zig",
+    "the lane-sequenced virtio input plus the focused input-verify and status-drain replays",
     "make -C zigux phase10",
 ]
 
@@ -415,6 +416,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_freeze_boundary_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest_path.writeText if False else None
         manifest_path.write_text(
             original_manifest.replace(
                 '"risky_transport_posture": "blocked_on_risky_transport"',
@@ -601,6 +603,19 @@ def run_self_test() -> int:
         scripts_readme_path = tmp_root / "scripts/zigux/README.md"
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "the lane-sequenced virtio input plus the focused input-verify and status-drain replays",
+                "the lane-sequenced virtio input plus a drifted verifier summary",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "scripts_readme:the lane-sequenced virtio input plus the focused input-verify and status-drain replays" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_scripts_readme_marker_missing")
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
             original_scripts_readme.replace("phase10_virtio_input_survey.zig", "phase10_virtio_input_survey_drift.zig", 1),
             encoding="utf-8",
         )
@@ -621,7 +636,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=21")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
