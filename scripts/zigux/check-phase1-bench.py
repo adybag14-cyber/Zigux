@@ -40,6 +40,10 @@ REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_RBTREE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM",
 }
+RBTREE_REQUIRED_EXACT_CHECKSUMS = {
+    "PHASE1_BENCH_RBTREE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM",
+}
 
 
 class DuplicateTrackingDict(dict[str, object]):
@@ -136,6 +140,10 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
         if missing:
             return ("expectations_missing_checksums", missing)
         return ("expectations_unexpected_checksums", unexpected)
+
+    for key in sorted(RBTREE_REQUIRED_EXACT_CHECKSUMS):
+        if key in checksum_keys and key not in exact_checksums:
+            return ("expectations_checksums_rbtree_exact_required", key)
 
     exact_keys = set(exact_checksums)
     if exact_keys != REQUIRED_EXACT_CHECKSUMS:
@@ -260,7 +268,7 @@ def run_self_test() -> None:
     assert kind == "duplicate"
     assert payload == ["PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM"]
 
-    missing_exact = {
+    downgraded_rbtree_exact = {
         "status": "pass",
         "iterations": dict(EXPECTED_ITERATIONS),
         "checksums": list(EXPECTED_CHECKSUMS),
@@ -273,12 +281,29 @@ def run_self_test() -> None:
             "PHASE1_BENCH_RBTREE_CHECKSUM": 6,
         },
     }
-    kind, payload = validate_expectations(missing_exact)
+    kind, payload = validate_expectations(downgraded_rbtree_exact)
+    assert kind == "expectations_checksums_rbtree_exact_required"
+    assert payload == "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM"
+
+    missing_string_exact = {
+        "status": "pass",
+        "iterations": dict(EXPECTED_ITERATIONS),
+        "checksums": list(EXPECTED_CHECKSUMS),
+        "exact_checksums": {
+            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
+            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
+            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
+            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+            "PHASE1_BENCH_RBTREE_CHECKSUM": 6,
+            "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM": 7,
+        },
+    }
+    kind, payload = validate_expectations(missing_string_exact)
     assert kind == "expectations_missing_exact_checksums"
-    assert payload == ["PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM"]
+    assert payload == ["PHASE1_BENCH_STRING_CHECKSUM"]
 
     print("PHASE1_BENCH_CHECK_SELF_TEST=pass")
-    print("PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=4")
+    print("PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=5")
 
 
 def main() -> int:
