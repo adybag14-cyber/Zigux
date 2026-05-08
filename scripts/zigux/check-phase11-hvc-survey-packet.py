@@ -37,6 +37,8 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
     "teardown and failure-mode parity",
     "repo reality now carries one bounded starter for each Phase 11 simple-production-driver roadmap anchor",
     "khvcd polling-contract follow-through",
+    "`hvc_hangup()` disconnect boundary",
+    "stale hangup short-circuit",
 ]
 
 REQUIRED_TEARDOWN_NOTE_MARKERS = [
@@ -65,6 +67,9 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "khvcd polling contract boundary",
     "notifier-driven versus polling-driven wakeups",
     "bounded reschedule intent",
+    "`hvc_hangup()` disconnect boundary",
+    "stale-count short-circuiting",
+    "preserving buffered-write state when the stale port-count guard wins",
 ]
 
 REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS = [
@@ -117,7 +122,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 24
+SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -210,6 +215,8 @@ The live archival packet now belongs to lane `P11-L16`.
 - the bounded archival checkpoint keeps `drivers/tty/hvc/hvc_console.zig` framed as a direct-port driver starter with a hardware validation matrix and teardown and failure-mode parity kept host-free
 - repo reality now carries one bounded starter for each Phase 11 simple-production-driver roadmap anchor
 - current `master` now also carries the bounded khvcd polling-contract follow-through
+- current `master` also keeps the bounded `hvc_hangup()` disconnect boundary explicit beside the same archival packet
+- the archived note still names the stale hangup short-circuit so buffered-write state does not get overstated when port count is already zero
 """,
     )
     write_text(
@@ -244,6 +251,9 @@ The live archival packet now belongs to lane `P11-L16`.
 - khvcd polling contract boundary
 - notifier-driven versus polling-driven wakeups
 - bounded reschedule intent
+- `hvc_hangup()` disconnect boundary
+- stale-count short-circuiting
+- preserving buffered-write state when the stale port-count guard wins
 """,
     )
     write_text(
@@ -412,6 +422,18 @@ def run_self_test() -> int:
             )
             expect_failure(
                 root,
+                SURVEY_NOTE_PATH,
+                "`hvc_hangup()` disconnect boundary",
+                "survey_note:`hvc_hangup()` disconnect boundary",
+            )
+            expect_failure(
+                root,
+                SURVEY_NOTE_PATH,
+                "stale hangup short-circuit",
+                "survey_note:stale hangup short-circuit",
+            )
+            expect_failure(
+                root,
                 TEARDOWN_NOTE_PATH,
                 "`tty_port_put()`",
                 "teardown_note:tty_port_put()",
@@ -467,14 +489,26 @@ def run_self_test() -> int:
             expect_failure(
                 root,
                 VALIDATION_MATRIX_PATH,
-                "`zigux/tests/phase11_hvc_console_manifest.json`",
-                "validation_matrix:`zigux/tests/phase11_hvc_console_manifest.json`",
+                "khvcd polling contract boundary",
+                "validation_matrix:khvcd polling contract boundary",
             )
             expect_failure(
                 root,
                 VALIDATION_MATRIX_PATH,
-                "khvcd polling contract boundary",
-                "validation_matrix:khvcd polling contract boundary",
+                "`hvc_hangup()` disconnect boundary",
+                "validation_matrix:`hvc_hangup()` disconnect boundary",
+            )
+            expect_failure(
+                root,
+                VALIDATION_MATRIX_PATH,
+                "stale-count short-circuiting",
+                "validation_matrix:stale-count short-circuiting",
+            )
+            expect_failure(
+                root,
+                VALIDATION_MATRIX_PATH,
+                "preserving buffered-write state when the stale port-count guard wins",
+                "validation_matrix:preserving buffered-write state when the stale port-count guard wins",
             )
             expect_failure(
                 root,
