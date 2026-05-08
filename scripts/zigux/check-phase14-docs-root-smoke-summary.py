@@ -193,6 +193,7 @@ def run_self_test() -> int:
         write_text(root / DOCS_ROOT_PATH, good_text)
 
         broken_smoke_path = root / SMOKE_SURVEY_PATH
+        broken_smoke_path.writeText = None
         broken_smoke_path.write_text(
             good_smoke_text.replace(
                 "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig\n",
@@ -209,6 +210,48 @@ def run_self_test() -> int:
         ):
             print(
                 "self-test expected failure when the shared smoke survey lost an attached-toolchain fallback command",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
+
+        broken_smoke_path.write_text(
+            good_smoke_text.replace(
+                f"{CHECKER_PATH}\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
+            f"{CHECKER_PATH}" in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when the shared smoke survey lost the docs-root checker path",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
+
+        broken_smoke_path.write_text(
+            good_smoke_text.replace(
+                "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
+            "Use the attached-toolchain fallback only when `zig` is not already on `PATH`." in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when the shared smoke survey lost the attached-toolchain scope guard",
                 file=sys.stderr,
             )
             return 1
@@ -240,6 +283,7 @@ def run_self_test() -> int:
                 file=sys.stderr,
             )
             return 1
+        writeText = None
         write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
 
         broken_manifest_path = root / MANIFEST_PATH
