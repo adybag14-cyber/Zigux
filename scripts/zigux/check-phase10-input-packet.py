@@ -52,6 +52,7 @@ EXPECTED_BUILD_MARKERS = [
 
 EXPECTED_DOCS_README_MARKERS = [
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "Documentation/zigux/phase10-closure-evidence.md",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
@@ -646,6 +647,19 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_docs_readme_marker_missing")
         docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
 
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "Documentation/zigux/phase10-closure-evidence.md",
+                "Documentation/zigux/phase10-closure-evidence-drift.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "docs_readme:Documentation/zigux/phase10-closure-evidence.md" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_docs_readme_closure_note_marker_missing")
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
         lane_sequencing_path = tmp_root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
         original_lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
         lane_sequencing_path.write_text(
@@ -752,7 +766,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=26")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
