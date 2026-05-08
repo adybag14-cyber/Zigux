@@ -67,6 +67,12 @@ pub const LifecycleSnapshot = struct {
     allows_mutation: bool,
 };
 
+pub const NoOpCopyBoundaryReplay = struct {
+    summary_before: RuntimeBitmapSummary,
+    summary_after: RuntimeBitmapSummary,
+    rejected_inactive_sources: u8,
+};
+
 pub const RuntimeBitmapSample = struct {
     const Self = @This();
 
@@ -199,6 +205,40 @@ pub const RuntimeBitmapSample = struct {
             .first_zero = bounded.first_zero,
             .weight = bounded.weight,
             .nbits = bitmap_nbits,
+        };
+    }
+
+    pub fn runNoOpAndCopyBoundaryReplay(self: *Self) !NoOpCopyBoundaryReplay {
+        try self.ensureMutable();
+
+        const summary_before = self.summary();
+        try self.setRange(5, 0);
+        try self.clearRange(bitmap_nbits, 0);
+
+        var rejected_inactive_sources: u8 = 0;
+
+        var cold_source = Self{};
+        _ = self.copyFrom(&cold_source) catch |err| switch (err) {
+            error.InvalidSourceLifecycle => {
+                rejected_inactive_sources += 1;
+            },
+            else => return err,
+        };
+
+        var exited_source = Self{};
+        try exited_source.initWithSetBits(&.{ 9, 13 });
+        try exited_source.exit();
+        _ = self.copyFrom(&exited_source) catch |err| switch (err) {
+            error.InvalidSourceLifecycle => {
+                rejected_inactive_sources += 1;
+            },
+            else => return err,
+        };
+
+        return .{
+            .summary_before = summary_before,
+            .summary_after = self.summary(),
+            .rejected_inactive_sources = rejected_inactive_sources,
         };
     }
 
@@ -376,6 +416,22 @@ test "runtime bitmap sample failed init leaves the sample cold and empty" {
     try std.testing.expectEqual(@as(usize, 1), initialized.init_runs);
     try std.testing.expect(initialized.allows_mutation);
     try std.testing.expect(module.isSet(1));
+}
+
+test "runtime bitmap sample keeps no-op mutations and copy boundaries explicit" {
+    var module = RuntimeBitmapSample{};
+
+    try module.initWithSetBits(&.{ 2, 7 });
+    const replay = try module.runNoOpAndCopyBoundaryReplay();
+
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(replay.summary_before.first_set, replay.summary_after.first_set);
+    try std.testing.expectEqual(replay.summary_before.first_zero, replay.summary_after.first_zero);
+    try std.testing.expectEqual(replay.summary_before.weight, replay.summary_after.weight);
+    try std.testing.expectEqual(replay.summary_before.nbits, replay.summary_after.nbits);
+    try std.testing.expectEqual(@as(u8, 2), replay.rejected_inactive_sources);
+    try std.testing.expect(module.isSet(2));
+    try std.testing.expect(module.isSet(7));
 }
 
 test "runtime bitmap sample keeps the highest valid bit explicit" {
