@@ -346,8 +346,10 @@ CLOSURE_MARKERS = [
     "PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig",
     "PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py",
     "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
+    "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior",
     "PHASE1_FIND_BIT_ZERO_WINDOW_REVIEW=helper-local zero-bit-window proof stays explicit through the direct find_bit test anchor so first-scan entrypoints return the empty-window boundary without reading bitmap words",
     "PHASE1_FIND_BIT_PAST_NBITS_REVIEW=helper-local past-nbits short-circuit proof stays explicit through the direct find_bit test anchor so next scans starting at or beyond nbits return the boundary without reading bitmap words outside the caller-visible window",
+    "PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore alias proof stays explicit through the direct find_bit test anchor so the Linux-style underscore entry points remain behaviorally locked to the primary Zig helpers",
     "PHASE1_BITMAP_FIRST_WORD_BOUNDARY_REVIEW=helper-local bitmap first-word boundary proof stays explicit through the direct bitmap test anchor so setRange and clearRange preserve exact first-word masks when a range ends on the first-word boundary",
     "PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW=helper-local bitmap final partial-word proof stays explicit through the direct bitmap test anchor so setRange and clearRange clamp trailing partial-word masks to the requested tail window instead of spilling work beyond it",
     "PHASE1_BITMAP_ZERO_BIT_NOOP_REVIEW=helper-local bitmap zero-bit no-op proof stays explicit through the direct bitmap test anchor so zero-bit windows keep mutating helpers, boolean queries, and the rendered empty-window path from touching caller-visible storage or writing hidden bytes",
@@ -500,6 +502,15 @@ def run_self_test() -> None:
         path = root / "zigux/Makefile"
         path.write_text(path.read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[0] + "\n", "", 1), encoding="utf-8")
         assert any(item.startswith("makefile:") for item in collect_missing_markers(root))
+        cases += 1
+        make_fixture_root(root)
+
+        path = root / "Documentation/zigux/phase1-closure.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[7] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        assert f"closure:{CLOSURE_MARKERS[7]}" in collect_missing_markers(root)
         cases += 1
         make_fixture_root(root)
 
