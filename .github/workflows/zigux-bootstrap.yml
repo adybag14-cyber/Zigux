@@ -267,10 +267,10 @@ jobs:
         run: zig test scripts/zigux/mk_elfconfig.zig
 
       - name: Run Phase 1 helper tests
-        run: make -C zigux phase1-test
+        run: zig build test --build-file zigux/tests/build.zig
 
       - name: Run Phase 1 helper benchmark smoke
-        run: make -C zigux phase1-bench
+        run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe
 
       - name: Run Phase 3 ABI/interp substrate tests
         run: zig build phase3-test --build-file zigux/tests/build.zig
