@@ -33,14 +33,15 @@ Those surfaces stay outside this helper packet until a separately justified lane
 
 Any helper-local change to `security/landlock/ruleset.zig` must keep these artifacts aligned in the same bounded review packet:
 
+- `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 
-No lane should flip the live-tree blocker or broaden the helper-owned surface unless the helper behavior, the dedicated gate, the packet checker, and the survey wording all move together. This makes the manifest, survey, slice, and test gate move together when the helper-owned surface changes.
+No lane should flip the live-tree blocker or broaden the helper-owned surface unless the ownership note, manifest, survey, slice, checker, and test gate all move together. This keeps the helper packet fail-closed when the helper-owned surface changes.
 
 ## Next bounded step
 
-Leave this note parked unless future `ruleset.zig` work creates drift between helper ownership, the live-tree blocker, and the five review artifacts above.
+Leave this note parked unless future `ruleset.zig` work creates drift between helper ownership, the live-tree blocker, and the six review artifacts above.
