@@ -92,6 +92,7 @@ EXPECTED_NOTE_MARKERS = [
 EXPECTED_SURVEY_MARKERS = [
     "lane: `P10-L01`",
     "phase10-driver-id-helper",
+    "phase10-driver-id-coverage-disposition-helper",
     "phase10-core-lab-validation-evidence",
     "phase10-driver-validation-narrowing-helper",
     "phase10-core-attribute-summary-helper",
@@ -137,6 +138,7 @@ EXPECTED_GAPS = {
     "phase10-virtio-core-survey-gate": "starter_landed",
     "phase10-virtio-core-survey-note": "starter_landed",
     "phase10-driver-id-helper": "starter_landed",
+    "phase10-driver-id-coverage-disposition-helper": "starter_landed",
     "phase10-driver-validation-narrowing-helper": "starter_landed",
     "phase10-core-attribute-summary-helper": "starter_landed",
     "phase10-driver-id-gate": "starter_landed",
@@ -552,6 +554,15 @@ def run_self_test() -> int:
         survey_path.write_text(original_survey, encoding="utf-8")
 
         survey_path.write_text(
+            original_survey.replace("phase10-driver-id-coverage-disposition-helper", "phase10-driver-id-coverage-disposition-drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:phase10-driver-id-coverage-disposition-helper" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_driver_id_coverage_survey_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
             original_survey.replace("phase10-core-attribute-summary-helper", "phase10-core-attribute-summary-drift", 1),
             encoding="utf-8",
         )
@@ -567,6 +578,15 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:gap:phase10-driver-validation-narrowing-helper" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_driver_validation_gap_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace('"phase10-driver-id-coverage-disposition-helper"', '"phase10-driver-id-coverage-disposition-drift"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:gap:phase10-driver-id-coverage-disposition-helper" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_driver_id_coverage_gap_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
@@ -645,7 +665,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_transport_bridge_wording_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=29")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
