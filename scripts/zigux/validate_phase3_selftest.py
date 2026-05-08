@@ -12,7 +12,7 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 14
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 16
 
 
 @dataclass(frozen=True)
@@ -65,6 +65,7 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
+        ("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT=",),
     ),
     SelfTestTarget(
         "scripts/zigux/validate-phase3-export-uapi-survey.py",
@@ -202,6 +203,11 @@ def run_self_test() -> int:
             "scripts/zigux/check-phase3-policy-byte-guards.py",
             "PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass",
             extra_markers=("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=",),
+        )
+        _require_target(
+            "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
+            extra_markers=("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT=",),
         )
 
         success_root = tmp_root / "success"
@@ -390,6 +396,46 @@ def run_self_test() -> int:
         )
         assert run_targets(duplicate_policy_byte_aux_root) == [
             "duplicate_aux_marker:scripts/zigux/check-phase3-policy-byte-guards.py:2:PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT="
+        ]
+
+        missing_low_level_aux_root = tmp_root / "missing-low-level-aux"
+        _populate_root(missing_low_level_aux_root)
+        write_script(
+            missing_low_level_aux_root / "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
+        )
+        assert run_targets(missing_low_level_aux_root) == [
+            "missing_aux_marker:scripts/zigux/validate-phase3-low-level-wrapper-survey.py:PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT="
+        ]
+
+        duplicate_low_level_aux_root = tmp_root / "duplicate-low-level-aux"
+        _populate_root(duplicate_low_level_aux_root)
+        duplicate_low_level_aux_path = (
+            duplicate_low_level_aux_root / "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
+        )
+        duplicate_low_level_aux_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "import sys",
+                    "",
+                    'if "--self-test" in sys.argv:',
+                    '    print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")',
+                    '    print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT=1")',
+                    '    print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT=2")',
+                    "    raise SystemExit(0)",
+                    "",
+                    'raise SystemExit("expected --self-test")',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert run_targets(duplicate_low_level_aux_root) == [
+            "duplicate_aux_marker:scripts/zigux/validate-phase3-low-level-wrapper-survey.py:2:PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT="
         ]
 
         stderr_root = tmp_root / "stderr"
