@@ -261,6 +261,50 @@ pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
     return if (leftmost) node else null;
 }
 
+pub fn findAdd(node: *Node, root: *Root, cmp: *const fn (*Node, *const Node) i32) ?*Node {
+    var link = &root.node;
+    var parent: ?*Node = null;
+
+    while (link.*) |current| {
+        parent = current;
+        const order = cmp(node, current);
+        if (order < 0) {
+            link = &current.left;
+        } else if (order > 0) {
+            link = &current.right;
+        } else {
+            return current;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColor(node, root);
+    return null;
+}
+
+pub fn findAddCached(node: *Node, root: *RootCached, cmp: *const fn (*Node, *const Node) i32) ?*Node {
+    var link = &root.root.node;
+    var parent: ?*Node = null;
+    var leftmost = true;
+
+    while (link.*) |current| {
+        parent = current;
+        const order = cmp(node, current);
+        if (order < 0) {
+            link = &current.left;
+        } else if (order > 0) {
+            link = &current.right;
+            leftmost = false;
+        } else {
+            return current;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColorCached(node, root, leftmost);
+    return null;
+}
+
 fn linkLinkedNode(node: *NodeLinked, parent: ?*Node, link: *?*Node) void {
     node.prev = null;
     node.next = null;
@@ -761,6 +805,92 @@ test "rbtree cached helpers keep the leftmost pointer aligned" {
     try std.testing.expectEqual(@as(?*Node, null), eraseCached(&entries[3].node, &root));
     try std.testing.expectEqual(@as(?*Node, &entries[0].node), firstCached(&root));
     try std.testing.expectEqual(@as(?*Node, &entries[0].node), first(&root.root));
+}
+
+test "rbtree findAdd inserts missing nodes and returns existing matches" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const cmp = struct {
+        fn compare(new_node: *Node, existing_node: *const Node) i32 {
+            const new_entry: *const Entry = @fieldParentPtr("node", new_node);
+            const existing_entry: *const Entry = @fieldParentPtr("node", existing_node);
+            return orderToInt(std.math.order(new_entry.key, existing_entry.key));
+        }
+    }.compare;
+
+    var root_entry = Entry{ .key = 10 };
+    var high_entry = Entry{ .key = 20 };
+    var low_entry = Entry{ .key = 5 };
+    var duplicate_entry = Entry{ .key = 10 };
+    var root = Root.init();
+
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&root_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&high_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&low_entry.node, &root, cmp));
+
+    const duplicate = findAdd(&duplicate_entry.node, &root, cmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*Node, &root_entry.node), duplicate);
+
+    var order: [3]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 20 }, order[0..count]);
+    try std.testing.expectEqual(@as(?*Node, null), duplicate_entry.node.parent);
+    try std.testing.expectEqual(@as(?*Node, null), duplicate_entry.node.left);
+    try std.testing.expectEqual(@as(?*Node, null), duplicate_entry.node.right);
+}
+
+test "rbtree findAddCached preserves duplicate hits and leftmost handoff state" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const cmp = struct {
+        fn compare(new_node: *Node, existing_node: *const Node) i32 {
+            const new_entry: *const Entry = @fieldParentPtr("node", new_node);
+            const existing_entry: *const Entry = @fieldParentPtr("node", existing_node);
+            return orderToInt(std.math.order(new_entry.key, existing_entry.key));
+        }
+    }.compare;
+
+    var root_entry = Entry{ .key = 10 };
+    var high_entry = Entry{ .key = 20 };
+    var low_entry = Entry{ .key = 5 };
+    var duplicate_low = Entry{ .key = 5 };
+    var root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&root_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&high_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&low_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, &low_entry.node), firstCached(&root));
+
+    const duplicate = findAddCached(&duplicate_low.node, &root, cmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*Node, &low_entry.node), duplicate);
+    try std.testing.expectEqual(@as(?*Node, &low_entry.node), firstCached(&root));
+    try std.testing.expectEqual(@as(?*Node, null), duplicate_low.node.parent);
+
+    var order: [3]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root.root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 20 }, order[0..count]);
 }
 
 test "rbtree replaceNode copies victim links over dirty replacement nodes" {
