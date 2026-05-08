@@ -552,3 +552,21 @@ test "landlock ruleset tree-link rejects attachment plans without a recorded sea
 
     try std.testing.expectError(error.MissingSearchPath, RulesetHelperLab.planRuleTreeLink(malformed_search_plan));
 }
+
+test "landlock ruleset tree-replacement rejects empty access in merged-layer followups" {
+    const existing = RulePlan{
+        .num_layers = 2,
+        .layers = [_]Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 2)),
+    };
+
+    try std.testing.expectError(error.EmptyAccess, RulesetHelperLab.planRuleTreeReplacement(
+        .inode,
+        99,
+        existing,
+        .{ .level = 5, .access = 0 },
+        6,
+    ));
+}
