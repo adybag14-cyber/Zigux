@@ -295,7 +295,7 @@ def check_compile_matrix(root: Path) -> list[str]:
         errors.append("phase14 smoke note full-bundle-only compile count drifted from the current four-artifact packet")
     if build_text.count("b.addTest(.") != 5:
         errors.append("phase14 build bundle no longer declares the current five compile artifacts")
-    if buildText.count("b.addRunArtifact(") != 5:
+    if build_text.count("b.addRunArtifact(") != 5:
         errors.append("phase14 build bundle no longer wires the current five compile-artifact runs")
     forbidden_smoke_dependencies = [
         "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
@@ -462,7 +462,7 @@ def run_self_test() -> int:
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken_manifest["surfaces"] = "not-a-list"
-        writeText(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
         errors = check(root)
         if "phase14 manifest surfaces payload is not a list" not in errors:
             print("self-test expected non-list manifest-surface payload failure", file=sys.stderr)
