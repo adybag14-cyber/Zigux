@@ -6,6 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-survey`
+- `PHASE9_LANE_KEY=P9-L14`
 - `PHASE9_SURVEYED_COMMIT=ccd5361c3b193d26587c6396f029fc335c783c6e`
 - scope: survey manifest, starter sample, dedicated module and survey gates, the bounded loader-handoff scaffold plus shared-request bridge and initialized-stage snapshot stability proof, the focused `phase9-runtime-trace-events-tests` build step, the lane-level review notes, and explicit adjacency to the separate shared runtime-loader lane that owns the facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` step
 - product boundary:
