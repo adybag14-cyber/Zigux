@@ -157,7 +157,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 60
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 62
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -192,6 +192,8 @@ SELF_TEST_CASES = [
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-shared-replay-contract.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
+    (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-hvc-survey-packet.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
+    (SCRIPTS_README_PATH, "scripts_readme", "`zigux/tests/phase11_hvc_console_manifest.json`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
     (SCRIPTS_README_PATH, "scripts_readme", "`Documentation/zigux/phase11-closure-note.md`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
     (SCRIPTS_README_PATH, "scripts_readme", "`Documentation/zigux/phase11-hvc-console-teardown-note.md`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
     (SCRIPTS_README_PATH, "scripts_readme", REQUIRED_SCRIPT_README_MARKERS[2], REQUIRED_SCRIPT_README_MARKERS[1]),
