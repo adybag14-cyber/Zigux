@@ -94,7 +94,7 @@ EXACT_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-phase2-cross.py --self-test": 1,
     "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
     "scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
-    "scripts/zigux/check-phase2-cross.py": 2,
+    "scripts/zigux/check-phase2-cross.py": 1,
 }
 
 
@@ -245,7 +245,6 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(
             [
                 "phase2-validate:",
-                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
                 "phase2-cross:",
                 "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
                 "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
@@ -363,14 +362,13 @@ def run_self_test() -> int:
                     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
                     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
                     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
-                    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
                 ]
             )
             + "\n",
         )
         issues = validate_root(root)
         assert (
-            "makefile_exact_run:scripts/zigux/check-phase2-cross.py:count=3:expected=2"
+            "makefile_exact_run:scripts/zigux/check-phase2-cross.py:count=2:expected=1"
             in issues
         )
 
