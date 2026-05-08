@@ -647,6 +647,21 @@ def run_self_test() -> int:
             print("self-test expected forbidden direct workflow command failure", file=sys.stderr)
             return 1
         write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_FILE_MARKERS[WORKFLOW_PATH]) + "\n")
+
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "Run Phase 14 internal bridge tests\n",
+                "Run Phase 14 internal bridge tests\n"
+                "Run Phase 14 internal bridge tests\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 workflow step count drifted for Run Phase 14 internal bridge tests" not in errors:
+            print("self-test expected duplicate workflow step-name failure", file=sys.stderr)
+            return 1
+        write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_FILE_MARKERS[WORKFLOW_PATH]) + "\n")
         return 0
 
 def main() -> int:
