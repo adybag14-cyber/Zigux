@@ -22,6 +22,10 @@ BASELINE_CONSTANTS = (
     ("ZIGUX_ALLOC_CALLER_PROVIDED", "ALLOC_CALLER_PROVIDED", "allocator_caller_provided", 0),
     ("ZIGUX_UNSAFE_RAW_POINTER_BRIDGE", "UNSAFE_RAW_POINTER_BRIDGE", "unsafe_scope_raw_pointer_bridge", 2),
 )
+REQUIRED_BINDING_MARKERS = (
+    "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
+    "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED",
+)
 
 HEADER_DEFINE_RE = re.compile(r"^#define\s+(?P<name>[A-Z0-9_]+)\s+(?P<value>[0-9xa-fA-F]+)U?$")
 BINDING_CONST_RE = re.compile(r"^pub const (?P<name>[A-Z0-9_]+): [^=]+ = (?P<value>[0-9xa-fA-F]+);$")
@@ -92,6 +96,10 @@ def validate_constant_parity(
         elif fixture_value != expected_value:
             issues.append(f"{expected_path}:wrong_expected_value:{json_key}:{fixture_value}")
 
+    for binding_name in REQUIRED_BINDING_MARKERS:
+        if binding_name not in binding_constants:
+            issues.append(f"{bindings_path}:missing_binding_marker:{binding_name}")
+
     return issues
 
 
@@ -113,7 +121,11 @@ def run_self_test() -> int:
             newline="\n",
         )
         bindings.write_text(
-            "\n".join(f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in BASELINE_CONSTANTS) + "\n",
+            "\n".join(
+                [*(f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in BASELINE_CONSTANTS)]
+                + [f"pub const {binding_name}: u32 = 1;" for binding_name in REQUIRED_BINDING_MARKERS]
+            )
+            + "\n",
             encoding="utf-8",
             newline="\n",
         )
@@ -138,9 +150,14 @@ def run_self_test() -> int:
         bindings.write_text("pub const STATUS_FLAG_ERROR: u16 = 1;\n", encoding="utf-8", newline="\n")
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
         assert f"{bindings}:missing_binding_constant:FACILITY_KERNEL" in issues
+        assert f"{bindings}:missing_binding_marker:{REQUIRED_BINDING_MARKERS[0]}" in issues
 
         bindings.write_text(
-            "\n".join(f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in BASELINE_CONSTANTS) + "\n",
+            "\n".join(
+                [*(f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in BASELINE_CONSTANTS)]
+                + [f"pub const {binding_name}: u32 = 1;" for binding_name in REQUIRED_BINDING_MARKERS]
+            )
+            + "\n",
             encoding="utf-8",
             newline="\n",
         )
