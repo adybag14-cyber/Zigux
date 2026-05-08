@@ -5,11 +5,11 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 ## Status
 
 - `PHASE15_LANE_KEY=P15-L08`
-- `PHASE15_STATUS=maintenance_mode_ready`
-- `PHASE15_SLICE=phase-handoff-and-next-bound-synthesis`
-- reviewed handoff provenance refreshed against verified `master` head `4fc891b380cdd2991dff7676ade7f844df1b55fd` on 2026-05-07 after the paired parity scorecard provenance caught up with the current Phase 15 governance packet
-- the paired current `Documentation/zigux/phase15-parity-scorecard.md` packet now carries the same verified `master` head provenance marker, so this dedicated handoff note returns to exact-head agreement instead of fallback blocker-posture agreement
-- the handoff manifest and focused Zig guard now machine-check `exact_head_parity` as the active cross-packet truthfulness mode again
+- `PHASE15_STATUS=maintenance_mode_truthfulness_fallback`
+- `PHASE15_SLICE=phase-handoff-and-next-bound-dated-readback-fallback`
+- reviewed handoff provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-08` on 2026-05-08 after live repo inspection confirmed current `master` moved ahead of the paired parity scorecard's last verified head
+- the paired current `Documentation/zigux/phase15-parity-scorecard.md` packet still records verified `master` head `4fc891b380cdd2991dff7676ade7f844df1b55fd`, so this dedicated handoff note now falls back to blocker-posture agreement instead of claiming exact-head parity across the parked governance bundle
+- the handoff manifest and focused Zig guard now machine-check `dated_master_readback_blocker_posture_fallback` as the active cross-packet truthfulness mode until the paired parity scorecard catches up again
 
 ## Roadmap Versus Ledger
 
@@ -31,7 +31,7 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 - the paired readiness note remains visible at `Documentation/zigux/phase15-readiness-gate-survey.md` and still records the same deep-core-only blocker posture
 - the current handoff summary no longer leaves the validator-first route or the dedicated `make -C zigux phase15-test` replay implicit when describing the parked governance packet
 - this packet's lane identity is refreshed to `P15-L08` so the dedicated handoff note matches the active Phase 15 handoff maintenance lane again
-- the parity scorecard, readiness packet, indefinite-C policy, docs root, review checklist, scripts-root validator-first route, dedicated `make -C zigux phase15-test` route, shared build replay, workflow, and this handoff packet still agree that the remaining blocked work is only the deep-core status-change evidence, and the handoff packet now returns to exact-head parity with the paired scorecard while the shared blocker posture stays unchanged
+- the parity scorecard, readiness packet, indefinite-C policy, docs root, review checklist, scripts-root validator-first route, dedicated `make -C zigux phase15-test` route, shared build replay, workflow, and this handoff packet still agree that the remaining blocked work is only the deep-core status-change evidence, and the handoff packet now keeps blocker-posture agreement with the paired scorecard while exact-head parity remains intentionally deferred until the scorecard catches up again
 - the parked next-bound queue now mirrors the named scorecard reopen-trigger catalog: `evidence_packet_stale_or_contradictory` reopens this packet for truthfulness drift, while `narrower_followup_answers_blocker` and `ownership_or_validation_changed` reopen it only when the shared deep-core blocker posture or validation ownership actually moves
 
 ## Open Handoff Gaps
