@@ -70,6 +70,7 @@ fn validatePerfMatrix() !void {
 
         const needed_chars = std.base64.standard.Encoder.calcSize(case.payload.len);
         if (fixtures.perf_encoded_buf_size < needed_chars) return error.Base64PerfMatrixMismatch;
+        try expectExactFitPerfBuffers(case);
 
         if (std.mem.eql(u8, case.label, "STD_PAD")) {
             if (!std.mem.eql(u8, case.variant_name, "std") or !case.padding or saw_std_pad) {
@@ -102,6 +103,58 @@ fn validatePerfMatrix() !void {
 
     if (!saw_std_pad or !saw_std_no_pad or !saw_urlsafe_pad or !saw_urlsafe_no_pad) {
         return error.Base64PerfMatrixMismatch;
+    }
+}
+
+fn expectExactFitPerfBuffers(case: fixtures.PerfCase) !void {
+    const variant = fixtureVariant(case.variant_name);
+    const codec = stdCodecs(variant, case.padding);
+    const helper_needed = base64.chars(case.payload.len, case.padding);
+    const reference_needed = codec.Encoder.calcSize(case.payload.len);
+
+    if (helper_needed != reference_needed) return error.Base64PerfMatrixMismatch;
+
+    var helper_encoded: [fixtures.perf_encoded_buf_size]u8 = undefined;
+    var reference_encoded: [fixtures.perf_encoded_buf_size]u8 = undefined;
+    const helper_exact = helper_encoded[0..helper_needed];
+    const helper_written = try base64.encode(helper_exact, case.payload, case.padding, variant);
+    if (helper_written != helper_needed) return error.Base64PerfMatrixMismatch;
+
+    const reference_written = codec.Encoder.encode(reference_encoded[0..reference_needed], case.payload);
+    if (!std.mem.eql(u8, helper_exact[0..helper_written], reference_written)) {
+        return error.Base64PerfMatrixMismatch;
+    }
+
+    if (helper_needed > 0) {
+        var truncated_encoded: [fixtures.perf_encoded_buf_size]u8 = [_]u8{0xaa} ** fixtures.perf_encoded_buf_size;
+        const truncated_exact = truncated_encoded[0 .. helper_needed - 1];
+        try std.testing.expectError(
+            base64.EncodeError.DestinationTooSmall,
+            base64.encode(truncated_exact, case.payload, case.padding, variant),
+        );
+        for (truncated_exact) |byte| {
+            try std.testing.expectEqual(@as(u8, 0xaa), byte);
+        }
+    }
+
+    var decoded: [fixtures.perf_payload_buf_size]u8 = undefined;
+    const decoded_exact = decoded[0..case.payload.len];
+    const decoded_written = try base64.decode(decoded_exact, helper_exact[0..helper_written], case.padding, variant);
+    if (decoded_written != case.payload.len) return error.Base64PerfMatrixMismatch;
+    if (!std.mem.eql(u8, case.payload, decoded_exact[0..decoded_written])) {
+        return error.Base64PerfMatrixMismatch;
+    }
+
+    if (case.payload.len > 0) {
+        var truncated_decoded: [fixtures.perf_payload_buf_size]u8 = [_]u8{0xdd} ** fixtures.perf_payload_buf_size;
+        const truncated_exact = truncated_decoded[0 .. case.payload.len - 1];
+        try std.testing.expectError(
+            base64.DecodeError.DestinationTooSmall,
+            base64.decode(truncated_exact, helper_exact[0..helper_written], case.padding, variant),
+        );
+        for (truncated_exact) |byte| {
+            try std.testing.expectEqual(@as(u8, 0xdd), byte);
+        }
     }
 }
 
@@ -288,6 +341,12 @@ pub fn main(init: std.process.Init) !void {
 
 test "phase 6 base64 perf matrix preflight stays aligned with the documented packet" {
     try validatePerfMatrix();
+}
+
+test "phase 6 base64 perf preflight exact-fit and truncated buffers stay aligned with the documented packet" {
+    for (fixtures.perf_cases) |case| {
+        try expectExactFitPerfBuffers(case);
+    }
 }
 
 test "medianNs selects the middle sample after sorting" {
