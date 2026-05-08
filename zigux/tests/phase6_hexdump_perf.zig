@@ -44,6 +44,15 @@ fn validatePerfMatrix() !void {
     }
 
     for (fixtures.perf_cases, 0..) |case, idx| {
+        var expected_line: [fixtures.test_hexdump_buf_size]u8 = undefined;
+        const rendered = fixtures.prepareExpectedLine(
+            expected_line[0..],
+            case.len,
+            case.rowsize,
+            case.groupsize,
+            case.ascii,
+        );
+
         if (case.expected_text.current().len == 0) return error.HexdumpPerfMatrixMismatch;
         if (case.reps == 0 or case.max_slowdown_pct == 0 or case.len == 0) {
             return error.HexdumpPerfMatrixMismatch;
@@ -51,6 +60,12 @@ fn validatePerfMatrix() !void {
         if (case.len > case.rowsize) return error.HexdumpPerfMatrixMismatch;
         if (case.rowsize != fixtures.normalizedRowsize(case.rowsize)) return error.HexdumpPerfMatrixMismatch;
         if (case.groupsize != fixtures.normalizedGroupsizeForLen(case.len, case.groupsize)) {
+            return error.HexdumpPerfMatrixMismatch;
+        }
+        if (fixtures.expectedLength(case.len, case.rowsize, case.groupsize, case.ascii) != rendered.len) {
+            return error.HexdumpPerfMatrixMismatch;
+        }
+        if (!std.mem.eql(u8, case.expected_text.current(), rendered)) {
             return error.HexdumpPerfMatrixMismatch;
         }
 
