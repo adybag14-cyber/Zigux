@@ -34,6 +34,8 @@ SURVEY_MARKERS = [
     "blocked `phase13-devres-live-mmio-side-effects`",
     "blocked `phase13-devres-live-dma-backed-helpers`",
     "blocked `phase13-devres-live-scatterlist-ownership`",
+    "blocked `phase13-devres-live-device-tree-walk`",
+    "blocked `phase13-devres-live-arch-memtype-state`",
     "helper-only DMA/scatterlist boundary",
     "keeps `devm_iounmap()` pointer matching exact",
     "devm_ioremap_uc()",
@@ -125,6 +127,8 @@ MANIFEST_GAP_STATUS_EXPECTATIONS = {
     "phase13-devres-live-mmio-side-effects": "blocked_on_live_mmio_state",
     "phase13-devres-live-dma-backed-helpers": "blocked_on_dma_state",
     "phase13-devres-live-scatterlist-ownership": "blocked_on_scatterlist_state",
+    "phase13-devres-live-device-tree-walk": "blocked_on_device_tree_state",
+    "phase13-devres-live-arch-memtype-state": "blocked_on_arch_memtype_state",
 }
 
 
@@ -263,6 +267,8 @@ def run_self_test() -> int:
                 "phase13-devres-survey:blocked `phase13-devres-live-mmio-side-effects`",
                 "phase13-devres-survey:blocked `phase13-devres-live-dma-backed-helpers`",
                 "phase13-devres-survey:blocked `phase13-devres-live-scatterlist-ownership`",
+                "phase13-devres-survey:blocked `phase13-devres-live-device-tree-walk`",
+                "phase13-devres-survey:blocked `phase13-devres-live-arch-memtype-state`",
                 "phase13-devres-survey:helper-only DMA/scatterlist boundary",
                 "phase13-devres-survey:keeps `devm_iounmap()` pointer matching exact",
                 "phase13-devres-survey:devm_ioremap_uc()",
@@ -345,6 +351,8 @@ def run_self_test() -> int:
                 "phase13-devres-manifest-gap:phase13-devres-live-mmio-side-effects",
                 "phase13-devres-manifest-gap:phase13-devres-live-dma-backed-helpers",
                 "phase13-devres-manifest-gap:phase13-devres-live-scatterlist-ownership",
+                "phase13-devres-manifest-gap:phase13-devres-live-device-tree-walk",
+                "phase13-devres-manifest-gap:phase13-devres-live-arch-memtype-state",
             ],
             "manifest_guard_failed",
         )
