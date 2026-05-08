@@ -129,6 +129,7 @@ def required_files_for(root: Path) -> list[Path]:
         files.append(root / rel_path)
     for rel_path in EXPECTED_PACKET_FIELDS.values():
         files.append(root / rel_path)
+    files.append(root / OPTIONAL_ARTIFACT_PACKET_PATH)
     return files
 
 
@@ -201,45 +202,44 @@ def validate_root(root: Path) -> list[str]:
             )
 
     artifact_packet = manifest.get(OPTIONAL_ARTIFACT_PACKET_FIELD)
-    if artifact_packet is not None:
-        if artifact_packet != OPTIONAL_ARTIFACT_PACKET_PATH:
+    if artifact_packet != OPTIONAL_ARTIFACT_PACKET_PATH:
+        issues.append(
+            f"optional_manifest_field:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_packet!r}:expected={OPTIONAL_ARTIFACT_PACKET_PATH!r}"
+        )
+    else:
+        if artifact_packet in seen_packet_paths:
             issues.append(
-                f"optional_manifest_field:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_packet!r}:expected={OPTIONAL_ARTIFACT_PACKET_PATH!r}"
+                f"optional_manifest_field:{OPTIONAL_ARTIFACT_PACKET_FIELD}:duplicate_packet_path:{artifact_packet}"
             )
         else:
-            if artifact_packet in seen_packet_paths:
-                issues.append(
-                    f"optional_manifest_field:{OPTIONAL_ARTIFACT_PACKET_FIELD}:duplicate_packet_path:{artifact_packet}"
-                )
+            seen_packet_paths.add(artifact_packet)
+            artifact_packet_path = root / artifact_packet
+            if not artifact_packet_path.exists():
+                issues.append(f"missing_file:{artifact_packet}")
             else:
-                seen_packet_paths.add(artifact_packet)
-                artifact_packet_path = root / artifact_packet
-                if not artifact_packet_path.exists():
-                    issues.append(f"missing_file:{artifact_packet}")
-                else:
-                    artifact_manifest = load_json_object(
-                        artifact_packet_path, label=OPTIONAL_ARTIFACT_PACKET_FIELD
+                artifact_manifest = load_json_object(
+                    artifact_packet_path, label=OPTIONAL_ARTIFACT_PACKET_FIELD
+                )
+                if artifact_manifest.get("phase") != EXPECTED_MANIFEST_PHASE:
+                    issues.append(
+                        f"optional_packet_phase:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('phase')!r}:expected={EXPECTED_MANIFEST_PHASE!r}"
                     )
-                    if artifact_manifest.get("phase") != EXPECTED_MANIFEST_PHASE:
-                        issues.append(
-                            f"optional_packet_phase:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('phase')!r}:expected={EXPECTED_MANIFEST_PHASE!r}"
-                        )
-                    if artifact_manifest.get("status") != EXPECTED_PACKET_STATUS:
-                        issues.append(
-                            f"optional_packet_status:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('status')!r}:expected={EXPECTED_PACKET_STATUS!r}"
-                        )
-                    if artifact_manifest.get("tools") != OPTIONAL_ARTIFACT_PACKET_TOOLS:
-                        issues.append(
-                            f"optional_packet_tools:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('tools')!r}:expected={OPTIONAL_ARTIFACT_PACKET_TOOLS!r}"
-                        )
-                    if artifact_manifest.get("fixture_inputs") != OPTIONAL_ARTIFACT_PACKET_INPUTS:
-                        issues.append(
-                            f"optional_packet_inputs:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('fixture_inputs')!r}:expected={OPTIONAL_ARTIFACT_PACKET_INPUTS!r}"
-                        )
-                    if artifact_manifest.get("expected_packets") != OPTIONAL_ARTIFACT_PACKET_EXPECTED:
-                        issues.append(
-                            f"optional_packet_expected:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('expected_packets')!r}:expected={OPTIONAL_ARTIFACT_PACKET_EXPECTED!r}"
-                        )
+                if artifact_manifest.get("status") != EXPECTED_PACKET_STATUS:
+                    issues.append(
+                        f"optional_packet_status:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('status')!r}:expected={EXPECTED_PACKET_STATUS!r}"
+                    )
+                if artifact_manifest.get("tools") != OPTIONAL_ARTIFACT_PACKET_TOOLS:
+                    issues.append(
+                        f"optional_packet_tools:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('tools')!r}:expected={OPTIONAL_ARTIFACT_PACKET_TOOLS!r}"
+                    )
+                if artifact_manifest.get("fixture_inputs") != OPTIONAL_ARTIFACT_PACKET_INPUTS:
+                    issues.append(
+                        f"optional_packet_inputs:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('fixture_inputs')!r}:expected={OPTIONAL_ARTIFACT_PACKET_INPUTS!r}"
+                    )
+                if artifact_manifest.get("expected_packets") != OPTIONAL_ARTIFACT_PACKET_EXPECTED:
+                    issues.append(
+                        f"optional_packet_expected:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('expected_packets')!r}:expected={OPTIONAL_ARTIFACT_PACKET_EXPECTED!r}"
+                    )
 
     for field_name in sorted(
         key
