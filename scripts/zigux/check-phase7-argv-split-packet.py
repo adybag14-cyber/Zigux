@@ -23,6 +23,7 @@ REQUIRED_FILES = [
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-argv-split-slice.md": [
         "null-terminated pointer-vector access through `cArgv()`",
+        "exported C-argv vector sizing to `argc + 1` so the trailing null sentinel stays aligned with `argvSplitWithArgc()` and `cArgv()`",
         "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`",
         "allocator-failure cleanup when intermediate setup work is interrupted",
         "overflow rejection before sizing the exported null-terminated argv vector",
@@ -49,6 +50,7 @@ REQUIRED_MARKERS = {
         "phase 7 argvSplit token buffer does not alias the source text",
         "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy",
         "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
+        "phase 7 argvSplit keeps the exported C argv vector sized to argc plus one sentinel",
         "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
         "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
@@ -261,6 +263,18 @@ def run_self_test() -> None:
         slice_path.write_text(original_slice, encoding="utf-8")
 
         slice_path.write_text(
+            original_slice.replace("exported C-argv vector sizing to `argc + 1` so the trailing null sentinel stays aligned with `argvSplitWithArgc()` and `cArgv()`", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_slice_cargv_layout_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: exported C-argv vector sizing to `argc + 1` so the trailing null sentinel stays aligned with `argvSplitWithArgc()` and `cArgv()`",
+        )
+        case_count += 1
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
             original_slice.replace("allocator-failure cleanup when intermediate setup work is interrupted", "", 1),
             encoding="utf-8",
         )
@@ -377,6 +391,22 @@ def run_self_test() -> None:
             "argv_split_argc_out_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split.zig: phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
+                "phase 7 argvSplit keeps the exported C argv vector sized to argc plus one sentinel",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_cargv_layout_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit keeps the exported C argv vector sized to argc plus one sentinel",
         )
         case_count += 1
         tests_path.write_text(original_tests, encoding="utf-8")
