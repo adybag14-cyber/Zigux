@@ -60,6 +60,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     var saw_approved_idiom_prompt = false;
     var saw_pre_registration_prompt = false;
     var saw_registered_teardown_prompt = false;
+    var saw_input_validation_prompt = false;
     var saw_ownership_summary_prompt = false;
     var saw_counter_progression_prompt = false;
     var saw_exit_prompt = false;
@@ -71,6 +72,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     var saw_ownership_counters = false;
     var saw_initialized_exit = false;
     var saw_dispatch = false;
+    var saw_parse_failure = false;
     var saw_exit = false;
 
     for (manifest.review_prompts) |prompt| {
@@ -90,6 +92,11 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "runTeardownReplay()") != null)
         {
             saw_registered_teardown_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "runInputValidationReplay()") != null and
+            std.mem.indexOf(u8, prompt, "parse-failure") != null)
+        {
+            saw_input_validation_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "ownershipSummary()") != null and
             std.mem.indexOf(u8, prompt, "cold, initialized, registered, and exited") != null)
@@ -155,7 +162,13 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "shared-b-dispatch")) {
             saw_dispatch = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runInputValidationReplay()") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "7 and -5") != null);
+        }
+        if (std.mem.eql(u8, check.id, "parse-failure")) {
+            saw_parse_failure = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runInputValidationReplay()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidInteger") != null);
         }
         if (std.mem.eql(u8, check.id, "exit-boundary")) {
             saw_exit = true;
@@ -175,6 +188,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_approved_idiom_prompt);
     try std.testing.expect(saw_pre_registration_prompt);
     try std.testing.expect(saw_registered_teardown_prompt);
+    try std.testing.expect(saw_input_validation_prompt);
     try std.testing.expect(saw_ownership_summary_prompt);
     try std.testing.expect(saw_counter_progression_prompt);
     try std.testing.expect(saw_exit_prompt);
@@ -186,6 +200,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_ownership_counters);
     try std.testing.expect(saw_initialized_exit);
     try std.testing.expect(saw_dispatch);
+    try std.testing.expect(saw_parse_failure);
     try std.testing.expect(saw_exit);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "sysfs file creation parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kernel_kobj integration"));
