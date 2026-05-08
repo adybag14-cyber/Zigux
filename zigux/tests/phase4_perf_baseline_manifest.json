@@ -98,6 +98,13 @@
       "why_now": "The bounded atomic64 replay command is now approved for local Phase 4 perf review because the dedicated survey packet already exact-pins the same replay route and deterministic evidence, while the acceptable limit remains explicitly unapproved and the shared validator-first packet still stays narrower than full perf coverage."
     },
     {
+      "id": "phase4-perf-baseline-atomic64-acceptable-limit",
+      "status": "ready_next",
+      "kind": "perf_threshold",
+      "zigux_destination": "zigux/tests/atomic64_diff.zig",
+      "why_now": "The next honest bounded Phase 4 perf step is to approve one local-only acceptable limit for the shipped atomic64 replay, because the current survey packet already exact-pins the benchmark command plus deterministic runThresholdReplay(1) and runThresholdReplay(4) evidence while keeping shared CI ownership and wider perf claims explicitly out of scope."
+    },
+    {
       "id": "phase4-perf-baseline-bitmap-command-evidence",
       "status": "starter_landed",
       "kind": "survey_evidence",
