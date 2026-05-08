@@ -13,7 +13,7 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
   - `zigux/tests/phase6_bsearch.zig`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
-- evidence note: direct readback on `2026-05-07` inspected the current `lib/bsearch.c`, `lib/bsearch.zig`, and `zigux/tests/phase6_bsearch.zig` packet so this slice stays limited to the shipped helper-local review surface instead of stale blob bookkeeping
+- evidence note: direct readback on `2026-05-08` inspected the current `lib/bsearch.c`, `lib/bsearch.zig`, and `zigux/tests/phase6_bsearch.zig` packet so this slice stays limited to the shipped helper-local review surface instead of stale blob bookkeeping
 - roadmap anchor note: the live `lib/bsearch.c` anchor is still a thin `__inline_bsearch(...)` wrapper, so the shipped Zigux packet keeps raw `bsearch` and `bsearchMutable` replay as the roadmap-facing surface while the typed helper entrypoints stay as reviewability companions for the same comparator contract instead of implying a separate direct C harness or timing-style perf gate
 
 ## Why this slice exists
@@ -48,9 +48,11 @@ The current bsearch helper surface exercised by this slice covers:
 - `searchIndex`
 - `search`
 - `searchMutable`
+- `lowerBoundIndex`
 - `bsearchIndex`
 - `bsearch`
 - `bsearchMutable`
+- `bsearchLowerBoundIndex`
 - `Comparator`
 - `CComparator`
 - `RawComparator`
@@ -73,6 +75,7 @@ The current tests check:
 - runtime-selected raw native comparator pointer parity
 - runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses
 - representative lookup work stays inside a bounded binary-search comparison budget for both typed and raw lookup paths
+- typed and raw lower-bound insertion-point parity across duplicates, ascending and descending ranges, and packed record entries
 - raw record lookup parity that exercises `member_size` across packed record entries and mutable write-through directly in the focused Phase 6 packet
 - raw `bsearch` and `bsearchMutable` replay stays explicit as the roadmap-facing wrapper surface while the typed helpers prove the same comparison semantics without needing a separate C harness packet
 
