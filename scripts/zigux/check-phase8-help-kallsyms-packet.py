@@ -113,6 +113,21 @@ REQUIRED_MARKERS = {
     ],
 }
 
+EXACT_ONCE_SECTION_MARKERS = {
+    "scripts/zigux/README.md": [
+        {
+            "start": "Phase 8 flow\n",
+            "end": "\nPhase 9 flow\n",
+            "needle": "zigux/tests/phase8_help_kallsyms_only_build.zig",
+        },
+        {
+            "start": "Phase 8 flow\n",
+            "end": "\nPhase 9 flow\n",
+            "needle": "make -C zigux phase8-help-kallsyms-test",
+        },
+    ],
+}
+
 
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
@@ -131,13 +146,52 @@ def collect_missing_markers(root: Path) -> list[str]:
     return missing
 
 
+def collect_exact_section_errors(root: Path) -> list[str]:
+    errors: list[str] = []
+    for rel, section_specs in EXACT_ONCE_SECTION_MARKERS.items():
+        path = root / rel
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for spec in section_specs:
+            start = text.find(spec["start"])
+            if start == -1:
+                errors.append(f"{rel}: missing_section_start:{spec['start'].strip()}")
+                continue
+
+            section_start = start + len(spec["start"])
+            end = text.find(spec["end"], section_start)
+            if end == -1:
+                errors.append(f"{rel}: missing_section_end:{spec['end'].strip()}")
+                continue
+
+            section = text[section_start:end]
+            if section.count(spec["needle"]) != 1:
+                errors.append(f"{rel}: exact_once_section_marker:{spec['needle']}")
+    return errors
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
-    return collect_missing_files(root), collect_missing_markers(root)
+    missing_markers = collect_missing_markers(root)
+    missing_markers.extend(collect_exact_section_errors(root))
+    return collect_missing_files(root), missing_markers
+
+
+def build_scripts_readme_fixture() -> str:
+    phase8_markers = "\n".join(REQUIRED_MARKERS["scripts/zigux/README.md"])
+    return (
+        "# scripts/zigux\n\n"
+        "Phase 8 flow\n"
+        f"{phase8_markers}\n"
+        "\nPhase 9 flow\n"
+    )
 
 
 def fixture_text(rel: str) -> str:
     if rel == "scripts/zigux/check-phase8-help-kallsyms-packet.py":
         return "# fixture\n"
+    if rel == "scripts/zigux/README.md":
+        return build_scripts_readme_fixture()
     return "\n".join(REQUIRED_MARKERS.get(rel, ["# fixture"])) + "\n"
 
 
@@ -273,6 +327,20 @@ def run_self_test() -> None:
             "weak-object `V` and `v` classes still follow the current C header contract",
             "weak-object classes stay explicit",
             "zigux/tests/phase8_kallsyms.zig: weak-object `V` and `v` classes still follow the current C header contract",
+        ),
+        (
+            "scripts_readme_phase8_section_combined_build_once",
+            "scripts/zigux/README.md",
+            "zigux/tests/phase8_help_kallsyms_only_build.zig",
+            "zigux/tests/phase8_help_kallsyms_only_build.zig\nzigux/tests/phase8_help_kallsyms_only_build.zig",
+            "scripts/zigux/README.md: exact_once_section_marker:zigux/tests/phase8_help_kallsyms_only_build.zig",
+        ),
+        (
+            "scripts_readme_phase8_section_combined_route_once",
+            "scripts/zigux/README.md",
+            "make -C zigux phase8-help-kallsyms-test",
+            "make -C zigux phase8-help-kallsyms-test\nmake -C zigux phase8-help-kallsyms-test",
+            "scripts/zigux/README.md: exact_once_section_marker:make -C zigux phase8-help-kallsyms-test",
         ),
     ]
 
