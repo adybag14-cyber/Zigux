@@ -107,10 +107,14 @@ test "phase13 landlock syscalls manifest records the landed helper packet truthf
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "one in-memory `ruleset_fops` planner") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the new in-memory `ruleset_fops` planner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "ruleset_fops planning") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "FMODE_CAN_READ") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "FMODE_CAN_WRITE") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "-EINVAL") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "direct helper evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "shared replay step") != null);
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -275,4 +279,5 @@ test "phase13 landlock syscalls survey note records the active lane key" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "special `ruleset_fd == -1` mute-subdomains-only case") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the in-memory `add_rule_path_beneath()` planner") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the new in-memory `ruleset_fops` planner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`") != null);
 }
