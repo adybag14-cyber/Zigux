@@ -249,7 +249,7 @@ test "phase14 workqueue bridge survey note pins the lane key and surveyed commit
     const survey_note = try readFixture(std.testing.allocator, "Documentation/zigux/phase14-workqueue-bridge-survey.md");
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_STATUS=active") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_STATUS=blocked_maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L04") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=9e278f632d6d5097cb8cfc2dc61744ae105baa8c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=workqueue-flush-drain-governance") != null);
