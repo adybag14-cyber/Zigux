@@ -358,6 +358,7 @@ CLOSURE_MARKERS = [
     "PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py",
     "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
     "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior",
+    "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start",
     "PHASE1_FIND_BIT_ZERO_WINDOW_REVIEW=helper-local zero-bit-window proof stays explicit through the direct find_bit test anchor so first-scan entrypoints return the empty-window boundary without reading bitmap words",
     "PHASE1_FIND_BIT_PAST_NBITS_REVIEW=helper-local past-nbits short-circuit proof stays explicit through the direct find_bit test anchor so next scans starting at or beyond nbits return the boundary without reading bitmap words outside the caller-visible window",
     "PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore alias proof stays explicit through the direct find_bit test anchor so the Linux-style underscore entry points remain behaviorally locked to the primary Zig helpers",
@@ -530,6 +531,15 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         assert f"closure:{CLOSURE_MARKERS[7]}" in collect_missing_markers(root)
+        cases += 1
+        make_fixture_root(root)
+
+        path = root / "Documentation/zigux/phase1-closure.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[8] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        assert f"closure:{CLOSURE_MARKERS[8]}" in collect_missing_markers(root)
         cases += 1
         make_fixture_root(root)
 
