@@ -91,6 +91,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     defer allocator.free(samples_root);
     try expectContains(samples_root, "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample;");
     try expectContains(samples_root, "Documentation/zigux/phase7-cmdline-slice.md");
+    try expectContains(samples_root, "lib/cmdline.zig");
     try expectContains(samples_root, "zigux/tests/phase7_cmdline.zig");
     try expectContains(samples_root, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(samples_root, "zigux/tests/phase7_build.zig");
