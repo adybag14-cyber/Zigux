@@ -22,6 +22,12 @@ CONFDATA_PACKET_PATH = "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.js
 REQUIRED_CHECKER_MARKERS = (
     "REQUIRED_CONF_CASE_MODES = [",
     "REQUIRED_CONFDATA_CASES = [",
+    "ALLCONFIG_OVERRIDE_MODES = {",
+    "def expected_conf_case_order(conf_cases: list[dict[str, object]]) -> list[str]:",
+    "cmd.append(f\"allconfig={case['allconfig']}\")",
+    "cmd.append(f\"seed={case['seed']}\")",
+    "cmd.append(f\"probability={case['probability']}\")",
+    "cmd.append(f\"nosilentupdate={case['nosilentupdate']}\")",
     "EXPECTED_SELF_TEST_CASE_COUNT = 17",
     'print("KCONFIG_BRIDGE_SELF_TEST=pass")',
     'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")',
@@ -29,6 +35,12 @@ REQUIRED_CHECKER_MARKERS = (
 REQUIRED_CHECKER_EXACT_COUNTS = {
     "REQUIRED_CONF_CASE_MODES = [": 1,
     "REQUIRED_CONFDATA_CASES = [": 1,
+    "ALLCONFIG_OVERRIDE_MODES = {": 1,
+    "def expected_conf_case_order(conf_cases: list[dict[str, object]]) -> list[str]:": 1,
+    "cmd.append(f\"allconfig={case['allconfig']}\")": 1,
+    "cmd.append(f\"seed={case['seed']}\")": 1,
+    "cmd.append(f\"probability={case['probability']}\")": 1,
+    "cmd.append(f\"nosilentupdate={case['nosilentupdate']}\")": 1,
     "EXPECTED_SELF_TEST_CASE_COUNT = 17": 1,
     'print("KCONFIG_BRIDGE_SELF_TEST=pass")': 1,
     'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")': 1,
@@ -74,7 +86,7 @@ REQUIRED_CLOSURE_EXACT_COUNTS = {
     f"`PHASE2_KCONFIG_BRIDGE_CONFDATA_PACKET={CONFDATA_PACKET_PATH}`": 1,
     "`kconfig_confdata_bridge_packet`": 1,
 }
-EXPECTED_SELF_TEST_CASE_COUNT = 42
+EXPECTED_SELF_TEST_CASE_COUNT = 48
 
 
 def read_text(path: Path) -> str:
@@ -197,6 +209,14 @@ def build_self_test_root(root: Path) -> None:
                 "REQUIRED_CONFDATA_CASES = [",
                 "    'sample',",
                 "]",
+                "ALLCONFIG_OVERRIDE_MODES = {",
+                "}",
+                "def expected_conf_case_order(conf_cases: list[dict[str, object]]) -> list[str]:",
+                "    return []",
+                "cmd.append(f\"allconfig={case['allconfig']}\")",
+                "cmd.append(f\"seed={case['seed']}\")",
+                "cmd.append(f\"probability={case['probability']}\")",
+                "cmd.append(f\"nosilentupdate={case['nosilentupdate']}\")",
                 "EXPECTED_SELF_TEST_CASE_COUNT = 17",
                 'print("KCONFIG_BRIDGE_SELF_TEST=pass")',
                 'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")',
@@ -307,6 +327,48 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / CHECKER
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[2], "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[2]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CHECKER
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[3], "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[3]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CHECKER
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[4], "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[4]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CHECKER
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[5], "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[5]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CHECKER
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[6], "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[6]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CHECKER
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[7], "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[7]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CHECKER
         path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[0], REQUIRED_CHECKER_MARKERS[0] + "\n" + REQUIRED_CHECKER_MARKERS[0], 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[0]}:count=2:expected=1") in issues
@@ -321,30 +383,30 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / CHECKER
-        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[2], "", 1), encoding="utf-8")
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[8], "", 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[2]) in issues
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[8]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / CHECKER
-        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[2], REQUIRED_CHECKER_MARKERS[2] + "\n" + REQUIRED_CHECKER_MARKERS[2], 1), encoding="utf-8")
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[8], REQUIRED_CHECKER_MARKERS[8] + "\n" + REQUIRED_CHECKER_MARKERS[8], 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[2]}:count=2:expected=1") in issues
+        assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[8]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / CHECKER
-        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[3], REQUIRED_CHECKER_MARKERS[3] + "\n" + REQUIRED_CHECKER_MARKERS[3], 1), encoding="utf-8")
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[9], REQUIRED_CHECKER_MARKERS[9] + "\n" + REQUIRED_CHECKER_MARKERS[9], 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[3]}:count=2:expected=1") in issues
+        assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[9]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / CHECKER
-        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[4], REQUIRED_CHECKER_MARKERS[4] + "\n" + REQUIRED_CHECKER_MARKERS[4], 1), encoding="utf-8")
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[10], REQUIRED_CHECKER_MARKERS[10] + "\n" + REQUIRED_CHECKER_MARKERS[10], 1), encoding="utf-8")
         issues = collect_issues(root)
-        assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[4]}:count=2:expected=1") in issues
+        assert ("DUPLICATE_CHECKER_MARKERS", f"{REQUIRED_CHECKER_MARKERS[10]}:count=2:expected=1") in issues
         cases += 1
 
         build_self_test_root(root)
