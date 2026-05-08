@@ -15,6 +15,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_build.zig",
     "zigux/tests/phase13_devres.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig",
+    "zigux/tests/phase13_devres_boundary_evidence.zig",
     "zigux/tests/phase13_devres_reviewability.zig",
     "zigux/tests/phase13_devres_manifest.json",
     "scripts/zigux/validate-phase13-release.py",
@@ -30,12 +31,14 @@ SLICE_MARKERS = [
 
 SURVEY_MARKERS = [
     "phase13-devres-arch-phys-wc-token-planner",
+    "blocked `phase13-devres-live-mmio-side-effects`",
     "blocked `phase13-devres-live-dma-backed-helpers`",
     "blocked `phase13-devres-live-scatterlist-ownership`",
     "helper-only DMA/scatterlist boundary",
     "keeps `devm_iounmap()` pointer matching exact",
     "devm_ioremap_uc()",
     "devm_ioremap_resource_wc()",
+    "zigux/tests/phase13_devres_boundary_evidence.zig",
 ]
 
 BUILD_MARKERS = [
@@ -43,12 +46,15 @@ BUILD_MARKERS = [
     'b.path("phase13_devres.zig")',
     'b.path("phase13_devres_reviewability.zig")',
     'b.path("phase13_devres_dma_coherent.zig")',
+    'b.path("phase13_devres_boundary_evidence.zig")',
     "const phase13_devres_tests = b.addTest(.{",
     "const phase13_devres_reviewability_tests = b.addTest(.{",
     "const phase13_devres_dma_coherent_tests = b.addTest(.{",
+    "const phase13_devres_boundary_evidence_tests = b.addTest(.{",
     "test_step.dependOn(&run_phase13_devres_tests.step);",
     "test_step.dependOn(&run_phase13_devres_reviewability_tests.step);",
     "test_step.dependOn(&run_phase13_devres_dma_coherent_tests.step);",
+    "test_step.dependOn(&run_phase13_devres_boundary_evidence_tests.step);",
 ]
 
 DMA_REVIEWABILITY_MARKERS = [
@@ -61,6 +67,17 @@ DMA_REVIEWABILITY_MARKERS = [
     '\\\"id\\\": \\\"phase13-devres-live-scatterlist-ownership\\\"',
     '\\\"status\\\": \\\"blocked_on_dma_state\\\"',
     '\\\"status\\\": \\\"blocked_on_scatterlist_state\\\"',
+]
+
+BOUNDARY_EVIDENCE_MARKERS = [
+    'test "phase13 devres boundary evidence keeps dma and scatterlist blockers aligned" {',
+    'const boundary_gate = findGap(manifest.gaps, "phase13-devres-boundary-evidence-gate") orelse return error.MissingBoundaryGate;',
+    'try std.testing.expectEqualStrings("zigux/tests/phase13_devres_boundary_evidence.zig", boundary_gate.zigux_destination);',
+    'try expectContains(boundary_gate.why_now, "manifest, slice note, and survey note");',
+    'const dma_block = findGap(manifest.gaps, "phase13-devres-live-dma-backed-helpers") orelse return error.MissingDmaBlock;',
+    'const scatterlist_block = findGap(manifest.gaps, "phase13-devres-live-scatterlist-ownership") orelse return error.MissingScatterlistBlock;',
+    'try expectContains(survey_note, "zigux/tests/phase13_devres_boundary_evidence.zig");',
+    'try expectContains(survey_note, "exact boundary evidence");',
 ]
 
 MAKE_MARKERS = [
@@ -103,7 +120,9 @@ MANIFEST_SUMMARY_KEYS = [
     "preexisting_phase13_devres_survey_present",
 ]
 
-MANIFEST_GAP_STATUSES = {
+MANIFEST_GAP_STATUS_EXPECTATIONS = {
+    "phase13-devres-boundary-evidence-gate": "starter_landed",
+    "phase13-devres-live-mmio-side-effects": "blocked_on_live_mmio_state",
     "phase13-devres-live-dma-backed-helpers": "blocked_on_dma_state",
     "phase13-devres-live-scatterlist-ownership": "blocked_on_scatterlist_state",
 }
@@ -144,7 +163,7 @@ def validate_manifest(text: str) -> list[str]:
         for gap in manifest.get("gaps", [])
         if isinstance(gap, dict)
     }
-    for gap_id, expected_status in MANIFEST_GAP_STATUSES.items():
+    for gap_id, expected_status in MANIFEST_GAP_STATUS_EXPECTATIONS.items():
         if gap_id not in statuses:
             issues.append(f"phase13-devres-manifest-gap:{gap_id}")
         elif statuses[gap_id] != expected_status:
@@ -164,6 +183,7 @@ def validate(root: Path) -> list[str]:
         ("zigux/tests/phase13_build.zig", BUILD_MARKERS, "phase13-build"),
         ("zigux/tests/phase13_devres.zig", DEVRES_TEST_MARKERS, "phase13-devres-test"),
         ("zigux/tests/phase13_devres_dma_coherent.zig", DMA_REVIEWABILITY_MARKERS, "phase13-devres-dma-coherent"),
+        ("zigux/tests/phase13_devres_boundary_evidence.zig", BOUNDARY_EVIDENCE_MARKERS, "phase13-devres-boundary-evidence"),
         ("zigux/Makefile", MAKE_MARKERS, "makefile"),
         ("scripts/zigux/validate-phase13-release.py", RELEASE_MARKERS, "phase13-release-validator"),
     ]
@@ -186,6 +206,7 @@ def seed_fixture_tree(root: Path) -> None:
         "zigux/tests/phase13_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/tests/phase13_devres.zig": "\n".join(DEVRES_TEST_MARKERS) + "\n",
         "zigux/tests/phase13_devres_dma_coherent.zig": "\n".join(DMA_REVIEWABILITY_MARKERS) + "\n",
+        "zigux/tests/phase13_devres_boundary_evidence.zig": "\n".join(BOUNDARY_EVIDENCE_MARKERS) + "\n",
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         "scripts/zigux/validate-phase13-release.py": "\n".join(RELEASE_MARKERS) + "\n",
         "zigux/tests/phase13_devres_manifest.json": json.dumps(
@@ -195,7 +216,7 @@ def seed_fixture_tree(root: Path) -> None:
                 "survey_summary": {key: True for key in MANIFEST_SUMMARY_KEYS},
                 "gaps": [
                     {"id": gap_id, "status": status}
-                    for gap_id, status in MANIFEST_GAP_STATUSES.items()
+                    for gap_id, status in MANIFEST_GAP_STATUS_EXPECTATIONS.items()
                 ],
             },
             indent=2,
@@ -239,12 +260,14 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                "phase13-devres-survey:blocked `phase13-devres-live-mmio-side-effects`",
                 "phase13-devres-survey:blocked `phase13-devres-live-dma-backed-helpers`",
                 "phase13-devres-survey:blocked `phase13-devres-live-scatterlist-ownership`",
                 "phase13-devres-survey:helper-only DMA/scatterlist boundary",
                 "phase13-devres-survey:keeps `devm_iounmap()` pointer matching exact",
                 "phase13-devres-survey:devm_ioremap_uc()",
                 "phase13-devres-survey:devm_ioremap_resource_wc()",
+                "phase13-devres-survey:zigux/tests/phase13_devres_boundary_evidence.zig",
             ],
             "survey_guard_failed",
         )
@@ -272,12 +295,15 @@ def run_self_test() -> int:
                 'phase13-build:b.path("../../lib/devres.zig")',
                 'phase13-build:b.path("phase13_devres_reviewability.zig")',
                 'phase13-build:b.path("phase13_devres_dma_coherent.zig")',
+                'phase13-build:b.path("phase13_devres_boundary_evidence.zig")',
                 "phase13-build:const phase13_devres_tests = b.addTest(.{",
                 "phase13-build:const phase13_devres_reviewability_tests = b.addTest(.{",
                 "phase13-build:const phase13_devres_dma_coherent_tests = b.addTest(.{",
+                "phase13-build:const phase13_devres_boundary_evidence_tests = b.addTest(.{",
                 "phase13-build:test_step.dependOn(&run_phase13_devres_tests.step);",
                 "phase13-build:test_step.dependOn(&run_phase13_devres_reviewability_tests.step);",
                 "phase13-build:test_step.dependOn(&run_phase13_devres_dma_coherent_tests.step);",
+                "phase13-build:test_step.dependOn(&run_phase13_devres_boundary_evidence_tests.step);",
             ],
             "build_guard_failed",
         )
@@ -315,6 +341,8 @@ def run_self_test() -> int:
                 "phase13-devres-manifest-summary:preexisting_phase13_devres_test_present",
                 "phase13-devres-manifest-summary:preexisting_phase13_devres_reviewability_present",
                 "phase13-devres-manifest-summary:preexisting_phase13_devres_survey_present",
+                "phase13-devres-manifest-gap:phase13-devres-boundary-evidence-gate",
+                "phase13-devres-manifest-gap:phase13-devres-live-mmio-side-effects",
                 "phase13-devres-manifest-gap:phase13-devres-live-dma-backed-helpers",
                 "phase13-devres-manifest-gap:phase13-devres-live-scatterlist-ownership",
             ],
@@ -332,7 +360,7 @@ def run_self_test() -> int:
                     "survey_summary": {key: True for key in MANIFEST_SUMMARY_KEYS},
                     "gaps": [
                         {"id": gap_id, "status": status}
-                        for gap_id, status in MANIFEST_GAP_STATUSES.items()
+                        for gap_id, status in MANIFEST_GAP_STATUS_EXPECTATIONS.items()
                     ],
                 },
                 indent=2,
@@ -372,10 +400,30 @@ def run_self_test() -> int:
         seed_fixture_tree(root)
         case_count += 1
 
-        (root / "zigux/tests/phase13_devres_dma_coherent.zig").unlink()
+        write_text(
+            root / "zigux/tests/phase13_devres_boundary_evidence.zig",
+            'test "phase13 devres boundary evidence keeps dma and scatterlist blockers aligned" {}\n',
+        )
         assert_only(
             validate(root),
-            ["missing_file:zigux/tests/phase13_devres_dma_coherent.zig"],
+            [
+                'phase13-devres-boundary-evidence:const boundary_gate = findGap(manifest.gaps, "phase13-devres-boundary-evidence-gate") orelse return error.MissingBoundaryGate;',
+                'phase13-devres-boundary-evidence:try std.testing.expectEqualStrings("zigux/tests/phase13_devres_boundary_evidence.zig", boundary_gate.zigux_destination);',
+                'phase13-devres-boundary-evidence:try expectContains(boundary_gate.why_now, "manifest, slice note, and survey note");',
+                'phase13-devres-boundary-evidence:const dma_block = findGap(manifest.gaps, "phase13-devres-live-dma-backed-helpers") orelse return error.MissingDmaBlock;',
+                'phase13-devres-boundary-evidence:const scatterlist_block = findGap(manifest.gaps, "phase13-devres-live-scatterlist-ownership") orelse return error.MissingScatterlistBlock;',
+                'phase13-devres-boundary-evidence:try expectContains(survey_note, "zigux/tests/phase13_devres_boundary_evidence.zig");',
+                'phase13-devres-boundary-evidence:try expectContains(survey_note, "exact boundary evidence");',
+            ],
+            "boundary_evidence_guard_failed",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
+        (root / "zigux/tests/phase13_devres_boundary_evidence.zig").unlink()
+        assert_only(
+            validate(root),
+            ["missing_file:zigux/tests/phase13_devres_boundary_evidence.zig"],
             "required_file_guard_failed",
         )
         case_count += 1
