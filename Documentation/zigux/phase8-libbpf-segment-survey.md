@@ -15,7 +15,10 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `tools/lib/bpf/zigux_segments/verify.zig`
+  - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
+  - `Documentation/zigux/phase8-bpf-type-names-slice.md`
   - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
+  - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
   - `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
   - `zigux/tests/phase8_cpu_mask.zig`
   - `zigux/tests/phase8_logging.zig`
