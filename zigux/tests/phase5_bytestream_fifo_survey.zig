@@ -400,6 +400,7 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
 
     const scripts_root_markers = [_][]const u8{
         "Phase 5 flow",
+        "Documentation/zigux/phase5-sample-review-guide.md",
         "Documentation/zigux/phase5-kfifo-sample-survey.md",
         "samples/zigux/bytestream_fifo.zig",
         "zigux/tests/phase5_bytestream_fifo_manifest.json",
