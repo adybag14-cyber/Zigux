@@ -46,8 +46,12 @@ MANIFEST_REQUIRED_FILES = (
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
 )
 
-SURVEY_EXACT_MARKERS = (
+SURVEY_PROVENANCE_MARKERS = (
     "`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-readback-from-public-github-fallback`",
+    "`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run`",
+)
+
+SURVEY_EXACT_MARKERS = (
     "`PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`",
     "`PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`",
     "`PHASE3_REVIEW_ROOT_RULE=export-uapi-growth-requires-survey-plus-layout-replay-plus-shared-review-surface-refresh`",
@@ -193,6 +197,22 @@ def require_exact_line_count(
     issues.append(f"duplicate_{prefix}:{count}:{line}")
 
 
+def require_one_of_exact_lines(
+    issues: list[str],
+    text: str,
+    prefix: str,
+    lines: tuple[str, ...],
+) -> None:
+    normalized = normalized_lines(text)
+    matching = [(line, normalized.count(line)) for line in lines if normalized.count(line) > 0]
+    if not matching:
+        issues.append(f"missing_{prefix}:{'|'.join(lines)}")
+        return
+    total = sum(count for _, count in matching)
+    if total != 1:
+        issues.append(f"duplicate_{prefix}:{total}:{'|'.join(lines)}")
+
+
 def blob_sha(path: Path) -> str:
     data = path.read_bytes()
     header = f"blob {len(data)}\0".encode("ascii")
@@ -246,6 +266,7 @@ def validate(root: Path) -> list[str]:
         return issues
     survey = survey_path.read_text(encoding="utf-8")
 
+    require_one_of_exact_lines(issues, survey, "survey_provenance", SURVEY_PROVENANCE_MARKERS)
     for marker in SURVEY_EXACT_MARKERS:
         require_exact_line_count(issues, survey, "survey_marker", marker)
 
@@ -551,6 +572,38 @@ def run_self_test() -> int:
         survey_path = root / SURVEY_REL
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(
+                "`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-readback-from-public-github-fallback`",
+                "`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run`",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        connector_baseline = validate(root)
+        if connector_baseline:
+            raise SystemExit(f"phase3-export-uapi-self-test:connector_provenance_failed:{connector_baseline}")
+        _write(root / SURVEY_REL, baseline_survey(root))
+
+        survey_path = root / SURVEY_REL
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                "`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-readback-from-public-github-fallback`",
+                "`PHASE3_SURVEY_PROVENANCE_MISSING=packet-local-blob-first-current-head-readback-from-public-github-fallback`",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        expected = [
+            "missing_survey_provenance:`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-readback-from-public-github-fallback`|`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run`"
+        ]
+        if issues != expected:
+            raise SystemExit(f"phase3-export-uapi-self-test:survey_provenance_guard_failed:{issues}")
+        _write(root / SURVEY_REL, baseline_survey(root))
+
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
                 "`PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`",
                 "`PHASE3_C_HEADER_GROWTH_RULE_MISSING=explicit-resurvey-required-before-new-c-header-entry-points`",
                 1,
@@ -674,7 +727,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:manifest_required_file_guard_failed:{issues}")
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=10")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
