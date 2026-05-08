@@ -150,6 +150,8 @@ This snapshot is commit-pinned to `PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf
 
 3. run the exact bounded Phase 5 sample checks
 - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
+- `make -C zigux phase5-test`
+- `make -C zigux phase5`
 
 ## Non-goals
 
