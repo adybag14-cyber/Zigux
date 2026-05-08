@@ -111,6 +111,7 @@ The current tests check:
 - reverse traversal via `last()` and `prev()`
 - duplicate-key lookup ranges via `findFirst()` and `nextMatch()`
 - cached-leftmost tracking and returned leftmost handoff state across `addCached()`, `replaceNodeCached()`, and `eraseCached()`
+- final cached-leftmost handoff clears back to null when `eraseCached()` removes the last cached node
 - erase-and-replace consistency after structural updates
 - replacement of dirty detached nodes by copying the full victim link-and-color shape before reconnecting the new node
 - erase-and-detach ownership reset via `eraseInit()`
