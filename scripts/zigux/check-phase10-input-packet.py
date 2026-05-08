@@ -24,6 +24,8 @@ FILES = [
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "Documentation/zigux/phase10-virtio-input-slice.md",
@@ -35,11 +37,15 @@ EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_input_module",
     "phase10_virtio_input_status_drain_module",
     "phase10_virtio_input_queue_callback_preflight_module",
+    "phase10_virtio_input_registration_preflight_module",
+    "phase10_virtio_input_teardown_observation_module",
     "phase10_virtio_input_verify_module",
     "phase10_virtio_input_survey_module",
     '"phase10-virtio-input-tests"',
     '"phase10-virtio-input-status-drain-tests"',
     '"phase10-virtio-input-queue-callback-preflight-tests"',
+    '"phase10-virtio-input-registration-preflight-tests"',
+    '"phase10-virtio-input-teardown-observation-tests"',
     '"phase10-virtio-input-verify-tests"',
     '"phase10-virtio-input-survey-tests"',
 ]
@@ -137,6 +143,22 @@ EXPECTED_QUEUE_CALLBACK_PREFLIGHT_MARKERS = [
     "QueueCallbackPreflightBlocker.event_queue_unconfigured",
     "QueueCallbackPreflightBlocker.device_not_ready",
     "ready_for_queue_callbacks",
+]
+
+EXPECTED_REGISTRATION_PREFLIGHT_MARKERS = [
+    'test "phase10 virtio input registration preflight reports bounded blockers before registration handoff" {',
+    'test "phase10 virtio input registration preflight does not require multitouch slots when ABS_MT_SLOT is absent" {',
+    "RegistrationBlocker.capability_setup_incomplete",
+    "RegistrationBlocker.multitouch_slots_unplanned",
+    "summary.ready_for_registration",
+]
+
+EXPECTED_TEARDOWN_OBSERVATION_MARKERS = [
+    'test "phase10 virtio input teardown observation captures reset-local cleanup cues without widening into remove lifecycle" {',
+    "summary.preserves_identity",
+    "summary.clears_runtime_state",
+    "summary.clears_capability_state",
+    "registration.ready_for_registration",
 ]
 
 EXPECTED_SURVEY_TEST_MARKERS = [
@@ -312,6 +334,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_QUEUE_CALLBACK_PREFLIGHT_MARKERS:
         if marker not in queue_callback_preflight_text:
             missing_markers.append(f"queue_callback_preflight:{marker}")
+
+    registration_preflight_text = read_text(root, "zigux/tests/phase10_virtio_input_registration_preflight.zig")
+    for marker in EXPECTED_REGISTRATION_PREFLIGHT_MARKERS:
+        if marker not in registration_preflight_text:
+            missing_markers.append(f"registration_preflight:{marker}")
+
+    teardown_observation_text = read_text(root, "zigux/tests/phase10_virtio_input_teardown_observation.zig")
+    for marker in EXPECTED_TEARDOWN_OBSERVATION_MARKERS:
+        if marker not in teardown_observation_text:
+            missing_markers.append(f"teardown_observation:{marker}")
 
     survey_test_text = read_text(root, "zigux/tests/phase10_virtio_input_survey.zig")
     for marker in EXPECTED_SURVEY_TEST_MARKERS:
@@ -515,6 +547,7 @@ def run_self_test() -> int:
 
         test_path = tmp_root / "zigux/tests/phase10_virtio_input.zig"
         original_test = test_path.read_text(encoding="utf-8")
+        test_path.writeText = None
         test_path.write_text(
             original_test.replace("ProbePreflightBlocker.identity_incomplete", "ProbePreflightBlocker.identity_drifted", 1),
             encoding="utf-8",
@@ -590,6 +623,28 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_build_queue_callback_marker_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
+        registration_preflight_path = tmp_root / "zigux/tests/phase10_virtio_input_registration_preflight.zig"
+        original_registration_preflight = registration_preflight_path.read_text(encoding="utf-8")
+        registration_preflight_path.write_text(
+            original_registration_preflight.replace("RegistrationBlocker.multitouch_slots_unplanned", "RegistrationBlocker.multitouch_slots_drifted", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "registration_preflight:RegistrationBlocker.multitouch_slots_unplanned" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_registration_preflight_marker_missing")
+        registration_preflight_path.write_text(original_registration_preflight, encoding="utf-8")
+
+        teardown_observation_path = tmp_root / "zigux/tests/phase10_virtio_input_teardown_observation.zig"
+        original_teardown_observation = teardown_observation_path.read_text(encoding="utf-8")
+        teardown_observation_path.write_text(
+            original_teardown_observation.replace("summary.clears_capability_state", "summary.clears_capability_drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "teardown_observation:summary.clears_capability_state" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_teardown_observation_marker_missing")
+        teardown_observation_path.write_text(original_teardown_observation, encoding="utf-8")
+
         scripts_readme_path = tmp_root / "scripts/zigux/README.md"
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
@@ -617,7 +672,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=19")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
