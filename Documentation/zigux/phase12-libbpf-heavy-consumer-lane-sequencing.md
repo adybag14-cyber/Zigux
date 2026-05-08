@@ -7,10 +7,12 @@ It is a coordination artifact, not a closure claim.
 ## Current posture
 - `PHASE12_STATUS=active`
 - `PHASE12_SEQUENCE=libbpf-heavy-consumer-anti-overlap`
+- direct smoke preflight entrypoint: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
 - shared build-only checker entrypoint: `python3 scripts/zigux/check-build-only-phase12-surface.py`
 - focused smoke preflight entrypoint: `make -C zigux phase12-smoke`
 - shared build replay entrypoint: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 - Linux-style replay entrypoint: `make -C zigux phase12`
+- when `zig` is unavailable on `PATH`, keep the shipped Make routes explicit as `make -C zigux phase12-smoke ZIG=<attached-zig-path>` and `make -C zigux phase12 ZIG=<attached-zig-path>` rather than implying a validator-first, helper-local, or libbpf-only replay surface
 - shipped shared coordination surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
 
 ## Why this note exists
@@ -125,7 +127,7 @@ Today the strongest Phase 12 libbpf sequencing correction is simple:
 - the two helper-sized `ready_next` promotions stay smaller than the deferred bridge and queue-routing bucket
 - the deferred bridge and queue-routing bucket stays smaller than the blocked object-model, loader, and relocation wall
 - wording-only shared-summary repairs stay separate from helper logic and from the other Phase 12 driver lanes
-- PMO release coordination surfaces should keep the closure companion, compact release-coordination matrix, shared fallback overview, and libbpf reviewability packet aligned without turning this heavy-consumer lane into a driver-owner map or a closure claim
+- PMO release coordination surfaces should keep the closure companion, compact release-coordination matrix, shared fallback overview, the direct `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` preflight, the attached-toolchain Make override, and the libbpf reviewability packet aligned without turning this heavy-consumer lane into a driver-owner map or a closure claim
 
 That split matches the live survey packet and keeps future scheduled runs from turning one honest heavy-consumer tranche into overlapping docs, helper, and object-model churn.
 
