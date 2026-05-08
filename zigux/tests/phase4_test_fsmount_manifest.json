@@ -10,7 +10,7 @@
   "survey_owner": "Validation and Perf Team",
   "rollback_owner": "Validation and Perf Team",
   "shared_gate_evidence_packet_present": false,
-  "validation_entrypoint": "zig test zigux/tests/phase4_test_fsmount_survey.zig",
+  "validation_entrypoint": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
   "review_prompts": [
     "the survey keeps the Linux anchor path and blob sha explicit while the Zig starter stays absent",
     "the packet keeps the live VFS replay command explicit without implying a shipped Zig sample",
