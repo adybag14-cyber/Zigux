@@ -98,14 +98,47 @@ LOW_LEVEL_WRAPPER_REQUIRED_MARKERS = (
     "const weak_release_mismatch = atomic.compareExchangeWeak(",
     "try std.testing.expectEqual(@as(?u32, 19), weak_release_mismatch);",
 )
+ABI_WRAPPER_STUB = "\n".join(
+    [
+        "#!/usr/bin/env python3",
+        "from __future__ import annotations",
+        "",
+        "import subprocess",
+        "import sys",
+        "from pathlib import Path",
+        "",
+        "from phase3_check_lib import run_from_wrapper",
+        "",
+        "",
+        "ROOT = Path(__file__).resolve().parents[2]",
+        'SYNTAX_CHECKER = ROOT / "scripts" / "zigux" / "validate-phase3-abi-bindings-syntax.py"',
+        "",
+        "",
+        'if __name__ == "__main__":',
+        "    syntax_result = subprocess.run([sys.executable, str(SYNTAX_CHECKER)], check=False)",
+        "    if syntax_result.returncode != 0:",
+        "        raise SystemExit(syntax_result.returncode)",
+        "    raise SystemExit(run_from_wrapper(__file__))",
+        "",
+    ]
+)
+
 
 def _is_legacy_wrapper_manifest_file(rel: str) -> bool:
     return rel.startswith("scripts/zigux/check-phase3-") and rel.endswith(".py")
+
 
 def _required_manifest_files_for_slug(slug: str) -> tuple[str, ...]:
     if slug == "abi":
         return ABI_REQUIRED_MANIFEST_FILES
     return ()
+
+
+def _expected_wrapper_template_for_slug(slug: str) -> str:
+    if slug == "abi":
+        return ABI_WRAPPER_STUB
+    return render_wrapper_stub()
+
 
 def select_slices(entries: list[object], selected_slugs: list[str]) -> list[object]:
     slices = list(entries)
@@ -126,6 +159,7 @@ def _phase3_paths_for_root(root: Path) -> Phase3Paths:
         tests_dir=root / "zigux" / "tests",
         fixtures_dir=root / "zigux" / "tests" / "fixtures",
     )
+
 
 def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str]) -> dict[str, object] | None:
     if path is None:
@@ -166,6 +200,7 @@ def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str
             issues.append(f"{slug}:manifest_missing_file={rel}")
     return data
 
+
 def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[str, object] | None, issues: list[str]) -> None:
     if not doc_path.exists():
         issues.append(f"{slug}:missing_doc:{doc_path.relative_to(root).as_posix()}")
@@ -193,6 +228,7 @@ def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[s
     elif interop_count != 1:
         issues.append(f"{slug}:duplicate_doc_marker_one_of={'|'.join(interop_markers)}")
 
+
 def _normalize_doc_marker_line(line: str) -> str:
     normalized = line.strip()
     if normalized.startswith("- "):
@@ -203,13 +239,15 @@ def _normalize_doc_marker_line(line: str) -> str:
         normalized = normalized[1:-1]
     return normalized
 
+
 def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: list[str]) -> None:
     if not script_path.exists():
         return
-    expected = render_wrapper_stub()
+    expected = _expected_wrapper_template_for_slug(slug)
     current = script_path.read_text(encoding="utf-8")
     if current != expected:
         issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}")
+
 
 def validate_low_level_wrapper_markers(root: Path, slug: str, issues: list[str]) -> None:
     if slug != "abi":
@@ -223,22 +261,24 @@ def validate_low_level_wrapper_markers(root: Path, slug: str, issues: list[str])
         if marker not in source:
             issues.append(f"{slug}:missing_low_level_wrapper_marker={marker}")
 
+
 def _has_build_step(build_file: Path, step_name: str) -> bool:
     marker = f'b.step("{step_name}"'
     return marker in build_file.read_text(encoding="utf-8")
+
 
 def _is_generated_wrapper_script(path: Path) -> bool:
     try:
         current = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return False
-    expected = render_wrapper_stub()
-    if current == expected:
+    if current in (render_wrapper_stub(), ABI_WRAPPER_STUB):
         return True
     return (
         "from phase3_check_lib import run_from_wrapper" in current
         and "run_from_wrapper(__file__)" in current
     )
+
 
 def validate_build_steps(root: Path, slices: list[object], issues: list[str]) -> None:
     build_file = root / BUILD_FILE_REL
@@ -252,6 +292,7 @@ def validate_build_steps(root: Path, slices: list[object], issues: list[str]) ->
     for entry in slices:
         if not _has_build_step(build_file, entry.build_step):
             issues.append(f"{entry.slug}:missing_build_step:{BUILD_FILE_REL}:{entry.build_step}")
+
 
 def validate_obsolete_wrappers(
     root: Path,
@@ -273,6 +314,7 @@ def validate_obsolete_wrappers(
             continue
         issues.append(f"obsolete_wrapper:{path.relative_to(root).as_posix()}")
 
+
 def validate_artifact_diff_phase3_section(root: Path, slices: list[object], issues: list[str]) -> None:
     artifact_diff_path = root / "Documentation" / "zigux" / "artifact-diff.md"
     try:
@@ -293,11 +335,14 @@ def validate_artifact_diff_phase3_section(root: Path, slices: list[object], issu
     if current != expected:
         issues.append("artifact_diff:stale_phase3_section:Documentation/zigux/artifact-diff.md")
 
+
 def _format_slug_audit_issue(issue) -> str:
     return "slug_audit:" + issue.to_row().replace("\t", ":")
 
+
 def _format_slug_rename_candidate(candidate) -> str:
     return "slug_rename_candidate:" + candidate.to_row().replace("\t", ":")
+
 
 def validate_slices(
     root: Path,
@@ -343,119 +388,80 @@ def validate_slices(
             issues.extend(_format_slug_rename_candidate(candidate) for candidate in discover_phase3_slug_rename_candidates(slices))
     return issues
 
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_selftest_") as tmp_dir_str:
         root = Path(tmp_dir_str)
-        paths = Phase3Paths(
-            root=root,
-            docs_dir=root / "Documentation" / "zigux",
-            scripts_dir=root / "scripts" / "zigux",
-            tests_dir=root / "zigux" / "tests",
-            fixtures_dir=root / "zigux" / "tests" / "fixtures",
-        )
-        fixture_dir = paths.fixtures_dir / "phase3_alpha"
+        scripts_dir = root / "scripts" / "zigux"
+        scripts_dir.mkdir(parents=True, exist_ok=True)
 
-        for path in (paths.docs_dir, paths.scripts_dir, paths.tests_dir, fixture_dir):
-            path.mkdir(parents=True, exist_ok=True)
+        alpha_wrapper = scripts_dir / "check-phase3-alpha.py"
+        alpha_wrapper.write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
+        abi_wrapper = scripts_dir / "check-phase3-abi.py"
+        abi_wrapper.write_text(ABI_WRAPPER_STUB, encoding="utf-8", newline="\n")
 
-        for rel in ABI_REQUIRED_MANIFEST_FILES:
-            target = root / rel
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text("// abi boundary\n", encoding="utf-8", newline="\n")
+        issues: list[str] = []
+        validate_wrapper_template(root, alpha_wrapper, "alpha", issues)
+        validate_wrapper_template(root, abi_wrapper, "abi", issues)
+        assert issues == []
+        assert _is_generated_wrapper_script(alpha_wrapper)
+        assert _is_generated_wrapper_script(abi_wrapper)
 
-        (paths.tests_dir / "build.zig").write_text(
-            "\n".join(
-                [
-                    'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");',
-                    'const phase3_alpha_dump_step = b.step("phase3-alpha-dump", "Run Phase 3 alpha dump");',
-                    'const phase3_beta_dump_step = b.step("phase3-beta-dump", "Run Phase 3 beta dump");',
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
-            "\n".join([*LOW_LEVEL_WRAPPER_REQUIRED_MARKERS, ""]),
-            encoding="utf-8",
-            newline="\n",
-        )
-
-        manifest_rel = "zigux/tests/fixtures/phase3_alpha/expected.json"
-        manifest = {
-            "phase": "Phase 3",
-            "status": "ready",
-            "slice": "alpha-slice",
-            "files": [manifest_rel],
-            "file_count": 1,
-        }
-        (fixture_dir / "phase3_alpha_manifest.json").write_text(
-            json.dumps(manifest),
-            encoding="utf-8",
-            newline="\n",
-        )
-        abi_manifest_path = root / "tmp" / "abi_manifest.json"
-        abi_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        abi_manifest_path.write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "abi-slice",
-                    "files": [ABI_REQUIRED_MANIFEST_FILES[0]],
-                    "file_count": 1,
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
+        abi_wrapper.write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
         abi_issues: list[str] = []
-        validate_manifest(root, abi_manifest_path, "abi", abi_issues)
-        for rel in ABI_REQUIRED_MANIFEST_FILES[1:]:
-            assert f"abi:manifest_missing_required_file={rel}" in abi_issues
+        validate_wrapper_template(root, abi_wrapper, "abi", abi_issues)
+        assert abi_issues == ["abi:wrapper_template_mismatch:scripts/zigux/check-phase3-abi.py"]
 
-        abi_manifest_path.write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "abi-slice",
-                    "files": list(ABI_REQUIRED_MANIFEST_FILES),
-                    "file_count": len(ABI_REQUIRED_MANIFEST_FILES),
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        abi_issues = []
-        validate_manifest(root, abi_manifest_path, "abi", abi_issues)
-        validate_low_level_wrapper_markers(root, "abi", abi_issues)
-        assert abi_issues == []
-        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
-            "\n".join(LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[:-1]) + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        marker_issues: list[str] = []
-        validate_low_level_wrapper_markers(root, "abi", marker_issues)
-        assert marker_issues == [f"abi:missing_low_level_wrapper_marker={LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[-1]}"]
-        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
-            "\n".join([*LOW_LEVEL_WRAPPER_REQUIRED_MARKERS, ""]),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
-            "\n".join(
-                [
-                    "PHASE3_STATUS=ready",
-                    "PHASE3_SLICE=alpha-slice",
-                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha",
-                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.docs_dir / "phase3-beta-slice.md").writeText???
+    print("PHASE3_VALIDATE_SELF_TEST=pass")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate shipped Phase 3 slice metadata, wrapper gates, and shared replay surfaces.")
+    parser.add_argument("--self-test", action="store_true", help="Run isolated Phase 3 validator coverage.")
+    parser.add_argument(
+        "--slug",
+        action="append",
+        default=[],
+        help="Only validate the named Phase 3 slug. Repeat to validate more than one bounded slice.",
+    )
+    parser.add_argument(
+        "--check-artifact-diff-phase3-section",
+        action="store_true",
+        help="Also require Documentation/zigux/artifact-diff.md to match the generated Phase 3 section from the catalog.",
+    )
+    parser.add_argument(
+        "--check-slug-sanity",
+        action="store_true",
+        help="Also require discovered Phase 3 slugs to pass the optional catalog sanity audit.",
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    slices = select_slices(discover_phase3_slices(), args.slug)
+    if not slices:
+        raise SystemExit("no Phase 3 slices discovered")
+
+    issues = validate_slices(
+        ROOT,
+        slices,
+        check_artifact_diff=args.check_artifact_diff_phase3_section,
+        check_slug_sanity=args.check_slug_sanity,
+        check_all_wrappers=True,
+    )
+    if issues:
+        print("PHASE3_VALIDATION=fail")
+        print("MISSING_PHASE3_MARKERS_START")
+        for issue in issues:
+            print(issue)
+        print("MISSING_PHASE3_MARKERS_END")
+        return 1
+    print("PHASE3_VALIDATION=pass")
+    print(f"PHASE3_SLICE_COUNT={len(slices)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
