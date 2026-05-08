@@ -249,6 +249,25 @@ def run_self_test() -> int:
 
         broken_smoke_path.write_text(
             broken_smoke_path.read_text(encoding="utf-8").replace(
+                "Attached-toolchain fallback examples:\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: Attached-toolchain fallback examples:"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the attached-toolchain fallback heading drifted", file=sys.stderr)
+            return 1
+
+        write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
+
+        broken_smoke_path.write_text(
+            broken_smoke_path.read_text(encoding="utf-8").replace(
                 "- `make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig`\n",
                 "",
                 1,
@@ -281,6 +300,25 @@ def run_self_test() -> int:
             for error in errors
         ):
             print("self-test expected failure when the attached-toolchain scope boundary drifted", file=sys.stderr)
+            return 1
+
+        write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
+
+        broken_smoke_path.write_text(
+            broken_smoke_path.read_text(encoding="utf-8").replace(
+                "Fallback path:\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: Fallback path:"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the fallback-path heading drifted", file=sys.stderr)
             return 1
 
         write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
@@ -324,6 +362,25 @@ def run_self_test() -> int:
         write_text(broken_smoke_path, required_text(SMOKE_SURVEY_PATH))
 
         broken_checklist_path = root / "Documentation/zigux/review-checklist.md"
+        broken_checklist_path.write_text(
+            broken_checklist_path.read_text(encoding="utf-8").replace(
+                "if the change touches the shared Phase 14 smoke packet\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/review-checklist.md: if the change touches the shared Phase 14 smoke packet"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the review-checklist packet prompt drifted", file=sys.stderr)
+            return 1
+
+        write_text(broken_checklist_path, required_text("Documentation/zigux/review-checklist.md"))
+
         broken_checklist_path.write_text(
             broken_checklist_path.read_text(encoding="utf-8").replace(
                 "same study-only stay-in-C posture without implying an active deep-core port claim?\n",
