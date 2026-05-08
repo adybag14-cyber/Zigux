@@ -250,3 +250,19 @@ test "hvc_console verify keeps sysrq notifier deferral false without dispatch" {
     try std.testing.expect(no_break_sysrq.host_io_deferred);
     try std.testing.expect(no_break_sysrq.remove_handoff_still_required);
 }
+
+test "hvc_console verify rejects impossible hangup buffered-write state" {
+    var console = try hvc_console.HvcConsoleLab.init(6);
+    _ = console.instantiate(0x61);
+
+    const bounded = try console.summarizeHangupDisconnect(.{
+        .port_count_before_hangup = 0,
+        .buffered_write_len = hvc_console.outbuf_capacity * 2,
+    });
+    try std.testing.expect(bounded.hangup_skipped);
+    try std.testing.expectEqual(hvc_console.outbuf_capacity * 2, bounded.buffered_write_len_after_hangup);
+
+    try std.testing.expectError(error.BufferedWriteTooLarge, console.summarizeHangupDisconnect(.{
+        .buffered_write_len = hvc_console.outbuf_capacity * 2 + 1,
+    }));
+}
