@@ -72,6 +72,24 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
 }
 
+fn expectLinkedBlockerEvidenceContains(
+    io: std.Io,
+    path: []const u8,
+    required_terms: []const []const u8,
+) !void {
+    const linked_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io,
+        path,
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(linked_doc);
+
+    for (required_terms) |term| {
+        try std.testing.expect(std.mem.indexOf(u8, linked_doc, term) != null);
+    }
+}
+
 test "phase 15 freeze-map governance manifest records the bounded governance slice" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -322,4 +340,21 @@ test "phase 15 freeze-map governance note stays aligned with parity scorecard bl
         try std.testing.expect(std.mem.indexOf(u8, governance_note, anchor.evidence_archive.replay_command) != null);
         try std.testing.expect(std.mem.indexOf(u8, governance_note, anchor.evidence_archive.latest_blocker_disposition) != null);
     }
+}
+
+test "phase 15 freeze-map governance linked blocker evidence stays explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    try expectLinkedBlockerEvidenceContains(io_instance.io(), "Documentation/zigux/phase14-rcu-tree-survey.md", &.{
+        "PHASE14_LANE_KEY=P14-L13",
+        "blocked `phase14-rcu-tree-bridge-blocker`",
+        "Keep this packet blocked until a real Architecture Council reopen record",
+    });
+
+    try expectLinkedBlockerEvidenceContains(io_instance.io(), "Documentation/zigux/phase14-skbuff-bridge-survey.md", &.{
+        "PHASE14_LANE_KEY=P14-L11",
+        "blocked `phase14-skbuff-live-ownership-blocker`",
+        "no smaller review-only skbuff follow-up remains before the live ownership blocker",
+    });
 }
