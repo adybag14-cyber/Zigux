@@ -616,6 +616,36 @@ def run_self_test() -> int:
         broken_manifest["surfaces"] = [
             surface
             for surface in broken_manifest["surfaces"]
+            if surface.get("path") != "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
+        ]
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
+        errors = check(root)
+        if not any(
+            "manifest surface drift for scripts/zigux/check-phase14-rollback-threshold-sequencing.py" in error
+            for error in errors
+        ):
+            print("self-test expected rollback manifest surface failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken_manifest["surfaces"] = [
+            surface
+            for surface in broken_manifest["surfaces"]
+            if surface.get("path") != "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
+        ]
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
+        errors = check(root)
+        if not any(
+            "manifest surface drift for scripts/zigux/check-phase14-release-boundary-exact-counts.py" in error
+            for error in errors
+        ):
+            print("self-test expected release-boundary manifest surface failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken_manifest["surfaces"] = [
+            surface
+            for surface in broken_manifest["surfaces"]
             if surface.get("path") != "zigux/Makefile"
         ]
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
