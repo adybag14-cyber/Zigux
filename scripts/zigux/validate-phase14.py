@@ -186,8 +186,10 @@ REQUIRED_FILE_MARKERS = {
     WORKFLOW_PATH: [
         "Validate Phase 14 shared smoke packet",
         "Run focused Phase 14 smoke shard",
+        "Run Phase 14 internal bridge tests",
         "run: make -C zigux phase14-validate",
         "run: make -C zigux phase14-smoke",
+        "run: make -C zigux phase14-test",
     ],
     "kernel/workqueue_bridge.zig": ["pub const WorkqueueBridgeLab"],
     "net/core/skbuff_bridge.zig": ["pub const SkbuffBridgeLab"],
