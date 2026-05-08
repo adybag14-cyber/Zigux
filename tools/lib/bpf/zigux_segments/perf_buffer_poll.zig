@@ -108,6 +108,22 @@ pub const SignaledBufferIndexResult = struct {
     buffer_index: ?usize,
 };
 
+pub const ReadyBufferIndexLookup = union(enum) {
+    buffer_index: usize,
+    ready_ordinal_out_of_range,
+};
+
+pub const ReadyBufferIndexDisposition = enum {
+    buffer_index,
+    ready_ordinal_out_of_range,
+};
+
+pub const ReadyBufferIndexResult = struct {
+    disposition: ReadyBufferIndexDisposition,
+    return_value: i32,
+    buffer_index: ?usize,
+};
+
 pub const PollSummary = struct {
     wait_class: WaitClass,
     outcome: PollOutcome,
@@ -351,6 +367,47 @@ pub fn resolveSignaledBufferIndexResultFromSlots(
     signal_ordinal: usize,
 ) SignaledBufferIndexResult {
     return resolveSignaledBufferIndexResult(lookupSignaledBufferIndex(buffers, signal_ordinal));
+}
+
+pub fn lookupReadyBufferIndex(
+    buffers: []const BufferObservation,
+    ready_ordinal: usize,
+) ReadyBufferIndexLookup {
+    var seen_ready: usize = 0;
+
+    for (buffers, 0..) |buffer, index| {
+        if (!buffer.ready) continue;
+        if (seen_ready == ready_ordinal) {
+            return .{ .buffer_index = index };
+        }
+        seen_ready += 1;
+    }
+
+    return .ready_ordinal_out_of_range;
+}
+
+pub fn resolveReadyBufferIndexResult(
+    lookup: ReadyBufferIndexLookup,
+) ReadyBufferIndexResult {
+    return switch (lookup) {
+        .buffer_index => |index| .{
+            .disposition = .buffer_index,
+            .return_value = 0,
+            .buffer_index = index,
+        },
+        .ready_ordinal_out_of_range => .{
+            .disposition = .ready_ordinal_out_of_range,
+            .return_value = -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+            .buffer_index = null,
+        },
+    };
+}
+
+pub fn resolveReadyBufferIndexResultFromSlots(
+    buffers: []const BufferObservation,
+    ready_ordinal: usize,
+) ReadyBufferIndexResult {
+    return resolveReadyBufferIndexResult(lookupReadyBufferIndex(buffers, ready_ordinal));
 }
 
 pub fn summarizePoll(
@@ -724,6 +781,58 @@ test "resolveSignaledBufferIndexResult keeps signaled-slot return shaping explic
     const invalid = resolveSignaledBufferIndexResultFromSlots(&buffers, 4);
     try std.testing.expectEqual(
         SignaledBufferIndexDisposition.signal_ordinal_out_of_range,
+        invalid.disposition,
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        invalid.return_value,
+    );
+    try std.testing.expectEqual(@as(?usize, null), invalid.buffer_index);
+}
+
+test "lookupReadyBufferIndex keeps ordered ready-buffer iteration explicit" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{ .error_code = -32 },
+        .{ .ready = true, .error_code = -11 },
+        .{ .ready = true },
+    };
+
+    try std.testing.expectEqualDeep(
+        ReadyBufferIndexLookup{ .buffer_index = 1 },
+        lookupReadyBufferIndex(&buffers, 0),
+    );
+    try std.testing.expectEqualDeep(
+        ReadyBufferIndexLookup{ .buffer_index = 3 },
+        lookupReadyBufferIndex(&buffers, 1),
+    );
+    try std.testing.expectEqualDeep(
+        ReadyBufferIndexLookup{ .buffer_index = 4 },
+        lookupReadyBufferIndex(&buffers, 2),
+    );
+    try std.testing.expectEqualDeep(
+        ReadyBufferIndexLookup.ready_ordinal_out_of_range,
+        lookupReadyBufferIndex(&buffers, 3),
+    );
+}
+
+test "resolveReadyBufferIndexResult keeps ready-buffer ordinal return shaping explicit" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{ .error_code = -32 },
+        .{ .ready = true, .error_code = -11 },
+    };
+
+    const success = resolveReadyBufferIndexResultFromSlots(&buffers, 1);
+    try std.testing.expectEqual(ReadyBufferIndexDisposition.buffer_index, success.disposition);
+    try std.testing.expectEqual(@as(i32, 0), success.return_value);
+    try std.testing.expectEqual(@as(?usize, 3), success.buffer_index);
+
+    const invalid = resolveReadyBufferIndexResultFromSlots(&buffers, 2);
+    try std.testing.expectEqual(
+        ReadyBufferIndexDisposition.ready_ordinal_out_of_range,
         invalid.disposition,
     );
     try std.testing.expectEqual(
