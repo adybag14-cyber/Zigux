@@ -385,6 +385,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
         if (std.mem.eql(u8, gap.id, "phase15-review-process-field-coverage-metrics")) {
             saw_review_process_field_coverage_metrics = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "required-approver-set") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback-threshold") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "parity-scorecard") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "older ten-field summary") != null);
