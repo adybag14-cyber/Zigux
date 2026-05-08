@@ -14,6 +14,7 @@ BUILD_REL = "zigux/tests/build.zig"
 MAKEFILE_REL = "zigux/Makefile"
 DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
+ABI_WRAPPER_REL = "scripts/zigux/check-phase3-abi.py"
 DUMP_GATE = "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig"
 BUILD_STEP = 'b.step("phase3-dump"'
 MAKEFILE_TARGET = "phase3-validate"
@@ -21,6 +22,13 @@ MAKEFILE_SELFTEST_CMD = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py --self-test"
 )
 MAKEFILE_LIVE_CMD = "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py"
+ABI_TARGET = "phase3-abi"
+ABI_WRAPPER_CMD = "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi.py"
+ABI_BUILD_CMD = "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-test --build-file zigux/tests/build.zig"
+ABI_WRAPPER_MARKERS = (
+    "validate-phase3-abi-bindings-syntax.py",
+    "run_from_wrapper(__file__)",
+)
 EXPORT_SHIM_REL = "zigux/kernel/export_shim.zig"
 UAPI_VERSION_REL = "zigux/uapi/version.zig"
 DOC_EXACT_MARKERS = (
@@ -86,6 +94,7 @@ def validate(root: Path) -> list[str]:
     makefile_path = root / MAKEFILE_REL
     dump_path = root / DUMP_REL
     manifest_path = root / MANIFEST_REL
+    abi_wrapper_path = root / ABI_WRAPPER_REL
 
     try:
         doc_text = doc_path.read_text(encoding="utf-8")
@@ -145,8 +154,37 @@ def validate(root: Path) -> list[str]:
                     f"duplicate_makefile_command:{MAKEFILE_TARGET}:{live_count}:{MAKEFILE_LIVE_CMD}"
                 )
 
+        abi_target_lines = _collect_makefile_target_lines(makefile_text, ABI_TARGET)
+        if abi_target_lines is None:
+            issues.append(f"missing_makefile_target:{ABI_TARGET}")
+        else:
+            wrapper_count = _command_count(abi_target_lines, ABI_WRAPPER_CMD)
+            if wrapper_count == 0:
+                issues.append(f"missing_makefile_command:{ABI_TARGET}:{ABI_WRAPPER_CMD}")
+            elif wrapper_count != 1:
+                issues.append(
+                    f"duplicate_makefile_command:{ABI_TARGET}:{wrapper_count}:{ABI_WRAPPER_CMD}"
+                )
+
+            build_count = _command_count(abi_target_lines, ABI_BUILD_CMD)
+            if build_count == 0:
+                issues.append(f"missing_makefile_command:{ABI_TARGET}:{ABI_BUILD_CMD}")
+            elif build_count != 1:
+                issues.append(
+                    f"duplicate_makefile_command:{ABI_TARGET}:{build_count}:{ABI_BUILD_CMD}"
+                )
+
     if not dump_path.exists():
         issues.append(f"missing_dump:{DUMP_REL}")
+
+    try:
+        abi_wrapper_text = abi_wrapper_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        issues.append(f"missing_wrapper:{ABI_WRAPPER_REL}")
+    else:
+        for marker in ABI_WRAPPER_MARKERS:
+            if marker not in abi_wrapper_text:
+                issues.append(f"missing_wrapper_marker:{ABI_WRAPPER_REL}:{marker}")
 
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -171,6 +209,7 @@ def run_self_test() -> int:
         (root / "zigux/tests/fixtures").mkdir(parents=True, exist_ok=True)
         (root / "zigux/kernel").mkdir(parents=True, exist_ok=True)
         (root / "zigux/uapi").mkdir(parents=True, exist_ok=True)
+        (root / ABI_WRAPPER_REL).parent.mkdir(parents=True, exist_ok=True)
 
         (root / DOC_REL).write_text(
             "\n".join(
@@ -202,7 +241,8 @@ def run_self_test() -> int:
                     f"\t{MAKEFILE_SELFTEST_CMD}",
                     f"\t{MAKEFILE_LIVE_CMD}",
                     "phase3-abi:",
-                    "\t@true",
+                    f"\t{ABI_WRAPPER_CMD}",
+                    f"\t{ABI_BUILD_CMD}",
                     "",
                 ]
             ),
@@ -210,6 +250,22 @@ def run_self_test() -> int:
             newline="\n",
         )
         (root / DUMP_REL).write_text("// dump\n", encoding="utf-8", newline="\n")
+        (root / ABI_WRAPPER_REL).write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "from phase3_check_lib import run_from_wrapper",
+                    "",
+                    'SYNTAX_CHECKER = ROOT / "scripts" / "zigux" / "validate-phase3-abi-bindings-syntax.py"',
+                    'raise SystemExit(run_from_wrapper(__file__))',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
         (root / EXPORT_SHIM_REL).write_text("// export shim\n", encoding="utf-8", newline="\n")
         (root / UAPI_VERSION_REL).write_text("// uapi version\n", encoding="utf-8", newline="\n")
         (root / MANIFEST_REL).write_text(
@@ -227,7 +283,8 @@ def run_self_test() -> int:
                     "phase3-validate:",
                     f"\t{MAKEFILE_LIVE_CMD}",
                     "phase3-abi:",
-                    "\t@true",
+                    f"\t{ABI_WRAPPER_CMD}",
+                    f"\t{ABI_BUILD_CMD}",
                     "",
                 ]
             ),
@@ -275,7 +332,8 @@ def run_self_test() -> int:
                     f"\t{MAKEFILE_LIVE_CMD}",
                     f"\t{MAKEFILE_LIVE_CMD}",
                     "phase3-abi:",
-                    "\t@true",
+                    f"\t{ABI_WRAPPER_CMD}",
+                    f"\t{ABI_BUILD_CMD}",
                     "",
                 ]
             ),
@@ -312,7 +370,8 @@ def run_self_test() -> int:
                     "phase3-validate:",
                     f"\t{MAKEFILE_SELFTEST_CMD}",
                     "phase3-abi:",
-                    "\t@true",
+                    f"\t{ABI_WRAPPER_CMD}",
+                    f"\t{ABI_BUILD_CMD}",
                     "",
                 ]
             ),
@@ -358,7 +417,8 @@ def run_self_test() -> int:
                     f"\t{MAKEFILE_SELFTEST_CMD}",
                     f"\t{MAKEFILE_LIVE_CMD}",
                     "phase3-abi:",
-                    "\t@true",
+                    f"\t{ABI_WRAPPER_CMD}",
+                    f"\t{ABI_BUILD_CMD}",
                     "",
                 ]
             ),
@@ -380,8 +440,34 @@ def run_self_test() -> int:
         assert f"missing_build_step:{BUILD_REL}:phase3-dump" in issues
         assert f"missing_dump:{DUMP_REL}" in issues
 
+        (root / BUILD_REL).write_text(
+            "\n".join(['const dump = b.step("phase3-dump", "Run dump");', ""]),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / DUMP_REL).write_text("// dump\n", encoding="utf-8", newline="\n")
+        (root / ABI_WRAPPER_REL).write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "from phase3_check_lib import run_from_wrapper",
+                    "",
+                    'raise SystemExit(run_from_wrapper(__file__))',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            f"missing_wrapper_marker:{ABI_WRAPPER_REL}:validate-phase3-abi-bindings-syntax.py" in issues
+        )
+
     print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")
-    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=5")
+    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
