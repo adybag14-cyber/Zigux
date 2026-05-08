@@ -139,7 +139,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-count reservation") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "doorbell offsets") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP metadata") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recovery replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "retire a bounded portion of the dropped-I/O backlog") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-verify-shard")) {
@@ -147,7 +147,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
             try std.testing.expectEqualStrings("drivers/nvme/host/pci_verify.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "smoke-first Phase 12 packet") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "stale reservation renegotiation") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bounded dropped-I/O backlog retirement") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-driver-tests")) {
@@ -199,7 +199,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-count reservation helper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-reservation replay helper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "direct verify shard") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recovery replay helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bounded backlog-retirement bookkeeping") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-queue-count-reservation-helper")) {
@@ -247,7 +247,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reset-generation staleness") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "admin-queue replay need") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dropped I/O queue rebuild count") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "post-reset queue numbering") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bounded dropped-I/O backlog retirement") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-dma-safe-transport-gap")) {
