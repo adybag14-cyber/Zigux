@@ -89,6 +89,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Concurrent mapped-reader governance note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Multiple mapped consumers compete for the same ring buffer") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "output unpredictable") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "- landed `phase14-ring-buffer-concurrent-mapped-reader-governance-followup`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rb_read_remote_meta_page()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "__rb_get_reader_page_from_remote()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "ring_buffer_read_start()") != null);
