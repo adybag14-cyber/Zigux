@@ -383,7 +383,18 @@ pub const DevresHelperLab = struct {
         }
 
         const effective_type = resolveIoremapType(resource, input.requested_type);
-        const size = try resourceSize(resource);
+        const size = resourceSize(resource) catch {
+            return .{
+                .err = .{
+                    .anchor = descriptor().anchor,
+                    .stage = .invalid_resource,
+                    .error_code = .invalid,
+                    .effective_type = effective_type,
+                    .requests_region = false,
+                    .releases_region_on_remap_failure = false,
+                },
+            };
+        };
 
         if (input.fail_pretty_name_allocation) {
             return .{
@@ -490,7 +501,22 @@ pub const DevresHelperLab = struct {
         }
 
         const resource = input.resources[input.index];
-        const translated_size = try resourceSize(resource);
+        const effective_type = resolveIoremapType(resource, input.requested_type);
+        const translated_size = resourceSize(resource) catch {
+            return .{
+                .err = .{
+                    .anchor = descriptor().anchor,
+                    .stage = .address_translation,
+                    .error_code = .invalid,
+                    .index = input.index,
+                    .reported_size = null,
+                    .effective_type = effective_type,
+                    .requests_region = false,
+                    .releases_region_on_remap_failure = false,
+                    .resource_stage = null,
+                },
+            };
+        };
         const reported_size = if (input.report_size) translated_size else null;
 
         const mapped_or_err = try planManagedIoremapResource(allocator, .{
