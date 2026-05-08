@@ -46,6 +46,7 @@ DOCS_ROOT_MARKERS = [
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
     "python3 scripts/zigux/validate-phase3.py --slug abi",
@@ -53,7 +54,6 @@ DOCS_ROOT_MARKERS = [
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "phase3_catalog.py --self-test",
     "make -C zigux phase3-validate",
-    "make -C zigux phase3-selftest",
     "without duplicating the default `phase3-validate` route",
 ]
 
@@ -262,6 +262,7 @@ def run_self_test() -> int:
         assert "docs_root:scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in issues
         assert "docs_root:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
         assert "docs_root:scripts/zigux/validate-phase3-abi-bindings-syntax.py" in issues
+        assert "docs_root:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
         assert "docs_root:scripts/zigux/phase3_check_lib.py" in issues
         assert "docs_root:scripts/zigux/generate-phase3-check-wrappers.py" in issues
         assert "docs_root:python3 scripts/zigux/validate-phase3.py --slug abi" in issues
