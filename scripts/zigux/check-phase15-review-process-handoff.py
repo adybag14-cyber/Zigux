@@ -198,6 +198,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/review-checklist.md",
@@ -210,6 +211,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
+    "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
@@ -545,6 +547,40 @@ def run_self_test() -> int:
         checklist_path.write_text(original_checklist.replace("make -C zigux phase15-validate", "make -C zigux phase15-check", 1), encoding="utf-8")
         expect_only(root, ["review_checklist:make -C zigux phase15-validate"], "missing_validator_first_marker")
         checklist_path.write_text(original_checklist, encoding="utf-8")
+        case_count += 1
+
+        tests_readme_path = root / TESTS_README_PATH
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+                "Documentation/zigux/phase15-handoff-next-steps-missing.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["tests_readme:Documentation/zigux/phase15-handoff-next-steps-survey.md"],
+            "missing_handoff_next_steps_survey_marker",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+        case_count += 1
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "zigux/tests/phase15_handoff_next_steps.zig",
+                "zigux/tests/phase15_handoff_next_steps_missing.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["tests_readme:zigux/tests/phase15_handoff_next_steps.zig"],
+            "missing_handoff_next_steps_replay_marker",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
         case_count += 1
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
