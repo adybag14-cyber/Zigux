@@ -155,6 +155,12 @@ SOURCE_MARKERS = {
     "find_bit_test_anchor": (
         "tools/lib/find_bit.zig",
         [
+            'test "single-word next scans honor start masks"',
+            'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+            'test "zero-bit windows return without reading bitmap words"',
+            'test "zero-sized scans ignore populated backing words"',
+            'test "next scans past nbits return without reading bitmap words"',
+            'test "tail-word next set scans skip earlier in-range matches before clamping"',
             'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
             'test "low-level underscore aliases mirror the primary find helpers"',
         ],
