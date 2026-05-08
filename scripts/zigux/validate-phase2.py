@@ -65,6 +65,7 @@ def required_files(root: Path) -> list[Path]:
         root / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
         root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
         root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
+        root / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",
         root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
         root / "scripts" / "zigux" / "check-zig-toolchain.py",
         root / "scripts" / "zigux" / "install-zig.py",
@@ -154,6 +155,8 @@ REQUIRED_WORKFLOW_MARKERS = [
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+    "python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
@@ -183,6 +186,8 @@ REQUIRED_EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-cross.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
+    "python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
@@ -206,6 +211,8 @@ REQUIRED_SCRIPT_MARKERS = [
     "install-zig.py",
     "check-phase2-tests-readme-alignment.py",
     "check-phase2-cross-selftest-alignment.py",
+    "check-phase2-kconfig-selftest-alignment.py",
+    "check-phase2-tool-manifest-packets.py",
     "check-phase2-toolchain-pin-scope.py",
     "validate-phase2.py",
     "validate-phase2-closure.py",
@@ -230,6 +237,8 @@ REQUIRED_DOCS_ROOT_MARKERS = [
     "Documentation/zigux/phase2-closure.md",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "python3 scripts/zigux/check-phase2-cross.py",
     "make -C zigux phase2-validate",
@@ -242,12 +251,15 @@ REQUIRED_REVIEW_MARKERS = [
     "Documentation/zigux/phase2-closure.md",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_cross_targets.json",
+    "zigux/tests/fixtures/phase2_tool_manifest.json",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "python3 scripts/zigux/install-zig.py --self-test",
     "make -C zigux phase2-validate",
@@ -417,6 +429,20 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"), "--self-test"],
+            ["PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass", "PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=29"],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py")],
+            ["PHASE2_TOOL_MANIFEST_PACKETS=pass"],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"), "--self-test"],
             ["PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass", "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=13"],
         )
@@ -468,12 +494,12 @@ def run_self_test() -> int:
         "  * if the change touches the shared Phase 2 toolchain packet, do "
         "`Documentation/zigux/README.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, "
         "`Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, "
-        "`zigux/tests/fixtures/phase2_cross_targets.json`, `scripts/zigux/README.md`, "
+        "`zigux/tests/fixtures/phase2_cross_targets.json`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/README.md`, "
         "`scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, "
         "`scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross.py`, "
         "`scripts/zigux/check-phase2-cross-selftest-alignment.py`, "
         "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, "
-        "`scripts/zigux/check-phase2-toolchain-pin-scope.py`, "
+        "`scripts/zigux/check-phase2-tool-manifest-packets.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, "
         "`python3 scripts/zigux/install-zig.py --self-test`, `make -C zigux phase2-validate`, "
         "`make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, and `make -C zigux phase2` still agree "
         "on the same pinned toolchain and bounded kbuild-facing replay surface?"
