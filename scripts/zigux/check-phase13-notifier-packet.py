@@ -15,6 +15,8 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/list_view.zig",
+    "zigux/helpers/hlist_view.zig",
     "zigux/helpers/notifier_chain_view.zig",
     "include/zigux/abi.h",
     "include/zigux/notifier_abi.h",
@@ -23,7 +25,9 @@ REQUIRED_FILES = [
 
 SURVEY_MARKERS = [
     "lane key: `P13-L18`",
+    "`zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` already provide read-only list traversal summaries with explicit bounded scan limits.",
     "`include/zigux/notifier_abi.h` is now shipped as adjacent notifier interop evidence",
+    "`include/zigux/abi.h` already exports the list and hlist ABI carrier structs that those helpers depend on.",
     "`zigux/helpers/notifier_chain_view.zig` now provides the matching read-only notifier-chain summary helpers",
     "`scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet",
     "shared Phase 13 build intentionally omits this packet",
@@ -73,6 +77,27 @@ HELPER_MARKERS = [
     "summarize clears the priority-order flag when priorities rise",
 ]
 
+LIST_VIEW_MARKERS = [
+    "pub fn viewFromHead",
+    "pub fn summarize",
+    "phase3 list view helpers stay bounded and predictable",
+    "phase3 list view empty sentinel stays explicit",
+]
+
+HLIST_VIEW_MARKERS = [
+    "pub fn viewFromHead",
+    "pub fn summarize",
+    "phase3 hlist view helpers stay bounded and predictable",
+    "phase3 hlist view empty sentinel stays explicit",
+]
+
+EXPORTED_ABI_MARKERS = [
+    "struct zigux_list_view",
+    "struct zigux_list_summary",
+    "struct zigux_hlist_view",
+    "struct zigux_hlist_summary",
+]
+
 HEADER_MARKERS = [
     "ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING",
     "struct zigux_notifier_chain_view",
@@ -85,10 +110,17 @@ HEADER_MARKERS = [
 
 REVIEWABILITY_MARKERS = [
     'try std.testing.expectEqualStrings("P13-L18", manifest.lane_key);',
+    'const list_view_text = try readRepoFile(allocator, "zigux/helpers/list_view.zig");',
+    'const hlist_view_text = try readRepoFile(allocator, "zigux/helpers/hlist_view.zig");',
     'const packet_checker_text = try readRepoFile(allocator, "scripts/zigux/check-phase13-notifier-packet.py");',
+    'const exported_abi_text = try readRepoFile(allocator, "include/zigux/abi.h");',
+    'try expectContains(list_view_text, "phase3 list view helpers stay bounded and predictable");',
+    'try expectContains(hlist_view_text, "phase3 hlist view helpers stay bounded and predictable");',
     'try expectContains(notifier_helper_text, "pub fn hasNonincreasingPriorityOrder");',
     'try expectContains(packet_checker_text, "PHASE13_NOTIFIER_PACKET=pass");',
     'try expectContains(packet_checker_text, "\\"phase13-notifier-focused-packet-checker\\"");',
+    'try expectContains(exported_abi_text, "struct zigux_list_view");',
+    'try expectContains(exported_abi_text, "struct zigux_hlist_view");',
     'try expectContains(exported_notifier_abi_text, "zigux_notifier");',
     'try expectContains(exported_notifier_abi_text, "zigux_notifier_chain_empty");',
     'try expectContains(survey_note, "`scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet");',
@@ -109,6 +141,9 @@ MANIFEST_SUMMARY_KEYS = [
 ]
 
 REQUIRED_GAPS = {
+    "phase13-list-view-helper-surface": "zigux/helpers/list_view.zig",
+    "phase13-hlist-view-helper-surface": "zigux/helpers/hlist_view.zig",
+    "phase13-exported-list-abi-surface": "include/zigux/abi.h",
     "phase13-notifier-helper-surface": "zigux/helpers/notifier_chain_view.zig",
     "phase13-exported-notifier-c-header-surface": "include/zigux/notifier_abi.h",
     "phase13-notifier-focused-packet-checker": "scripts/zigux/check-phase13-notifier-packet.py",
@@ -184,7 +219,10 @@ def validate(root: Path) -> list[str]:
     manifest_text = read_text(root / "zigux/tests/phase13_notifier_list_manifest.json")
     reviewability_text = read_text(root / "zigux/tests/phase13_notifier_list_reviewability.zig")
     binding_text = read_text(root / "zigux/bindings/notifier_abi.zig")
+    list_view_text = read_text(root / "zigux/helpers/list_view.zig")
+    hlist_view_text = read_text(root / "zigux/helpers/hlist_view.zig")
     helper_text = read_text(root / "zigux/helpers/notifier_chain_view.zig")
+    exported_abi_text = read_text(root / "include/zigux/abi.h")
     header_text = read_text(root / "include/zigux/notifier_abi.h")
     build_text = read_text(root / "zigux/tests/phase13_build.zig")
 
@@ -212,7 +250,10 @@ def validate(root: Path) -> list[str]:
         )
     )
     issues.extend(collect_missing(binding_text, BINDING_MARKERS, "phase13-notifier-binding"))
+    issues.extend(collect_missing(list_view_text, LIST_VIEW_MARKERS, "phase13-list-view"))
+    issues.extend(collect_missing(hlist_view_text, HLIST_VIEW_MARKERS, "phase13-hlist-view"))
     issues.extend(collect_missing(helper_text, HELPER_MARKERS, "phase13-notifier-helper"))
+    issues.extend(collect_missing(exported_abi_text, EXPORTED_ABI_MARKERS, "phase13-exported-list-abi"))
     issues.extend(collect_missing(header_text, HEADER_MARKERS, "phase13-notifier-header"))
     issues.extend(collect_missing(reviewability_text, REVIEWABILITY_MARKERS, "phase13-notifier-reviewability"))
     issues.extend(validate_manifest(manifest_text))
@@ -260,6 +301,8 @@ def seed_fixture_tree(root: Path) -> None:
         + "\n",
     )
     write_text(root / "zigux/bindings/notifier_abi.zig", "\n".join(BINDING_MARKERS) + "\n")
+    write_text(root / "zigux/helpers/list_view.zig", "\n".join(LIST_VIEW_MARKERS) + "\n")
+    write_text(root / "zigux/helpers/hlist_view.zig", "\n".join(HLIST_VIEW_MARKERS) + "\n")
     write_text(root / "zigux/helpers/notifier_chain_view.zig", "\n".join(HELPER_MARKERS) + "\n")
     write_text(root / "include/zigux/notifier_abi.h", "\n".join(HEADER_MARKERS) + "\n")
     write_text(root / "zigux/tests/phase13_notifier_list_reviewability.zig", "\n".join(REVIEWABILITY_MARKERS) + "\n")
@@ -268,7 +311,7 @@ def seed_fixture_tree(root: Path) -> None:
         'print("PHASE13_NOTIFIER_PACKET=pass")\n'
         'print("\\"phase13-notifier-focused-packet-checker\\"")\n',
     )
-    write_text(root / "include/zigux/abi.h", "struct zigux_list_view {}\n")
+    write_text(root / "include/zigux/abi.h", "\n".join(EXPORTED_ABI_MARKERS) + "\n")
     write_text(root / "zigux/tests/phase13_build.zig", 'const phase13_devres_tests = b.addTest(.{});\n')
     write_text(
         root / "zigux/tests/phase13_notifier_list_manifest.json",
@@ -311,7 +354,9 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                "phase13-notifier-survey:`zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` already provide read-only list traversal summaries with explicit bounded scan limits.",
                 "phase13-notifier-survey:`include/zigux/notifier_abi.h` is now shipped as adjacent notifier interop evidence",
+                "phase13-notifier-survey:`include/zigux/abi.h` already exports the list and hlist ABI carrier structs that those helpers depend on.",
                 "phase13-notifier-survey:`zigux/helpers/notifier_chain_view.zig` now provides the matching read-only notifier-chain summary helpers",
                 "phase13-notifier-survey:`scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet",
                 "phase13-notifier-survey:shared Phase 13 build intentionally omits this packet",
@@ -386,6 +431,32 @@ def run_self_test() -> int:
         seed_fixture_tree(root)
         case_count += 1
 
+        write_text(root / "zigux/helpers/list_view.zig", "pub fn summarize() void {}\n")
+        assert_only(
+            validate(root),
+            [
+                "phase13-list-view:pub fn viewFromHead",
+                "phase13-list-view:phase3 list view helpers stay bounded and predictable",
+                "phase13-list-view:phase3 list view empty sentinel stays explicit",
+            ],
+            "list_view_guard_failed",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
+        write_text(root / "zigux/helpers/hlist_view.zig", "pub fn summarize() void {}\n")
+        assert_only(
+            validate(root),
+            [
+                "phase13-hlist-view:pub fn viewFromHead",
+                "phase13-hlist-view:phase3 hlist view helpers stay bounded and predictable",
+                "phase13-hlist-view:phase3 hlist view empty sentinel stays explicit",
+            ],
+            "hlist_view_guard_failed",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
         write_text(root / "zigux/helpers/notifier_chain_view.zig", "pub fn summarize() void {}\n")
         assert_only(
             validate(root),
@@ -396,6 +467,19 @@ def run_self_test() -> int:
                 "phase13-notifier-helper:summarize clears the priority-order flag when priorities rise",
             ],
             "helper_guard_failed",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
+        write_text(root / "include/zigux/abi.h", "struct zigux_list_view\n")
+        assert_only(
+            validate(root),
+            [
+                "phase13-exported-list-abi:struct zigux_list_summary",
+                "phase13-exported-list-abi:struct zigux_hlist_view",
+                "phase13-exported-list-abi:struct zigux_hlist_summary",
+            ],
+            "exported_list_abi_guard_failed",
         )
         seed_fixture_tree(root)
         case_count += 1
@@ -420,10 +504,17 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                'phase13-notifier-reviewability:const list_view_text = try readRepoFile(allocator, "zigux/helpers/list_view.zig");',
+                'phase13-notifier-reviewability:const hlist_view_text = try readRepoFile(allocator, "zigux/helpers/hlist_view.zig");',
                 'phase13-notifier-reviewability:const packet_checker_text = try readRepoFile(allocator, "scripts/zigux/check-phase13-notifier-packet.py");',
+                'phase13-notifier-reviewability:const exported_abi_text = try readRepoFile(allocator, "include/zigux/abi.h");',
+                'phase13-notifier-reviewability:try expectContains(list_view_text, "phase3 list view helpers stay bounded and predictable");',
+                'phase13-notifier-reviewability:try expectContains(hlist_view_text, "phase3 hlist view helpers stay bounded and predictable");',
                 'phase13-notifier-reviewability:try expectContains(notifier_helper_text, "pub fn hasNonincreasingPriorityOrder");',
                 'phase13-notifier-reviewability:try expectContains(packet_checker_text, "PHASE13_NOTIFIER_PACKET=pass");',
                 'phase13-notifier-reviewability:try expectContains(packet_checker_text, "\\"phase13-notifier-focused-packet-checker\\"");',
+                'phase13-notifier-reviewability:try expectContains(exported_abi_text, "struct zigux_list_view");',
+                'phase13-notifier-reviewability:try expectContains(exported_abi_text, "struct zigux_hlist_view");',
                 'phase13-notifier-reviewability:try expectContains(exported_notifier_abi_text, "zigux_notifier");',
                 'phase13-notifier-reviewability:try expectContains(exported_notifier_abi_text, "zigux_notifier_chain_empty");',
                 'phase13-notifier-reviewability:try expectContains(survey_note, "`scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet");',
@@ -451,6 +542,9 @@ def run_self_test() -> int:
                 "phase13-notifier-manifest-summary:preexisting_exported_notifier_abi_present",
                 "phase13-notifier-manifest-summary:preexisting_phase13_notifier_reviewability_present",
                 "phase13-notifier-manifest-summary:preexisting_phase13_notifier_survey_note_present",
+                "phase13-notifier-manifest-gap:phase13-list-view-helper-surface",
+                "phase13-notifier-manifest-gap:phase13-hlist-view-helper-surface",
+                "phase13-notifier-manifest-gap:phase13-exported-list-abi-surface",
                 "phase13-notifier-manifest-gap:phase13-notifier-helper-surface",
                 "phase13-notifier-manifest-gap:phase13-exported-notifier-c-header-surface",
                 "phase13-notifier-manifest-gap:phase13-notifier-focused-packet-checker",
