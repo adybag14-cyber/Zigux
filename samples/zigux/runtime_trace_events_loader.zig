@@ -741,13 +741,13 @@ test "runtime trace-events loader rejects non-idle registration state at the met
     try std.testing.expect(!recovered_plan.summary.registration_paths_checked);
 }
 
-test "runtime trace-events loader keeps selftest-ready nested registration drains explicit before shared handoff" {
+test "runtime trace-events loader keeps selftest-ready outstanding registration drain explicit before shared handoff" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
     _ = try module.runSelftest();
 
     try module.registerFunctionThread();
-    try module.registerFunctionThread();
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
     _ = try module.emitFunctionIteration(9);
 
     try std.testing.expectError(error.OutstandingRegistrationForLoader, RuntimeTraceEventsLoader.planFor(&module));
@@ -756,17 +756,6 @@ test "runtime trace-events loader keeps selftest-ready nested registration drain
     try std.testing.expectError(error.OutstandingRegistrationForLoader, blocked_loader.prepare(&module));
 
     try module.unregisterFunctionThread();
-    try std.testing.expectError(error.OutstandingRegistrationForLoader, RuntimeTraceEventsLoader.planFor(&module));
-
-    var partially_drained_loader = RuntimeTraceEventsLoader{};
-    try std.testing.expectError(error.OutstandingRegistrationForLoader, partially_drained_loader.prepareSharedRequest(&module));
-
-    try module.unregisterFunctionThread();
-
-    var loader = RuntimeTraceEventsLoader{};
-    var shared_request = try loader.prepareSharedRequest(&module);
-    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
 
     const recovered_plan = try RuntimeTraceEventsLoader.planFor(&module);
     try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.selftest_complete, recovered_plan.handoff_stage);
@@ -780,6 +769,11 @@ test "runtime trace-events loader keeps selftest-ready nested registration drain
     try std.testing.expectEqual(@as(i32, 0), recovered_plan.summary.last_main_count);
     try std.testing.expectEqual(@as(i32, 9), recovered_plan.summary.last_fn_count);
     try std.testing.expectEqual(@as(usize, 1), recovered_plan.summary.selftest_runs);
+
+    var loader = RuntimeTraceEventsLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
 
     const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
