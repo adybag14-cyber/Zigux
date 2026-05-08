@@ -770,8 +770,29 @@ def run_self_test() -> int:
         test_packet_path.unlink()
         expect_failure(base, f"missing_file:{REQUIRED_PHASE9_TEST_PACKET_PATHS[0]}")
 
+        write_fixture_tree(base)
+        forbidden_validator_path = base / FORBIDDEN_FILES[0]
+        write_text(forbidden_validator_path, "# stale Phase 9 validator placeholder\n")
+        expect_failure(base, f"unexpected_file:{FORBIDDEN_FILES[0]}")
+
+        write_fixture_tree(base)
+        makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            makefile + "PHONY += phase9-validate\n",
+            encoding="utf-8",
+        )
+        expect_failure(base, "makefile_forbidden:PHONY += phase9-validate")
+
+        write_fixture_tree(base)
+        makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            makefile + "phase9-validate:\n",
+            encoding="utf-8",
+        )
+        expect_failure(base, "makefile_forbidden:phase9-validate:")
+
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=17")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=20")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
