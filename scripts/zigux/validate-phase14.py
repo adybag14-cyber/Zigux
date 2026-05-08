@@ -478,7 +478,7 @@ def run_self_test() -> int:
             "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
         ]
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
-            build_lines.append("b.addTest(.{")
+            build_lines.append("b.addTest(.")
             build_lines.append("b.addRunArtifact(")
             build_lines.append(label)
             build_lines.append(root_source)
@@ -634,6 +634,16 @@ def run_self_test() -> int:
             print("self-test expected docs-root marker failure", file=sys.stderr)
             return 1
         write_text(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/README.md"]) + "\n")
+        broken_tests_root = root / "zigux/tests/README.md"
+        broken_tests_root.write_text(
+            broken_tests_root.read_text(encoding="utf-8").replace("make -C zigux phase14-smoke\n", "", 1),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any("missing marker in zigux/tests/README.md: make -C zigux phase14-smoke" in error for error in errors):
+            print("self-test expected tests-root marker failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/README.md", "\n".join(REQUIRED_FILE_MARKERS["zigux/tests/README.md"]) + "\n")
         broken_checker = root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
         broken_checker.write_text(
             "#!/usr/bin/env python3\n"
@@ -647,7 +657,7 @@ def run_self_test() -> int:
         if "phase14 docs-root smoke summary checker forced failure" not in errors:
             print("self-test expected docs-root checker subprocess failure", file=sys.stderr)
             return 1
-        broken_checker.write_text(
+        broken_checker.writeText(
             "#!/usr/bin/env python3\n"
             f"\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\n"
             "print('phase14 docs-root smoke summary checker stdout-only failure')\n"
