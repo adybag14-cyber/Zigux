@@ -394,7 +394,7 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P8-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
-    try std.testing.expectEqualStrings("0e8ce03f80f631368bfa3c32452d615bb629e3db", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("17fd5f8e2b234738428770e192346d040aff13ce", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 12), manifest.segments.len);
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
