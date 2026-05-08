@@ -1,6 +1,7 @@
 const std = @import("std");
 const escape_vectors = @import("fixtures/phase7_string_helpers_escape_vectors.zig");
 const string_helpers_sample = @import("../../samples/zigux/string_helpers_sample.zig");
+const string_helpers = @import("string_helpers");
 
 const SurveySummary = struct {
     string_helpers_c_lines: usize,
@@ -178,7 +179,7 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try std.testing.expectEqual(@as(usize, 5), manifest.sample_replay_contract.checked_focus.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.sample_replay_contract.lifecycle_states.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.sample_replay_contract.helper_call_markers.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.sample_replay_contract.test_assertions.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.sample_replay_contract.test_assertions.len);
 
     var starter_landed_count: usize = 0;
     var saw_helper = false;
@@ -350,12 +351,17 @@ test "phase 7 string helper sample survey replays the shared fixture-backed outp
     const newline_hex_escape = try findUniqueEscapeCase("sample replay newline hex escape");
     const selected_newline_escape = try findUniqueEscapeCase("dictionary-limited space escaping");
     const append_newline_hex_escape = try findUniqueEscapeCase("append dictionary entries with hex escaping");
+    const values = [_]?[]const u8{ "disabled", "enabled", null, "ignored" };
 
     var sample = string_helpers_sample.StringHelpersSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
 
+    try std.testing.expectEqual(string_helpers_sample.SampleStage.initialized, replay.stage_before_replay);
+    try std.testing.expectEqual(string_helpers_sample.SampleStage.replay_complete, replay.stage_after_replay);
+    try std.testing.expect(replay.comparable_match);
     try std.testing.expectEqual(@as(i32, 1), replay.matched_index);
+    try std.testing.expectEqual(string_helpers.EINVAL, string_helpers.matchString(&values, 2, "ignored"));
     try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
     try std.testing.expectEqualSlices(u8, "1.50Ki", replay.compact_size_text.bytes[0..replay.compact_size_text.len]);
     try std.testing.expectEqual(newline_suffix.expected_len, replay.unescaped_text.len);
