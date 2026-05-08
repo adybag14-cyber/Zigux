@@ -29,6 +29,7 @@ Use this lane only for `tools/lib/subcmd/*.zig` behavior that changes the alread
 Current parked packet:
 - `Documentation/zigux/phase8-exec-cmd-slice.md`
 - `Documentation/zigux/phase8-help-slice.md`
+- `tools/lib/subcmd/exec-cmd.zig`
 - `tools/lib/subcmd/help.zig`
 - `zigux/tests/phase8_exec_cmd.zig`
 - `zigux/tests/phase8_exec_cmd_only_build.zig`
@@ -36,7 +37,8 @@ Current parked packet:
 - `zigux/tests/phase8_help_only_build.zig`
 - `zigux/tests/phase8_help_kallsyms_only_build.zig`
 
-Keep the parked command packet reviewable through its help-local helper surface, its focused shard, and the one shared cross-packet shard:
+Keep the parked command packet reviewable through its focused exec-cmd shard, its help-local helper surface, and the one shared cross-packet shard:
+- `make -C zigux phase8-exec-cmd-test`
 - `make -C zigux phase8-help-test`
 - `make -C zigux phase8-help-kallsyms-test`
 
