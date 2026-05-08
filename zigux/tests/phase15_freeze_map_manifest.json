@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L04",
+  "lane_key": "P15-L03",
   "phase": "Phase 15",
-  "surveyed_commit": "9342905d34fb98d6fcd88cf2e88efed7355131d2",
+  "surveyed_commit": "4fc891b380cdd2991dff7676ade7f844df1b55fd",
   "anchor": "Documentation/zigux/freeze-map.md",
   "freeze_in_c_targets": [
     "kernel/sched/core.c",
@@ -192,11 +192,11 @@
       "why_now": "The dedicated freeze-map governance packet now needs the same evidence archive path, benchmark notes, replay command, and latest blocker disposition fields that the root freeze-map policy and Phase 15 parity scorecard already require per anchor."
     },
     {
-      "id": "phase15-stale-provenance-cleanup",
+      "id": "phase15-current-freeze-blocker-evidence-verify",
       "status": "starter_landed",
       "kind": "maintenance",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
-      "why_now": "Compare-to-master showed the older current-master readback marker was no longer precise enough, so the lane now records one verified master head instead of relying on generic repo-state wording as governance evidence."
+      "why_now": "Shared Phase 15 readback showed the freeze-map packet still pointed at an older verified head even though the current freeze anchor set and blocker dispositions already matched the newer shared governance packet, so the lane now records exact-head parity and unchanged blocker posture together."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
