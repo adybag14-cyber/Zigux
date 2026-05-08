@@ -61,6 +61,7 @@ REQUIRED_OWNERSHIP_FIELDS = (
     "current status bucket",
     "owner",
     "rollback owner",
+    "required approver set",
     "validation gate summary",
     "indefinite-C policy link or non-applicability note",
     "evidence archive path",
@@ -426,6 +427,13 @@ def run_self_test() -> int:
         manifest["required_review_packet_fields"].remove("rollback threshold")
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_only(root, ["manifest_required_review_packet_fields:rollback threshold"], "missing_review_packet_field")
+        write_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["ownership_evidence_fields"].remove("required approver set")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest_ownership_evidence_fields:required approver set"], "missing_ownership_required_approver_set_field")
         write_fixture_tree(root)
         case_count += 1
 
