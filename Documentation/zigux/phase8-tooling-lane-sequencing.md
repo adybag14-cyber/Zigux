@@ -11,7 +11,7 @@ It is a coordination artifact, not a closure claim.
 - shared make validation route: `make -C zigux phase8-validate`
 - shared build replay entrypoint: `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 - Linux-style replay entrypoint: `make -C zigux phase8`
-- shipped shared coordination surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`, `zigux/tests/phase8_build.zig`, and `zigux/Makefile`
+- shipped shared coordination surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`, `zigux/tests/phase8_build.zig`, and `zigux/Makefile`
 - current helper-family posture: the bounded libbpf packet is parked after the landed file-path bridge and perf-buffer poll review updates, and this sequencing note should reopen it only for another smaller same-lane helper, validator, checker, survey, README, or shared wording gap
 - continuity wording guard: if another shared Phase 8 reminder still says the libbpf shard routes are active, treat that wording as a focused reopen-entrypoint cue only, not as a claim that the libbpf packet is currently active by default
 
