@@ -60,6 +60,8 @@ REQUIRED_CONTRACT_MARKERS = [
     "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
     "`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`",
     "`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
+    "`Documentation/zigux/phase11-dw-wdt-teardown-note.md`",
+    "`Documentation/zigux/phase11-dw-wdt-teardown-note.md` keeps the bounded DesignWare stop, teardown, and remove ownership split explicit for the watchdog packet",
 ]
 REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS = [
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
@@ -149,7 +151,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 43
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 45
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -208,6 +210,8 @@ SELF_TEST_CASES = [
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[31], REQUIRED_CONTRACT_MARKERS[31]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[34], REQUIRED_CONTRACT_MARKERS[34]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[35], REQUIRED_CONTRACT_MARKERS[35]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[36], REQUIRED_CONTRACT_MARKERS[36]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[37], REQUIRED_CONTRACT_MARKERS[37]),
 ]
 
 FIXTURE_CONTENT = {
