@@ -199,6 +199,13 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "benchmark command plus one acceptable limit") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runThresholdReplay(1)") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "3626254113632800175") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "130322557735600377") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runThresholdReplay(4)") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "9210681150676220922") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "130322557735600376") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-bitmap-command")) {
