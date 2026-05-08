@@ -109,6 +109,14 @@ PHASE1_REPLAY_MARKERS = [
     "fixture.string.replace_char_cstr_bytes",
     "fixture.string.memchr_inv_index",
     "fixture.string.memchr_inv_none",
+    "fixture.rbtree.empty_root",
+    "fixture.rbtree.insert_order",
+    "fixture.rbtree.reverse_order",
+    "fixture.rbtree.replace_order",
+    "fixture.rbtree.erase_init_order",
+    "fixture.rbtree.postorder_count",
+    "fixture.rbtree.erase_init_node_empty",
+    "fixture.rbtree.cleared_node_empty",
     "fixture.rbtree.find_found_key",
     "fixture.rbtree.find_missing",
     "fixture.rbtree.find_first_serial",
@@ -151,6 +159,10 @@ SOURCE_MARKERS = {
     "rbtree_test_anchor": (
         "tools/lib/rbtree.zig",
         [
+            'test "rbtree inserts and traverses in sorted order"',
+            'test "rbtree erase and replace keep traversal consistent"',
+            'test "rbtree eraseInit detaches erased node"',
+            'test "rbtree postorder and empty node helpers behave"',
             'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
             'test "rbtree nextMatch walks the duplicate range in order"',
             'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
@@ -198,6 +210,10 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
     },
     "tools/lib/rbtree.zig": {
         "helper_test_anchors": [
+            'test "rbtree inserts and traverses in sorted order"',
+            'test "rbtree erase and replace keep traversal consistent"',
+            'test "rbtree eraseInit detaches erased node"',
+            'test "rbtree postorder and empty node helpers behave"',
             'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
             'test "rbtree nextMatch walks the duplicate range in order"',
             'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
@@ -208,6 +224,14 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
             'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
         ],
         "parity_fixture_keys": [
+            "empty_root",
+            "insert_order",
+            "reverse_order",
+            "replace_order",
+            "erase_init_order",
+            "postorder_count",
+            "erase_init_node_empty",
+            "cleared_node_empty",
             "find_found_key",
             "find_missing",
             "find_first_serial",
@@ -234,8 +258,10 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
     },
 }
 
+
 def collect_missing_files(root: Path) -> list[str]:
     return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
+
 
 def collect_marker_counts(text: str, label: str, markers: list[str]) -> list[str]:
     mismatches: list[str] = []
@@ -245,6 +271,7 @@ def collect_marker_counts(text: str, label: str, markers: list[str]) -> list[str
             mismatches.append(f"{label}:{marker}:expected=1:actual={count}")
     return mismatches
 
+
 def collect_presence_markers(text: str, label: str, markers: list[str]) -> list[str]:
     missing: list[str] = []
     for marker in markers:
@@ -252,6 +279,7 @@ def collect_presence_markers(text: str, label: str, markers: list[str]) -> list[
         if count < 1:
             missing.append(f"{label}:{marker}:expected>=1:actual={count}")
     return missing
+
 
 def extract_test_body(text: str, title: str) -> str | None:
     anchor = f'test "{title}"'
@@ -261,10 +289,11 @@ def extract_test_body(text: str, title: str) -> str | None:
     next_start = text.find('\ntest "', start + len(anchor))
     return text[start:] if next_start == -1 else text[start:next_start]
 
+
 def collect_phase1_fixture_mismatches(root: Path) -> list[str]:
     fixture = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").read_text(encoding="utf-8"))
     mismatches: list[str] = []
-    if sorted(fixture.keys()) != sorted(["argv_split","bitmap","cmdline","ctype","find_bit","hweight","list_sort","rbtree","slab","str_error_r","string","vsprintf","zalloc"]):
+    if sorted(fixture.keys()) != sorted(["argv_split", "bitmap", "cmdline", "ctype", "find_bit", "hweight", "list_sort", "rbtree", "slab", "str_error_r", "string", "vsprintf", "zalloc"]):
         mismatches.append("phase1_fixture_shape:top_level_keys")
     find_bit = fixture.get("find_bit")
     if not isinstance(find_bit, dict):
@@ -344,12 +373,28 @@ def collect_phase1_fixture_mismatches(root: Path) -> list[str]:
     if not isinstance(rbtree, dict):
         mismatches.append("phase1_fixture_rbtree:rbtree:expected=object:actual=missing")
     else:
-        for field in ("find_found_key", "find_missing", "find_first_serial", "next_match_serials"):
-            if field not in rbtree:
-                mismatches.append(f"phase1_fixture_rbtree:{field}:expected=present:actual=missing")
-        if rbtree.get("next_match_terminal_null") is not True:
-            mismatches.append("phase1_fixture_rbtree:next_match_terminal_null")
+        expected_rbtree = {
+            "empty_root": True,
+            "insert_order": [5, 10, 15, 20, 25],
+            "reverse_order": [25, 20, 15, 10, 5],
+            "replace_order": [5, 10, 15, 25],
+            "erase_init_order": [5, 15, 25],
+            "postorder_count": 3,
+            "erase_init_node_empty": True,
+            "cleared_node_empty": True,
+            "find_found_key": 15,
+            "find_missing": True,
+            "find_first_serial": 0,
+            "next_match_serials": [0, 2, 4],
+            "next_match_terminal_null": True,
+        }
+        for field, expected in expected_rbtree.items():
+            if rbtree.get(field) != expected:
+                mismatches.append(
+                    f"phase1_fixture_rbtree:{field}:expected={expected!r}:actual={rbtree.get(field)!r}"
+                )
     return mismatches
+
 
 def collect_phase1_manifest_review_mismatches(root: Path) -> list[str]:
     manifest = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").read_text(encoding="utf-8"))
@@ -383,6 +428,7 @@ def collect_phase1_manifest_review_mismatches(root: Path) -> list[str]:
                 mismatches.append(f"phase1_manifest_review_anchor:value={helper}:{field}")
     return mismatches
 
+
 def collect_missing_markers(root: Path) -> list[str]:
     docs_readme = (root / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
     tests_readme = (root / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
@@ -406,6 +452,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing.extend(collect_phase1_manifest_review_mismatches(root))
     return missing
 
+
 def make_fixture_root(root: Path) -> None:
     for rel in REQUIRED_FILES:
         path = root / rel
@@ -415,41 +462,13 @@ def make_fixture_root(root: Path) -> None:
         else:
             path.write_text("\n", encoding="utf-8")
 
+
 def run_self_test() -> None:
+    replay_text = "\n".join(PHASE1_REPLAY_MARKERS)
     test_text = (
         'test "phase 1 helper ports match committed parity fixture"\n'
-        'fixture.find_bit.inclusive_boundary_next\n'
-        'fixture.find_bit.inclusive_boundary_zero\n'
-        'fixture.find_bit.inclusive_boundary_and\n'
-        'fixture.find_bit.past_nbits_next\n'
-        'fixture.find_bit.past_nbits_zero\n'
-        'fixture.find_bit.past_nbits_and\n'
-        'fixture.find_bit.tail_clamped_first\n'
-        'fixture.find_bit.tail_zero_clamped_next\n'
-        'fixture.find_bit.tail_and_clamped_next\n'
-        'fixture.find_bit.tail_clamped_last\n'
-        'fixture.find_bit.tail_clamped_empty_last\n'
-        'fixture.bitmap.scnprintf\n'
-        'fixture.bitmap.truncated_scnprintf_len\n'
-        'fixture.bitmap.truncated_scnprintf\n'
-        'fixture.bitmap.terminator_only_scnprintf_len\n'
-        'fixture.bitmap.terminator_only_nul\n'
-        'fixture.bitmap.zero_length_scnprintf_len\n'
-        'fixture.bitmap.partial_xor_nbits\n'
-        'bitmap.lastWordMask(fixture.bitmap.partial_xor_nbits)\n'
-        'fixture.bitmap.partial_xor_masked_values\n'
-        'fixture.string.replace_char\n'
-        'fixture.string.replace_char_end\n'
-        'fixture.string.replace_char_cstr_end\n'
-        'fixture.string.replace_char_cstr_bytes\n'
-        'fixture.string.memchr_inv_index\n'
-        'fixture.string.memchr_inv_none\n'
-        'fixture.rbtree.find_found_key\n'
-        'fixture.rbtree.find_missing\n'
-        'fixture.rbtree.find_first_serial\n'
-        'fixture.rbtree.next_match_serials\n'
-        'fixture.rbtree.next_match_terminal_null\n'
-        '\n\ntest "phase 1 string replaceChar stops at embedded NUL"\n'
+        f"{replay_text}\n\n"
+        'test "phase 1 string replaceChar stops at embedded NUL"\n'
     )
     replay = extract_test_body(test_text, "phase 1 helper ports match committed parity fixture")
     assert replay is not None
@@ -466,11 +485,12 @@ def run_self_test() -> None:
         (tmp_root / "tools" / "lib" / "string.zig").write_text('\n'.join(SOURCE_MARKERS["string_test_anchor"][1]) + '\n', encoding="utf-8")
         (tmp_root / "tools" / "lib" / "rbtree.zig").write_text('\n'.join(SOURCE_MARKERS["rbtree_test_anchor"][1]) + '\n', encoding="utf-8")
         (tmp_root / "zigux" / "tests" / "phase1_helpers.zig").write_text('\n'.join(PHASE1_IMPORT_MARKERS) + '\n' + 'test "phase 1 helper ports match committed parity fixture"\n' + '\n'.join(PHASE1_REPLAY_MARKERS) + '\n' + '\n'.join(HELPER_FOLLOWUP_TESTS) + '\n', encoding="utf-8")
-        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").write_text(json.dumps({"argv_split": {},"bitmap": {"scnprintf": "1-3,7,10-11","truncated_scnprintf_len": 7,"truncated_scnprintf": "1-3,7,1","terminator_only_scnprintf_len": 0,"terminator_only_nul": 0,"zero_length_scnprintf_len": 0,"partial_xor_nbits": 4, "partial_xor_masked_values": [14]},"cmdline": {},"ctype": {},"find_bit": {"bits_per_long": 64,"inclusive_boundary_next": 63,"inclusive_boundary_zero": 63,"inclusive_boundary_and": 63,"past_nbits_next": 7,"past_nbits_zero": 7,"past_nbits_and": 7,"tail_clamped_first": 69,"tail_clamped_next": 69,"tail_zero_clamped_first": 69,"tail_zero_clamped_next": 69,"tail_and_clamped_first": 69,"tail_and_clamped_next": 69,"tail_clamped_last": 67,"tail_clamped_empty_last": 69},"hweight": {},"list_sort": {},"rbtree": {"find_found_key": 41,"find_missing": True,"find_first_serial": 3,"next_match_serials": [3, 4],"next_match_terminal_null": True},"slab": {},"str_error_r": {},"string": {"replace_char": "a_b","replace_char_end": 3,"replace_char_cstr_end": 2,"replace_char_cstr_bytes": [97, 95, 0, 45, 122],"memchr_inv_index": 4,"memchr_inv_none": True},"vsprintf": {},"zalloc": {}}, separators=(",", ":")), encoding="utf-8")
-        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").write_text(json.dumps({"phase": "Phase 1","status": "closed","helper_count": len(EXPECTED_HELPERS),"helpers": EXPECTED_HELPERS,"review_anchors": EXPECTED_MANIFEST_HELPER_FIELDS}, indent=2) + "\n", encoding="utf-8")
+        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json").write_text(json.dumps({"argv_split": {}, "bitmap": {"scnprintf": "1-3,7,10-11", "truncated_scnprintf_len": 7, "truncated_scnprintf": "1-3,7,1", "terminator_only_scnprintf_len": 0, "terminator_only_nul": 0, "zero_length_scnprintf_len": 0, "partial_xor_nbits": 4, "partial_xor_masked_values": [14]}, "cmdline": {}, "ctype": {}, "find_bit": {"bits_per_long": 64, "inclusive_boundary_next": 63, "inclusive_boundary_zero": 63, "inclusive_boundary_and": 63, "past_nbits_next": 7, "past_nbits_zero": 7, "past_nbits_and": 7, "tail_clamped_first": 69, "tail_clamped_next": 69, "tail_zero_clamped_first": 69, "tail_zero_clamped_next": 69, "tail_and_clamped_first": 69, "tail_and_clamped_next": 69, "tail_clamped_last": 67, "tail_clamped_empty_last": 69}, "hweight": {}, "list_sort": {}, "rbtree": {"empty_root": True, "insert_order": [5, 10, 15, 20, 25], "reverse_order": [25, 20, 15, 10, 5], "replace_order": [5, 10, 15, 25], "erase_init_order": [5, 15, 25], "postorder_count": 3, "erase_init_node_empty": True, "cleared_node_empty": True, "find_found_key": 15, "find_missing": True, "find_first_serial": 0, "next_match_serials": [0, 2, 4], "next_match_terminal_null": True}, "slab": {}, "str_error_r": {}, "string": {"replace_char": "a_b", "replace_char_end": 3, "replace_char_cstr_end": 2, "replace_char_cstr_bytes": [97, 95, 0, 45, 122], "memchr_inv_index": 4, "memchr_inv_none": True}, "vsprintf": {}, "zalloc": {}}, separators=(",", ":")), encoding="utf-8")
+        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").write_text(json.dumps({"phase": "Phase 1", "status": "closed", "helper_count": len(EXPECTED_HELPERS), "helpers": EXPECTED_HELPERS, "review_anchors": EXPECTED_MANIFEST_HELPER_FIELDS}, indent=2) + "\n", encoding="utf-8")
         assert not collect_missing_markers(tmp_root)
     print("PHASE1_VALIDATION_SELF_TEST=pass")
     print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=5")
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 1 helper packet.")
@@ -499,6 +519,7 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print("PHASE1_REQUIRED_MARKER_COUNT=" f"{sum(len(markers) for markers in DOC_MARKERS.values()) + len(PHASE1_IMPORT_MARKERS) + len(PHASE1_REPLAY_MARKERS) + len(HELPER_FOLLOWUP_TESTS) + sum(len(markers) for _, markers in SOURCE_MARKERS.values())}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
