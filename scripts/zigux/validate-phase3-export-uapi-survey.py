@@ -20,7 +20,7 @@ ABI_HEADER_REL = "include/zigux/abi.h"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 BUILD_FILE_REL = "zigux/tests/build.zig"
 EXPORT_UAPI_LAYOUT_REL = "zigux/tests/phase3_export_uapi_layout.zig"
-SELF_TEST_CASE_COUNT = 9
+SELF_TEST_CASE_COUNT = 10
 
 REQUIRED_FILES = (
     SURVEY_REL,
