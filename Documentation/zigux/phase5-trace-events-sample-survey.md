@@ -66,15 +66,16 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 - the public `runCallbackBoundaryReplay()` helper requires registration first, records the callback-path replay explicitly, and restores the registration balance to zero before the sample completes
 - after `exit()` the sample rejects later payload replay or callback-registration calls
 
-## Latest verification posture
+## Latest verification snapshot
 
-Fresh live current-`master` inspection on 2026-05-07 confirmed that the shipped trace-events packet still presents one repo-local, non-runtime review surface rather than a runtime handoff claim.
+Fresh focused review-surface replay on 2026-05-08 kept the shipped trace-events packet repo-local and explicit after this guidance refresh.
 
-- `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` still describe the same bounded payload, formatting, callback, ownership, and teardown contract
-- the manifest-backed review prompts and survey gate still keep the exact `checked_focus` order plus the `unregisterFunctionCallback()` underflow, `OutstandingRegistration`, and post-exit replay-rejection cues explicit after the latest same-family prompt tightening
+- `zig fmt --check Documentation/zigux/phase5-trace-events-sample-survey.md zigux/tests/phase5_trace_events_sample_survey.zig` passed for the contributor-note and survey-gate edits
+- `zig test --test-no-exec zigux/tests/phase5_trace_events_sample_survey.zig` passed a compile-only recheck of the manifest-backed survey gate for this note packet
+- connector-backed current-`master` inspection confirmed that `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, the shared `zigux/tests/phase5_build.zig` route, `make -C zigux phase5-test`, and the separate Phase 9 `runtime_trace_events` family still describe the same bounded non-runtime packet
+- the manifest-backed review prompts and survey gate still keep the exact `checked_focus` order plus the `unregisterFunctionCallback()` underflow, `OutstandingRegistration`, and post-exit replay-rejection cues explicit after this packet-local refresh
 - the public `runPayloadBoundaryReplay()`, `runConditionalBoundaryReplay()`, and `runCallbackBoundaryReplay()` helpers, the `formattedMessage()` surface, the count-0 `Mother Goose` plus `0xdeadbeef` conditional-family boundary, replay-summary callback-path markers, and the registration-balance cue all remain explicit on current `master`
 - the survey gate still enforces repo-local review guidance by keeping the no-standalone-format-sample boundary tied to the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet
-- the shared review route remains `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `make -C zigux phase5-test`, and `make -C zigux phase5`, while the sample stays visibly separate from the Phase 9 `runtime_trace_events` family
 
 ## Contributor refresh prompts for the landed sample
 
@@ -92,7 +93,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - if the sample behavior changes, is the manifest updated alongside the replay contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `CREATE_TRACE_POINTS`, tracepoint macros from `trace-events-sample.h`, kernel scheduling, and module registration wiring remain out of scope for this Phase 5 sample?
 - if the broader shared review packet is refreshed, does it keep `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` pointing at this exact landed `samples/zigux/trace_events_sample.zig` packet and the shared `phase5_build.zig` route while still separating this sample from the later Phase 9 `runtime_trace_events` family instead of leaving that distinction trace-events-only?
-- if this survey note moves again, does it still keep the latest verification posture repo-local and explicit about the shared `phase5_build.zig` route, the focused `make -C zigux phase5-test` replay, and the separate Phase 9 `runtime_trace_events` family?
+- if this survey note moves again, does it still keep the latest verification snapshot explicit with `zig fmt --check Documentation/zigux/phase5-trace-events-sample-survey.md zigux/tests/phase5_trace_events_sample_survey.zig`, `zig test --test-no-exec zigux/tests/phase5_trace_events_sample_survey.zig`, the shared `phase5_build.zig` route, and the separate Phase 9 `runtime_trace_events` family instead of falling back to a softer posture-only summary?
 - if this survey note moves again, does it still say there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample, and does it keep the selected-string plus `iter=%d` replay tied to the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet instead of implying a new standalone formatting helper sample?
 
 ## Recorded gap vs roadmap
@@ -108,7 +109,7 @@ The current gap is no longer "Zigux has no trace-events sample guidance." The mo
 ## Review gates for this survey
 
 1. confirm the Phase 5 anchor is still the Linux trace-events sample
-   - `rg -n "samples/trace_events/trace-events-sample.c|PHASE5_SLICE|phase5_trace_events_sample|Phase 5" Documentation/zigux samples/zigux zigux/tests`
+   - `rg -n "samples/trace_events/trace-events-sample.c|PHASE5_LANE_KEY=P5-L16|PHASE5_SURVEYED_COMMIT=beb1065024e41b266c1492d7be5a446c04e42368|Phase 5" Documentation/zigux samples/zigux zigux/tests`
 2. confirm the current `samples/zigux/` surface keeps the Phase 5 and Phase 9 trace-events lanes distinct
    - `find samples/zigux -maxdepth 1 -type f | sort | rg "trace_events_sample|runtime_trace_events"`
 3. run the exact bounded Phase 5 sample checks
