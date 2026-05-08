@@ -15,6 +15,7 @@ This matrix keeps the active Phase 12 release-facing packet explicit beside the 
 - shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
 - freeze-boundary authority: `Documentation/zigux/freeze-map.md`
 - the `libbpf` survey remains parked shared-helper evidence inside this active release packet, so PMO notes must keep both the survey and the heavy-consumer anti-overlap companion explicit without implying a reopened helper-implementation lane
+- the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback drill remains lab-only reversible-delivery evidence inside this active packet, so PMO notes must not round it up into tranche-wide runtime recovery or release-closed proof
 - this compact matrix must not round queueing, throughput, rollback, or recovery wording up into deep-core delivery claims that cross the freeze-map boundary
 
 ## Lane Ownership
@@ -62,7 +63,7 @@ Before treating the packet as release-ready, confirm all of the following stay t
 2. Only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` still act as commit-pinned fallback artifacts, while `virtio_net` and `libbpf` remain shared-tree-only anchors.
 3. `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` still keeps `virtio_net`, `nvme_pci`, and `virtio_scsi` separate from each other, while `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` still keeps shared libbpf reviewability, helper-sized follow-through, deferred bridge and queue-routing work, and the blocked object-model wall distinct from the driver lanes and from each other.
 4. The checker and workflow still read as build-only contract enforcement rather than as a validator-first route, a release-readiness packet guard, a raw-coverage packet guard, or a focused libbpf-only replay surface.
-5. `Documentation/zigux/freeze-map.md` still keeps the frozen and boundary-study anchors explicit, and every shared Phase 12 PMO surface still keeps queueing, throughput, rollback, and recovery wording below that freeze-boundary line instead of rounding the active driver-and-libbpf packet up into deep-core delivery claims.
+5. `Documentation/zigux/freeze-map.md` still keeps the frozen and boundary-study anchors explicit, the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback drill still reads as lab-only reversible-delivery evidence rather than tranche-wide runtime recovery or release-closed proof, and every shared Phase 12 PMO surface still keeps queueing, throughput, rollback, and recovery wording below that freeze-boundary line instead of rounding the active driver-and-libbpf packet up into deep-core delivery claims.
 
 ## Update Rule
 
