@@ -26,6 +26,19 @@ BASELINE_RING_HELPERS = [
     "phase10-queue-reset-readiness-helper",
 ]
 BASELINE_RING_SURVEYED_COMMIT = "e42103fc02f544e1bd23a5ec2e5b584734f5af7d"
+ABSENT_CLOSURE_NOTE_MARKERS = [
+    "scripts/zigux/validate-phase10.py",
+    "scripts/zigux/validate-phase10-closure.py",
+    "scripts/zigux/check-phase10-harness-coverage.py",
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+    "make -C zigux phase10-validate",
+]
+FORBIDDEN_EXACT_CHECK_SUBSTRINGS = [
+    "validate-phase10.py",
+    "validate-phase10-closure.py",
+    "check-phase10-harness-coverage.py",
+    "phase10-validate",
+]
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -103,6 +116,21 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         if helper_id not in closure_note:
             missing_markers.append(f"closure_note:{helper_id}")
 
+    for marker in ABSENT_CLOSURE_NOTE_MARKERS:
+        if marker not in closure_note:
+            missing_markers.append(f"closure_note:missing_absence_marker:{marker}")
+
+    exact_checks = closure_manifest.get("exact_checks", [])
+    if isinstance(exact_checks, list):
+        for forbidden in FORBIDDEN_EXACT_CHECK_SUBSTRINGS:
+            if any(
+                isinstance(item, str) and forbidden in item
+                for item in exact_checks
+            ):
+                missing_markers.append(
+                    f"closure_manifest:unexpected_exact_check:{forbidden}"
+                )
+
     return missing_files, missing_markers
 
 
@@ -153,6 +181,16 @@ def baseline_fixture(root: Path) -> None:
         "landed_ring_helper_evidence": {
             RING_MANIFEST_PATH: list(BASELINE_RING_HELPERS)
         },
+        "exact_checks": [
+            "python3 scripts/zigux/check-phase10-core-packet.py",
+            "python3 scripts/zigux/check-phase10-ring-packet.py",
+            "python3 scripts/zigux/check-phase10-input-packet.py",
+            "python3 scripts/zigux/check-phase10-mmio-packet.py",
+            "python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py",
+            "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+            "make -C zigux phase10-test",
+            "make -C zigux phase10",
+        ],
     }
     closure_note = "\n".join(
         [
@@ -160,6 +198,11 @@ def baseline_fixture(root: Path) -> None:
             "The shared closure note keeps the current ring helper ladder explicit.",
         ]
         + [f"- `{helper_id}`" for helper_id in BASELINE_RING_HELPERS]
+        + [
+            "",
+            "The shared closure packet also keeps the current absent validator surfaces explicit.",
+        ]
+        + [f"- there is no dedicated `{marker}`" for marker in ABSENT_CLOSURE_NOTE_MARKERS]
     )
 
     write_json(root, RING_MANIFEST_PATH, ring_manifest)
@@ -232,9 +275,42 @@ def run_self_test() -> int:
             raise SystemExit(
                 "phase10-closure-ring-self-test:expected_closure_note_marker_missing"
             )
+        closure_note_path.write_text(original_closure_note, encoding="utf-8")
+
+        closure_note_path.write_text(
+            original_closure_note.replace(
+                "- there is no dedicated `scripts/zigux/validate-phase10-closure.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        missing_absence_marker = (
+            "closure_note:missing_absence_marker:scripts/zigux/validate-phase10-closure.py"
+        )
+        if missing_absence_marker not in missing_markers:
+            raise SystemExit(
+                "phase10-closure-ring-self-test:expected_absence_marker_missing"
+            )
+        closure_note_path.write_text(original_closure_note, encoding="utf-8")
+
+        drift_manifest = json.loads(json.dumps(original_closure_manifest))
+        drift_manifest["exact_checks"].append(
+            "python3 scripts/zigux/check-phase10-harness-coverage.py"
+        )
+        write_json(tmp_root, CLOSURE_MANIFEST_PATH, drift_manifest)
+        _, missing_markers = validate(tmp_root)
+        unexpected_exact_check_marker = (
+            "closure_manifest:unexpected_exact_check:check-phase10-harness-coverage.py"
+        )
+        if unexpected_exact_check_marker not in missing_markers:
+            raise SystemExit(
+                "phase10-closure-ring-self-test:expected_unexpected_exact_check_marker_missing"
+            )
 
     print("PHASE10_CLOSURE_RING_EVIDENCE_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_RING_EVIDENCE_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_CLOSURE_RING_EVIDENCE_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -271,6 +347,9 @@ def main() -> int:
 
     print("PHASE10_CLOSURE_RING_EVIDENCE=pass")
     print(f"PHASE10_CLOSURE_RING_EXPECTED_HELPER_COUNT={len(BASELINE_RING_HELPERS)}")
+    print(
+        f"PHASE10_CLOSURE_RING_FORBIDDEN_EXACT_CHECK_COUNT={len(FORBIDDEN_EXACT_CHECK_SUBSTRINGS)}"
+    )
     return 0
 
 
