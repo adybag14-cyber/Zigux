@@ -277,6 +277,30 @@ pub const HangupDisconnectSnapshot = struct {
     keeps_console_binding: bool,
 };
 
+pub const WriteTeardownRequest = struct {
+    input: []const u8,
+    put_result: isize = eagain,
+    hangup: HangupDisconnectRequest = .{},
+};
+
+pub const WriteTeardownSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    framed_len: usize,
+    remaining_len_before_hangup: usize,
+    flush_intent: FlushIntent,
+    flush_progress: FlushProgress,
+    dropped_on_error: bool,
+    hangup_skipped: bool,
+    tty_detached: bool,
+    clears_buffered_write: bool,
+    buffered_write_len_after_hangup: usize,
+    notifier_hangup_pending: bool,
+    keeps_console_binding: bool,
+};
+
 pub const WriteSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -642,6 +666,36 @@ pub const HvcConsoleLab = struct {
         };
     }
 
+    pub fn summarizeWriteTeardownHandoff(
+        self: *const Self,
+        request: WriteTeardownRequest,
+    ) !WriteTeardownSnapshot {
+        const write = try self.stageWrite(request.input, request.put_result);
+        const hangup = try self.summarizeHangupDisconnect(.{
+            .port_count_before_hangup = request.hangup.port_count_before_hangup,
+            .notifier_hangup_present = request.hangup.notifier_hangup_present,
+            .buffered_write_len = write.remaining_len,
+        });
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = self.slot_index,
+            .vtermno = self.vtermno,
+            .adapter_present = self.adapter_present,
+            .framed_len = write.framed_len,
+            .remaining_len_before_hangup = write.remaining_len,
+            .flush_intent = write.flush_intent,
+            .flush_progress = write.flush_progress,
+            .dropped_on_error = write.dropped_on_error,
+            .hangup_skipped = hangup.hangup_skipped,
+            .tty_detached = hangup.tty_detached,
+            .clears_buffered_write = hangup.clears_outbuf,
+            .buffered_write_len_after_hangup = hangup.buffered_write_len_after_hangup,
+            .notifier_hangup_pending = hangup.notifier_hangup_pending,
+            .keeps_console_binding = hangup.keeps_console_binding,
+        };
+    }
+
     pub fn stageWrite(self: *const Self, input: []const u8, put_result: isize) !WriteSnapshot {
         if (!self.slotSnapshot().usable_for_console) return error.ConsoleUnavailable;
 
@@ -743,4 +797,87 @@ fn frameConsoleWrite(input: []const u8, output: *[outbuf_capacity * 2]u8) !usize
     }
 
     return index;
+}
+
+test "write teardown handoff keeps retriable bytes until hangup clears them" {
+    var lab = try HvcConsoleLab.init(2);
+    _ = lab.instantiate(0x200);
+
+    const summary = try lab.summarizeWriteTeardownHandoff(.{
+        .input = "ok\n",
+        .put_result = eagain,
+        .hangup = .{
+            .port_count_before_hangup = 1,
+            .notifier_hangup_present = true,
+        },
+    });
+
+    try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", summary.anchor);
+    try std.testing.expectEqual(@as(usize, 2), summary.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x200), summary.vtermno);
+    try std.testing.expect(summary.adapter_present);
+    try std.testing.expectEqual(@as(usize, 4), summary.framed_len);
+    try std.testing.expectEqual(@as(usize, 4), summary.remaining_len_before_hangup);
+    try std.testing.expectEqual(FlushIntent.retry_after_eagain, summary.flush_intent);
+    try std.testing.expectEqual(FlushProgress.no_progress, summary.flush_progress);
+    try std.testing.expect(!summary.dropped_on_error);
+    try std.testing.expect(!summary.hangup_skipped);
+    try std.testing.expect(summary.tty_detached);
+    try std.testing.expect(summary.clears_buffered_write);
+    try std.testing.expectEqual(@as(usize, 0), summary.buffered_write_len_after_hangup);
+    try std.testing.expect(summary.notifier_hangup_pending);
+    try std.testing.expect(summary.keeps_console_binding);
+}
+
+test "write teardown handoff records hard write failure without inventing buffered bytes" {
+    var lab = try HvcConsoleLab.init(3);
+    _ = lab.instantiate(0x201);
+
+    const summary = try lab.summarizeWriteTeardownHandoff(.{
+        .input = "panic",
+        .put_result = -5,
+        .hangup = .{
+            .port_count_before_hangup = 1,
+            .notifier_hangup_present = false,
+        },
+    });
+
+    try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", summary.anchor);
+    try std.testing.expectEqual(@as(usize, 5), summary.framed_len);
+    try std.testing.expectEqual(@as(usize, 0), summary.remaining_len_before_hangup);
+    try std.testing.expectEqual(FlushIntent.none, summary.flush_intent);
+    try std.testing.expectEqual(FlushProgress.dropped_on_error, summary.flush_progress);
+    try std.testing.expect(summary.dropped_on_error);
+    try std.testing.expect(!summary.hangup_skipped);
+    try std.testing.expect(summary.tty_detached);
+    try std.testing.expect(summary.clears_buffered_write);
+    try std.testing.expectEqual(@as(usize, 0), summary.buffered_write_len_after_hangup);
+    try std.testing.expect(!summary.notifier_hangup_pending);
+    try std.testing.expect(summary.keeps_console_binding);
+}
+
+test "write teardown handoff preserves buffered bytes when hangup is skipped" {
+    var lab = try HvcConsoleLab.init(4);
+    _ = lab.instantiate(0x202);
+
+    const summary = try lab.summarizeWriteTeardownHandoff(.{
+        .input = "a\n",
+        .put_result = 1,
+        .hangup = .{
+            .port_count_before_hangup = 0,
+            .notifier_hangup_present = true,
+        },
+    });
+
+    try std.testing.expectEqual(@as(usize, 3), summary.framed_len);
+    try std.testing.expectEqual(@as(usize, 2), summary.remaining_len_before_hangup);
+    try std.testing.expectEqual(FlushIntent.final_drain, summary.flush_intent);
+    try std.testing.expectEqual(FlushProgress.partial_write, summary.flush_progress);
+    try std.testing.expect(!summary.dropped_on_error);
+    try std.testing.expect(summary.hangup_skipped);
+    try std.testing.expect(!summary.tty_detached);
+    try std.testing.expect(!summary.clears_buffered_write);
+    try std.testing.expectEqual(@as(usize, 2), summary.buffered_write_len_after_hangup);
+    try std.testing.expect(!summary.notifier_hangup_pending);
+    try std.testing.expect(summary.keeps_console_binding);
 }
