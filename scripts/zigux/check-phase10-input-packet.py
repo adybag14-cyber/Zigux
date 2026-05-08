@@ -262,6 +262,7 @@ EXPECTED_GAPS = {
     "phase10-virtio-input-registration-preflight-helper": "starter_landed",
     "phase10-virtio-input-queue-callback-preflight-helper": "starter_landed",
     "phase10-virtio-input-status-drain-helper": "starter_landed",
+    "phase10-virtio-input-teardown-observation-helper": "starter_landed",
     "phase10-virtio-input-wrapper-ownership-note": "starter_landed",
     "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
 }
@@ -427,7 +428,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"manifest:{key}")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 16:
+    if len(gaps) < 17:
         missing_markers.append("manifest:gaps")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     for gap_id, status in EXPECTED_GAPS.items():
@@ -560,6 +561,19 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:gap_status:phase10-virtio-input-teardown-observation-replay=blocked_on_risky_transport" not in missing_markers:
             raise SystemExit("phase10-input-self-test:expected_teardown_observation_replay_gap_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace(
+                '"phase10-virtio-input-teardown-observation-helper",\n      "status": "starter_landed"',
+                '"phase10-virtio-input-teardown-observation-helper",\n      "status": "blocked_on_risky_transport"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:gap_status:phase10-virtio-input-teardown-observation-helper=blocked_on_risky_transport" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_teardown_observation_helper_gap_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         helper_path = tmp_root / "drivers/virtio/virtio_input.zig"
@@ -738,7 +752,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=25")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
