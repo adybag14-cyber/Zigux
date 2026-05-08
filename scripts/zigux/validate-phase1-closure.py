@@ -368,7 +368,9 @@ CLOSURE_MARKERS = [
     "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior",
     "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start",
     "PHASE1_FIND_BIT_ZERO_WINDOW_REVIEW=helper-local zero-bit-window proof stays explicit through the direct find_bit test anchor so first-scan entrypoints return the empty-window boundary without reading bitmap words",
+    "PHASE1_FIND_BIT_ZERO_SIZED_REVIEW=helper-local zero-sized short-circuit proof stays explicit through the direct find_bit test anchor so zero-sized windows ignore populated backing words and return the caller-visible boundary without dereferencing live data",
     "PHASE1_FIND_BIT_PAST_NBITS_REVIEW=helper-local past-nbits short-circuit proof stays explicit through the direct find_bit test anchor so next scans starting at or beyond nbits return the boundary without reading bitmap words outside the caller-visible window",
+    "PHASE1_FIND_BIT_TAIL_WORD_SET_SKIP_REVIEW=helper-local tail-word next-set skip proof stays explicit through the direct find_bit test anchor so tail-word next set scans skip earlier in-range matches before clamping to nbits",
     "PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore alias proof stays explicit through the direct find_bit test anchor so the Linux-style underscore entry points remain behaviorally locked to the primary Zig helpers",
     "PHASE1_BITMAP_PARTIAL_XOR_REVIEW=partial_xor_nbits and partial_xor_masked_values stay explicit through the shared Phase 1 parity fixture and replay so caller-selected bit windows cannot silently leak tail bits beyond nbits",
     "PHASE1_BITMAP_PREDICATE_TAIL_MASK_REVIEW=helper-local bitmap predicate tail-mask proof stays explicit through the direct bitmap test anchor so equal, intersects, and subset ignore out-of-range tail bits instead of treating tail noise as live data",
@@ -606,7 +608,21 @@ def run_self_test() -> None:
 
         assert_missing_closure_marker(
             root,
+            "PHASE1_FIND_BIT_ZERO_SIZED_REVIEW=helper-local zero-sized short-circuit proof stays explicit through the direct find_bit test anchor so zero-sized windows ignore populated backing words and return the caller-visible boundary without dereferencing live data",
+        )
+        cases += 1
+        make_fixture_root(root)
+
+        assert_missing_closure_marker(
+            root,
             "PHASE1_FIND_BIT_PAST_NBITS_REVIEW=helper-local past-nbits short-circuit proof stays explicit through the direct find_bit test anchor so next scans starting at or beyond nbits return the boundary without reading bitmap words outside the caller-visible window",
+        )
+        cases += 1
+        make_fixture_root(root)
+
+        assert_missing_closure_marker(
+            root,
+            "PHASE1_FIND_BIT_TAIL_WORD_SET_SKIP_REVIEW=helper-local tail-word next-set skip proof stays explicit through the direct find_bit test anchor so tail-word next set scans skip earlier in-range matches before clamping to nbits",
         )
         cases += 1
         make_fixture_root(root)
