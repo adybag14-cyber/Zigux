@@ -91,6 +91,24 @@ pub const CallbackBoundarySummary = struct {
     registration_balance_restored: bool,
 };
 
+pub const OwnershipSummary = struct {
+    stage: SampleStage,
+    registration_depth: usize,
+    total_event_calls: usize,
+    init_runs: usize,
+    replay_runs: usize,
+    exit_runs: usize,
+    last_main_count: i32,
+    last_function_count: i32,
+    selected_string: []const u8,
+    selected_index: usize,
+    formatted_message: []const u8,
+    saw_conditional_path: bool,
+    saw_vararg_payload: bool,
+    saw_rel_loc_payload: bool,
+    saw_function_callback_path: bool,
+};
+
 pub const TraceEventsReferenceSample = struct {
     const Self = @This();
 
@@ -161,6 +179,26 @@ pub const TraceEventsReferenceSample = struct {
 
     pub fn formattedMessage(self: *const Self) []const u8 {
         return self.message_buffer[0..self.message_len];
+    }
+
+    pub fn ownershipSummary(self: *const Self) OwnershipSummary {
+        return .{
+            .stage = self.stage(),
+            .registration_depth = self.registration_depth,
+            .total_event_calls = self.total_event_calls,
+            .init_runs = self.init_runs,
+            .replay_runs = self.replay_runs,
+            .exit_runs = self.exit_runs,
+            .last_main_count = self.last_main_count,
+            .last_function_count = self.last_function_count,
+            .selected_string = self.selected_string,
+            .selected_index = self.selected_index,
+            .formatted_message = self.formattedMessage(),
+            .saw_conditional_path = self.saw_conditional_path,
+            .saw_vararg_payload = self.saw_vararg_payload,
+            .saw_rel_loc_payload = self.saw_rel_loc_payload,
+            .saw_function_callback_path = self.saw_function_callback_path,
+        };
     }
 
     pub fn init(self: *Self) !void {
@@ -466,7 +504,6 @@ test "trace-events sample keeps payload and callback boundaries explicit" {
     try std.testing.expect(payload_boundary.vararg_payload_path_checked);
     try std.testing.expect(payload_boundary.relative_location_path_checked);
     try std.testing.expect(payload_boundary.conditional_paths_checked);
-    try std.testing.expectEqual(SampleStage.initialized, module.stage());
 
     try std.testing.expectError(error.FunctionCallbackNotRegistered, module.replayFunctionIteration(0));
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionCallback());
@@ -480,7 +517,54 @@ test "trace-events sample keeps payload and callback boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 1), callback_boundary.registration_depth_after_register);
     try std.testing.expectEqual(@as(usize, 0), callback_boundary.registration_depth_after_unregister);
     try std.testing.expect(callback_boundary.registration_balance_restored);
-    try std.testing.expectEqual(SampleStage.initialized, module.stage());
+}
+
+test "trace-events sample ownership summary keeps lifecycle snapshots public" {
+    var module = TraceEventsReferenceSample{};
+
+    var summary = module.ownershipSummary();
+    try std.testing.expectEqual(SampleStage.cold, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), summary.total_event_calls);
+    try std.testing.expectEqual(@as(usize, 0), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.replay_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.exit_runs);
+    try std.testing.expectEqual(@as(i32, -1), summary.last_main_count);
+    try std.testing.expectEqual(@as(i32, -1), summary.last_function_count);
+    try std.testing.expectEqualStrings("", summary.selected_string);
+    try std.testing.expectEqual(@as(usize, 0), summary.selected_index);
+    try std.testing.expectEqualStrings("", summary.formatted_message);
+    try std.testing.expect(!summary.saw_conditional_path);
+    try std.testing.expect(!summary.saw_vararg_payload);
+    try std.testing.expect(!summary.saw_rel_loc_payload);
+    try std.testing.expect(!summary.saw_function_callback_path);
+
+    try module.init();
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(SampleStage.initialized, summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), summary.init_runs);
+
+    _ = try module.runAnchorReplay();
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(SampleStage.replay_complete, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), summary.total_event_calls);
+    try std.testing.expectEqual(@as(usize, 1), summary.replay_runs);
+    try std.testing.expectEqual(@as(i32, 7), summary.last_main_count);
+    try std.testing.expectEqual(@as(i32, 9), summary.last_function_count);
+    try std.testing.expectEqualStrings("Gandalf", summary.selected_string);
+    try std.testing.expectEqual(@as(usize, 2), summary.selected_index);
+    try std.testing.expectEqualStrings("iter=7", summary.formatted_message);
+    try std.testing.expect(summary.saw_conditional_path);
+    try std.testing.expect(summary.saw_vararg_payload);
+    try std.testing.expect(summary.saw_rel_loc_payload);
+    try std.testing.expect(summary.saw_function_callback_path);
+
+    try module.exit();
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(SampleStage.exited, summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.registration_depth);
 }
 
 test "trace-events sample makes ownership and teardown boundaries explicit" {
