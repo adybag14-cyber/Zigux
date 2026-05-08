@@ -61,6 +61,9 @@ DOCS_ROOT_MARKERS = [
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "make -C zigux phase2-validate",
+    "make -C zigux phase2-tools",
+    "make -C zigux phase2-kconfig",
+    "make -C zigux phase2-cross",
     "make -C zigux phase2",
 ]
 
@@ -104,6 +107,9 @@ TOOLCHAIN_NOTES_MARKERS = [
     "python3 scripts/zigux/validate-phase2.py",
     "python3 scripts/zigux/validate-phase2-closure.py",
     "make -C zigux phase2-validate",
+    "make -C zigux phase2-tools",
+    "make -C zigux phase2-kconfig",
+    "make -C zigux phase2-cross",
     "make -C zigux phase2",
 ]
 
