@@ -29,6 +29,18 @@ Key entrypoints
   * `make -C zigux phase4-kprobe-example-survey`
   * `zigux/tests/phase4_build.zig`
   * `zigux/tests/phase5_build.zig`
+  * `zigux/tests/phase5_bytestream_fifo.zig`
+  * `zigux/tests/phase5_bytestream_fifo_manifest.json`
+  * `zigux/tests/phase5_bytestream_fifo_survey.zig`
+  * `zigux/tests/phase5_kobject_example.zig`
+  * `zigux/tests/phase5_kobject_example_manifest.json`
+  * `zigux/tests/phase5_kobject_example_survey.zig`
+  * `zigux/tests/phase5_kretprobe_example.zig`
+  * `zigux/tests/phase5_kretprobe_example_manifest.json`
+  * `zigux/tests/phase5_kretprobe_example_survey.zig`
+  * `zigux/tests/phase5_trace_events_sample.zig`
+  * `zigux/tests/phase5_trace_events_sample_manifest.json`
+  * `zigux/tests/phase5_trace_events_sample_survey.zig`
   * `zigux/tests/phase1_helpers.zig`
   * `zigux/tests/phase1_bench.zig`
   * `zigux/tests/fixtures/phase1_helper_manifest.json`
