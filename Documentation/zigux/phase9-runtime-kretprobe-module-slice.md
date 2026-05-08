@@ -18,11 +18,8 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
   - `zigux/tests/runtime_kretprobe_survey.zig`
   - `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
   - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
-  - `zigux/kernel/runtime_loader.zig`
-  - `zigux/kernel/runtime_loader_contract.zig`
-  - `zigux/tests/runtime_loader_allocator_init_flow.zig`
-  - `zigux/tests/phase9_build.zig`
-  - `zigux/Makefile`
+  - the `phase9-runtime-kretprobe-tests` step in `zigux/tests/phase9_build.zig`
+  - the `phase9-runtime-kretprobe-test` target in `zigux/Makefile`
 
 ## Why this slice exists
 
