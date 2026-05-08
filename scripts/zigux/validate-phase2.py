@@ -281,13 +281,25 @@ REQUIRED_REVIEW_MARKERS = [
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
+    "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-    "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-fixdep-diff.py",
+    "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/check-genksyms-crc-diff.py",
+    "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-mk-elfconfig-diff.py",
+    "scripts/zigux/fixdep.zig",
+    "scripts/zigux/genksyms.zig",
+    "scripts/zigux/genksyms_crc.zig",
+    "scripts/zigux/mk_elfconfig.zig",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "make -C zigux phase2-validate",
@@ -578,6 +590,12 @@ def run_self_test() -> int:
     assert "python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test"] == 1
     assert "python3 scripts/zigux/check-zig-toolchain.py --self-test" in REQUIRED_REVIEW_MARKERS
+    assert "scripts/zigux/check-genksyms-bridge.py" in REQUIRED_REVIEW_MARKERS
+    assert "scripts/zigux/check-genksyms-crc-diff.py" in REQUIRED_REVIEW_MARKERS
+    assert "scripts/zigux/check-kconfig-bridge.py" in REQUIRED_REVIEW_MARKERS
+    assert "scripts/zigux/check-mk-elfconfig-diff.py" in REQUIRED_REVIEW_MARKERS
+    assert "scripts/zigux/fixdep.zig" in REQUIRED_REVIEW_MARKERS
+    assert "scripts/zigux/kconfig/confdata_bridge.zig" in REQUIRED_REVIEW_MARKERS
     with tempfile.TemporaryDirectory(prefix="phase2_required_files_root_") as tmp_dir:
         temp_root = Path(tmp_dir)
         (temp_root / "zigux" / "tests" / "fixtures" / "genksyms_bridge").mkdir(parents=True)
@@ -596,15 +614,20 @@ def run_self_test() -> int:
     review_line = (
         "  * if the change touches the shared Phase 2 toolchain packet, do "
         "`Documentation/zigux/README.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, "
-        "`Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, "
-        "`zigux/tests/fixtures/phase2_cross_targets.json`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/README.md`, "
-        "`scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, "
-        "`scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross.py`, "
-        "`scripts/zigux/check-phase2-cross-selftest-alignment.py`, "
-        "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, "
-        "`scripts/zigux/check-phase2-tool-manifest-packets.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, "
-        "`python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `make -C zigux phase2-validate`, "
-        "`make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` still agree "
+        "`Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_cross_targets.json`, "
+        "`zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/README.md`, "
+        "`scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/check-phase2-tool-manifest-packets.py`, "
+        "`scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`, "
+        "`scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross.py`, "
+        "`scripts/zigux/check-phase2-cross-selftest-alignment.py`, `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, "
+        "`scripts/zigux/check-phase2-toolchain-pin-scope.py`, `scripts/zigux/check-fixdep-diff.py`, "
+        "`scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/check-genksyms-crc-diff.py`, "
+        "`scripts/zigux/check-kconfig-bridge.py`, `scripts/zigux/check-mk-elfconfig-diff.py`, "
+        "`scripts/zigux/fixdep.zig`, `scripts/zigux/genksyms.zig`, `scripts/zigux/genksyms_crc.zig`, "
+        "`scripts/zigux/mk_elfconfig.zig`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, "
+        "`python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, "
+        "`make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, "
+        "`make -C zigux phase2-cross`, and `make -C zigux phase2` still agree "
         "on the same pinned toolchain and bounded kbuild-facing replay surface?"
     )
     issues = validate_exact_review_markers(review_line)
