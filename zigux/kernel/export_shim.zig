@@ -6,6 +6,7 @@ pub const Header = uapi_version.Header;
 pub const abi_version: u16 = uapi_version.abi_version;
 pub const header_size: u32 = uapi_version.header_size;
 pub const HeaderCompatibility = uapi_version.Compatibility;
+pub const HeaderAcceptance = uapi_version.AcceptedHeader;
 
 pub fn versionedHeader(size: u32, version: u16, flags: u16) Header {
     return uapi_version.versionedHeader(size, version, flags);
@@ -37,6 +38,10 @@ pub fn isCompatibleSize(size: u32) bool {
 
 pub fn isCanonicalSize(size: u32) bool {
     return uapi_version.isCanonicalSize(size);
+}
+
+pub fn acceptHeader(header_value: Header) ?HeaderAcceptance {
+    return uapi_version.acceptHeader(header_value);
 }
 
 pub fn headerCompatibility(header_value: Header) ?HeaderCompatibility {
@@ -109,17 +114,24 @@ test "phase3 export shim reuses the shared boundary-header compatibility rules" 
     const canonical = boundaryHeader(0x22);
     const future_compatible = compatibleHeader(header_size + 16, 0x22);
     const mismatched_version = versionedHeader(header_size, abi_version + 1, 0x22);
+    const accepted_canonical = acceptHeader(canonical).?;
+    const accepted_future = acceptHeader(future_compatible).?;
 
     try std.testing.expect(isCanonicalHeader(canonical));
     try std.testing.expect(isCompatibleHeader(canonical));
     try std.testing.expectEqual(HeaderCompatibility.canonical, headerCompatibility(canonical).?);
+    try std.testing.expectEqual(HeaderCompatibility.canonical, accepted_canonical.compatibility);
+    try std.testing.expectEqual(canonical, accepted_canonical.canonical);
 
     try std.testing.expect(!isCanonicalHeader(future_compatible));
     try std.testing.expect(isCompatibleHeader(future_compatible));
     try std.testing.expectEqual(HeaderCompatibility.future_compatible, headerCompatibility(future_compatible).?);
+    try std.testing.expectEqual(HeaderCompatibility.future_compatible, accepted_future.compatibility);
+    try std.testing.expectEqual(boundaryHeader(0x22), accepted_future.canonical);
     try std.testing.expectEqual(boundaryHeader(0x22), canonicalizeHeader(future_compatible).?);
 
     try std.testing.expect(headerCompatibility(mismatched_version) == null);
+    try std.testing.expect(acceptHeader(mismatched_version) == null);
     try std.testing.expect(!isCompatibleHeader(mismatched_version));
     try std.testing.expect(canonicalizeHeader(mismatched_version) == null);
 }
