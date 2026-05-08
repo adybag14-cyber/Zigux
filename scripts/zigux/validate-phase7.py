@@ -108,7 +108,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_string_helpers_manifest.json",
         "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
         "no `samples/zigux/*string*` Phase 5 reference sample is expected here;",
-        "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
+        "If the string-helper family reopens, prefer one tiny helper-local parity, survey, manifest, or validation sync inside the now-landed whitespace, size-rendering, quoting, escape, string-array, and no-sample boundary packet before widening into `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()`.",
     ],
     "Documentation/zigux/phase7-cmdline-slice.md": [
         "validator-only `get_option()` acceptance plus Linux-style hyphen range expansion, validation-only counting, and leading-plus numeric acceptance for `get_option()` and `get_options()`",
@@ -290,7 +290,7 @@ REQUIRED_MARKERS = {
         "phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds",
         "phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned",
         "phase 7 kstrdupQuotable frees the owned copy when allocation fails",
-        "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
+        "If the string-helper family reopens, prefer one tiny helper-local parity, survey, manifest, or validation sync inside the now-landed whitespace, size-rendering, quoting, escape, string-array, and no-sample boundary packet before widening into `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()`.",
         "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
         "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe",
     ],
@@ -375,7 +375,7 @@ EXACT_COUNT_MARKERS = {
         ("`kfree_strarray()` over the bounded repeated-teardown-safe release path", 1),
         ("zigux/tests/phase7_string_helpers_manifest.json", 1),
         (
-            "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
+            "If the string-helper family reopens, prefer one tiny helper-local parity, survey, manifest, or validation sync inside the now-landed whitespace, size-rendering, quoting, escape, string-array, and no-sample boundary packet before widening into `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()`.",
             1,
         ),
     ],
@@ -485,7 +485,7 @@ EXACT_COUNT_MARKERS = {
         ("phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator", 1),
         ("phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe", 1),
         (
-            "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
+            "If the string-helper family reopens, prefer one tiny helper-local parity, survey, manifest, or validation sync inside the now-landed whitespace, size-rendering, quoting, escape, string-array, and no-sample boundary packet before widening into `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()`.",
             1,
         ),
     ],
