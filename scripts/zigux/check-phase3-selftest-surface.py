@@ -41,6 +41,7 @@ DOCS_ROOT_MARKERS = [
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-abi-dump-gate.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
+    "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/check-phase3-policy-byte-guards.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
@@ -425,11 +426,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/phase3-abi-slice.md",
-            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[8]]) + "\n",
+            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[9]]) + "\n",
         )
         issues = validate_root(root)
         assert (
-            "duplicate_abi_slice_marker:2:python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test"
+            "duplicate_abi_slice_marker:2:python3 scripts/zigux/phase3_catalog.py --self-test"
             in issues
         )
 
