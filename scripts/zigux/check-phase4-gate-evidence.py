@@ -21,6 +21,9 @@ TEST_FSMOUNT_MANIFEST_PATH = Path("zigux/tests/phase4_test_fsmount_manifest.json
 TEST_FSMOUNT_SURVEY_PATH = Path("zigux/tests/phase4_test_fsmount_survey.zig")
 PERF_BASELINE_MANIFEST_PATH = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 PERF_BASELINE_SURVEY_PATH = Path("zigux/tests/phase4_perf_baseline_survey.zig")
+TEST_FSMOUNT_VALIDATION_ENTRYPOINT = (
+    "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig"
+)
 
 PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
     "PHASE4_VALIDATION_MATRIX_BLOB_SHA": "Documentation/zigux/phase4-validation-matrix.md",
@@ -188,10 +191,17 @@ def validate_test_fsmount_gap_packet(root: Path) -> list[str]:
     manifest = json.loads(read_text(root, TEST_FSMOUNT_MANIFEST_PATH))
     if manifest.get("shared_gate_evidence_packet_present") is not False:
         missing.append("phase4_gate_evidence:test_fsmount_manifest:shared_gate_evidence_packet_present")
+    if manifest.get("validation_entrypoint") != TEST_FSMOUNT_VALIDATION_ENTRYPOINT:
+        missing.append(
+            "phase4_gate_evidence:test_fsmount_manifest:validation_entrypoint:"
+            f"{manifest.get('validation_entrypoint')}:{TEST_FSMOUNT_VALIDATION_ENTRYPOINT}"
+        )
     for marker in [
         "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false",
         "zigux/tests/phase4_test_fsmount_manifest.json",
         "zigux/tests/phase4_test_fsmount_survey.zig",
+        TEST_FSMOUNT_VALIDATION_ENTRYPOINT,
+        "the shared validator route already rereads this parked packet through `scripts/zigux/check-phase4-gate-evidence.py`, but `PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false` remains truthful",
         "Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet about this same survey note, manifest, and replay command",
     ]:
         if marker not in note_text:
@@ -439,7 +449,7 @@ def write_test_fsmount_gap_packet_fixture(root: Path) -> None:
         'survey_owner': 'Validation and Perf Team',
         'rollback_owner': 'Validation and Perf Team',
         'shared_gate_evidence_packet_present': False,
-        'validation_entrypoint': 'zig test zigux/tests/phase4_test_fsmount_survey.zig',
+        'validation_entrypoint': TEST_FSMOUNT_VALIDATION_ENTRYPOINT,
         'review_prompts': [
             'the survey keeps the Linux anchor path and blob sha explicit while the Zig starter stays absent',
             'the packet keeps the live VFS replay command explicit without implying a shipped Zig sample',
@@ -453,7 +463,7 @@ def write_test_fsmount_gap_packet_fixture(root: Path) -> None:
         ],
     }
     write_text(root / TEST_FSMOUNT_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-    write_text(root / TEST_FSMOUNT_NOTE_PATH, """# Phase 4 Test Fsmount Gap Survey
+    write_text(root / TEST_FSMOUNT_NOTE_PATH, f"""# Phase 4 Test Fsmount Gap Survey
 
 This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs/test-fsmount.c` anchor without claiming that a Zig starter has landed.
 
@@ -469,7 +479,7 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs
 - `PHASE4_SURVEY_OWNER=Validation and Perf Team`
 - `PHASE4_ROLLBACK_OWNER=Validation and Perf Team`
 - `PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false`
-- `PHASE4_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_test_fsmount_survey.zig`
+- `PHASE4_VALIDATION_ENTRYPOINT={TEST_FSMOUNT_VALIDATION_ENTRYPOINT}`
 
 ## Scope
 
@@ -482,7 +492,8 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs
 - `samples/vfs/test-fsmount.c` is present on `master` and still keeps the fd-based mount flow around `fsopen`, `fsconfig`, `fsmount`, and `move_mount` explicit
 - the live replay path remains `make M=samples/vfs`
 - `samples/zigux/test_fsmount.zig` is still absent on current `master`
-- the dedicated parked gap packet now spans this note, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, so the `test_fsmount` follow-through is no longer matrix prose alone even while it stays outside the shared gate-evidence packet
+- the dedicated parked gap packet now spans this note, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, and the dedicated local survey wrapper now lives at `{TEST_FSMOUNT_VALIDATION_ENTRYPOINT}`, so the `test_fsmount` follow-through is no longer matrix prose alone even while it stays outside the shared gate-evidence packet
+- the shared validator route already rereads this parked packet through `scripts/zigux/check-phase4-gate-evidence.py`, but `PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false` remains truthful because the packet is still adjacent evidence rather than part of the exact-readback target set itself
 
 ## Non-Goals
 
@@ -666,9 +677,22 @@ def run_self_test() -> int:
         write_test_fsmount_gap_packet_fixture(broken_test_fsmount_root)
         write_perf_baseline_packet_fixture(broken_test_fsmount_root)
         write_text(broken_test_fsmount_root / NOTE_PATH, build_fixture_note(broken_test_fsmount_root))
-        (broken_test_fsmount_root / TEST_FSMOUNT_MANIFEST_PATH).unlink()
+        broken_test_fsmount_manifest = json.loads(
+            read_text(broken_test_fsmount_root, TEST_FSMOUNT_MANIFEST_PATH)
+        )
+        broken_test_fsmount_manifest["validation_entrypoint"] = (
+            "zig test zigux/tests/phase4_test_fsmount_survey.zig"
+        )
+        write_text(
+            broken_test_fsmount_root / TEST_FSMOUNT_MANIFEST_PATH,
+            json.dumps(broken_test_fsmount_manifest, indent=2) + "\n",
+        )
         missing = validate_root(broken_test_fsmount_root)
-        assert f"file:{TEST_FSMOUNT_MANIFEST_PATH}" in missing, missing
+        assert (
+            "phase4_gate_evidence:test_fsmount_manifest:validation_entrypoint:"
+            "zig test zigux/tests/phase4_test_fsmount_survey.zig:"
+            f"{TEST_FSMOUNT_VALIDATION_ENTRYPOINT}"
+        ) in missing, missing
     print('PHASE4_GATE_EVIDENCE_SELF_TEST=pass')
     print(f'PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}')
     print('PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=' + ','.join(SELF_TEST_CASES))
