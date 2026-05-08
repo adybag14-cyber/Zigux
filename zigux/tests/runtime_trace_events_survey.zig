@@ -342,7 +342,7 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
 
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, survey_note, surveyed_commit_marker));
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the current loader scaffold now records explicit tracepoint register and unregister API names") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the current loader scaffold now records explicit `tracepoint_probe_register` and `tracepoint_probe_unregister` metadata-only labels") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "release-without-substrate behavior rather than executable runtime registration parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the live repo also carries `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and the focused `phase9-runtime-loader-shared-tests` build step") != null);
