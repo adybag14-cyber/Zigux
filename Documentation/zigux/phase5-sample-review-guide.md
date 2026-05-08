@@ -68,10 +68,12 @@ Primary Phase 5 packet
 - `zigux/tests/phase5_kobject_example_survey.zig`
 
 Keep explicit
-- the initialized-but-not-registered zero-active-attributes boundary
-- `ownershipSummary()` plus sample-owned `runOwnershipReplay()`
+- `runPreRegistrationBoundaryReplay()` for the initialized-but-not-registered zero-active-attributes plus show-or-store rejection boundary
+- `runRegisteredBoundaryReplay()` for the already-registered duplicate-registration and replay-restart rejection packet plus the still-usable bounded foo roundtrip afterward
+- `runInputValidationReplay()` for the shared `baz` or `bar` dispatch plus parse-failure visibility while the sample stays registered
+- `ownershipSummary()` plus sample-owned `runOwnershipReplay()` for the `cold`, `initialized`, `registered`, and `exited` lifecycle packet
+- `runTeardownReplay()` for the registered teardown reset plus post-`exit()` show-or-store, second-`exit()`, and anchor-replay rejection cues
 - the unnamed attribute-group shape
-- shared `baz` or `bar` dispatch
 - the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split
 
 Keep out of scope
