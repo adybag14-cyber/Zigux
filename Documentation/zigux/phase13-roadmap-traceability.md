@@ -68,11 +68,14 @@ Current `master` keeps that anchor reviewable through:
 
   * `Documentation/zigux/phase13-landlock-ruleset-slice.md`
   * `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+  * `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
   * `zigux/tests/phase13_landlock_ruleset_manifest.json`
   * `zigux/tests/phase13_landlock_ruleset.zig`
   * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 
 Inside that packet, the active shared replay now keeps `zigux/tests/phase13_landlock_ruleset.zig` inside the same eight-test helper route while the dedicated packet checker stays adjacent lane evidence rather than an extra shared replay step. The live `make -C zigux phase13-validate` route now reruns `scripts/zigux/check-phase13-landlock-ruleset-packet.py` beside the shared release validator and the `devres` packet checker, so the roadmap note needs that checker named explicitly to keep the shipped helper boundary reviewable without overstating the replay count.
+
+The shipped helper-owned boundary note `Documentation/zigux/phase13-landlock-ruleset-ownership.md` stays paired with that anchor too. It records why the current ruleset foothold is still helper-local planning around ownership and cleanup boundaries, and it keeps those owner cues explicit without turning the ownership note into a ninth shared replay step.
 
 That packet is truthful to the roadmap because it keeps the current ruleset foothold bounded to in-memory helper planning around `landlock_create_ruleset()`, access-mask unioning, per-layer mask initialization, `landlock_unmask_layers()` bit clearing, `insert_rule()` merge and search planning, no-match tree-link planning, and matched-rule replacement planning. It does not overclaim live rb-tree mutation, object references, hierarchy ownership, deferred frees, or live Landlock policy enforcement.
 
@@ -86,11 +89,14 @@ Current `master` keeps that anchor reviewable through:
 
   * `Documentation/zigux/phase13-landlock-syscalls-slice.md`
   * `Documentation/zigux/phase13-landlock-syscalls-survey.md`
+  * `Documentation/zigux/phase13-landlock-syscalls-governance.md`
   * `zigux/tests/phase13_landlock_syscalls_manifest.json`
   * `zigux/tests/phase13_landlock_syscalls.zig`
   * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 
 That packet is truthful to the roadmap because it records only bounded helper planning and the current shipped syscall-helper surface. The shipped helper surface now keeps ABI shape reporting, `landlock_create_ruleset()` query and mask validation, `landlock_restrict_self()` logging translation including the special `ruleset_fd == -1` mute-subdomains-only case, `landlock_add_rule()` dispatch, `get_ruleset_from_fd()` mode checks, `get_path_from_fd()` path-source validation, the focused `zigux/tests/phase13_landlock_syscalls_reviewability.zig` direct-evidence shard, the current `add_rule_path_beneath()` handoff reviewable, and the bounded `fop_ruleset_release()` release-side handoff reviewable without implying anonymous inode creation, live file-operations wiring, path-backed rule import, credential mutation, or live syscall enforcement.
+
+The shipped helper-owned boundary note `Documentation/zigux/phase13-landlock-syscalls-governance.md` stays paired with that anchor too. It keeps the current FD, path, and release-side governance cues explicit for contributors and reviewers without turning that helper-owned policy note into a ninth shared replay step.
 
 Keep this packet parked unless a future same-lane step can add another equally bounded planner without widening into live file-operations wiring, FD ownership, credential work, or domain state.
 
