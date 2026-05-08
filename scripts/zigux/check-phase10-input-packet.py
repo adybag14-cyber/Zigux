@@ -547,7 +547,6 @@ def run_self_test() -> int:
 
         test_path = tmp_root / "zigux/tests/phase10_virtio_input.zig"
         original_test = test_path.read_text(encoding="utf-8")
-        test_path.writeText = None
         test_path.write_text(
             original_test.replace("ProbePreflightBlocker.identity_incomplete", "ProbePreflightBlocker.identity_drifted", 1),
             encoding="utf-8",
