@@ -91,6 +91,8 @@ Attached-toolchain fallback examples:
 - `make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig`
 - `make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig`
 - `make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig`
+- `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
+- `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 
 Shared surface breakdown:
 
@@ -173,7 +175,7 @@ This shared smoke slice does not claim:
 5. Run the convenience wrapper.
    `make -C zigux phase14`
 6. Use the attached-toolchain fallback only when `zig` is not already on `PATH`.
-   See the attached-toolchain fallback examples above for the exact `phase14-validate`, `phase14-smoke`, `phase14-test`, and `phase14` command forms.
+   Use `ZIG=/absolute/path/to/attached-zig/zig` for the `make -C zigux phase14-validate`, `phase14-smoke`, `phase14-test`, and `phase14` wrapper routes, and call `/absolute/path/to/attached-zig/zig` directly for the two `zig build ...` replay commands.
 
 ## Next Bounded Step
 
