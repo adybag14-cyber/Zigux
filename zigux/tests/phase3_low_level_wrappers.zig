@@ -1,4 +1,5 @@
 const std = @import("std");
+const abi = @import("abi_bindings");
 
 const atomic = @import("atomic_helpers");
 const barrier = @import("barrier_helpers");
@@ -23,6 +24,7 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     try std.testing.expectEqual(@as(u32, 15), value);
     try std.testing.expectEqual(@as(u32, 15), atomic.fetchXor(u32, &value, 6, .seq_cst));
     try std.testing.expectEqual(@as(u32, 9), value);
+
     try std.testing.expectEqual(@as(u32, 9), atomic.fetchNand(u32, &value, 10, .seq_cst));
     try std.testing.expectEqual(@as(u32, 0xffff_fff7), value);
     try std.testing.expectEqual(@as(u32, 0xffff_fff7), atomic.fetchMin(u32, &value, 4, .seq_cst));
@@ -109,6 +111,74 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), mmio.read64(base, 5));
 }
 
+test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {
+    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    const base = narrow.addressOf(&bytes[0]);
+
+    const mmio_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    };
+    const no_unsafe_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    };
+    const raw_pointer_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    };
+    const reserved_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 1,
+    };
+
+    try std.testing.expect(mmio.allowsInteropPolicy(mmio_policy));
+    try std.testing.expect(mmio.allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0));
+    try std.testing.expect(!mmio.allowsInteropPolicy(no_unsafe_policy));
+    try std.testing.expect(!mmio.allowsInteropPolicy(raw_pointer_policy));
+    try std.testing.expect(!mmio.allowsInteropPolicy(reserved_policy));
+    try std.testing.expect(!mmio.allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 1));
+
+    const scoped_desc = try mmio.rangeInteropPolicy(base, 16, 4, mmio_policy);
+    try std.testing.expectEqual(base, scoped_desc.base_addr);
+    try std.testing.expectEqual(@as(u32, 16), scoped_desc.length);
+    try std.testing.expectEqual(@as(u32, 4), scoped_desc.stride);
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.rangeInteropPolicy(base, 16, 4, no_unsafe_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.rangeInteropPolicy(base, 16, 4, raw_pointer_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.rangeInteropPolicy(base, 16, 4, reserved_policy));
+
+    try mmio.write8InteropPolicy(base, 0, 0x33, mmio_policy);
+    try std.testing.expectEqual(@as(u8, 0x33), try mmio.read8InteropPolicy(base, 0, mmio_policy));
+    try mmio.write16InteropPolicy(base, 2, 0x1234, mmio_policy);
+    try std.testing.expectEqual(@as(u16, 0x1234), try mmio.read16InteropPolicy(base, 2, mmio_policy));
+    try mmio.write32InteropPolicy(base, 4, 0xfeed_beef, mmio_policy);
+    try std.testing.expectEqual(@as(u32, 0xfeed_beef), try mmio.read32InteropPolicy(base, 4, mmio_policy));
+    try mmio.write64InteropPolicy(base, 8, 0x0123_4567_89ab_cdef, mmio_policy);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), try mmio.read64InteropPolicy(base, 8, mmio_policy));
+
+    try mmio.write8InteropPolicyBytes(base, 1, 0x44, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0);
+    try std.testing.expectEqual(
+        @as(u8, 0x44),
+        try mmio.read8InteropPolicyBytes(base, 1, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0),
+    );
+
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.requireInteropPolicy(no_unsafe_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.requireInteropPolicy(raw_pointer_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.requireInteropPolicy(reserved_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32InteropPolicy(base, 4, no_unsafe_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16InteropPolicy(base, 2, 0x7777, raw_pointer_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8InteropPolicyBytes(base, 1, 1, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64InteropPolicyBytes(base, 8, 0, 0, 0));
+}
+
 test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {
     var handoff_value: u32 = 0;
     atomic.store(u32, &handoff_value, 41, .release);
@@ -127,9 +197,19 @@ test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edg
     try std.testing.expectEqual(@as(i32, -4), signed_arithmetic_value);
 
     var monotonic_value: u32 = 5;
-    try std.testing.expectEqual(@as(?u32, null), atomic.compareExchange(u32, &monotonic_value, 5, 7, .monotonic, .monotonic));
+    try std.testing.expectEqual(
+        @as(?u32, null),
+        atomic.compareExchange(u32, &monotonic_value, 5, 7, .monotonic, .monotonic),
+    );
     try std.testing.expectEqual(@as(u32, 7), monotonic_value);
-    const monotonic_mismatch = atomic.compareExchange(u32, &monotonic_value, 5, 9, .monotonic, .monotonic);
+    const monotonic_mismatch = atomic.compareExchange(
+        u32,
+        &monotonic_value,
+        5,
+        9,
+        .monotonic,
+        .monotonic,
+    );
     try std.testing.expectEqual(@as(?u32, 7), monotonic_mismatch);
     try std.testing.expectEqual(@as(u32, 7), monotonic_value);
 
@@ -138,9 +218,19 @@ test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edg
     try std.testing.expectEqual(@as(u32, 0xffff_fff0), monotonic_nand_value);
 
     var acq_rel_value: u32 = 7;
-    try std.testing.expectEqual(@as(?u32, null), atomic.compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire));
+    try std.testing.expectEqual(
+        @as(?u32, null),
+        atomic.compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire),
+    );
     try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
-    const acq_rel_mismatch = atomic.compareExchange(u32, &acq_rel_value, 7, 15, .acq_rel, .acquire);
+    const acq_rel_mismatch = atomic.compareExchange(
+        u32,
+        &acq_rel_value,
+        7,
+        15,
+        .acq_rel,
+        .acquire,
+    );
     try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);
     try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
 
@@ -154,7 +244,14 @@ test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edg
     }
     try std.testing.expectEqual(@as(u32, 19), weak_release_value);
 
-    const weak_release_mismatch = atomic.compareExchangeWeak(u32, &weak_release_value, 13, 23, .release, .monotonic);
+    const weak_release_mismatch = atomic.compareExchangeWeak(
+        u32,
+        &weak_release_value,
+        13,
+        23,
+        .release,
+        .monotonic,
+    );
     try std.testing.expectEqual(@as(?u32, 19), weak_release_mismatch);
     try std.testing.expectEqual(@as(u32, 19), weak_release_value);
 }
