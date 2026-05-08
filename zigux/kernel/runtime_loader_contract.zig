@@ -385,6 +385,24 @@ test "shared runtime loader contract rejects impossible, stale, unknown-family, 
     };
     try std.testing.expectError(error.InvalidInitFlow, prepareRequest(exited_plan));
 
+    const mismatched_module_name = LoadPlan{
+        .module_name = "runtime_atomic64_drift",
+        .anchor = "lib/atomic64_test.c",
+        .entry_symbol = "zigux_runtime_atomic64_init",
+        .exit_symbol = "zigux_runtime_atomic64_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expect(!keepsApprovedPilotFamilyContract(mismatched_module_name));
+    try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(mismatched_module_name));
+
     const mismatched_anchor = LoadPlan{
         .module_name = "runtime_atomic64",
         .anchor = "lib/test_bitmap.c",
