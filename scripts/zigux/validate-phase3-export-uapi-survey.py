@@ -64,6 +64,7 @@ SURVEY_BLOB_MARKERS = (
     ("PHASE3_UAPI_VERSION_BLOB_SHA", UAPI_VERSION_REL),
     ("PHASE3_LINUX_HEADER_BLOB_SHA", LINUX_HEADER_REL),
     ("PHASE3_ABI_HEADER_BLOB_SHA", ABI_HEADER_REL),
+    ("PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA", EXPORT_UAPI_LAYOUT_REL),
 )
 
 REQUIRED_MARKERS = {
@@ -462,6 +463,7 @@ def run_self_test() -> int:
                 f"- `PHASE3_ABI_HEADER_PATH={ABI_HEADER_REL}`",
                 f"- `PHASE3_ABI_HEADER_BLOB_SHA={blob_sha(root / ABI_HEADER_REL)}`",
                 f"- `PHASE3_EXPORT_UAPI_LAYOUT_PATH={EXPORT_UAPI_LAYOUT_REL}`",
+                f"- `PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA={blob_sha(root / EXPORT_UAPI_LAYOUT_REL)}`",
                 "",
                 "## Live Boundary",
                 "",
@@ -585,6 +587,12 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:survey_blob_guard_failed:{issues}")
         _write(root / EXPORT_SHIM_REL, export_shim_text)
 
+        _write(root / EXPORT_UAPI_LAYOUT_REL, export_uapi_layout_text + "// drift\n")
+        issues = validate(root)
+        if len(issues) != 1 or not issues[0].startswith("stale_survey_blob:PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA:"):
+            raise SystemExit(f"phase3-export-uapi-self-test:survey_layout_blob_guard_failed:{issues}")
+        _write(root / EXPORT_UAPI_LAYOUT_REL, export_uapi_layout_text)
+
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(
                 f"`PHASE3_LINUX_HEADER_PATH={LINUX_HEADER_REL}`",
@@ -652,7 +660,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:manifest_required_file_guard_failed:{issues}")
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
