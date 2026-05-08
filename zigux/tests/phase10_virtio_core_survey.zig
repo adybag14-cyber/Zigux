@@ -137,6 +137,8 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-driver-id-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-lab-validation-evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-driver-validation-narrowing-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-attribute-summary-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-dual-implementation-bridge") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-probe-remove-lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);
@@ -150,6 +152,8 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Architecture Council reopen request") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue setup or reset paths") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe or remove lifecycle behavior") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "status_show") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "features_show") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10_virtio_core_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10_virtio_core_survey.zig") != null);
@@ -157,6 +161,8 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "lab-only driver validation") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "true lab driver") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "dual implementations for risky transport-facing paths") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "status_show") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "features_show") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10_virtio_core_survey_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-core-survey-tests") != null);
@@ -168,6 +174,7 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
     var saw_survey_gate = false;
     var saw_survey_note = false;
     var saw_lab_validation_evidence = false;
+    var saw_attribute_summary_helper = false;
     var saw_dual_impl_bridge = false;
     var saw_blocker = false;
 
@@ -208,6 +215,14 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lab-only driver validation evidence") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-core-attribute-summary-helper")) {
+            saw_attribute_summary_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "status_show") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "features_show") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-core-dual-implementation-bridge")) {
             saw_dual_impl_bridge = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
@@ -227,12 +242,13 @@ test "phase10 virtio core survey manifest records the roadmap-facing lab-driver 
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 15);
+    try std.testing.expect(starter_landed_count >= 16);
     try std.testing.expect(blocked_count >= 2);
     try std.testing.expect(saw_driver_id_helper);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_lab_validation_evidence);
+    try std.testing.expect(saw_attribute_summary_helper);
     try std.testing.expect(saw_dual_impl_bridge);
     try std.testing.expect(saw_blocker);
 }
