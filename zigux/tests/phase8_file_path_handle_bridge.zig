@@ -261,6 +261,51 @@ test "phase 8 file-path handle bridge helper keeps truncated-name recovery bound
     try std.testing.expect(!plan.should_attempt_reopen);
 }
 
+test "phase 8 file-path handle bridge helper keeps blank resource paths outside deferred reopen flow" {
+    const expected = file_path_handle_bridge.MapReuseExpectation{
+        .name = "process_pinned_map",
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20,
+        .map_extra = 7,
+    };
+
+    const blank_reopen = file_path_handle_bridge.resolveReusePinnedMapAttempt(" \t\r\n ", expected, .{
+        .name = "process_pinned_",
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | file_path_handle_bridge.bpf_f_rdonly_prog,
+        .map_extra = 7,
+    });
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapAttemptDisposition.missing_pinned_path,
+        blank_reopen.disposition,
+    );
+    try std.testing.expectEqual(@as(?[]const u8, null), blank_reopen.pinned_path);
+    try std.testing.expect(!blank_reopen.should_attempt_reopen);
+
+    const ready_bridge_plan = file_path_handle_bridge.resolveReusePinnedMapAttempt("/sys/fs/bpf/stats", expected, .{
+        .name = "process_pinned_",
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | file_path_handle_bridge.bpf_f_rdonly_prog,
+        .map_extra = 7,
+    });
+    const blank_token = file_path_handle_bridge.planTokenPreparation(" \t\r\n ", ready_bridge_plan);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationDisposition.missing_token_path,
+        blank_token.disposition,
+    );
+    try std.testing.expectEqual(@as(?[]const u8, null), blank_token.token_path);
+    try std.testing.expect(!blank_token.should_attempt_token_open);
+}
+
 test "phase 8 file-path handle bridge helper keeps planning-only token preparation explicit" {
     const expected = file_path_handle_bridge.MapReuseExpectation{
         .name = "process_pinned_map",
