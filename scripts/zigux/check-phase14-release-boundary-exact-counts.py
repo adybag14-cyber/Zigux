@@ -149,7 +149,9 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         checker_path = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
-        write_text(checker_path, Path(__file__).read_text(encoding="utf-8"))
+        current_checker_path = Path(__file__)
+        original_checker_source = current_checker_path.read_text(encoding="utf-8")
+        write_text(checker_path, original_checker_source)
         expected_release_text = "\n".join(
             [
                 "# Phase 14 Release Boundary Survey",
@@ -382,6 +384,43 @@ def run_self_test() -> int:
         if not any("missing file: zigux/tests/phase14_end_to_end_smoke_manifest.json" in error for error in errors):
             print("self-test expected missing shared smoke manifest failure", file=sys.stderr)
             return 1
+        write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
+
+        release_path.unlink()
+        errors = check(root)
+        if not any("missing file: Documentation/zigux/phase14-release-boundary-survey.md" in error for error in errors):
+            print("self-test expected missing release-boundary survey failure", file=sys.stderr)
+            return 1
+        write_text(release_path, expected_release_text)
+
+        smoke_path.unlink()
+        errors = check(root)
+        if not any("missing file: Documentation/zigux/phase14-end-to-end-smoke-survey.md" in error for error in errors):
+            print("self-test expected missing shared smoke survey failure", file=sys.stderr)
+            return 1
+        write_text(smoke_path, expected_smoke_text)
+
+        freeze_map_path.unlink()
+        errors = check(root)
+        if not any("missing file: Documentation/zigux/freeze-map.md" in error for error in errors):
+            print("self-test expected missing freeze-map failure", file=sys.stderr)
+            return 1
+        write_text(freeze_map_path, expected_freeze_map_text)
+
+        roadmap_path.unlink()
+        errors = check(root)
+        if not any("missing file: zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md" in error for error in errors):
+            print("self-test expected missing roadmap failure", file=sys.stderr)
+            return 1
+        write_text(roadmap_path, expected_roadmap_text)
+
+        write_text(current_checker_path, original_checker_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"))
+        errors = check(root)
+        if not any("checker marker missing from checker source" in error for error in errors):
+            print("self-test expected checker-marker failure", file=sys.stderr)
+            write_text(current_checker_path, original_checker_source)
+            return 1
+        write_text(current_checker_path, original_checker_source)
 
     return 0
 
