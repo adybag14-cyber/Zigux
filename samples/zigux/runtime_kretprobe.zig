@@ -506,3 +506,60 @@ test "kretprobe sample keeps per-instance entry stamps distinct across overlappi
     try std.testing.expectEqual(@as(i64, 140), exit_report.last_duration_ns);
     try std.testing.expectEqual(@as(usize, 0), exit_report.selftest_runs);
 }
+
+test "kretprobe sample preserves maxactive-pressure failed-exit state until active probes drain" {
+    var module = RuntimeKretprobeSample{ .maxactive = 2 };
+    try module.init();
+
+    try std.testing.expect(try module.entryHandler(true, 100));
+    try std.testing.expect(try module.entryHandler(true, 130));
+    try std.testing.expectError(error.MaxactiveExceeded, module.entryHandler(true, 160));
+
+    const before_failed_exit = module.summary();
+    try std.testing.expectEqual(@as(usize, 2), before_failed_exit.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.nmissed);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.last_retval);
+    try std.testing.expectEqual(@as(i64, 0), before_failed_exit.last_duration_ns);
+    try std.testing.expect(before_failed_exit.entry_timestamp_armed);
+
+    try std.testing.expectError(error.OutstandingProbeInstance, module.exit());
+
+    const after_failed_exit = module.summary();
+    try std.testing.expectEqual(before_failed_exit.active_instances, after_failed_exit.active_instances);
+    try std.testing.expectEqual(before_failed_exit.nmissed, after_failed_exit.nmissed);
+    try std.testing.expectEqual(before_failed_exit.last_retval, after_failed_exit.last_retval);
+    try std.testing.expectEqual(before_failed_exit.last_duration_ns, after_failed_exit.last_duration_ns);
+    try std.testing.expectEqual(before_failed_exit.entry_timestamp_armed, after_failed_exit.entry_timestamp_armed);
+
+    const inner = try module.retHandler(5, 180);
+    try std.testing.expectEqual(@as(usize, 5), inner.retval);
+    try std.testing.expectEqual(@as(i64, 50), inner.duration_ns);
+
+    const mid_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), mid_summary.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), mid_summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 5), mid_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 50), mid_summary.last_duration_ns);
+    try std.testing.expect(mid_summary.entry_timestamp_armed);
+    try std.testing.expectError(error.OutstandingProbeInstance, module.exit());
+
+    const outer = try module.retHandler(6, 240);
+    try std.testing.expectEqual(@as(usize, 6), outer.retval);
+    try std.testing.expectEqual(@as(i64, 140), outer.duration_ns);
+
+    const after_recovery = module.summary();
+    try std.testing.expectEqual(@as(usize, 0), after_recovery.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), after_recovery.nmissed);
+    try std.testing.expectEqual(@as(usize, 6), after_recovery.last_retval);
+    try std.testing.expectEqual(@as(i64, 140), after_recovery.last_duration_ns);
+    try std.testing.expect(!after_recovery.entry_timestamp_armed);
+
+    const exit_report = try module.exit();
+    try std.testing.expectEqualStrings(RuntimeKretprobeSample.default_symbol_name, exit_report.symbol_name);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), exit_report.missed_instances);
+    try std.testing.expectEqual(@as(usize, 6), exit_report.last_retval);
+    try std.testing.expectEqual(@as(i64, 140), exit_report.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), exit_report.selftest_runs);
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+}
