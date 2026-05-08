@@ -101,6 +101,7 @@ REQUIRED_FILE_MARKERS = {
         "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
         "build-only contract drift still fails closed when the local runtime needs the fallback path.",
         "the compact release-coordination matrix",
+        "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
