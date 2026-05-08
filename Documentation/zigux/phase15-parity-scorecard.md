@@ -28,7 +28,7 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
 - roadmap title: `Full-Parity Blockers and Long-Term Governance`
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
-- current repo handoff: `check-phase15-scripts-readme-alignment.py`, `check-phase15-review-process-handoff.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_governance_lane_sequencing.zig`, and `make -C zigux phase15`
+- current repo handoff: `Documentation/zigux/README.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `check-phase15-scripts-readme-alignment.py`, `check-phase15-review-process-handoff.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_governance_lane_sequencing.zig`, and `make -C zigux phase15`
 - maintenance-mode next step: wait for the named reopen triggers or a deep-core blocker posture change
 
 ## Scorecard Entries
