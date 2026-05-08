@@ -242,6 +242,7 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
     const required_mentions = [_][]const u8{
         "PHASE5_STATUS=parked",
         "PHASE5_SLICE=kfifo-reference-sample-starter",
+        "Documentation/zigux/phase5-sample-review-guide.md",
         "samples/kfifo/bytestream-example.c",
         "phase5_bytestream_fifo_manifest.json",
         "phase5_build.zig",
