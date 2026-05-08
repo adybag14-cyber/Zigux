@@ -395,9 +395,15 @@ REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS = [
     'try std.testing.expect(!@hasField(LoadPlan, "depmod_manifest"));',
     'try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));',
     'try std.testing.expect(!@hasField(PreparedRequest, "modinfo"));',
+    'try std.testing.expect(!@hasField(PreparedRequest, "module_alias"));',
     'try std.testing.expect(!@hasField(PreparedRequest, "module_aliases"));',
     'try std.testing.expect(!@hasField(PreparedRequest, "modules_alias_path"));',
+    'try std.testing.expect(!@hasField(PreparedRequest, "module_install_root"));',
+    'try std.testing.expect(!@hasField(PreparedRequest, "modules_order_path"));',
+    'try std.testing.expect(!@hasField(PreparedRequest, "modules_builtin_path"));',
     'try std.testing.expect(!@hasField(PreparedRequest, "depmod_script"));',
+    'try std.testing.expect(!@hasField(PreparedRequest, "depmod_manifest"));',
+    'try std.testing.expect(!@hasField(PreparedRequest, "depmod_aliases"));',
 ]
 
 REQUIRED_PHASE9_BUILD_EXACT_COUNTS = {marker: 1 for marker in REQUIRED_PHASE9_BUILD_MARKERS}
@@ -728,6 +734,22 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        runtime_loader_contract_path = base / RUNTIME_LOADER_CONTRACT_PATH
+        runtime_loader_contract = runtime_loader_contract_path.read_text(encoding="utf-8")
+        runtime_loader_contract_path.write_text(
+            runtime_loader_contract.replace(
+                'try std.testing.expect(!@hasField(PreparedRequest, "depmod_manifest"));',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            'runtime_loader_contract:try std.testing.expect(!@hasField(PreparedRequest, "depmod_manifest"));',
+        )
+
+        write_fixture_tree(base)
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
             makefile + "phase9-runtime-loader-shared-tests:\n",
@@ -749,7 +771,7 @@ def run_self_test() -> int:
         expect_failure(base, f"missing_file:{REQUIRED_PHASE9_TEST_PACKET_PATHS[0]}")
 
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=16")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=17")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
