@@ -14,7 +14,17 @@ HELPER_SPECS = [
     {
         "key": "string_helpers",
         "helper_path": '"../../lib/string_helpers.zig"',
+        "helper_module_marker": """const string_helpers_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/string_helpers.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "root_path": '"phase7_string_helpers.zig"',
+        "root_module_marker": """const string_helpers_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_string_helpers.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "import_marker": 'string_helpers_root_module.addImport("string_helpers", string_helpers_module);',
         "test_name_marker": '.name = "phase7-string-helpers-tests",',
         "depend_marker": "test_step.dependOn(&run_string_helpers_tests.step);",
@@ -22,7 +32,17 @@ HELPER_SPECS = [
     {
         "key": "cmdline",
         "helper_path": '"../../lib/cmdline.zig"',
+        "helper_module_marker": """const cmdline_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/cmdline.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "root_path": '"phase7_cmdline.zig"',
+        "root_module_marker": """const cmdline_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_cmdline.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "import_marker": 'cmdline_root_module.addImport("cmdline", cmdline_module);',
         "test_name_marker": '.name = "phase7-cmdline-tests",',
         "depend_marker": "test_step.dependOn(&run_cmdline_tests.step);",
@@ -30,7 +50,17 @@ HELPER_SPECS = [
     {
         "key": "argv_split",
         "helper_path": '"../../lib/argv_split.zig"',
+        "helper_module_marker": """const argv_split_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/argv_split.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "root_path": '"phase7_argv_split.zig"',
+        "root_module_marker": """const argv_split_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_argv_split.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "import_marker": 'argv_split_root_module.addImport("argv_split", argv_split_module);',
         "test_name_marker": '.name = "phase7-argv-split-tests",',
         "depend_marker": "test_step.dependOn(&run_argv_split_tests.step);",
@@ -38,7 +68,17 @@ HELPER_SPECS = [
     {
         "key": "rbtree",
         "helper_path": '"../../lib/rbtree.zig"',
+        "helper_module_marker": """const rbtree_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/rbtree.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "root_path": '"phase7_rbtree.zig"',
+        "root_module_marker": """const rbtree_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_rbtree.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "import_marker": 'rbtree_root_module.addImport("rbtree", rbtree_module);',
         "test_name_marker": '.name = "phase7-rbtree-tests",',
         "depend_marker": "test_step.dependOn(&run_rbtree_tests.step);",
@@ -49,6 +89,11 @@ REVIEW_GATE_SPECS = [
     {
         "key": "string_helpers_survey",
         "root_path": '"phase7_string_helpers_survey.zig"',
+        "root_module_marker": """const string_helpers_survey_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_string_helpers_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "test_name_marker": '.name = "phase7-string-helpers-survey-tests",',
         "depend_marker": "test_step.dependOn(&run_string_helpers_survey_tests.step);",
         "cwd_marker": 'run_string_helpers_survey_tests.setCwd(b.path("../.."));',
@@ -58,6 +103,11 @@ REVIEW_GATE_SPECS = [
     {
         "key": "string_helpers_sample_boundary",
         "root_path": '"phase7_string_helpers_sample_boundary.zig"',
+        "root_module_marker": """const string_helpers_sample_boundary_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_string_helpers_sample_boundary.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "test_name_marker": '.name = "phase7-string-helpers-sample-boundary-tests",',
         "depend_marker": "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step);",
         "cwd_marker": 'run_string_helpers_sample_boundary_tests.setCwd(b.path("../.."));',
@@ -67,6 +117,11 @@ REVIEW_GATE_SPECS = [
     {
         "key": "cmdline_survey",
         "root_path": '"phase7_cmdline_survey.zig"',
+        "root_module_marker": """const cmdline_survey_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_cmdline_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "test_name_marker": '.name = "phase7-cmdline-survey-tests",',
         "depend_marker": "test_step.dependOn(&run_cmdline_survey_tests.step);",
         "cwd_marker": 'run_cmdline_survey_tests.setCwd(b.path("../.."));',
@@ -76,6 +131,11 @@ REVIEW_GATE_SPECS = [
     {
         "key": "argv_split_survey",
         "root_path": '"phase7_argv_split_survey.zig"',
+        "root_module_marker": """const argv_split_survey_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_argv_split_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "test_name_marker": '.name = "phase7-argv-split-survey-tests",',
         "depend_marker": "test_step.dependOn(&run_argv_split_survey_tests.step);",
         "cwd_marker": 'run_argv_split_survey_tests.setCwd(b.path("../.."));',
@@ -85,6 +145,11 @@ REVIEW_GATE_SPECS = [
     {
         "key": "rbtree_survey",
         "root_path": '"phase7_rbtree_survey.zig"',
+        "root_module_marker": """const rbtree_survey_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_rbtree_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });""",
         "test_name_marker": '.name = "phase7-rbtree-survey-tests",',
         "depend_marker": "test_step.dependOn(&run_rbtree_survey_tests.step);",
         "cwd_marker": 'run_rbtree_survey_tests.setCwd(b.path("../.."));',
@@ -97,8 +162,8 @@ REQUIRED_MARKERS = [
     marker
     for spec in HELPER_SPECS
     for marker in (
-        spec["helper_path"],
-        spec["root_path"],
+        spec["helper_module_marker"],
+        spec["root_module_marker"],
         spec["import_marker"],
         spec["test_name_marker"],
         spec["depend_marker"],
@@ -107,7 +172,7 @@ REQUIRED_MARKERS = [
     marker
     for spec in REVIEW_GATE_SPECS
     for marker in (
-        spec["root_path"],
+        spec["root_module_marker"],
         spec["test_name_marker"],
         spec["depend_marker"],
         spec["cwd_marker"],
@@ -155,16 +220,16 @@ def run_self_test() -> None:
         marker_cases.extend(
             [
                 (
-                    f"{spec['key']}_helper_path_drift",
-                    spec["helper_path"],
-                    spec["helper_path"].replace(".zig", "_drift.zig"),
-                    spec["helper_path"],
+                    f"{spec['key']}_helper_module_target_drift",
+                    spec["helper_module_marker"],
+                    spec["helper_module_marker"].replace(".target = target,", ".target = b.graph.host,"),
+                    spec["helper_module_marker"],
                 ),
                 (
-                    f"{spec['key']}_root_path_drift",
-                    spec["root_path"],
-                    spec["root_path"].replace(".zig", "_drift.zig"),
-                    spec["root_path"],
+                    f"{spec['key']}_root_module_optimize_drift",
+                    spec["root_module_marker"],
+                    spec["root_module_marker"].replace(".optimize = optimize,", ".optimize = .ReleaseSafe,"),
+                    spec["root_module_marker"],
                 ),
                 (
                     f"{spec['key']}_import_alias_drift",
@@ -189,6 +254,16 @@ def run_self_test() -> None:
         exact_count_cases.extend(
             [
                 (
+                    f"{spec['key']}_helper_module_exact_count",
+                    spec["helper_module_marker"],
+                    f"{spec['helper_module_marker']}:expected=1:actual=2",
+                ),
+                (
+                    f"{spec['key']}_root_module_exact_count",
+                    spec["root_module_marker"],
+                    f"{spec['root_module_marker']}:expected=1:actual=2",
+                ),
+                (
                     f"{spec['key']}_import_exact_count",
                     spec["import_marker"],
                     f"{spec['import_marker']}:expected=1:actual=2",
@@ -205,10 +280,10 @@ def run_self_test() -> None:
         marker_cases.extend(
             [
                 (
-                    f"{spec['key']}_root_path_drift",
-                    spec["root_path"],
-                    spec["root_path"].replace(".zig", "_drift.zig"),
-                    spec["root_path"],
+                    f"{spec['key']}_root_module_target_drift",
+                    spec["root_module_marker"],
+                    spec["root_module_marker"].replace(".target = target,", ".target = b.graph.host,"),
+                    spec["root_module_marker"],
                 ),
                 (
                     f"{spec['key']}_test_name_drift",
@@ -225,7 +300,7 @@ def run_self_test() -> None:
                 (
                     f"{spec['key']}_cwd_drift",
                     spec["cwd_marker"],
-                    spec["cwd_marker"].replace('../..', '.'),
+                    spec["cwd_marker"].replace("../..", "."),
                     spec["cwd_marker"],
                 ),
                 (
@@ -244,6 +319,11 @@ def run_self_test() -> None:
         )
         exact_count_cases.extend(
             [
+                (
+                    f"{spec['key']}_root_module_exact_count",
+                    spec["root_module_marker"],
+                    f"{spec['root_module_marker']}:expected=1:actual=2",
+                ),
                 (
                     f"{spec['key']}_test_name_exact_count",
                     spec["test_name_marker"],
