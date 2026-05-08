@@ -271,6 +271,13 @@ test "phase 5 trace-events survey packet stays repo-local and keeps shared revie
         .{manifest.lane_key},
     );
 
+    var review_gate_marker_buf: [160]u8 = undefined;
+    const review_gate_marker = try std.fmt.bufPrint(
+        review_gate_marker_buf[0..],
+        "samples/trace_events/trace-events-sample.c|PHASE5_LANE_KEY={s}|PHASE5_SURVEYED_COMMIT={s}|Phase 5",
+        .{ manifest.lane_key, manifest.surveyed_commit },
+    );
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase5-trace-events-sample-survey.md",
@@ -290,6 +297,10 @@ test "phase 5 trace-events survey packet stays repo-local and keeps shared revie
         "make -C zigux phase5-test",
         "make -C zigux phase5",
         "runtime_trace_events",
+        "## Latest verification snapshot",
+        "`zig fmt --check Documentation/zigux/phase5-trace-events-sample-survey.md zigux/tests/phase5_trace_events_sample_survey.zig`",
+        "`zig test --test-no-exec zigux/tests/phase5_trace_events_sample_survey.zig`",
+        "compile-only recheck of the manifest-backed survey gate",
         "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample",
         "selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig`",
         "closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet",
@@ -302,7 +313,9 @@ test "phase 5 trace-events survey packet stays repo-local and keeps shared revie
 
     try expectContains(survey_note, lane_key_marker);
     try expectContains(survey_note, surveyed_commit_marker);
+    try expectContains(survey_note, review_gate_marker);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Latest verification posture") == null);
 
     const docs_root = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
