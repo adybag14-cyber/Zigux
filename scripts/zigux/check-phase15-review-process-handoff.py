@@ -20,7 +20,19 @@ MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 EXPECTED_LANE_KEY = "P15-L06"
 
-PRODUCT_BOUNDARY_MARKER = "product boundary:\n  - `Documentation/zigux/freeze-map.md`"
+PRODUCT_BOUNDARY_MARKER = "product boundary:"
+REQUIRED_PRODUCT_BOUNDARY_MARKERS = (
+    "  - `Documentation/zigux/freeze-map.md`",
+    "  - `Documentation/zigux/phase15-readiness-gate-survey.md`",
+    "  - `Documentation/zigux/phase15-governance-lane-sequencing.md`",
+    "  - `Documentation/zigux/review-checklist.md`",
+    "  - `scripts/zigux/check-phase15-review-process-handoff.py`",
+    "  - `.github/workflows/zigux-bootstrap.yml`",
+    "  - `zigux/tests/phase15_governance_lane_sequencing.zig`",
+    "  - `zigux/tests/phase15_readiness_gate_manifest.json`",
+    "  - `zigux/tests/phase15_readiness_gate.zig`",
+    "  - `zigux/tests/phase15_build.zig`",
+)
 REQUIRED_NOTE_MARKERS = (
     f"`PHASE15_LANE_KEY={EXPECTED_LANE_KEY}`",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
@@ -294,6 +306,7 @@ def validate(root: Path) -> list[str]:
     expect_markers(review_checklist, REQUIRED_REVIEW_CHECKLIST_MARKERS, "review_checklist", failures)
     if PRODUCT_BOUNDARY_MARKER not in note:
         failures.append("note:product_boundary")
+    expect_markers(note, REQUIRED_PRODUCT_BOUNDARY_MARKERS, "note_boundary", failures)
     expect_markers(note, REQUIRED_NOTE_MARKERS, "note", failures)
     expect_markers(script_readme, REQUIRED_SCRIPT_README_MARKERS, "script_readme", failures)
     expect_markers(tests_readme, REQUIRED_TESTS_README_MARKERS, "tests_readme", failures)
@@ -376,6 +389,7 @@ def write_fixture_tree(root: Path) -> None:
         "## Status",
         REQUIRED_NOTE_MARKERS[0],
         PRODUCT_BOUNDARY_MARKER,
+        *REQUIRED_PRODUCT_BOUNDARY_MARKERS,
         "## Current Approval Posture",
         "- current review-process evidence is limited to named `phase`, `current status bucket`, `required approver set`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records, plus the workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml` and the dedicated `make -C zigux phase15-test` route",
         "## Recorded Gaps",
@@ -504,6 +518,38 @@ def run_self_test() -> int:
 
         note_path.write_text(original_note.replace("`indefinite-C policy link or non-applicability note`", "`indefinite-C policy link`", 1), encoding="utf-8")
         expect_only(root, ["note:`indefinite-C policy link or non-applicability note`"], "missing_indefinite_c_marker")
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
+        note_path.write_text(
+            original_note.replace(
+                "  - `Documentation/zigux/phase15-governance-lane-sequencing.md`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["note_boundary:  - `Documentation/zigux/phase15-governance-lane-sequencing.md`"],
+            "missing_governance_lane_sequencing_boundary_marker",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
+        note_path.write_text(
+            original_note.replace(
+                "  - `Documentation/zigux/phase15-readiness-gate-survey.md`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["note_boundary:  - `Documentation/zigux/phase15-readiness-gate-survey.md`"],
+            "missing_readiness_gate_boundary_marker",
+        )
         note_path.write_text(original_note, encoding="utf-8")
         case_count += 1
 
