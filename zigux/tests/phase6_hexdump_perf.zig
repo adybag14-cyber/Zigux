@@ -125,6 +125,9 @@ fn validatePerfMatrix() !void {
         if (std.mem.eql(u8, case.label, "32B-ascii-g2")) {
             try validateBoundaryBuffers(case, 114);
         }
+        if (std.mem.eql(u8, case.label, "16B-ascii-g4")) {
+            try validateBoundaryBuffers(case, 54);
+        }
         if (std.mem.eql(u8, case.label, "16B-ascii-g8")) {
             try validateBoundaryBuffers(case, 52);
         }
