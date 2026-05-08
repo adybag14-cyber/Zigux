@@ -23,6 +23,14 @@ pub fn recognizesInteropPolicyBytes(mode: u8, reserved: u8) bool {
     return modeFromInteropPolicyBytes(mode, reserved) != null;
 }
 
+pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {
+    return modeFromInteropPolicy(policy) != null;
+}
+
+pub fn recognizesByte(mode: u8) bool {
+    return recognizesInteropPolicyBytes(mode, 0);
+}
+
 pub fn requiresExplicitCaller(mode: abi.AllocatorMode) bool {
     return mode == .caller_provided;
 }
@@ -73,6 +81,11 @@ test "phase3 allocator policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(9, 0));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicyBytes(2, 1));
 
+    try std.testing.expect(recognizesByte(0));
+    try std.testing.expect(recognizesByte(1));
+    try std.testing.expect(recognizesByte(2));
+    try std.testing.expect(!recognizesByte(9));
+
     try std.testing.expect(recognizesInteropPolicyBytes(0, 0));
     try std.testing.expect(recognizesInteropPolicyBytes(1, 0));
     try std.testing.expect(recognizesInteropPolicyBytes(2, 0));
@@ -98,6 +111,9 @@ test "phase3 allocator policy stays explicit" {
         .reserved = 1,
     };
 
+    try std.testing.expect(recognizesInteropPolicy(caller_policy));
+    try std.testing.expect(recognizesInteropPolicy(heap_policy));
+    try std.testing.expect(!recognizesInteropPolicy(reserved_policy));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), modeFromInteropPolicy(caller_policy));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .kernel_heap), modeFromInteropPolicy(heap_policy));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(reserved_policy));
