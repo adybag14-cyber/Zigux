@@ -383,3 +383,75 @@ test "pseudo-header helpers keep carry-heavy folding stable" {
     try std.testing.expectEqual(normalize(manual_v6), v6_result);
     try std.testing.expectEqual(fold(normalize(manual_v6)), tcpUdpV6Magic(seed, &v6_saddr, &v6_daddr, 0xffff_fffe, 0xff));
 }
+
+test "tcpUdpMagic wrappers stay aligned with direct pseudo-header packets" {
+    const empty_payload = [_]u8{};
+    const ipv4_odd_payload = [_]u8{ 0xde, 0xad, 0xbe, 0xef, 0xfa };
+    const ipv4_carry_payload = [_]u8{ 0xff, 0xfe, 0x01, 0x00, 0xaa, 0x55 };
+    const ipv6_odd_payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36, 0xaa };
+
+    const ipv4_cases = [_]struct {
+        payload: []const u8,
+        saddr: u32,
+        daddr: u32,
+        proto: u8,
+    }{
+        .{ .payload = empty_payload[0..], .saddr = 0xc0a8_0001, .daddr = 0xc0a8_00c7, .proto = 6 },
+        .{ .payload = ipv4_odd_payload[0..], .saddr = 0xc0a8_0001, .daddr = 0xc0a8_00c7, .proto = 17 },
+        .{ .payload = ipv4_carry_payload[0..], .saddr = 0xffff_ffff, .daddr = 0x7fff_fffe, .proto = 255 },
+    };
+
+    for (ipv4_cases) |case| {
+        var packet: [64]u8 = undefined;
+        const payload_partial = partial(case.payload, 0);
+        writeBigEndianU32(packet[0..4], case.saddr);
+        writeBigEndianU32(packet[4..8], case.daddr);
+        packet[8] = 0;
+        packet[9] = case.proto;
+        writeBigEndianU16(packet[10..12], @intCast(case.payload.len));
+        @memcpy(packet[12 .. 12 + case.payload.len], case.payload);
+        const nofold = tcpUdpNofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto);
+        const magic = tcpUdpMagic(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto);
+
+        try std.testing.expectEqual(fold(nofold), magic);
+        try std.testing.expectEqual(compute(packet[0 .. 12 + case.payload.len]), magic);
+    }
+
+    const ipv6_cases = [_]struct {
+        payload: []const u8,
+        saddr: [16]u8,
+        daddr: [16]u8,
+        proto: u8,
+    }{
+        .{
+            .payload = empty_payload[0..],
+            .saddr = .{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe },
+            .daddr = .{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf },
+            .proto = 6,
+        },
+        .{
+            .payload = ipv6_odd_payload[0..],
+            .saddr = .{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe },
+            .daddr = .{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf },
+            .proto = 58,
+        },
+    };
+
+    for (ipv6_cases) |case| {
+        var packet: [96]u8 = undefined;
+        const payload_partial = partial(case.payload, 0);
+        @memcpy(packet[0..16], &case.saddr);
+        @memcpy(packet[16..32], &case.daddr);
+        writeBigEndianU32(packet[32..36], @intCast(case.payload.len));
+        packet[36] = 0;
+        packet[37] = 0;
+        packet[38] = 0;
+        packet[39] = case.proto;
+        @memcpy(packet[40 .. 40 + case.payload.len], case.payload);
+        const nofold = tcpUdpV6Nofold(payload_partial, &case.saddr, &case.daddr, @intCast(case.payload.len), case.proto);
+        const magic = tcpUdpV6Magic(payload_partial, &case.saddr, &case.daddr, @intCast(case.payload.len), case.proto);
+
+        try std.testing.expectEqual(fold(nofold), magic);
+        try std.testing.expectEqual(compute(packet[0 .. 40 + case.payload.len]), magic);
+    }
+}
