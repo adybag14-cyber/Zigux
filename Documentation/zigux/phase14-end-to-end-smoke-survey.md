@@ -102,9 +102,9 @@ Anchor packets in the current smoke bundle:
 
 ## Shared Smoke Findings
 
-- `zigux/Makefile`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and this smoke note align on the shipped validator, focused smoke shard, shared full-bundle replay, and convenience wrapper for the current study-only packet.
+- `zigux/Makefile`, `scripts/zigux/validate-phase14.py`, the docs-root smoke-summary checker, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and this smoke note align on the shipped validator, focused smoke shard, shared full-bundle replay, and convenience wrapper for the current study-only packet.
 - `scripts/zigux/validate-phase14.py --self-test` now gives the shared smoke packet a direct validator-local replay route for the built-in checker-failure coverage, so the silent-failure proof inside the validator no longer stays implicit behind the broader `make -C zigux phase14-validate` path.
-- `scripts/zigux/check-phase14-docs-root-smoke-summary.py` now also keeps this shared smoke note and the manifest-backed packet inventory tied to the shipped `phase14-validate` route instead of leaving the docs-root smoke-summary checker implicit in `zigux/Makefile` alone.
+- The docs-root smoke-summary checker now also keeps this shared smoke note and the manifest-backed packet inventory tied to the shipped `phase14-validate` route instead of leaving that check implicit in `zigux/Makefile` alone.
 - `Documentation/zigux/phase14-core-boundary-traceability.md` keeps the current ring-buffer, skbuff, and RCU lane keys, surveyed commits, ready-next posture, blocked gaps, and stay-in-C decisions visible in one cross-anchor note instead of leaving that boundary evidence to separate lane notes or run memory alone.
 - The shared smoke packet now names the full review-only bridge root set beside the ring-buffer survey root: `kernel/workqueue_bridge.zig`, `net/core/skbuff_bridge.zig`, `kernel/rcu/tree_bridge.zig`, and `phase14_ring_buffer_survey.zig`.
 - `zigux/tests/phase14_build.zig` keeps one dedicated smoke shard for `phase14-end-to-end-smoke-tests`, while the four anchor-local artifacts remain `full_bundle_only` under the broader Phase 14 test replay.
@@ -156,10 +156,7 @@ This shared smoke slice does not claim:
 5. Run the convenience wrapper.
    `make -C zigux phase14`
 6. Use the attached-toolchain fallback only when `zig` is not already on `PATH`.
-   `make -C zigux phase14-validate ZIG=/absolute/path/to/attached-zig/zig`
-   `make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig`
-   `make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig`
-   `make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig`
+   See the attached-toolchain fallback examples above for the exact `phase14-validate`, `phase14-smoke`, `phase14-test`, and `phase14` command forms.
 
 ## Next Bounded Step
 
