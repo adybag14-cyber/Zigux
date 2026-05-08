@@ -15,6 +15,20 @@ BRIDGE_CASES = Path("zigux/tests/fixtures/genksyms_bridge/cases.json")
 BRIDGE_MANIFEST = Path("zigux/tests/fixtures/genksyms_bridge/manifest.json")
 PHASE2_TOOL_MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 BRIDGE_MANIFEST_PATH = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
+BRIDGE_CONTRACT = {
+    "tool": "scripts/genksyms/genksyms",
+    "stdin": "cpp-stream",
+    "stdout": "symversions",
+    "argv_lead": "scripts/genksyms/genksyms",
+    "options_fields": [
+        "debug_level",
+        "warnings",
+        "dump_defs",
+        "preserve",
+        "reference_files",
+        "dump_types_file",
+    ],
+}
 
 REQUIRED_BRIDGE_MARKERS = (
     "print('GENKSYMS_BRIDGE_SELF_TEST=pass')",
@@ -117,6 +131,7 @@ def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | N
         "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
         "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
         "harness": "zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c",
+        "bridge_contract": BRIDGE_CONTRACT,
         "case_count": len(case_names),
         "cases": case_names,
         "stdout_packet": ordered_unique(stdout_packet),
@@ -394,10 +409,10 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = root / BRIDGE_MANIFEST
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["fixture_root"] = "zigux/tests/fixtures/other_bridge"
+        payload["bridge_contract"] = {"tool": "scripts/genksyms/genksyms", "stdin": "stdin", "stdout": "stdout"}
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert any(block == "MANIFEST_FIELD_MISMATCHES" and value.startswith("fixture_root:") for block, value in issues)
+        assert any(block == "MANIFEST_FIELD_MISMATCHES" and value.startswith("bridge_contract:") for block, value in issues)
         cases += 1
 
         build_self_test_root(root)
