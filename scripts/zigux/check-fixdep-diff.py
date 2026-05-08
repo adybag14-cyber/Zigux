@@ -429,7 +429,7 @@ def run_self_test() -> int:
             raise RuntimeError('self-test expected helper anchor drift failure')
 
     print('FIXDEP_DIFF_SELF_TEST=pass')
-    print('FIXDEP_DIFF_SELF_TEST_CASE_COUNT=4')
+    print(f'FIXDEP_DIFF_SELF_TEST_CASE_COUNT={len(good_cases)}')
     return 0
 
 
