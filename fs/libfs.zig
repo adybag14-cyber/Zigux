@@ -14,6 +14,7 @@ pub const ModuleDescriptor = struct {
     provides_offset_seek_helpers: bool,
     provides_directory_emit_planning: bool,
     provides_directory_cursor_open_planning: bool,
+    provides_directory_cursor_close_planning: bool,
     provides_transaction_buffer_planning: bool,
     provides_transaction_publish_planning: bool,
     provides_transaction_release_planning: bool,
@@ -103,6 +104,14 @@ pub const DirectoryCursorOpenPlan = struct {
     return_code: i32,
 };
 
+pub const DirectoryCursorClosePlan = struct {
+    anchor: []const u8,
+    had_private_data: bool,
+    releases_private_data: bool,
+    null_private_data_is_allowed: bool,
+    return_code: i32,
+};
+
 pub const TransactionBufferAcquirePlan = struct {
     anchor: []const u8,
     requested_size: usize,
@@ -170,6 +179,7 @@ pub const LibFsHelperLab = struct {
             .provides_offset_seek_helpers = true,
             .provides_directory_emit_planning = true,
             .provides_directory_cursor_open_planning = true,
+            .provides_directory_cursor_close_planning = true,
             .provides_transaction_buffer_planning = true,
             .provides_transaction_publish_planning = true,
             .provides_transaction_release_planning = true,
@@ -377,6 +387,16 @@ pub const LibFsHelperLab = struct {
             .allocates_cursor_from_path_dentry = true,
             .stores_cursor_in_private_data = cursor_allocated,
             .return_code = if (cursor_allocated) 0 else -12,
+        };
+    }
+
+    pub fn dcacheDirClosePlan(has_private_data: bool) DirectoryCursorClosePlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .had_private_data = has_private_data,
+            .releases_private_data = has_private_data,
+            .null_private_data_is_allowed = true,
+            .return_code = 0,
         };
     }
 
