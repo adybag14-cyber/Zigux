@@ -149,6 +149,7 @@ Keep out of scope
 ## Boundary reminders
 
 - The four shipped Phase 5 samples are the whole current reference-sample packet; later `samples/zigux/runtime_*` files belong to Phase 9.
+- Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, or direct `*bitmap*` Phase 5 reference sample.
 - Current `master` still ships no standalone `samples/zigux/*string*` Phase 5 reference sample; keep string-helper reviewability under `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, and `zigux/tests/phase7_build.zig` instead of treating string helpers as a fifth Phase 5 sample.
 - Current `master` still ships no standalone `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig` instead of treating cmdline as a fifth Phase 5 sample.
 - Current `master` still ships no standalone `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under `Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `scripts/zigux/check-phase7-argv-split-packet.py`, and `zigux/tests/phase7_build.zig` instead of treating `argv_split` as a fifth Phase 5 sample.
