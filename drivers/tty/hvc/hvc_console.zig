@@ -548,6 +548,9 @@ pub const HvcConsoleLab = struct {
     ) !HangupDisconnectSnapshot {
         const slot = self.slotSnapshot();
         if (!slot.usable_for_console) return error.ConsoleUnavailable;
+        if (request.buffered_write_len > outbuf_capacity * 2) {
+            return error.BufferedWriteTooLarge;
+        }
 
         const hangup_skipped = request.port_count_before_hangup == 0;
 
