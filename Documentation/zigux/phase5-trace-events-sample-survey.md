@@ -45,6 +45,8 @@ Fresh repo inspection already showed landed Phase 5 FIFO, kobject, and kretprobe
 
 The repo now carries that bounded sample in `samples/zigux/trace_events_sample.zig`.
 
+Within the roadmap's Phase 5 `tracing examples` scope, this landed sample is the approved tracing-plus-ownership idiom reviewers should preserve on current `master`: payload shaping, selected-string formatting, callback balance, and teardown ownership cues stay reviewable together in one bounded non-runtime packet.
+
 The sample intentionally stays small:
 
 - it keeps the Linux anchor path explicit in `TraceEventsReferenceSample.descriptor()`
