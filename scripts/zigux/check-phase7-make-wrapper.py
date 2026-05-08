@@ -16,6 +16,8 @@ EXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/validate-phase7.py",
         "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
+        "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+        "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -31,6 +33,8 @@ EXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/validate-phase7.py",
         "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
+        "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+        "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -53,6 +57,8 @@ UNEXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/validate-phase7.py",
         "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
+        "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+        "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -238,6 +244,78 @@ def run_self_test() -> int:
                 "phase7-validate": [
                     line
                     for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                    if line
+                    != "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_make_wrapper_alignment_selftest",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    *EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
+                    EXPECTED_MAKE_EXPANSIONS["phase7-validate"][4],
+                ],
+            },
+        )
+        expect_failure(
+            "duplicate_make_wrapper_alignment_selftest",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: expected wrapper expansion count drift: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test (2 != 1)",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                    if line
+                    != "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_make_wrapper_alignment_live",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    *EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
+                    EXPECTED_MAKE_EXPANSIONS["phase7-validate"][5],
+                ],
+            },
+        )
+        expect_failure(
+            "duplicate_make_wrapper_alignment_live",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: expected wrapper expansion count drift: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py (2 != 1)",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
                     if line != "python3 scripts/zigux/check-phase7-build-wiring.py --self-test"
                 ],
             },
@@ -255,7 +333,7 @@ def run_self_test() -> int:
                 **EXPECTED_MAKE_EXPANSIONS,
                 "phase7-validate": [
                     *EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
-                    EXPECTED_MAKE_EXPANSIONS["phase7-validate"][8],
+                    EXPECTED_MAKE_EXPANSIONS["phase7-validate"][10],
                 ],
             },
         )
@@ -314,6 +392,23 @@ def run_self_test() -> int:
             tmp_root,
             fake_make_env,
             "phase7-test: unexpected wrapper expansion: python3 scripts/zigux/validate-phase7.py",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-test": [
+                    "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+                    *EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+                ],
+            },
+        )
+        expect_failure(
+            "stale_alignment_checker_in_phase7_test",
+            tmp_root,
+            fake_make_env,
+            "phase7-test: unexpected wrapper expansion: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         )
 
         make_fake_make(
@@ -404,7 +499,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=12")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
