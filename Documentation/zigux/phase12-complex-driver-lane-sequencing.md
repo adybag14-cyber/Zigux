@@ -67,6 +67,8 @@ The older scripts-root repair is already landed on `master`: `scripts/zigux/READ
 
 The older saved checker self-test follow-through is now stale on `master`: `scripts/zigux/check-build-only-phase12-surface.py` already carries the stronger generic marker-removal self-test loop, so replaying the one-branch docs-root closure-marker handoff would be churn.
 
+The saved docs-root release-readiness checker follow-through is now also closed on `master`: `scripts/zigux/check-build-only-phase12-surface.py` already requires `Documentation/zigux/phase12-release-readiness-survey.md` inside the docs-root Phase 12 note list, so this lane no longer needs to steer future runs back through that same one-line checker guard.
+
 The older docs-root smoke-summary gap is also closed on `master`: `Documentation/zigux/README.md` now explicitly names `drivers/nvme/host/pci_verify.zig`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all` beside the shared Phase 12 packet, so this lane no longer needs to steer future runs back through that same broad docs-root reminder.
 
 The older saved tests-root undercount is now also closed on `master`: `zigux/tests/README.md` now keeps `Documentation/zigux/phase12-release-readiness-survey.md` explicit beside the shared smoke-first packet, the PMO closure companion, the compact release-coordination matrix, the two anti-overlap companions, the shared fallback-overview note, the freeze-boundary reminder, and the shipped smoke-first plus shared-build replay order.
