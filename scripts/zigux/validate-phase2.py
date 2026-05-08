@@ -525,6 +525,21 @@ def run_self_test() -> int:
     assert "`check-phase2-kconfig-selftest-alignment.py`" in helper_block
     assert helper_block.index("check-phase2-kconfig-selftest-alignment.py") < helper_block.index("check-phase2-tests-readme-alignment.py")
     assert "python3 scripts/zigux/check-zig-toolchain.py --self-test" not in REQUIRED_REVIEW_MARKERS
+    with tempfile.TemporaryDirectory(prefix="phase2_required_files_root_") as tmp_dir:
+        temp_root = Path(tmp_dir)
+        (temp_root / "zigux" / "tests" / "fixtures" / "genksyms_bridge").mkdir(parents=True)
+        (temp_root / "zigux" / "tests" / "fixtures" / "kconfig_bridge").mkdir(parents=True)
+        (temp_root / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "cases.json").write_text(
+            '{"cases":[]}',
+            encoding="utf-8",
+        )
+        (temp_root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json").write_text(
+            '{"conf_cases":[],\"confdata_cases\":[]}',
+            encoding="utf-8",
+        )
+        rooted_required_files = required_files(temp_root)
+    assert rooted_required_files
+    assert all(path.is_relative_to(temp_root) for path in rooted_required_files)
     review_line = (
         "  * if the change touches the shared Phase 2 toolchain packet, do "
         "`Documentation/zigux/README.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, "
@@ -557,7 +572,7 @@ def run_self_test() -> int:
     assert missing
     assert missing[0] == "missing_file:scripts/zigux/fixdep.zig"
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=5")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
