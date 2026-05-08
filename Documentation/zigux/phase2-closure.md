@@ -86,18 +86,19 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-phase2-tool-manifest-packets.py`
 
 13. bounded phase2 tests README alignment gate
+- `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
 
-14. bounded phase2 unit gates
+14. closure validation
+- `python3 scripts/zigux/validate-phase2-closure.py`
+
+15. bounded phase2 unit gates
 - `zig test scripts/zigux/fixdep.zig`
 - `zig test scripts/zigux/genksyms.zig`
 - `zig test scripts/zigux/genksyms_crc.zig`
 - `zig test scripts/zigux/mk_elfconfig.zig`
 - `zig test scripts/zigux/kconfig/conf_bridge.zig`
 - `zig test scripts/zigux/kconfig/confdata_bridge.zig`
-
-15. closure validation
-- `python3 scripts/zigux/validate-phase2-closure.py`
 
 - `PHASE2_FIXDEP_SELF_TEST=python3 scripts/zigux/check-fixdep-diff.py --self-test`
 - `PHASE2_FIXDEP_GATE_SELF_TEST=python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`
@@ -120,6 +121,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
 - `PHASE2_TOOL_MANIFEST_PACKET_SELF_TEST=python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test`
 - `PHASE2_TOOL_MANIFEST_PACKET_GATE=python3 scripts/zigux/check-phase2-tool-manifest-packets.py`
+- `PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`
 - `PHASE2_TESTS_README_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
 - `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
 - `PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard`
@@ -194,6 +196,7 @@ The bounded Phase 2 bootstrap archive pin stays separate from the cross-target c
 - `scripts/zigux/zig-toolchain-policy.json` keeps the current bootstrap archive pin limited to `x86_64-linux` until new runner evidence lands.
 - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` keep that pinning note tied to the same shared validator and closure packet instead of leaving it as stand-alone reference text.
 - `python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test` and `python3 scripts/zigux/check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed tool-local packets for `fixdep`, `genksyms`, `kconfig`, and `confdata` instead of leaving that manifest linkage implicit inside the broader validator stack.
+- `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-tests-readme-alignment.py` keep the shared docs, tests, review, Makefile, and workflow route inventory aligned before the broader Phase 2 replay packet runs.
 
 ## Linux-Style Entry Point
 
