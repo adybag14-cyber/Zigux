@@ -582,7 +582,6 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         checklist = checklist_path.read_text(encoding="utf-8")
-        checklist_path.writeText = None
         checklist_path.write_text(
             checklist + PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER + "\n",
             encoding="utf-8",
