@@ -20,6 +20,7 @@ DOCS_README_PATH = "Documentation/zigux/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+BUILD_PATH = "zigux/tests/phase11_build.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
@@ -126,6 +127,18 @@ REQUIRED_TESTS_README_MARKERS = [
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "* if the change touches the shared Phase 11 simple-driver packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/README.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `zig build test --build-file zigux/tests/phase11_build.zig --summary all`, `make -C zigux phase11`, and `make -C zigux phase11-hvc-survey` still agree on the same shared-versus-dedicated replay split, the focused header-boundary note plus manifest-backed survey packet, the four driver-local validation matrices, the bounded `hvc_cleanup()` teardown handoff, and the dedicated archival `hvc_console` survey plus checker-backed replay route without implying a removed `validate-phase11.py`, missing build-inventory fixture, or a broader validator stack than the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` archival route plus the shipped `check-phase11-shared-replay-contract.py` and `check-phase11-header-boundary-packet.py` routes on `master`?",
 ]
+REQUIRED_BUILD_MARKERS = [
+    '.name = "phase11-gpio-wdt-tests"',
+    '.name = "phase11-bcm2835-wdt-tests"',
+    '.name = "phase11-dw-wdt-tests"',
+    '.name = "phase11-hvc-console-tests"',
+    '.name = "phase11-hvc-cleanup-tests"',
+    '.name = "phase11-uapi-header-parity-survey-tests"',
+    'const test_step = b.step("test", "Run the shared Phase 11 starter packet");',
+    'test_step.dependOn(&run_phase11_gpio_wdt_tests.step);',
+    'const hvc_console_survey_step = b.step("hvc-console-survey", "Run the dedicated Phase 11 hvc_console archival survey");',
+    'hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);',
+]
 REQUIRED_MAKEFILE_MARKERS = [
     "PHONY += phase11-contract phase11-test phase11-hvc-survey phase11",
     "phase11-contract:",
@@ -151,13 +164,25 @@ EXACT_COUNT_MARKERS = [
         1,
         "review_checklist_lane_owner_map",
     ),
+    (
+        BUILD_PATH,
+        "test_step.dependOn(",
+        13,
+        "phase11_build_shared_depend_count",
+    ),
+    (
+        BUILD_PATH,
+        "hvc_console_survey_step.dependOn(",
+        1,
+        "phase11_build_dedicated_depend_count",
+    ),
 ]
 FORBIDDEN_CONTRACT_MARKERS = [
     "there is no dedicated shared `validate-phase11.py` or `phase11-validate` packet on current `master`",
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 58
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 64
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -170,6 +195,7 @@ TARGETS = [
     (SCRIPTS_README_PATH, REQUIRED_SCRIPT_README_MARKERS, "scripts_readme"),
     (TESTS_README_PATH, REQUIRED_TESTS_README_MARKERS, "tests_readme"),
     (REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_MARKERS, "review_checklist"),
+    (BUILD_PATH, REQUIRED_BUILD_MARKERS, "phase11_build"),
     (MAKEFILE_PATH, REQUIRED_MAKEFILE_MARKERS, "makefile"),
     (WORKFLOW_PATH, REQUIRED_WORKFLOW_MARKERS, "workflow"),
 ]
@@ -213,6 +239,11 @@ SELF_TEST_CASES = [
     (REVIEW_CHECKLIST_PATH, "review_checklist", "`zigux/tests/phase11_hvc_console_manifest.json`, ", REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
     (REVIEW_CHECKLIST_PATH, "review_checklist", "`make -C zigux phase11-hvc-survey`", REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
     (REVIEW_CHECKLIST_PATH, "review_checklist", "the dedicated archival `hvc_console` survey plus checker-backed replay route", REQUIRED_REVIEW_CHECKLIST_MARKERS[0]),
+    (BUILD_PATH, "phase11_build", REQUIRED_BUILD_MARKERS[0], REQUIRED_BUILD_MARKERS[0]),
+    (BUILD_PATH, "phase11_build", REQUIRED_BUILD_MARKERS[6], REQUIRED_BUILD_MARKERS[6]),
+    (BUILD_PATH, "phase11_build", REQUIRED_BUILD_MARKERS[7], REQUIRED_BUILD_MARKERS[7]),
+    (BUILD_PATH, "phase11_build", REQUIRED_BUILD_MARKERS[8], REQUIRED_BUILD_MARKERS[8]),
+    (BUILD_PATH, "phase11_build", REQUIRED_BUILD_MARKERS[9], REQUIRED_BUILD_MARKERS[9]),
     (MAKEFILE_PATH, "makefile", REQUIRED_MAKEFILE_MARKERS[2], REQUIRED_MAKEFILE_MARKERS[2]),
     (WORKFLOW_PATH, "workflow", REQUIRED_WORKFLOW_MARKERS[1], REQUIRED_WORKFLOW_MARKERS[1]),
     (GPIO_WDT_MATRIX_PATH, "gpio_wdt_matrix", REQUIRED_GPIO_WDT_MATRIX_MARKERS[3], REQUIRED_GPIO_WDT_MATRIX_MARKERS[3]),
@@ -242,6 +273,31 @@ FORBIDDEN_SELF_TEST_CASES = [
     (SCRIPTS_README_PATH, FORBIDDEN_CONTRACT_MARKERS[1]),
 ]
 
+BUILD_FIXTURE_LINES = [
+    '.name = "phase11-gpio-wdt-tests"',
+    '.name = "phase11-bcm2835-wdt-tests"',
+    '.name = "phase11-dw-wdt-tests"',
+    '.name = "phase11-hvc-console-tests"',
+    '.name = "phase11-hvc-cleanup-tests"',
+    '.name = "phase11-uapi-header-parity-survey-tests"',
+    'const test_step = b.step("test", "Run the shared Phase 11 starter packet");',
+    'test_step.dependOn(&run_phase11_gpio_wdt_tests.step);',
+    'test_step.dependOn(&run_shared_02.step);',
+    'test_step.dependOn(&run_shared_03.step);',
+    'test_step.dependOn(&run_shared_04.step);',
+    'test_step.dependOn(&run_shared_05.step);',
+    'test_step.dependOn(&run_shared_06.step);',
+    'test_step.dependOn(&run_shared_07.step);',
+    'test_step.dependOn(&run_shared_08.step);',
+    'test_step.dependOn(&run_shared_09.step);',
+    'test_step.dependOn(&run_shared_10.step);',
+    'test_step.dependOn(&run_shared_11.step);',
+    'test_step.dependOn(&run_shared_12.step);',
+    'test_step.dependOn(&run_shared_13.step);',
+    'const hvc_console_survey_step = b.step("hvc-console-survey", "Run the dedicated Phase 11 hvc_console archival survey");',
+    'hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);',
+]
+
 FIXTURE_CONTENT = {
     PHASE11_CONTRACT_PATH: "\n".join(REQUIRED_CONTRACT_MARKERS) + "\n",
     DRIVER_LANE_SEQUENCING_PATH: "\n".join(REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS) + "\n",
@@ -253,6 +309,7 @@ FIXTURE_CONTENT = {
     SCRIPTS_README_PATH: "\n".join(REQUIRED_SCRIPT_README_MARKERS) + "\n",
     TESTS_README_PATH: "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n",
     REVIEW_CHECKLIST_PATH: "\n".join(REQUIRED_REVIEW_CHECKLIST_MARKERS) + "\n",
+    BUILD_PATH: "\n".join(BUILD_FIXTURE_LINES) + "\n",
     MAKEFILE_PATH: "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n",
     WORKFLOW_PATH: "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n",
 }
