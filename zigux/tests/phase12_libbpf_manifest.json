@@ -103,32 +103,32 @@
       "why_now": "The landed pin-path helper keeps bpffs path joining and dot-sanitization reviewable through bounded buffer APIs before any mkdir, statfs, unlink, or object-loader work enters the lane."
     },
     {
-      "id": "phase12-libbpf-fdinfo-map-info-helper-ready-next",
-      "status": "ready_next",
+      "id": "phase12-libbpf-file-path-handle-helper-foundation",
+      "status": "starter_landed",
       "kind": "helper_first",
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The fdinfo map-info parser remains the nearest bounded shared-bridge follow-up once Zigux chooses to materialize the existing file-path handle surface, because the pathname shaping and fdinfo text parsing stay materially smaller than direct procfs reads, descriptor ownership, or pinned-object reopen flow."
+      "why_now": "The landed helper-only fdinfo map-info parser and proc-fd path builders keep the shared bridge packet reviewable without widening into direct procfs reads, pinned-object reopen attempts, or descriptor ownership side effects."
     },
     {
-      "id": "phase12-libbpf-map-reuse-compatibility-ready-next",
-      "status": "ready_next",
+      "id": "phase12-libbpf-map-reuse-compatibility-helper-foundation",
+      "status": "starter_landed",
       "kind": "helper_first",
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The reused-map name chooser and compatibility comparison remain a second bounded shared-bridge follow-up once the same file-path handle surface exists, because they stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."
+      "why_now": "The landed reused-map name resolution and compatibility summary keep the nearer libbpf bridge checks explicit without widening into close-on-replacement, token opens, or full pinned-map reopen flow."
     },
     {
-      "id": "phase12-libbpf-file-path-and-handle-bridge",
+      "id": "phase12-libbpf-file-path-and-handle-bridge-boundary",
       "status": "deferred_high_risk",
       "kind": "resource_boundary",
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
       "why_now": "The heavier shared file-path and handle bridge still crosses real procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flow, and fd ownership semantics, so Phase 12 should keep it explicit as its own deferred bridge bucket instead of folding it into the later object-model blockers."
     },
     {
-      "id": "phase12-libbpf-perf-buffer-online-cpu-routing",
+      "id": "phase12-libbpf-perf-buffer-online-cpu-routing-boundary",
       "status": "deferred_high_risk",
       "kind": "interrupt_routing",
-      "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
-      "why_now": "The online-CPU routing path still combines sysfs reads, `perf_event_open` setup, mmap-backed ring state, map updates, epoll registration, and timeout-sensitive polling, so it stays a separate deferred queueing-risk bucket beside the bounded poll bookkeeping helper."
+      "zigux_destination": "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+      "why_now": "The online-CPU routing path still combines sysfs reads, `perf_event_open` setup, mmap-backed ring state, map updates, epoll registration, and timeout-sensitive polling, so it stays a separate deferred queueing-risk bucket beside the bounded helper surfaces that feed it."
     },
     {
       "id": "phase12-libbpf-skeleton-population",
@@ -138,18 +138,18 @@
       "why_now": "The shared segment catalog already isolates skeleton population as the nearest post-helper libbpf cluster, but it still depends on `bpf_object`, `bpf_map`, and `bpf_program` model parity that the repo has not started yet."
     },
     {
-      "id": "phase12-libbpf-object-loader-and-program-load",
-      "status": "blocked_on_object_model",
+      "id": "phase12-libbpf-object-and-elf-loader",
+      "status": "deferred_high_risk",
       "kind": "core_loader",
       "zigux_destination": "tools/lib/bpf/zigux_segments/object_loader.zig",
-      "why_now": "ELF collection, loader setup, relocation recording, and load-time verifier interactions remain a broader follow-on risk even after the nearer skeleton-population cluster, so the roadmap keeps this heavier slice blocked behind more object-model progress."
+      "why_now": "ELF collection, object-loader setup, relocation recording, and load-time verifier interactions remain a broader follow-on risk even after the nearer helper-only bridge foundations and the later skeleton boundary, so the roadmap keeps this heavier slice deferred as its own reviewable loader bucket."
     },
     {
       "id": "phase12-libbpf-btf-relocation-and-program-load",
       "status": "deferred_high_risk",
       "kind": "verifier_facing",
       "zigux_destination": "tools/lib/bpf/zigux_segments/relocation.zig",
-      "why_now": "BTF fixups, extern resolution, relocation recording, and load-time verifier interactions remain a distinct verifier-facing cluster after the nearer skeleton and object-model blockers, so the Phase 12 manifest should keep that deferred surface explicit instead of implying object-loader work is the final blocked libbpf segment."
+      "why_now": "BTF fixups, extern resolution, relocation recording, and load-time verifier interactions remain a distinct verifier-facing cluster after the nearer helper-only bridge and object-model blockers, so the Phase 12 manifest should keep that deferred surface explicit instead of implying object-loader work is the final blocked libbpf segment."
     }
   ]
 }
