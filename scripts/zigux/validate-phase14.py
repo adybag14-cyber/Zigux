@@ -44,6 +44,10 @@ COMPILE_MATRIX_ROWS = [
     ("phase14-rcu-tree-survey-tests", "phase14_rcu_tree_survey.zig", "full_bundle_only"),
     ("phase14-end-to-end-smoke-tests", "phase14_end_to_end_smoke_survey.zig", "focused_and_full_bundle"),
 ]
+REQUIRED_COMPILE_SHARDS = [
+    {"label": label, "root_source": root_source, "coverage": coverage}
+    for label, root_source, coverage in COMPILE_MATRIX_ROWS
+]
 WORKFLOW_WRAPPER_COUNT_MESSAGES = {
     "run: make -C zigux phase14-validate": "phase14 workflow validate wrapper count drifted from the current one-step packet",
     "run: make -C zigux phase14-smoke": "phase14 workflow smoke wrapper count drifted from the current one-step packet",
@@ -399,6 +403,8 @@ def check(root: Path) -> list[str]:
         errors.append("phase14 shared smoke manifest lane_key drifted from the current shared-lane owner")
     if manifest.get("commands") != REQUIRED_COMMANDS:
         errors.append("phase14 manifest commands drifted from the shared validate/smoke/test packet")
+    if manifest.get("compile_shards") != REQUIRED_COMPILE_SHARDS:
+        errors.append("phase14 manifest compile_shards drifted from the current five-row compile packet")
     surfaces, surface_counts, surface_errors = collect_manifest_surface_markers(manifest)
     errors.extend(surface_errors)
     for path, count in surface_counts.items():
@@ -423,7 +429,7 @@ def check(root: Path) -> list[str]:
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
-        manifest = {"lane_key": EXPECTED_LANE_KEY, "phase": "Phase 14", "packet_name": "phase14_shared_smoke_packet", "focus": "study_only_shared_smoke_packet", "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence", "commands": REQUIRED_COMMANDS, "surfaces": [{"path": path, "required_marker": marker} for path, marker in REQUIRED_SURFACES.items()], "blocked_anchors": ["kernel/workqueue.c", "kernel/trace/ring_buffer.c", "kernel/rcu/tree.c", "net/core/skbuff.c"]}
+        manifest = {"lane_key": EXPECTED_LANE_KEY, "phase": "Phase 14", "packet_name": "phase14_shared_smoke_packet", "focus": "study_only_shared_smoke_packet", "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence", "commands": REQUIRED_COMMANDS, "compile_shards": REQUIRED_COMPILE_SHARDS, "surfaces": [{"path": path, "required_marker": marker} for path, marker in REQUIRED_SURFACES.items()], "blocked_anchors": ["kernel/workqueue.c", "kernel/trace/ring_buffer.c", "kernel/rcu/tree.c", "net/core/skbuff.c"]}
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         write_text(root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py", f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         write_text(root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
@@ -454,7 +460,8 @@ def run_self_test() -> int:
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
             build_lines.append("b.addTest(.")
             build_lines.append("b.addRunArtifact(")
-            build_lines.append(label)
+            buildLinesAppendLabel = label
+            build_lines.append(buildLinesAppendLabel)
             build_lines.append(root_source)
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         errors = check(root)
@@ -502,6 +509,14 @@ def run_self_test() -> int:
             for error in errors
         ):
             print("self-test expected duplicate manifest-surface failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken_manifest["compile_shards"] = REQUIRED_COMPILE_SHARDS[:-1]
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 manifest compile_shards drifted from the current five-row compile packet" not in errors:
+            print("self-test expected compile-shard manifest drift failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         traceability_path = root / TRACEABILITY_PATH
