@@ -248,12 +248,13 @@ SCRIPTS_REQUIRED_MARKERS = [
     "phase13_devres.zig",
     "phase13_devres_reviewability.zig",
     "phase13_devres_dma_coherent.zig",
+    "phase13_devres_boundary_evidence.zig",
     "phase13_landlock_ruleset.zig",
     "phase13_landlock_syscalls.zig",
     "phase13_libfs_reviewability.zig",
     "make -C zigux phase13-validate",
     "make -C zigux phase13",
-    "the seven-test shared helper replay",
+    "the eight-test shared helper replay",
     "adjacent review evidence instead of adding extra shared replay steps on `master`",
 ]
 
@@ -271,7 +272,7 @@ TESTS_REQUIRED_MARKERS = [
     "scripts/zigux/validate-phase13-release.py",
     "make -C zigux phase13-validate",
     "make -C zigux phase13",
-    "the current seven-test shared-helper release packet",
+    "the current eight-test shared-helper release packet",
     "adjacent release-surface evidence rather than extra shared replay steps",
 ]
 
@@ -580,6 +581,37 @@ def run_self_test() -> int:
             "tests_readme_eight_test_wording_guard_failed",
         )
         _write(tests_readme_path, _repeat_markers(TESTS_REQUIRED_MARKERS, TESTS_EXACT_COUNTS))
+        case_count += 1
+
+        scripts_readme_path = root / "scripts/zigux/README.md"
+        scripts_readme_path.write_text(
+            "\n".join(
+                marker for marker in SCRIPTS_REQUIRED_MARKERS if marker != "phase13_devres_boundary_evidence.zig"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["scripts-readme:phase13_devres_boundary_evidence.zig"],
+            "missing_scripts_readme_boundary_evidence_marker_failed",
+        )
+        _write(scripts_readme_path, "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
+        scripts_readme_path.write_text(
+            "\n".join(SCRIPTS_REQUIRED_MARKERS).replace(
+                "the eight-test shared helper replay\n", "the seven-test shared helper replay\n", 1
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["scripts-readme:the eight-test shared helper replay"],
+            "scripts_readme_eight_test_wording_guard_failed",
+        )
+        _write(scripts_readme_path, "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
         case_count += 1
 
         makefile_path = root / "zigux/Makefile"
