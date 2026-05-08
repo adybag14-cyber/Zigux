@@ -91,7 +91,7 @@ This lane may talk about adjacent MMIO footing when the survey compares roadmap 
 
 This lane consumes shared core, ring, and MMIO prerequisites, but it does not own wrapper-layer growth in those packets. Its next bounded work stays inside input registration truthfulness, ownership notes, wrapper-facing verify replays, focused queue-callback-preflight or status-drain replays, or similarly narrow survey-backed repairs.
 
-`P10-L09` MMIO lane owns MMIO helper footing, the risky-transport freeze boundary, and MMIO-local transport posture evidence:
+`P10-L10` MMIO lane owns MMIO helper footing, the risky-transport freeze boundary, and MMIO-local transport posture evidence:
 
 - `Documentation/zigux/phase10-virtio-mmio-slice.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
