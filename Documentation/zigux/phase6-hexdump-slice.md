@@ -30,6 +30,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 1. rerun the focused hexdump helper packet without reopening the full Phase 6 bundle
 - `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`
+- `make -C zigux phase6-hexdump-test`
 
 2. run the shared Zig Phase 6 helper bundle
 - `zig build test --build-file zigux/tests/phase6_build.zig`
