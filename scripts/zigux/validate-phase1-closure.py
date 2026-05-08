@@ -228,6 +228,11 @@ EXPECTED_BENCH_CHECKSUMS = [
     "PHASE1_BENCH_RBTREE_CHECKSUM",
 ]
 
+EXPECTED_FIND_BIT_BENCH_EXACT_CHECKSUMS = {
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 15621472,
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 23340000,
+}
+
 REQUIRED_FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
@@ -415,6 +420,13 @@ def collect_bench_markers(expectations: object) -> list[str]:
         missing.append("bench:iterations")
     if expectations.get("checksums") != EXPECTED_BENCH_CHECKSUMS:
         missing.append("bench:checksums")
+    exact_checksums = expectations.get("exact_checksums")
+    if not isinstance(exact_checksums, dict):
+        missing.append("bench:exact_checksums")
+        return missing
+    for key, expected in EXPECTED_FIND_BIT_BENCH_EXACT_CHECKSUMS.items():
+        if exact_checksums.get(key) != expected:
+            missing.append(f"bench:exact_checksums:{key}={expected}")
     return missing
 
 
@@ -471,6 +483,7 @@ def make_fixture_root(root: Path) -> None:
                 "status": "pass",
                 "iterations": EXPECTED_BENCH_ITERATIONS,
                 "checksums": EXPECTED_BENCH_CHECKSUMS,
+                "exact_checksums": EXPECTED_FIND_BIT_BENCH_EXACT_CHECKSUMS,
             },
             indent=2,
         )
@@ -548,6 +561,14 @@ def run_self_test() -> None:
         cases += 1
         make_fixture_root(root)
 
+        path = root / "zigux/tests/fixtures/phase1_bench_expectations.json"
+        bench = json.loads(path.read_text(encoding="utf-8"))
+        del bench["exact_checksums"]["PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM"]
+        path.write_text(json.dumps(bench, indent=2) + "\n", encoding="utf-8")
+        assert "bench:exact_checksums:PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM=23340000" in collect_missing_markers(root)
+        cases += 1
+        make_fixture_root(root)
+
         (root / "scripts/zigux/validate-phase1-closure.py").unlink()
         assert collect_missing_files(root) == ["scripts/zigux/validate-phase1-closure.py"]
         cases += 1
@@ -589,7 +610,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + 5 + 3}"
+        f"{len(CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + 5 + 3 + len(EXPECTED_FIND_BIT_BENCH_EXACT_CHECKSUMS)}"
     )
     return 0
 
