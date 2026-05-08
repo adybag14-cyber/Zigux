@@ -11,6 +11,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 SURVEY_NOTE_PATH = "Documentation/zigux/phase11-bcm2835-wdt-survey.md"
+SLICE_NOTE_PATH = "Documentation/zigux/phase11-bcm2835-wdt-slice.md"
 VALIDATION_MATRIX_PATH = "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md"
 SHARED_CONTRACT_PATH = "Documentation/zigux/phase11-shared-replay-contract.md"
 LANE_SEQUENCING_PATH = "Documentation/zigux/phase11-driver-lane-sequencing.md"
@@ -27,6 +28,12 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
     "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
     "`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`",
     "`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
+]
+
+REQUIRED_SLICE_NOTE_MARKERS = [
+    "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
+    "tiny registration-outcome summary",
+    "tiny platform-registration and PM-base handoff summary",
 ]
 
 REQUIRED_VALIDATION_MATRIX_MARKERS = [
@@ -69,7 +76,7 @@ REQUIRED_BUILD_MARKERS = [
     '.name = "phase11-bcm2835-wdt-survey-tests"',
 ]
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 14
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -85,6 +92,7 @@ def validate(root: Path) -> list[str]:
     failures: list[str] = []
     for rel_path in [
         SURVEY_NOTE_PATH,
+        SLICE_NOTE_PATH,
         VALIDATION_MATRIX_PATH,
         SHARED_CONTRACT_PATH,
         LANE_SEQUENCING_PATH,
@@ -102,6 +110,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_SURVEY_NOTE_MARKERS:
         if marker not in read_text(root, SURVEY_NOTE_PATH):
             failures.append(f"survey_note:{marker}")
+    for marker in REQUIRED_SLICE_NOTE_MARKERS:
+        if marker not in read_text(root, SLICE_NOTE_PATH):
+            failures.append(f"slice_note:{marker}")
     for marker in REQUIRED_VALIDATION_MATRIX_MARKERS:
         if marker not in read_text(root, VALIDATION_MATRIX_PATH):
             failures.append(f"validation_matrix:{marker}")
@@ -135,6 +146,16 @@ This archival watchdog note now keeps `P11-L08` packet identity explicit beside 
 - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
 - run `python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test` for the synthetic packet
 - run `python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py` for the live repo packet
+""",
+    )
+    write_text(
+        root / SLICE_NOTE_PATH,
+        """# Phase 11 BCM2835 Watchdog Slice
+
+- adds a tiny registration-outcome summary for register-device success versus failure, probe-error return intent, and poweroff-handler claim follow-through or blocking when registration does not complete
+- adds a tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability
+
+`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` now records the first bounded hardware-validation matrix for watchdog metadata, timeout conversion, register-image transition coverage, probe-time bookkeeping, registration ownership, registration-outcome failure handling, platform handoff prerequisites, poweroff-path sequencing, and remove-time teardown scope without widening into live PM base or poweroff plumbing.
 """,
     )
     write_text(
@@ -244,6 +265,7 @@ def run_self_test() -> int:
         checks = [
             (SURVEY_NOTE_PATH, "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`", "survey_note:`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`"),
             (SURVEY_NOTE_PATH, "`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`", "survey_note:`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`"),
+            (SLICE_NOTE_PATH, "tiny registration-outcome summary", "slice_note:tiny registration-outcome summary"),
             (VALIDATION_MATRIX_PATH, "`drivers/watchdog/bcm2835_wdt_verify.zig`", "validation_matrix:`drivers/watchdog/bcm2835_wdt_verify.zig`"),
             (VALIDATION_MATRIX_PATH, "`phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`", "validation_matrix:`phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`"),
             (SHARED_CONTRACT_PATH, "The dedicated archival bcm2835 evidence also stays explicit beside that shared route:", "shared_contract:The dedicated archival bcm2835 evidence also stays explicit beside that shared route:"),
@@ -259,7 +281,7 @@ def run_self_test() -> int:
             except AssertionError as exc:
                 print(str(exc), file=sys.stderr)
                 return 1
-        for rel_path in [SURVEY_GATE_PATH, VERIFY_REPLAY_PATH, SCRIPT_PATH]:
+        for rel_path in [SLICE_NOTE_PATH, SURVEY_GATE_PATH, VERIFY_REPLAY_PATH, SCRIPT_PATH]:
             write_fixture_tree(root)
             try:
                 expect_missing_file(root, rel_path)
