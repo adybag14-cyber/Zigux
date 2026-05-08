@@ -171,11 +171,14 @@ pub fn prepareExpectedLine(
 pub fn expectedLength(len_input: usize, rowsize_input: usize, groupsize_input: usize, ascii: bool) usize {
     const rowsize = normalizedRowsize(rowsize_input);
     const len = @min(len_input, rowsize);
+    if (len == 0) {
+        return 0;
+    }
     const groupsize = normalizedGroupsizeForLen(len, groupsize_input);
     if (ascii) {
         return rowsize * 2 + rowsize / groupsize + 1 + len;
     }
-    return if (len == 0) 0 else (groupsize * 2 + 1) * (len / groupsize) - 1;
+    return (groupsize * 2 + 1) * (len / groupsize) - 1;
 }
 
 pub const parity_cases = [_]ParityCase{
@@ -571,6 +574,13 @@ test "phase 6 hexdump curated length packet stays bounded to the documented matr
             try std.testing.expect(!std.mem.eql(u8, case.name, other.name));
         }
     }
+}
+
+test "phase 6 hexdump empty required-length guard stays aligned for plain and ascii callers" {
+    try std.testing.expectEqual(@as(usize, 0), expectedLength(0, 16, 1, false));
+    try std.testing.expectEqual(@as(usize, 0), expectedLength(0, 16, 1, true));
+    try std.testing.expectEqual(@as(usize, 0), expectedLength(0, 7, 3, true));
+    try std.testing.expectEqual(@as(usize, 0), expectedLength(0, 32, 8, false));
 }
 
 test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix" {
