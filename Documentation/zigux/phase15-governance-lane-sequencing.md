@@ -76,9 +76,9 @@ Own:
 
 Do not use this lane to edit the handoff packet or shared docs summaries unless the scorecard can no longer be summarized truthfully from those surfaces.
 
-### 5. Handoff lane: parked next-step record only
+### 5. Handoff lane: `P15-L08` parked next-step record only
 
-Use the handoff lane when the work is about the dedicated next-step packet, its manifest, or the statement that the current governance bundle should remain parked until a named reopen trigger fires or the blocker posture changes.
+Use the handoff lane `P15-L08` when the work is about the dedicated next-step packet, its manifest, or the statement that the current governance bundle should remain parked until a named reopen trigger fires or the blocker posture changes.
 
 Own:
 
@@ -131,7 +131,7 @@ The strongest current Phase 15 sequencing rule is simple:
 - current `master` also already closed the earlier docs-root workflow follow-through: `Documentation/zigux/README.md` explicitly carries `.github/workflows/zigux-bootstrap.yml` beside the checker-backed and build-backed replay routes, so future `P15-Y06` runs should not reopen that docs-root touch unless the workflow pointer or the shared owner split drifts again
 - current `master` also already closed the earlier review-checklist workflow-and-build follow-through: `Documentation/zigux/review-checklist.md` explicitly carries `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `zig build test --build-file zigux/tests/phase15_build.zig`, and `make -C zigux phase15-validate`, so future `P15-Y06` runs should not reopen that checklist touch unless one of those shared governance anchors drifts again
 - current `master` also already closed the earlier handoff exact-head parity catch-up: `Documentation/zigux/phase15-handoff-next-steps-survey.md` and `Documentation/zigux/phase15-parity-scorecard.md` now both carry verified-head provenance and the handoff packet's `exact_head_parity` posture on the same parked governance packet, so future `P15-Y06` runs should not reopen that packet-local provenance sync unless exact-head parity drifts again
-- if current `master` moves ahead of a packet's reviewed-head marker while the blocker posture and owner split stay parked, treat that provenance refresh as handoff-lane work first; do not reopen `P15-Y06` unless the stale reviewed-head wording also blurs a shared summary surface
+- if current `master` moves ahead of a packet's reviewed-head marker while the blocker posture and owner split stay parked, treat that provenance refresh as handoff-lane `P15-L08` work first; do not reopen `P15-Y06` unless the stale reviewed-head wording also blurs a shared summary surface
 
 ## Recommended next-step order
 
