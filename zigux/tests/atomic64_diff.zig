@@ -179,10 +179,7 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
         phase4_runtime_atomic64_manifest_source,
         "\"phase4_validator_runtime_atomic64_diff_present\": true",
     );
-    try expectMarker(
-        phase4_runtime_atomic64_manifest_source,
-        "\"phase4_validator_blob_sha\": \"3552a161d1ad358c70d01a535f44755941ec597d\"",
-    );
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_validator_blob_sha\": \"");
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
         "\"phase4_validation_matrix_atomic64_diff_note_present\": true",
@@ -191,14 +188,8 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
         phase4_runtime_atomic64_manifest_source,
         "\"phase4_validation_matrix_runtime_atomic64_note_present\": true",
     );
-    try expectMarker(
-        phase4_runtime_atomic64_manifest_source,
-        "\"phase4_validation_matrix_blob_sha\": \"30304290488109cc9b9fb3c7f82538f3da8ddf93\"",
-    );
-    try expectMarker(
-        phase4_runtime_atomic64_manifest_source,
-        "\"phase4_review_checklist_blob_sha\": \"abf7e36770e6ceb26385f73c72614bb19b5d7ef7\"",
-    );
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_validation_matrix_blob_sha\": \"");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_review_checklist_blob_sha\": \"");
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
         "\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"",
@@ -211,6 +202,24 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
 }
 
 test "atomic64 diff wrapper keeps manifest blob pins current for the runtime and build handoff" {
+    const phase4_validator_source = try readRepoFile(
+        std.testing.allocator,
+        "scripts/zigux/validate-phase4.py",
+    );
+    defer std.testing.allocator.free(phase4_validator_source);
+
+    const phase4_validation_matrix_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-validation-matrix.md",
+    );
+    defer std.testing.allocator.free(phase4_validation_matrix_source);
+
+    const review_checklist_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+    );
+    defer std.testing.allocator.free(review_checklist_source);
+
     try expectManifestBlobShaMarker(
         phase4_runtime_atomic64_manifest_source,
         "live_gate_blob_sha",
@@ -225,6 +234,21 @@ test "atomic64 diff wrapper keeps manifest blob pins current for the runtime and
         phase4_runtime_atomic64_manifest_source,
         "phase4_build_blob_sha",
         phase4_build_source,
+    );
+    try expectManifestBlobShaMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "phase4_validator_blob_sha",
+        phase4_validator_source,
+    );
+    try expectManifestBlobShaMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "phase4_validation_matrix_blob_sha",
+        phase4_validation_matrix_source,
+    );
+    try expectManifestBlobShaMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "phase4_review_checklist_blob_sha",
+        review_checklist_source,
     );
     try expectManifestBlobShaMarker(
         phase4_runtime_atomic64_manifest_source,
@@ -258,7 +282,7 @@ test "atomic64 diff wrapper keeps the Linux-style phase4 make routes explicit" {
     defer std.testing.allocator.free(makefile_source);
     try expectMarker(
         makefile_source,
-        "PHONY += phase4-validate phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4",
+        "PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4",
     );
     try expectMarker(makefile_source, "phase4-runtime-atomic64-diff:");
     try expectMarker(
