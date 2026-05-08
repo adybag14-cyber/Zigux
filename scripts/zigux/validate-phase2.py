@@ -478,6 +478,13 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-cross.py")],
+            ["PHASE2_CROSS=pass", "PHASE2_CROSS_TARGET_COUNT=", "PHASE2_CROSS_TOOL_COUNT="],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"), "--self-test"],
             ["PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass", "PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST_CASE_COUNT=35"],
         )
