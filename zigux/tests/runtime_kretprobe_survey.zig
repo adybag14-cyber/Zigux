@@ -213,6 +213,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(loader_source, "summary.active_instances != 0 or summary.entry_timestamp_armed");
     try expectContains(loader_source, "runtime kretprobe loader keeps the prepared snapshot stable across later sample mutation");
     try expectContains(loader_source, "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity");
+    try expectContains(loader_source, "runtime kretprobe loader recovers from initialized-stage failed exit into the same bounded handoff plan");
 
     try expectContains(runtime_loader_source, "pub const AllocatorHandoff = contract.AllocatorHandoff;");
     try expectContains(runtime_loader_source, "pub const LoadPlan = contract.LoadPlan;");
