@@ -62,6 +62,7 @@ The shipped Phase 12 packet on `master` still keeps the same four-step smoke-fir
 That same shared replay reminder still includes the attached-toolchain fallback when `zig` is absent from `PATH`.
 
 - current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
+- `PHASE12_SHARED_SMOKE_SURFACE_COUNT=6`
 
 1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
 2. `make -C zigux phase12-smoke`
