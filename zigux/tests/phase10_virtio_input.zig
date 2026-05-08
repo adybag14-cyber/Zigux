@@ -307,6 +307,53 @@ test "phase10 virtio input plans multitouch slots from ABS_MT_SLOT before regist
     try std.testing.expectEqual(@as(usize, 1), status_summary.suppressed_status_count);
 }
 
+test "phase10 virtio input probe preflight keeps identity and capability staging ahead of registration claims" {
+    var missing_identity_device = try virtio_input.VirtioInputLab.init("", "serial-13a", 13, null);
+    var summary = missing_identity_device.probePreflightSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
+    try std.testing.expect(!summary.identity_ready);
+    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.identity_incomplete, summary.blocker.?);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    var device = try virtio_input.VirtioInputLab.init("tablet", "serial-13b", 13, null);
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.identity_ready);
+    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.event_queue_unconfigured, summary.blocker.?);
+
+    try device.configureEventQueue(8);
+    summary = device.probePreflightSummary();
+    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.status_queue_unconfigured, summary.blocker.?);
+
+    try device.configureStatusQueue(4);
+    summary = device.probePreflightSummary();
+    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.event_buffers_unfilled, summary.blocker.?);
+
+    _ = try device.fillEventBuffers();
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.queue_plan_ready);
+    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.capability_setup_incomplete, summary.blocker.?);
+    try std.testing.expect(!summary.capability_setup_ready);
+
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{0});
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
+    try device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = 0,
+        .maximum = 3,
+    });
+
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.identity_ready);
+    try std.testing.expect(summary.queue_plan_ready);
+    try std.testing.expect(summary.capability_setup_ready);
+    try std.testing.expect(!summary.device_ready);
+    try std.testing.expect(summary.ready_for_probe_handoff);
+    try std.testing.expect(summary.blocker == null);
+
+    const registration = device.registrationPreflightSummary();
+    try std.testing.expectEqual(virtio_input.RegistrationBlocker.device_not_ready, registration.blocker.?);
+    try std.testing.expect(!registration.ready_for_registration);
+}
+
 test "phase10 virtio input queue-callback preflight reports blockers before queue callbacks are enabled" {
     var device = try virtio_input.VirtioInputLab.init("tablet", "serial-13b", 13, null);
 
