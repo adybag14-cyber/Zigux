@@ -35,7 +35,7 @@ The live repo already has a bounded `drivers/virtio/virtio.zig` core starter plu
 - the current Zigux VirtIO ring surface includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback disable and re-enable bookkeeping, delayed-callback pacing, packed-ring event-index summaries, broken-queue discipline, clear-broken recovery, queue-local reset bookkeeping, reset-readiness preflight, and notify-prepare bookkeeping.
 - the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay keeps reset-readiness blockers, delayed-callback pacing, clear-broken blocker exposure, and packed-ring event-index polling thresholds live beside the direct ring-helper replay.
 - the honest roadmap gap is no longer missing queue-local virtqueue evidence. The remaining blocked bridge is transport-backed queue discovery, IRQ acknowledgement, queue reset execution, and probe/remove lifecycle behavior needed to turn the queue-local helper into a true lab driver.
-- that blocked bridge is owned by the adjacent `P10-L10` MMIO packet. This ring survey may name that dependency, but it does not absorb MMIO helper growth or MMIO next-step selection.
+- that blocked bridge is owned by the adjacent `P10-L18` MMIO packet. This ring survey may name that dependency, but it does not absorb MMIO helper growth or MMIO next-step selection.
 
 ## Recorded gaps
 
@@ -62,7 +62,7 @@ This keeps the lane concrete without overstating progress. The queue-local wrapp
 ## Freeze boundary
 
 - `Documentation/zigux/freeze-map.md` is the governing boundary note for this queue-local survey packet.
-- freeze-boundary owner: `P10-L10`
+- freeze-boundary owner: `P10-L18`
 - rollback owner: keep the dedicated `scripts/zigux/check-phase10-ring-packet.py` guard, the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay, the shared `zigux/tests/phase10_build.zig`, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig` and `zigux/tests/phase10_virtio_driver_id.zig` replays, the shared driver-lane sequencing note, and the Linux-style `make -C zigux phase10-test` plus `make -C zigux phase10` routes aligned before widening this queue-local note.
 - this ring survey stays inside `drivers/virtio/*.zig`; it does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain Phase 14 study-only anchors under the freeze map.
 - the Phase 15 freeze-in-C anchors `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c` also remain outside this lane; this survey does not claim scheduler, MM, RCU, or skbuff ownership, parity, or Architecture Council reopen authority.
