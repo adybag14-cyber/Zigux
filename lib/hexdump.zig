@@ -158,7 +158,7 @@ pub fn hexDumpToBuffer(
             writer.appendByte(' ');
         }
         for (buf[0..len]) |byte| {
-            writer.appendByte(if (byte < 0x80 and std.ascii.isPrint(byte)) byte else '.');
+            writer.appendByte(hexDumpAsciiByte(byte));
         }
     }
 
@@ -190,7 +190,7 @@ fn hexDumpToFullBuffer(
             linebuf[pos] = ' ';
         }
         for (buf) |byte| {
-            linebuf[pos] = if (byte < 0x80 and std.ascii.isPrint(byte)) byte else '.';
+            linebuf[pos] = hexDumpAsciiByte(byte);
             pos += 1;
         }
     }
@@ -218,6 +218,10 @@ fn writeHexByte(linebuf: []u8, pos: *usize, byte: u8) void {
     linebuf[pos.*] = hexAscHi(byte);
     linebuf[pos.* + 1] = hexAscLo(byte);
     pos.* += 2;
+}
+
+fn hexDumpAsciiByte(byte: u8) u8 {
+    return if (byte < 0x80 and std.ascii.isPrint(byte)) byte else '.';
 }
 
 fn normalizedRowsize(rowsize_input: usize) usize {
@@ -522,6 +526,26 @@ test "hexdump empty input reports zero required length for plain and ascii modes
     try std.testing.expectEqual(@as(usize, 0), hexDumpLineLength(0, 16, 1, true));
     try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(&[_]u8{}, 16, 1, empty[0..], true));
     try std.testing.expectEqual(@as(u8, 0), empty[0]);
+}
+
+test "hexdump ascii replacement stays stable at printable boundaries" {
+    const cases = [_]struct {
+        byte: u8,
+        expected: u8,
+    }{
+        .{ .byte = 0x00, .expected = '.' },
+        .{ .byte = 0x1f, .expected = '.' },
+        .{ .byte = 0x20, .expected = ' ' },
+        .{ .byte = 'A', .expected = 'A' },
+        .{ .byte = '~', .expected = '~' },
+        .{ .byte = 0x7f, .expected = '.' },
+        .{ .byte = 0x80, .expected = '.' },
+        .{ .byte = 0xff, .expected = '.' },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected, hexDumpAsciiByte(case.byte));
+    }
 }
 
 test "hexdump grouped-8 ascii output stays exact at full buffer capacity" {
