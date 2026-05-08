@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L13",
   "phase": "Phase 9",
-  "surveyed_commit": "2a1851e145a648f0792e2bba2fee100e9884a1de",
+  "surveyed_commit": "5a88aec1d9c12e11745cb125b7c7fa56fd5e85f2",
   "anchor": "samples/kprobes/kretprobe_example.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -53,7 +53,7 @@
       "status": "starter_landed",
       "kind": "sample_starter",
       "zigux_destination": "samples/zigux/runtime_kretprobe.zig",
-      "why_now": "A sample-backed lifecycle starter is the first honest runtime-facing kretprobe step that can model entry timestamps, return values, duration, and missed-instance bookkeeping without claiming loadable-module parity."
+      "why_now": "A sample-backed lifecycle starter is the first honest runtime-facing kretprobe step that can model entry timestamps, return values, duration, missed-instance bookkeeping, and maxactive-pressure failed-exit recovery without claiming loadable-module parity."
     },
     {
       "id": "runtime-kretprobe-module-tests",
