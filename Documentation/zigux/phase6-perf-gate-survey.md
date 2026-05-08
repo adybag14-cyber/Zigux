@@ -10,7 +10,7 @@ This document records the current shared measurement posture for the bounded Pha
 - shared replay note: the shared `make -C zigux phase6` route still stops at `phase6-validate` plus `phase6-test`; dedicated perf replays remain helper-local through `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`
 - aggregated route note: `make -C zigux phase6-perf` now exists as a narrow convenience wrapper for `phase6-checksum-perf` plus `phase6-hexdump-perf`; it still excludes base64 even though `.github/workflows/zigux-bootstrap.yml` reruns `phase6-base64-perf` directly in CI
 - owner-map note: `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` now separates packet-wide route truthfulness from helper-local threshold or replay-row edits inside this survey
-- evidence note: the exact thresholds below were re-read from current `master` on `2026-05-07` by direct file inspection because this environment still cannot perform a safe local checkout or attached-toolchain replay
+- evidence note: the exact thresholds below were re-read from current `master` on `2026-05-08` by direct file inspection because this environment still cannot perform a safe local checkout or attached-toolchain replay
 
 ## Current Measurement Posture
 
