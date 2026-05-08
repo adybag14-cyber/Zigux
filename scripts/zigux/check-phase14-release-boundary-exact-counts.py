@@ -99,7 +99,11 @@ def check(root: Path) -> list[str]:
     smoke_text = read_text(smoke_path)
     freeze_map_text = read_text(freeze_map_path)
     roadmap_text = read_text(roadmap_path)
-    manifest = json.loads(read_text(manifest_path))
+    try:
+        manifest = json.loads(read_text(manifest_path))
+    except json.JSONDecodeError as exc:
+        errors.append(f"invalid json in {manifest_path.relative_to(root).as_posix()}: {exc}")
+        return errors
 
     if MARKER not in read_text(Path(__file__)):
         errors.append("checker marker missing from checker source")
@@ -363,6 +367,13 @@ def run_self_test() -> int:
         errors = check(root)
         if not any("phase14 manifest blocked_anchors drifted from the combined study-only plus freeze-governed set" in error for error in errors):
             print("self-test expected failure when manifest blocked anchors drifted", file=sys.stderr)
+            return 1
+        write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
+
+        write_text(manifest_path, "{\n")
+        errors = check(root)
+        if not any("invalid json in zigux/tests/phase14_end_to_end_smoke_manifest.json:" in error for error in errors):
+            print("self-test expected invalid shared smoke manifest json failure", file=sys.stderr)
             return 1
         write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
 
