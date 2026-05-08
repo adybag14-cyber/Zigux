@@ -714,3 +714,102 @@ test "shared runtime loader contract keeps command, environment, registration-su
     try std.testing.expectEqualStrings(stable_plan.module_name, pending_plan.module_name);
     try std.testing.expectEqualStrings(stable_plan.anchor, pending_plan.anchor);
 }
+
+test "shared runtime loader contract keeps caller-provided selftest-complete requests stable across atomic64 and trace-events parity" {
+    const atomic64_plan = LoadPlan{
+        .module_name = "runtime_atomic64",
+        .anchor = "lib/atomic64_test.c",
+        .entry_symbol = "zigux_runtime_atomic64_init",
+        .exit_symbol = "zigux_runtime_atomic64_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    var atomic64_request = try prepareRequest(atomic64_plan);
+    try std.testing.expectEqual(RequestState.prepared, atomic64_request.state);
+    try std.testing.expect(keepsApprovedPilotFamilyContract(atomic64_plan));
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        atomic64_request,
+        .prepared,
+        atomic64_plan,
+    ));
+    const atomic64_pending = try atomic64_request.requestRuntimeLoad();
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, atomic64_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        atomic64_request,
+        .waiting_on_runtime_substrate,
+        atomic64_plan,
+    ));
+    try std.testing.expect(keepsAllocatorInitFlowConsistent(
+        atomic64_pending,
+        .caller_provided,
+        atomic64_plan.init_flow,
+    ));
+    try std.testing.expect(keepsSelftestHookEvidenceConsistent(atomic64_pending));
+
+    const trace_events_plan = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    var trace_events_request = try prepareRequest(trace_events_plan);
+    try std.testing.expectEqual(RequestState.prepared, trace_events_request.state);
+    try std.testing.expect(keepsApprovedPilotFamilyContract(trace_events_plan));
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        trace_events_request,
+        .prepared,
+        trace_events_plan,
+    ));
+    const trace_events_pending = try trace_events_request.requestRuntimeLoad();
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, trace_events_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        trace_events_request,
+        .waiting_on_runtime_substrate,
+        trace_events_plan,
+    ));
+    try std.testing.expect(keepsAllocatorInitFlowConsistent(
+        trace_events_pending,
+        .caller_provided,
+        trace_events_plan.init_flow,
+    ));
+    try std.testing.expect(keepsSelftestHookEvidenceConsistent(trace_events_pending));
+
+    try std.testing.expectEqual(atomic64_pending.allocator_handoff, trace_events_pending.allocator_handoff);
+    try std.testing.expectEqual(atomic64_pending.init_flow.handoff_stage, trace_events_pending.init_flow.handoff_stage);
+    try std.testing.expectEqual(atomic64_pending.init_flow.init_runs, trace_events_pending.init_flow.init_runs);
+    try std.testing.expectEqual(atomic64_pending.init_flow.selftest_runs, trace_events_pending.init_flow.selftest_runs);
+    try std.testing.expectEqual(atomic64_pending.init_flow.exit_runs, trace_events_pending.init_flow.exit_runs);
+    try std.testing.expectEqual(atomic64_pending.requires_runtime_substrate, trace_events_pending.requires_runtime_substrate);
+    try std.testing.expectEqual(atomic64_pending.provides_selftest_hook, trace_events_pending.provides_selftest_hook);
+
+    try atomic64_request.releaseWithoutSubstrate();
+    try trace_events_request.releaseWithoutSubstrate();
+    try std.testing.expectEqual(RequestState.released_without_substrate, atomic64_request.state);
+    try std.testing.expectEqual(RequestState.released_without_substrate, trace_events_request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        atomic64_request,
+        .released_without_substrate,
+        atomic64_pending,
+    ));
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        trace_events_request,
+        .released_without_substrate,
+        trace_events_pending,
+    ));
+}
