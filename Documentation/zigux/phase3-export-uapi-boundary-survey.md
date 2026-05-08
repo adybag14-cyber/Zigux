@@ -10,7 +10,7 @@ This note records the current export-shim and starter UAPI boundary that still s
 - `PHASE3_REVIEW_ROOT_RULE=export-uapi-growth-requires-survey-plus-layout-replay-plus-shared-review-surface-refresh`
 - `PHASE3_LAYOUT_REPLAY_OWNERSHIP=export-uapi-packet-owns-shared-boundary-header-layout-replay`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
-- `PHASE3_EXPORT_SHIM_BLOB_SHA=70d52fe7c850d44457bd83bff8c871845bb0f485`
+- `PHASE3_EXPORT_SHIM_BLOB_SHA=598fddc704b95e9ed47e027f431ea67874ea0045`
 - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
 - `PHASE3_UAPI_VERSION_BLOB_SHA=c3c05ea2384bba3882d7a79312f429ef3ec88ca0`
 - `PHASE3_LINUX_HEADER_PATH=include/linux/zigux.h`
