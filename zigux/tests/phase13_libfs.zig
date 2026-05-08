@@ -11,6 +11,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_directory_cursor_open_planning);
+    try std.testing.expect(descriptor.provides_directory_cursor_close_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_publish_planning);
     try std.testing.expect(descriptor.provides_transaction_release_planning);
@@ -228,6 +229,21 @@ test "phase13 libfs directory open planning models cursor allocation and enomem 
     try std.testing.expect(no_memory.allocates_cursor_from_path_dentry);
     try std.testing.expect(!no_memory.stores_cursor_in_private_data);
     try std.testing.expectEqual(@as(i32, -12), no_memory.return_code);
+}
+
+test "phase13 libfs directory close planning releases the cursor handoff without widening traversal" {
+    const released = libfs.LibFsHelperLab.dcacheDirClosePlan(true);
+    try std.testing.expectEqualStrings("fs/libfs.c", released.anchor);
+    try std.testing.expect(released.had_private_data);
+    try std.testing.expect(released.releases_private_data);
+    try std.testing.expect(released.null_private_data_is_allowed);
+    try std.testing.expectEqual(@as(i32, 0), released.return_code);
+
+    const empty = libfs.LibFsHelperLab.dcacheDirClosePlan(false);
+    try std.testing.expect(!empty.had_private_data);
+    try std.testing.expect(!empty.releases_private_data);
+    try std.testing.expect(empty.null_private_data_is_allowed);
+    try std.testing.expectEqual(@as(i32, 0), empty.return_code);
 }
 
 test "phase13 libfs transaction acquire planning stays page-bounded and single-write" {
