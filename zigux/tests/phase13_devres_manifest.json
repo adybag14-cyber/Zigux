@@ -16,6 +16,8 @@
     "preexisting_phase13_devres_test_present": true,
     "preexisting_phase13_devres_slice_present": true,
     "preexisting_phase13_devres_reviewability_present": true,
+    "preexisting_phase13_devres_dma_coherent_present": true,
+    "preexisting_phase13_devres_boundary_evidence_present": true,
     "preexisting_phase13_devres_survey_present": true
   },
   "gaps": [
