@@ -518,6 +518,18 @@ def run_self_test() -> int:
         ]
         case_count += 1
 
+        wrong_low_level_marker_root = tmp_root / "wrong-low-level-marker"
+        _populate_root(wrong_low_level_marker_root)
+        write_script(
+            wrong_low_level_marker_root / "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+            "WRONG_MARKER=pass",
+        )
+        assert run_targets(wrong_low_level_marker_root) == [
+            "missing_pass_marker:scripts/zigux/validate-phase3-low-level-wrapper-survey.py:PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
+            "missing_aux_marker:scripts/zigux/validate-phase3-low-level-wrapper-survey.py:PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT=",
+        ]
+        case_count += 1
+
         stderr_root = tmp_root / "stderr"
         _populate_root(stderr_root)
         stderr_path = stderr_root / "scripts/zigux/survey-phase3-abi-constant-parity.py"
