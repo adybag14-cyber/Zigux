@@ -559,6 +559,22 @@ def run_self_test() -> int:
             print("self-test expected duplicate focused compile-shard coverage failure", file=sys.stderr)
             return 1
         write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
+
+        build_path = root / "zigux/tests/phase14_build.zig"
+        build_path.write_text(
+            build_path.read_text(encoding="utf-8").replace(
+                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n",
+                "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);\n"
+                "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 smoke shard stopped being dedicated to the shared end-to-end smoke survey" not in errors:
+            print("self-test expected forbidden smoke dependency failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         return 0
 
 
