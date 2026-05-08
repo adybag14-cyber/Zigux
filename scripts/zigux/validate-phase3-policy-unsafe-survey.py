@@ -456,7 +456,7 @@ def run_self_test() -> int:
         assert "policy_byte_guard_exit:1" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=14")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
