@@ -534,7 +534,7 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         (temp_root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json").write_text(
-            '{"conf_cases":[],\"confdata_cases\":[]}',
+            '{"conf_cases":[],"confdata_cases":[]}',
             encoding="utf-8",
         )
         rooted_required_files = required_files(temp_root)
