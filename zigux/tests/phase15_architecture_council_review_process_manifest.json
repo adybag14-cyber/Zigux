@@ -1,9 +1,9 @@
 {
   "lane_key": "P15-L06",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-08",
-  "surveyed_commit_mode": "dated_master_readback_marker",
-  "surveyed_commit_mode_reason": "This review-process packet currently records a dated master readback marker instead of an exact verified branch-head SHA.",
+  "surveyed_commit": "4fc891b380cdd2991dff7676ade7f844df1b55fd",
+  "surveyed_commit_mode": "verified_master_head",
+  "surveyed_commit_mode_reason": "This review-process packet now records the exact verified master-head SHA instead of a dated readback marker.",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
