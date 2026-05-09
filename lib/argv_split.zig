@@ -73,6 +73,14 @@ pub fn argvSplitWithArgc(
     return initSplitResultFromOwnedStorage(allocator, storage, argcp);
 }
 
+pub fn argvSplitOwnedStorage(
+    allocator: std.mem.Allocator,
+    storage: [:0]u8,
+    argcp: ?*usize,
+) !ArgvSplitResult {
+    return initSplitResultFromOwnedStorage(allocator, storage, argcp);
+}
+
 pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {
     result.deinit(allocator);
 }
@@ -237,6 +245,16 @@ fn runArgvSplitWithFailingAllocator(allocator: std.mem.Allocator, text: []const 
     defer split.deinit(allocator);
 }
 
+fn runArgvSplitOwnedStorageWithFailingAllocator(
+    allocator: std.mem.Allocator,
+    text: []const u8,
+) !void {
+    var storage = try allocator.dupeZ(u8, cStringPrefix(text));
+    var split = try argvSplitOwnedStorage(allocator, storage, null);
+    storage = empty_storage_view;
+    defer split.deinit(allocator);
+}
+
 test "argvSplit matches focused parity fixtures" {
     try expectFixture(.{
         .input = " alpha  beta\tgamma\n",
@@ -270,6 +288,39 @@ test "argvSplit duplicates the input before tokenizing" {
 
     try std.testing.expectEqualStrings("one", split.argv[0]);
     try std.testing.expectEqualStrings("two", split.argv[1]);
+}
+
+test "argvSplitOwnedStorage reuses the caller-owned storage copy" {
+    var storage = try std.testing.allocator.dupeZ(u8, "console=ttyS0 root=/dev/vda rw");
+    const storage_ptr = storage.ptr;
+    const token_tail_offset = std.mem.lastIndexOf(u8, storage[0..storage.len], "rw").?;
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argvSplitOwnedStorage(std.testing.allocator, storage, &argc);
+    storage = empty_storage_view;
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 3), argc);
+    try std.testing.expectEqual(storage_ptr, split.storage.ptr);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(split.storage.ptr)), @as(usize, @intFromPtr(split.argv[0].ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(split.storage.ptr)) + token_tail_offset, @as(usize, @intFromPtr(split.argv[2].ptr)));
+    try std.testing.expectEqualStrings("console=ttyS0", split.argv[0]);
+    try std.testing.expectEqualStrings("root=/dev/vda", split.argv[1]);
+    try std.testing.expectEqualStrings("rw", split.argv[2]);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[argc]);
+}
+
+test "argvSplitOwnedStorage frees blank caller-owned storage and reuses exported sentinels" {
+    var storage = try std.testing.allocator.dupeZ(u8, " \t\n");
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argvSplitOwnedStorage(std.testing.allocator, storage, &argc);
+    storage = empty_storage_view;
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), argc);
+    try std.testing.expectEqual(empty_storage_view.ptr, split.storage.ptr);
+    try std.testing.expectEqual(empty_argv_null_terminated.ptr, split.argv_null_terminated.ptr);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
 test "argvSplit sizes argc and tokens from the owned copy prefix when copied storage contains an early NUL" {
@@ -472,6 +523,14 @@ test "argvSplit frees intermediate allocations when allocator failure interrupts
     try std.testing.checkAllAllocationFailures(
         std.testing.allocator,
         runArgvSplitWithFailingAllocator,
+        .{"console=ttyS0 root=/dev/vda rw"},
+    );
+}
+
+test "argvSplitOwnedStorage frees intermediate allocations when allocator failure interrupts setup" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runArgvSplitOwnedStorageWithFailingAllocator,
         .{"console=ttyS0 root=/dev/vda rw"},
     );
 }
