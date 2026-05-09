@@ -21,10 +21,10 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 
 ## Growth Rule
 
-- `PHASE3_ZIGUX_H_GROWTH_RULE=new top-level helper families may land in include/linux/zigux.h only when the same bounded change also lands packet-local proof and updates this note.`
-- packet-local proof means either the shared ABI dump route or a focused replay already carried by the Phase 3 packet for that exact surface
+- `PHASE3_ZIGUX_H_GROWTH_RULE=new top-level helper families may land in include/linux/zigux.h, and already-landed top-level review surfaces may be rehomed there, only when the same bounded change also lands packet-local proof and updates this note.`
+- packet-local proof means either the shared ABI dump route or a focused replay already carried by the Phase 3 packet for that exact landed or rehomed surface
 - the same bounded change should also refresh `Documentation/zigux/phase3-abi-slice.md` and update `zigux/tests/fixtures/phase3_abi_manifest.json` whenever the review surface inventory changes
-- header-only naming growth does not count as Phase 3 closure by itself
+- header-only naming growth or rehome churn does not count as Phase 3 closure by itself
 - repetitive wrapper, summary, or suffix-chain expansion without new bounded proof should be treated as churn, not progress
 
 ## Current Gap
@@ -38,6 +38,7 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 
 - `include/linux/zigux.h` may aggregate already-approved helper entry points, but it should not become a second source of truth for canonical struct layout, policy enums, or UAPI version ownership
 - if a helper surface needs new ownership wording before it can be reviewed safely, add that wording here first instead of burying it in a dump-only or wrapper-only follow-up
+- if an already-landed helper surface is rehomed into `include/linux/zigux.h`, refresh this note in the same bounded change so the shared ABI slice and the dedicated header-governance note continue to name the same owner map
 - export/UAPI starter work may reference this header, but the dedicated export/UAPI survey still owns the narrower starter-boundary claims it proves directly
 - the shared ABI slice and manifest should keep this note visible as part of the live Phase 3 packet so header growth never becomes an implied proof surface on its own
 
