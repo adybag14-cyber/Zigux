@@ -232,6 +232,7 @@ test "phase11 hvc console teardown note keeps the bounded ownership split explic
     try expectContains(teardown_note, "stale-count short-circuiting");
     try expectContains(teardown_note, "tty detachment");
     try expectContains(teardown_note, "buffered-write clearing");
+    try expectContains(teardown_note, "oversized buffered-write rejection");
     try expectContains(teardown_note, "notifier-hangup ownership");
     try expectContains(teardown_note, "kept console binding");
     try expectContains(teardown_note, "do not treat this note as evidence of live notifier callbacks");
@@ -257,6 +258,7 @@ test "phase11 hvc_console survey gate proves validation matrix coverage directly
     try std.testing.expect(std.mem.indexOf(u8, matrix, "`hvc_hangup()` disconnect boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "stale-count short-circuiting") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "preserving buffered-write state when the stale port-count guard wins") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "compile-local impossible buffered-write failure replay in `drivers/tty/hvc/hvc_console_verify.zig`") != null);
 }
 
 test "phase11 hvc console survey gate keeps the shared replay contract aligned with the archival HVC checkpoint" {
