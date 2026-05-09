@@ -71,7 +71,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
 
     try std.testing.expectEqualStrings("0cfd20c304476d560bd125abb496a4656f22ba9f", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("24418ad890696a59b95276fe8dec7eaeecf25172", manifest.helper_replay_blob_sha);
-    try std.testing.expectEqualStrings("13679da4400b84c2e714aa59b3fe1d5ae4a08493", manifest.gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings("002b0d17d6bddb1de0230c68917974e5edc16632", manifest.gate_evidence_blob_sha);
     try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
 
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_diff_source), manifest.live_gate_blob_sha);
@@ -141,6 +141,8 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
     try expectContains(gate_evidence_source, "thirteen bounded range and prefix cases");
     try expectContains(gate_evidence_source, "two `find_nth_bit` replays");
     try expectContains(gate_evidence_source, "eleven copy-tail cases");
+    try expectContains(gate_evidence_source, "explicit zero-length range/prefix and zero-length copy no-op coverage");
+    try expectContains(gate_evidence_source, "aligned 97-bit copy replay that keeps the second copied word intact before the cleared tail resumes");
     try expectContains(gate_evidence_source, "bounded out-of-bounds rejection coverage");
     try expectContains(gate_evidence_source, "13 `DiffCase`, 11 `CopyCase`, and 13 `mixThresholdChecksum()` checkpoints");
 }
