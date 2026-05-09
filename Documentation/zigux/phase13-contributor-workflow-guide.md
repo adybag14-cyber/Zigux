@@ -76,6 +76,7 @@ Do not quietly erase these active Phase 13 limits from manifests, notes, or cont
   * the dedicated `devres` boundary checker remains part of the validator-first route through `scripts/zigux/check-phase13-devres-packet.py`
   * the dedicated Landlock ruleset boundary checker remains part of the validator-first route through `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
   * `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `zigux/helpers/notifier_chain_view.zig`, `include/zigux/abi.h`, and `include/zigux/notifier_abi.h` are shipped adjacent release-surface evidence on `master`, but they do not add extra shared replay steps beyond the validator-first route above
+  * there is still no dedicated `Documentation/zigux/phase13-closure.md` on current `master`, so `Documentation/zigux/phase13-release-notes-survey.md` plus `Documentation/zigux/phase13-roadmap-traceability.md` continue to carry the active tranche posture for the existing work
   * the Phase 13 release packet stays active until the shared replay and the remaining blocker posture say otherwise together
 
 ## Fast Review Checklist
