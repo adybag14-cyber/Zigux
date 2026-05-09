@@ -151,7 +151,16 @@ pub fn forEachParsedReader(
     process_context: anytype,
     comptime process_symbol: fn (@TypeOf(process_context), ParsedSymbol) anyerror!void,
 ) !void {
-    if (scratch_buffer.len == 0) return error.EmptyScratchBuffer;
+    if (scratch_buffer.len == 0) {
+        var fallback_scratch_buffer: [default_reader_chunk_len]u8 = undefined;
+        return forEachParsedReader(
+            allocator,
+            reader,
+            &fallback_scratch_buffer,
+            process_context,
+            process_symbol,
+        );
+    }
 
     var pending = std.ArrayList(u8).empty;
     defer pending.deinit(allocator);
@@ -563,4 +572,110 @@ test "reader, path, and callback wrappers preserve raw carriage returns before n
     try std.testing.expectEqual(@as(usize, 2), parse_state.names.items.len);
     try std.testing.expectEqualStrings("startup_64\r", parse_state.names.items[0]);
     try std.testing.expectEqualStrings("weak_tail", parse_state.names.items[1]);
+}
+
+test "reader and caller-owned file wrappers fall back to the default scratch buffer" {
+    const SliceReader = struct {
+        bytes: []const u8,
+        index: usize = 0,
+
+        pub fn read(self: *@This(), dest: []u8) !usize {
+            if (self.index >= self.bytes.len) return 0;
+            const amt = @min(dest.len, self.bytes.len - self.index);
+            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
+            self.index += amt;
+            return amt;
+        }
+    };
+
+    const OwnedParsedSymbol = struct {
+        name: []u8,
+        symbol_type: u8,
+        start: u64,
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            allocator.free(self.name);
+            self.* = undefined;
+        }
+    };
+
+    const Collector = struct {
+        fn append(list: *std.ArrayList(OwnedParsedSymbol), symbol: ParsedSymbol) !void {
+            try list.append(std.testing.allocator, .{
+                .name = try std.testing.allocator.dupe(u8, symbol.name),
+                .symbol_type = symbol.symbol_type,
+                .start = symbol.start,
+            });
+        }
+    };
+
+    const CallbackFixture = struct {
+        names: std.ArrayList([]u8),
+
+        fn init() @This() {
+            return .{ .names = std.ArrayList([]u8).empty };
+        }
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            for (self.names.items) |name| allocator.free(name);
+            self.names.deinit(allocator);
+            self.* = undefined;
+        }
+
+        fn collect(context: ?*anyopaque, name: [:0]const u8, _: u8, _: u64) i32 {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            self.names.append(std.testing.allocator, std.testing.allocator.dupe(u8, name) catch return -99) catch return -98;
+            if (std.mem.eql(u8, name, "weak_handler")) return 17;
+            return 0;
+        }
+    };
+
+    const contents =
+        "ffffffff81000000 T startup_64\n" ++
+        "garbage\n" ++
+        "ffffffff81000200 W weak_handler\n";
+
+    var empty_scratch: [0]u8 = .{};
+    var reader = SliceReader{ .bytes = contents };
+    var from_reader = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (from_reader.items) |*symbol| symbol.deinit(std.testing.allocator);
+        from_reader.deinit(std.testing.allocator);
+    }
+
+    try forEachParsedReader(std.testing.allocator, &reader, &empty_scratch, &from_reader, Collector.append);
+    try std.testing.expectEqual(@as(usize, 2), from_reader.items.len);
+    try std.testing.expectEqualStrings("startup_64", from_reader.items[0].name);
+    try std.testing.expectEqualStrings("weak_handler", from_reader.items[1].name);
+
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+
+    {
+        const file = try temp_dir.dir.createFile(io, "kallsyms.map", .{ .read = true });
+        defer file.close(io);
+        var writer_buffer: [128]u8 = undefined;
+        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        try writer.interface.writeAll(contents);
+        try writer.interface.flush();
+    }
+
+    const file = try temp_dir.dir.openFile(io, "kallsyms.map", .{});
+    defer file.close(io);
+
+    var callback_state = CallbackFixture.init();
+    defer callback_state.deinit(std.testing.allocator);
+    const result = try kallsymsParseFile(
+        std.testing.allocator,
+        io,
+        file,
+        &empty_scratch,
+        &callback_state,
+        CallbackFixture.collect,
+    );
+    try std.testing.expectEqual(@as(i32, 17), result);
+    try std.testing.expectEqual(@as(usize, 2), callback_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", callback_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", callback_state.names.items[1]);
 }
