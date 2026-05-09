@@ -47,6 +47,17 @@ test "phase 7 argvSplit token buffer does not alias the source text" {
     try std.testing.expectEqualStrings("rw", split.argv[1]);
 }
 
+test "phase 7 argvSplit leaves the caller buffer bytes untouched while returning owned tokens" {
+    var source = [_]u8{ 'r', 'o', 'o', 't', '=', '/', 'd', 'e', 'v', '/', 'v', 'd', 'a', ' ', 'r', 'w' };
+    const original = source;
+    var split = try argv_split.argvSplit(std.testing.allocator, &source);
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualSlices(u8, &original, &source);
+    try std.testing.expectEqualStrings("root=/dev/vda", split.argv[0]);
+    try std.testing.expectEqualStrings("rw", split.argv[1]);
+}
+
 test "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy" {
     var split = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda rw");
     defer split.deinit(std.testing.allocator);
