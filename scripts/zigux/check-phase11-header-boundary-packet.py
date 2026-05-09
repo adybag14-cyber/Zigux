@@ -317,77 +317,66 @@ def run_self_test() -> int:
             "note contains stale markers",
         )
         run_case(
-            root,
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
             "phase11-uapi-header-parity-surface",
             "phase11-uapi-header-packet-absent",
             "note missing markers",
         )
         run_case(
-            root,
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
             "phase11-hvc-console-header-constant-assert",
             "phase11-hvc-console-header-constant-proof",
             "note missing markers",
         )
         run_case(
-            root,
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
             "rather than the shared `test` step",
             "through the shared test step",
             "note missing markers",
         )
         run_case(
-            root,
             "Documentation/zigux/phase11-shared-replay-contract.md",
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
             "zigux/tests/phase11_header_packet_absent.zig",
             "contract missing markers",
         )
         run_case(
-            root,
             "drivers/tty/hvc/hvc_console.h",
             "#define HVC_ALLOC_TTY_ADAPTERS\t8",
             "#define HVC_ALLOC_TTY_ADAPTERS\t4",
             "hvc_header missing markers",
         )
         run_case(
-            root,
             "drivers/tty/hvc/hvc_console.h",
             "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);",
             "extern void notifier_hangup_irq(struct hvc_struct *hp, unsigned long data);",
             "hvc_header missing markers",
         )
         run_case(
-            root,
             "zigux/tests/phase11_uapi_header_parity_manifest.json",
             '"winsize_layout_assert_present": true',
             '"winsize_layout_assert_present": false',
             "manifest survey_summary mismatch",
         )
         run_case(
-            root,
             "zigux/tests/phase11_uapi_header_parity_manifest.json",
             '"zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig"',
             '"zigux_destination": "zigux/tests/phase11_uapi_header_packet_survey.zig"',
             "zigux_destination mismatch",
         )
         run_case(
-            root,
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
             'layout_assert.assertOffset(WatchdogInfo, "identity", 8);',
             'layout_assert.assertOffset(WatchdogInfo, "identity", 12);',
             "survey missing markers",
         )
         run_case(
-            root,
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
             'layout_assert.assertFieldType(WinSize, "ws_ypixel", u16);',
             'layout_assert.assertFieldType(WinSize, "ws_ypixel", u32);',
             "survey missing markers",
         )
         run_case(
-            root,
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
             'try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS\\t8");',
             'try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS\\t4");',
