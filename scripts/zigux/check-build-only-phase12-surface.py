@@ -177,6 +177,8 @@ REQUIRED_FILE_MARKERS = {
         "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
         "PHASE12_SHARED_SMOKE_SURFACE_COUNT=6",
         "build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml`",
+        "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
+        "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "the landed `virtio_net` segmented-rollout boundary remains lane-local review evidence inside this active packet",
