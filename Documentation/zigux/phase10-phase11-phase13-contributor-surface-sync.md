@@ -38,6 +38,7 @@ Update these surfaces together when they describe the same active contributor pa
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
+- `include/zigux/abi.h`
 - `include/zigux/notifier_abi.h`
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
@@ -202,6 +203,7 @@ For the active shared-helper release packet, keep the shared validator-first rep
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
+- `include/zigux/abi.h`
 - `include/zigux/notifier_abi.h`
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
