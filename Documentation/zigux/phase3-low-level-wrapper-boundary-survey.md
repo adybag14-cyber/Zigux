@@ -22,7 +22,7 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 - `PHASE3_NARROW_UNSAFE_STATUS=align1-raw-pointer-bridge-plus-explicit-unsafe-scope-byte-policy`
 - `PHASE3_NARROW_UNSAFE_BLOB_SHA=77c8a5416d57623a2e542af6c54dd5dcd6d55aef`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
-- `PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-byte-scoped-mmio-range-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay`
+- `PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-byte-scoped-mmio-range-raw-pointer-bridge-policy-gates-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay`
 - `PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface`
 - `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=b0b34cda416bc6a161c016a233bb6bc9354c73e5`
 - `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
@@ -35,7 +35,7 @@ This note records the current atomic, barrier, MMIO, and narrow-unsafe boundary 
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet`
-- `PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-byte-16-bit-32-bit-and-64-bit-mmio-range-and-barrier-locality-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof`
+- `PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-non-seq-cst-ordering-byte-scoped-mmio-range-raw-pointer-bridge-policy-gates-byte-16-bit-32-bit-and-64-bit-mmio-range-and-barrier-locality-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves`
 
 ## Roadmap Contract
@@ -60,7 +60,7 @@ The current tree carries a real low-level wrapper packet:
 - `zigux/helpers/barrier.zig` exposes `acquire`, `release`, `full`, and `acquireRelease()` through local compiler-barrier wrappers, with helper-local caller-state and acquire-release handoff probes while direct locality proof now also appears in the focused replay.
 - `zigux/helpers/mmio.zig` exposes `range`, `allowsInteropPolicyBytes`, `allowsInteropPolicy`, `requireInteropPolicyBytes`, `requireInteropPolicy`, `rangeInteropPolicyBytes`, `rangeInteropPolicy`, `rangeInteropPolicyByte`, direct `read*` and `write*` accessors, and policy-gated `read*InteropPolicy*` and `write*InteropPolicy*` relays, all routed through the narrow pointer bridge in `zigux/unsafe/narrow.zig`, with helper-local tests keeping the explicit MMIO interop-policy byte, byte-scoped range, and struct gates reviewable beside the focused raw-access and policy-gated replay.
 - `zigux/unsafe/narrow.zig` exposes `addressOf`, `byteOffset`, `pointerAt`, `constSliceAt`, `constPointerAt`, `writeValueAt`, and the explicit unsafe-scope decoders `scopeFromInteropPolicyBytes`, `scopeFromInteropPolicy`, `scopeFromByte`, `recognizes*`, and `permits*`, with helper-local tests keeping the raw-pointer bridge plus the interop-policy unsafe-scope bytes reviewable beside the focused MMIO replay.
-- `zigux/tests/phase3_low_level_wrappers.zig` now directly proves the shipped helper surface, including `fetchNand`, signed atomic arithmetic and min/max edges, monotonic strong `compareExchange()`, `acq_rel` strong `compareExchange()` mismatch handling, weak compare-exchange coverage, explicit barrier-locality replay, the explicit MMIO interop-policy gate replay including the byte-scoped range relay, non-`seq_cst` ordering, plus byte-addressed 16-bit, 32-bit, and 64-bit MMIO range descriptors and odd-offset MMIO behavior.
+- `zigux/tests/phase3_low_level_wrappers.zig` now directly proves the shipped helper surface, including `fetchNand`, signed atomic arithmetic and min/max edges, monotonic strong `compareExchange()`, `acq_rel` strong `compareExchange()` mismatch handling, weak compare-exchange coverage, explicit barrier-locality replay, the explicit MMIO interop-policy gate replay including the byte-scoped range relay, the raw-pointer-bridge policy gate replay, non-`seq_cst` ordering, plus byte-addressed 16-bit, 32-bit, and 64-bit MMIO range descriptors and odd-offset MMIO behavior.
 - The shared compile, layout, and dump proof for this packet still lives in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/expected.json`, and `zigux/tests/fixtures/phase3_abi_manifest.json`.
 
 ## Ledger Alignment
@@ -78,7 +78,7 @@ The current reviewability gap is narrower:
 - the helper files already ship the bounded atomic, barrier, MMIO, and narrow-unsafe surface listed above
 - the repo now has a dedicated focused replay for the shipped low-level helper operations in `zigux/tests/phase3_low_level_wrappers.zig`
 - the repo also has helper-local tests in `zigux/unsafe/narrow.zig` and `zigux/helpers/mmio.zig` that keep the raw-pointer bridge plus the explicit MMIO interop-policy byte and struct gates reviewable where those narrower unsafe and policy surfaces actually live
-- the focused replay now covers `fetchNand`, signed `fetchAdd` and `fetchSub`, signed `fetchMin` and `fetchMax`, monotonic strong `compareExchange()`, `acq_rel` strong `compareExchange()` mismatch handling, the MMIO interop-policy-gated and byte-scoped range/read/write relays, byte/16-bit/32-bit/64-bit MMIO range descriptors, non-`seq_cst` atomic orderings, direct barrier-locality proof, and the byte-addressed alignment handoff for odd-offset 16-bit, 32-bit, and 64-bit MMIO
+- the focused replay now covers `fetchNand`, signed `fetchAdd` and `fetchSub`, signed `fetchMin` and `fetchMax`, monotonic strong `compareExchange()`, `acq_rel` strong `compareExchange()` mismatch handling, the MMIO interop-policy-gated and byte-scoped range/read/write relays, the raw-pointer-bridge pointer, slice, const-pointer, and write relays plus their denial paths, byte/16-bit/32-bit/64-bit MMIO range descriptors, non-`seq_cst` atomic orderings, direct barrier-locality proof, and the byte-addressed alignment handoff for odd-offset 16-bit, 32-bit, and 64-bit MMIO
 - the shared ABI packet remains the broader compile, layout, and dump proof surface for this family
 
 That repo reality still fits the roadmap's wrapper-first posture, but it also means this survey needs to keep the widened focused replay, the helper-local MMIO policy gates, and the narrow-unsafe bridge explicit instead of letting that evidence collapse back into generic MMIO prose.
