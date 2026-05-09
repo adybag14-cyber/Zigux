@@ -12,7 +12,7 @@ pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
         return 0;
     }
 
-    var parsed_value: i64 = 0;
+    var parsed_bits: u64 = 0;
     var consumed: usize = 0;
 
     if (current[0] == '-') {
@@ -25,16 +25,16 @@ pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
             str.* = current[1..];
             return 0;
         };
-        parsed_value = -@as(i64, @intCast(parsed.value));
+        parsed_bits = 0 -% parsed.value;
         consumed = 1 + parsed.len;
     } else {
         const parsed = parseUnsignedPrefix(current) orelse return 0;
-        parsed_value = @intCast(parsed.value);
+        parsed_bits = parsed.value;
         consumed = parsed.len;
     }
 
     if (pint) |out| {
-        out.* = truncateToI32(parsed_value);
+        out.* = truncateU64ToI32(parsed_bits);
     }
 
     const rest = current[consumed..];
@@ -353,8 +353,8 @@ fn memSuffixShift(ch: u8) u6 {
     };
 }
 
-fn truncateToI32(value: i64) i32 {
-    const bits: u32 = @truncate(@as(u64, @bitCast(value)));
+fn truncateU64ToI32(value: u64) i32 {
+    const bits: u32 = @truncate(value);
     return @bitCast(bits);
 }
 
@@ -409,6 +409,18 @@ test "getOption keeps incomplete hex prefixes aligned with Linux simple_strtoull
     try std.testing.expectEqual(@as(u8, 1), getOption(&negative_hex_rest, &negative_hex_value));
     try std.testing.expectEqual(@as(i32, 0), negative_hex_value);
     try std.testing.expectEqualStrings("x", negative_hex_rest);
+}
+
+test "getOption preserves oversized unsigned parsing without trapping and truncates like Linux ints" {
+    var validate_only: []const u8 = "18446744073709551615,tail";
+    try std.testing.expectEqual(@as(u8, 2), getOption(&validate_only, null));
+    try std.testing.expectEqualStrings("tail", validate_only);
+
+    var with_value: []const u8 = "18446744073709551615";
+    var parsed_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&with_value, &parsed_value));
+    try std.testing.expectEqual(@as(i32, -1), parsed_value);
+    try std.testing.expectEqualStrings("", with_value);
 }
 
 test "getOptions expands ranges, supports validation-only counting, and accepts leading plus" {
