@@ -23,6 +23,7 @@ SCRIPT_PATH = "scripts/zigux/check-phase11-dw-wdt-packet.py"
 
 REQUIRED_SURVEY_NOTE_MARKERS = [
     "lane identity `P11-L05`",
+    "platform-resource preflight",
     "`zigux/tests/phase11_dw_wdt_manifest.json`",
     "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
     "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
@@ -62,6 +63,7 @@ REQUIRED_TEARDOWN_NOTE_MARKERS = [
 REQUIRED_MANIFEST_MARKERS = [
     '"lane_key": "P11-L05"',
     '"id": "phase11-dw-wdt-survey-gate"',
+    '"id": "phase11-dw-wdt-platform-resource-preflight"',
     '"id": "phase11-dw-wdt-registration-order-scaffold"',
     '"id": "phase11-dw-wdt-teardown-parity"',
     '"id": "phase11-dw-wdt-platform-registration-scaffold"',
@@ -74,7 +76,7 @@ REQUIRED_BUILD_MARKERS = [
     '.name = "phase11-dw-wdt-survey-tests"',
 ]
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 22
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -136,6 +138,7 @@ def write_fixture_tree(root: Path) -> None:
 
 This survey note keeps lane identity `P11-L05` explicit beside the current review packet.
 
+- platform-resource preflight
 - `zigux/tests/phase11_dw_wdt_manifest.json`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `scripts/zigux/check-phase11-dw-wdt-packet.py`
@@ -187,6 +190,7 @@ This survey note keeps lane identity `P11-L05` explicit beside the current revie
   "lane_key": "P11-L05",
   "gaps": [
     {"id": "phase11-dw-wdt-survey-gate"},
+    {"id": "phase11-dw-wdt-platform-resource-preflight"},
     {"id": "phase11-dw-wdt-registration-order-scaffold"},
     {"id": "phase11-dw-wdt-teardown-parity"},
     {"id": "phase11-dw-wdt-platform-registration-scaffold"}
@@ -235,6 +239,7 @@ def run_self_test() -> int:
                 print(failure, file=sys.stderr)
             return 1
         checks = [
+            (SURVEY_NOTE_PATH, "platform-resource preflight", "survey_note:platform-resource preflight"),
             (SURVEY_NOTE_PATH, "`scripts/zigux/check-phase11-dw-wdt-packet.py`", "survey_note:`scripts/zigux/check-phase11-dw-wdt-packet.py`"),
             (SURVEY_NOTE_PATH, "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`", "survey_note:`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`"),
             (VALIDATION_MATRIX_PATH, "`drivers/watchdog/dw_wdt_verify.zig`", "validation_matrix:`drivers/watchdog/dw_wdt_verify.zig`"),
@@ -245,6 +250,7 @@ def run_self_test() -> int:
             (SHARED_REPLAY_CONTRACT_PATH, "`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`", "shared_replay:`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`"),
             (TEARDOWN_NOTE_PATH, "`teardownSummary()`", "teardown_note:`teardownSummary()`"),
             (TEARDOWN_NOTE_PATH, "continued-heartbeat", "teardown_note:continued-heartbeat"),
+            (MANIFEST_PATH, '"id": "phase11-dw-wdt-platform-resource-preflight"', 'manifest:"id": "phase11-dw-wdt-platform-resource-preflight"'),
             (MANIFEST_PATH, '"id": "phase11-dw-wdt-registration-order-scaffold"', 'manifest:"id": "phase11-dw-wdt-registration-order-scaffold"'),
             (BUILD_PATH, '.name = "phase11-dw-wdt-survey-tests"', 'build:.name = "phase11-dw-wdt-survey-tests"'),
         ]
