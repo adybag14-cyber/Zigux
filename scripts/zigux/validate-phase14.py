@@ -697,6 +697,21 @@ def run_self_test() -> int:
 
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
+                "run: make -C zigux phase14-test\n",
+                "run: make -C zigux phase14-test\n"
+                "run: make -C zigux phase14-test\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 workflow full-bundle wrapper count drifted from the current one-step packet" not in errors:
+            print("self-test expected duplicate full-bundle-wrapper workflow failure", file=sys.stderr)
+            return 1
+        write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_FILE_MARKERS[WORKFLOW_PATH]) + "\n")
+
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
                 "run: make -C zigux phase14-smoke\n",
                 "run: make -C zigux phase14-smoke\n"
                 "run: zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all\n",
