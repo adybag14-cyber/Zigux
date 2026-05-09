@@ -167,6 +167,7 @@ REQUIRED_FILE_MARKERS = {
         "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this shared fallback overview",
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` should be reread beside this shared fallback overview whenever shared Phase 12 libbpf ownership wording changes so the fallback split does not blur the reviewability lane, the helper-sized ready-next lane, the deferred bridge and queue-routing lane, and the blocked object-model wall back into one vague `libbpf` bucket.",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
+        "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and the direct PMO drift-control reruns are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` plus `python3 scripts/zigux/check-build-only-phase12-surface.py` before or beside the workflow-backed replay in `.github/workflows/zigux-bootstrap.yml`, so this shared fallback-overview wording stays aligned with the shipped PMO release packet.",
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion",
         "PHASE12_LIBBPF_TRACKED_HELPER_COUNT=5",
     ],
@@ -341,6 +342,7 @@ EXACT_COUNT_FILE_MARKERS = {
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`": 1,
         "`make -C zigux phase12-smoke`": 1,
         "`make -C zigux phase12`": 1,
+        "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and the direct PMO drift-control reruns are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` plus `python3 scripts/zigux/check-build-only-phase12-surface.py` before or beside the workflow-backed replay in `.github/workflows/zigux-bootstrap.yml`, so this shared fallback-overview wording stays aligned with the shipped PMO release packet.": 1,
         "PHASE12_LIBBPF_TRACKED_HELPER_COUNT=5": 1,
     },
     PHASE12_COORDINATION_MATRIX_PATH: {
