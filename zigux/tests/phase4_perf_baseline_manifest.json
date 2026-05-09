@@ -3,6 +3,12 @@
   "phase": "Phase 4",
   "owner": "Validation and Perf Team",
   "rollback_owner": "Validation and Perf Team",
+  "shared_promotion_decision_owner": "Validation and Perf Team",
+  "shared_promotion_coordination_owners": [
+    "ABI and Runtime Team",
+    "Shared Subsystems Pod"
+  ],
+  "shared_promotion_scope": "approved_local_only_limits_vs_shared_ci_perf_coverage",
   "surveyed_gates": [
     {
       "surface": "zigux/tests/atomic64_diff.zig",
