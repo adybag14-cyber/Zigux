@@ -15,6 +15,7 @@ test "phase12 virtio scsi syntax lab keeps bounded queue-lab exports reachable" 
     _ = virtio_scsi.HostShapeRequest;
     _ = virtio_scsi.HostShapeSummary;
     _ = virtio_scsi.RecoverySummary;
+    _ = virtio_scsi.RecoveryFreezeQueueQuiesceSummary;
     _ = virtio_scsi.RecoveryRestoreSummary;
     _ = virtio_scsi.RecoveryRestoreQueueRebindSummary;
     _ = virtio_scsi.RecoveryRequestQueueRestartSummary;
@@ -139,6 +140,47 @@ test "phase12 virtio scsi syntax lab keeps recovery summaries reachable through 
     try std.testing.expect(rollback_summary.keeps_frozen_layout_for_restore);
     try std.testing.expect(rollback_summary.clears_live_layout_after_restore);
     try std.testing.expectEqual(@as(u16, 1), restored.recovery_generation);
+}
+
+test "phase12 virtio scsi syntax lab keeps freeze quiesce and request-queue restart summaries reachable" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    _ = try lab.planQueueLayout(7, 2);
+    _ = try lab.freezeForTransportReset();
+
+    const quiesce_summary = try lab.recoveryFreezeQueueQuiesceSummary();
+    const restart_summary = try lab.recoveryRequestQueueRestartSummary();
+
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", quiesce_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 7), quiesce_summary.request_queues);
+    try std.testing.expectEqual(@as(u16, 5), quiesce_summary.default_queues);
+    try std.testing.expectEqual(@as(u16, 2), quiesce_summary.poll_queues);
+    try std.testing.expectEqual(@as(u16, 9), quiesce_summary.total_queues);
+    try std.testing.expectEqual(@as(u16, 0), quiesce_summary.control_queue_index);
+    try std.testing.expectEqual(@as(u16, 1), quiesce_summary.event_queue_index);
+    try std.testing.expectEqual(@as(u16, 2), quiesce_summary.first_request_queue_index);
+    try std.testing.expectEqual(@as(?u16, 7), quiesce_summary.first_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, 8), quiesce_summary.event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 0), quiesce_summary.recovery_generation);
+    try std.testing.expect(quiesce_summary.blocks_request_queue_use_during_freeze);
+    try std.testing.expect(quiesce_summary.quiesces_default_queues_before_poll_queues);
+    try std.testing.expect(quiesce_summary.keeps_event_queue_reserved_until_restore);
+    try std.testing.expect(quiesce_summary.requires_restore_before_replan);
+
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", restart_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 7), restart_summary.request_queues);
+    try std.testing.expectEqual(@as(u16, 5), restart_summary.default_queues);
+    try std.testing.expectEqual(@as(u16, 2), restart_summary.poll_queues);
+    try std.testing.expectEqual(@as(u16, 9), restart_summary.total_queues);
+    try std.testing.expectEqual(@as(u16, 1), restart_summary.event_queue_index);
+    try std.testing.expectEqual(@as(u16, 2), restart_summary.first_request_queue_index);
+    try std.testing.expectEqual(@as(?u16, 7), restart_summary.first_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, 8), restart_summary.event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 0), restart_summary.recovery_generation);
+    try std.testing.expect(restart_summary.requires_find_vqs_before_restart);
+    try std.testing.expect(restart_summary.requires_device_ready_before_restart);
+    try std.testing.expect(restart_summary.requires_event_rearm_before_restart);
+    try std.testing.expect(restart_summary.requires_replan_before_restart);
+    try std.testing.expect(restart_summary.preserves_default_before_poll_partition);
 }
 
 test "phase12 virtio scsi syntax lab keeps repeated rollback and replan gates visible in smoke" {
