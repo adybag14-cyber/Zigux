@@ -401,10 +401,18 @@ def run_self_test() -> int:
         assert "validate_phase2:check-phase2-cross-selftest-alignment.py" in issues
 
         build_self_test_root(root)
-        write_text(abspath(root, VALIDATE_PHASE2_CLOSURE), "PHASE2_CROSS_ALIGNMENT_GATE\n")
+        changed_markers = [
+            marker
+            for index, marker in enumerate(VALIDATE_PHASE2_CLOSURE_MARKERS)
+            if index != 3
+        ]
+        write_text(
+            abspath(root, VALIDATE_PHASE2_CLOSURE),
+            "\n".join(changed_markers) + "\n",
+        )
         issues = validate_root(root)
         assert (
-            'validate_phase2_closure:CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"'
+            "validate_phase2_closure:PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test"
             in issues
         )
 
