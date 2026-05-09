@@ -73,6 +73,7 @@ The survey manifest now records:
 - the landed `phase10-mmio-probe-preflight-helper`
 - the landed `phase10-mmio-config-write-disposition-helper`
 - the landed `phase10-mmio-selected-queue-readiness-helper`
+- the landed `phase10-mmio-configured-queue-coverage-helper`
 - the still-blocked `phase10-mmio-lifecycle-and-irq-paths`
 
 This keeps the lane concrete and reviewable without overstating MMIO progress: the queue-facing footholds are real, the shared Phase 10 packet now honestly records the bounded register-window, queue-size, feature-negotiation, selected-queue readiness, configured-queue coverage, feature-word, config-window, planning-only config-write, transport-identity, config-write disposition, probe-preflight, dedicated freeze-boundary, and dedicated verifier surfaces together with the shorter-restage stale-data regression proof, the already-landed ring and input verifier replays, the shared input queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, the shared tests-root companion, the driver-lane sequencing note, the shared closure manifest, and the broader transport-facing lifecycle work is still intentionally blocked.
