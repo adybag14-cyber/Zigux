@@ -184,6 +184,7 @@ def run_validation(
 
 
 def run_self_test() -> int:
+    case_count = 0
     with tempfile.TemporaryDirectory(prefix="phase3_abi_bindings_syntax_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         root = tmp_dir / "repo"
@@ -282,10 +283,15 @@ def run_self_test() -> int:
         )
 
         assert validate_header(abi_header) == []
+        case_count += 1
         assert validate_bindings(abi_bindings) == []
+        case_count += 1
         assert validate_bindings(dev_t_bindings) == []
+        case_count += 1
         assert validate_bindings(notifier_bindings) == []
+        case_count += 1
         assert validate_gate_contract(manifest, doc) == []
+        case_count += 1
 
         abi_header.write_text(
             "struct zigux_boundary_header { unsigned int size; }; #define ZIGUX_ABI_VERSION 1U\n",
@@ -294,6 +300,7 @@ def run_self_test() -> int:
         )
         fused_header_issues = validate_header(abi_header)
         assert fused_header_issues == [f"{abi_header}:1:{HEADER_FUSED_PATTERNS[0][1]}"]
+        case_count += 1
 
         abi_header.write_text(
             "\n".join(
@@ -318,6 +325,7 @@ def run_self_test() -> int:
         )
         fused_abi_issues = validate_bindings(abi_bindings)
         assert fused_abi_issues == [f"{abi_bindings}:1:{BINDINGS_FUSED_LABEL}"]
+        case_count += 1
 
         abi_bindings.write_text(
             "\n".join(
@@ -337,6 +345,7 @@ def run_self_test() -> int:
         )
         fused_dev_t_issues = validate_bindings(dev_t_bindings)
         assert fused_dev_t_issues == [f"{dev_t_bindings}:1:{BINDINGS_FUSED_LABEL}"]
+        case_count += 1
 
         dev_t_bindings.write_text(
             "\n".join(
@@ -355,7 +364,8 @@ def run_self_test() -> int:
             newline="\n",
         )
         fused_notifier_issues = validate_bindings(notifier_bindings)
-        assert fused_notifier_issues == [f"{notifier_bindings}:1:{BINDINGS_FUSED_LABEL}"]
+        assert fused_notifier_issues == [f"{notifier_bindings}:1:{BINDINGS_FUSED_LABEL}]
+        case_count += 1
 
         notifier_bindings.write_text(
             "\n".join(
@@ -385,6 +395,7 @@ def run_self_test() -> int:
         assert manifest_issues == [
             f"{manifest}:missing_manifest_file:{required_file}" for required_file in REQUIRED_MANIFEST_FILES
         ]
+        case_count += 1
 
         manifest.write_text(
             json.dumps(
@@ -415,8 +426,10 @@ def run_self_test() -> int:
                 *REQUIRED_EXPORT_UAPI_DOC_MARKERS,
             )
         ]
+        case_count += 1
 
     print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass")
+    print(f"PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
