@@ -7,6 +7,27 @@ pub const abi_version: u16 = uapi_version.abi_version;
 pub const header_size: u32 = uapi_version.header_size;
 pub const HeaderCompatibility = uapi_version.Compatibility;
 pub const HeaderAcceptance = uapi_version.AcceptedHeader;
+pub const HeaderEvaluation = uapi_version.HeaderEvaluation;
+pub const CompatibilityDecision = struct {
+    evaluation: HeaderEvaluation,
+    status: abi.ExportStatus,
+
+    pub fn isAccepted(self: @This()) bool {
+        return self.evaluation.isAccepted();
+    }
+
+    pub fn compatibility(self: @This()) ?HeaderCompatibility {
+        return self.evaluation.compatibility();
+    }
+
+    pub fn canonical(self: @This()) ?Header {
+        return self.evaluation.canonical();
+    }
+
+    pub fn sizeDelta(self: @This()) i64 {
+        return self.evaluation.sizeDelta();
+    }
+};
 
 pub fn versionedHeader(size: u32, version: u16, flags: u16) Header {
     return uapi_version.versionedHeader(size, version, flags);
@@ -60,12 +81,24 @@ pub fn canonicalizeHeader(header_value: Header) ?Header {
     return uapi_version.canonicalizeHeader(header_value);
 }
 
+pub fn evaluateHeader(
+    header_value: Header,
+    incompatible_code: i32,
+    facility: abi.Facility,
+) CompatibilityDecision {
+    const evaluation = uapi_version.evaluateHeader(header_value);
+    return .{
+        .evaluation = evaluation,
+        .status = if (evaluation.isAccepted()) ok(facility) else errno(incompatible_code, facility),
+    };
+}
+
 pub fn compatibilityStatus(
     header_value: Header,
     incompatible_code: i32,
     facility: abi.Facility,
 ) abi.ExportStatus {
-    return if (isCompatibleHeader(header_value)) ok(facility) else errno(incompatible_code, facility);
+    return evaluateHeader(header_value, incompatible_code, facility).status;
 }
 
 pub fn ok(facility: abi.Facility) abi.ExportStatus {
@@ -163,4 +196,24 @@ test "phase3 export shim relays compatibility through explicit status packets" {
     try std.testing.expectEqual(@as(i32, -71), mismatched_status.code);
     try std.testing.expectEqual(@intFromEnum(abi.Facility.kernel), mismatched_status.facility);
     try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), mismatched_status.flags);
+}
+
+test "phase3 export shim evaluation keeps compatibility evidence and status together" {
+    const future_compatible = compatibleHeader(header_size + 24, 0x48);
+    const mismatched_version = versionedHeader(header_size, abi_version + 1, 0x48);
+
+    const future_evaluation = evaluateHeader(future_compatible, -75, .helpers);
+    try std.testing.expect(future_evaluation.isAccepted());
+    try std.testing.expectEqual(HeaderCompatibility.future_compatible, future_evaluation.compatibility().?);
+    try std.testing.expectEqual(boundaryHeader(0x48), future_evaluation.canonical().?);
+    try std.testing.expectEqual(@as(i64, 24), future_evaluation.sizeDelta());
+    try std.testing.expect(isOk(future_evaluation.status));
+
+    const mismatch_evaluation = evaluateHeader(mismatched_version, -71, .kernel);
+    try std.testing.expect(!mismatch_evaluation.isAccepted());
+    try std.testing.expect(mismatch_evaluation.compatibility() == null);
+    try std.testing.expect(mismatch_evaluation.canonical() == null);
+    try std.testing.expectEqual(@as(i64, 0), mismatch_evaluation.sizeDelta());
+    try std.testing.expect(!isOk(mismatch_evaluation.status));
+    try std.testing.expectEqual(@as(i32, -71), mismatch_evaluation.status.code);
 }
