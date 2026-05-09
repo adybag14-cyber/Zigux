@@ -69,10 +69,14 @@ REQUIRED_MANIFEST_FILES = (
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/check-phase3-policy-byte-guards.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
+    "scripts/zigux/README.md",
+    ".github/workflows/zigux-bootstrap.yml",
 )
 REQUIRED_DOC_MARKERS = (
     "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py",
@@ -93,6 +97,7 @@ REQUIRED_EXPORT_UAPI_DOC_MARKERS = (
     "PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
     "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof",
 )
+MANIFEST_COUNT_DOC_MARKER_PREFIX = "PHASE3_ABI_MANIFEST_FILE_COUNT="
 
 
 def find_fused_pub_const_lines(source: str) -> list[tuple[int, str]]:
@@ -153,6 +158,8 @@ def validate_gate_contract(manifest_path: Path, doc_path: Path) -> list[str]:
     issues: list[str] = []
     manifest = _load_manifest(manifest_path)
     files = manifest.get("files")
+    manifest_file_count = manifest.get("file_count")
+    required_manifest_count = len(REQUIRED_MANIFEST_FILES)
     if not isinstance(files, list):
         issues.append(f"{manifest_path}:missing_manifest_files")
     else:
@@ -160,10 +167,26 @@ def validate_gate_contract(manifest_path: Path, doc_path: Path) -> list[str]:
             if required_file not in files:
                 issues.append(f"{manifest_path}:missing_manifest_file:{required_file}")
 
+    if not isinstance(manifest_file_count, int):
+        issues.append(f"{manifest_path}:missing_manifest_file_count")
+    else:
+        if isinstance(files, list) and manifest_file_count != len(files):
+            issues.append(
+                f"{manifest_path}:stale_manifest_file_count:{manifest_file_count}:{len(files)}"
+            )
+        if manifest_file_count != required_manifest_count:
+            issues.append(
+                f"{manifest_path}:required_manifest_file_count:{manifest_file_count}:{required_manifest_count}"
+            )
+
     doc_markers = _normalize_doc_lines(doc_path.read_text(encoding="utf-8"))
     for marker in (*REQUIRED_DOC_MARKERS, *REQUIRED_BINDINGS_DOC_MARKERS, *REQUIRED_EXPORT_UAPI_DOC_MARKERS):
         if marker not in doc_markers:
             issues.append(f"{doc_path}:missing_doc_marker:{marker}")
+    if isinstance(manifest_file_count, int):
+        manifest_count_marker = f"{MANIFEST_COUNT_DOC_MARKER_PREFIX}{manifest_file_count}"
+        if manifest_count_marker not in doc_markers:
+            issues.append(f"{doc_path}:missing_doc_marker:{manifest_count_marker}")
     return issues
 
 
@@ -288,6 +311,7 @@ def run_self_test() -> int:
                     "- `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`",
                     "- `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`",
                     "- `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
+                    "- `PHASE3_ABI_MANIFEST_FILE_COUNT=47`",
                     "- `PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof`",
                     "",
                 ]
@@ -414,7 +438,33 @@ def run_self_test() -> int:
         )
         manifest_issues = validate_gate_contract(manifest, doc)
         assert manifest_issues == [
-            f"{manifest}:missing_manifest_file:{required_file}" for required_file in REQUIRED_MANIFEST_FILES
+            *[
+                f"{manifest}:missing_manifest_file:{required_file}"
+                for required_file in REQUIRED_MANIFEST_FILES
+            ],
+            f"{manifest}:required_manifest_file_count:0:{len(REQUIRED_MANIFEST_FILES)}",
+            f"{doc}:missing_doc_marker:{MANIFEST_COUNT_DOC_MARKER_PREFIX}0",
+        ]
+        case_count += 1
+
+        manifest.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "active",
+                    "slice": "abi-substrate-skeleton",
+                    "files": list(REQUIRED_MANIFEST_FILES),
+                    "file_count": len(REQUIRED_MANIFEST_FILES) - 1,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        stale_count_issues = validate_gate_contract(manifest, doc)
+        assert stale_count_issues == [
+            f"{manifest}:stale_manifest_file_count:{len(REQUIRED_MANIFEST_FILES) - 1}:{len(REQUIRED_MANIFEST_FILES)}",
+            f"{manifest}:required_manifest_file_count:{len(REQUIRED_MANIFEST_FILES) - 1}:{len(REQUIRED_MANIFEST_FILES)}",
+            f"{doc}:missing_doc_marker:{MANIFEST_COUNT_DOC_MARKER_PREFIX}{len(REQUIRED_MANIFEST_FILES) - 1}",
         ]
         case_count += 1
 
@@ -445,6 +495,7 @@ def run_self_test() -> int:
                 "python3 scripts/zigux/survey-phase3-abi-constant-parity.py --self-test",
                 *REQUIRED_BINDINGS_DOC_MARKERS,
                 *REQUIRED_EXPORT_UAPI_DOC_MARKERS,
+                f"{MANIFEST_COUNT_DOC_MARKER_PREFIX}{len(REQUIRED_MANIFEST_FILES)}",
             )
         ]
         case_count += 1
