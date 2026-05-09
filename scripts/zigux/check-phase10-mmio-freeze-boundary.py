@@ -488,6 +488,14 @@ def run_self_test() -> int:
         write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
 
         drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
+        drifted["survey_provenance"]["surveyed_commits"]["mmio"] = "phase10-mmio-drifted-commit"
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, drifted)
+        _, missing_markers = validate(tmp_root)
+        if "closure_manifest:survey_provenance.surveyed_commits.mmio" not in missing_markers:
+            raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_mmio_surveyed_commit_marker_missing")
+        write_json(tmp_root / CLOSURE_MANIFEST_PATH, closure_manifest)
+
+        drifted = json.loads((tmp_root / CLOSURE_MANIFEST_PATH).read_text(encoding="utf-8"))
         drifted["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
             "zigux/tests/phase10_build.zig"
         ]
@@ -569,7 +577,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-freeze-boundary-self-test:expected_phase14_boundary_policy_marker_missing")
 
     print("PHASE10_MMIO_FREEZE_BOUNDARY=pass")
-    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_MMIO_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
