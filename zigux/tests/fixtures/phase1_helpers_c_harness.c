@@ -133,6 +133,12 @@ static void run_bitmap_section(void)
 	char truncated_buffer[8] = {0};
 	char terminator_only[1] = {0xaa};
 	char zero_length[1] = {0};
+	unsigned long *alloc_map;
+	unsigned long *zalloc_map;
+	size_t alloc_words = BITS_TO_LONGS(BITS_PER_LONG + 5);
+	size_t alloc_len;
+	size_t zalloc_len;
+	unsigned long zalloc_values[2] = {0, 0};
 	bool and_result;
 	bool andnot_result;
 	bool equal_result;
@@ -173,9 +179,19 @@ static void run_bitmap_section(void)
 	bitmap_set(single_bit_map, 9, 1);
 	size_t terminator_only_len = bitmap_scnprintf(single_bit_map, 32, terminator_only, sizeof(terminator_only));
 	size_t zero_length_len = bitmap_scnprintf(single_bit_map, 32, zero_length, 0);
+	alloc_map = bitmap_alloc(BITS_PER_LONG + 5, GFP_KERNEL);
+	zalloc_map = bitmap_zalloc(BITS_PER_LONG + 5, GFP_KERNEL);
+	alloc_len = alloc_map ? alloc_words : 0;
+	zalloc_len = zalloc_map ? alloc_words : 0;
+	if (zalloc_map) {
+		zalloc_values[0] = zalloc_map[0];
+		zalloc_values[1] = zalloc_map[1];
+	}
 	bitmap_clear(map, 1, 3);
 	bitmap_clear(map, 7, 1);
 	bitmap_clear(map, 10, 2);
+	bitmap_free(alloc_map);
+	bitmap_free(zalloc_map);
 	equal_result = bitmap_equal(lhs, (unsigned long[]){0x0eUL, 0}, 8);
 	intersects_result = bitmap_intersects(lhs, rhs, 8);
 	subset_result = bitmap_subset(rhs, lhs, 8);
@@ -188,6 +204,9 @@ static void run_bitmap_section(void)
 	printf("\"terminator_only_scnprintf_len\":%zu,", terminator_only_len);
 	printf("\"terminator_only_nul\":%u,", (unsigned int)(unsigned char)terminator_only[0]);
 	printf("\"zero_length_scnprintf_len\":%zu,", zero_length_len);
+	printf("\"alloc_words\":%zu,", alloc_len);
+	printf("\"zalloc_words\":%zu,", zalloc_len);
+	printf("\"zalloc_values\":"); emit_word_array(zalloc_values, 2); printf(",");
 	printf("\"and_result\":%s,", and_result ? "true" : "false");
 	printf("\"and_values\":"); emit_word_array(and_values, 2); printf(",");
 	printf("\"andnot_result\":%s,", andnot_result ? "true" : "false");
