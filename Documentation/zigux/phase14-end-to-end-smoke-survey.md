@@ -94,6 +94,7 @@ Attached-toolchain fallback examples:
 - `make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig`
 - `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
 - `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+- if the attached Zig archive has already been unpacked under the repo-local `.zig-toolchain/` tree, leave `ZIG` unset and let `zigux/Makefile` reuse that local binary for `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `make -C zigux phase14-test`, and `make -C zigux phase14`
 
 Shared surface breakdown:
 
@@ -180,7 +181,8 @@ This shared smoke slice does not claim:
 5. Run the convenience wrapper.
    `make -C zigux phase14`
 6. Use the attached-toolchain fallback only when `zig` is not already on `PATH`.
-   Use `ZIG=/absolute/path/to/attached-zig/zig` for the `make -C zigux phase14-validate`, `phase14-smoke`, `phase14-test`, and `phase14` wrapper routes, and call `/absolute/path/to/attached-zig/zig` directly for the two `zig build ...` replay commands.
+   If the attached Zig archive has already been unpacked under the repo-local `.zig-toolchain/` tree, leave `ZIG` unset and let `zigux/Makefile` reuse that local binary for the four `make -C zigux phase14-*` wrapper routes.
+   Otherwise use `ZIG=/absolute/path/to/attached-zig/zig` for the `make -C zigux phase14-validate`, `phase14-smoke`, `phase14-test`, and `phase14` wrapper routes, and call `/absolute/path/to/attached-zig/zig` directly for the two `zig build ...` replay commands.
 
 ## Next Bounded Step
 
