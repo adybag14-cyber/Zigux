@@ -247,6 +247,8 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         "before `registerAttributes()`, the sample still reports zero active attributes and blocks `showValue()` or `storeValue()`",
         "`ownershipSummary()` and sample-owned `runOwnershipReplay()`",
         "runPreRegistrationBoundaryReplay()",
+        "`runRegisteredBoundaryReplay()` keeps that already-registered duplicate-registration and replay-restart packet executable while still proving the registered sample can accept a bounded foo write/read roundtrip afterward",
+        "`runInputValidationReplay()` keeps the shared `baz`/`bar` dispatch, invalid-integer rejection, and unknown-attribute rejection packet executable while the sample remains in the `registered` stage",
         "`abandoned_before_registration`",
         "`tore_down_registered_attributes`",
         "manifest-backed replay",
