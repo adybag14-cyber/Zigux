@@ -60,6 +60,7 @@ REQUIRED_TEARDOWN_NOTE_MARKERS = [
     "summarizeCloseBoundary()",
     "summarizeCleanupHandoff()",
     "summarizeRemoveHandoff()",
+    "summarizeWriteTeardownHandoff()",
     "summarizeHangupDisconnect()",
     "tty_port_put()",
     "tty_vhangup()",
@@ -180,7 +181,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 65
+SELF_TEST_CASE_COUNT = 66
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -314,6 +315,7 @@ The live archival packet now belongs to lane `P11-L16`.
 - `summarizeCloseBoundary()`
 - `summarizeCleanupHandoff()`
 - `summarizeRemoveHandoff()`
+- `summarizeWriteTeardownHandoff()`
 - `summarizeHangupDisconnect()`
 - `tty_port_put()`
 - `tty_vhangup()`
@@ -634,6 +636,12 @@ def run_self_test() -> int:
                 SLICE_NOTE_PATH,
                 "shared-versus-dedicated HVC review packet",
                 "slice_note:shared-versus-dedicated HVC review packet",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "summarizeWriteTeardownHandoff()",
+                "teardown_note:summarizeWriteTeardownHandoff()",
             )
             expect_failure(
                 root,
