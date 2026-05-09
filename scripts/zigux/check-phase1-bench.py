@@ -417,6 +417,24 @@ def run_self_test() -> None:
     assert kind == "expectations_missing_exact_checksums"
     assert payload == ["PHASE1_BENCH_STRING_CHECKSUM"]
 
+    missing_find_next_exact = {
+        "status": "pass",
+        "iterations": dict(EXPECTED_ITERATIONS),
+        "checksums": list(EXPECTED_CHECKSUMS),
+        "exact_checksums": {
+            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
+            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
+            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+            "PHASE1_BENCH_STRING_CHECKSUM": 5,
+            "PHASE1_BENCH_RBTREE_CHECKSUM": 6,
+            "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM": 7,
+            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 8,
+        },
+    }
+    kind, payload = validate_expectations(missing_find_next_exact)
+    assert kind == "expectations_missing_exact_checksums"
+    assert payload == ["PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM"]
+
     missing_find_bit_edge_exact = {
         "status": "pass",
         "iterations": dict(EXPECTED_ITERATIONS),
@@ -487,7 +505,7 @@ def run_self_test() -> None:
     assert payload == reordered_checksums["checksums"]
 
     print("PHASE1_BENCH_CHECK_SELF_TEST=pass")
-    print("PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=13")
+    print("PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=14")
 
 
 def main() -> int:
