@@ -45,7 +45,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 - surveyed commit: `4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-skbuff-live-ownership-blocker`
-- retained-in-C boundary: live skb lifetime, dataref and header-write ownership, destructor ordering, qdisc-facing publication, checksum-state ownership, and segmentation behavior still remain in C even though the repo now carries a review-only boundary map through the exported `skb_segment()` tail-publication contract around `segs->prev`, `tail->next`, and `validate_xmit_skb_list()`, and no smaller review-only skbuff follow-up remains before the blocked live-ownership boundary.
+- retained-in-C boundary: live skb lifetime, dataref and header-write ownership, destructor ordering, qdisc-facing publication, checksum-state ownership, the partial-GSO tail-owner transfer, the checksum-to-data-offset crossover, and segmentation behavior still remain in C even though the repo now carries a review-only boundary map through the `skb_segment()` checkpoints around `SKB_GSO_PARTIAL`, `sock_wfree`, `SKB_GSO_CB(iter)->data_offset`, `SKB_GSO_CB(nskb)->csum`, `remcsum_offload`, `segs->prev`, `tail->next`, and `validate_xmit_skb_list()`, and no smaller review-only skbuff follow-up remains before the blocked live-ownership boundary.
 
 ### RCU tree
 
