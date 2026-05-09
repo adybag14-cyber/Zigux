@@ -322,6 +322,11 @@ EXACT_COUNT_FILE_MARKERS = {
         "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`": 1,
         "`make -C zigux phase12`": 1,
     },
+    REVIEW_CHECKLIST_PATH: {
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`": 1,
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`": 1,
+        "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`": 1,
+    },
     PHASE12_RAW_GITHUB_COVERAGE_PATH: {
         "PHASE12_SHARED_SMOKE_SURFACE_COUNT=6": 1,
         "current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`": 1,
