@@ -35,6 +35,7 @@ pub const bpf_obj_name_capacity_without_nul: usize = bpf_obj_name_len - 1;
 pub const bpf_f_rdonly_prog: u32 = 1 << 7;
 pub const bpf_map_type_devmap: u32 = 14;
 pub const bpf_map_type_devmap_hash: u32 = 25;
+pub const default_bpffs_path = "/sys/fs/bpf";
 
 pub const ReusedMapNameSource = enum {
     object_name,
@@ -93,6 +94,37 @@ pub const TokenPreparationPlan = struct {
     token_path: ?[]const u8 = null,
     bridge_plan: ReusePinnedMapAttemptPlan,
     should_attempt_token_open: bool,
+};
+
+pub const TokenBridgeMode = enum {
+    prevented,
+    optional,
+    mandatory,
+};
+
+pub const TokenBridgePathPlan = struct {
+    mode: TokenBridgeMode,
+    bpffs_path: ?[]const u8 = null,
+    should_attempt_open: bool,
+};
+
+pub const TokenBridgeAttemptDisposition = enum {
+    prevented,
+    open_ready_for_token_create,
+    optional_open_failed_skip,
+    optional_missing_delegation_skip,
+    optional_create_failed_skip,
+    mandatory_open_failed,
+    mandatory_create_failed,
+    ready_for_install,
+};
+
+pub const TokenBridgeAttemptPlan = struct {
+    path_plan: TokenBridgePathPlan,
+    disposition: TokenBridgeAttemptDisposition,
+    should_install_token: bool,
+    open_error: ?i32 = null,
+    create_error: ?i32 = null,
 };
 
 pub const MapReuseCompatibility = enum {
@@ -415,6 +447,92 @@ pub fn planTokenPreparation(
         .token_path = trimmed_path,
         .bridge_plan = bridge_plan,
         .should_attempt_token_open = true,
+    };
+}
+
+pub fn planTokenBridgePath(token_path: ?[]const u8) TokenBridgePathPlan {
+    if (token_path) |path| {
+        if (path.len == 0) {
+            return .{
+                .mode = .prevented,
+                .bpffs_path = null,
+                .should_attempt_open = false,
+            };
+        }
+        return .{
+            .mode = .mandatory,
+            .bpffs_path = path,
+            .should_attempt_open = true,
+        };
+    }
+
+    return .{
+        .mode = .optional,
+        .bpffs_path = default_bpffs_path,
+        .should_attempt_open = true,
+    };
+}
+
+pub fn resolveTokenBridgeAttempt(
+    token_path: ?[]const u8,
+    open_result: i32,
+    create_result: ?i32,
+) TokenBridgeAttemptPlan {
+    const path_plan = planTokenBridgePath(token_path);
+
+    if (path_plan.mode == .prevented) {
+        return .{
+            .path_plan = path_plan,
+            .disposition = .prevented,
+            .should_install_token = false,
+        };
+    }
+
+    if (open_result < 0) {
+        return .{
+            .path_plan = path_plan,
+            .disposition = if (path_plan.mode == .mandatory)
+                .mandatory_open_failed
+            else
+                .optional_open_failed_skip,
+            .should_install_token = false,
+            .open_error = open_result,
+        };
+    }
+
+    const token_open_result = create_result orelse return .{
+        .path_plan = path_plan,
+        .disposition = .open_ready_for_token_create,
+        .should_install_token = false,
+    };
+
+    if (token_open_result >= 0) {
+        return .{
+            .path_plan = path_plan,
+            .disposition = .ready_for_install,
+            .should_install_token = true,
+        };
+    }
+
+    if (path_plan.mode == .optional and
+        token_open_result == -@as(i32, @intFromEnum(std.os.linux.E.NOENT)))
+    {
+        return .{
+            .path_plan = path_plan,
+            .disposition = .optional_missing_delegation_skip,
+            .should_install_token = false,
+            .create_error = token_open_result,
+        };
+    }
+
+    return .{
+        .path_plan = path_plan,
+        .disposition = if (path_plan.mode == .mandatory)
+            .mandatory_create_failed
+        else
+            .optional_create_failed_skip,
+        .should_install_token = false,
+        .create_error = token_open_result,
     };
 }
 
@@ -884,6 +1002,89 @@ test "planTokenPreparation keeps token opening behind the reused-map bridge plan
         ready.bridge_plan.disposition,
     );
     try std.testing.expect(ready.should_attempt_token_open);
+}
+
+test "planTokenBridgePath keeps prevented optional and mandatory token-path modes explicit" {
+    const prevented = planTokenBridgePath("");
+    try std.testing.expectEqual(TokenBridgeMode.prevented, prevented.mode);
+    try std.testing.expectEqual(@as(?[]const u8, null), prevented.bpffs_path);
+    try std.testing.expect(!prevented.should_attempt_open);
+
+    const optional = planTokenBridgePath(null);
+    try std.testing.expectEqual(TokenBridgeMode.optional, optional.mode);
+    try std.testing.expectEqualStrings(default_bpffs_path, optional.bpffs_path.?);
+    try std.testing.expect(optional.should_attempt_open);
+
+    const mandatory = planTokenBridgePath("/delegate/bpf");
+    try std.testing.expectEqual(TokenBridgeMode.mandatory, mandatory.mode);
+    try std.testing.expectEqualStrings("/delegate/bpf", mandatory.bpffs_path.?);
+    try std.testing.expect(mandatory.should_attempt_open);
+}
+
+test "resolveTokenBridgeAttempt keeps prevented and optional token outcomes explicit" {
+    const prevented = resolveTokenBridgeAttempt("", -1, -2);
+    try std.testing.expectEqual(TokenBridgeAttemptDisposition.prevented, prevented.disposition);
+    try std.testing.expect(!prevented.should_install_token);
+
+    const open_failed = resolveTokenBridgeAttempt(null, -2, null);
+    try std.testing.expectEqual(
+        TokenBridgeAttemptDisposition.optional_open_failed_skip,
+        open_failed.disposition,
+    );
+    try std.testing.expectEqual(@as(?i32, -2), open_failed.open_error);
+    try std.testing.expect(!open_failed.should_install_token);
+
+    const ready_to_create = resolveTokenBridgeAttempt(null, 7, null);
+    try std.testing.expectEqual(
+        TokenBridgeAttemptDisposition.open_ready_for_token_create,
+        ready_to_create.disposition,
+    );
+    try std.testing.expect(!ready_to_create.should_install_token);
+
+    const missing_delegation = resolveTokenBridgeAttempt(
+        null,
+        7,
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+    );
+    try std.testing.expectEqual(
+        TokenBridgeAttemptDisposition.optional_missing_delegation_skip,
+        missing_delegation.disposition,
+    );
+    try std.testing.expectEqual(
+        @as(?i32, -@as(i32, @intFromEnum(std.os.linux.E.NOENT))),
+        missing_delegation.create_error,
+    );
+    try std.testing.expect(!missing_delegation.should_install_token);
+
+    const create_failed = resolveTokenBridgeAttempt(null, 7, -22);
+    try std.testing.expectEqual(
+        TokenBridgeAttemptDisposition.optional_create_failed_skip,
+        create_failed.disposition,
+    );
+    try std.testing.expectEqual(@as(?i32, -22), create_failed.create_error);
+    try std.testing.expect(!create_failed.should_install_token);
+}
+
+test "resolveTokenBridgeAttempt keeps mandatory token outcomes explicit" {
+    const open_failed = resolveTokenBridgeAttempt("/delegate/bpf", -13, null);
+    try std.testing.expectEqual(
+        TokenBridgeAttemptDisposition.mandatory_open_failed,
+        open_failed.disposition,
+    );
+    try std.testing.expectEqual(@as(?i32, -13), open_failed.open_error);
+    try std.testing.expect(!open_failed.should_install_token);
+
+    const create_failed = resolveTokenBridgeAttempt("/delegate/bpf", 9, -95);
+    try std.testing.expectEqual(
+        TokenBridgeAttemptDisposition.mandatory_create_failed,
+        create_failed.disposition,
+    );
+    try std.testing.expectEqual(@as(?i32, -95), create_failed.create_error);
+    try std.testing.expect(!create_failed.should_install_token);
+
+    const ready = resolveTokenBridgeAttempt("/delegate/bpf", 9, 11);
+    try std.testing.expectEqual(TokenBridgeAttemptDisposition.ready_for_install, ready.disposition);
+    try std.testing.expect(ready.should_install_token);
 }
 
 test "resolveReusePinnedMapAttempt keeps the readonly-prog normalization devmap-only" {
