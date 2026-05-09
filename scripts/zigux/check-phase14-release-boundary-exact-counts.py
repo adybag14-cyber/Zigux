@@ -411,6 +411,32 @@ def run_self_test() -> int:
                 [
                     "## Phase 3: ABI and Interop Substrate",
                     "Primary Linux anchors:",
+                    "- kernel/workqueue.c",
+                    "- kernel/trace/ring_buffer.c",
+                    "- net/core/skbuff.c",
+                    "- kernel/rcu/tree.c",
+                    "",
+                    PHASE14_SECTION_HEADING,
+                    "Primary Linux anchors:",
+                    "- kernel/workqueue.c",
+                    "- kernel/trace/ring_buffer.c",
+                    "- kernel/rcu/tree.c",
+                    "",
+                ]
+            ),
+        )
+        errors = check(root)
+        if not any("roadmap Phase 14 anchor list drifted from the four-anchor shared smoke packet" in error for error in errors):
+            print("self-test expected failure when an earlier roadmap anchor block masked a drifted Phase 14 section", file=sys.stderr)
+            return 1
+        write_text(roadmap_path, expected_roadmap_text)
+
+        write_text(
+            roadmap_path,
+            "\n".join(
+                [
+                    "## Phase 3: ABI and Interop Substrate",
+                    "Primary Linux anchors:",
                     "- rust/exports.c",
                     "- lib/bitmap.c",
                     "- lib/rbtree.c",
