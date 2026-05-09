@@ -492,7 +492,6 @@ def run_self_test() -> int:
 
         manifest = json.loads(read_text(root, MANIFEST_PATH))
         manifest["remaining_gaps"] = []
-        writeText = None
         write_text(manifest_path, json.dumps(manifest, indent=2) + "\n")
         assert_only(validate(root), ["manifest:remaining_gaps"], "missing_manifest_readiness_gap")
         seed_fixture_tree(root)
