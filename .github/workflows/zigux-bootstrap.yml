@@ -405,7 +405,7 @@ jobs:
       - name: Run focused Phase 12 smoke shard
         run: make -C zigux phase12-smoke
 
-      - name: Run Phase 12 complex driver tests
+      - name: Run Phase 12 complex driver and libbpf tests
         run: zig build test --build-file zigux/tests/phase12_build.zig --summary all
 
       - name: Validate Phase 13 release-discipline packet
