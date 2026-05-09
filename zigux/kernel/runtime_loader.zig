@@ -915,7 +915,7 @@ test "runtime loader facade rejects request state or plan drift" {
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_init_flow));
 }
 
-test "runtime loader facade keeps prepared trace-events requests pinned when shared-runtime or approved-family drift appears before handoff" {
+test "runtime loader facade keeps prepared trace-events requests pinned when the shared prepared snapshot drifts before handoff" {
     const stable_plan = LoadPlan{
         .module_name = "runtime_trace_events",
         .anchor = "samples/trace_events/trace-events-sample.c",
@@ -937,9 +937,14 @@ test "runtime loader facade keeps prepared trace-events requests pinned when sha
     try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, stable_plan));
 
     request.plan.requires_runtime_substrate = false;
-    try std.testing.expectError(error.LoaderNotRequired, request.requestRuntimeLoad());
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
     try std.testing.expectEqual(RequestState.prepared, request.state);
-    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectEqualStrings(stable_plan.module_name, request.prepared_plan.module_name);
+    try std.testing.expectEqualStrings(stable_plan.anchor, request.prepared_plan.anchor);
+    try std.testing.expectEqualStrings(stable_plan.entry_symbol, request.prepared_plan.entry_symbol);
+    try std.testing.expectEqualStrings(stable_plan.exit_symbol, request.prepared_plan.exit_symbol);
+    try std.testing.expectEqualStrings("runtime_trace_events", request.plan.module_name);
+    try std.testing.expect(!request.plan.requires_runtime_substrate);
 
     request.plan = stable_plan;
     request.plan.module_name = "runtime_trace_events_drift";
@@ -950,25 +955,91 @@ test "runtime loader facade keeps prepared trace-events requests pinned when sha
 
     request.plan = stable_plan;
     request.plan.anchor = "samples/trace_events/trace-events-sample-drift.c";
-    try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
     try std.testing.expectEqual(RequestState.prepared, request.state);
-    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectEqualStrings(stable_plan.anchor, request.prepared_plan.anchor);
+    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample-drift.c", request.plan.anchor);
 
     request.plan = stable_plan;
     request.plan.entry_symbol = "zigux_runtime_trace_events_init_drift";
-    try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
     try std.testing.expectEqual(RequestState.prepared, request.state);
-    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectEqualStrings(stable_plan.entry_symbol, request.prepared_plan.entry_symbol);
+    try std.testing.expectEqualStrings("zigux_runtime_trace_events_init_drift", request.plan.entry_symbol);
 
     request.plan = stable_plan;
     request.plan.exit_symbol = "zigux_runtime_trace_events_exit_drift";
-    try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
     try std.testing.expectEqual(RequestState.prepared, request.state);
-    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectEqualStrings(stable_plan.exit_symbol, request.prepared_plan.exit_symbol);
+    try std.testing.expectEqualStrings("zigux_runtime_trace_events_exit_drift", request.plan.exit_symbol);
+
+    request.plan = stable_plan;
+    request.plan.provides_selftest_hook = false;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(request.prepared_plan.provides_selftest_hook);
+    try std.testing.expect(!request.plan.provides_selftest_hook);
+
+    request.plan = stable_plan;
+    request.plan.allocator_handoff = .arena;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expectEqual(AllocatorHandoff.caller_provided, request.prepared_plan.allocator_handoff);
+    try std.testing.expectEqual(AllocatorHandoff.arena, request.plan.allocator_handoff);
 
     request.plan = stable_plan;
     request.plan.init_flow.exit_runs = 1;
-    try std.testing.expectError(error.InvalidInitFlow, request.requestRuntimeLoad());
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
     try std.testing.expectEqual(RequestState.prepared, request.state);
-    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectEqual(@as(usize, 0), request.prepared_plan.init_flow.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), request.plan.init_flow.exit_runs);
+}
+
+test "runtime loader facade keeps releaseWithoutSubstrate from advancing after prepared-plan drift" {
+    const initialized_plan = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+    var initialized_request = try prepareRequest(initialized_plan);
+    _ = try initialized_request.requestRuntimeLoad();
+    initialized_request.plan.init_flow.selftest_runs = 1;
+    try std.testing.expectError(error.PreparedPlanDrift, initialized_request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, initialized_request.state);
+    try std.testing.expectEqual(@as(usize, 0), initialized_request.prepared_plan.init_flow.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_request.plan.init_flow.selftest_runs);
+
+    const selftested_plan = LoadPlan{
+        .module_name = "runtime_atomic64",
+        .anchor = "lib/atomic64_test.c",
+        .entry_symbol = "zigux_runtime_atomic64_init",
+        .exit_symbol = "zigux_runtime_atomic64_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    var selftested_request = try prepareRequest(selftested_plan);
+    _ = try selftested_request.requestRuntimeLoad();
+    selftested_request.plan.exit_symbol = "zigux_runtime_atomic64_exit_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, selftested_request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, selftested_request.state);
+    try std.testing.expectEqualStrings(selftested_plan.exit_symbol, selftested_request.prepared_plan.exit_symbol);
+    try std.testing.expectEqualStrings("zigux_runtime_atomic64_exit_drift", selftested_request.plan.exit_symbol);
 }
