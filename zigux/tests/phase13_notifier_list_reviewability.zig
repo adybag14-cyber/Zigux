@@ -68,7 +68,7 @@ test "phase13 notifier/list survey records the landed hvc interop anchor" {
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P13-L18", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("23d15e44622d2cedd7691c88f78709db6bf1eb7e", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
@@ -122,7 +122,7 @@ test "phase13 notifier/list survey records the landed hvc interop anchor" {
     try expectContains(hvc_interop_text, "extern void notifier_del_irq(struct hvc_struct *hp, int data);");
     try expectContains(hvc_interop_text, "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);");
     try std.testing.expect(std.mem.indexOf(u8, phase13_build_text, "phase13_notifier") == null);
-    try expectContains(survey_note, "lane key: `P13-L18`");
+    try expectContains(survey_note, "lane key: `P13-L16`");
     try expectContains(survey_note, "surveyed commit: `23d15e44622d2cedd7691c88f78709db6bf1eb7e`");
     try expectContains(survey_note, "`include/zigux/notifier_abi.h` is now shipped as adjacent notifier interop evidence");
     try expectContains(survey_note, "`drivers/tty/hvc/hvc_console.h` still shows the concrete interop anchor");
