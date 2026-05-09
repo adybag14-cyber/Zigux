@@ -176,6 +176,11 @@ test "phase 7 helper packet keeps the exact sample-boundary guard and Phase 5 bu
     try expectContains(phase5_guide, "Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, or direct `*bitmap*` Phase 5 reference sample.");
     try expectContains(phase5_guide, "keep treating the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` as the approved formatting idiom cue.");
     try expectContains(phase5_guide, "Formatting-helper reviewability still stays with the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet;");
+    try expectOccurrenceCount(phase5_guide, "The four shipped Phase 5 samples are the whole current reference-sample packet; later `samples/zigux/runtime_*` files belong to Phase 9.", 1);
+    try expectOccurrenceCount(phase5_guide, "Current `master` still ships no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, or direct `*bitmap*` Phase 5 reference sample.", 1);
+    try expectOccurrenceCount(phase5_guide, "Current `master` still ships no standalone `samples/zigux/*string*` Phase 5 reference sample; keep string-helper reviewability under `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, and `zigux/tests/phase7_build.zig` instead of treating string helpers as a fifth Phase 5 sample.", 1);
+    try expectOccurrenceCount(phase5_guide, "Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample; keep treating the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` as the approved formatting idiom cue.", 1);
+    try expectOccurrenceCount(phase5_guide, "Formatting-helper reviewability still stays with the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet; do not infer a fifth formatting sample from `trace_events_sample`.", 1);
 
     const tests_readme = try readRepoFile(allocator, "zigux/tests/README.md");
     defer allocator.free(tests_readme);
