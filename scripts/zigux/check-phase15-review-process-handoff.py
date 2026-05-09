@@ -19,8 +19,9 @@ TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 EXPECTED_LANE_KEY = "P15-L06"
-EXPECTED_SURVEYED_COMMIT_MODE = "verified_master_head"
 EXPECTED_ROADMAP_REQUIREMENT = "Architecture Council review process"
+DATED_READBACK_PREFIX = "current-master-readback-"
+LEGACY_VERIFIED_HEAD = "4fc891b380cdd2991dff7676ade7f844df1b55fd"
 
 PRODUCT_BOUNDARY_MARKER = "product boundary:"
 REQUIRED_PRODUCT_BOUNDARY_MARKERS = (
@@ -35,11 +36,8 @@ REQUIRED_PRODUCT_BOUNDARY_MARKERS = (
     "  - `zigux/tests/phase15_readiness_gate.zig`",
     "  - `zigux/tests/phase15_build.zig`",
 )
-REQUIRED_NOTE_MARKERS = (
+REQUIRED_GENERIC_NOTE_MARKERS = (
     f"`PHASE15_LANE_KEY={EXPECTED_LANE_KEY}`",
-    "`PHASE15_PROVENANCE_MODE=verified_master_head`",
-    "survey provenance refreshed against verified `master` head `",
-    "exact branch-head parity is now recorded for this packet",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
     "current review-process evidence is limited to named `phase`",
     "`current status bucket`",
@@ -47,13 +45,24 @@ REQUIRED_NOTE_MARKERS = (
     "`validation gate summary`",
     "`parity scorecard link or blocker record`",
     "`indefinite-C policy link or non-applicability note`",
-    "`rollback-threshold`",
     "workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`",
     "dedicated `make -C zigux phase15-test` route",
     "landed `phase15-roadmap-minimum-field-sync`",
     "landed `phase15-workflow-replay-anchor-visible`",
     "landed `phase15-dedicated-make-test-replay-visible`",
+)
+VERIFIED_MODE_NOTE_MARKERS = (
+    "`PHASE15_PROVENANCE_MODE=verified_master_head`",
+    "survey provenance refreshed against verified `master` head `",
+    "exact branch-head parity is now recorded for this packet",
     "landed `phase15-verified-master-head-provenance-sync`",
+)
+DATED_MODE_NOTE_MARKERS = (
+    "`PHASE15_PROVENANCE_MODE=dated_master_readback`",
+    "survey provenance refreshed against dated `master` readback marker `",
+    "exact branch-head parity is not recorded for this packet",
+    f"previously recorded verified head `{LEGACY_VERIFIED_HEAD}`",
+    "landed `phase15-dated-readback-provenance-refresh`",
 )
 
 REQUIRED_REVIEW_PACKET_FIELDS = (
@@ -141,29 +150,11 @@ REQUIRED_CURRENT_BOUNDED_LANE_MARKERS = (
 
 REQUIRED_DOCS_README_MARKERS = (
     "Phase 15 notes",
-    "`Documentation/zigux/freeze-map.md`",
-    "`Documentation/zigux/phase15-freeze-map-governance.md`",
     "`Documentation/zigux/phase15-architecture-council-review-process.md`",
-    "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
-    "`Documentation/zigux/phase15-readiness-gate-survey.md`",
-    "`Documentation/zigux/phase15-parity-scorecard.md`",
-    "`Documentation/zigux/phase15-indefinite-c-policy.md`",
-    "`scripts/zigux/README.md`",
-    "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
-    "`zigux/tests/README.md`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
-    "`zigux/tests/phase15_freeze_map_governance.zig`",
-    "`zigux/tests/phase15_parity_scorecard.zig`",
     "`zigux/tests/phase15_architecture_council_review_process.zig`",
-    "`zigux/tests/phase15_handoff_next_steps.zig`",
-    "`zigux/tests/phase15_indefinite_c_policy.json`",
-    "`zigux/tests/phase15_indefinite_c_policy.zig`",
-    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
-    "`zigux/tests/phase15_readiness_gate.zig`",
-    "`.github/workflows/zigux-bootstrap.yml`",
     "`zigux/tests/phase15_build.zig`",
-    "`zigux/Makefile`",
     "`make -C zigux phase15-validate`",
     "`make -C zigux phase15`",
     "no Architecture Council approval is recorded yet",
@@ -171,21 +162,11 @@ REQUIRED_DOCS_README_MARKERS = (
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = (
     "if the change touches the shared Phase 15 governance packet",
-    "Documentation/zigux/freeze-map.md",
-    "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
-    "Documentation/zigux/phase15-parity-scorecard.md",
-    "Documentation/zigux/phase15-indefinite-c-policy.md",
-    "Documentation/zigux/review-checklist.md",
     ".github/workflows/zigux-bootstrap.yml",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
-    "zigux/tests/phase15_freeze_map_governance.zig",
-    "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
-    "zigux/tests/phase15_indefinite_c_policy.json",
-    "zigux/tests/phase15_indefinite_c_policy.zig",
-    "zigux/tests/phase15_build.zig",
     "make -C zigux phase15-validate",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
@@ -195,50 +176,23 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = (
 
 REQUIRED_SCRIPT_README_MARKERS = (
     "Phase 15 flow",
-    "phase15-freeze-map-governance.md",
     "phase15-architecture-council-review-process.md",
-    "phase15-handoff-next-steps-survey.md",
-    "phase15-readiness-gate-survey.md",
-    "phase15-parity-scorecard.md",
-    "phase15-indefinite-c-policy.md",
-    "check-phase15-scripts-readme-alignment.py",
     "check-phase15-review-process-handoff.py",
     "phase15_architecture_council_review_process_manifest.json",
-    "phase15_freeze_map_governance.zig",
-    "phase15_parity_scorecard.zig",
     "phase15_architecture_council_review_process.zig",
-    "phase15_indefinite_c_policy.json",
-    "phase15_indefinite_c_policy.zig",
     "phase15_build.zig",
     "make -C zigux phase15",
 )
 
 REQUIRED_TESTS_README_MARKERS = (
     "keep the parked Phase 15 governance packet explicit in the tests root too",
-    "Documentation/zigux/freeze-map.md",
-    "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
-    "Documentation/zigux/phase15-indefinite-c-policy.md",
-    "Documentation/zigux/review-checklist.md",
-    "scripts/zigux/README.md",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
-    ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_build.zig",
-    "zigux/tests/phase15_freeze_map_governance.zig",
-    "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
-    "zigux/tests/phase15_handoff_next_steps.zig",
-    "zigux/tests/phase15_indefinite_c_policy.json",
-    "zigux/tests/phase15_indefinite_c_policy.zig",
-    "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-    "zigux/tests/phase15_governance_lane_sequencing.zig",
-    "zigux/tests/phase15_readiness_gate.zig",
-    "zigux/Makefile",
     "make -C zigux phase15-validate",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
@@ -293,6 +247,31 @@ def expect_markers(text: str, markers: tuple[str, ...], label: str, failures: li
             failures.append(f"{label}:{marker}")
 
 
+def is_lower_hex_40(value: str) -> bool:
+    return len(value) == 40 and all(ch in "0123456789abcdef" for ch in value)
+
+
+def validate_provenance(note: str, manifest: dict, failures: list[str]) -> None:
+    mode = manifest.get("surveyed_commit_mode")
+    surveyed_commit = manifest.get("surveyed_commit")
+    reason = manifest.get("surveyed_commit_mode_reason")
+
+    if mode == "verified_master_head":
+        if not isinstance(surveyed_commit, str) or not is_lower_hex_40(surveyed_commit):
+            failures.append(f"manifest:surveyed_commit:{surveyed_commit}")
+        if not isinstance(reason, str) or "exact verified master-head SHA" not in reason:
+            failures.append(f"manifest:surveyed_commit_mode_reason:{reason}")
+        expect_markers(note, VERIFIED_MODE_NOTE_MARKERS, "note", failures)
+    elif mode == "dated_master_readback":
+        if not isinstance(surveyed_commit, str) or not surveyed_commit.startswith(DATED_READBACK_PREFIX):
+            failures.append(f"manifest:surveyed_commit:{surveyed_commit}")
+        if not isinstance(reason, str) or "dated readback marker" not in reason or LEGACY_VERIFIED_HEAD not in reason:
+            failures.append(f"manifest:surveyed_commit_mode_reason:{reason}")
+        expect_markers(note, DATED_MODE_NOTE_MARKERS, "note", failures)
+    else:
+        failures.append(f"manifest:surveyed_commit_mode:{mode}")
+
+
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
     for rel_path in REQUIRED_FILES:
@@ -315,7 +294,7 @@ def validate(root: Path) -> list[str]:
     if PRODUCT_BOUNDARY_MARKER not in note:
         failures.append("note:product_boundary")
     expect_markers(note, REQUIRED_PRODUCT_BOUNDARY_MARKERS, "note_boundary", failures)
-    expect_markers(note, REQUIRED_NOTE_MARKERS, "note", failures)
+    expect_markers(note, REQUIRED_GENERIC_NOTE_MARKERS, "note", failures)
     expect_markers(script_readme, REQUIRED_SCRIPT_README_MARKERS, "script_readme", failures)
     expect_markers(tests_readme, REQUIRED_TESTS_README_MARKERS, "tests_readme", failures)
     expect_markers(makefile, REQUIRED_MAKEFILE_MARKERS, "makefile", failures)
@@ -323,16 +302,10 @@ def validate(root: Path) -> list[str]:
 
     if manifest.get("lane_key") != EXPECTED_LANE_KEY:
         failures.append(f"manifest:lane_key:{manifest.get('lane_key')}")
-    if manifest.get("surveyed_commit_mode") != EXPECTED_SURVEYED_COMMIT_MODE:
-        failures.append(f"manifest:surveyed_commit_mode:{manifest.get('surveyed_commit_mode')}")
-    surveyed_commit = manifest.get("surveyed_commit")
-    if not isinstance(surveyed_commit, str) or len(surveyed_commit) != 40 or any(ch not in '0123456789abcdef' for ch in surveyed_commit):
-        failures.append(f"manifest:surveyed_commit:{surveyed_commit}")
-    surveyed_commit_mode_reason = manifest.get("surveyed_commit_mode_reason")
-    if not isinstance(surveyed_commit_mode_reason, str) or "exact verified master-head SHA" not in surveyed_commit_mode_reason:
-        failures.append(f"manifest:surveyed_commit_mode_reason:{surveyed_commit_mode_reason}")
     if manifest.get("roadmap_requirement") != EXPECTED_ROADMAP_REQUIREMENT:
         failures.append(f"manifest:roadmap_requirement:{manifest.get('roadmap_requirement')}")
+
+    validate_provenance(note, manifest, failures)
 
     review_fields = manifest.get("required_review_packet_fields")
     if not isinstance(review_fields, list):
@@ -362,22 +335,21 @@ def validate(root: Path) -> list[str]:
                 if command not in replay_commands:
                     failures.append(f"manifest_handoff_replay:{command}")
 
-    handoff = manifest.get("handoff_evidence")
-    if not isinstance(handoff, dict):
+    handoff_evidence = manifest.get("handoff_evidence")
+    if not isinstance(handoff_evidence, dict):
         failures.append("manifest:handoff_evidence")
-        return failures
-
-    current_repo_handoff = handoff.get("current_repo_handoff")
-    if not isinstance(current_repo_handoff, str):
-        failures.append("manifest:current_repo_handoff")
     else:
-        expect_markers(current_repo_handoff, REQUIRED_CURRENT_REPO_HANDOFF_MARKERS, "manifest_handoff", failures)
+        current_repo_handoff = handoff_evidence.get("current_repo_handoff")
+        if not isinstance(current_repo_handoff, str):
+            failures.append("manifest:current_repo_handoff")
+        else:
+            expect_markers(current_repo_handoff, REQUIRED_CURRENT_REPO_HANDOFF_MARKERS, "manifest_handoff", failures)
 
-    current_bounded_lane = handoff.get("current_bounded_lane")
-    if not isinstance(current_bounded_lane, str):
-        failures.append("manifest:current_bounded_lane")
-    else:
-        expect_markers(current_bounded_lane, REQUIRED_CURRENT_BOUNDED_LANE_MARKERS, "manifest_lane", failures)
+        current_bounded_lane = handoff_evidence.get("current_bounded_lane")
+        if not isinstance(current_bounded_lane, str):
+            failures.append("manifest:current_bounded_lane")
+        else:
+            expect_markers(current_bounded_lane, REQUIRED_CURRENT_BOUNDED_LANE_MARKERS, "manifest_lane", failures)
 
     return failures
 
@@ -389,78 +361,40 @@ def write_fixture_tree(root: Path) -> None:
     (root / "zigux").mkdir(parents=True, exist_ok=True)
     (root / ".github/workflows").mkdir(parents=True, exist_ok=True)
 
-    (root / DOCS_README_PATH).write_text("\n".join((
-        "# Documentation/zigux",
-        "Phase 15 notes",
-        *REQUIRED_DOCS_README_MARKERS[1:],
-        "",
-    )), encoding="utf-8")
+    (root / DOCS_README_PATH).write_text("\n".join(("# docs", *REQUIRED_DOCS_README_MARKERS, "")), encoding="utf-8")
+    (root / REVIEW_CHECKLIST_PATH).write_text("\n".join(("# checklist", *REQUIRED_REVIEW_CHECKLIST_MARKERS, "")), encoding="utf-8")
+    (root / SCRIPT_README_PATH).write_text("\n".join(("# scripts", *REQUIRED_SCRIPT_README_MARKERS, "")), encoding="utf-8")
+    (root / TESTS_README_PATH).write_text("\n".join(("# tests", *REQUIRED_TESTS_README_MARKERS, "")), encoding="utf-8")
+    (root / MAKEFILE_PATH).write_text("\n".join((*REQUIRED_MAKEFILE_MARKERS, "")), encoding="utf-8")
+    (root / WORKFLOW_PATH).write_text("\n".join((*REQUIRED_WORKFLOW_MARKERS, "")), encoding="utf-8")
 
-    (root / REVIEW_CHECKLIST_PATH).write_text("\n".join((
-        "# Review Checklist",
-        *REQUIRED_REVIEW_CHECKLIST_MARKERS,
-        "",
-    )), encoding="utf-8")
-
-    (root / NOTE_PATH).write_text("\n".join((
+    note = "\n".join((
         "# Phase 15 Architecture Council Review Process Survey",
-        "## Status",
-        REQUIRED_NOTE_MARKERS[0],
-        REQUIRED_NOTE_MARKERS[1],
-        "- survey provenance refreshed against verified `master` head `0123456789abcdef0123456789abcdef01234567`",
-        "- exact branch-head parity is now recorded for this packet; the current survey keeps that verified-head provenance explicit instead of relying on a dated readback marker",
+        *REQUIRED_GENERIC_NOTE_MARKERS,
+        *DATED_MODE_NOTE_MARKERS,
         PRODUCT_BOUNDARY_MARKER,
         *REQUIRED_PRODUCT_BOUNDARY_MARKERS,
-        "## Current Approval Posture",
-        "- current review-process evidence is limited to named `phase`, `current status bucket`, `required approver set`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records, plus the workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml` and the dedicated `make -C zigux phase15-test` route",
-        "## Recorded Gaps",
-        "- landed `phase15-roadmap-minimum-field-sync`",
-        "- landed `phase15-workflow-replay-anchor-visible`",
-        "- landed `phase15-dedicated-make-test-replay-visible`",
-        "- landed `phase15-verified-master-head-provenance-sync`",
-        "- no Architecture Council approval is currently recorded for a freeze-map status change",
+        "workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`",
+        "dedicated `make -C zigux phase15-test` route",
         "",
-    )), encoding="utf-8")
+    ))
+    (root / NOTE_PATH).write_text(note, encoding="utf-8")
 
     manifest = {
         "lane_key": EXPECTED_LANE_KEY,
-        "surveyed_commit": "0123456789abcdef0123456789abcdef01234567",
-        "surveyed_commit_mode": EXPECTED_SURVEYED_COMMIT_MODE,
-        "surveyed_commit_mode_reason": "This review-process packet now records the exact verified master-head SHA instead of a dated readback marker.",
+        "surveyed_commit": "current-master-readback-2026-05-09",
+        "surveyed_commit_mode": "dated_master_readback",
+        "surveyed_commit_mode_reason": f"Live compare-against-master showed the previously recorded verified head {LEGACY_VERIFIED_HEAD} now sits 2591 commits behind current master, so this parked review-process packet uses an explicit dated readback marker instead of stale exact-head parity.",
         "roadmap_requirement": EXPECTED_ROADMAP_REQUIREMENT,
         "required_review_packet_fields": list(REQUIRED_REVIEW_PACKET_FIELDS),
         "ownership_evidence_fields": list(REQUIRED_OWNERSHIP_FIELDS),
-        "handoff": {
-            "replay_commands": list(REQUIRED_HANDOFF_REPLAY_COMMANDS),
-        },
+        "handoff": {"replay_commands": list(REQUIRED_HANDOFF_REPLAY_COMMANDS)},
         "handoff_evidence": {
             "current_repo_handoff": " ".join(REQUIRED_CURRENT_REPO_HANDOFF_MARKERS),
             "current_bounded_lane": " ".join(REQUIRED_CURRENT_BOUNDED_LANE_MARKERS),
         },
     }
     (root / MANIFEST_PATH).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-
-    (root / SCRIPT_README_PATH).write_text("\n".join((
-        "# scripts/zigux",
-        *REQUIRED_SCRIPT_README_MARKERS,
-        "",
-    )), encoding="utf-8")
-
-    (root / TESTS_README_PATH).write_text("\n".join((
-        "# zigux/tests",
-        *REQUIRED_TESTS_README_MARKERS,
-        "",
-    )), encoding="utf-8")
-
-    (root / MAKEFILE_PATH).write_text("\n".join((
-        *REQUIRED_MAKEFILE_MARKERS,
-        "",
-    )), encoding="utf-8")
-
-    (root / WORKFLOW_PATH).write_text("\n".join((
-        *REQUIRED_WORKFLOW_MARKERS,
-        "",
-    )), encoding="utf-8")
 
 
 def expect_only(root: Path, expected: list[str], label: str) -> None:
@@ -478,314 +412,62 @@ def run_self_test() -> int:
         case_count += 1
 
         note_path = root / NOTE_PATH
-        original_note = note_path.read_text(encoding="utf-8")
-        note_path.write_text(original_note.replace("`required approver set`", "`approver set`", 1), encoding="utf-8")
-        expect_only(root, ["note:`required approver set`"], "missing_required_approver_set_marker")
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
-        note_path.write_text(original_note.replace("`PHASE15_PROVENANCE_MODE=verified_master_head`", "`PHASE15_PROVENANCE_MODE=dated_master_readback`", 1), encoding="utf-8")
-        expect_only(root, ["note:`PHASE15_PROVENANCE_MODE=verified_master_head`"], "missing_verified_master_head_mode_marker")
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
-        note_path.write_text(
-            original_note.replace(
-                "survey provenance refreshed against verified `master` head `0123456789abcdef0123456789abcdef01234567`",
-                "survey provenance refreshed against dated `master` readback marker",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(root, ["note:survey provenance refreshed against verified `master` head `"], "missing_verified_master_head_marker")
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
-        note_path.write_text(
-            original_note.replace(
-                "exact branch-head parity is now recorded for this packet",
-                "dated readback parity is now recorded for this packet",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(root, ["note:exact branch-head parity is now recorded for this packet"], "missing_exact_branch_head_parity_marker")
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
-        note_path.write_text(
-            original_note.replace(
-                "workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`",
-                "workflow-backed replay anchor `.github/workflows/phase15-missing.yml`",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["note:workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`"],
-            "missing_workflow_replay_anchor_marker",
-        )
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
-        note_path.write_text(
-            original_note.replace(
-                "dedicated `make -C zigux phase15-test` route",
-                "dedicated `make -C zigux phase15-check` route",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["note:dedicated `make -C zigux phase15-test` route"],
-            "missing_dedicated_make_test_route_marker",
-        )
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
-        note_path.write_text(
-            original_note.replace(
-                "landed `phase15-workflow-replay-anchor-visible`",
-                "landed `phase15-workflow-anchor-visible`",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["note:landed `phase15-workflow-replay-anchor-visible`"],
-            "missing_workflow_replay_recorded_gap_marker",
-        )
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
-        note_path.write_text(
-            original_note.replace(
-                "landed `phase15-verified-master-head-provenance-sync`",
-                "landed `phase15-dated-readback-provenance-sync`",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["note:landed `phase15-verified-master-head-provenance-sync`"],
-            "missing_verified_master_head_recorded_gap_marker",
-        )
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
-        note_path.write_text(original_note.replace("`rollback-threshold`", "`rollback ceiling`", 1), encoding="utf-8")
-        expect_only(root, ["note:`rollback-threshold`"], "missing_rollback_threshold_marker")
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
-        note_path.write_text(original_note.replace("`parity scorecard link or blocker record`", "`scorecard link`", 1), encoding="utf-8")
-        expect_only(root, ["note:`parity scorecard link or blocker record`"], "missing_parity_scorecard_marker")
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
-        note_path.write_text(original_note.replace("`indefinite-C policy link or non-applicability note`", "`indefinite-C policy link`", 1), encoding="utf-8")
-        expect_only(root, ["note:`indefinite-C policy link or non-applicability note`"], "missing_indefinite_c_marker")
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
-        note_path.write_text(
-            original_note.replace(
-                "  - `Documentation/zigux/phase15-governance-lane-sequencing.md`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["note_boundary:  - `Documentation/zigux/phase15-governance-lane-sequencing.md`"],
-            "missing_governance_lane_sequencing_boundary_marker",
-        )
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
-        note_path.write_text(
-            original_note.replace(
-                "  - `Documentation/zigux/phase15-readiness-gate-survey.md`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["note_boundary:  - `Documentation/zigux/phase15-readiness-gate-survey.md`"],
-            "missing_readiness_gate_boundary_marker",
-        )
-        note_path.write_text(original_note, encoding="utf-8")
-        case_count += 1
-
         manifest_path = root / MANIFEST_PATH
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["surveyed_commit_mode"] = "dated_master_readback"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(root, ["manifest:surveyed_commit_mode:dated_master_readback"], "missing_surveyed_commit_mode_guard")
-        write_fixture_tree(root)
+        original_note = note_path.read_text(encoding="utf-8")
+        original_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+        note_path.write_text(original_note.replace("`PHASE15_PROVENANCE_MODE=dated_master_readback`", "`PHASE15_PROVENANCE_MODE=verified_master_head`", 1), encoding="utf-8")
+        expect_only(root, ["note:`PHASE15_PROVENANCE_MODE=dated_master_readback`"], "missing_dated_mode_marker")
+        note_path.write_text(original_note, encoding="utf-8")
         case_count += 1
 
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["surveyed_commit"] = "not-a-real-commit"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(root, ["manifest:surveyed_commit:not-a-real-commit"], "missing_surveyed_commit_guard")
-        write_fixture_tree(root)
+        bad = dict(original_manifest)
+        bad["surveyed_commit_mode"] = "invalid_mode"
+        manifest_path.write_text(json.dumps(bad, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest:surveyed_commit_mode:invalid_mode"], "invalid_mode")
+        manifest_path.write_text(json.dumps(original_manifest, indent=2) + "\n", encoding="utf-8")
         case_count += 1
 
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["surveyed_commit_mode_reason"] = "This review-process packet now records a dated readback marker instead of the commit SHA."
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(
-            root,
-            ["manifest:surveyed_commit_mode_reason:This review-process packet now records a dated readback marker instead of the commit SHA."],
-            "missing_surveyed_commit_mode_reason_guard",
-        )
-        write_fixture_tree(root)
+        bad = dict(original_manifest)
+        bad["surveyed_commit"] = "not-a-dated-marker"
+        manifest_path.write_text(json.dumps(bad, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest:surveyed_commit:not-a-dated-marker"], "bad_dated_commit")
+        manifest_path.write_text(json.dumps(original_manifest, indent=2) + "\n", encoding="utf-8")
         case_count += 1
 
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["roadmap_requirement"] = "freeze map only"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(root, ["manifest:roadmap_requirement:freeze map only"], "missing_roadmap_requirement_guard")
-        write_fixture_tree(root)
+        bad = dict(original_manifest)
+        bad["surveyed_commit_mode_reason"] = "reason without dated readback marker"
+        manifest_path.write_text(json.dumps(bad, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest:surveyed_commit_mode_reason:reason without dated readback marker"], "bad_reason")
+        manifest_path.write_text(json.dumps(original_manifest, indent=2) + "\n", encoding="utf-8")
         case_count += 1
 
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["required_review_packet_fields"].remove("required approver set")
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(root, ["manifest_required_review_packet_fields:required approver set"], "missing_required_approver_set_review_field")
-        write_fixture_tree(root)
+        note_path.write_text(original_note.replace("workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`", "workflow-backed replay anchor `.github/workflows/missing.yml`"), encoding="utf-8")
+        expect_only(root, ["note:workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`"], "missing_workflow_anchor")
+        note_path.write_text(original_note, encoding="utf-8")
         case_count += 1
 
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["required_review_packet_fields"].remove("rollback threshold")
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(root, ["manifest_required_review_packet_fields:rollback threshold"], "missing_review_packet_field")
-        write_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["ownership_evidence_fields"].remove("required approver set")
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(root, ["manifest_ownership_evidence_fields:required approver set"], "missing_ownership_required_approver_set_field")
-        write_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["ownership_evidence_fields"].remove("indefinite-C policy link or non-applicability note")
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(root, ["manifest_ownership_evidence_fields:indefinite-C policy link or non-applicability note"], "missing_ownership_field")
-        write_fixture_tree(root)
-        case_count += 1
-
-        checklist_path = root / REVIEW_CHECKLIST_PATH
-        original_checklist = checklist_path.read_text(encoding="utf-8")
-        checklist_path.write_text(original_checklist.replace(".github/workflows/zigux-bootstrap.yml", ".github/workflows/phase15-missing.yml", 1), encoding="utf-8")
-        expect_only(root, ["review_checklist:.github/workflows/zigux-bootstrap.yml"], "missing_workflow_marker")
-        checklist_path.write_text(original_checklist, encoding="utf-8")
-        case_count += 1
-
-        checklist_path.write_text(original_checklist.replace("make -C zigux phase15-validate", "make -C zigux phase15-check", 1), encoding="utf-8")
-        expect_only(root, ["review_checklist:make -C zigux phase15-validate"], "missing_validator_first_marker")
-        checklist_path.write_text(original_checklist, encoding="utf-8")
-        case_count += 1
-
-        checklist_path.write_text(
-            original_checklist.replace(
-                "parity scorecard link or blocker record",
-                "scorecard link",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["review_checklist:if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, parity scorecard link or blocker record, indefinite-C policy link or non-applicability note, explicit non-goals, and written rationale explicit?"],
-            "missing_exact_status_review_prompt",
-        )
-        checklist_path.write_text(original_checklist, encoding="utf-8")
-        case_count += 1
-
-        checklist_path.write_text(
-            original_checklist.replace(
-                "retained discussion state, the current blocker, and reopen triggers",
-                "retained discussion state and reopen triggers",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["review_checklist:if a freeze-map anchor is closing review with a stay-in-C outcome, are the retained discussion state, the current blocker, and reopen triggers explicit?"],
-            "missing_exact_stay_in_c_closeout_prompt",
-        )
-        checklist_path.write_text(original_checklist, encoding="utf-8")
+        bad = dict(original_manifest)
+        bad["required_review_packet_fields"] = [x for x in original_manifest["required_review_packet_fields"] if x != "required approver set"]
+        manifest_path.write_text(json.dumps(bad, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest_required_review_packet_fields:required approver set"], "missing_review_field")
+        manifest_path.write_text(json.dumps(original_manifest, indent=2) + "\n", encoding="utf-8")
         case_count += 1
 
         tests_readme_path = root / TESTS_README_PATH
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
-        tests_readme_path.write_text(
-            original_tests_readme.replace(
-                "Documentation/zigux/phase15-handoff-next-steps-survey.md",
-                "Documentation/zigux/phase15-handoff-next-steps-missing.md",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["tests_readme:Documentation/zigux/phase15-handoff-next-steps-survey.md"],
-            "missing_handoff_next_steps_survey_marker",
-        )
+        tests_readme_path.write_text(original_tests_readme.replace("zigux/tests/phase15_architecture_council_review_process.zig", "zigux/tests/missing.zig", 1), encoding="utf-8")
+        expect_only(root, ["tests_readme:zigux/tests/phase15_architecture_council_review_process.zig"], "missing_tests_root_marker")
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
         case_count += 1
 
-        tests_readme_path.write_text(
-            original_tests_readme.replace(
-                "zigux/tests/phase15_handoff_next_steps.zig",
-                "zigux/tests/phase15_handoff_next_steps_missing.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_only(
-            root,
-            ["tests_readme:zigux/tests/phase15_handoff_next_steps.zig"],
-            "missing_handoff_next_steps_replay_marker",
-        )
-        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
-        case_count += 1
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["handoff_evidence"]["current_bounded_lane"] = manifest["handoff_evidence"]["current_bounded_lane"].replace(
-            "direct `zig build test --build-file zigux/tests/phase15_build.zig` route ",
-            "",
-            1,
-        ).replace("  ", " ")
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(root, ["manifest_lane:direct `zig build test --build-file zigux/tests/phase15_build.zig` route"], "missing_direct_build_route_marker")
-        write_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["handoff"]["replay_commands"].remove("make -C zigux phase15-test")
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(root, ["manifest_handoff_replay:make -C zigux phase15-test"], "missing_dedicated_make_test_replay_command")
-        write_fixture_tree(root)
-        case_count += 1
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["handoff"]["replay_commands"].remove(".github/workflows/zigux-bootstrap.yml")
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_only(root, ["manifest_handoff_replay:.github/workflows/zigux-bootstrap.yml"], "missing_workflow_replay_command")
-        write_fixture_tree(root)
+        bad = dict(original_manifest)
+        handoff = dict(original_manifest["handoff"])
+        handoff["replay_commands"] = [x for x in original_manifest["handoff"]["replay_commands"] if x != "make -C zigux phase15-test"]
+        bad["handoff"] = handoff
+        manifest_path.write_text(json.dumps(bad, indent=2) + "\n", encoding="utf-8")
+        expect_only(root, ["manifest_handoff_replay:make -C zigux phase15-test"], "missing_handoff_replay")
+        manifest_path.write_text(json.dumps(original_manifest, indent=2) + "\n", encoding="utf-8")
         case_count += 1
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
