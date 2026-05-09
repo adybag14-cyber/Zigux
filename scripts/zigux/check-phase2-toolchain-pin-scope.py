@@ -407,6 +407,93 @@ def run_self_test() -> int:
     )
     assert validate_phase2_notes(valid_notes, payload=valid_policy) == []
 
+    valid_scripts_readme = "\n".join(README_MARKERS)
+    assert validate_required_markers(valid_scripts_readme, label="scripts_readme", markers=README_MARKERS) == []
+    missing_scripts_readme = validate_required_markers(
+        valid_scripts_readme.replace("x86_64-linux bootstrap host target", "", 1),
+        label="scripts_readme",
+        markers=README_MARKERS,
+    )
+    assert "scripts_readme:missing_marker:x86_64-linux bootstrap host target" in missing_scripts_readme
+
+    valid_docs_root = "\n".join(DOCS_ROOT_MARKERS)
+    assert validate_required_markers(valid_docs_root, label="docs_root_readme", markers=DOCS_ROOT_MARKERS) == []
+    missing_docs_root = validate_required_markers(
+        valid_docs_root.replace("make -C zigux phase2-cross", "", 1),
+        label="docs_root_readme",
+        markers=DOCS_ROOT_MARKERS,
+    )
+    assert "docs_root_readme:missing_marker:make -C zigux phase2-cross" in missing_docs_root
+
+    valid_tests_readme = "\n".join(TESTS_README_MARKERS)
+    assert validate_required_markers(valid_tests_readme, label="tests_readme", markers=TESTS_README_MARKERS) == []
+    missing_tests_readme = validate_required_markers(
+        valid_tests_readme.replace("bounded three-target compile matrix", "", 1),
+        label="tests_readme",
+        markers=TESTS_README_MARKERS,
+    )
+    assert "tests_readme:missing_marker:bounded three-target compile matrix" in missing_tests_readme
+
+    valid_review_checklist = "\n".join(REVIEW_CHECKLIST_MARKERS)
+    assert validate_required_markers(
+        valid_review_checklist,
+        label="review_checklist",
+        markers=REVIEW_CHECKLIST_MARKERS,
+    ) == []
+    missing_review_checklist = validate_required_markers(
+        valid_review_checklist.replace("make -C zigux phase2-cross", "", 1),
+        label="review_checklist",
+        markers=REVIEW_CHECKLIST_MARKERS,
+    )
+    assert "review_checklist:missing_marker:make -C zigux phase2-cross" in missing_review_checklist
+
+    valid_closure = "\n".join(CLOSURE_MARKERS)
+    assert validate_required_markers(valid_closure, label="phase2_closure_doc", markers=CLOSURE_MARKERS) == []
+    missing_closure = validate_required_markers(
+        valid_closure.replace("PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json", "", 1),
+        label="phase2_closure_doc",
+        markers=CLOSURE_MARKERS,
+    )
+    assert (
+        "phase2_closure_doc:missing_marker:PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json"
+        in missing_closure
+    )
+
+    valid_phase2_validator = "\n".join(PHASE2_VALIDATOR_MARKERS)
+    assert validate_required_markers(
+        valid_phase2_validator,
+        label="phase2_validator",
+        markers=PHASE2_VALIDATOR_MARKERS,
+    ) == []
+    missing_phase2_validator = validate_required_markers(
+        valid_phase2_validator.replace('"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass"', "", 1),
+        label="phase2_validator",
+        markers=PHASE2_VALIDATOR_MARKERS,
+    )
+    assert (
+        'phase2_validator:missing_marker:"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass"'
+        in missing_phase2_validator
+    )
+
+    valid_phase2_closure_validator = "\n".join(PHASE2_CLOSURE_VALIDATOR_MARKERS)
+    assert validate_required_markers(
+        valid_phase2_closure_validator,
+        label="phase2_closure_validator",
+        markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+    ) == []
+    closure_validator_anchor = (
+        'CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"'
+    )
+    missing_phase2_closure_validator = validate_required_markers(
+        valid_phase2_closure_validator.replace(closure_validator_anchor, "", 1),
+        label="phase2_closure_validator",
+        markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+    )
+    assert (
+        f"phase2_closure_validator:missing_marker:{closure_validator_anchor}"
+        in missing_phase2_closure_validator
+    )
+
     valid_makefile = "\n".join(
         [
             "phase2-toolchain:",
@@ -442,8 +529,20 @@ def run_self_test() -> int:
         assert issues and issues[0].startswith(f"{label}:exact_count:")
 
     assert "policy:phase='Phase 3':expected='Phase 2'" in validate_policy({**valid_policy, "phase": "Phase 3"})
-    assert any(issue.startswith("workflow_forbidden_fragment:") for issue in validate_exact_workflow_runs("run: python3 scripts/zigux/check-zig-toolchain.py --arch x86_64", payload=valid_policy))
-    assert "makefile_exact_run:scripts/zigux/check-zig-toolchain.py:count=2:expected=1" in validate_exact_makefile_runs(valid_makefile + "\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py")
+    assert any(
+        issue.startswith("workflow_forbidden_fragment:")
+        for issue in validate_exact_workflow_runs(
+            "run: python3 scripts/zigux/check-zig-toolchain.py --arch x86_64",
+            payload=valid_policy,
+        )
+    )
+    assert (
+        "makefile_exact_run:scripts/zigux/check-zig-toolchain.py:count=2:expected=1"
+        in validate_exact_makefile_runs(
+            valid_makefile
+            + "\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py"
+        )
+    )
     leaked_scope = "\n".join(
         [
             "phase2-toolchain:",
@@ -457,15 +556,18 @@ def run_self_test() -> int:
     leaked_issues = validate_toolchain_target_scope(leaked_scope)
     assert any(issue.startswith("makefile_target_scope:phase2-toolchain:") for issue in leaked_issues)
     assert any(issue.startswith("makefile_target_scope:phase2-validate:") for issue in leaked_issues)
-    assert "policy:approval_policy:shared_phase2_checklist_ack_required=False:expected=True" in validate_policy(
-        {
-            **valid_policy,
-            "approval_policy": {
-                "shared_phase2_checklist_ack_required": False,
-                "fresh_bootstrap_runner_evidence_required": True,
-                "separate_cross_target_expansion_approval_required": True,
-            },
-        }
+    assert (
+        "policy:approval_policy:shared_phase2_checklist_ack_required=False:expected=True"
+        in validate_policy(
+            {
+                **valid_policy,
+                "approval_policy": {
+                    "shared_phase2_checklist_ack_required": False,
+                    "fresh_bootstrap_runner_evidence_required": True,
+                    "separate_cross_target_expansion_approval_required": True,
+                },
+            }
+        )
     )
 
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
@@ -475,7 +577,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=18")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
