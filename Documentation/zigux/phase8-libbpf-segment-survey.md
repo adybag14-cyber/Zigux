@@ -16,6 +16,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `tools/lib/bpf/zigux_segments/verify.zig`
   - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
+  - `Documentation/zigux/phase8-pin-path-slice.md`
   - `Documentation/zigux/phase8-bpf-type-names-slice.md`
   - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
   - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
@@ -77,6 +78,7 @@ The current starter implementation stays deliberately bounded:
 - the logging helper keeps invalid `LIBBPF_LOG_LEVEL`-style values explicit for callers instead of printing directly
 - custom libbpf error text is exposed through a compact helper and unknown or unmapped codes fall back to a stable `"Unknown libbpf error N"` formatter
 - `pin_path.zig` ports the pure pathname join and bpffs dot-sanitization helpers behind explicit buffer-based APIs that mirror `pathname_concat()`, `build_map_pin_path()`, and `sanitize_pin_path()`
+- the pin-path helper now also carries a dedicated parked slice note at `Documentation/zigux/phase8-pin-path-slice.md` so its bounded pathname, validation, and non-goal surface stays reviewable without inventing a new focused make shard
 - the pin-path helper defaults to `/sys/fs/bpf` when callers leave the root unset, but still keeps actual map pinning, directory creation, and filesystem validation outside the Zig slice
 - pin-path overflows stay explicit as bounded helper errors instead of silently truncating output or widening into direct `PATH_MAX`, `mkdir()`, `statfs()`, or `unlink()` parity
 - `type_names.zig` ports the exported attach, link, map, and program type name tables as dense lookup helpers with stable string output
