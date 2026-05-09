@@ -394,7 +394,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try std.testing.expect(saw_shared_promotion_decision_gap);
 }
 
-test "phase4 perf baseline survey keeps the shared matrix on the current local-only perf posture" {
+test "phase4 perf baseline survey keeps the shared matrix and reviewer packet on the current local-only perf posture" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -405,6 +405,14 @@ test "phase4 perf baseline survey keeps the shared matrix on the current local-o
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(phase4_matrix);
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
 
     const required_matrix_markers = [_][]const u8{
         "zigux/tests/phase4_perf_baseline_manifest.json",
@@ -419,5 +427,19 @@ test "phase4 perf baseline survey keeps the shared matrix on the current local-o
 
     for (required_matrix_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, marker) != null);
+    }
+
+    const required_review_checklist_markers = [_][]const u8{
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+        "zigux/tests/phase4_perf_baseline_survey.zig",
+        "the dedicated local-only perf-baseline survey packet",
+        "the approved local-only benchmark commands and acceptable limits it carries",
+        "the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
+        "the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners",
+        "the still-pending shared-CI perf-promotion posture",
+    };
+
+    for (required_review_checklist_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, review_checklist, marker) != null);
     }
 }
