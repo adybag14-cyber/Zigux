@@ -14,7 +14,7 @@ DEFAULT_BINDINGS = ROOT / "zigux" / "bindings" / "abi.zig"
 DEFAULT_DUMP = ROOT / "zigux" / "tests" / "phase3_abi_dump.zig"
 DEFAULT_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3_abi_c_harness.c"
 DEFAULT_EXPECTED = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
-PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 8
+PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 10
 
 REQUIRED_CONSTANTS = (
     ("ZIGUX_FACILITY_KERNEL", "FACILITY_KERNEL", "facility_kernel", 1),
@@ -34,6 +34,16 @@ REQUIRED_CONSTANTS = (
 REQUIRED_BINDING_MARKERS = (
     "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
     "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED",
+)
+REQUIRED_FAMILY_TYPE_MARKERS = (
+    (
+        "struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view {",
+        "pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView = extern struct {",
+    ),
+    (
+        "struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary {",
+        "pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary = extern struct {",
+    ),
 )
 
 HEADER_DEFINE_RE = re.compile(r"^#define\s+(?P<name>[A-Z0-9_]+)\s+(?P<value>[0-9xa-fA-F]+)U?$")
@@ -135,6 +145,14 @@ def validate_constant_parity(
         if binding_name not in binding_constants:
             issues.append(f"{bindings_path}:missing_binding_marker:{binding_name}")
 
+    header_source = header_path.read_text(encoding="utf-8")
+    bindings_source = bindings_path.read_text(encoding="utf-8")
+    for header_marker, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS:
+        if header_marker not in header_source:
+            issues.append(f"{header_path}:missing_header_type_marker:{header_marker}")
+        if bindings_marker not in bindings_source:
+            issues.append(f"{bindings_path}:missing_binding_type_marker:{bindings_marker}")
+
     return issues
 
 
@@ -153,7 +171,10 @@ def run_self_test() -> int:
 
         def reset_all() -> None:
             header.write_text(
-                "\n".join(f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_CONSTANTS) + "\n",
+                "\n".join(
+                    [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_CONSTANTS]
+                    + [header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS]
+                ) + "\n",
                 encoding="utf-8",
                 newline="\n",
             )
@@ -161,6 +182,7 @@ def run_self_test() -> int:
                 "\n".join(
                     [*(f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in REQUIRED_CONSTANTS)]
                     + [f"pub const {binding_name}: u32 = 1;" for binding_name in REQUIRED_BINDING_MARKERS]
+                    + [bindings_marker for _, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS]
                 )
                 + "\n",
                 encoding="utf-8",
@@ -234,6 +256,7 @@ def run_self_test() -> int:
                         f"#define {header_name} {value}U"
                         for header_name, _, _, value in REQUIRED_CONSTANTS[1:]
                     ],
+                    *[header_marker for header_marker, _ in REQUIRED_FAMILY_TYPE_MARKERS],
                 ]
             ) + "\n",
             encoding="utf-8",
@@ -254,6 +277,7 @@ def run_self_test() -> int:
                         for _, binding_name, _, value in REQUIRED_CONSTANTS[1:]
                     ],
                     *[f"pub const {binding_name}: u32 = 1;" for binding_name in REQUIRED_BINDING_MARKERS],
+                    *[bindings_marker for _, bindings_marker in REQUIRED_FAMILY_TYPE_MARKERS],
                 ]
             ) + "\n",
             encoding="utf-8",
@@ -261,6 +285,34 @@ def run_self_test() -> int:
         )
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
         assert f"{bindings}:duplicate_binding_constant:{REQUIRED_CONSTANTS[0][1]}:1,2" in issues
+        case_count += 1
+
+        reset_all()
+        header.write_text(
+            header.read_text(encoding="utf-8").replace(
+                REQUIRED_FAMILY_TYPE_MARKERS[0][0] + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        assert f"{header}:missing_header_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[0][0]}" in issues
+        case_count += 1
+
+        reset_all()
+        bindings.write_text(
+            bindings.read_text(encoding="utf-8").replace(
+                REQUIRED_FAMILY_TYPE_MARKERS[1][1] + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        assert f"{bindings}:missing_binding_type_marker:{REQUIRED_FAMILY_TYPE_MARKERS[1][1]}" in issues
         case_count += 1
 
     print("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass")
