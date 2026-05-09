@@ -287,8 +287,8 @@ pub const kunit_random_prefix_cases = [_]KunitRandomPrefixCase{
         .name = "no-carry seeded random odd",
         .bytes = &.{ 0x04, 0x70, 0x68, 0x61, 0x73 },
         .seed = 0xffff_fbfb,
-        .expected_partial = 0xdbcc,
-        .expected_compute = 0x2433,
+        .expected_partial = 0xdbcd,
+        .expected_compute = 0x2432,
     },
     .{
         .name = "no-carry seeded pair",
