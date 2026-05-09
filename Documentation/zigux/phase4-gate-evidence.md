@@ -16,12 +16,12 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_DOC_README_BLOB_SHA=83fdb88b39510390329e65451a5a086a27160f5e`
 - `PHASE4_SCRIPT_README_BLOB_SHA=99260a5df20d5cc22802bf1c4a0fd3c4187eb50d`
 - `PHASE4_TESTS_README_BLOB_SHA=39bd1615781674e6a9d3a5db85b40802d79de3fe`
-- `PHASE4_ATOMIC64_DIFF_BLOB_SHA=eb977733f62468925a07cbb75899bed0ed63551a`
+- `PHASE4_ATOMIC64_DIFF_BLOB_SHA=6d7939d2479585da22f75dd4fce38a696a409c70`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=b52320323e1e6718245621253d11293d5cae03da`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=24418ad890696a59b95276fe8dec7eaeecf25172`
-- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=ac6266c43e4ec549497152987294f3a50f40393f`
-- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=18f42f6fe921993a0122656ced35be39e6355b18`
+- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=c07e5b618197ec3a907601b7ec45f43a06369761`
+- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=3bd9ce98bdaa9a5efbdc011d92ae4f23b89f94f0`
 - `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=4de871b5b7991bf0bdc64c744b1a7118c76356e8`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=18`
@@ -40,6 +40,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now all point at the same currently shipped Phase 4 rollback-readiness packet surfaces that the validator and shared build still own on `master`.
 - `scripts/zigux/check-phase4-gate-evidence.py` remains the dedicated exact-readback checker for this narrower rollback-ownership packet.
 - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair, and `phase4-runtime-atomic64-diff-survey-tests` plus `phase4-bitmap-live-helper-replay-tests` stay wired through the shared Phase 4 build entrypoint.
+- The current bounded atomic64 rollback gate now has an exact check inventory in this note: two arithmetic checks (`v0 arithmetic path mirrors add/sub/add_return/sub_return/inc_return/dec_return sequencing` and `negative-one arithmetic path keeps decrement-style updates visible`), three exchange checks (`v0 to v1 keeps the original counter visible as the exchange return value`, `v1 to v2 keeps wide negative and positive 64-bit values distinct`, and `high-bit starter from atomic64_test.c still round-trips through exchange`), two `cmpxchg` checks (success and mismatch), two `add_unless` checks (blocked and changed), three bitwise checks (`and`, `or`, and `xor`), the selftest-family ordering replay, empty-batch rejection for `runThresholdReplay(0)`, and deterministic threshold replays for `runThresholdReplay(1)` and `runThresholdReplay(4)` with final counters `130322557735600377` and `130322557735600376` plus checksums `3626254113632800175` and `9210681150676220922`.
 - That published eighteen-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, and it now checks the shipped perf-baseline packet's manifest-presence drift path plus the adjacent `test_fsmount` gap packet's manifest-presence drift path too, so those validator, matrix, reviewer-checklist, perf-baseline packet, and parked `test_fsmount` packet expectations are no longer an unstated self-test gap.
 - The exact-readback set is current again for the shared rollback-ownership and lab-matrix packet, and the manifest-backed runtime atomic64 survey pair now pins the same current `phase4_build.zig`, `validate-phase4.py`, `phase4-validation-matrix.md`, `Documentation/zigux/review-checklist.md`, and `phase9_build.zig` blobs that the shared validator and review packet now depend on.
 - The current helper-backed bitmap rollback lab replay route remains `zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`, and the helper-backed row still records `Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`.
