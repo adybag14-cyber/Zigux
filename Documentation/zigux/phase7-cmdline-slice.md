@@ -7,7 +7,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=cmdline-runtime-leaf`
 - scope: first low-risk parsing helpers only
-- lane state: helper, fixture, dedicated survey, shared build-wiring checker, shared validator, and make-wrapper slice landed; parked unless a new `cmdline.c` parity issue appears
+- lane state: helper, fixture, dedicated survey, shared build-wiring checker, and parked make-wrapper slice landed; keep this helper slice parked unless a fresh parity gap appears or the shared Phase 7 validator still lets `zigux/tests/README.md` drop the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` reminder while the rest of the shared packet keeps it explicit
 - product boundary:
   - `lib/cmdline.zig`
   - `samples/zigux/README.md`
@@ -93,4 +93,4 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `cmdline.c` parity gap inside the existing helper, fixture, dedicated survey, shared validator, exact shared compile-check replay, make-wrapper, or shared-gate surface.
+Keep the helper slice parked unless fresh repo inspection shows one real same-lane reviewability gap inside the existing shared packet. The next honest reopen point is validator-local only: if `scripts/zigux/validate-phase7.py` still lets `zigux/tests/README.md` drop `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` while `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and this slice keep that committed edge-vector fixture explicit, reopen only long enough to land that one-file fail-closed guard.
