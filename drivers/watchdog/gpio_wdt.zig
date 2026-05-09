@@ -261,6 +261,27 @@ pub const RegisterDeviceCallSummary = struct {
     blocked_on_reboot_glue: bool,
 };
 
+pub const FailureModeCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    hw_margin_ms: u32,
+    requested_line: ProbeLineRequest,
+    descriptor_flags: DescriptorRequestFlags,
+    invalid_hardware_algorithm_rejected: bool,
+    invalid_hardware_algorithm_blocks_descriptor_lookup: bool,
+    invalid_hardware_algorithm_blocks_timeout_property: bool,
+    invalid_hardware_algorithm_blocks_watchdog_drvdata_handoff: bool,
+    invalid_hardware_algorithm_blocks_register_device_request: bool,
+    invalid_timeout_rejected: bool,
+    invalid_timeout_blocks_watchdog_drvdata_handoff: bool,
+    invalid_timeout_blocks_register_device_request: bool,
+    nowayout_stop_blocks_driver_stop: bool,
+    nowayout_block_preserves_running_state: bool,
+    nowayout_block_preserves_line_state: bool,
+    blocked_on_live_gpio_lookup: bool,
+    blocked_on_platform_registration: bool,
+};
+
 pub const GpioWatchdogLab = struct {
     const Self = @This();
 
@@ -642,6 +663,32 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
+    pub fn failureModeCheckpointSummary(self: *const Self, nowayout: bool) FailureModeCheckpointSummary {
+        const descriptor_preflight = self.descriptorPreflightSummary();
+        const timeout_checkpoint = self.timeoutPropertyCheckpointSummary();
+
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .hw_margin_ms = self.hw_margin_ms,
+            .requested_line = descriptor_preflight.requested_line,
+            .descriptor_flags = descriptor_preflight.descriptor_flags,
+            .invalid_hardware_algorithm_rejected = true,
+            .invalid_hardware_algorithm_blocks_descriptor_lookup = true,
+            .invalid_hardware_algorithm_blocks_timeout_property = true,
+            .invalid_hardware_algorithm_blocks_watchdog_drvdata_handoff = true,
+            .invalid_hardware_algorithm_blocks_register_device_request = true,
+            .invalid_timeout_rejected = true,
+            .invalid_timeout_blocks_watchdog_drvdata_handoff = timeout_checkpoint.invalid_timeout_blocks_later_handoffs,
+            .invalid_timeout_blocks_register_device_request = true,
+            .nowayout_stop_blocks_driver_stop = nowayout,
+            .nowayout_block_preserves_running_state = nowayout,
+            .nowayout_block_preserves_line_state = nowayout,
+            .blocked_on_live_gpio_lookup = descriptor_preflight.blocked_on_live_gpio_lookup,
+            .blocked_on_platform_registration = timeout_checkpoint.blocked_on_platform_registration,
+        };
+    }
+
     fn disable(self: *Self) void {
         self.disable_count += 1;
         self.line_state = true;
@@ -744,6 +791,50 @@ test "register device call summary keeps toggle handoff and descriptor checkpoin
     try std.testing.expect(summary.blocked_on_live_gpio_lookup);
     try std.testing.expect(summary.blocked_on_platform_registration);
     try std.testing.expect(summary.blocked_on_reboot_glue);
+}
+
+test "failure-mode checkpoint keeps invalid configuration and nowayout stop boundaries explicit" {
+    const blocked = try GpioWatchdogLab.init(.toggle, 20, false);
+    const blocked_summary = blocked.failureModeCheckpointSummary(true);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", blocked_summary.anchor);
+    try std.testing.expectEqual(HardwareAlgorithm.toggle, blocked_summary.hw_algo);
+    try std.testing.expectEqual(@as(u32, 20), blocked_summary.hw_margin_ms);
+    try std.testing.expectEqual(ProbeLineRequest.input, blocked_summary.requested_line);
+    try std.testing.expectEqual(DescriptorRequestFlags.in, blocked_summary.descriptor_flags);
+    try std.testing.expect(blocked_summary.invalid_hardware_algorithm_rejected);
+    try std.testing.expect(blocked_summary.invalid_hardware_algorithm_blocks_descriptor_lookup);
+    try std.testing.expect(blocked_summary.invalid_hardware_algorithm_blocks_timeout_property);
+    try std.testing.expect(blocked_summary.invalid_hardware_algorithm_blocks_watchdog_drvdata_handoff);
+    try std.testing.expect(blocked_summary.invalid_hardware_algorithm_blocks_register_device_request);
+    try std.testing.expect(blocked_summary.invalid_timeout_rejected);
+    try std.testing.expect(blocked_summary.invalid_timeout_blocks_watchdog_drvdata_handoff);
+    try std.testing.expect(blocked_summary.invalid_timeout_blocks_register_device_request);
+    try std.testing.expect(blocked_summary.nowayout_stop_blocks_driver_stop);
+    try std.testing.expect(blocked_summary.nowayout_block_preserves_running_state);
+    try std.testing.expect(blocked_summary.nowayout_block_preserves_line_state);
+    try std.testing.expect(blocked_summary.blocked_on_live_gpio_lookup);
+    try std.testing.expect(blocked_summary.blocked_on_platform_registration);
+
+    const stoppable = try GpioWatchdogLab.init(.level, 500, true);
+    const stoppable_summary = stoppable.failureModeCheckpointSummary(false);
+    try std.testing.expectEqual(HardwareAlgorithm.level, stoppable_summary.hw_algo);
+    try std.testing.expectEqual(@as(u32, 500), stoppable_summary.hw_margin_ms);
+    try std.testing.expectEqual(ProbeLineRequest.output_low, stoppable_summary.requested_line);
+    try std.testing.expectEqual(DescriptorRequestFlags.out_low, stoppable_summary.descriptor_flags);
+    try std.testing.expect(stoppable_summary.invalid_hardware_algorithm_rejected);
+    try std.testing.expect(stoppable_summary.invalid_hardware_algorithm_blocks_descriptor_lookup);
+    try std.testing.expect(stoppable_summary.invalid_hardware_algorithm_blocks_timeout_property);
+    try std.testing.expect(stoppable_summary.invalid_hardware_algorithm_blocks_watchdog_drvdata_handoff);
+    try std.testing.expect(stoppable_summary.invalid_hardware_algorithm_blocks_register_device_request);
+    try std.testing.expect(stoppable_summary.invalid_timeout_rejected);
+    try std.testing.expect(stoppable_summary.invalid_timeout_blocks_watchdog_drvdata_handoff);
+    try std.testing.expect(stoppable_summary.invalid_timeout_blocks_register_device_request);
+    try std.testing.expect(!stoppable_summary.nowayout_stop_blocks_driver_stop);
+    try std.testing.expect(!stoppable_summary.nowayout_block_preserves_running_state);
+    try std.testing.expect(!stoppable_summary.nowayout_block_preserves_line_state);
+    try std.testing.expect(stoppable_summary.blocked_on_live_gpio_lookup);
+    try std.testing.expect(stoppable_summary.blocked_on_platform_registration);
 }
 
 test "always-running level teardown keeps heartbeat active after stop-backed teardown" {
