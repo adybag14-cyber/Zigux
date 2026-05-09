@@ -228,7 +228,8 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     defer std.testing.allocator.free(build_text);
     try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_text, "b.addTest(.{"));
     try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_text, "b.addRunArtifact("));
-    try std.testing.expect(containsMarker(build_text, "const smoke_step = b.step(\"phase14-smoke\", \"Run the focused Phase 14 end-to-end smoke survey\")"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, build_text, "const smoke_step = b.step(\"phase14-smoke\", \"Run the focused Phase 14 end-to-end smoke survey\")"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, build_text, "const test_step = b.step(\"test\", \"Run Phase 14 bounded internal bridge tests\")"));
     try std.testing.expect(containsMarker(build_text, "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);"));
     try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);"));
     try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_skbuff_bridge_tests.step);"));
@@ -243,11 +244,11 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     );
     defer std.testing.allocator.free(workflow_text);
     try std.testing.expect(containsMarker(workflow_text, "Validate Phase 14 shared smoke packet"));
-    try std.testing.expect(containsMarker(workflow_text, "run: make -C zigux phase14-validate"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, workflow_text, "run: make -C zigux phase14-validate"));
     try std.testing.expect(containsMarker(workflow_text, "Run focused Phase 14 smoke shard"));
-    try std.testing.expect(containsMarker(workflow_text, "run: make -C zigux phase14-smoke"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, workflow_text, "run: make -C zigux phase14-smoke"));
     try std.testing.expect(containsMarker(workflow_text, "Run Phase 14 internal bridge tests"));
-    try std.testing.expect(containsMarker(workflow_text, "run: make -C zigux phase14-test"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, workflow_text, "run: make -C zigux phase14-test"));
 
     for (expected_compile_artifacts) |expected| {
         const matrix_row = try std.fmt.allocPrint(
@@ -269,7 +270,8 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     );
     defer std.testing.allocator.free(makefile_text);
     try std.testing.expect(containsMarker(makefile_text, "phase14-smoke:"));
-    try std.testing.expect(containsMarker(makefile_text, "phase14-test:"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, makefile_text, "phase14-test:"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, makefile_text, "$(ZIG) build test --build-file zigux/tests/phase14_build.zig"));
     try std.testing.expect(containsMarker(makefile_text, "scripts/zigux/validate-phase14.py --self-test"));
     try std.testing.expect(containsMarker(makefile_text, "scripts/zigux/check-phase14-docs-root-smoke-summary.py"));
     try std.testing.expect(containsMarker(makefile_text, "phase14: phase14-validate phase14-smoke phase14-test"));
