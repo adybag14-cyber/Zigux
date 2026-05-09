@@ -5,6 +5,7 @@ This bounded Phase 13 slice starts `lib/devres.zig` with a pure helper-first foo
 The current helper stays intentionally narrow:
 
 - preserves the already-landed managed `__devm_ioremap()` lifetime bookkeeping so the lane can distinguish retained release records from free-on-failure cleanup and keep the `devm_iounmap()` and `devm_ioport_unmap()` pointer matches exact
+- keeps the adjacent `devm_ioport_map()` acquire bookkeeping explicit so release-record retention on success and free-on-failure cleanup stay reviewable without claiming any live port-space side effects
 - keeps the direct `devm_ioremap_uc()`, `devm_ioremap_wc()`, and `devm_ioremap_np()` wrappers explicit as pure uncached, write-combined, and non-posted lifetime planners around that same managed acquire split
 - extends that starter into the reviewable `__devm_ioremap_resource()` planning step by checking that a resource is memory-backed, computing the inclusive resource size, and switching plain managed ioremap requests to the non-posted variant when the resource flags demand it
 - keeps the landed `devm_of_iomap()` bridge as a pure planner that selects one translated resource by index, records the optional reported size as soon as translation succeeds, and then delegates to the existing managed-resource planner without pretending to read a live device tree; this keeps the devm_of_iomap() bridge as a pure planner
