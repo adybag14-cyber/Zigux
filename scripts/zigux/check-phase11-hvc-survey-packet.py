@@ -40,6 +40,10 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
     "repo reality now carries one bounded starter for each Phase 11 simple-production-driver roadmap anchor",
     "khvcd polling-contract follow-through",
     "`hvc_hangup()` disconnect boundary",
+    "write-to-hangup",
+    "retry-after-`-EAGAIN`",
+    "partial-write carryover",
+    "stale-hangup buffered-byte preservation",
     "resize-work cancellation",
     "stale-count short-circuiting",
     "notifier-hangup ownership",
@@ -65,10 +69,15 @@ REQUIRED_TEARDOWN_NOTE_MARKERS = [
     "summarizeCloseBoundary()",
     "summarizeCleanupHandoff()",
     "summarizeRemoveHandoff()",
+    "summarizeWriteTeardownHandoff()",
     "summarizeHangupDisconnect()",
     "tty_port_put()",
     "tty_vhangup()",
     "tty_kref_put()",
+    "retry-after-`-EAGAIN`",
+    "fatal-drop with no invented buffered bytes",
+    "partial-write carryover",
+    "stale-hangup buffered-byte preservation",
     "resize-work cancellation",
     "stale-count short-circuiting",
     "tty detachment",
@@ -136,6 +145,14 @@ REQUIRED_VERIFY_REPLAY_MARKERS = [
 REQUIRED_SURVEY_REPLAY_MARKERS = [
     'test "phase11 hvc console survey keeps a bounded winsize layout proof"',
     'test "phase11 hvc console survey keeps a bounded hv_ops layout proof"',
+    'try expectContains(note, "close, cleanup, remove, write-to-hangup, and hangup-disconnect ownership split");',
+    'try expectContains(note, "retry-after-`-EAGAIN`");',
+    'try expectContains(note, "partial-write carryover");',
+    'try expectContains(note, "stale-hangup buffered-byte preservation");',
+    'try expectContains(teardown_note, "summarizeWriteTeardownHandoff()");',
+    'try expectContains(teardown_note, "fatal-drop with no invented buffered bytes");',
+    'try expectContains(teardown_note, "partial-write carryover");',
+    'try expectContains(teardown_note, "stale-hangup buffered-byte preservation");',
     "layout_assert.assertSize(WinSize, 8);",
     'layout_assert.assertOffset(WinSize, "ws_ypixel", 6);',
     "layout_assert.assertSize(HvOps, 72);",
@@ -185,7 +202,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 70
+SELF_TEST_CASE_COUNT = 77
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -286,7 +303,7 @@ The live archival packet now belongs to lane `P11-L16`.
 
 - `zigux/tests/phase11_hvc_console_survey.zig` now keeps a bounded driver-local layout checkpoint
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md` names the current shared gate
-- `Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, remove, and hangup-disconnect ownership split explicit, including resize-work cancellation, stale-count short-circuiting, notifier-hangup ownership, buffered-write clearing, and kept console binding
+- `Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, remove, write-to-hangup, and hangup-disconnect ownership split explicit, including retry-after-`-EAGAIN`, partial-write carryover, stale-hangup buffered-byte preservation, resize-work cancellation, stale-count short-circuiting, notifier-hangup ownership, buffered-write clearing, and kept console binding
 - `scripts/zigux/check-phase11-hvc-survey-packet.py` keeps the dedicated archival survey note, validation matrix, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around the same delivery route
 - `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` keep those HVC review surfaces coupled to the wider Phase 11 replay route
 - the bounded archival checkpoint keeps `drivers/tty/hvc/hvc_console.zig` framed as a direct-port driver starter with a hardware validation matrix and teardown and failure-mode parity kept host-free
@@ -320,10 +337,15 @@ The live archival packet now belongs to lane `P11-L16`.
 - `summarizeCloseBoundary()`
 - `summarizeCleanupHandoff()`
 - `summarizeRemoveHandoff()`
+- `summarizeWriteTeardownHandoff()`
 - `summarizeHangupDisconnect()`
 - `tty_port_put()`
 - `tty_vhangup()`
 - `tty_kref_put()`
+- retry-after-`-EAGAIN`
+- fatal-drop with no invented buffered bytes
+- partial-write carryover
+- stale-hangup buffered-byte preservation
 - resize-work cancellation
 - stale-count short-circuiting
 - tty detachment
@@ -426,6 +448,19 @@ test "hvc_console verify rejects impossible hangup buffered-write state" {
         root / SURVEY_REPLAY_PATH,
         """const layout_assert = @import("layout_assert");
 
+fn expectContains(_: []const u8, _: []const u8) void {}
+
+const note =
+    \close, cleanup, remove, write-to-hangup, and hangup-disconnect ownership split
+    \
+;
+const teardown_note =
+    \summarizeWriteTeardownHandoff()
+    \fatal-drop with no invented buffered bytes
+    \partial-write carryover
+    \stale-hangup buffered-byte preservation
+;
+
 test "phase11 hvc console survey keeps a bounded winsize layout proof" {
     comptime {
         layout_assert.assertSize(WinSize, 8);
@@ -440,6 +475,17 @@ test "phase11 hvc console survey keeps a bounded hv_ops layout proof" {
         layout_assert.assertFieldType(HvOps, "notifier_hangup", HvOpsNotifierHangup);
         layout_assert.assertOffset(HvOps, "dtr_rts", 64);
     }
+}
+
+test "markers" {
+    try expectContains(note, "close, cleanup, remove, write-to-hangup, and hangup-disconnect ownership split");
+    try expectContains(note, "retry-after-`-EAGAIN`");
+    try expectContains(note, "partial-write carryover");
+    try expectContains(note, "stale-hangup buffered-byte preservation");
+    try expectContains(teardown_note, "summarizeWriteTeardownHandoff()");
+    try expectContains(teardown_note, "fatal-drop with no invented buffered bytes");
+    try expectContains(teardown_note, "partial-write carryover");
+    try expectContains(teardown_note, "stale-hangup buffered-byte preservation");
 }
 """,
     )
@@ -608,6 +654,30 @@ def run_self_test() -> int:
             expect_failure(
                 root,
                 SURVEY_NOTE_PATH,
+                "write-to-hangup",
+                "survey_note:write-to-hangup",
+            )
+            expect_failure(
+                root,
+                SURVEY_NOTE_PATH,
+                "retry-after-`-EAGAIN`",
+                "survey_note:retry-after-`-EAGAIN`",
+            )
+            expect_failure(
+                root,
+                SURVEY_NOTE_PATH,
+                "partial-write carryover",
+                "survey_note:partial-write carryover",
+            )
+            expect_failure(
+                root,
+                SURVEY_NOTE_PATH,
+                "stale-hangup buffered-byte preservation",
+                "survey_note:stale-hangup buffered-byte preservation",
+            )
+            expect_failure(
+                root,
+                SURVEY_NOTE_PATH,
                 "resize-work cancellation",
                 "survey_note:resize-work cancellation",
             )
@@ -670,6 +740,36 @@ def run_self_test() -> int:
                 SLICE_NOTE_PATH,
                 "shared-versus-dedicated HVC review packet",
                 "slice_note:shared-versus-dedicated HVC review packet",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "summarizeWriteTeardownHandoff()",
+                "teardown_note:summarizeWriteTeardownHandoff()",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "retry-after-`-EAGAIN`",
+                "teardown_note:retry-after-`-EAGAIN`",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "fatal-drop with no invented buffered bytes",
+                "teardown_note:fatal-drop with no invented buffered bytes",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "partial-write carryover",
+                "teardown_note:partial-write carryover",
+            )
+            expect_failure(
+                root,
+                TEARDOWN_NOTE_PATH,
+                "stale-hangup buffered-byte preservation",
+                "teardown_note:stale-hangup buffered-byte preservation",
             )
             expect_failure(
                 root,
@@ -904,6 +1004,54 @@ def run_self_test() -> int:
                 SURVEY_REPLAY_PATH,
                 'test "phase11 hvc console survey keeps a bounded hv_ops layout proof"',
                 'survey_replay:test "phase11 hvc console survey keeps a bounded hv_ops layout proof"',
+            )
+            expect_failure(
+                root,
+                SURVEY_REPLAY_PATH,
+                'try expectContains(note, "close, cleanup, remove, write-to-hangup, and hangup-disconnect ownership split");',
+                'survey_replay:try expectContains(note, "close, cleanup, remove, write-to-hangup, and hangup-disconnect ownership split");',
+            )
+            expect_failure(
+                root,
+                SURVEY_REPLAY_PATH,
+                'try expectContains(note, "retry-after-`-EAGAIN`");',
+                'survey_replay:try expectContains(note, "retry-after-`-EAGAIN`");',
+            )
+            expect_failure(
+                root,
+                SURVEY_REPLAY_PATH,
+                'try expectContains(note, "partial-write carryover");',
+                'survey_replay:try expectContains(note, "partial-write carryover");',
+            )
+            expect_failure(
+                root,
+                SURVEY_REPLAY_PATH,
+                'try expectContains(note, "stale-hangup buffered-byte preservation");',
+                'survey_replay:try expectContains(note, "stale-hangup buffered-byte preservation");',
+            )
+            expect_failure(
+                root,
+                SURVEY_REPLAY_PATH,
+                'try expectContains(teardown_note, "summarizeWriteTeardownHandoff()");',
+                'survey_replay:try expectContains(teardown_note, "summarizeWriteTeardownHandoff()");',
+            )
+            expect_failure(
+                root,
+                SURVEY_REPLAY_PATH,
+                'try expectContains(teardown_note, "fatal-drop with no invented buffered bytes");',
+                'survey_replay:try expectContains(teardown_note, "fatal-drop with no invented buffered bytes");',
+            )
+            expect_failure(
+                root,
+                SURVEY_REPLAY_PATH,
+                'try expectContains(teardown_note, "partial-write carryover");',
+                'survey_replay:try expectContains(teardown_note, "partial-write carryover");',
+            )
+            expect_failure(
+                root,
+                SURVEY_REPLAY_PATH,
+                'try expectContains(teardown_note, "stale-hangup buffered-byte preservation");',
+                'survey_replay:try expectContains(teardown_note, "stale-hangup buffered-byte preservation");',
             )
             expect_failure(
                 root,
