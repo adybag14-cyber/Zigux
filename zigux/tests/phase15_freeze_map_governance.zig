@@ -11,6 +11,7 @@ const BlockerOwnership = struct {
     owner: []const u8,
     phase: []const u8,
     status_bucket: []const u8,
+    required_approver_set: []const u8,
     validation_gate: []const u8,
     rollback_owner: []const u8,
     evidence_archive_path: []const u8,
@@ -105,7 +106,11 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
     try std.testing.expectEqual(@as(usize, 6), manifest.governance_requirements.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.blocker_ownership.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.deep_core_blocker_survey.len);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+
+    const sched = manifest.blocker_ownership[0];
+    try std.testing.expectEqualStrings("kernel/sched/core.c", sched.anchor);
+    try std.testing.expectEqualStrings("Architecture Council + PMO / Release Management", sched.required_approver_set);
 
     const skbuff = manifest.deep_core_blocker_survey[3];
     try std.testing.expectEqualStrings("net/core/skbuff.c", skbuff.anchor);
@@ -115,6 +120,9 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
 
     const required_field_sync = findGap(manifest.gaps, "phase15-review-process-required-field-sync") orelse return error.MissingGap;
     try expectContains(required_field_sync.why_now, "required approver set");
+
+    const approver_sync = findGap(manifest.gaps, "phase15-freeze-map-required-approver-sync") orelse return error.MissingGap;
+    try expectContains(approver_sync.why_now, "required-approver-set inventory");
 
     const dated_refresh = findGap(manifest.gaps, "phase15-dated-readback-provenance-refresh") orelse return error.MissingGap;
     try expectContains(dated_refresh.why_now, "drifted behind current master");
@@ -141,6 +149,7 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "lane P14-L13 still records blocked phase14-rcu-tree-bridge-blocker");
     try expectContains(governance_note, "lane P14-L10 still records blocked phase14-skbuff-live-ownership-blocker");
     try expectContains(governance_note, "phase15-review-process-required-field-sync");
+    try expectContains(governance_note, "phase15-freeze-map-required-approver-sync");
     try expectContains(governance_note, "phase15-dated-readback-provenance-refresh");
 }
 
@@ -171,6 +180,7 @@ test "phase 15 freeze-map required terms and scorecard ownership stay aligned" {
     for (parsed.value.blocker_ownership) |ownership| {
         try expectContains(governance_note, ownership.anchor);
         try expectContains(governance_note, ownership.owner);
+        try expectContains(governance_note, ownership.required_approver_set);
         try expectContains(governance_note, ownership.rollback_owner);
         try expectContains(governance_note, ownership.evidence_archive_path);
         try expectContains(governance_note, ownership.benchmark_notes);
