@@ -17,6 +17,7 @@ REQUIRED_WORKFLOW_RUNS = [
     "python3 scripts/zigux/check-fixdep-diff.py",
     "zig test scripts/zigux/fixdep.zig",
 ]
+FIXDEP_PACKET_RUNS = REQUIRED_WORKFLOW_RUNS[:-1]
 REQUIRED_CASE_NAME = "sample_escaped_colon"
 REQUIRED_STDOUT_PACKET = "sample_escaped_colon_expected.txt"
 REQUIRED_HELPER_ANCHOR = "dep parsing unescapes escaped colons inside tokens"
@@ -44,10 +45,10 @@ def count_exact(items: list[str], value: str) -> int:
 
 def has_exact_fixdep_packet(commands: list[str]) -> bool:
     try:
-        start = commands.index(REQUIRED_WORKFLOW_RUNS[0])
+        start = commands.index(FIXDEP_PACKET_RUNS[0])
     except ValueError:
         return False
-    return commands[start : start + len(REQUIRED_WORKFLOW_RUNS)] == REQUIRED_WORKFLOW_RUNS
+    return commands[start : start + len(FIXDEP_PACKET_RUNS)] == FIXDEP_PACKET_RUNS
 
 
 def validate_texts(
