@@ -7,7 +7,7 @@ scope: roadmap-adjacent reviewability evidence only
 
 ## Why this packet exists
 
-Phase 13 is still scheduled around `fs/libfs.c`, `lib/devres.c`, and the two Landlock anchors. The live tree nevertheless carries a small notifier-plus-list foothold through `zigux/bindings/notifier_abi.zig`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `zigux/helpers/notifier_chain_view.zig`, and the exported list or hlist structs in `include/zigux/abi.h`. This note keeps that adjacent surface reviewable without recasting notifier work as a new shared-helper delivery anchor.
+Phase 13 is still scheduled around `fs/libfs.c`, `lib/devres.c`, and the two Landlock anchors. The live tree nevertheless carries a small notifier-plus-list foothold through `zigux/bindings/notifier_abi.zig`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `zigux/helpers/notifier_chain_view.zig`, the exported list or hlist structs in `include/zigux/abi.h`, the dedicated list-side helpers in `include/zigux/list_abi.h`, and the notifier-side helpers in `include/zigux/notifier_abi.h`. This note keeps that adjacent surface reviewable without recasting notifier or list work as a new shared-helper delivery anchor.
 
 ## Current live evidence
 
@@ -15,6 +15,7 @@ Phase 13 is still scheduled around `fs/libfs.c`, `lib/devres.c`, and the two Lan
 - `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` already provide read-only list traversal summaries with explicit bounded scan limits.
 - `zigux/helpers/notifier_chain_view.zig` now provides the matching read-only notifier-chain summary helpers, including the nonincreasing-priority signal.
 - `include/zigux/abi.h` already exports the list and hlist ABI carrier structs that those helpers depend on.
+- `include/zigux/list_abi.h` now ships the matching bounded C-side `list_head` and `hlist` view helpers so adjacent list traversal interop is reviewable without widening the shared Phase 13 replay bundle.
 - `include/zigux/notifier_abi.h` is now shipped as adjacent notifier interop evidence beside `zigux/bindings/notifier_abi.zig` and `zigux/helpers/notifier_chain_view.zig`.
 - `scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet so the survey note, manifest, helper, header, and adjacent-only build posture stay aligned.
 - `zigux/tests/phase13_notifier_list_manifest.json` and `zigux/tests/phase13_notifier_list_reviewability.zig` now keep that notifier-plus-list foothold pinned to roadmap-adjacent reviewability evidence instead of silently reading like a ninth shared replay step.
@@ -35,4 +36,4 @@ Phase 13 is still scheduled around `fs/libfs.c`, `lib/devres.c`, and the two Lan
 
 ## Validation intent
 
-`zigux/tests/phase13_notifier_list_reviewability.zig` and `scripts/zigux/check-phase13-notifier-packet.py` should keep the current binding-side notifier surface, the shipped adjacent notifier header plus helper footholds, the adjacent-only build posture, and the remaining no-callback or no-registration boundaries aligned with this note and the manifest.
+`zigux/tests/phase13_notifier_list_reviewability.zig` and `scripts/zigux/check-phase13-notifier-packet.py` should keep the current list-side and notifier-side helper headers, the paired Zig helper footholds, the adjacent-only build posture, and the remaining no-callback or no-registration boundaries aligned with this note and the manifest.
