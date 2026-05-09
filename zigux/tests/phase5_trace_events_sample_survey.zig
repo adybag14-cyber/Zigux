@@ -89,6 +89,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     var saw_public_conditional_prompt = false;
     var saw_callback_prompt = false;
     var saw_callback_boundary_prompt = false;
+    var saw_ownership_replay_prompt = false;
     var saw_contract_prompt = false;
     var saw_non_goal_prompt = false;
     var saw_descriptor_check = false;
@@ -141,6 +142,12 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "post-exit replay rejection") != null)
         {
             saw_callback_boundary_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "runOwnershipReplay()") != null and
+            std.mem.indexOf(u8, prompt, "`cold` -> `initialized` -> `replay_complete` -> `exited`") != null and
+            std.mem.indexOf(u8, prompt, "post-exit rejection") != null)
+        {
+            saw_ownership_replay_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "manifest-backed replay contract") != null and
             std.mem.indexOf(u8, prompt, "infer the new boundary from code alone") != null)
@@ -230,6 +237,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_public_conditional_prompt);
     try std.testing.expect(saw_callback_prompt);
     try std.testing.expect(saw_callback_boundary_prompt);
+    try std.testing.expect(saw_ownership_replay_prompt);
     try std.testing.expect(saw_contract_prompt);
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_descriptor_check);
