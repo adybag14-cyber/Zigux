@@ -648,6 +648,12 @@ pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {
     }
 }
 
+pub fn replaceNodeRcu(victim: *Node, new: *Node, root: *Root) void {
+    // Keep the publication order aligned with rb_replace_node_rcu(): copy the
+    // victim links first and only then swing the parent's child pointer over.
+    replaceNode(victim, new, root);
+}
+
 pub fn replaceNodeCached(victim: *Node, new: *Node, root: *RootCached) void {
     if (root.leftmost == victim) {
         root.leftmost = new;
@@ -934,6 +940,54 @@ test "rbtree replaceNode copies victim links over dirty replacement nodes" {
     try std.testing.expectEqual(left_entry.node.color, replacement.node.color);
     try std.testing.expectEqual(@as(?*Node, &replacement.node), prev(&root_entry.node));
     try std.testing.expectEqual(@as(?*Node, &root_entry.node), next(&replacement.node));
+}
+
+test "rbtree replaceNodeRcu reconnects root replacements before publication" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var root_entry = Entry{ .key = 10 };
+    var left_entry = Entry{ .key = 5 };
+    var right_entry = Entry{ .key = 15 };
+    var left_left_entry = Entry{ .key = 2 };
+    var replacement = Entry{ .key = 10 };
+    var stale_parent = Node.init();
+    var stale_left = Node.init();
+    var stale_right = Node.init();
+    var root = Root.init();
+
+    add(&root_entry.node, &root, less);
+    add(&left_entry.node, &root, less);
+    add(&right_entry.node, &root, less);
+    add(&left_left_entry.node, &root, less);
+
+    replacement.node.parent = &stale_parent;
+    replacement.node.left = &stale_left;
+    replacement.node.right = &stale_right;
+    replacement.node.color = .red;
+
+    replaceNodeRcu(&root_entry.node, &replacement.node, &root);
+
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), root.node);
+    try std.testing.expectEqual(@as(?*Node, null), replacement.node.parent);
+    try std.testing.expectEqual(@as(?*Node, &left_entry.node), replacement.node.left);
+    try std.testing.expectEqual(@as(?*Node, &right_entry.node), replacement.node.right);
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), left_entry.node.parent);
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), right_entry.node.parent);
+    try std.testing.expectEqual(@as(?*Node, &left_left_entry.node), first(&root));
+    try std.testing.expectEqual(@as(?*Node, &left_entry.node), next(&left_left_entry.node));
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), next(&left_entry.node));
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), prev(&right_entry.node));
 }
 
 test "rbtree linked helpers track leftmost and neighbour links" {
