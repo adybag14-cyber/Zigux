@@ -322,6 +322,7 @@ phase11-hvc-survey:
 phase11: phase11-contract phase11-test phase11-hvc-survey
 
 phase12-smoke:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-build-only-phase12-surface.py
 	cd $(ZIGUX_ROOT) && $(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all
 
 phase12-test:
