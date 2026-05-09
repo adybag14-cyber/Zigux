@@ -163,3 +163,5 @@ The focused shared header-boundary evidence also stays explicit beside that shar
 ## Follow-Through Rule
 
 Future Phase 11 follow-through should stay inside the next smallest hardware-validation matrix, focused replay, teardown-parity note, failure-mode note, registration-facing handoff note, driver-lane sequencing sync, shared closure-note sync, or shared review-surface sync across the gpio, bcm2835, dw, header-boundary, and HVC packet rather than widening into new driver behavior or broader validator assets before those files actually land.
+
+On current `master`, the first shared-surface reread inside that rule should start with whether `Documentation/zigux/README.md` still carries `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, and `Documentation/zigux/phase11-dw-wdt-survey.md` beside the already-listed watchdog matrices, HVC packet, and shared header-boundary note.
