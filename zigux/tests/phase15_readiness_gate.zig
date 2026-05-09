@@ -137,10 +137,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze-in-C posture") != null);
         } else {
-            failures: {
-                try std.testing.expect(false);
-                break :failures;
-            }
+            try std.testing.expect(false);
         }
 
         for (manifest.remaining_gaps[i + 1 ..]) |other| {
