@@ -638,6 +638,70 @@ test "runtime bitmap loader rejects prepared shared runtime-substrate drift befo
     ));
 }
 
+test "runtime bitmap loader rejects prepared shared approved-family anchor and symbol drift before any local runtime handoff" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var loader = RuntimeBitmapLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    const prepared_shared_plan = shared_request.plan;
+
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_shared_plan,
+    ));
+
+    shared_request.plan.anchor = "lib/test_bitmap_drift.c";
+    try std.testing.expectError(
+        error.InvalidPilotFamilyContract,
+        loader.requestSharedRuntimeLoad(&shared_request),
+    );
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    shared_request.plan = prepared_shared_plan;
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_shared_plan,
+    ));
+
+    shared_request.plan.entry_symbol = "zigux_runtime_bitmap_init_drift";
+    try std.testing.expectError(
+        error.InvalidPilotFamilyContract,
+        loader.requestSharedRuntimeLoad(&shared_request),
+    );
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    shared_request.plan = prepared_shared_plan;
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_shared_plan,
+    ));
+
+    shared_request.plan.exit_symbol = "zigux_runtime_bitmap_exit_drift";
+    try std.testing.expectError(
+        error.InvalidPilotFamilyContract,
+        loader.requestSharedRuntimeLoad(&shared_request),
+    );
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    shared_request.plan = prepared_shared_plan;
+    _ = try RuntimeBitmapLoader.planFor(&module);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_shared_plan,
+    ));
+}
+
 test "runtime bitmap loader surfaces prepared shared selftest-hook drift before any live bitmap claim" {
     var module = runtime_bitmap_sample.RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, 64, 70 });
