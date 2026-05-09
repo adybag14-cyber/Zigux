@@ -58,7 +58,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P7-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P7-Y03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expect(isLowerHexCommitId(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/string_helpers.c", manifest.anchor);
