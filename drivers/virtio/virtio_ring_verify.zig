@@ -61,6 +61,42 @@ test "virtio ring delayed callback summary reports poll pressure when used work 
     try testing.expect(delayed.should_poll);
 }
 
+test "virtio ring callback-disable summary keeps pending used work visible before and after manual drain" {
+    var lab = virtio_ring.VirtioRingLab{};
+    try lab.defineQueue(0, 8, .split, true, false);
+
+    inline for (0..3) |_| {
+        try lab.publishDescriptorChain(0);
+    }
+    _ = try lab.prepareKick(0);
+    try lab.recordUsedChains(0, 2);
+
+    var disable_summary = try lab.disableCallbackSummary(0);
+    try testing.expectEqualStrings("drivers/virtio/virtio_ring.c", disable_summary.anchor);
+    try testing.expectEqual(@as(u16, 0), disable_summary.queue_index);
+    try testing.expect(!disable_summary.callback_enabled);
+    try testing.expect(!disable_summary.broken);
+    try testing.expectEqual(@as(u16, 2), disable_summary.last_used_idx);
+    try testing.expectEqual(@as(u16, 0), disable_summary.last_polled_used_idx);
+    try testing.expectEqual(@as(u16, 1), disable_summary.outstanding_chain_count);
+    try testing.expectEqual(@as(u16, 2), disable_summary.pending_used_chain_count);
+    try testing.expect(disable_summary.should_poll);
+
+    _ = try lab.pollUsedBuffers(0);
+    const settle_summary = try lab.disableCallbackSummary(0);
+    try testing.expectEqual(@as(u16, 2), settle_summary.last_polled_used_idx);
+    try testing.expectEqual(@as(u16, 0), settle_summary.pending_used_chain_count);
+    try testing.expect(!settle_summary.should_poll);
+
+    _ = try lab.markBroken(0);
+    const broken_summary = try lab.disableCallbackSummary(0);
+    try testing.expect(broken_summary.broken);
+    try testing.expect(!broken_summary.callback_enabled);
+    try testing.expectEqual(@as(u16, 1), broken_summary.outstanding_chain_count);
+    try testing.expectEqual(@as(u16, 0), broken_summary.pending_used_chain_count);
+    try testing.expect(!broken_summary.should_poll);
+}
+
 test "virtio ring packed-ring event-index queue shape stays reviewable across kick and reset flow" {
     var lab = virtio_ring.VirtioRingLab{};
     try lab.defineQueue(3, 16, .packed_ring, true, false);
