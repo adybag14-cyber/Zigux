@@ -82,11 +82,18 @@ MARKERS = {
     "zigux/tests/phase10_virtio_mmio_survey.zig": [
         'test "phase10 virtio mmio survey manifest records the landed identity-backed packet" {',
         'try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);',
+        'try std.testing.expectEqual(@as(usize, 14), manifest.survey_summary.preexisting_phase10_test_files);',
         'try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);',
         'try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);',
         'try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);',
         'try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);',
         'try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_ring_verify.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_input_verify.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity summary") != null);',
@@ -106,12 +113,16 @@ MARKERS = {
         "one bounded selected-queue readiness summary",
         "drivers/virtio/virtio_ring_verify.zig",
         "drivers/virtio/virtio_input_verify.zig",
+        "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+        "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+        "zigux/tests/phase10_virtio_input_teardown_observation.zig",
         "zig test zigux/tests/phase10_virtio_mmio.zig",
         "zig test zigux/tests/phase10_virtio_mmio_survey.zig",
     ],
     "Documentation/zigux/phase10-virtio-mmio-survey.md": [
         "PHASE10_STATUS=parked",
         "PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport",
+        "fourteen dedicated Phase 10 virtio test or survey files under `zigux/tests/`",
         "phase10-mmio-transport-identity-helper",
         "phase10-mmio-config-write-disposition-helper",
         "phase10-mmio-probe-preflight-helper",
@@ -119,6 +130,9 @@ MARKERS = {
         "phase10-mmio-lifecycle-and-irq-paths",
         "drivers/virtio/virtio_ring_verify.zig",
         "drivers/virtio/virtio_input_verify.zig",
+        "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+        "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+        "zigux/tests/phase10_virtio_input_teardown_observation.zig",
         "transport-identity summary",
         "consumes that identity snapshot",
         "selected-queue readiness summary",
@@ -156,7 +170,7 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 ]
 EXPECTED_SUMMARY = {
     "virtio_mmio_c_lines": 829,
-    "preexisting_phase10_test_files": 11,
+    "preexisting_phase10_test_files": 14,
     "preexisting_virtio_mmio_verify_present": True,
 }
 EXPECTED_GAPS = {
@@ -254,7 +268,7 @@ def build_fixture() -> dict[str, str]:
             "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
             "survey_summary": {
                 "virtio_mmio_c_lines": 829,
-                "preexisting_phase10_test_files": 11,
+                "preexisting_phase10_test_files": 14,
                 "preexisting_virtio_mmio_verify_present": True,
             },
             "gaps": [
