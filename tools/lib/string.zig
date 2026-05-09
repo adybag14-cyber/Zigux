@@ -612,6 +612,25 @@ test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries"
     try std.testing.expectEqual(@as(?usize, 8), memchrInv(misaligned, 0));
 }
 
+test "memchrInv zero-value scans keep the earliest dirty byte across every prefix alignment" {
+    var storage = [_]u8{0} ** 40;
+
+    for (0..8) |wanted_alignment| {
+        @memset(&storage, 0);
+        const start = (wanted_alignment -% (@as(usize, @intCast(@intFromPtr(storage[0..].ptr) & 7)))) & 7;
+        const buf = storage[start .. start + 24];
+        try std.testing.expectEqual(wanted_alignment, @intFromPtr(buf.ptr) & 7);
+
+        const prefix_bytes = if (wanted_alignment == 0) 0 else 8 - wanted_alignment;
+        const first_dirty = prefix_bytes;
+        const second_dirty = prefix_bytes + 5;
+        buf[first_dirty] = 1;
+        buf[second_dirty] = 2;
+
+        try std.testing.expectEqual(@as(?usize, first_dirty), memchrInv(buf, 0));
+    }
+}
+
 test "memchrInv short zero-value scans stay byte-accurate" {
     const clean = [_]u8{0} ** 8;
     try std.testing.expectEqual(@as(?usize, null), memchrInv(&clean, 0));
