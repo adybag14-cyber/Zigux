@@ -117,8 +117,8 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and sibling blob
 
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("8640c186f2fedd2d0e3c7ec23459bb361584f955", manifest.phase4_validation_matrix_blob_sha);
-    try std.testing.expectEqualStrings("8f53856ced8d0f7e00769f037fcb9522811fde84", manifest.phase4_review_checklist_blob_sha);
+    try std.testing.expectEqualStrings("b317ef756a9aa98f190f663806b9721ee7f22731", manifest.phase4_validation_matrix_blob_sha);
+    try std.testing.expectEqualStrings("b6614791be217ec6c8a22ca12a09827766f72b22", manifest.phase4_review_checklist_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
