@@ -30,6 +30,7 @@ SLICE_MARKERS = [
     "landlock_create_ruleset()",
     "rb_link_node()",
     "rb_replace_node()",
+    "requires the ownership note, slice note, survey note, manifest, dedicated test gate, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py` to move together",
 ]
 
 SURVEY_MARKERS = [
@@ -227,6 +228,17 @@ def run_self_test() -> int:
             [str(root)],
             "root_resolution_guard_failed",
         )
+        case_count += 1
+
+        write_text(root / "Documentation/zigux/phase13-landlock-ruleset-slice.md", "landlock_create_ruleset()\nrb_link_node()\nrb_replace_node()\n")
+        assert_only(
+            validate(root),
+            [
+                "phase13-landlock-ruleset-slice:requires the ownership note, slice note, survey note, manifest, dedicated test gate, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py` to move together",
+            ],
+            "slice_guard_failed",
+        )
+        seed_fixture_tree(root)
         case_count += 1
 
         write_text(root / "Documentation/zigux/phase13-landlock-ruleset-survey.md", "`PHASE13_LANE_KEY=P13-L12`\n")
