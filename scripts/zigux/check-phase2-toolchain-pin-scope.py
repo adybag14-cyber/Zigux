@@ -33,7 +33,7 @@ ARCHIVE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 NOTE_STATIC_MARKERS = [
     "the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence",
     "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
-    "the Linux-style `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the docs-root summary, the shared validators, the closure note, and the shared review checklist",
+    "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the docs-root summary, the shared validators, the closure note, and the shared review checklist",
 ]
 
 NOTE_APPROVAL_MARKERS = [
@@ -45,6 +45,7 @@ NOTE_APPROVAL_MARKERS = [
 README_MARKERS = [
     "check-phase2-toolchain-pin-scope.py --self-test",
     "check-phase2-toolchain-pin-scope.py",
+    "make -C zigux phase2-toolchain",
     "x86_64-linux bootstrap host target",
     "cross-target compile matrix stays a separate Phase 2 surface",
 ]
@@ -89,6 +90,7 @@ CLOSURE_MARKERS = [
     "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json",
+    "make -C zigux phase2-toolchain",
 ]
 
 PHASE2_VALIDATOR_MARKERS = [
@@ -192,6 +194,7 @@ REPO_LOCAL_ZIG_FALLBACK_REQUIRED_LINES = [
 EXACT_SURFACE_COUNTS = {
     "scripts_readme": {
         "check-phase2-toolchain-pin-scope.py --self-test": 1,
+        "make -C zigux phase2-toolchain": 1,
         "x86_64-linux bootstrap host target": 1,
     },
     "docs_root_readme": {
@@ -219,11 +222,13 @@ EXACT_SURFACE_COUNTS = {
         "PHASE2_TOOLCHAIN_PIN_TARGET_COUNT=1": 1,
         "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
         "PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json": 1,
+        "make -C zigux phase2-toolchain": 1,
     },
     "phase2_toolchain_notes": {
         "`scripts/zigux/zig-toolchain-policy.json` now also keeps the Phase 2 pin-change approval rule machine-checkable.": 1,
         "pinned toolchain changes require explicit shared Phase 2 checklist acknowledgement and fresh bootstrap-runner evidence before merge.": 1,
         "widening the bootstrap archive beyond `x86_64-linux` still needs separate approval instead of piggybacking on the three-target compile matrix.": 1,
+        "make -C zigux phase2-toolchain": 1,
     },
 }
 
