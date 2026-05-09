@@ -21,6 +21,20 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const RoadmapGapDetail = struct {
+    required_by_roadmap: bool,
+    status: []const u8,
+    current_surface: []const u8,
+    blocked_by: []const u8,
+};
+
+const RoadmapGapCheck = struct {
+    dma_safe_abstractions: RoadmapGapDetail,
+    queueing_correctness: RoadmapGapDetail,
+    throughput_and_recovery_parity: RoadmapGapDetail,
+    segmented_rollout: RoadmapGapDetail,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -28,13 +42,16 @@ const Manifest = struct {
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
+    roadmap_gap_check: RoadmapGapCheck,
     gaps: []const Gap,
 };
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
-        std.mem.eql(u8, status, "blocked_on_dma_transport");
+        std.mem.eql(u8, status, "blocked_on_dma_transport") or
+        std.mem.eql(u8, status, "bounded_starter_only") or
+        std.mem.eql(u8, status, "review_boundary_landed");
 }
 
 test "phase12 virtio_net survey manifest stays aligned with the landed driver packet" {
@@ -84,6 +101,66 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
+    try std.testing.expect(manifest.roadmap_gap_check.dma_safe_abstractions.required_by_roadmap);
+    try std.testing.expectEqualStrings(
+        "blocked",
+        manifest.roadmap_gap_check.dma_safe_abstractions.status,
+    );
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        manifest.roadmap_gap_check.dma_safe_abstractions.current_surface,
+        "probe snapshot",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        manifest.roadmap_gap_check.dma_safe_abstractions.blocked_by,
+        "page_pool wiring",
+    ) != null);
+    try std.testing.expect(manifest.roadmap_gap_check.queueing_correctness.required_by_roadmap);
+    try std.testing.expectEqualStrings(
+        "bounded_starter_only",
+        manifest.roadmap_gap_check.queueing_correctness.status,
+    );
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        manifest.roadmap_gap_check.queueing_correctness.current_surface,
+        "queue-pair counts",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        manifest.roadmap_gap_check.queueing_correctness.blocked_by,
+        "virtqueue submission",
+    ) != null);
+    try std.testing.expect(manifest.roadmap_gap_check.throughput_and_recovery_parity.required_by_roadmap);
+    try std.testing.expectEqualStrings(
+        "bounded_starter_only",
+        manifest.roadmap_gap_check.throughput_and_recovery_parity.status,
+    );
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface,
+        "mergeable-buffer sizing",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        manifest.roadmap_gap_check.throughput_and_recovery_parity.blocked_by,
+        "throughput evidence",
+    ) != null);
+    try std.testing.expect(manifest.roadmap_gap_check.segmented_rollout.required_by_roadmap);
+    try std.testing.expectEqualStrings(
+        "review_boundary_landed",
+        manifest.roadmap_gap_check.segmented_rollout.status,
+    );
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        manifest.roadmap_gap_check.segmented_rollout.current_surface,
+        "mergeable-buffer-length",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        manifest.roadmap_gap_check.segmented_rollout.blocked_by,
+        "page_pool DMA",
+    ) != null);
     try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_module") != null);
