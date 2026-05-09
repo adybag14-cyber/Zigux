@@ -200,6 +200,23 @@ def require_snippets(issues: list[str], text: str, prefix: str, snippets: tuple[
             issues.append(f"missing_{prefix}_snippet:{snippet}")
 
 
+def require_exact_normalized_snippets(
+    issues: list[str],
+    text: str,
+    prefix: str,
+    snippets: tuple[str, ...],
+) -> None:
+    lines = normalized_marker_lines(text)
+    for snippet in snippets:
+        count = lines.count(snippet)
+        if count == 1:
+            continue
+        if count == 0:
+            issues.append(f"missing_{prefix}_snippet:{snippet}")
+            continue
+        issues.append(f"duplicate_{prefix}_snippet:{snippet}:{count}")
+
+
 def validate(root: Path) -> list[str]:
     required_paths = {
         SURVEY_REL,
@@ -268,7 +285,7 @@ def validate(root: Path) -> list[str]:
         for line in checker.stderr.splitlines():
             issues.append(f"policy_byte_guard_stderr:{line}")
 
-    require_snippets(issues, survey, "survey", REQUIRED_SURVEY_SNIPPETS)
+    require_exact_normalized_snippets(issues, survey, "survey", REQUIRED_SURVEY_SNIPPETS)
     require_snippets(issues, layout_assert, "layout_assert", REQUIRED_LAYOUT_ASSERT_SNIPPETS)
     require_snippets(issues, panic_policy, "panic_policy", REQUIRED_PANIC_POLICY_SNIPPETS)
     require_snippets(issues, allocator_policy, "allocator_policy", REQUIRED_ALLOCATOR_POLICY_SNIPPETS)
@@ -372,6 +389,16 @@ def run_self_test() -> int:
         assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[6]}" in issues
 
         build_valid_workspace(root)
+        duplicate_guard_wording = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            REQUIRED_SURVEY_SNIPPETS[7] + "\n",
+            REQUIRED_SURVEY_SNIPPETS[7] + "\n" + REQUIRED_SURVEY_SNIPPETS[7] + "\n",
+            1,
+        )
+        write_file(root / SURVEY_REL, duplicate_guard_wording)
+        issues = validate(root)
+        assert f"duplicate_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[7]}:2" in issues
+
+        build_valid_workspace(root)
         missing_guard_wording = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
             REQUIRED_SURVEY_SNIPPETS[7] + "\n",
             "",
@@ -467,7 +494,7 @@ def run_self_test() -> int:
         assert "policy_byte_guard_exit:1" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=16")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
