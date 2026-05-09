@@ -49,7 +49,8 @@ const Manifest = struct {
 };
 
 fn isAllowedStatus(status: []const u8) bool {
-    return std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
+    return std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence") or
+        std.mem.eql(u8, status, "blocked_on_tests_root_phase15_summary_sync");
 }
 
 test "phase 15 readiness manifest records the roadmap, ledger, and current repo posture" {
@@ -121,9 +122,10 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
         try std.testing.expect(blocker.repo_evidence[1].len > 0);
     }
 
-    try std.testing.expectEqual(@as(usize, 1), manifest.remaining_gaps.len);
+    try std.testing.expectEqual(@as(usize, 2), manifest.remaining_gaps.len);
 
     var saw_status_change_blocker = false;
+    var saw_tests_root_undercount = false;
     for (manifest.remaining_gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
@@ -136,6 +138,13 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze-in-C posture") != null);
+        } else if (std.mem.eql(u8, gap.id, "phase15-tests-root-dedicated-make-route-undercount")) {
+            saw_tests_root_undercount = true;
+            try std.testing.expectEqualStrings("blocked_on_tests_root_phase15_summary_sync", gap.status);
+            try std.testing.expectEqualStrings("shared_review_surface", gap.kind);
+            try std.testing.expectEqualStrings("zigux/tests/README.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "make -C zigux phase15-test") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validator-first and shared build-and-make path") != null);
         }
 
         for (manifest.remaining_gaps[i + 1 ..]) |other| {
@@ -144,10 +153,12 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     }
 
     try std.testing.expect(saw_status_change_blocker);
+    try std.testing.expect(saw_tests_root_undercount);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "maintenance mode") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "four recorded deep-core blocker dispositions") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "two dedicated `phase15-validate` checker routes") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "make -C zigux phase15-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "zigux/tests/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "make -C zigux phase15") != null);
 }
 
@@ -189,7 +200,7 @@ test "phase 15 readiness note keeps the roadmap, ledger, and current blocker inv
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "PHASE15_LANE_KEY=P15-L01") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "PHASE15_PROVENANCE_MODE=dated_master_readback") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "current-master-readback-2026-05-09") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "shared replay surface is green on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "shared replay surface is still bounded on current `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-validate` checker stack") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "maintenance-mode ready") != null);
@@ -204,6 +215,7 @@ test "phase 15 readiness note keeps the roadmap, ledger, and current blocker inv
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Documentation/zigux/phase14-rcu-tree-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Documentation/zigux/phase14-skbuff-bridge-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-tests-root-dedicated-make-route-undercount") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
 
