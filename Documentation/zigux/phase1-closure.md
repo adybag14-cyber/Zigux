@@ -183,6 +183,8 @@ That means `test "next scans past nbits return without reading bitmap words"` st
 
 - `PHASE1_FIND_BIT_PAST_NBITS_REVIEW=helper-local past-nbits short-circuit proof stays explicit through the direct find_bit test anchor so next scans starting at or beyond nbits return the boundary without reading bitmap words outside the caller-visible window`
 
+The committed `past_nbits_next`, `past_nbits_zero`, and `past_nbits_and` fields in `zigux/tests/fixtures/phase1_helpers.json` are also part of the authoritative shared replay contract because `zigux/tests/phase1_helpers.zig` consumes those fields directly. Reviewers should keep that shared replay and the direct helper-local past-`nbits` test anchor aligned: the shared packet now catches past-`nbits` short-circuit regressions, while the direct helper-local test keeps the boundary path review-visible at the helper surface.
+
 For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local tail-word next-set skip proof explicit through:
 
 - `tools/lib/find_bit.zig`
