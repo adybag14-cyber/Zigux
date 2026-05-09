@@ -160,6 +160,7 @@ TESTS_README_MARKERS = (
     "zigux/tests/phase15_readiness_gate.zig",
     "zigux/Makefile",
     "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
     "shared build-and-make path",
     "make -C zigux phase15",
     "without implying any Architecture Council approval for a freeze-map status change",
@@ -418,6 +419,11 @@ def run_self_test() -> int:
                 "zigux/tests/phase15_governance_lane_sequencing.zig",
                 "zigux/tests/phase15_lane_sequence_missing.zig",
                 "missing_tests_readme_governance_lane_marker_guard_failed",
+            ),
+            (
+                "make -C zigux phase15-test",
+                "make -C zigux phase15-check",
+                "missing_tests_readme_dedicated_make_test_marker_guard_failed",
             ),
         ):
             _write(tests_readme_path, baseline_tests_readme.replace(marker, replacement, 1))
