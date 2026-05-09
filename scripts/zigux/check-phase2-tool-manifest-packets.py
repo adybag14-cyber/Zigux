@@ -18,6 +18,7 @@ DOCS_REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 VALIDATE_PHASE2 = ROOT / "scripts" / "zigux" / "validate-phase2.py"
+VALIDATE_PHASE2_CLOSURE = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 
@@ -95,6 +96,14 @@ REQUIRED_VALIDATE_PHASE2_MARKERS = [
     '[sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"), "--self-test"],',
     '[sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py")],',
 ]
+REQUIRED_VALIDATE_PHASE2_CLOSURE_MARKERS = [
+    'root / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json",',
+    'tool_manifest = json.loads(',
+    'if tool_manifest.get("phase") != "Phase 2":',
+    'if tool_manifest.get("status") != "closed":',
+    'if tool_manifest.get("tool_count") != 6:',
+    'if len(tool_manifest.get("tools", [])) != 6:',
+]
 REQUIRED_REVIEW_MARKERS = [
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
@@ -126,6 +135,7 @@ def required_files_for(root: Path) -> list[Path]:
         root / SCRIPTS_README.relative_to(ROOT),
         root / TESTS_README.relative_to(ROOT),
         root / VALIDATE_PHASE2.relative_to(ROOT),
+        root / VALIDATE_PHASE2_CLOSURE.relative_to(ROOT),
         root / MAKEFILE.relative_to(ROOT),
         root / WORKFLOW.relative_to(ROOT),
     ]
@@ -323,6 +333,20 @@ def validate_root(root: Path) -> list[str]:
         if marker not in validate_phase2_text:
             issues.append(f"validate_phase2_marker:{marker}")
 
+    validate_phase2_closure_text = (
+        root / VALIDATE_PHASE2_CLOSURE.relative_to(ROOT)
+    ).read_text(encoding="utf-8")
+    for marker in REQUIRED_VALIDATE_PHASE2_CLOSURE_MARKERS:
+        if marker not in validate_phase2_closure_text:
+            issues.append(f"validate_phase2_closure_marker:{marker}")
+    issues.extend(
+        validate_exact_substrings(
+            validate_phase2_closure_text,
+            REQUIRED_VALIDATE_PHASE2_CLOSURE_MARKERS,
+            prefix="validate_phase2_closure_exact_marker",
+        )
+    )
+
     review_checklist_text = (root / DOCS_REVIEW_CHECKLIST.relative_to(ROOT)).read_text(
         encoding="utf-8"
     )
@@ -399,6 +423,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(root / "scripts/zigux/README.md", "\n".join(REQUIRED_SCRIPTS_README_LINES) + "\n")
     write_text(root / "zigux/tests/README.md", "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n")
     write_text(root / "scripts/zigux/validate-phase2.py", "\n".join(REQUIRED_VALIDATE_PHASE2_MARKERS) + "\n")
+    write_text(
+        root / "scripts/zigux/validate-phase2-closure.py",
+        "\n".join(REQUIRED_VALIDATE_PHASE2_CLOSURE_MARKERS) + "\n",
+    )
     write_text(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_LINES) + "\n")
     write_text(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(REQUIRED_WORKFLOW_LINES) + "\n")
 
