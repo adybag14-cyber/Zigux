@@ -38,6 +38,7 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`",
     "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
     "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`",
+    "keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` aligned so the DesignWare-local packet checker stays fail-closed around the current starter without reopening broader shared Phase 11 contract surfaces",
 ]
 
 REQUIRED_SHARED_REPLAY_MARKERS = [
@@ -76,7 +77,7 @@ REQUIRED_BUILD_MARKERS = [
     '.name = "phase11-dw-wdt-survey-tests"',
 ]
 
-SELF_TEST_CASE_COUNT = 22
+SELF_TEST_CASE_COUNT = 24
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -156,6 +157,7 @@ This survey note keeps lane identity `P11-L12` explicit beside the current revie
 - `phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`
 - `scripts/zigux/check-phase11-dw-wdt-packet.py`
 - `python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`
+- keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` aligned so the DesignWare-local packet checker stays fail-closed around the current starter without reopening broader shared Phase 11 contract surfaces
 """,
     )
     write_text(
@@ -244,6 +246,7 @@ def run_self_test() -> int:
             (SURVEY_NOTE_PATH, "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`", "survey_note:`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`"),
             (VALIDATION_MATRIX_PATH, "`drivers/watchdog/dw_wdt_verify.zig`", "validation_matrix:`drivers/watchdog/dw_wdt_verify.zig`"),
             (VALIDATION_MATRIX_PATH, "`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`", "validation_matrix:`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`"),
+            (VALIDATION_MATRIX_PATH, "`scripts/zigux/README.md`", "validation_matrix:keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` aligned so the DesignWare-local packet checker stays fail-closed around the current starter without reopening broader shared Phase 11 contract surfaces"),
             (SHARED_REPLAY_CONTRACT_PATH, "`scripts/zigux/check-phase11-dw-wdt-packet.py`", "shared_replay:`scripts/zigux/check-phase11-dw-wdt-packet.py`"),
             (SHARED_REPLAY_CONTRACT_PATH, "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`", "shared_replay:`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`"),
             (SHARED_REPLAY_CONTRACT_PATH, "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py`", "shared_replay:`python3 scripts/zigux/check-phase11-dw-wdt-packet.py`"),
