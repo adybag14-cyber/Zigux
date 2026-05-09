@@ -100,7 +100,7 @@ EXPECTED_COMPONENTS = {
     "input": {
         "manifest_path": INPUT_MANIFEST_PATH,
         "lane_key": "P10-L13",
-        "surveyed_commit": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
+        "surveyed_commit": "aab20011833191e49e31bcdf2a0fcfcd4c0451d0",
         "blocked_gap": "phase10-virtio-input-registration-lifecycle",
         "ready_followup": "phase10-virtio-input-registration-lifecycle",
         "landed_helper_key": "landed_input_helper_evidence",
@@ -384,7 +384,7 @@ def baseline_manifests() -> tuple[dict[str, dict], dict]:
     manifests = {
         "core": baseline_manifest("P10-L01", "31e9763eea7964dad7085d1a24bc098b4af49789", "drivers/virtio/virtio.c"),
         "ring": baseline_manifest("P10-L07", "e42103fc02f544e1bd23a5ec2e5b584734f5af7d", "drivers/virtio/virtio_ring.c"),
-        "input": baseline_manifest("P10-L13", "7361ac51374149a96b7a7a2c6ea3c995d8cc1231", "drivers/virtio/virtio_input.c"),
+        "input": baseline_manifest("P10-L13", "aab20011833191e49e31bcdf2a0fcfcd4c0451d0", "drivers/virtio/virtio_input.c"),
         "mmio": baseline_manifest("P10-L10", "84f90e23ad1c28ae345905d5293a8c5395f37d43", "drivers/virtio/virtio_mmio.c"),
     }
     closure_manifest = {
