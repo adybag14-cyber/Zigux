@@ -6,7 +6,7 @@ This document records the bounded Phase 14 survey lane around `net/core/skbuff.c
 
 - `PHASE14_STATUS=active`
 - `PHASE14_SURVEYED_COMMIT=4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7`
-- `PHASE14_LANE_KEY=P14-L11`
+- `PHASE14_LANE_KEY=P14-L10`
 - `PHASE14_SLICE=skbuff-boundary-map-roadmap-query`
 - scope: the landed `net/core/skbuff_bridge.zig` boundary map plus its expanded lifetime audit outline and concurrency-sensitive checkpoint catalog, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
 - product boundary:
