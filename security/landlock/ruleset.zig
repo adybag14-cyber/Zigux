@@ -143,6 +143,32 @@ fn insertionSiteMatchesTerminalSearchStep(search_plan: RuleTreeSearchPlan, inser
     };
 }
 
+fn matchedRuleKeyFromSearchPlan(search_plan: RuleTreeSearchPlan) !u64 {
+    if (!search_plan.matched_existing_rule) {
+        return error.RuleNotMatched;
+    }
+    if (search_plan.search_depth == 0) {
+        return error.MissingSearchPath;
+    }
+    if (search_plan.search_depth > max_tree_search_depth) {
+        return error.TooDeepSearch;
+    }
+    if (search_plan.insertion_site != null) {
+        return error.UnexpectedInsertionSite;
+    }
+    if (search_plan.resulting_num_rules == 0) {
+        return error.InvalidResultingCount;
+    }
+
+    const matched_key_data = search_plan.parent_key_data orelse return error.MissingMatchedNode;
+    const terminal_step = search_plan.search_steps[search_plan.search_depth - 1];
+    if (terminal_step.direction != .match or terminal_step.node_key_data != matched_key_data) {
+        return error.InconsistentMatchState;
+    }
+
+    return matched_key_data;
+}
+
 pub const RulesetHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -496,23 +522,20 @@ pub const RulesetHelperLab = struct {
         };
     }
 
-    pub fn planRuleTreeReplacement(key_type: KeyType, matched_key_data: u64, existing_rule: RulePlan, incoming_layer: Layer, current_num_rules: u32) !RuleTreeReplacementPlan {
-        if (current_num_rules == 0) {
-            return error.InvalidResultingCount;
-        }
-
-        const insertion_plan = try planRuleInsertion(existing_rule, &.{incoming_layer}, current_num_rules);
+    pub fn planRuleTreeReplacement(search_plan: RuleTreeSearchPlan, existing_rule: RulePlan, incoming_layer: Layer) !RuleTreeReplacementPlan {
+        const matched_key_data = try matchedRuleKeyFromSearchPlan(search_plan);
+        const insertion_plan = try planRuleInsertion(existing_rule, &.{incoming_layer}, search_plan.resulting_num_rules);
         if (insertion_plan.mode != .append_merged_layer) {
             return error.RuleReplacementRequiresMergedLayer;
         }
 
         return .{
-            .anchor = descriptor().anchor,
-            .root = selectRoot(key_type),
+            .anchor = search_plan.anchor,
+            .root = search_plan.root,
             .matched_key_data = matched_key_data,
             .resulting_rule = insertion_plan.resulting_rule,
             .performs_rb_replace_node = true,
-            .resulting_num_rules = current_num_rules,
+            .resulting_num_rules = search_plan.resulting_num_rules,
         };
     }
 };
@@ -588,6 +611,7 @@ test "landlock ruleset tree-link rejects attachment plans that disagree with the
 }
 
 test "landlock ruleset tree-replacement rejects empty access in merged-layer followups" {
+    const search_plan = try RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{ 10, 99, 120 }, 6);
     const existing = RulePlan{
         .num_layers = 2,
         .layers = [_]Layer{
@@ -597,10 +621,83 @@ test "landlock ruleset tree-replacement rejects empty access in merged-layer fol
     };
 
     try std.testing.expectError(error.EmptyAccess, RulesetHelperLab.planRuleTreeReplacement(
-        .inode,
-        99,
+        search_plan,
         existing,
         .{ .level = 5, .access = 0 },
-        6,
+    ));
+}
+
+test "landlock ruleset tree-replacement rejects search plans without a matched rule" {
+    const search_plan = try RulesetHelperLab.planRuleTreeSearch(.inode, true, 25, &.{ 10, 40, 30 }, 6);
+    const existing = RulePlan{
+        .num_layers = 2,
+        .layers = [_]Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 2)),
+    };
+
+    try std.testing.expectError(error.RuleNotMatched, RulesetHelperLab.planRuleTreeReplacement(
+        search_plan,
+        existing,
+        .{ .level = 5, .access = 0x10 },
+    ));
+}
+
+test "landlock ruleset tree-replacement rejects matched plans that still carry an insertion site" {
+    const malformed_search_plan = RuleTreeSearchPlan{
+        .anchor = RulesetHelperLab.descriptor().anchor,
+        .root = .inode,
+        .search_depth = 2,
+        .search_steps = [_]TreeSearchStep{
+            .{ .node_key_data = 10, .direction = .right },
+            .{ .node_key_data = 40, .direction = .match },
+        } ++ ([_]TreeSearchStep{.{ .node_key_data = 0, .direction = .left }} ** (max_tree_search_depth - 2)),
+        .matched_existing_rule = true,
+        .parent_key_data = 40,
+        .insertion_site = .left,
+        .resulting_num_rules = 6,
+    };
+    const existing = RulePlan{
+        .num_layers = 2,
+        .layers = [_]Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 2)),
+    };
+
+    try std.testing.expectError(error.UnexpectedInsertionSite, RulesetHelperLab.planRuleTreeReplacement(
+        malformed_search_plan,
+        existing,
+        .{ .level = 5, .access = 0x10 },
+    ));
+}
+
+test "landlock ruleset tree-replacement rejects matched plans with inconsistent terminal state" {
+    const malformed_search_plan = RuleTreeSearchPlan{
+        .anchor = RulesetHelperLab.descriptor().anchor,
+        .root = .inode,
+        .search_depth = 2,
+        .search_steps = [_]TreeSearchStep{
+            .{ .node_key_data = 10, .direction = .right },
+            .{ .node_key_data = 40, .direction = .left },
+        } ++ ([_]TreeSearchStep{.{ .node_key_data = 0, .direction = .left }} ** (max_tree_search_depth - 2)),
+        .matched_existing_rule = true,
+        .parent_key_data = 40,
+        .insertion_site = null,
+        .resulting_num_rules = 6,
+    };
+    const existing = RulePlan{
+        .num_layers = 2,
+        .layers = [_]Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 2)),
+    };
+
+    try std.testing.expectError(error.InconsistentMatchState, RulesetHelperLab.planRuleTreeReplacement(
+        malformed_search_plan,
+        existing,
+        .{ .level = 5, .access = 0x10 },
     ));
 }
