@@ -183,6 +183,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "python3 scripts/zigux/check-phase2-cross.py --self-test",
     "python3 scripts/zigux/check-fixdep-diff.py",
     "python3 scripts/zigux/check-genksyms-bridge.py",
@@ -222,6 +223,7 @@ REQUIRED_EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
+    "python3 scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test": 1,
     "python3 scripts/zigux/check-mk-elfconfig-diff.py": 1,
 }
@@ -605,6 +607,8 @@ def run_self_test() -> int:
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test"] == 1
     assert "python3 scripts/zigux/check-zig-toolchain.py" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-zig-toolchain.py"] == 1
+    assert "python3 scripts/zigux/check-kconfig-bridge.py --self-test" in REQUIRED_WORKFLOW_MARKERS
+    assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-kconfig-bridge.py --self-test"] == 1
     assert "python3 scripts/zigux/check-zig-toolchain.py --self-test" in REQUIRED_REVIEW_MARKERS
     assert "scripts/zigux/check-genksyms-bridge.py" in REQUIRED_REVIEW_MARKERS
     assert "scripts/zigux/check-genksyms-crc-diff.py" in REQUIRED_REVIEW_MARKERS
@@ -664,7 +668,7 @@ def run_self_test() -> int:
     assert missing
     assert missing[0] == "missing_file:scripts/zigux/fixdep.zig"
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=10")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
