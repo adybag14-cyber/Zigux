@@ -31,6 +31,8 @@ The public fallback split must stay explicit: `Documentation/zigux/phase12-nvme-
 
 The bounded `virtio_scsi` rollback drill remains storage-lane-local release evidence, not a tranche-wide recovery claim.
 
+That bounded storage packet now covers repeated transport-reset generation plus restore queue rebind, request-queue restart, event rearm, event-buffer ownership, and rollback summaries as lab-only reversible-delivery scaffolding, not as closure-ready runtime recovery.
+
 The landed `virtio_net` segmented-rollout boundary remains lane-local review evidence, not DMA-safe transport readiness, runtime recovery proof, or live runtime-data-path progress.
 
 Queueing, throughput, rollback, and recovery wording in this release-facing note must stay below active delivery claims against frozen `net/core/skbuff.c` and below boundary-study-only `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c` until a broader Phase 12 packet actually lands.
