@@ -78,7 +78,7 @@ This closure note does not claim:
 
 Keep the next follow-through inside the smallest truthful Phase 11 packet:
 
-- first, fix the docs-root shared replay reminder in `Documentation/zigux/README.md` so it carries `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, and `Documentation/zigux/phase11-dw-wdt-survey.md` beside the already-listed watchdog matrices, HVC packet, and shared header-boundary note
+- first, reread `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/check-phase11-shared-replay-contract.py` together so the shared Phase 11 support packet keeps the parked gpio, bcm2835, DesignWare, HVC, and header-boundary companions explicit across scripts-root, tests-root, checklist, and checker-local wording
 - otherwise, take only a driver-local validation-matrix, teardown-note, survey, manifest, or registration-handoff sync inside one owning lane
 
 Do not widen from this note into new driver behavior or a broader validator asset until those surfaces actually land on `master`.
