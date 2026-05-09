@@ -55,6 +55,25 @@ fn printEncode(writer: anytype, label: []const u8, input: []const u8, padding: b
     try writer.print("encode\t{s}\t{s}\n", .{ label, buf[0..written] });
 }
 
+fn printChars(writer: anytype, label: []const u8, input: []const u8, padding: bool, variant: base64.Variant) !void {
+    var buf: [128]u8 = undefined;
+    const written = try base64.encode(buf[0..], input, padding, variant);
+    try std.testing.expectEqual(base64.chars(input.len, padding), written);
+    if (padding) {
+        try std.testing.expectEqual(base64.paddedChars(input.len), written);
+    }
+    try writer.print("chars\t{s}\t{d}\n", .{ label, written });
+}
+
+fn printBytes(writer: anytype, label: []const u8, input: []const u8, padding: bool, variant: base64.Variant) !void {
+    var buf: [64]u8 = undefined;
+    const exact_len = try base64.bytes(input, padding, variant);
+    try std.testing.expect(base64.maxDecodedBytes(input.len) >= exact_len);
+    const written = try base64.decode(buf[0..], input, padding, variant);
+    try std.testing.expectEqual(exact_len, written);
+    try writer.print("bytes\t{s}\t{d}\n", .{ label, written });
+}
+
 fn printInvalid(writer: anytype, label: []const u8, input: []const u8, padding: bool, variant: base64.Variant) !void {
     var buf: [16]u8 = undefined;
     try std.testing.expectError(base64.DecodeError.InvalidInput, base64.bytes(input, padding, variant));
@@ -79,6 +98,12 @@ pub fn main(init: std.process.Init) !void {
     try printEncode(&stdout.interface, "urlsafe-pad-variant", &fixtures.variant_sample, var_url.padding, variantFromName(var_url.variant_name));
     try printEncode(&stdout.interface, "imap-no-pad-variant", &fixtures.variant_sample, var_imap.padding, variantFromName(var_imap.variant_name));
 
+    try printChars(&stdout.interface, "std-pad-f", enc_f.input, enc_f.padding, .std);
+    try printChars(&stdout.interface, "std-no-pad-fo", enc_fo.input, enc_fo.padding, .std);
+    try printChars(&stdout.interface, "std-pad-hello", enc_hello.input, enc_hello.padding, .std);
+    try printChars(&stdout.interface, "urlsafe-pad-variant", &fixtures.variant_sample, var_url.padding, variantFromName(var_url.variant_name));
+    try printChars(&stdout.interface, "imap-no-pad-variant", &fixtures.variant_sample, var_imap.padding, variantFromName(var_imap.variant_name));
+
     const dec_foobar = findDecodeCase("Zm9vYmFy", true, "std");
     const dec_hello = findDecodeCase("SGVsbG8sIHdvcmxkIQ", false, "std");
     const dec_url = findDecodeCase("APv_f4A=", true, "urlsafe");
@@ -88,6 +113,11 @@ pub fn main(init: std.process.Init) !void {
     try printDecodeHex(&stdout.interface, "std-no-pad-hello", dec_hello.input, dec_hello.padding, .std);
     try printDecodeHex(&stdout.interface, "urlsafe-pad-variant", dec_url.input, dec_url.padding, .urlsafe);
     try printDecodeHex(&stdout.interface, "imap-no-pad-variant", dec_imap.input, dec_imap.padding, .imap);
+
+    try printBytes(&stdout.interface, "std-pad-foobar", dec_foobar.input, dec_foobar.padding, .std);
+    try printBytes(&stdout.interface, "std-no-pad-hello", dec_hello.input, dec_hello.padding, .std);
+    try printBytes(&stdout.interface, "urlsafe-pad-variant", dec_url.input, dec_url.padding, .urlsafe);
+    try printBytes(&stdout.interface, "imap-no-pad-variant", dec_imap.input, dec_imap.padding, .imap);
 
     const inv_a = findInvalidCase("Zh==", true, "std");
     const inv_b = findInvalidCase("Zh==", true, "urlsafe");
