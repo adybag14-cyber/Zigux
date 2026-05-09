@@ -286,6 +286,23 @@ def run_self_test() -> int:
             return 1
         write_text(broken_traceability_path, required_text(root, TRACEABILITY_PATH))
 
+        broken_workqueue_manifest_path = root / WORKQUEUE_MANIFEST_PATH
+        broken_workqueue_manifest = json.loads(read_text(broken_workqueue_manifest_path))
+        broken_workqueue_manifest.pop("surveyed_commit", None)
+        write_text(
+            broken_workqueue_manifest_path,
+            json.dumps(broken_workqueue_manifest, indent=2) + "\n",
+        )
+        errors = check(root)
+        if not any(
+            "missing surveyed_commit in zigux/tests/phase14_workqueue_bridge_manifest.json"
+            in error
+            for error in errors
+        ):
+            print("self-test expected missing workqueue surveyed-commit failure", file=sys.stderr)
+            return 1
+        write_text(broken_workqueue_manifest_path, required_text(root, WORKQUEUE_MANIFEST_PATH))
+
         broken_release_path = root / RELEASE_BOUNDARY_PATH
         broken_release_path.write_text("`PHASE14_STUDY_ONLY_ANCHOR_COUNT=1`\n", encoding="utf-8")
         errors = check(root)
