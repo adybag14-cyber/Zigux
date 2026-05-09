@@ -347,7 +347,7 @@ pub const Mode = enum {
                     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
                     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "defconfig.out", "expected": "savedefconfig_expected.json"},
                     {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "expected": "listnewconfig_expected.json"},
-                    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "expected": "helpnewconfig_expected.json"},
+                    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": True, "expected": "helpnewconfig_expected.json"},
                     {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
                     {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
                     {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
@@ -636,6 +636,8 @@ def main() -> int:
             cmd = [str(conf_exe), case["mode"], case["kconfig"], case["config"], case["arch"]]
             if "mode_arg" in case:
                 cmd.append(case["mode_arg"])
+            if case.get("silent"):
+                cmd.append("silent")
             if "allconfig" in case:
                 cmd.append(f"allconfig={case['allconfig']}")
             if "seed" in case:
