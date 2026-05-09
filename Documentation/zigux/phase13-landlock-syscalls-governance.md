@@ -20,6 +20,8 @@ The focused `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard is o
 
 Within that owned surface, `zigux/tests/phase13_landlock_syscalls_manifest.json` is the source of truth for packet metadata such as the active lane key, surveyed commit, and bounded slice marker.
 
+The shared `zigux/tests/phase13_build.zig` wiring stays adjacent Phase 13 replay infrastructure for this lane. The survey note may name that build entrypoint inside the broader packet scope because it compiles the shipped eight-test route, but this syscalls lane does not own that shared build surface.
+
 ## Current helper contract
 
 The helper is allowed to model only the bounded in-memory planning surface that it already exposes:
@@ -54,8 +56,9 @@ Future fixtures, survey notes, and helper-local tests for this lane must follow 
 3. Every new helper claim should be anchored to one exported planner or report function already present in `security/landlock/syscalls.zig`.
 4. If a future change adds a new planner, update the slice note and survey note in the same packet so the helper boundary stays reviewable.
 5. Treat `zigux/tests/phase13_landlock_syscalls_manifest.json` as the source of truth for the active lane key, surveyed commit, and bounded slice marker. If those metadata fields move, update the survey note and `zigux/tests/phase13_landlock_syscalls_reviewability.zig` in the same patch rather than inventing helper-local packet ids.
-6. If a future change updates `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, keep that shard aligned with this owned-surface list and keep it framed as direct helper evidence rather than as a new shared replay step.
-7. If a future change starts modeling real file-operations, credential, or domain state, treat that as a new bounded follow-up and not as an implicit extension of this note.
+6. Treat `zigux/tests/phase13_build.zig` as adjacent shared replay infrastructure. It may be mentioned when the packet scope or release route is summarized, but do not recast that shared build entrypoint as helper-owned evidence in this lane.
+7. If a future change updates `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, keep that shard aligned with this owned-surface list and keep it framed as direct helper evidence rather than as a new shared replay step.
+8. If a future change starts modeling real file-operations, credential, or domain state, treat that as a new bounded follow-up and not as an implicit extension of this note.
 
 ## Ownership boundary with nearby lanes
 
