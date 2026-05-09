@@ -439,6 +439,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
     try expectContains(bridge_boundary_note, "zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all");
     try expectContains(bridge_boundary_note, "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all");
     try expectContains(bridge_boundary_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
+    try expectContains(bridge_boundary_note, "make -C zigux phase8");
     try expectContains(bridge_boundary_note, "perf-buffer-online-cpu-routing");
     try expectContains(bridge_boundary_note, "/sys/devices/system/cpu/online");
     try expectContains(bridge_boundary_note, "cached `/sys/devices/system/cpu/possible` counts via `libbpf_num_possible_cpus()`");
