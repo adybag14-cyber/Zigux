@@ -126,12 +126,27 @@ REQUIRED_MMIO_SNIPPETS = (
     "pub fn rangeInteropPolicy(",
     "pub fn read8InteropPolicyBytes(",
     "pub fn read8InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) PolicyError!u8 {",
+    "pub fn write8InteropPolicyBytes(",
+    "pub fn write8InteropPolicy(",
+    "pub fn read16InteropPolicyBytes(",
+    "pub fn read16InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) PolicyError!u16 {",
+    "pub fn write16InteropPolicyBytes(",
+    "pub fn write16InteropPolicy(",
+    "pub fn read32InteropPolicyBytes(",
+    "pub fn read32InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) PolicyError!u32 {",
+    "pub fn write32InteropPolicyBytes(",
+    "pub fn write32InteropPolicy(",
+    "pub fn read64InteropPolicyBytes(",
+    "pub fn read64InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) PolicyError!u64 {",
     "pub fn write64InteropPolicyBytes(",
     "pub fn write64InteropPolicy(",
     "try std.testing.expect(allowsInteropPolicy(mmio_policy));",
     "try std.testing.expect(!allowsInteropPolicy(reserved_policy));",
     "try std.testing.expectError(error.UnsafeScopeDenied, rangeInteropPolicy(base, 16, 4, no_unsafe_policy));",
     "try std.testing.expectEqual(@as(u8, 0x33), try read8InteropPolicy(base, 0, mmio_policy));",
+    "try std.testing.expectEqual(@as(u16, 0x1234), try read16InteropPolicy(base, 2, mmio_policy));",
+    "try std.testing.expectEqual(@as(u32, 0xfeed_beef), try read32InteropPolicy(base, 4, mmio_policy));",
+    "try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), try read64InteropPolicy(base, 8, mmio_policy));",
     "try std.testing.expectError(error.UnsafeScopeDenied, write64InteropPolicyBytes(base, 8, 0, 0, 0));",
 )
 
@@ -528,13 +543,23 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         broken_mmio = (root / MMIO_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_MMIO_SNIPPETS[17] + "\n",
+            "try std.testing.expectError(error.UnsafeScopeDenied, write64InteropPolicyBytes(base, 8, 0, 0, 0));\n",
             "",
             1,
         )
         write_file(root / MMIO_REL, broken_mmio)
         issues = validate(root)
-        assert f"missing_mmio_snippet:{REQUIRED_MMIO_SNIPPETS[17]}" in issues
+        assert "missing_mmio_snippet:try std.testing.expectError(error.UnsafeScopeDenied, write64InteropPolicyBytes(base, 8, 0, 0, 0));" in issues
+
+        build_valid_workspace(root)
+        missing_mmio_read64 = (root / MMIO_REL).read_text(encoding="utf-8").replace(
+            "pub fn read64InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) PolicyError!u64 {\n",
+            "",
+            1,
+        )
+        write_file(root / MMIO_REL, missing_mmio_read64)
+        issues = validate(root)
+        assert "missing_mmio_snippet:pub fn read64InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) PolicyError!u64 {" in issues
 
         build_valid_workspace(root)
         broken_unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8").replace(
@@ -572,7 +597,7 @@ def run_self_test() -> int:
         assert "policy_byte_guard_exit:1" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=19")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
