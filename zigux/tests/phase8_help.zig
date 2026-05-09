@@ -43,7 +43,7 @@ test "phase 8 help slice covers command-list ownership, filtering, exclusion, te
     try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-trace", "perf-", true));
     try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-record.exe", "perf-", true));
     try std.testing.expect(!(try help.addExecutableEntry(&main_cmds, "README.md", "perf-", true)));
-    try std.testing.expect(!(try help.addExecutableEntry(&main_cmds, "perf-.exe", "perf-", true)));
+    try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-.exe", "perf-", true));
     try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-trace", "perf-", true));
     main_cmds.sort();
     main_cmds.uniq();
@@ -55,7 +55,8 @@ test "phase 8 help slice covers command-list ownership, filtering, exclusion, te
 
     main_cmds.excludeCmds(excludes);
 
-    try std.testing.expectEqual(@as(usize, 1), main_cmds.count());
+    try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
+    try std.testing.expectEqualStrings("", main_cmds.names.items[0].name);
     try std.testing.expect(main_cmds.isInCmdList("trace"));
     try std.testing.expectEqual(@as(usize, 5), main_cmds.longestNameLen());
     try std.testing.expectEqualStrings("record", help.commandNameFromEntry("perf-record.exe", "perf-").?);
