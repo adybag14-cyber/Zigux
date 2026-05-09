@@ -13,6 +13,11 @@ ROOT = Path(__file__).resolve().parents[2]
 
 FILES = [
     "scripts/zigux/check-phase10-core-packet.py",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "scripts/zigux/README.md",
     "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/phase10_build.zig",
@@ -43,6 +48,57 @@ EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_driver_id_module",
     'phase10-virtio-driver-id-tests',
     "run_phase10_virtio_driver_id_tests",
+]
+
+EXPECTED_DOCS_README_MARKERS = [
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "drivers/virtio/virtio_verify.zig",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_core_survey.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
+    "make -C zigux phase10-test",
+]
+
+EXPECTED_CLOSURE_NOTE_MARKERS = [
+    "Documentation/zigux/review-checklist.md",
+    "the bounded core-side `virtio_driver_id` helper",
+    "drivers/virtio/virtio_verify.zig",
+    "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
+    "drivers/virtio/virtio_driver_id.zig",
+]
+
+EXPECTED_COMPANION_MARKERS = [
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "scripts/zigux/check-phase10-core-packet.py",
+    "drivers/virtio/virtio_verify.zig",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_core_survey.zig",
+    "make -C zigux phase10-test",
+]
+
+EXPECTED_SCRIPTS_README_MARKERS = [
+    "check-phase10-core-packet.py",
+    "phase10_virtio_core_reset_queue.zig",
+    "phase10_virtio_driver_id.zig",
+    "the current virtio core, bounded reset replay, core survey, driver-id review path, the focused core-verify replay",
+    "make -C zigux phase10",
+]
+
+EXPECTED_SEQUENCING_MARKERS = [
+    "`P10-L01` core lane owns the core lab-validation packet:",
+    "Documentation/zigux/phase10-virtio-core-survey.md",
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "scripts/zigux/check-phase10-core-packet.py",
+    "drivers/virtio/virtio_verify.zig",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
 ]
 
 EXPECTED_MAKEFILE_MARKERS = [
@@ -169,6 +225,31 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         if marker not in build_text:
             missing_markers.append(f"build:{marker}")
 
+    docs_readme_text = read_text(root, "Documentation/zigux/README.md")
+    for marker in EXPECTED_DOCS_README_MARKERS:
+        if marker not in docs_readme_text:
+            missing_markers.append(f"docs_readme:{marker}")
+
+    closure_note_text = read_text(root, "Documentation/zigux/phase10-closure-evidence.md")
+    for marker in EXPECTED_CLOSURE_NOTE_MARKERS:
+        if marker not in closure_note_text:
+            missing_markers.append(f"closure_note:{marker}")
+
+    companion_text = read_text(root, "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
+    for marker in EXPECTED_COMPANION_MARKERS:
+        if marker not in companion_text:
+            missing_markers.append(f"companion:{marker}")
+
+    scripts_readme_text = read_text(root, "scripts/zigux/README.md")
+    for marker in EXPECTED_SCRIPTS_README_MARKERS:
+        if marker not in scripts_readme_text:
+            missing_markers.append(f"scripts_readme:{marker}")
+
+    sequencing_text = read_text(root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md")
+    for marker in EXPECTED_SEQUENCING_MARKERS:
+        if marker not in sequencing_text:
+            missing_markers.append(f"sequencing:{marker}")
+
     makefile_text = read_text(root, "zigux/Makefile")
     for marker in EXPECTED_MAKEFILE_MARKERS:
         if marker not in makefile_text:
@@ -273,6 +354,11 @@ def write_fixture(root: Path, rel_path: str, content: str) -> None:
 def run_self_test() -> int:
     fixture = {
         "scripts/zigux/check-phase10-core-packet.py": read_text(ROOT, "scripts/zigux/check-phase10-core-packet.py"),
+        "Documentation/zigux/README.md": read_text(ROOT, "Documentation/zigux/README.md"),
+        "Documentation/zigux/phase10-closure-evidence.md": read_text(ROOT, "Documentation/zigux/phase10-closure-evidence.md"),
+        "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": read_text(ROOT, "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"),
+        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": read_text(ROOT, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"),
+        "scripts/zigux/README.md": read_text(ROOT, "scripts/zigux/README.md"),
         "zigux/Makefile": read_text(ROOT, "zigux/Makefile"),
         "zigux/tests/README.md": read_text(ROOT, "zigux/tests/README.md"),
         "zigux/tests/phase10_build.zig": read_text(ROOT, "zigux/tests/phase10_build.zig"),
@@ -391,6 +477,81 @@ def run_self_test() -> int:
         if "makefile:cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_makefile_marker_missing")
         makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        docs_readme_path = tmp_root / "Documentation/zigux/README.md"
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "Documentation/zigux/phase10-closure-evidence.md",
+                "Documentation/zigux/phase10-closure-drift.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "docs_readme:Documentation/zigux/phase10-closure-evidence.md" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_docs_readme_marker_missing")
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
+        closure_note_path = tmp_root / "Documentation/zigux/phase10-closure-evidence.md"
+        original_closure_note = closure_note_path.read_text(encoding="utf-8")
+        closure_note_path.write_text(
+            original_closure_note.replace(
+                "zigux/tests/phase10_virtio_driver_id.zig",
+                "zigux/tests/phase10_virtio_driver_id_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "closure_note:zigux/tests/phase10_virtio_driver_id.zig" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_closure_note_marker_missing")
+        closure_note_path.write_text(original_closure_note, encoding="utf-8")
+
+        companion_path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
+        original_companion = companion_path.read_text(encoding="utf-8")
+        companion_path.write_text(
+            original_companion.replace(
+                "scripts/zigux/check-phase10-core-packet.py",
+                "scripts/zigux/check-phase10-core-drift.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "companion:scripts/zigux/check-phase10-core-packet.py" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_companion_marker_missing")
+        companion_path.write_text(original_companion, encoding="utf-8")
+
+        sequencing_path = tmp_root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
+        original_sequencing = sequencing_path.read_text(encoding="utf-8")
+        sequencing_path.write_text(
+            original_sequencing.replace(
+                "scripts/zigux/check-phase10-core-packet.py",
+                "scripts/zigux/check-phase10-core-drift.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "sequencing:scripts/zigux/check-phase10-core-packet.py" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_sequencing_marker_missing")
+        sequencing_path.write_text(original_sequencing, encoding="utf-8")
+
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "the current virtio core, bounded reset replay, core survey, driver-id review path, the focused core-verify replay",
+                "the current virtio core plus a drifted verifier reminder",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "scripts_readme:the current virtio core, bounded reset replay, core survey, driver-id review path, the focused core-verify replay" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_scripts_readme_marker_missing")
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
         tests_readme_path = tmp_root / "zigux/tests/README.md"
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
@@ -665,7 +826,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_transport_bridge_wording_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=31")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=36")
     return 0
 
 
