@@ -94,6 +94,7 @@ REQUIRED_SURFACES = {
     "net/core/skbuff_bridge.zig": "pub const SkbuffBridgeLab",
     "kernel/rcu/tree_bridge.zig": "pub const RcuTreeBridgeLab",
 }
+EXPECTED_SURFACE_PATHS = set(REQUIRED_SURFACES)
 REQUIRED_FILE_MARKERS = {
     "Documentation/zigux/README.md": [
         "Phase 14 notes",
@@ -425,6 +426,9 @@ def check(root: Path) -> list[str]:
         errors.append("phase14 manifest compile_shards drifted from the current five-row compile packet")
     surfaces, surface_counts, surface_errors = collect_manifest_surface_markers(manifest)
     errors.extend(surface_errors)
+    unexpected_surface_paths = sorted(set(surface_counts) - EXPECTED_SURFACE_PATHS)
+    for path in unexpected_surface_paths:
+        errors.append(f"unexpected manifest surface in zigux/tests/phase14_end_to_end_smoke_manifest.json: {path}")
     for path, count in surface_counts.items():
         if count != 1:
             errors.append(f"phase14 manifest surface count drift for {path} (expected 1, found {count})")
@@ -666,6 +670,19 @@ def run_self_test() -> int:
         errors = check(root)
         if not any("manifest surface drift for zigux/Makefile" in error for error in errors):
             print("self-test expected wrong-required-marker manifest surface drift failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken_manifest["surfaces"].append(
+            {
+                "path": "Documentation/zigux/phase14-extra-surface.md",
+                "required_marker": "synthetic extra surface",
+            }
+        )
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
+        errors = check(root)
+        if "unexpected manifest surface in zigux/tests/phase14_end_to_end_smoke_manifest.json: Documentation/zigux/phase14-extra-surface.md" not in errors:
+            print("self-test expected unexpected manifest-surface path failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         smoke_note_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
