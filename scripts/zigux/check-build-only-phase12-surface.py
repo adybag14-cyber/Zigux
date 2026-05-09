@@ -276,7 +276,9 @@ REQUIRED_FILE_MARKERS = {
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
         "`Documentation/zigux/phase12-release-readiness-survey.md`",
         "`Documentation/zigux/phase12-release-coordination-matrix.md`",
+        "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
+        "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
         "`Documentation/zigux/freeze-map.md`",
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
         "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
@@ -364,6 +366,8 @@ EXACT_COUNT_FILE_MARKERS = {
         "`zigux/tests/phase12_virtio_scsi_manifest.json`": 1,
     },
     SCRIPTS_README_PATH: {
+        "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`": 1,
+        "`Documentation/zigux/phase12-raw-github-coverage-survey.md`": 1,
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`": 1,
         "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`": 1,
         "`make -C zigux phase12-smoke`": 1,
