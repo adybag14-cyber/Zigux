@@ -144,6 +144,7 @@ def check(root: Path) -> list[str]:
         errors.append(f"missing file: {MAKEFILE_PATH}")
     else:
         makefile_text = read_text(makefile_path)
+        require_exact_marker_count(errors, MAKEFILE_PATH, makefile_text, CHECKER_PATH)
         if CHECKER_PATH not in makefile_text:
             errors.append(f"missing marker in {MAKEFILE_PATH}: {CHECKER_PATH}")
 
@@ -508,6 +509,23 @@ def run_self_test() -> int:
         ):
             print(
                 "self-test expected failure when the Makefile lost the docs-root checker route",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / MAKEFILE_PATH, f"phase14-validate:\n\tpython3 {CHECKER_PATH}\n")
+
+        broken_makefile_path.write_text(
+            f"phase14-validate:\n\tpython3 {CHECKER_PATH}\n\tpython3 {CHECKER_PATH}\n",
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            f"marker count drift in {MAKEFILE_PATH}: {CHECKER_PATH} (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when the Makefile duplicated the docs-root checker route",
                 file=sys.stderr,
             )
             return 1
