@@ -146,6 +146,8 @@ REQUIRED_FILE_MARKERS = {
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
         "`make -C zigux phase12-smoke`",
         "`make -C zigux phase12`",
+        "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
+        "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion",
         "Keep `Documentation/zigux/phase12-release-readiness-survey.md` visible beside this shared fallback overview, the PMO closure companion, and `Documentation/zigux/phase12-release-coordination-matrix.md` so adjacent tranche-readiness wording stays tied to the same two-artifact-plus-two-anchor split and smoke-first release packet instead of drifting into its own broader route.",
         "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this shared fallback overview",
