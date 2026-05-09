@@ -82,6 +82,8 @@ If this lane reopens, start by diffing `Documentation/zigux/README.md`, `Documen
 
 The adjacent PMO release note now pins `zigux/tests/phase12_libbpf_snapshot_determinism.zig` as the canonical deterministic replay path, and `Documentation/zigux/README.md` now matches that canonical replay instead of drifting it back into the fixtures tree. This lane no longer needs to steer future runs back through that same docs-root path repair.
 
+The saved build-only checker follow-through is now also closed on `master`: `scripts/zigux/check-build-only-phase12-surface.py` already requires `zigux/tests/phase12_libbpf_snapshot_determinism.zig` inside the shared Phase 12 scripts-root packet markers and exact-count guards, so this lane no longer needs to steer future runs back through that same checker-local path reminder.
+
 The earlier shared checklist undercount is now closed on `master`: `Documentation/zigux/review-checklist.md` already keeps the adjacent release-readiness note explicit beside the PMO closure companion, the two commit-pinned fallback artifacts, the compact release-coordination matrix, the two anti-overlap companions, and the freeze-boundary reminder.
 
 The later shared checklist drift is now also closed on `master`: `Documentation/zigux/review-checklist.md` now keeps `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, and `zigux/tests/phase12_libbpf_snapshot_determinism.zig` explicit beside the rest of the shared Phase 12 packet, matching the docs-root, scripts-root, tests-root, build-only checker, and libbpf anti-overlap surfaces that already named that deterministic libbpf evidence.
