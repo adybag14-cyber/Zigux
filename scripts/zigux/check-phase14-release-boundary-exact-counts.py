@@ -385,6 +385,20 @@ def run_self_test() -> int:
             return 1
         write_text(freeze_map_path, expected_freeze_map_text)
 
+        write_text(
+            freeze_map_path,
+            read_text(freeze_map_path).replace(
+                "- kernel/workqueue.c\n",
+                "- kernel/workqueue.c\n- kernel/workqueue.c\n",
+                1,
+            ),
+        )
+        errors = check(root)
+        if not any("freeze-map boundary-study-only anchors drifted from the expected two-entry Phase 14 set" in error for error in errors):
+            print("self-test expected failure when freeze-map boundary-study-only anchors duplicated", file=sys.stderr)
+            return 1
+        write_text(freeze_map_path, expected_freeze_map_text)
+
         manifest_data = json.loads(read_text(manifest_path))
         manifest_data["study_only_anchors"] = [
             "kernel/workqueue.c",
