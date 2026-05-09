@@ -305,6 +305,15 @@ That means `test "bitmap copy and extend handles zero and aligned counts"` stays
 
 - `PHASE1_BITMAP_COPY_EXTEND_ZERO_ALIGNED_REVIEW=helper-local bitmap copy-and-extend zero-count and aligned-count proof stays explicit through the direct bitmap test anchor so zero-count copies clear the destination extension and aligned word counts preserve copied words without accidental tail masking`
 
+The helper-local zero-sized destination-view proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+
+That means `test "bitmap copy helpers keep zero-sized destination views untouched"` stays present and review-visible whenever `copyClearTail()`, `bitmap_copy_clear_tail()`, `copyAndExtend()`, or `bitmap_copy_and_extend()` changes. This helper-local test is the bounded proof that zero-sized destination views remain untouched instead of clearing sentinel caller storage when the live bitmap window is empty. The Phase 1 helper manifest keeps that direct anchor explicit too, so the helper-local review inventory and the direct-anchor packet do not silently drift apart while zero-sized destination behavior stays helper-local.
+
+- `PHASE1_BITMAP_ZERO_SIZED_DESTINATION_VIEW_REVIEW=helper-local zero-sized destination-view proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so copyClearTail, bitmap_copy_clear_tail, copyAndExtend, and bitmap_copy_and_extend leave zero-sized destination views untouched instead of clearing caller sentinel storage`
+
 The helper-local zero-bit no-op proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
