@@ -112,7 +112,7 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 ## Current Approval Posture
 
 - no Architecture Council approval is currently recorded for a freeze-map status change
-- current review-process evidence is limited to named `phase`, `current status bucket`, `required approver set`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records in the review packet plus the validator-first `make -C zigux phase15-validate` route, the workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`, the dedicated `make -C zigux phase15-test` route, the direct `zig build test --build-file zigux/tests/phase15_build.zig` route, and the anchor-specific rollback-owner records in the parity scorecard
+- current review-process evidence is limited to named `linux anchor path`, `phase`, `current status bucket`, `requested decision bucket`, `decision record ID`, `required approver set`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, `explicit non-goals`, `written rationale`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records in the review packet plus the validator-first `make -C zigux phase15-validate` route, the workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`, the dedicated `make -C zigux phase15-test` route, the direct `zig build test --build-file zigux/tests/phase15_build.zig` route, and the anchor-specific rollback-owner records in the parity scorecard
 - the parked Architecture Council packet stays aligned with its scripts-root validator path, its workflow-backed replay path, its dedicated `make -C zigux phase15-test` route, its direct `zig build test --build-file zigux/tests/phase15_build.zig` route, its Linux-style `make -C zigux phase15-validate` route, its tests-root guidance path, and its dedicated handoff-checker route
 - until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
 
@@ -144,6 +144,7 @@ The current lane state is:
 - landed `phase15-roadmap-minimum-field-sync`
 - landed `phase15-lane-owner-alignment-replay-visible`
 - landed `phase15-approver-set-field-sync`
+- landed `phase15-current-approval-posture-field-sync`
 - landed `phase15-workflow-replay-anchor-visible`
 - landed `phase15-dedicated-make-test-replay-visible`
 - landed `phase15-dated-readback-provenance-refresh`
