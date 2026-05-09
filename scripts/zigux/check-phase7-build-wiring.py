@@ -169,6 +169,20 @@ REVIEW_GATE_SPECS = [
     },
 ]
 
+AGGREGATE_SURVEY_STEP_SPEC = {
+    "step_open_marker": "const survey_step = b.step(",
+    "step_name_marker": '"phase7-surveys",',
+    "step_name": "phase7-surveys",
+    "step_description_marker": '"Run the dedicated Phase 7 survey and boundary gates",',
+    "step_depend_markers": [
+        "survey_step.dependOn(&run_string_helpers_survey_tests.step);",
+        "survey_step.dependOn(&run_string_helpers_sample_boundary_tests.step);",
+        "survey_step.dependOn(&run_cmdline_survey_tests.step);",
+        "survey_step.dependOn(&run_argv_split_survey_tests.step);",
+        "survey_step.dependOn(&run_rbtree_survey_tests.step);",
+    ],
+}
+
 BUILD_REQUIRED_MARKERS = [
     marker
     for spec in HELPER_SPECS
@@ -191,6 +205,11 @@ BUILD_REQUIRED_MARKERS = [
         spec["step_description_marker"],
         spec["step_depend_marker"],
     )
+] + [
+    AGGREGATE_SURVEY_STEP_SPEC["step_open_marker"],
+    AGGREGATE_SURVEY_STEP_SPEC["step_name_marker"],
+    AGGREGATE_SURVEY_STEP_SPEC["step_description_marker"],
+    *AGGREGATE_SURVEY_STEP_SPEC["step_depend_markers"],
 ]
 
 BUILD_EXACT_COUNT_MARKERS = [(marker, 1) for marker in BUILD_REQUIRED_MARKERS]
@@ -238,8 +257,9 @@ def collect_make_phony_counts(text: str) -> dict[str, int]:
 def collect_makefile_missing_markers(text: str) -> list[str]:
     missing: list[str] = []
     phony_counts = collect_make_phony_counts(text)
-    for spec in REVIEW_GATE_SPECS:
-        target = spec["step_name"]
+    step_names = [spec["step_name"] for spec in REVIEW_GATE_SPECS]
+    step_names.append(AGGREGATE_SURVEY_STEP_SPEC["step_name"])
+    for target in step_names:
         phony_count = phony_counts.get(target, 0)
         if phony_count != 1:
             missing.append(
@@ -295,10 +315,12 @@ def duplicate_phony_token_once(text: str, target: str) -> str:
 
 
 def phase7_makefile_fixture() -> str:
-    phony_targets = " ".join(spec["step_name"] for spec in REVIEW_GATE_SPECS)
+    phony_targets = " ".join(
+        [spec["step_name"] for spec in REVIEW_GATE_SPECS]
+        + [AGGREGATE_SURVEY_STEP_SPEC["step_name"]]
+    )
     target_blocks: list[str] = [f"PHONY += {phony_targets}", ""]
-    for spec in REVIEW_GATE_SPECS:
-        target = spec["step_name"]
+    for target in phony_targets.split():
         target_blocks.extend(
             [
                 f"{target}:",
@@ -465,6 +487,64 @@ def run_self_test() -> None:
             ]
         )
 
+    marker_cases.extend(
+        [
+            (
+                "aggregate_survey_step_open_drift",
+                AGGREGATE_SURVEY_STEP_SPEC["step_open_marker"],
+                AGGREGATE_SURVEY_STEP_SPEC["step_open_marker"].replace("survey_step", "survey_gate"),
+                f"zigux/tests/phase7_build.zig: {AGGREGATE_SURVEY_STEP_SPEC['step_open_marker']}",
+            ),
+            (
+                "aggregate_survey_step_name_drift",
+                AGGREGATE_SURVEY_STEP_SPEC["step_name_marker"],
+                AGGREGATE_SURVEY_STEP_SPEC["step_name_marker"].replace('phase7-surveys', 'phase7-surveys-drift'),
+                f"zigux/tests/phase7_build.zig: {AGGREGATE_SURVEY_STEP_SPEC['step_name_marker']}",
+            ),
+            (
+                "aggregate_survey_step_description_drift",
+                AGGREGATE_SURVEY_STEP_SPEC["step_description_marker"],
+                AGGREGATE_SURVEY_STEP_SPEC["step_description_marker"].replace("dedicated ", "review-only "),
+                f"zigux/tests/phase7_build.zig: {AGGREGATE_SURVEY_STEP_SPEC['step_description_marker']}",
+            ),
+        ]
+    )
+    exact_count_cases.extend(
+        [
+            (
+                "aggregate_survey_step_open_exact_count",
+                AGGREGATE_SURVEY_STEP_SPEC["step_open_marker"],
+                f"zigux/tests/phase7_build.zig: {AGGREGATE_SURVEY_STEP_SPEC['step_open_marker']}:expected=1:actual=2",
+            ),
+            (
+                "aggregate_survey_step_name_exact_count",
+                AGGREGATE_SURVEY_STEP_SPEC["step_name_marker"],
+                f"zigux/tests/phase7_build.zig: {AGGREGATE_SURVEY_STEP_SPEC['step_name_marker']}:expected=1:actual=2",
+            ),
+            (
+                "aggregate_survey_step_description_exact_count",
+                AGGREGATE_SURVEY_STEP_SPEC["step_description_marker"],
+                f"zigux/tests/phase7_build.zig: {AGGREGATE_SURVEY_STEP_SPEC['step_description_marker']}:expected=1:actual=2",
+            ),
+        ]
+    )
+    for index, marker in enumerate(AGGREGATE_SURVEY_STEP_SPEC["step_depend_markers"]):
+        marker_cases.append(
+            (
+                f"aggregate_survey_step_depend_drift_{index}",
+                marker,
+                marker.replace(".step);", "_drift.step);"),
+                f"zigux/tests/phase7_build.zig: {marker}",
+            )
+        )
+        exact_count_cases.append(
+            (
+                f"aggregate_survey_step_depend_exact_count_{index}",
+                marker,
+                f"zigux/tests/phase7_build.zig: {marker}:expected=1:actual=2",
+            )
+        )
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_build_wiring_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         build_path = tmp_root / "phase7_build.zig"
@@ -487,8 +567,7 @@ def run_self_test() -> None:
             build_path.write_text(build_fixture, encoding="utf-8")
 
         makefile_marker_cases = 0
-        for spec in REVIEW_GATE_SPECS:
-            target = spec["step_name"]
+        for target in [spec["step_name"] for spec in REVIEW_GATE_SPECS] + [AGGREGATE_SURVEY_STEP_SPEC["step_name"]]:
             expected_command = (
                 f"\tcd $(ZIGUX_ROOT) && $(ZIG) build {target} "
                 "--build-file zigux/tests/phase7_build.zig --summary all"
@@ -555,7 +634,7 @@ def main() -> int:
     print("PHASE7_BUILD_WIRING=pass")
     print(
         "PHASE7_BUILD_WIRING_REQUIRED_MARKER_COUNT=%d"
-        % (len(BUILD_REQUIRED_MARKERS) + (2 * len(REVIEW_GATE_SPECS)))
+        % (len(BUILD_REQUIRED_MARKERS) + len(REVIEW_GATE_SPECS) + 3)
     )
     return 0
 
