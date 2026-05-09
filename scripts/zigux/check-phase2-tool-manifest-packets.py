@@ -82,7 +82,7 @@ REQUIRED_DOCS_ROOT_MARKERS = [
 ]
 REQUIRED_SCRIPTS_README_LINES = [
     "- `check-phase2-tool-manifest-packets.py`",
-    "- `check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed `fixdep`, `genksyms`, and `kconfig` packet manifests so the shared Phase 2 tool inventory, self-test route, and live gate wiring stay explicit before the direct Zig replays run.",
+    "- `check-phase2-tool-manifest-packets.py --self-test` and `check-phase2-tool-manifest-packets.py` keep `zigux/tests/fixtures/phase2_tool_manifest.json` aligned with the committed `fixdep`, `genksyms`, `artifact_tools` (`genksyms_crc` plus `mk_elfconfig`), `kconfig`, and `confdata` packet manifests so the shared Phase 2 tool inventory, self-test route, and live gate wiring stay explicit before the direct Zig replays run.",
 ]
 REQUIRED_TESTS_README_MARKERS = [
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
