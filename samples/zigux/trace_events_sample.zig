@@ -531,6 +531,45 @@ test "trace-events sample keeps string selection wraparound public" {
     try std.testing.expect(string_boundary.relative_location_path_checked);
 }
 
+test "trace-events sample keeps the full string and formatting cycle explicit" {
+    var module = TraceEventsReferenceSample{};
+    try module.init();
+
+    const expected_strings = [_][]const u8{
+        "Mother Goose",
+        "Snoopy",
+        "Gandalf",
+        "Frodo",
+        "One ring to rule them all",
+        "Mother Goose",
+    };
+
+    for (expected_strings, 0..) |expected_string, count| {
+        const boundary = try module.runConditionalBoundaryReplay(@intCast(count));
+        var expected_message_buffer: [16]u8 = undefined;
+        const expected_message = try std.fmt.bufPrint(&expected_message_buffer, "iter={d}", .{count});
+
+        try std.testing.expectEqual(SampleStage.initialized, boundary.stage_before_iteration);
+        try std.testing.expectEqual(SampleStage.initialized, boundary.stage_after_iteration);
+        try std.testing.expectEqual(@as(i32, @intCast(count)), boundary.main_count);
+        try std.testing.expectEqualStrings(expected_message, boundary.formatted_message);
+        try std.testing.expectEqual(@as(usize, count % 5), boundary.selected_index);
+        try std.testing.expectEqualStrings(expected_string, boundary.selected_string);
+        try std.testing.expectEqual(@as(usize, 0xdeadbeef), boundary.bitmask_word);
+        try std.testing.expectEqual(TraceEventsReferenceSample.event_family_count, boundary.main_thread_event_calls);
+        try std.testing.expectEqual(TraceEventsReferenceSample.event_family_count * (count + 1), boundary.total_event_calls_after_replay);
+        try std.testing.expect(boundary.conditional_paths_checked);
+        try std.testing.expect(boundary.vararg_payload_path_checked);
+        try std.testing.expect(boundary.relative_location_path_checked);
+    }
+
+    try std.testing.expectEqual(@as(usize, 6 * TraceEventsReferenceSample.event_family_count), module.total_event_calls);
+    try std.testing.expectEqualStrings("Mother Goose", module.selected_string);
+    try std.testing.expectEqual(@as(usize, 0), module.selected_index);
+    try std.testing.expectEqualStrings("iter=5", module.formattedMessage());
+    try std.testing.expectEqual(SampleStage.initialized, module.stage());
+}
+
 test "trace-events sample keeps payload and callback boundaries explicit" {
     var module = TraceEventsReferenceSample{};
 
