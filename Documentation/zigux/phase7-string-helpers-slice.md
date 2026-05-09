@@ -85,7 +85,9 @@ The current bounded slice covers:
 - `parse_int_array()`
 - `parse_int_array_user()` over the bounded copied-user-buffer wrapper path
 - `string_unescape()`
+- `string_unescape_inplace()` over the bounded in-place runtime-safe wrapper path
 - `string_escape_mem()` over the bounded runtime-safe escape subset
+- `string_escape_str()` over the bounded first-NUL string-oriented escape wrapper path
 - `kasprintf_strarray()` over the bounded sequential prefix-index ownership path
 - `kfree_strarray()` over the bounded repeated-teardown-safe release path
 
@@ -106,11 +108,12 @@ The current tests check:
 - mixed-base, negative-number, first-NUL-bounded, and empty-input integer-array parsing through the count-prefixed `parse_int_array()` starter
 - copied-user-buffer, first-NUL-bounded, truncated-count, and short-buffer-fault behavior through `parse_int_array_user()`
 - deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
-- in-place unescape behavior and bounded destination termination
+- in-place unescape behavior and bounded destination termination, including the direct `string_unescape_inplace()` wrapper route
 - exact-fit, terminator-only, and zero-capacity destination handling for `string_unescape()` so the helper's bounded write discipline stays reviewable
 - deterministic escape-space, special, null, octal, and hex output cases
 - dictionary-limited `only` filtering plus `ESCAPE_APPEND` behavior for one newline-focused printable escape proof
 - printable, non-printable, non-ascii, and non-printable-or-non-ascii passthrough filters over a hex-escaped bounded subset
+- first-NUL-bounded string-oriented escaping through `string_escape_str()` alongside the bounded `string_escape_mem()` subset
 - truncation accounting that returns the full would-be escaped length without promising an appended terminator
 - zero-capacity escape-destination accounting that still reports the full would-be escaped length without promising an appended terminator
 - one allocator-backed `kasprintf_strarray()` proof that returns sequential `prefix-index` owned strings together with a trailing null-pointer view for C-style callers
