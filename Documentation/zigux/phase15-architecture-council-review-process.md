@@ -9,7 +9,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - `PHASE15_LANE_KEY=P15-L06`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one review-process note, one dedicated manifest and Zig test, the focused lane-owner vocabulary alignment replay already shipped in the shared Phase 15 build, the focused indefinite-C blocker-evidence replay already shipped in the shared Phase 15 build, the shared governance-lane sequencing replay already shipped in the shared Phase 15 build, the shared Phase 15 build wiring, and one bounded truthfulness refresh that retires a stale exact-head claim without reopening policy or freeze-map status discussion
-- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 after live compare-against-master showed the previously recorded verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` now sits `2591` commits behind current `master`
+- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 after live compare-against-master confirmed the previously recorded verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` is no longer current `master`
 - exact branch-head parity is not recorded for this packet; the parked review-process survey now uses an explicit dated readback marker instead of stale exact-head provenance
 - maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires, the deep-core blocker posture changes, or this packet drifts again
 - product boundary:
@@ -148,7 +148,7 @@ The current lane state is:
 - landed `phase15-dedicated-make-test-replay-visible`
 - landed `phase15-dated-readback-provenance-refresh`
 
-This keeps the slice narrow. Zigux keeps the same reviewable Architecture Council process description, the same required packet fields, the same parity-scorecard linkage, the same indefinite-C policy linkage, the same retained stay-in-C closeout rule, the same workflow-backed and dedicated test replay anchors, and the same no-approval posture. The only new maintenance claim is truthfulness: live compare-against-master showed the previously recorded exact verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` is now 2591 commits behind current `master`, so this parked packet now uses the explicit dated marker `current-master-readback-2026-05-09` instead of implying fresh exact-head parity.
+This keeps the slice narrow. Zigux keeps the same reviewable Architecture Council process description, the same required packet fields, the same parity-scorecard linkage, the same indefinite-C policy linkage, the same retained stay-in-C closeout rule, the same workflow-backed and dedicated test replay anchors, and the same no-approval posture. The only new maintenance claim is truthfulness: live compare-against-master showed the previously recorded exact verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` is no longer current `master`, so this parked packet now uses the explicit dated marker `current-master-readback-2026-05-09` instead of implying fresh exact-head parity.
 
 ## Non-goals
 
