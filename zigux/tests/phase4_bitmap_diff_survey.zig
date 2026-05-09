@@ -150,6 +150,12 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
 test "phase 4 bitmap survey keeps zero-length and copy-alignment rollback checks explicit" {
     try expectContains(bitmap_diff_source, "test_zero_nbits zero-length range and prefix edits leave seeded bits unchanged");
     try expectContains(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
+    try expectContains(bitmap_diff_source, "test_copy exact word-aligned replay from a cleared destination");
+    try expectContains(
+        bitmap_diff_source,
+        "test_copy exact word-aligned replay clears the first-word tail and leaves later filled words untouched",
+    );
+    try expectContains(bitmap_diff_source, "test_copy partial-word tail clearing at 109 bits");
     try expectContains(
         bitmap_diff_source,
         "test_copy aligned 97-bit replay keeps the full second word before the filled tail resumes",
