@@ -129,6 +129,47 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-backed queue discovery, IRQ acknowledgement, queue reset execution, and probe/remove lifecycle behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Do not reopen MMIO helper growth, DMA, interrupt delivery, queue discovery, reset execution, or probe/remove lifecycle work from this note.") != null);
 
+    const sequencing_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(sequencing_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "notification-data wrap-transition review") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "shipped ring helper plus verifier packet") != null);
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "drivers/virtio/virtio_ring_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "zigux/tests/phase10_virtio_ring.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "zigux/tests/phase10_virtio_ring_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "zigux/tests/phase10_virtio_ring_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "lane-sequenced virtio ring plus the focused ring-verify replay") != null);
+
+    const closure_manifest = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase10_closure_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(closure_manifest);
+
+    try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"ring\": \"P10-L07\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"ring\": \"e42103fc02f544e1bd23a5ec2e5b584734f5af7d\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"drivers/virtio/virtio_ring.zig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"drivers/virtio/virtio_ring_verify.zig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"scripts/zigux/check-phase10-ring-packet.py\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"phase10-notification-data-summary-helper\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, closure_manifest, "\"phase10-ring-verify-replay\"") != null);
+
     const verify_replay = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "drivers/virtio/virtio_ring_verify.zig",
