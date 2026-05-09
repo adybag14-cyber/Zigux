@@ -45,6 +45,9 @@ REQUIRED_SHARED_REPLAY_MARKERS = [
     "`zigux/tests/phase11_dw_wdt_manifest.json`",
     "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
     "`drivers/watchdog/dw_wdt_verify.zig`",
+    "`scripts/zigux/check-phase11-dw-wdt-packet.py`",
+    "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`",
+    "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py`",
     "`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`",
 ]
 
@@ -71,7 +74,7 @@ REQUIRED_BUILD_MARKERS = [
     '.name = "phase11-dw-wdt-survey-tests"',
 ]
 
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 20
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -161,6 +164,9 @@ This survey note keeps lane identity `P11-L05` explicit beside the current revie
 - `zigux/tests/phase11_dw_wdt_manifest.json`
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
 - `drivers/watchdog/dw_wdt_verify.zig`
+- `scripts/zigux/check-phase11-dw-wdt-packet.py`
+- `python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`
+- `python3 scripts/zigux/check-phase11-dw-wdt-packet.py`
 - `phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`
 """,
     )
@@ -233,6 +239,9 @@ def run_self_test() -> int:
             (SURVEY_NOTE_PATH, "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`", "survey_note:`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`"),
             (VALIDATION_MATRIX_PATH, "`drivers/watchdog/dw_wdt_verify.zig`", "validation_matrix:`drivers/watchdog/dw_wdt_verify.zig`"),
             (VALIDATION_MATRIX_PATH, "`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`", "validation_matrix:`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`"),
+            (SHARED_REPLAY_CONTRACT_PATH, "`scripts/zigux/check-phase11-dw-wdt-packet.py`", "shared_replay:`scripts/zigux/check-phase11-dw-wdt-packet.py`"),
+            (SHARED_REPLAY_CONTRACT_PATH, "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`", "shared_replay:`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`"),
+            (SHARED_REPLAY_CONTRACT_PATH, "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py`", "shared_replay:`python3 scripts/zigux/check-phase11-dw-wdt-packet.py`"),
             (SHARED_REPLAY_CONTRACT_PATH, "`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`", "shared_replay:`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`"),
             (TEARDOWN_NOTE_PATH, "`teardownSummary()`", "teardown_note:`teardownSummary()`"),
             (TEARDOWN_NOTE_PATH, "continued-heartbeat", "teardown_note:continued-heartbeat"),
