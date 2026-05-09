@@ -642,7 +642,11 @@ test "shared runtime loader contract rejects request state, approved-family, or 
 
     var drifted_selftest_hook = stable_plan;
     drifted_selftest_hook.provides_selftest_hook = false;
-    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_selftest_hook));
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(
+        request,
+        .prepared,
+        drifted_selftest_hook,
+    ));
 
     var drifted_allocator = stable_plan;
     drifted_allocator.allocator_handoff = .caller_provided;
@@ -894,4 +898,52 @@ test "shared runtime loader contract keeps command, environment, registration-su
     try std.testing.expect(!@hasField(PreparedRequest, "depmod_script"));
     try std.testing.expect(!@hasField(PreparedRequest, "depmod_manifest"));
     try std.testing.expect(!@hasField(PreparedRequest, "depmod_aliases"));
+}
+
+test "shared runtime loader contract keeps releaseWithoutSubstrate from advancing past prepared-plan drift" {
+    const initialized_plan = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+    var initialized_request = try prepareRequest(initialized_plan);
+    _ = try initialized_request.requestRuntimeLoad();
+    initialized_request.plan.init_flow.selftest_runs = 1;
+    try std.testing.expectError(error.PreparedPlanDrift, initialized_request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, initialized_request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(initialized_request.prepared_plan, initialized_plan));
+    try std.testing.expect(!keepsLoadPlanExplicit(initialized_request.plan, initialized_plan));
+
+    const selftested_plan = LoadPlan{
+        .module_name = "runtime_atomic64",
+        .anchor = "lib/atomic64_test.c",
+        .entry_symbol = "zigux_runtime_atomic64_init",
+        .exit_symbol = "zigux_runtime_atomic64_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    var selftested_request = try prepareRequest(selftested_plan);
+    _ = try selftested_request.requestRuntimeLoad();
+    selftested_request.plan.exit_symbol = "zigux_runtime_atomic64_exit_drift";
+    try std.testing.expectError(error.PreparedPlanDrift, selftested_request.releaseWithoutSubstrate());
+    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, selftested_request.state);
+    try std.testing.expect(keepsLoadPlanExplicit(selftested_request.prepared_plan, selftested_plan));
+    try std.testing.expect(!keepsLoadPlanExplicit(selftested_request.plan, selftested_plan));
 }
