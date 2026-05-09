@@ -22,6 +22,38 @@ test "platform handoff stays blocked when drvdata publication is missing" {
     try std.testing.expect(handoff.needs_timeout_programming);
 }
 
+test "platform handoff keeps timeout-programming registration state explicit when resources are ready" {
+    var watchdog = try dw_wdt.DwWdtLab.initCustomTops(1_000, false, [_]u32{
+        20_000, 4_000,  8_000,  12_000,
+        16_000, 24_000, 28_000, 32_000,
+        36_000, 40_000, 44_000, 48_000,
+        52_000, 56_000, 60_000, 64_000,
+    });
+
+    const handoff = try watchdog.platformHandoffSummary(.{
+        .nowayout = true,
+        .requested_timeout_sec = 11,
+        .stop_on_reboot = true,
+    }, true, true, true);
+
+    try std.testing.expectEqual(dw_wdt.TopSource.custom, handoff.top_source);
+    try std.testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.default_selection, handoff.timeout_origin);
+    try std.testing.expect(!handoff.reset_control_available);
+    try std.testing.expect(handoff.irq_registration_ready);
+    try std.testing.expect(handoff.drvdata_ready);
+    try std.testing.expectEqual(dw_wdt.RegistrationScaffoldState.program_timeout_then_register, handoff.registration_state);
+    try std.testing.expect(handoff.registration_ready);
+    try std.testing.expect(!handoff.preserves_pretimeout_irq);
+    try std.testing.expect(handoff.nowayout);
+    try std.testing.expectEqual(dw_wdt.default_restart_priority, handoff.restart_priority);
+    try std.testing.expect(handoff.stop_on_reboot);
+    try std.testing.expect(!handoff.can_stop);
+    try std.testing.expectEqual(@as(u32, 12), handoff.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 0), handoff.pretimeout_sec);
+    try std.testing.expect(!handoff.imported_running_state);
+    try std.testing.expect(handoff.needs_timeout_programming);
+}
+
 test "registration order summary keeps blocked registration explicit when drvdata is missing" {
     var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
     _ = watchdog.loadRegisters(.{
