@@ -17,6 +17,17 @@ CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
 CONFDATA_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
 FIXTURE_DIR = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge"
 
+REQUIRED_CONF_HELPER_ANCHORS = [
+    "conf bridge emits syncconfig auto files",
+    "conf bridge emits alldefconfig argv and env",
+    "conf bridge emits explicit empty allconfig override for allmodconfig",
+    "conf bridge emits randconfig tunables when present",
+    "conf bridge emits yes2modconfig argv and env",
+    "conf bridge emits defconfig mode argument before kconfig",
+    "conf bridge emits savedefconfig mode argument before kconfig",
+    "conf bridge escapes low control bytes in JSON strings",
+]
+
 REQUIRED_CONFDATA_CASES = [
     "sample",
     "escaped_strings",
@@ -79,7 +90,13 @@ ALLCONFIG_OVERRIDE_MODES = {
     "randconfig",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+ALLCONFIG_SENTINEL_MODES = {
+    "allnoconfig",
+    "allyesconfig",
+    "alldefconfig",
+}
+
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -126,6 +143,14 @@ def ordered_conf_modes(conf_bridge_path: Path) -> list[str]:
     return modes
 
 
+def ordered_conf_helper_anchors(conf_bridge_path: Path) -> list[str]:
+    source = conf_bridge_path.read_text(encoding="utf-8")
+    anchors = re.findall(r'^test "([^"]+)" \{$', source, re.M)
+    if not anchors:
+        raise SystemExit("failed to discover conf bridge test anchors")
+    return [anchor for anchor in anchors if anchor in REQUIRED_CONF_HELPER_ANCHORS]
+
+
 def ordered_confdata_helper_anchors(confdata_bridge_path: Path) -> list[str]:
     source = confdata_bridge_path.read_text(encoding="utf-8")
     anchors = re.findall(r'^test "([^"]+)" \{$', source, re.M)
@@ -137,6 +162,65 @@ def ordered_confdata_helper_anchors(confdata_bridge_path: Path) -> list[str]:
 def expected_conf_case_order(conf_cases: list[dict[str, object]]) -> list[str]:
     manifest_mode_set = {str(case["mode"]) for case in conf_cases}
     return [mode for mode in REQUIRED_CONF_CASE_MODES if mode in manifest_mode_set]
+
+
+def collect_conf_manifest_issues(
+    fixture_dir: Path,
+    conf_bridge_path: Path,
+    conf_cases: list[dict[str, object]],
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    conf_manifest = fixture_dir / "conf_manifest.json"
+    if not conf_manifest.exists():
+        return [("MISSING_CONF_MANIFEST", conf_manifest.name)]
+
+    source_helper_anchors = ordered_conf_helper_anchors(conf_bridge_path)
+    if source_helper_anchors != REQUIRED_CONF_HELPER_ANCHORS:
+        issues.append(("CONF_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL", ",".join(source_helper_anchors)))
+        issues.append(("CONF_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED", ",".join(REQUIRED_CONF_HELPER_ANCHORS)))
+
+    manifest = json.loads(conf_manifest.read_text(encoding="utf-8"))
+    expected_case_names = [str(case["name"]) for case in conf_cases]
+    expected_stdout_packet = [str(case["expected"]) for case in conf_cases]
+    expected_mode_arg_cases = [str(case["name"]) for case in conf_cases if "mode_arg" in case]
+    expected_allconfig_sentinel_packet = [
+        str(case["expected"]) for case in conf_cases if str(case["mode"]) in ALLCONFIG_SENTINEL_MODES
+    ]
+    expected_allconfig_override_packet = [str(case["expected"]) for case in conf_cases if "allconfig" in case]
+
+    exact_fields = {
+        "tool": "scripts/zigux/kconfig/conf_bridge.zig",
+        "status": "closed",
+        "mode": "bounded request-plan bridge",
+        "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
+        "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
+    }
+    for field_name, expected_value in exact_fields.items():
+        actual_value = manifest.get(field_name)
+        if actual_value != expected_value:
+            issues.append(("CONF_MANIFEST_FIELD_MISMATCH", f"{field_name}:actual={actual_value!r}:expected={expected_value!r}"))
+
+    if manifest.get("case_count") != len(conf_cases):
+        issues.append(("CONF_MANIFEST_CASE_COUNT_MISMATCH", f"actual={manifest.get('case_count')!r}:expected={len(conf_cases)}"))
+
+    sequence_fields = {
+        "cases": expected_case_names,
+        "stdout_packet": expected_stdout_packet,
+        "mode_arg_cases": expected_mode_arg_cases,
+        "allconfig_sentinel_packet": expected_allconfig_sentinel_packet,
+        "allconfig_override_packet": expected_allconfig_override_packet,
+        "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
+    }
+    for field_name, expected_values in sequence_fields.items():
+        actual_values = manifest.get(field_name)
+        if actual_values != expected_values:
+            issues.append((f"CONF_MANIFEST_{field_name.upper()}_MISMATCH", f"actual={actual_values!r}:expected={expected_values!r}"))
+
+    for rel_path in expected_stdout_packet:
+        if not (fixture_dir / rel_path).exists():
+            issues.append(("CONF_MANIFEST_REFERENCES_MISSING_FIXTURE", rel_path))
+
+    return issues
 
 
 def collect_confdata_manifest_issues(
@@ -217,7 +301,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("CONF_CASE_MODE_ORDER_EXPECTED", ",".join(expected_mode_order)))
 
     confdata_cases = cases["confdata_cases"]
-    manifest_confdata_case_order = [str(case["name"] ) for case in confdata_cases]
+    manifest_confdata_case_order = [str(case["name"]) for case in confdata_cases]
     if manifest_confdata_case_order != REQUIRED_CONFDATA_CASES:
         issues.append(("CONFDATA_CASE_ORDER_ACTUAL", ",".join(manifest_confdata_case_order)))
         issues.append(("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)))
@@ -266,6 +350,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
             if not (fixture_dir / rel_path).exists():
                 issues.append(("MISSING_CONFDATA_CASE_PATHS", f"{case['name']}:{field_name}:{rel_path}"))
 
+    issues.extend(collect_conf_manifest_issues(fixture_dir, conf_bridge, conf_cases))
     issues.extend(collect_confdata_manifest_issues(fixture_dir, confdata_bridge, confdata_cases))
     return issues
 
@@ -289,6 +374,42 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def render_conf_bridge_self_test_source() -> str:
+    blocks = []
+    for anchor in REQUIRED_CONF_HELPER_ANCHORS:
+        blocks.append(
+            f'test "{anchor}" {{\n'
+            "    try std.testing.expect(true);\n"
+            "}\n"
+        )
+    return (
+        'const std = @import("std");\n\n'
+        "pub const Mode = enum {\n"
+        "    oldaskconfig,\n"
+        "    syncconfig,\n"
+        "    oldconfig,\n"
+        "    allnoconfig,\n"
+        "    allyesconfig,\n"
+        "    allmodconfig,\n"
+        "    alldefconfig,\n"
+        "    randconfig,\n"
+        "    defconfig,\n"
+        "    savedefconfig,\n"
+        "    listnewconfig,\n"
+        "    helpnewconfig,\n"
+        "    olddefconfig,\n"
+        "    yes2modconfig,\n"
+        "    mod2yesconfig,\n"
+        "    mod2noconfig,\n\n"
+        "    pub fn parse(input_text: []const u8) ?Mode {\n"
+        "        _ = input_text;\n"
+        "        return null;\n"
+        "    }\n"
+        "};\n\n"
+        + "\n".join(blocks)
+    )
+
+
 def render_confdata_bridge_self_test_source() -> str:
     blocks = []
     for anchor in REQUIRED_CONFDATA_HELPER_ANCHORS:
@@ -301,35 +422,7 @@ def render_confdata_bridge_self_test_source() -> str:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(
-        root / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
-        """const std = @import(\"std\");
-
-pub const Mode = enum {
-    oldaskconfig,
-    syncconfig,
-    oldconfig,
-    allnoconfig,
-    allyesconfig,
-    allmodconfig,
-    alldefconfig,
-    randconfig,
-    defconfig,
-    savedefconfig,
-    listnewconfig,
-    helpnewconfig,
-    olddefconfig,
-    yes2modconfig,
-    mod2yesconfig,
-    mod2noconfig,
-
-    pub fn parse(input_text: []const u8) ?Mode {
-        _ = input_text;
-        return null;
-    }
-};
-""",
-    )
+    write_text(root / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig", render_conf_bridge_self_test_source())
     write_text(
         root / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
         render_confdata_bridge_self_test_source(),
@@ -346,7 +439,7 @@ pub const Mode = enum {
                     {"name": "allyesconfig", "mode": "allyesconfig", "kconfig": "Kconfig", "config": "yes/.config", "arch": "arm64", "expected": "allyesconfig_expected.json"},
                     {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "allconfig": "", "expected": "allmodconfig_expected.json"},
                     {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "expected": "alldefconfig_expected.json"},
-                    {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
+                    {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "allrandom.config", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
                     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
                     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "defconfig.out", "expected": "savedefconfig_expected.json"},
                     {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "expected": "listnewconfig_expected.json"},
@@ -369,6 +462,54 @@ pub const Mode = enum {
                     {"name": "non_config_lines", "input": "non_config_lines.config", "expected": "non_config_lines_expected.json"},
                     {"name": "empty_config_symbol_names", "input": "empty_config_symbol_names.config", "expected": "empty_config_symbol_names_expected.json"},
                 ],
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    write_text(
+        root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
+        json.dumps(
+            {
+                "tool": "scripts/zigux/kconfig/conf_bridge.zig",
+                "status": "closed",
+                "mode": "bounded request-plan bridge",
+                "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
+                "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
+                "case_count": len(REQUIRED_CONF_CASE_MODES),
+                "cases": REQUIRED_CONF_CASE_MODES,
+                "stdout_packet": [
+                    "oldaskconfig_expected.json",
+                    "syncconfig_expected.json",
+                    "oldconfig_expected.json",
+                    "allnoconfig_expected.json",
+                    "allyesconfig_expected.json",
+                    "allmodconfig_expected.json",
+                    "alldefconfig_expected.json",
+                    "randconfig_expected.json",
+                    "defconfig_expected.json",
+                    "savedefconfig_expected.json",
+                    "listnewconfig_expected.json",
+                    "helpnewconfig_expected.json",
+                    "olddefconfig_expected.json",
+                    "yes2modconfig_expected.json",
+                    "mod2yesconfig_expected.json",
+                    "mod2noconfig_expected.json",
+                ],
+                "mode_arg_cases": [
+                    "defconfig",
+                    "savedefconfig",
+                ],
+                "allconfig_sentinel_packet": [
+                    "allnoconfig_expected.json",
+                    "allyesconfig_expected.json",
+                    "alldefconfig_expected.json",
+                ],
+                "allconfig_override_packet": [
+                    "allmodconfig_expected.json",
+                    "randconfig_expected.json",
+                ],
+                "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
             },
             indent=2,
         )
@@ -465,7 +606,9 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_selftest_") as tmp_dir_str:
         root = Path(tmp_dir_str)
         cases_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
+        conf_manifest_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
         manifest_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json"
+        conf_bridge_path = root / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
         confdata_bridge_path = root / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
 
         build_self_test_root(root)
@@ -521,7 +664,7 @@ def run_self_test() -> int:
         assert ("INVALID_CONF_CASE_RANDCONFIG_FIELDS", "oldaskconfig:seed") in issues
         checks_run += 1
 
-        build_self_test_root(root)
+        build_self_test_ROOT(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
         payload["conf_cases"][0]["allconfig"] = "mini.config"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
@@ -550,6 +693,7 @@ def run_self_test() -> int:
         missing_path.unlink()
         issues = collect_manifest_issues(root)
         assert ("MISSING_CONF_CASE_EXPECTED_PATHS", "helpnewconfig:expected:helpnewconfig_expected.json") in issues
+        assert ("CONF_MANIFEST_REFERENCES_MISSING_FIXTURE", "helpnewconfig_expected.json") in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -575,6 +719,37 @@ def run_self_test() -> int:
         issues = collect_manifest_issues(root)
         assert ("CONFDATA_CASE_ORDER_ACTUAL", "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines,empty_config_symbol_names") in issues
         assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        source = conf_bridge_path.read_text(encoding="utf-8")
+        source = source.replace('test "conf bridge emits randconfig tunables when present" {\n', 'test "conf bridge emits renamed randconfig tunables" {\n', 1)
+        write_text(conf_bridge_path, source)
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
+        assert any(issue[0] == "CONF_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        conf_manifest_path.unlink()
+        issues = collect_manifest_issues(root)
+        assert ("MISSING_CONF_MANIFEST", "conf_manifest.json") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
+        manifest["mode_arg_cases"] = ["savedefconfig"]
+        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_MODE_ARG_CASES_MISMATCH" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
+        manifest["helper_local_anchors"] = REQUIRED_CONF_HELPER_ANCHORS[:-1]
+        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_HELPER_LOCAL_ANCHORS_MISMATCH" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
@@ -655,7 +830,7 @@ def main() -> int:
 
         for case in cases["confdata_cases"]:
             actual = tmp_dir / f"{case['name']}.actual.json"
-            result = run([str(confdata_exe), str(FIXTURE_DIR / case["input"] )], cwd=str(ROOT), capture_output=True)
+            result = run([str(confdata_exe), str(FIXTURE_DIR / case["input"])], cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding="utf-8", newline="\n")
             run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(FIXTURE_DIR / case["expected"]), str(actual)], cwd=str(ROOT))
 
