@@ -94,7 +94,7 @@ Keep `Documentation/zigux/phase12-release-readiness-survey.md` visible beside th
 
 `Documentation/zigux/freeze-map.md` should stay visible beside this shared fallback overview whenever queueing, throughput, rollback, or recovery wording shifts so the two commit-pinned fallback artifacts, two shared-tree-only anchors, deterministic libbpf artifact companions, and smoke-first replay packet do not get rounded up into deep-core delivery claims.
 
-`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` should be reread beside this shared fallback overview whenever shared Phase 12 libbpf ownership wording changes so the fallback split does not blur the reviewability lane, the helper-sized ready-next lane, the deferred bridge and queue-routing lane, and the blocked object-model wall back into one vague `libbpf` bucket.
+`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` should be reread beside this shared fallback overview whenever shared Phase 12 libbpf ownership wording changes so the fallback split does not blur the shared reviewability lane, the tracked pure-helper lane, the landed helper-foundation lane, the deferred bridge and queue-routing lane, and the blocked object-model wall back into one vague `libbpf` bucket.
 
 `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion for `virtio_net`, `nvme_pci`, and `virtio_scsi`, so this shared fallback overview should be reread beside that lane map instead of letting the mixed fallback split blur those three driver lanes back together.
 
