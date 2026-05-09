@@ -664,7 +664,7 @@ def run_self_test() -> int:
         assert ("INVALID_CONF_CASE_RANDCONFIG_FIELDS", "oldaskconfig:seed") in issues
         checks_run += 1
 
-        build_self_test_ROOT(root)
+        build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
         payload["conf_cases"][0]["allconfig"] = "mini.config"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
