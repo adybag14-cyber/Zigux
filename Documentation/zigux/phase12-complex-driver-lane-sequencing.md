@@ -71,8 +71,8 @@ The saved docs-root release-readiness checker follow-through is now also closed 
 
 The older docs-root smoke-summary gap is also closed on `master`: `Documentation/zigux/README.md` now explicitly names `drivers/nvme/host/pci_verify.zig`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all` beside the shared Phase 12 packet, so this lane no longer needs to steer future runs back through that same broad docs-root reminder.
 
-The older saved tests-root undercount is now also closed on `master`: `zigux/tests/README.md` now keeps `Documentation/zigux/phase12-release-readiness-survey.md` explicit beside the shared smoke-first packet, the PMO closure companion, the two anti-overlap companions, the shared fallback-overview note, and the freeze-boundary reminder.
-That earlier fix closed the tests-root release-readiness reminder too, so this lane no longer needs to steer future runs back through that same follow-through.
+The older shared tests-root release-readiness reminder is closed on `master`, but one smaller tests-root truthfulness gap still remains: `zigux/tests/README.md` still names `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig` inside its Phase 12 key-entrypoint list even though the shipped replay lives at `zigux/tests/phase12_libbpf_snapshot_determinism.zig`.
+That means this lane should not treat the whole tests-root packet as settled yet. If it reopens, the next honest same-lane follow-through is to repair that stale tests-root path and then tighten `scripts/zigux/check-build-only-phase12-surface.py` so the same `fixtures/` replay path is forbidden there too.
 
 The later docs-root fallback-catalog undercount is now also closed on `master`: `Documentation/zigux/README.md` now explicitly names `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` beside the shared Phase 12 packet, so this lane no longer needs to steer future runs back through that PMO-owned docs-root reminder either.
 
