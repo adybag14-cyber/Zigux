@@ -406,6 +406,21 @@ REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS = [
     'try std.testing.expect(!@hasField(PreparedRequest, "depmod_aliases"));',
 ]
 
+FORBIDDEN_RUNTIME_LOADER_CONTROL_MARKERS = [
+    "command_name:",
+    ".command_name =",
+    "argv_policy:",
+    ".argv_policy =",
+    "activation_env:",
+    ".activation_env =",
+    "exec_path_env:",
+    ".exec_path_env =",
+    '"PERF_EXEC_PATH"',
+    '"PATH"',
+    '"LINES"',
+    '"COLUMNS"',
+]
+
 REQUIRED_PHASE9_BUILD_EXACT_COUNTS = {marker: 1 for marker in REQUIRED_PHASE9_BUILD_MARKERS}
 
 FORBIDDEN_FILES = [
@@ -435,6 +450,12 @@ def ensure_contains(failures: list[str], label: str, text: str, markers: list[st
     for marker in markers:
         if marker not in text:
             failures.append(f"{label}:{marker}")
+
+
+def ensure_absent(failures: list[str], label: str, text: str, markers: list[str]) -> None:
+    for marker in markers:
+        if marker in text:
+            failures.append(f"{label}_forbidden:{marker}")
 
 
 def ensure_exact_counts(failures: list[str], label: str, text: str, counts: dict[str, int]) -> None:
@@ -484,6 +505,7 @@ def validate(root: Path) -> list[str]:
     workflow = read_text(root, WORKFLOW_PATH)
     phase9_build = read_text(root, PHASE9_BUILD_PATH)
     phase9_lane_sequencing = read_text(root, PHASE9_LANE_SEQUENCING_PATH)
+    runtime_loader = read_text(root, RUNTIME_LOADER_PATH)
     runtime_loader_contract = read_text(root, RUNTIME_LOADER_CONTRACT_PATH)
 
     ensure_contains(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_MARKERS)
@@ -506,6 +528,18 @@ def validate(root: Path) -> list[str]:
         "runtime_loader_contract",
         runtime_loader_contract,
         REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS,
+    )
+    ensure_absent(
+        failures,
+        "runtime_loader",
+        runtime_loader,
+        FORBIDDEN_RUNTIME_LOADER_CONTROL_MARKERS,
+    )
+    ensure_absent(
+        failures,
+        "runtime_loader_contract",
+        runtime_loader_contract,
+        FORBIDDEN_RUNTIME_LOADER_CONTROL_MARKERS,
     )
 
     ensure_exact_counts(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_EXACT_COUNTS)
@@ -592,6 +626,8 @@ def run_self_test() -> int:
         checklist_path = base / REVIEW_CHECKLIST_PATH
         checklist = checklist_path.read_text(encoding="utf-8")
         lane_sequencing_path = base / PHASE9_LANE_SEQUENCING_PATH
+        runtime_loader_path = base / RUNTIME_LOADER_PATH
+        runtime_loader_contract_path = base / RUNTIME_LOADER_CONTRACT_PATH
 
         checklist_path.write_text(
             checklist.replace(PHASE9_REVIEW_CHECKLIST_OWNER_MAP_MARKER, "", 1),
@@ -734,7 +770,6 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
-        runtime_loader_contract_path = base / RUNTIME_LOADER_CONTRACT_PATH
         runtime_loader_contract = runtime_loader_contract_path.read_text(encoding="utf-8")
         runtime_loader_contract_path.write_text(
             runtime_loader_contract.replace(
@@ -748,6 +783,22 @@ def run_self_test() -> int:
             base,
             'runtime_loader_contract:try std.testing.expect(!@hasField(PreparedRequest, "depmod_manifest"));',
         )
+
+        write_fixture_tree(base)
+        runtime_loader_contract = runtime_loader_contract_path.read_text(encoding="utf-8")
+        runtime_loader_contract_path.write_text(
+            runtime_loader_contract + "command_name:\n",
+            encoding="utf-8",
+        )
+        expect_failure(base, "runtime_loader_contract_forbidden:command_name:")
+
+        write_fixture_tree(base)
+        runtime_loader = runtime_loader_path.read_text(encoding="utf-8")
+        runtime_loader_path.write_text(
+            runtime_loader + 'const leaked = "PERF_EXEC_PATH"\n',
+            encoding="utf-8",
+        )
+        expect_failure(base, 'runtime_loader_forbidden:"PERF_EXEC_PATH"')
 
         write_fixture_tree(base)
         makefile = makefile_path.read_text(encoding="utf-8")
@@ -792,7 +843,7 @@ def run_self_test() -> int:
         expect_failure(base, "makefile_forbidden:phase9-validate:")
 
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=20")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=22")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
