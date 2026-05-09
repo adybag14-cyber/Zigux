@@ -66,6 +66,19 @@ pub fn build(b: *std.Build) void {
     });
     const run_bsearch_lower_bound_c_abi_tests = b.addRunArtifact(bsearch_lower_bound_c_abi_tests);
 
+    const bsearch_c_abi_budget_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_bsearch_c_abi_budget.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bsearch_c_abi_budget_root_module.addImport("bsearch", bsearch_module);
+
+    const bsearch_c_abi_budget_tests = b.addTest(.{
+        .name = "phase6-bsearch-c-abi-budget-tests",
+        .root_module = bsearch_c_abi_budget_root_module,
+    });
+    const run_bsearch_c_abi_budget_tests = b.addRunArtifact(bsearch_c_abi_budget_tests);
+
     const checksum_module = b.createModule(.{
         .root_source_file = b.path("../../lib/checksum.zig"),
         .target = target,
@@ -142,6 +155,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_base64_tests.step);
     test_step.dependOn(&run_bsearch_tests.step);
     test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);
+    test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);
     test_step.dependOn(&run_checksum_tests.step);
     test_step.dependOn(&run_hexdump_tests.step);
 
