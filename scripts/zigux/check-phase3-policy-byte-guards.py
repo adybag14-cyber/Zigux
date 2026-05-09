@@ -35,15 +35,28 @@ REQUIRED_PANIC_SNIPPETS = (
     "return recognizesInteropPolicyBytes(mode, 0);",
     "pub fn actionForInteropPolicyBytes(mode: u8, reserved: u8) ?Action {",
     "return actionFor(modeFromInteropPolicyBytes(mode, reserved) orelse return null);",
+    "pub fn actionForInteropPolicy(policy: abi.InteropPolicy) ?Action {",
+    "pub fn actionForByte(mode: u8) ?Action {",
     "pub fn canReturnInteropPolicyBytes(mode: u8, reserved: u8) bool {",
     "return actionForInteropPolicyBytes(mode, reserved) == .warn_and_return;",
+    "pub fn canReturnInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn canReturnByte(mode: u8) bool {",
     "try std.testing.expect(recognizesByte(0));",
     "try std.testing.expect(!recognizesByte(9));",
     "try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicyBytes(2, 1));",
     "try std.testing.expect(recognizesInteropPolicy(abort_policy));",
     "try std.testing.expect(!recognizesInteropPolicy(reserved_policy));",
     "try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicyBytes(2, 1));",
+    "try std.testing.expectEqual(@as(?Action, .abort_now), actionForInteropPolicy(abort_policy));",
+    "try std.testing.expectEqual(@as(?Action, .warn_and_return), actionForInteropPolicy(warn_policy));",
+    "try std.testing.expectEqual(@as(?Action, null), actionForInteropPolicy(reserved_policy));",
+    "try std.testing.expect(!canReturnByte(0));",
+    "try std.testing.expect(canReturnByte(2));",
+    "try std.testing.expect(!canReturnByte(9));",
     "try std.testing.expect(!canReturnInteropPolicyBytes(2, 1));",
+    "try std.testing.expect(!canReturnInteropPolicy(abort_policy));",
+    "try std.testing.expect(canReturnInteropPolicy(warn_policy));",
+    "try std.testing.expect(!canReturnInteropPolicy(reserved_policy));",
 )
 
 REQUIRED_ALLOCATOR_SNIPPETS = (
@@ -273,6 +286,16 @@ def run_self_test() -> int:
         assert "missing_panic_snippet:try std.testing.expect(recognizesInteropPolicy(abort_policy));" in issues
 
         build_valid_workspace(root)
+        broken_panic_typed_wrapper = (root / PANIC_POLICY_REL).read_text(encoding="utf-8").replace(
+            "try std.testing.expect(canReturnInteropPolicy(warn_policy));\n",
+            "",
+            1,
+        )
+        write(root / PANIC_POLICY_REL, broken_panic_typed_wrapper)
+        issues = validate(root)
+        assert "missing_panic_snippet:try std.testing.expect(canReturnInteropPolicy(warn_policy));" in issues
+
+        build_valid_workspace(root)
         broken_allocator = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8").replace(
             "try std.testing.expect(!recognizesInteropPolicy(unknown_policy));\n",
             "",
@@ -329,7 +352,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=13")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
