@@ -71,6 +71,8 @@ pub const PerfCase = struct {
     bytes: []const u8,
     iterations: usize,
     max_slowdown_pct: u64,
+    expected_compute: u16,
+    fingerprint: u64,
 };
 
 const ipv4_header = [_]u8{
@@ -276,12 +278,16 @@ pub const perf_cases = [_]PerfCase{
         .bytes = &payload_64,
         .iterations = 200_000,
         .max_slowdown_pct = 150,
+        .expected_compute = 0x7fe0,
+        .fingerprint = 0x3193_4305_ba03_9b45,
     },
     .{
         .label = "1501B",
         .bytes = &payload_1501,
         .iterations = 12_000,
         .max_slowdown_pct = 150,
+        .expected_compute = 0x28d3,
+        .fingerprint = 0x457f_efb1_ea64_3164,
     },
 };
 
@@ -292,9 +298,10 @@ test "phase 6 checksum perf fixture packet stays bounded to the documented matri
         iterations: usize,
         max_slowdown_pct: u64,
         fingerprint: u64,
+        expected_compute: u16,
     }{
-        .{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0x3193_4305_ba03_9b45 },
-        .{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0x457f_efb1_ea64_3164 },
+        .{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0x3193_4305_ba03_9b45, .expected_compute = 0x7fe0 },
+        .{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0x457f_efb1_ea64_3164, .expected_compute = 0x28d3 },
     };
 
     try std.testing.expectEqual(expected.len, perf_cases.len);
@@ -305,7 +312,9 @@ test "phase 6 checksum perf fixture packet stays bounded to the documented matri
         try std.testing.expectEqual(want.len, actual.bytes.len);
         try std.testing.expectEqual(want.iterations, actual.iterations);
         try std.testing.expectEqual(want.max_slowdown_pct, actual.max_slowdown_pct);
+        try std.testing.expectEqual(want.fingerprint, actual.fingerprint);
         try std.testing.expectEqual(want.fingerprint, perfPayloadFingerprint(actual.bytes));
+        try std.testing.expectEqual(want.expected_compute, actual.expected_compute);
     }
 
     for (perf_cases, 0..) |case, idx| {
