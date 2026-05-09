@@ -1,5 +1,5 @@
 {
-  "lane_key": "validation-perf",
+  "lane_key": "P4-L24",
   "phase": "Phase 4",
   "anchor_path": "samples/vfs/test-fsmount.c",
   "anchor_blob_sha": "50f47b72e85fbc8dd52dedad96ee96e6379da5b8",
