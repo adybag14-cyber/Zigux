@@ -34,12 +34,15 @@ Keep helper-local work under:
 
 - `lib/base64.zig`
 - `zigux/tests/phase6_base64.zig`
+- `zigux/tests/phase6_base64_c_parity.zig`
 - `zigux/tests/phase6_base64_perf.zig`
 - `zigux/tests/fixtures/phase6_base64_vectors.zig`
+- `zigux/tests/fixtures/phase6_base64_c_harness.c`
+- `scripts/zigux/check-phase6-base64-c-parity.py`
 - `Documentation/zigux/phase6-base64-slice.md`
 - the `base64` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat base64 perf-threshold, fixture, or review-gate follow-ups as base64-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note.
+Treat base64 fixture, direct parity, perf-threshold, or review-gate follow-ups as base64-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note.
 
 ### `P6-L09` bsearch packet
 
