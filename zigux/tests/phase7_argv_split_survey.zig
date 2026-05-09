@@ -213,6 +213,11 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(checker, "\"zigux/tests/phase7_argv_split_survey.zig\"");
     try expectContains(checker, "\"zigux/tests/phase7_argv_split_manifest.json\"");
     try expectContains(checker, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"");
+    try expectContains(checker, "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy");
+    try expectContains(checker, "phase 7 argvSplit keeps the exported C argv vector sized to argc plus one sentinel");
+    try expectContains(checker, "phase 7 blank argvSplit teardown on one caller keeps shared empty sentinels stable for another caller");
+    try expectContains(checker, "test \\\"argvSplitOwnedStorage reuses the caller-owned storage copy\\\"");
+    try expectContains(checker, "test \\\"ArgvSplitResult deinit is idempotent after the exported views are cleared\\\"");
 
     try expectContains(scripts_root, "zigux/tests/phase7_argv_split_survey.zig");
     try expectContains(scripts_root, "zigux/tests/phase7_argv_split_manifest.json");
