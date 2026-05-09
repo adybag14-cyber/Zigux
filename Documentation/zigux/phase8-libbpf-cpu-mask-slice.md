@@ -22,18 +22,27 @@ The Phase 8 roadmap explicitly names `tools/lib/bpf/libbpf.c` as a tooling ancho
 
 ## Gates
 
-1. run the focused Zig module tests
+1. run the shared Phase 8 validator route first
+- `make -C zigux phase8-validate`
+
+2. run the shared Phase 8 validator self-test
+- `python3 scripts/zigux/validate-phase8.py --self-test`
+
+3. run the shared Phase 8 validator
+- `python3 scripts/zigux/validate-phase8.py`
+
+4. run the focused Zig module tests
 - `zig test tools/lib/bpf/zigux_segments/cpu_mask.zig`
 
-2. run the focused cpu-mask build shard
+5. run the focused cpu-mask build shard
 - `make -C zigux phase8-cpu-mask-test`
 - `zig build test --build-file zigux/tests/phase8_cpu_mask_only_build.zig --summary all`
 
-3. run the dedicated Phase 8 tooling gate
+6. run the dedicated Phase 8 tooling gate
 - `make -C zigux phase8-test`
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-4. run the convenience target
+7. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -68,4 +77,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Park `tools/lib/bpf/zigux_segments/cpu_mask.zig` unless fresh repo review finds another tiny same-surface truthfulness or parity gap; otherwise keep later libbpf follow-up in sibling helper-only segments and do not reopen file I/O, caching, perf-buffer, or feature-probe behavior from this note.
+Park `tools/lib/bpf/zigux_segments/cpu_mask.zig` unless fresh repo review finds another tiny same-surface truthfulness or parity gap; otherwise keep later libbpf follow-up in sibling helper-only segments, keep the shared `make -C zigux phase8-validate` route aligned with this parked cpu-mask packet, and do not reopen file I/O, caching, perf-buffer, or feature-probe behavior from this note.
