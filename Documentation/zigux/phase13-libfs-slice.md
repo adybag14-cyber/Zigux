@@ -1,6 +1,6 @@
 # Phase 13 libfs Slice
 
-This bounded Phase 13 slice starts `fs/libfs.zig` with a pure helper-first foothold anchored to `fs/libfs.c`.
+This bounded Phase 13 slice keeps `fs/libfs.zig` on a pure helper-first footing anchored to `fs/libfs.c`.
 
 The current helper stays intentionally narrow:
 
