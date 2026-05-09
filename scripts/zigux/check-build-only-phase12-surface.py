@@ -168,6 +168,7 @@ REQUIRED_FILE_MARKERS = {
         "freeze-boundary authority: `Documentation/zigux/freeze-map.md`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
+        "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
         "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2",
         "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
         "PHASE12_SHARED_SMOKE_SURFACE_COUNT=6",
