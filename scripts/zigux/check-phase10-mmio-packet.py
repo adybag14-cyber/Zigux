@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 FILES = [
     "scripts/zigux/check-phase10-mmio-packet.py",
+    "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
@@ -32,6 +33,12 @@ FILES = [
 ]
 
 MARKERS = {
+    "scripts/zigux/check-phase10-mmio-freeze-boundary.py": [
+        'FREEZE_BOUNDARY_CHECK = "python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py"',
+        '"phase10-mmio-lifecycle-and-irq-paths"',
+        '"drivers/virtio/virtio_mmio_verify.zig"',
+        '"closure_manifest:exact_checks:freeze_boundary_count"',
+    ],
     "Documentation/zigux/README.md": [
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
         "Documentation/zigux/phase10-closure-evidence.md",
@@ -106,6 +113,8 @@ MARKERS = {
         "phase10-test:",
         "scripts/zigux/check-phase10-mmio-packet.py --self-test",
         "scripts/zigux/check-phase10-mmio-packet.py",
+        "scripts/zigux/check-phase10-mmio-freeze-boundary.py --self-test",
+        "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
         "$(ZIG) build test --build-file zigux/tests/phase10_build.zig",
     ],
     "drivers/virtio/virtio_mmio.zig": [
@@ -217,7 +226,7 @@ MANIFEST_SCALARS = {
     "anchor": "drivers/virtio/virtio_mmio.c",
     "freeze_map": "Documentation/zigux/freeze-map.md",
     "freeze_boundary_status": "aligned",
-    "freeze_status_change_claimed": False,
+    "freeze_status_change_claimED": False,
     "risky_transport_posture": "blocked_on_risky_transport",
     "architecture_council_reopen_required": True,
     "architecture_council_reopen_attached": False,
@@ -330,7 +339,16 @@ def build_fixture() -> dict[str, str]:
         fixture[rel_path] = "\n".join(markers) + "\n"
     fixture["zigux/tests/phase10_virtio_mmio_manifest.json"] = json.dumps(
         {
-            **MANIFEST_SCALARS,
+            "lane_key": "P10-L10",
+            "phase": "Phase 10",
+            "surveyed_commit": "84f90e23ad1c28ae345905d5293a8c5395f37d43",
+            "anchor": "drivers/virtio/virtio_mmio.c",
+            "freeze_map": "Documentation/zigux/freeze-map.md",
+            "freeze_boundary_status": "aligned",
+            "freeze_status_change_claimed": False,
+            "risky_transport_posture": "blocked_on_risky_transport",
+            "architecture_council_reopen_required": True,
+            "architecture_council_reopen_attached": False,
             "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
             "allowed_evidence_kinds": EXPECTED_ALLOWED_EVIDENCE_KINDS,
             "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
@@ -364,7 +382,40 @@ def run_self_test() -> int:
                 f"markers={','.join(missing_markers) or 'none'}"
             )
 
+        case_count = 0
+
+        def run_missing_case(rel_path: str, old: str, new: str, expected: str) -> None:
+            nonlocal case_count
+            path = root / rel_path
+            original = path.read_text(encoding="utf-8")
+            path.write_text(original.replace(old, new, 1), encoding="utf-8")
+            _, markers = validate(root)
+            if expected not in markers:
+                raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
+            path.write_text(original, encoding="utf-8")
+            case_count += 1
+
+        def run_manifest_case() -> None:
+            nonlocal case_count
+            manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            for gap in manifest["gaps"]:
+                if gap["id"] == "phase10-mmio-config-write-plan-helper":
+                    gap["status"] = "ready_next"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            _, markers = validate(root)
+            expected = "manifest:gap_status:phase10-mmio-config-write-plan-helper='ready_next'"
+            if expected not in markers:
+                raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
+            case_count += 1
+
         drift_cases = [
+            (
+                "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
+                'FREEZE_BOUNDARY_CHECK = "python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py"',
+                'FREEZE_BOUNDARY_CHECK = "python3 scripts/zigux/check-phase10-mmio-freeze-boundary-drift.py"',
+                'check-phase10-mmio-freeze-boundary.py:FREEZE_BOUNDARY_CHECK = "python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py"',
+            ),
             (
                 "drivers/virtio/virtio_mmio.zig",
                 "self.pending_config_write = null;",
@@ -382,6 +433,18 @@ def run_self_test() -> int:
                 "scripts/zigux/check-phase10-mmio-packet.py --self-test",
                 "scripts/zigux/check-phase10-mmio-drift.py --self-test",
                 "Makefile:scripts/zigux/check-phase10-mmio-packet.py --self-test",
+            ),
+            (
+                "zigux/Makefile",
+                "scripts/zigux/check-phase10-mmio-freeze-boundary.py --self-test",
+                "scripts/zigux/check-phase10-mmio-freeze-boundary-drift.py --self-test",
+                "Makefile:scripts/zigux/check-phase10-mmio-freeze-boundary.py --self-test",
+            ),
+            (
+                "zigux/Makefile",
+                "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
+                "scripts/zigux/check-phase10-mmio-freeze-boundary-drift.py",
+                "Makefile:scripts/zigux/check-phase10-mmio-freeze-boundary.py",
             ),
             (
                 "zigux/tests/phase10_build.zig",
@@ -434,27 +497,12 @@ def run_self_test() -> int:
         ]
 
         for rel_path, old, new, expected in drift_cases:
-            path = root / rel_path
-            original = path.read_text(encoding="utf-8")
-            path.write_text(original.replace(old, new, 1), encoding="utf-8")
-            _, markers = validate(root)
-            if expected not in markers:
-                raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
-            path.write_text(original, encoding="utf-8")
+            run_missing_case(rel_path, old, new, expected)
 
-        manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        for gap in manifest["gaps"]:
-            if gap["id"] == "phase10-mmio-config-write-plan-helper":
-                gap["status"] = "ready_next"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        _, markers = validate(root)
-        expected = "manifest:gap_status:phase10-mmio-config-write-plan-helper='ready_next'"
-        if expected not in markers:
-            raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
+        run_manifest_case()
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=12")
+    print(f"PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
