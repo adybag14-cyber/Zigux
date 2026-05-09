@@ -228,6 +228,12 @@ def run_self_test() -> int:
         )
         case_count += 1
         _require_target(
+            "scripts/zigux/check-phase3-abi-dump-gate.py",
+            "PHASE3_ABI_DUMP_GATE_SELF_TEST=pass",
+            extra_markers=("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=",),
+        )
+        case_count += 1
+        _require_target(
             "scripts/zigux/check-phase3-catalog-selftest.py",
             "PHASE3_CATALOG_SELF_TEST=pass",
             extra_markers=("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=",),
@@ -261,6 +267,12 @@ def run_self_test() -> int:
             "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
             "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
             extra_markers=("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT=",),
+        )
+        case_count += 1
+        _require_target(
+            "scripts/zigux/validate-phase3-export-uapi-survey.py",
+            "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass",
+            extra_markers=("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=",),
         )
         case_count += 1
         _require_target(
@@ -409,6 +421,48 @@ def run_self_test() -> int:
         )
         assert run_targets(duplicate_readme_tooling_aux_root) == [
             "duplicate_aux_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py:2:PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        missing_abi_dump_gate_aux_root = tmp_root / "missing-abi-dump-gate-aux"
+        _populate_root(missing_abi_dump_gate_aux_root)
+        write_script(
+            missing_abi_dump_gate_aux_root / "scripts/zigux/check-phase3-abi-dump-gate.py",
+            "PHASE3_ABI_DUMP_GATE_SELF_TEST=pass",
+        )
+        assert run_targets(missing_abi_dump_gate_aux_root) == [
+            "missing_aux_marker:scripts/zigux/check-phase3-abi-dump-gate.py:PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        duplicate_abi_dump_gate_aux_root = tmp_root / "duplicate-abi-dump-gate-aux"
+        _populate_root(duplicate_abi_dump_gate_aux_root)
+        duplicate_abi_dump_gate_aux_path = (
+            duplicate_abi_dump_gate_aux_root / "scripts/zigux/check-phase3-abi-dump-gate.py"
+        )
+        duplicate_abi_dump_gate_aux_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "import sys",
+                    "",
+                    'if "--self-test" in sys.argv:',
+                    '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")',
+                    '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=1")',
+                    '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=2")',
+                    "    raise SystemExit(0)",
+                    "",
+                    'raise SystemExit("expected --self-test")',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert run_targets(duplicate_abi_dump_gate_aux_root) == [
+            "duplicate_aux_marker:scripts/zigux/check-phase3-abi-dump-gate.py:2:PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT="
         ]
         case_count += 1
 
