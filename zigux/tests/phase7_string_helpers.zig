@@ -97,9 +97,21 @@ test "phase 7 ASCII case helpers stop at NUL and respect destination bounds" {
     try std.testing.expectEqualSlices(u8, "ABC1!\x00", upper[0..6]);
     try std.testing.expectEqual(@as(u8, '.'), upper[6]);
 
+    var upper_nul_bounded = [_]u8{ '?', '?', '?', '?', '?' };
+    string_helpers.stringUpper(&upper_nul_bounded, "ab\x00tail");
+    try std.testing.expectEqualSlices(u8, "AB\x00", upper_nul_bounded[0..3]);
+    try std.testing.expectEqual(@as(u8, '?'), upper_nul_bounded[3]);
+    try std.testing.expectEqual(@as(u8, '?'), upper_nul_bounded[4]);
+
     var lower = [_]u8{ '.', '.', '.', '.' };
     string_helpers.stringLower(&lower, "Zz9!");
     try std.testing.expectEqualSlices(u8, "zz9!", &lower);
+
+    var lower_nul_bounded = [_]u8{ '!', '!', '!', '!', '!' };
+    string_helpers.stringLower(&lower_nul_bounded, "ZQ\x00TAIL");
+    try std.testing.expectEqualSlices(u8, "zq\x00", lower_nul_bounded[0..3]);
+    try std.testing.expectEqual(@as(u8, '!'), lower_nul_bounded[3]);
+    try std.testing.expectEqual(@as(u8, '!'), lower_nul_bounded[4]);
 }
 
 test "phase 7 stringGetSize keeps Linux-style size rendering and truncation reviewable" {
