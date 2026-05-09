@@ -391,6 +391,9 @@ REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS = [
     'try std.testing.expect(!@hasField(LoadPlan, "module_alias"));',
     'try std.testing.expect(!@hasField(LoadPlan, "module_aliases"));',
     'try std.testing.expect(!@hasField(LoadPlan, "modules_alias_path"));',
+    'try std.testing.expect(!@hasField(LoadPlan, "module_install_root"));',
+    'try std.testing.expect(!@hasField(LoadPlan, "modules_order_path"));',
+    'try std.testing.expect(!@hasField(LoadPlan, "modules_builtin_path"));',
     'try std.testing.expect(!@hasField(LoadPlan, "depmod_script"));',
     'try std.testing.expect(!@hasField(LoadPlan, "depmod_manifest"));',
     'try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));',
@@ -802,7 +805,7 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
+        makefile_path.writeText(
             makefile + "phase9-runtime-loader-shared-tests:\n",
             encoding="utf-8",
         )
