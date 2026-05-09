@@ -13,6 +13,7 @@ ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.p
 
 DOCS_ROOT_REL = "Documentation/zigux/README.md"
 DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
+TESTS_README_REL = "zigux/tests/README.md"
 BUILD_REL = "zigux/tests/build.zig"
 MAKEFILE_REL = "zigux/Makefile"
 DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
@@ -21,6 +22,8 @@ SELF_REL = "scripts/zigux/check-phase3-abi-dump-gate.py"
 ABI_WRAPPER_REL = "scripts/zigux/check-phase3-abi.py"
 EXPORT_SHIM_REL = "zigux/kernel/export_shim.zig"
 UAPI_VERSION_REL = "zigux/uapi/version.zig"
+EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
+HARNESS_REL = "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"
 
 DOCS_ROOT_ABI_TEST_GATE = "zig build phase3-test --build-file zigux/tests/build.zig"
 DOC_ABI_WRAPPER_GATE = "python3 scripts/zigux/check-phase3-abi.py"
@@ -52,6 +55,11 @@ DOC_PREFIX_MARKERS = (
     "PHASE3_UAPI_VERSION_BLOB_SHA=",
 )
 MANIFEST_REQUIRED_FILES = (DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL, SELF_REL)
+TESTS_README_MARKERS = (
+    DUMP_REL,
+    EXPECTED_REL,
+    HARNESS_REL,
+)
 
 
 def _normalized_lines(text: str) -> list[str]:
@@ -109,6 +117,7 @@ def validate(root: Path) -> list[str]:
     issues: list[str] = []
     docs_root = root / DOCS_ROOT_REL
     doc = root / DOC_REL
+    tests_readme = root / TESTS_README_REL
     build = root / BUILD_REL
     makefile = root / MAKEFILE_REL
     dump = root / DUMP_REL
@@ -149,6 +158,20 @@ def validate(root: Path) -> list[str]:
             issues.append(f"missing_doc_prefix:{prefix}")
         elif count != 1:
             issues.append(f"duplicate_doc_prefix:{prefix}")
+
+    try:
+        tests_readme_text = tests_readme.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        issues.append(f"missing_tests_readme:{TESTS_README_REL}")
+    else:
+        for marker in TESTS_README_MARKERS:
+            _check_line_count(
+                issues,
+                tests_readme_text,
+                marker,
+                "tests_readme_marker",
+                _backticked_or_plain_line_count,
+            )
 
     try:
         if BUILD_STEP not in build.read_text(encoding="utf-8"):
@@ -254,6 +277,18 @@ def _baseline_repo(root: Path) -> None:
         ),
     )
     _write(root / DOC_REL, _baseline_doc())
+    _write(
+        root / TESTS_README_REL,
+        "\n".join(
+            [
+                "# zigux/tests",
+                f"- `{DUMP_REL}`",
+                f"- `{EXPECTED_REL}`",
+                f"- `{HARNESS_REL}`",
+                "",
+            ]
+        ),
+    )
     _write(root / BUILD_REL, "\n".join(['const dump = b.step("phase3-dump", "Run dump");', ""]))
     _write(
         root / MAKEFILE_REL,
@@ -306,6 +341,32 @@ def run_self_test() -> int:
         issues = validate(root)
         assert f"missing_doc_marker:{DUMP_GATE}" in issues
         assert f"missing_doc_marker:{DOC_ABI_WRAPPER_GATE}" in issues
+        case_count += 1
+
+        _baseline_repo(root)
+        _write(root / TESTS_README_REL, "# zigux/tests\n")
+        issues = validate(root)
+        assert f"missing_tests_readme_marker:{DUMP_REL}" in issues
+        assert f"missing_tests_readme_marker:{EXPECTED_REL}" in issues
+        assert f"missing_tests_readme_marker:{HARNESS_REL}" in issues
+        case_count += 1
+
+        _baseline_repo(root)
+        _write(
+            root / TESTS_README_REL,
+            "\n".join(
+                [
+                    "# zigux/tests",
+                    f"- `{DUMP_REL}`",
+                    f"- `{DUMP_REL}`",
+                    f"- `{EXPECTED_REL}`",
+                    f"- `{HARNESS_REL}`",
+                    "",
+                ]
+            ),
+        )
+        issues = validate(root)
+        assert f"duplicate_tests_readme_marker:{DUMP_REL}" in issues
         case_count += 1
 
         _write(
