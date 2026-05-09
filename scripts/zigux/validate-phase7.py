@@ -230,6 +230,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_argv_split.zig",
         "zigux/tests/phase7_argv_split_survey.zig",
         "zigux/tests/phase7_argv_split_manifest.json",
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
         "zigux/tests/phase7_rbtree.zig",
         "zigux/tests/phase7_rbtree_survey.zig",
         "including the dedicated `zigux/tests/phase7_string_helpers_survey.zig` string-helper survey gate",
