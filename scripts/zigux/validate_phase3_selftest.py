@@ -356,6 +356,18 @@ def run_self_test() -> int:
         ]
         case_count += 1
 
+        wrong_selftest_surface_marker_root = tmp_root / "wrong-selftest-surface-marker"
+        _populate_root(wrong_selftest_surface_marker_root)
+        write_script(
+            wrong_selftest_surface_marker_root / "scripts/zigux/check-phase3-selftest-surface.py",
+            "WRONG_MARKER=pass",
+        )
+        assert run_targets(wrong_selftest_surface_marker_root) == [
+            "missing_pass_marker:scripts/zigux/check-phase3-selftest-surface.py:PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
+            "missing_aux_marker:scripts/zigux/check-phase3-selftest-surface.py:PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=",
+        ]
+        case_count += 1
+
         duplicate_selftest_surface_aux_root = tmp_root / "duplicate-selftest-surface-aux"
         _populate_root(duplicate_selftest_surface_aux_root)
         duplicate_selftest_surface_aux_path = (
