@@ -443,6 +443,9 @@ FORBIDDEN_TEXT_MARKERS = {
     SCRIPTS_README_PATH: [
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
     ],
+    TESTS_README_PATH: [
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
+    ],
 }
 
 
