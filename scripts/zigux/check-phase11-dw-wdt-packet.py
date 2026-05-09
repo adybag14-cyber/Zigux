@@ -56,9 +56,13 @@ REQUIRED_SHARED_REPLAY_MARKERS = [
 REQUIRED_TEARDOWN_NOTE_MARKERS = [
     "`drivers/watchdog/dw_wdt_verify.zig`",
     "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+    "`stop()`",
     "`removeSummary()`",
     "`teardownSummary()`",
+    "`platformRegistrationScaffoldSummary()`",
     "continued-heartbeat",
+    "`dw_wdt_drv_shutdown`",
+    "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
 ]
 
 REQUIRED_MANIFEST_MARKERS = [
@@ -77,7 +81,7 @@ REQUIRED_BUILD_MARKERS = [
     '.name = "phase11-dw-wdt-survey-tests"',
 ]
 
-SELF_TEST_CASE_COUNT = 24
+SELF_TEST_CASE_COUNT = 28
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -181,9 +185,13 @@ This survey note keeps lane identity `P11-L12` explicit beside the current revie
 
 - `drivers/watchdog/dw_wdt_verify.zig`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `stop()`
 - `removeSummary()`
 - `teardownSummary()`
+- `platformRegistrationScaffoldSummary()`
 - continued-heartbeat
+- `dw_wdt_drv_shutdown`
+- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
 """,
     )
     write_text(
@@ -251,8 +259,12 @@ def run_self_test() -> int:
             (SHARED_REPLAY_CONTRACT_PATH, "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`", "shared_replay:`python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`"),
             (SHARED_REPLAY_CONTRACT_PATH, "`python3 scripts/zigux/check-phase11-dw-wdt-packet.py`", "shared_replay:`python3 scripts/zigux/check-phase11-dw-wdt-packet.py`"),
             (SHARED_REPLAY_CONTRACT_PATH, "`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`", "shared_replay:`phase11-dw-wdt-tests`, `phase11-dw-wdt-registration-scaffold-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`"),
+            (TEARDOWN_NOTE_PATH, "`stop()`", "teardown_note:`stop()`"),
             (TEARDOWN_NOTE_PATH, "`teardownSummary()`", "teardown_note:`teardownSummary()`"),
+            (TEARDOWN_NOTE_PATH, "`platformRegistrationScaffoldSummary()`", "teardown_note:`platformRegistrationScaffoldSummary()`"),
             (TEARDOWN_NOTE_PATH, "continued-heartbeat", "teardown_note:continued-heartbeat"),
+            (TEARDOWN_NOTE_PATH, "`dw_wdt_drv_shutdown`", "teardown_note:`dw_wdt_drv_shutdown`"),
+            (TEARDOWN_NOTE_PATH, "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`", "teardown_note:`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`"),
             (MANIFEST_PATH, '"id": "phase11-dw-wdt-platform-resource-preflight"', 'manifest:"id": "phase11-dw-wdt-platform-resource-preflight"'),
             (MANIFEST_PATH, '"id": "phase11-dw-wdt-registration-order-scaffold"', 'manifest:"id": "phase11-dw-wdt-registration-order-scaffold"'),
             (BUILD_PATH, '.name = "phase11-dw-wdt-survey-tests"', 'build:.name = "phase11-dw-wdt-survey-tests"'),
