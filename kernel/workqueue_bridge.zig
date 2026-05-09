@@ -124,6 +124,20 @@ const boundary_areas = [_]BoundaryArea{
     },
 };
 
+const boundary_map_only_area_ids = [_][]const u8{
+    "submission-routing",
+    "allocation-and-attrs",
+    "flush-and-cancel",
+};
+
+const stay_in_c_area_ids = [_][]const u8{
+    "delayed-requeue-governance",
+    "hotplug-topology-rebinding",
+    "max-active-reconfiguration",
+    "worker-pool-concurrency",
+    "rescuer-and-scheduler-hooks",
+};
+
 const audit_checkpoints = [_]AuditCheckpoint{
     .{
         .id = "manager-role-serialization",
@@ -305,12 +319,20 @@ pub const WorkqueueBridgeLab = struct {
         };
     }
 
+    pub fn boundaryMapOnlyAreaCount() usize {
+        return boundary_map_only_area_ids.len;
+    }
+
+    pub fn boundaryMapOnlyAreaIds() []const []const u8 {
+        return boundary_map_only_area_ids[0..];
+    }
+
+    pub fn stayInCAreaIds() []const []const u8 {
+        return stay_in_c_area_ids[0..];
+    }
+
     pub fn stayInCDecisionCount() usize {
-        var count: usize = 0;
-        for (boundary_areas) |area| {
-            if (area.ownership == .stay_in_c) count += 1;
-        }
-        return count;
+        return stay_in_c_area_ids.len;
     }
 
     pub fn auditCheckpointCount() usize {
@@ -362,12 +384,39 @@ test "workqueue bridge current phase14 packet counts stay aligned" {
     const audit = WorkqueueBridgeLab.concurrencyAudit();
 
     try std.testing.expectEqual(@as(usize, 8), map.areas.len);
+    try std.testing.expectEqual(@as(usize, 3), WorkqueueBridgeLab.boundaryMapOnlyAreaCount());
     try std.testing.expectEqual(@as(usize, 5), WorkqueueBridgeLab.stayInCDecisionCount());
     try std.testing.expectEqual(@as(usize, 15), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 7), audit.blocked_live_behaviors.len);
     try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "blocked maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "flush-drain active-color governance note") != null);
     try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "runtime max_active retuning boundary") != null);
+}
+
+test "workqueue bridge boundary-map packet keeps roadmap-owned areas queryable" {
+    const boundary_map_only_ids = WorkqueueBridgeLab.boundaryMapOnlyAreaIds();
+    try std.testing.expectEqual(@as(usize, 3), boundary_map_only_ids.len);
+    try std.testing.expectEqualStrings("submission-routing", boundary_map_only_ids[0]);
+    try std.testing.expectEqualStrings("allocation-and-attrs", boundary_map_only_ids[1]);
+    try std.testing.expectEqualStrings("flush-and-cancel", boundary_map_only_ids[2]);
+
+    for (boundary_map_only_ids) |id| {
+        const area = WorkqueueBridgeLab.boundaryAreaById(id).?;
+        try std.testing.expect(area.ownership == .boundary_map_only);
+    }
+
+    const stay_in_c_ids = WorkqueueBridgeLab.stayInCAreaIds();
+    try std.testing.expectEqual(@as(usize, 5), stay_in_c_ids.len);
+    try std.testing.expectEqualStrings("delayed-requeue-governance", stay_in_c_ids[0]);
+    try std.testing.expectEqualStrings("hotplug-topology-rebinding", stay_in_c_ids[1]);
+    try std.testing.expectEqualStrings("max-active-reconfiguration", stay_in_c_ids[2]);
+    try std.testing.expectEqualStrings("worker-pool-concurrency", stay_in_c_ids[3]);
+    try std.testing.expectEqualStrings("rescuer-and-scheduler-hooks", stay_in_c_ids[4]);
+
+    for (stay_in_c_ids) |id| {
+        const area = WorkqueueBridgeLab.boundaryAreaById(id).?;
+        try std.testing.expect(area.ownership == .stay_in_c);
+    }
 }
 
 test "workqueue bridge boundary areas keep core stay-in-c seams explicit" {
