@@ -106,6 +106,7 @@ Keep these boundaries explicit so Phase 9 pilot work does not drift sideways:
 - `tools/lib/subcmd/exec-cmd.zig` remains the Phase 8 owner of deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` tooling cues
 - `tools/lib/subcmd/help.zig` remains the Phase 8 owner of `LINES` and `COLUMNS` terminal-formatting cues
 - the shared Phase 9 loader packet remains a metadata-only handoff and should not be read as shipped runtime command or environment activation control
+- the shared request contract also keeps blocked module-metadata and depmod publication surfaces explicit: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and `depmod` script or manifest state stay outside both `LoadPlan` and `PreparedRequest`, so current `master` still does not claim a shipped module-metadata or depmod bridge
 
 ## Shared summary follow-through
 
