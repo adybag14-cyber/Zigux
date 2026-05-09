@@ -141,6 +141,16 @@ pub const SelectedQueueReadinessSummary = struct {
     queue_ready_for_handoff: bool,
 };
 
+pub const ConfiguredQueueCoverageSummary = struct {
+    anchor: []const u8,
+    configured_queue_count: usize,
+    programmed_queue_count: usize,
+    ready_queue_count: usize,
+    handoff_ready_queue_count: usize,
+    all_configured_queues_programmed: bool,
+    all_configured_queues_ready_for_handoff: bool,
+};
+
 pub const VirtioMmioLab = struct {
     const Self = @This();
 
@@ -398,6 +408,31 @@ pub const VirtioMmioLab = struct {
         };
     }
 
+    pub fn configuredQueueCoverageSummary(self: *const Self) ConfiguredQueueCoverageSummary {
+        var programmed_queue_count: usize = 0;
+        var ready_queue_count: usize = 0;
+        var handoff_ready_queue_count: usize = 0;
+
+        for (0..self.configured_queue_count) |queue_index| {
+            const queue_programmed = self.queue_num[queue_index] != 0;
+            const queue_ready = self.queue_ready[queue_index];
+
+            if (queue_programmed) programmed_queue_count += 1;
+            if (queue_ready) ready_queue_count += 1;
+            if (queue_programmed and queue_ready) handoff_ready_queue_count += 1;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .configured_queue_count = self.configured_queue_count,
+            .programmed_queue_count = programmed_queue_count,
+            .ready_queue_count = ready_queue_count,
+            .handoff_ready_queue_count = handoff_ready_queue_count,
+            .all_configured_queues_programmed = self.configured_queue_count != 0 and programmed_queue_count == self.configured_queue_count,
+            .all_configured_queues_ready_for_handoff = self.configured_queue_count != 0 and handoff_ready_queue_count == self.configured_queue_count,
+        };
+    }
+
     pub fn stageConfigBytes(self: *Self, bytes: []const u8) !void {
         if (bytes.len > config_window_capacity) return error.ConfigWindowTooLarge;
         @memset(self.config_window[0..], 0);
@@ -651,8 +686,45 @@ test "phase10 virtio mmio summarizes selected-queue readiness before queue hando
     try std.testing.expect(!summary.queue_ready_for_handoff);
 }
 
+test "phase10 virtio mmio summarizes configured-queue coverage before queue discovery work" {
+    var device = try VirtioMmioLab.init(60, &[_]u16{ 8, 16, 32 });
+
+    var summary = device.configuredQueueCoverageSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(@as(usize, 3), summary.configured_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.programmed_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.ready_queue_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.handoff_ready_queue_count);
+    try std.testing.expect(!summary.all_configured_queues_programmed);
+    try std.testing.expect(!summary.all_configured_queues_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_num, 8);
+    _ = try device.writeRegister(.queue_ready, 1);
+    _ = try device.writeRegister(.queue_sel, 1);
+    _ = try device.writeRegister(.queue_num, 16);
+
+    summary = device.configuredQueueCoverageSummary();
+    try std.testing.expectEqual(@as(usize, 2), summary.programmed_queue_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.ready_queue_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.handoff_ready_queue_count);
+    try std.testing.expect(!summary.all_configured_queues_programmed);
+    try std.testing.expect(!summary.all_configured_queues_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_ready, 1);
+    _ = try device.writeRegister(.queue_sel, 2);
+    _ = try device.writeRegister(.queue_num, 32);
+    _ = try device.writeRegister(.queue_ready, 1);
+
+    summary = device.configuredQueueCoverageSummary();
+    try std.testing.expectEqual(@as(usize, 3), summary.programmed_queue_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.ready_queue_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.handoff_ready_queue_count);
+    try std.testing.expect(summary.all_configured_queues_programmed);
+    try std.testing.expect(summary.all_configured_queues_ready_for_handoff);
+}
+
 test "phase10 virtio mmio summarizes bounded feature negotiation before lifecycle work" {
-    var device = try VirtioMmioLab.init(60, &[_]u16{ 8, 16 });
+    var device = try VirtioMmioLab.init(61, &[_]u16{ 8, 16 });
 
     try device.stageDeviceFeatureWord(0, 0xa5a5_0001);
     try device.stageDeviceFeatureWord(1, 0x5a5a_0002);
