@@ -292,6 +292,30 @@ def run_self_test() -> int:
             return 1
         write_text(root / MANIFEST_PATH, good_manifest_text())
 
+        write_text(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    "surfaces": [
+                        {
+                            "path": CHECKER_PATH,
+                            "required_marker": "PHASE14_CHECK_PACKET=broken_marker",
+                        }
+                    ]
+                },
+                indent=2,
+            ) + "\n",
+        )
+        errors = check(root)
+        if not any(
+            "missing docs-root smoke-summary checker surface in zigux/tests/phase14_end_to_end_smoke_manifest.json"
+            in error
+            for error in errors
+        ):
+            print("self-test expected manifest required-marker drift failure", file=sys.stderr)
+            return 1
+        write_text(root / MANIFEST_PATH, good_manifest_text())
+
         current_checker_path.write_text(
             original_checker_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
             encoding="utf-8",
