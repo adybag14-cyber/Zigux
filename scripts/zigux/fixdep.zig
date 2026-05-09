@@ -538,6 +538,50 @@ test "dep parsing keeps escaped spaces inside tokens" {
     );
 }
 
+test "dep parsing unescapes escaped colons inside tokens" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 192),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseDepFile(
+        &capture,
+        "sample_escaped_colon.o: src\\:crate.rmeta dir\\:dep.rmeta dir\\:second.so\n",
+        "sample_escaped_colon.o",
+    );
+
+    try std.testing.expectEqualStrings(
+        "source_sample_escaped_colon.o := src:crate.rmeta\n\ndeps_sample_escaped_colon.o := \\\n" ++
+            "  dir:dep.rmeta \\\n" ++
+            "  dir:second.so \\\n" ++
+            "\nsample_escaped_colon.o: $(deps_sample_escaped_colon.o)\n\n$(deps_sample_escaped_colon.o):\n",
+        capture.list.items,
+    );
+}
+
 test "dep parsing continues dependency tokens across escaped newlines" {
     const Capture = struct {
         list: std.ArrayList(u8),
