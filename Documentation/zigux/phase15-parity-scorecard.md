@@ -6,7 +6,7 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 
 - `PHASE15_STATUS=freeze_in_c_governance`
 - `PHASE15_SLICE=parity-scorecard-review-field-coverage-sync`
-- `PHASE15_LANE_KEY=P15-L10`
+- `PHASE15_LANE_KEY=P15-L12`
 - survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 because this scorecard packet reports current metrics and evidence at the bounded governance-packet level instead of implying exact post-commit branch-head parity
 - exact branch-head parity is not recorded for this packet; the current scorecard therefore uses an explicit dated readback marker instead of implying exact-head provenance
 - required review-process review-packet fields tracked in the manifest: `20`
