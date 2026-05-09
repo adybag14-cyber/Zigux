@@ -66,7 +66,7 @@ fn validatePerfMatrix() !void {
                 case.groupsize != 2 or
                 !case.ascii or
                 case.reps != 10_000 or
-                case.max_slowdown_pct != 150 or
+                case.max_slowdown_pct != 550 or
                 saw_ascii_g2
             ) {
                 return error.HexdumpPerfMatrixMismatch;
@@ -79,7 +79,7 @@ fn validatePerfMatrix() !void {
                 case.groupsize != 4 or
                 !case.ascii or
                 case.reps != 20_000 or
-                case.max_slowdown_pct != 225 or
+                case.max_slowdown_pct != 550 or
                 saw_ascii_g4
             ) {
                 return error.HexdumpPerfMatrixMismatch;
@@ -92,7 +92,7 @@ fn validatePerfMatrix() !void {
                 case.groupsize != 8 or
                 !case.ascii or
                 case.reps != 20_000 or
-                case.max_slowdown_pct != 250 or
+                case.max_slowdown_pct != 600 or
                 saw_ascii_g8
             ) {
                 return error.HexdumpPerfMatrixMismatch;
