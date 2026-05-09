@@ -126,6 +126,15 @@ REQUIRED_SURVEY_MARKERS = [
     'layout_assert.assertOffset(WinSize, "ws_ypixel", 6);',
     'try expectContains(hvc_header, "#define MAX_NR_HVC_CONSOLES\\t16");',
     'try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS\\t8");',
+    '        "extern int hvc_instantiate(uint32_t vtermno, int index,\\n\\t\\t\\t   const struct hv_ops *ops);",',
+    '        "extern struct hvc_struct * hvc_alloc(uint32_t vtermno, int data,\\n\\t\\t\\t\\t     const struct hv_ops *ops, int outbuf_size);",',
+    '    try expectContains(hvc_header, "extern void hvc_remove(struct hvc_struct *hp);");',
+    '    try expectContains(hvc_header, "int hvc_poll(struct hvc_struct *hp);");',
+    '    try expectContains(hvc_header, "void hvc_kick(void);");',
+    '    try expectContains(hvc_header, "extern void __hvc_resize(struct hvc_struct *hp, struct winsize ws);");',
+    '    try expectContains(hvc_header, "extern int notifier_add_irq(struct hvc_struct *hp, int data);");',
+    '    try expectContains(hvc_header, "extern void notifier_del_irq(struct hvc_struct *hp, int data);");',
+    '    try expectContains(hvc_header, "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);");',
 ]
 
 REQUIRED_BUILD_MARKERS = [
@@ -380,6 +389,18 @@ def run_self_test() -> int:
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
             'try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS\\t8");',
             'try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS\\t4");',
+            "survey missing markers",
+        )
+        run_case(
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            '    try expectContains(hvc_header, "extern void notifier_del_irq(struct hvc_struct *hp, int data);");',
+            '    try expectContains(hvc_header, "extern void notifier_del_irq(struct hvc_struct *hp, unsigned long data);");',
+            "survey missing markers",
+        )
+        run_case(
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            '        "extern struct hvc_struct * hvc_alloc(uint32_t vtermno, int data,\\n\\t\\t\\t\\t     const struct hv_ops *ops, int outbuf_size);",',
+            '        "extern struct hvc_struct * hvc_alloc(uint32_t vtermno, int data,\\n\\t\\t\\t\\t     const struct hv_ops *ops, size_t outbuf_size);",',
             "survey missing markers",
         )
     print("phase11-header-boundary-packet: self-test passed")
