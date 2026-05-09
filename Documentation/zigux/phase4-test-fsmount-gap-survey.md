@@ -16,10 +16,11 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs
 - `PHASE4_ROLLBACK_OWNER=Validation and Perf Team`
 - `PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false`
 - `PHASE4_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
+- `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=the dedicated local survey wrapper `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` plus the adjacent shared gate-evidence packet keep the parked test_fsmount gap reviewable and reversible without claiming a shipped Zig starter`
 
 ## Scope
 
-- keep the current C anchor path, anchor blob, replay command, dedicated local survey wrapper, owner, rollback owner, and missing-Zig-starter posture reviewable
+- keep the current C anchor path, anchor blob, replay command, dedicated local survey wrapper, owner, rollback owner, reversible-delivery evidence, and missing-Zig-starter posture reviewable
 - keep this packet adjacent to the shared Phase 4 validator-first packet instead of pretending the exact-readback gate already owns it
 - prepare the smallest truthful handoff for a future manifest-backed promotion into the broader Phase 4 validation surfaces
 
@@ -29,6 +30,7 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs
 - the live replay path remains `make M=samples/vfs`
 - `samples/zigux/test_fsmount.zig` is still absent on current `master`
 - the dedicated parked gap packet now spans this note, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, and the dedicated local survey wrapper now lives at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, so the `test_fsmount` follow-through is no longer matrix prose alone even while it stays outside the shared gate-evidence packet
+- the dedicated local survey wrapper plus the adjacent shared gate-evidence packet now serve as the reversible-delivery evidence for this parked gap while the direct validation entrypoint stays `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - the shared validator route already rereads this parked packet through `scripts/zigux/check-phase4-gate-evidence.py`, but `PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false` remains truthful because the packet is still adjacent evidence rather than part of the exact-readback target set itself
 
 ## Non-Goals
