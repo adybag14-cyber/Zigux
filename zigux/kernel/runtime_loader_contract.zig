@@ -672,6 +672,21 @@ test "shared runtime loader contract keeps prepared-request drift from advancing
     try std.testing.expectEqual(RequestState.prepared, request.state);
 
     request.plan = stable_plan;
+    request.plan.anchor = "samples/trace_events/trace-events-sample-drift.c";
+    try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+
+    request.plan = stable_plan;
+    request.plan.entry_symbol = "zigux_runtime_trace_events_init_drift";
+    try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+
+    request.plan = stable_plan;
+    request.plan.exit_symbol = "zigux_runtime_trace_events_exit_drift";
+    try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+
+    request.plan = stable_plan;
     request.plan.provides_selftest_hook = false;
     try std.testing.expectError(error.InvalidSelftestHookEvidence, request.requestRuntimeLoad());
     try std.testing.expectEqual(RequestState.prepared, request.state);
