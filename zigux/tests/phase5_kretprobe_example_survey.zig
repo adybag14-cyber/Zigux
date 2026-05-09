@@ -156,6 +156,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "ownership-summary-snapshots")) {
             saw_ownership_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runOwnershipReplay") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "cold, initialized, armed, replay_complete, and exited") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "entry-timestamp state") != null);
         }
@@ -278,6 +279,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "double_init_rejected = true",
         "post_init_retarget_rejected = true",
         "stage_after_init = initialized",
+        "`ownershipSummary()` and `runOwnershipReplay()` keep `cold`, `initialized`, `armed`, `replay_complete`, and `exited`",
         "ownershipSummary()",
         "cold`, `initialized`, `armed`, `replay_complete`, and `exited`",
         "active_instances = 1",
