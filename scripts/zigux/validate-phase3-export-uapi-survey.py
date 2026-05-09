@@ -19,10 +19,12 @@ LINUX_HEADER_REL = "include/linux/zigux.h"
 ABI_HEADER_REL = "include/zigux/abi.h"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 BUILD_FILE_REL = "zigux/tests/build.zig"
+EXPORT_UAPI_BUILD_REL = "zigux/tests/phase3_export_uapi_build.zig"
 EXPORT_UAPI_LAYOUT_REL = "zigux/tests/phase3_export_uapi_layout.zig"
+EXPORT_UAPI_LAYOUT_BUILD_REL = "zigux/tests/phase3_export_uapi_layout_build.zig"
 LINUX_HEADER_GOVERNANCE_REL = "Documentation/zigux/phase3-linux-zigux-header-governance.md"
 VALIDATOR_REL = "scripts/zigux/validate-phase3-export-uapi-survey.py"
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 16
 
 REQUIRED_FILES = (
     SURVEY_REL,
@@ -34,7 +36,9 @@ REQUIRED_FILES = (
     ABI_HEADER_REL,
     ABI_MANIFEST_REL,
     BUILD_FILE_REL,
+    EXPORT_UAPI_BUILD_REL,
     EXPORT_UAPI_LAYOUT_REL,
+    EXPORT_UAPI_LAYOUT_BUILD_REL,
     LINUX_HEADER_GOVERNANCE_REL,
     VALIDATOR_REL,
     WORKFLOW_REL,
@@ -47,7 +51,9 @@ MANIFEST_REQUIRED_FILES = (
     LINUX_HEADER_REL,
     ABI_HEADER_REL,
     BUILD_FILE_REL,
+    EXPORT_UAPI_BUILD_REL,
     EXPORT_UAPI_LAYOUT_REL,
+    EXPORT_UAPI_LAYOUT_BUILD_REL,
     LINUX_HEADER_GOVERNANCE_REL,
     VALIDATOR_REL,
 )
@@ -153,6 +159,18 @@ REQUIRED_MARKERS = {
         "struct zigux_boundary_header {",
         "struct zigux_export_status {",
     ),
+    EXPORT_UAPI_BUILD_REL: (
+        '.root_source_file = b.path("../bindings/abi.zig"),',
+        '.root_source_file = b.path("../uapi/version.zig"),',
+        'uapi_version_module.addImport("abi_bindings", abi_bindings_module);',
+        '.root_source_file = b.path("../kernel/export_shim.zig"),',
+        'export_shim_module.addImport("abi_bindings", abi_bindings_module);',
+        'export_shim_module.addImport("uapi_version", uapi_version_module);',
+        '.root_source_file = b.path("phase3_export_uapi.zig"),',
+        'root_module.addImport("export_shim", export_shim_module);',
+        'root_module.addImport("uapi_version", uapi_version_module);',
+        'const test_step = b.step("test", "Run Phase 3 export/UAPI behavior tests");',
+    ),
     EXPORT_UAPI_LAYOUT_REL: (
         'const export_shim = @import("export_shim");',
         'const uapi_version = @import("uapi_version");',
@@ -183,6 +201,18 @@ REQUIRED_MARKERS = {
         "try std.testing.expect(uapi_version.acceptHeader(version_mismatch) == null);",
         'test "phase3 export shim keeps compatibility status relays explicit" {',
         "const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);",
+    ),
+    EXPORT_UAPI_LAYOUT_BUILD_REL: (
+        '.root_source_file = b.path("../bindings/abi.zig"),',
+        '.root_source_file = b.path("../uapi/version.zig"),',
+        'uapi_version_module.addImport("abi_bindings", abi_bindings_module);',
+        '.root_source_file = b.path("../kernel/export_shim.zig"),',
+        'export_shim_module.addImport("abi_bindings", abi_bindings_module);',
+        'export_shim_module.addImport("uapi_version", uapi_version_module);',
+        '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
+        'root_module.addImport("export_shim", export_shim_module);',
+        'root_module.addImport("uapi_version", uapi_version_module);',
+        'const test_step = b.step("test", "Run Phase 3 export/UAPI layout tests");',
     ),
 }
 
@@ -507,6 +537,57 @@ def abi_header_text() -> str:
     )
 
 
+def export_uapi_build_text() -> str:
+    return "\n".join(
+        (
+            'const std = @import("std");',
+            "",
+            "pub fn build(b: *std.Build) void {",
+            "    const target = b.standardTargetOptions(.{});",
+            "    const optimize = b.standardOptimizeOption(.{});",
+            "",
+            "    const abi_bindings_module = b.createModule(.{",
+            '        .root_source_file = b.path("../bindings/abi.zig"),',
+            "        .target = target,",
+            "        .optimize = optimize,",
+            "    });",
+            "    const uapi_version_module = b.createModule(.{",
+            '        .root_source_file = b.path("../uapi/version.zig"),',
+            "        .target = target,",
+            "        .optimize = optimize,",
+            "    });",
+            '    uapi_version_module.addImport("abi_bindings", abi_bindings_module);',
+            "",
+            "    const export_shim_module = b.createModule(.{",
+            '        .root_source_file = b.path("../kernel/export_shim.zig"),',
+            "        .target = target,",
+            "        .optimize = optimize,",
+            "    });",
+            '    export_shim_module.addImport("abi_bindings", abi_bindings_module);',
+            '    export_shim_module.addImport("uapi_version", uapi_version_module);',
+            "",
+            "    const root_module = b.createModule(.{",
+            '        .root_source_file = b.path("phase3_export_uapi.zig"),',
+            "        .target = target,",
+            "        .optimize = optimize,",
+            "    });",
+            '    root_module.addImport("abi_bindings", abi_bindings_module);',
+            '    root_module.addImport("export_shim", export_shim_module);',
+            '    root_module.addImport("uapi_version", uapi_version_module);',
+            "",
+            "    const tests = b.addTest(.{",
+            '        .name = "phase3-export-uapi-tests",',
+            "        .root_module = root_module,",
+            "    });",
+            "    const run_tests = b.addRunArtifact(tests);",
+            '    const test_step = b.step("test", "Run Phase 3 export/UAPI behavior tests");',
+            "    test_step.dependOn(&run_tests.step);",
+            "}",
+            "",
+        )
+    )
+
+
 def export_uapi_layout_text() -> str:
     return "\n".join(
         (
@@ -555,6 +636,57 @@ def export_uapi_layout_text() -> str:
     )
 
 
+def export_uapi_layout_build_text() -> str:
+    return "\n".join(
+        (
+            'const std = @import("std");',
+            "",
+            "pub fn build(b: *std.Build) void {",
+            "    const target = b.standardTargetOptions(.{});",
+            "    const optimize = b.standardOptimizeOption(.{});",
+            "",
+            "    const abi_bindings_module = b.createModule(.{",
+            '        .root_source_file = b.path("../bindings/abi.zig"),',
+            "        .target = target,",
+            "        .optimize = optimize,",
+            "    });",
+            "    const uapi_version_module = b.createModule(.{",
+            '        .root_source_file = b.path("../uapi/version.zig"),',
+            "        .target = target,",
+            "        .optimize = optimize,",
+            "    });",
+            '    uapi_version_module.addImport("abi_bindings", abi_bindings_module);',
+            "",
+            "    const export_shim_module = b.createModule(.{",
+            '        .root_source_file = b.path("../kernel/export_shim.zig"),',
+            "        .target = target,",
+            "        .optimize = optimize,",
+            "    });",
+            '    export_shim_module.addImport("abi_bindings", abi_bindings_module);',
+            '    export_shim_module.addImport("uapi_version", uapi_version_module);',
+            "",
+            "    const root_module = b.createModule(.{",
+            '        .root_source_file = b.path("phase3_export_uapi_layout.zig"),',
+            "        .target = target,",
+            "        .optimize = optimize,",
+            "    });",
+            '    root_module.addImport("abi_bindings", abi_bindings_module);',
+            '    root_module.addImport("export_shim", export_shim_module);',
+            '    root_module.addImport("uapi_version", uapi_version_module);',
+            "",
+            "    const tests = b.addTest(.{",
+            '        .name = "phase3-export-uapi-layout-tests",',
+            "        .root_module = root_module,",
+            "    });",
+            "    const run_tests = b.addRunArtifact(tests);",
+            '    const test_step = b.step("test", "Run Phase 3 export/UAPI layout tests");',
+            "    test_step.dependOn(&run_tests.step);",
+            "}",
+            "",
+        )
+    )
+
+
 def baseline_survey(root: Path) -> str:
     return "\n".join(
         (
@@ -596,7 +728,9 @@ def build_valid_workspace(root: Path) -> None:
     _write(root / LINUX_HEADER_REL, linux_header_text())
     _write(root / ABI_HEADER_REL, abi_header_text())
     _write(root / BUILD_FILE_REL, "// build step placeholder\n")
+    _write(root / EXPORT_UAPI_BUILD_REL, export_uapi_build_text())
     _write(root / EXPORT_UAPI_LAYOUT_REL, export_uapi_layout_text())
+    _write(root / EXPORT_UAPI_LAYOUT_BUILD_REL, export_uapi_layout_build_text())
     _write(root / LINUX_HEADER_GOVERNANCE_REL, "# Phase 3 Linux zigux.h Header Governance\n")
     _write(root / VALIDATOR_REL, "# self-reference\n")
     _write(root / SURVEY_REL, baseline_survey(root))
@@ -729,9 +863,26 @@ def run_self_test() -> int:
             root / EXPORT_UAPI_LAYOUT_REL,
             export_uapi_layout_text().replace('    const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);\n', "", 1),
         )
+        issues = validate(root)
+        assert len(issues) == 2 and issues[0].startswith("stale_survey_blob:PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA:"), issues
+        assert 'missing_marker:zigux/tests/phase3_export_uapi_layout.zig:const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);' in issues, issues
+        build_valid_workspace(root)
+
+        _write(
+            root / EXPORT_UAPI_BUILD_REL,
+            export_uapi_build_text().replace('    export_shim_module.addImport("uapi_version", uapi_version_module);\n', "", 1),
+        )
         assert validate(root) == [
-            "stale_survey_blob:PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA:d869631861348c7cd47fe8cb0ba025d06ef63096!=2c288abdb67761244d7367aed915ec78d476af60",
-            'missing_marker:zigux/tests/phase3_export_uapi_layout.zig:const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);',
+            'missing_marker:zigux/tests/phase3_export_uapi_build.zig:export_shim_module.addImport("uapi_version", uapi_version_module);'
+        ]
+        build_valid_workspace(root)
+
+        _write(
+            root / EXPORT_UAPI_LAYOUT_BUILD_REL,
+            export_uapi_layout_build_text().replace('        .root_source_file = b.path("phase3_export_uapi_layout.zig"),\n', "", 1),
+        )
+        assert validate(root) == [
+            'missing_marker:zigux/tests/phase3_export_uapi_layout_build.zig:.root_source_file = b.path("phase3_export_uapi_layout.zig"),'
         ]
         build_valid_workspace(root)
 
@@ -771,6 +922,22 @@ def run_self_test() -> int:
         manifest["file_count"] = len(manifest["files"])
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
         assert validate(root) == [f"manifest_missing_required_file:{EXPORT_UAPI_LAYOUT_REL}"]
+        build_valid_workspace(root)
+
+        manifest_path = root / ABI_MANIFEST_REL
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["files"] = [rel for rel in manifest["files"] if rel != EXPORT_UAPI_BUILD_REL]
+        manifest["file_count"] = len(manifest["files"])
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+        assert validate(root) == [f"manifest_missing_required_file:{EXPORT_UAPI_BUILD_REL}"]
+        build_valid_workspace(root)
+
+        manifest_path = root / ABI_MANIFEST_REL
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["files"] = [rel for rel in manifest["files"] if rel != EXPORT_UAPI_LAYOUT_BUILD_REL]
+        manifest["file_count"] = len(manifest["files"])
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+        assert validate(root) == [f"manifest_missing_required_file:{EXPORT_UAPI_LAYOUT_BUILD_REL}"]
         build_valid_workspace(root)
 
         governance_path = root / LINUX_HEADER_GOVERNANCE_REL
