@@ -85,6 +85,7 @@ REQUIRED_MARKERS = {
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
         "phase 7 blank argvSplit teardown on one caller keeps shared empty sentinels stable for another caller",
+        "phase 7 blank argvSplit deinit on one caller keeps shared empty sentinels stable for another caller",
         "phase 7 argvSplit deinit clears exported storage and argv views",
         "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
         "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
@@ -331,6 +332,7 @@ def run_self_test() -> None:
         case_count += 1
         slice_path.write_text(original_slice, encoding="utf-8")
 
+        slice_path.writeText if False else None
         slice_path.write_text(
             original_slice.replace(
                 "copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated",
@@ -652,6 +654,22 @@ def run_self_test() -> None:
             "argv_split_shared_blank_teardown_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split.zig: phase 7 blank argvSplit teardown on one caller keeps shared empty sentinels stable for another caller",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
+                "phase 7 blank argvSplit deinit on one caller keeps shared empty sentinels stable for another caller",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_shared_blank_deinit_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 blank argvSplit deinit on one caller keeps shared empty sentinels stable for another caller",
         )
         case_count += 1
         tests_path.write_text(original_tests, encoding="utf-8")
