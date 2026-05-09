@@ -104,6 +104,7 @@ REQUIRED_MARKERS = {
         "`kstrdup_quotable()` over the bounded quotable-log escape path",
         "`kasprintf_strarray()` over the bounded sequential prefix-index ownership path",
         "`kfree_strarray()` over the bounded repeated-teardown-safe release path",
+        "zigux/tests/phase7_string_helpers_sample_boundary.zig",
         "zigux/tests/phase7_string_helpers_manifest.json",
         "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
         "no `samples/zigux/*string*` Phase 5 reference sample is expected here;",
