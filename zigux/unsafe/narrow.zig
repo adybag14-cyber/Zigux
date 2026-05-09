@@ -327,6 +327,8 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     const bridge_addr = addressOf(&bridge_value);
     const scoped_ptr = try constPointerAtInteropPolicy(u32, bridge_addr, raw_policy);
     try std.testing.expectEqual(@as(u32, 27), scoped_ptr.*);
+    const scoped_byte_ptr = try constPointerAtInteropPolicyBytes(u32, bridge_addr, 2, 0);
+    try std.testing.expectEqual(@as(u32, 27), scoped_byte_ptr.*);
     const scoped_slice = try constSliceAtInteropPolicyBytes(u32, bridge_addr, 1, 2, 0);
     try std.testing.expectEqual(@as(u32, 27), scoped_slice[0]);
 
