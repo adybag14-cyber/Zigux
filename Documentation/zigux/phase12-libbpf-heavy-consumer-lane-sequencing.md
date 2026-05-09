@@ -19,9 +19,10 @@ It is a coordination artifact, not a closure claim.
 
 The live Phase 12 libbpf survey is already honest about the current helper-first footing and the still-blocked object-model wall.
 
-What it does not do by itself is stop nearby scheduled runs from collapsing three different kinds of work into one vague `libbpf` bucket:
+What it does not do by itself is stop nearby scheduled runs from collapsing four different kinds of work into one vague `libbpf` bucket:
 - shared reviewability upkeep for the shipped Phase 12 packet
-- landed helper-foundation upkeep inside the existing `zigux_segments/` family
+- tracked pure-helper upkeep for the five deterministic helper paths already carried by the Phase 12 snapshot fixtures
+- landed bridge-local helper-foundation upkeep inside the existing `zigux_segments/` family
 - deferred or blocked object-model, loader, bridge, and relocation work
 
 This note turns that risk split into one bounded lane map so future Phase 12 libbpf runs stay inside the smallest real packet that moved.
@@ -52,8 +53,34 @@ Do not reopen this lane for:
 - object-model or loader scaffolding
 - `virtio_net`, `virtio_scsi`, or `nvme` follow-through that merely shares the Phase 12 build
 
-### 2. Landed helper-foundation lane: keep the smaller bridge-local footholds explicit
-Use this lane only when shared wording needs to keep the already-landed bridge-local helper foundations distinct from the heavier deferred bridge and queue-routing buckets.
+### 2. Tracked pure-helper lane: keep the deterministic five-path helper packet explicit
+Use this lane only when the shared wording, snapshot fixtures, or deterministic replay need to keep the pure helper packet separate from the bridge-local foundations and the heavier deferred buckets.
+
+`PHASE12_LIBBPF_TRACKED_HELPER_COUNT=5`
+
+Current tracked pure-helper packet:
+- `tools/lib/bpf/zigux_segments/type_names.zig`
+- `tools/lib/bpf/zigux_segments/cpu_mask.zig`
+- `tools/lib/bpf/zigux_segments/logging.zig`
+- `tools/lib/bpf/zigux_segments/pin_path.zig`
+- `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+- `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
+- `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`
+- `zigux/tests/phase12_libbpf_snapshot_determinism.zig`
+
+This packet is already landed on current `master` and is intentionally smaller than the bridge-local helper packet: the ordered-path snapshot fixture and deterministic snapshot-digest evidence exact-track the five pure helper files without blurring them into `file_path_handle_bridge.zig`, the deferred bridge bucket, or the blocked object-model wall.
+
+Do not widen this lane into:
+- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+- direct procfs reads
+- token creation
+- queue-routing work
+- object-model or relocation work
+
+The next honest reopen here is drift control around the exact five-path helper packet, not treating the tracked helper set as if it were the same boundary as the bridge-local helper foundations.
+
+### 3. Landed helper-foundation lane: keep the smaller bridge-local footholds explicit
+Use this lane only when shared wording needs to keep the already-landed bridge-local helper foundations distinct from the tracked pure-helper packet and the heavier deferred bridge and queue-routing buckets.
 
 Current landed helper-foundation packet:
 - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` for helper-only fdinfo map-info parsing
@@ -71,7 +98,7 @@ Do not widen this lane into:
 
 The next honest reopen here is drift control around those landed bridge-local foundations or a genuinely new helper-sized promotion becoming real, not pretending these already-landed packets are still the next unshipped helpers.
 
-### 3. Deferred bridge and queue-routing lane: keep parked until repo reality changes
+### 4. Deferred bridge and queue-routing lane: keep parked until repo reality changes
 Use this lane only if the heavier shared bridge or perf-buffer queue-routing packet itself becomes the explicitly assigned target.
 
 Current deferred packet:
@@ -85,9 +112,9 @@ Keep this lane separate because it crosses riskier behavior that the current hel
 - `perf_event_open` setup
 - per-CPU routing and queueing pressure
 
-Do not smuggle this work through the shared reviewability lane or the landed helper-foundation lane.
+Do not smuggle this work through the shared reviewability lane, the tracked pure-helper lane, or the landed helper-foundation lane.
 
-### 4. Object-model wall lane: blocked until the missing model surfaces exist
+### 5. Object-model wall lane: blocked until the missing model surfaces exist
 Use this lane only if the assigned task is explicitly about the blocked post-helper wall.
 
 Current blocked packet:
@@ -103,7 +130,7 @@ These remain separate because they depend on product surfaces that current `mast
 
 Do not reopen this lane just because the helper-first packet is already dense.
 
-### 5. Shared summary lane: wording-only follow-through for the Phase 12 packet
+### 6. Shared summary lane: wording-only follow-through for the Phase 12 packet
 Use this lane only when the shared wording surfaces drift away from the live Phase 12 libbpf ownership split.
 
 Allowed surfaces:
@@ -127,26 +154,29 @@ Shared-summary wording must keep `Documentation/zigux/freeze-map.md` visible whe
 ## Sequencing rule
 1. Re-read the shared Phase 12 libbpf survey and reviewability packet first.
 2. If the drift is only wording or ownership scope, stay in the shared reviewability or shared summary lane.
-3. If a new helper-sized follow-through becomes real, keep it smaller than the deferred bridge and queue-routing bucket; the two older bridge-local helper promotions are already landed foundations on current `master`.
-4. Keep the deferred bridge and queue-routing packet separate from those landed bridge-local foundations.
-5. Keep the object-model wall separate from every smaller bridge or reviewability step.
-6. Do not use this libbpf lane to absorb unrelated Phase 12 driver follow-through just because the shared build is already wired.
+3. If the drift is about the deterministic five-path helper packet, keep it inside the tracked pure-helper lane instead of widening into the bridge-local foundations.
+4. If a bridge-local helper wording repair is needed, keep it smaller than the deferred bridge and queue-routing bucket and separate from the tracked pure-helper packet.
+5. Keep the deferred bridge and queue-routing packet separate from both landed helper packets.
+6. Keep the object-model wall separate from every smaller bridge or reviewability step.
+7. Do not use this libbpf lane to absorb unrelated Phase 12 driver follow-through just because the shared build is already wired.
 
 ## Current anti-overlap correction
 
 Today the strongest Phase 12 libbpf sequencing correction is simple:
 - shared reviewability owns the survey, manifest, deterministic snapshot fixture, deterministic snapshot-digest evidence fixture, snapshot determinism replay, reviewability gate, the paired build-only checker reruns, and shared build alignment for the current libbpf packet, with the workflow-backed replay kept explicit inside that same reviewability bundle
+- the tracked pure-helper lane keeps the five deterministic helper paths explicit as a smaller packet than the bridge-local helper foundations
 - the two landed bridge-local helper foundations stay explicit as smaller evidence than the deferred bridge and queue-routing bucket
 - the deferred bridge and queue-routing bucket stays smaller than the blocked object-model, loader, and relocation wall
 - wording-only shared-summary repairs stay separate from helper logic and from the other Phase 12 driver lanes
 - PMO release coordination surfaces should keep the release-order note, closure companion, adjacent release-readiness note, compact release-coordination matrix, shared fallback overview, the direct `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` preflight, the attached-toolchain Make override, the freeze-map boundary, and the libbpf reviewability packet aligned without turning this heavy-consumer lane into a driver-owner map or a closure claim
 
-That split matches the live survey packet and keeps future scheduled runs from turning one honest heavy-consumer tranche into overlapping docs, helper, and object-model churn.
+That split matches the live survey packet and keeps future scheduled runs from turning one honest heavy-consumer tranche into overlapping docs, helper, bridge, and object-model churn.
 
 ## Next bounded step
 
-Leave this note parked unless one of three things happens:
+Leave this note parked unless one of four things happens:
 - a shared Phase 12 summary drifts away from this ownership split
+- the deterministic five-path helper packet stops matching the tracked snapshot evidence
 - shared wording starts treating the two landed bridge-local helper foundations as pending `ready_next` work again
 - the repo lands a real object-model foothold that changes the blocked wall itself
 
