@@ -102,7 +102,7 @@ Own:
 
 Do not use this lane to restate readiness, handoff, or scorecard status unless the policy packet itself has drifted.
 
-### 7. Shared summary and build-wiring lane: `P15-Y06`
+### 7. Shared summary and build-wiring lane: `P15-L06`
 
 Use this sequencing lane only when the owner split itself has drifted across shared surfaces.
 
@@ -125,18 +125,18 @@ The strongest current Phase 15 sequencing rule is simple:
 
 - keep packet-local truthfulness or evidence changes inside the owning lane above
 - keep shared summaries compact while packet-local replay inventories stay in the sequencing note, readiness note, handoff note, or dedicated replay guards
-- use `P15-Y06` only for shared summaries or shared build wiring
+- use `P15-L06` only for shared summaries or shared build wiring
 - keep every Phase 15 governance run parked unless a named reopen trigger fires or the deep-core blocker posture changes
-- current `master` already closed the older shared tests-root follow-through around `zigux/tests/phase15_indefinite_c_blocker_evidence.zig` and `zigux/tests/phase15_governance_lane_sequencing.zig`, so future `P15-Y06` runs should not reopen that earlier tests-root touch unless one of those anchors disappears again
-- current `master` still carries one narrower shared-summary follow-through: `zigux/tests/README.md` keeps the dedicated `make -C zigux phase15-test` route explicit, but it still leaves `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_readiness_gate_manifest.json` implicit there, and `scripts/zigux/check-phase15-scripts-readme-alignment.py` still does not fail-close on those two omissions, so the next honest `P15-Y06` shared touch stays bounded to that exact tests-root plus checker manifest-pair sync rather than reopening broader summaries
-- current `master` also already closed the earlier docs-root workflow follow-through: `Documentation/zigux/README.md` explicitly carries `.github/workflows/zigux-bootstrap.yml` beside the checker-backed and build-backed replay routes, so future `P15-Y06` runs should not reopen that docs-root touch unless the workflow pointer or the shared owner split drifts again
-- current `master` also already closed the earlier review-checklist workflow-and-build follow-through: `Documentation/zigux/review-checklist.md` explicitly carries `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `zig build test --build-file zigux/tests/phase15_build.zig`, and `make -C zigux phase15-validate`, so future `P15-Y06` runs should not reopen that checklist touch unless one of those shared governance anchors drifts again
+- current `master` already closed the older shared tests-root follow-through around `zigux/tests/phase15_indefinite_c_blocker_evidence.zig` and `zigux/tests/phase15_governance_lane_sequencing.zig`, so future `P15-L06` runs should not reopen that earlier tests-root touch unless one of those anchors disappears again
+- current `master` still carries one narrower shared-summary follow-through: `zigux/tests/README.md` keeps the dedicated `make -C zigux phase15-test` route explicit, but it still leaves `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_readiness_gate_manifest.json` implicit there, and `scripts/zigux/check-phase15-scripts-readme-alignment.py` still does not fail-close on those two omissions, so the next honest `P15-L06` shared touch stays bounded to that exact tests-root plus checker manifest-pair sync rather than reopening broader summaries
+- current `master` also already closed the earlier docs-root workflow follow-through: `Documentation/zigux/README.md` explicitly carries `.github/workflows/zigux-bootstrap.yml` beside the checker-backed and build-backed replay routes, so future `P15-L06` runs should not reopen that docs-root touch unless the workflow pointer or the shared owner split drifts again
+- current `master` also already closed the earlier review-checklist workflow-and-build follow-through: `Documentation/zigux/review-checklist.md` explicitly carries `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `zig build test --build-file zigux/tests/phase15_build.zig`, and `make -C zigux phase15-validate`, so future `P15-L06` runs should not reopen that checklist touch unless one of those shared governance anchors drifts again
 - current `master` now keeps the current handoff provenance wording isolated inside the owning handoff packet: `Documentation/zigux/phase15-handoff-next-steps-survey.md` and `zigux/tests/phase15_handoff_next_steps_manifest.json` both carry `dated_master_readback_packet_alignment`, and the paired `Documentation/zigux/phase15-parity-scorecard.md` packet carries the same dated `current-master-readback-2026-05-09` marker, so future provenance refreshes stay handoff-lane `P15-L08` work unless that packet-alignment wording also blurs a shared summary surface
-- if current `master` moves ahead of a packet's reviewed-head marker while the blocker posture and owner split stay parked, treat that provenance refresh as handoff-lane `P15-L08` work first; do not reopen `P15-Y06` unless the stale reviewed-head wording also blurs a shared summary surface
+- if current `master` moves ahead of a packet's reviewed-head marker while the blocker posture and owner split stay parked, treat that provenance refresh as handoff-lane `P15-L08` work first; do not reopen `P15-L06` unless the stale reviewed-head wording also blurs a shared summary surface
 
 ## Recommended next-step order
 
-1. shared summary and build-wiring lane first only for the still-open tests-root plus checker manifest-pair undercount: `zigux/tests/README.md` and `scripts/zigux/check-phase15-scripts-readme-alignment.py` still need to keep `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_readiness_gate_manifest.json` explicit beside the already-named dedicated `make -C zigux phase15-test` route, and any `P15-Y06` touch should stay bounded to that exact repair unless another shared-summary drift appears
+1. shared summary and build-wiring lane first only for the still-open tests-root plus checker manifest-pair undercount: `zigux/tests/README.md` and `scripts/zigux/check-phase15-scripts-readme-alignment.py` still need to keep `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_readiness_gate_manifest.json` explicit beside the already-named dedicated `make -C zigux phase15-test` route, and any `P15-L06` touch should stay bounded to that exact repair unless another shared-summary drift appears
 2. the owning packet lane when one note, manifest, checker, or replay route stops matching current `master`
 3. no deep-core status-change work until the blocker posture changes enough to justify a fresh Architecture Council slice
 
@@ -144,4 +144,4 @@ The strongest current Phase 15 sequencing rule is simple:
 
 If a scheduled Phase 15 run is assigned one owning lane, keep the work inside that packet plus the smallest unavoidable shared touch.
 
-If `P15-Y06` is assigned, do not consume packet-local backlog just because the shared sequencing lane has spare room.
+If `P15-L06` is assigned, do not consume packet-local backlog just because the shared sequencing lane has spare room.
