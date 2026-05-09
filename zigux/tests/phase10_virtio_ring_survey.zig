@@ -110,7 +110,7 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_ring_verify_present);
-    try std.testing.expect(manifest.gaps.len >= 15);
+    try std.testing.expect(manifest.gaps.len >= 16);
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -122,6 +122,7 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-driver threshold") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-local ring foothold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "notification-data summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`drivers/virtio/virtio_ring_verify.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-ring-lab-driver-bridge") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "owned by the adjacent `P10-L10` MMIO packet") != null);
@@ -143,6 +144,8 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
     try std.testing.expect(std.mem.indexOf(u8, verify_replay, "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.outstanding_chains, readiness.blocker.?);") != null);
     try std.testing.expect(std.mem.indexOf(u8, verify_replay, "_ = try lab.clearBroken(6);") != null);
     try std.testing.expect(std.mem.indexOf(u8, verify_replay, "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, readiness.blocker.?);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, verify_replay, "test \"virtio ring notification-data summary tracks packed wrap and split reset transitions\" {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, verify_replay, "try testing.expectEqual(@as(u32, 0x8001_0001), summary.notification_data);") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -152,6 +155,7 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
     var saw_callback_enable_helper = false;
     var saw_callback_delay_helper = false;
     var saw_notify_prepare_helper = false;
+    var saw_notification_data_helper = false;
     var saw_broken_queue_poll_guard = false;
     var saw_queue_reset_helper = false;
     var saw_queue_reset_readiness_helper = false;
@@ -206,6 +210,13 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtqueue_kick_prepare()") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-notification-data-summary-helper")) {
+            saw_notification_data_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "packed wrap-bit transitions") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-broken-queue-poll-guard")) {
@@ -266,7 +277,7 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_core_progress_note);
@@ -275,6 +286,7 @@ test "phase10 virtio ring survey manifest records the queue-local foothold and r
     try std.testing.expect(saw_callback_enable_helper);
     try std.testing.expect(saw_callback_delay_helper);
     try std.testing.expect(saw_notify_prepare_helper);
+    try std.testing.expect(saw_notification_data_helper);
     try std.testing.expect(saw_broken_queue_poll_guard);
     try std.testing.expect(saw_queue_reset_helper);
     try std.testing.expect(saw_queue_reset_readiness_helper);
