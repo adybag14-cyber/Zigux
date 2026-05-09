@@ -94,6 +94,14 @@ ABI_SLICE_MARKERS = (
     "the current shared ABI packet also keeps the focused export/UAPI boundary replay explicit across `zigux/tests/phase3_export_uapi_layout.zig`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, and `Documentation/zigux/phase3-linux-zigux-header-governance.md` so the manifest-backed replay surface matches the shipped packet-local starter proof, including accepted-header canonicalization, requested-header evaluation, and compatibility-status relays",
 )
 
+HEADER_GOVERNANCE_MARKERS = (
+    f"`PHASE3_ZIGUX_H_PATH={LINUX_HEADER_REL}`",
+    f"`PHASE3_ZIGUX_H_SHARED_SLICE_NOTE={ABI_SLICE_REL}`",
+    f"`PHASE3_ZIGUX_H_MANIFEST_PATH={ABI_MANIFEST_REL}`",
+    "`PHASE3_ZIGUX_H_GROWTH_RULE=new top-level helper families may land in include/linux/zigux.h, and already-landed top-level review surfaces may be rehomed there, only when the same bounded change also lands packet-local proof and updates this note.`",
+    "export/UAPI starter work may reference this header, but the dedicated export/UAPI survey still owns the narrower starter-boundary claims it proves directly",
+)
+
 REQUIRED_MARKERS = {
     EXPORT_SHIM_REL: (
         "pub const Header = uapi_version.Header;",
@@ -317,6 +325,12 @@ def validate(root: Path) -> list[str]:
         for marker in ABI_SLICE_MARKERS:
             require_exact_line_count(issues, abi_slice, "abi_slice_marker", marker)
 
+    governance_path = root / LINUX_HEADER_GOVERNANCE_REL
+    if governance_path.exists():
+        governance = governance_path.read_text(encoding="utf-8")
+        for marker in HEADER_GOVERNANCE_MARKERS:
+            require_exact_line_count(issues, governance, "governance_marker", marker)
+
     for rel, markers in REQUIRED_MARKERS.items():
         path = root / rel
         if not path.exists():
@@ -392,8 +406,7 @@ def minimal_export_shim_text() -> str:
             "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {",
             "    return .{",
             "        .code = status.code,",
-            "        .facility = status.facility,
-        ",
+            "        .facility = status.facility,\n        ",
             "        .flags = if (status.code < 0) abi.STATUS_FLAG_ERROR else 0,",
             "    };",
             "}",
@@ -533,7 +546,7 @@ def build_valid_workspace(root: Path) -> None:
     _write(root / LINUX_HEADER_REL, "#include <zigux/abi.h>\nstatic inline struct zigux_export_status zigux_status_ok(\n    zigux_u16 facility)\n{}\nstatic inline struct zigux_export_status zigux_status_err(\n    zigux_s32 code, zigux_u16 facility)\n{}\n")
     _write(root / ABI_HEADER_REL, "#define ZIGUX_ABI_VERSION 1U\n#define ZIGUX_STATUS_FLAG_ERROR 1U\nstruct zigux_boundary_header {\n};\nstruct zigux_export_status {\n};\n")
     _write(root / BUILD_FILE_REL, "// build placeholder\n")
-    _write(root / LINUX_HEADER_GOVERNANCE_REL, "# governance\n")
+    _write(root / LINUX_HEADER_GOVERNANCE_REL, "# Phase 3 Linux `zigux.h` Header Governance\n- `PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`\n- `PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`\n- `PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`\n- `PHASE3_ZIGUX_H_GROWTH_RULE=new top-level helper families may land in include/linux/zigux.h, and already-landed top-level review surfaces may be rehomed there, only when the same bounded change also lands packet-local proof and updates this note.`\n- export/UAPI starter work may reference this header, but the dedicated export/UAPI survey still owns the narrower starter-boundary claims it proves directly\n")
     _write(root / VALIDATOR_REL, "# validator placeholder\n")
     _write(root / SURVEY_REL, baseline_survey(root))
     _write(root / DOCS_ROOT_REL, "# docs root\n- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n- `Documentation/zigux/phase3-linux-zigux-header-governance.md`\n- `scripts/zigux/validate-phase3-export-uapi-survey.py`\n- `zig build phase3-test --build-file zigux/tests/build.zig`\n- `make -C zigux phase3`\n")
