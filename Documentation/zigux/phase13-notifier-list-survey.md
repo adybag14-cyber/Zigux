@@ -1,6 +1,6 @@
 # Phase 13 Notifier/List Survey
 
-lane key: `P13-L18`
+lane key: `P13-L16`
 phase: `Phase 13`
 surveyed commit: `23d15e44622d2cedd7691c88f78709db6bf1eb7e`
 scope: roadmap-adjacent reviewability evidence only
