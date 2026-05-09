@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-file-path-handle-bridge`
-- scope: exact `"/proc/%d/fdinfo/%d"` plus adjacent `"/proc/%d/fd/%d"` assembly, bounded fdinfo text parsing for `map_type`, `key_size`, `value_size`, `max_entries`, `map_flags`, and `map_extra`, with bounded reuse-pinned-map attempt planning and a planning-only token-preparation gate kept reviewable without performing direct bpffs reopen work or token materialization
+- scope: exact `"/proc/%d/fdinfo/%d"` plus adjacent `"/proc/%d/fd/%d"` assembly, bounded fdinfo text parsing for `map_type`, `key_size`, `value_size`, `max_entries`, `map_flags`, and `map_extra`, with bounded reuse-pinned-map attempt planning, a planning-only token-preparation gate, and planning-only token bridge path modes and token bridge attempt outcomes kept reviewable without performing direct bpffs reopen work or token materialization
 - product boundary:
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   - `zigux/tests/phase8_file_path_handle_bridge.zig`
@@ -15,9 +15,9 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 ## Why this slice exists
 
-The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/bpf/zigux_segments/`, and the current survey packet now treats the bounded file-path-and-fdinfo bridge helper, the helper-only reused-map compatibility packet, and the planning-only token-preparation gate as landed adjacent review surface while keeping the broader bridge follow-through queued.
+The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/bpf/zigux_segments/`, and the current survey packet now treats the bounded file-path-and-fdinfo bridge helper, the helper-only reused-map compatibility packet, the planning-only token-preparation gate, and the planning-only token bridge path and attempt summaries as landed adjacent review surface while keeping the broader bridge follow-through queued.
 
-`bpf_get_map_info_from_fdinfo()` stayed the right starter because it keeps the landed work inside reviewable path formatting, fdinfo text parsing, helper-only reused-map compatibility checks, planning-only reuse gating, and planning-only token-preparation gating without widening into direct procfs reads, pinned-map reopen flow, or object-loader state.
+`bpf_get_map_info_from_fdinfo()` stayed the right starter because it keeps the landed work inside reviewable path formatting, fdinfo text parsing, helper-only reused-map compatibility checks, planning-only reuse gating, planning-only token-preparation gating, and planning-only token bridge outcome classification without widening into direct procfs reads, pinned-map reopen flow, or object-loader state.
 
 ## Gates
 
@@ -55,6 +55,8 @@ The current bounded helper covers:
 - bounded compatibility checks for map type, key size, value size, max entries, map flags, and `map_extra`, including the devmap readonly-prog exception that libbpf tolerates
 - planning-only reopen-attempt disposition via `resolveReusePinnedMapAttempt()` that requires a non-empty pinned path plus compatible fdinfo-derived map info before any real map reopen can be considered
 - `planTokenPreparation()` as a planning-only token-preparation gate that requires a non-empty token path plus a ready reused-map bridge plan before any future token open attempt can be considered
+- `planTokenBridgePath()` as a planning-only token bridge path summary that keeps prevented, optional, and mandatory bridge modes explicit before any future bpffs open attempt can be considered
+- `resolveTokenBridgeAttempt()` as a planning-only token bridge attempt summary that keeps bounded open and create outcome classification explicit before any future token install can be considered
 
 The current tests check:
 
@@ -68,6 +70,8 @@ The current tests check:
 - truncated-name reuse resolution and devmap readonly-prog compatibility normalization
 - planning-only reopen-attempt classification for missing path, missing observation, incompatible name, incompatible map definition, and compatible ready-to-reopen outcomes
 - planning-only token-preparation classification for missing token path, bridge plan not ready, and ready-to-open-token outcomes
+- planning-only token bridge path modes for prevented, optional, and mandatory bridge routing
+- planning-only token bridge attempt outcomes for prevented, optional skip, mandatory failure, create-ready, and ready-for-install summaries
 - focused build wiring for the new Phase 8 helper packet
 - shared build wiring for the parked stable-output Phase 8 tooling packet
 
@@ -81,7 +85,8 @@ This slice does not yet claim:
 - no actual bpffs opens or `bpf_obj_get()` reopen calls
 - no fd duplication or `F_DUPFD_CLOEXEC` handling
 - no token materialization or handle transfer
+- no actual token creation or installation side effects
 
 ## Next bounded step
 
-Park `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` unless fresh repo review finds another tiny reuse-planning or docs-truthfulness gap inside this same helper packet; if the lane reopens, keep the shared `make -C zigux phase8-validate` route aligned with this file-path-plus-fdinfo planning surface and keep the next step smaller than actual token materialization, procfs reads, bpffs opens, `bpf_obj_get()` reopen flow, fd duplication, or broader object-model work.
+Park `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` unless fresh repo review finds another tiny reuse-planning, token-bridge-planning, or docs-truthfulness gap inside this same helper packet; if the lane reopens, keep the shared `make -C zigux phase8-validate` route aligned with this file-path-plus-fdinfo planning surface and keep the next step smaller than actual token materialization, procfs reads, bpffs opens, `bpf_obj_get()` reopen flow, fd duplication, or broader object-model work.
