@@ -23,6 +23,7 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expect(descriptor.provides_pretty_name_helper);
     try std.testing.expect(descriptor.provides_arch_io_wc_memtype_planning);
     try std.testing.expect(descriptor.provides_arch_phys_wc_token_planning);
+    try std.testing.expect(descriptor.provides_ioport_lifetime_planning);
     try std.testing.expect(!descriptor.touches_live_device_lists);
     try std.testing.expect(!descriptor.touches_live_mmio);
     try std.testing.expect(!descriptor.touches_live_arch_memtype);
@@ -184,6 +185,50 @@ test "phase13 devres non-posted ioremap wrapper mirrors the managed lifetime spl
 test "phase13 devres release matching stays pointer-exact" {
     try std.testing.expect(devres.DevresHelperLab.ioremapReleaseMatches(0x4000, 0x4000));
     try std.testing.expect(!devres.DevresHelperLab.ioremapReleaseMatches(0x4000, 0x4010));
+}
+
+test "phase13 devres retains the release record when managed ioport map succeeds" {
+    const result = try devres.DevresHelperLab.planManagedIoportMap(.{
+        .port = 0x3f8,
+        .count = 8,
+        .release_record_allocated = true,
+        .mapped_address = 0xf000,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
+    try std.testing.expectEqual(@as(usize, 0x3f8), result.port);
+    try std.testing.expectEqual(@as(u32, 8), result.count);
+    try std.testing.expectEqual(@as(?usize, 0xf000), result.mapped_address);
+    try std.testing.expect(result.added_to_devres);
+    try std.testing.expect(result.release_record_retained);
+    try std.testing.expect(!result.release_record_freed);
+    try std.testing.expect(result.should_unmap_on_detach);
+}
+
+test "phase13 devres frees the release record when managed ioport map fails after allocation" {
+    const result = try devres.DevresHelperLab.planManagedIoportMap(.{
+        .port = 0x2f8,
+        .count = 4,
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(@as(usize, 0x2f8), result.port);
+    try std.testing.expectEqual(@as(u32, 4), result.count);
+    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
+    try std.testing.expect(!result.added_to_devres);
+    try std.testing.expect(!result.release_record_retained);
+    try std.testing.expect(result.release_record_freed);
+    try std.testing.expect(!result.should_unmap_on_detach);
+}
+
+test "phase13 devres rejects ioport map planning when the release record cannot be allocated" {
+    try std.testing.expectError(error.OutOfMemory, devres.DevresHelperLab.planManagedIoportMap(.{
+        .port = 0x3e8,
+        .count = 2,
+        .release_record_allocated = false,
+        .mapped_address = 0xe000,
+    }));
 }
 
 test "phase13 devres plans a non-posted managed ioremap resource mapping" {
