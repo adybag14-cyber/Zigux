@@ -342,6 +342,12 @@ EXACT_COUNT_FILE_MARKERS = {
     },
 }
 
+FORBIDDEN_TEXT_MARKERS = {
+    SCRIPTS_README_PATH: [
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
+    ],
+}
+
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
@@ -411,6 +417,12 @@ def validate(root: Path) -> list[str]:
                     f"{rel_path}:{marker}:expected={expected_count}:actual={actual_count}"
                 )
 
+    for rel_path, markers in FORBIDDEN_TEXT_MARKERS.items():
+        text = read_text(root, rel_path)
+        for marker in markers:
+            if marker in text:
+                failures.append(f"{rel_path}:forbidden_marker:{marker}")
+
     return failures
 
 
@@ -459,6 +471,22 @@ def run_self_test() -> int:
                     f"{rel_path}:{marker}:expected={expected_count}:actual={expected_count + 1}"
                 )
                 if expected_exact_count not in failures:
+                    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+                    print(mutation_label(rel_path, marker))
+                    for failure in failures:
+                        print(failure)
+                    return 1
+                path.write_text(original, encoding="utf-8")
+                case_count += 1
+
+        for rel_path, markers in FORBIDDEN_TEXT_MARKERS.items():
+            path = root / rel_path
+            original = path.read_text(encoding="utf-8")
+            for marker in markers:
+                path.write_text(original + f"- stale {marker}\n", encoding="utf-8")
+                failures = validate(root)
+                expected = f"{rel_path}:forbidden_marker:{marker}"
+                if expected not in failures:
                     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
                     print(mutation_label(rel_path, marker))
                     for failure in failures:
