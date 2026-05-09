@@ -85,14 +85,7 @@
       "kind": "freeze_map",
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
       "why_now": "The freeze-in-C posture still lacks enough evidence for any deep-core status change."
-    },
-    {
-      "id": "phase15-tests-root-dedicated-make-route-undercount",
-      "status": "blocked_on_tests_root_phase15_summary_sync",
-      "kind": "shared_review_surface",
-      "zigux_destination": "zigux/tests/README.md",
-      "why_now": "The broad Phase 15 tests-root summary still leaves `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_readiness_gate_manifest.json` implicit even though it now keeps `make -C zigux phase15-test` explicit beside the validator-first and shared build-and-make path, so the remaining follow-through is still a shared-summary sync owned by `P15-L06`."
     }
   ],
-  "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the shared review checklist drops the explicit workflow-backed or direct shared-build replay markers, the dedicated `phase15-test` route disappears from the top-level readiness packet or the tests-root reminder, one of the two dedicated `phase15-validate` checker routes disappears, or one of the four recorded deep-core blocker dispositions changes. If the still-open tests-root manifest-pair undercount needs follow-through before any blocker-posture change, reopen the shared-summary lane `P15-L06` to make `zigux/tests/README.md` keep `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_readiness_gate_manifest.json` explicit beside the already-named dedicated `make -C zigux phase15-test` route. Reopen this `P15-L01` readiness lane only if that shared-summary drift stops the readiness packet from summarizing current `master` truthfully, or if the blocker posture or replay routes change."
+  "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the shared review checklist drops the explicit workflow-backed or direct shared-build replay markers, the dedicated `phase15-test` route or the explicit `zigux/tests/phase15_handoff_next_steps_manifest.json` plus `zigux/tests/phase15_readiness_gate_manifest.json` pair disappears from the top-level readiness packet or the tests-root reminder, one of the two dedicated `phase15-validate` checker routes disappears, or one of the four recorded deep-core blocker dispositions changes. Reopen this `P15-L01` readiness lane only if one of those replay-route or blocker-posture changes now makes the parked readiness packet untruthful again."
 }
