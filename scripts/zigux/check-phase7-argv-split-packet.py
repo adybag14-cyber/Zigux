@@ -29,6 +29,8 @@ REQUIRED_MARKERS = {
         "exported C-argv vector sizing to `argc + 1` so the trailing null sentinel stays aligned with `argvSplitWithArgc()` and `cArgv()`",
         "copied-buffer ownership so later source mutation does not affect split results",
         "copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated",
+        "helper-local owned-storage handoff reviewability through the internal `argvSplitOwnedStorage()` path, including blank owned-storage fallback to the canonical empty storage and exported argv sentinels",
+        "caller-owned owned-storage reuse keeps token pointers inside the supplied storage copy, and blank owned-storage input falls back to the shared empty storage and exported argv sentinels without inventing extra allocator-backed state",
         "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`",
         "tearing down one non-blank result does not disturb another caller's owned storage or exported C-argv view",
         "blank-input teardown on one caller keeps the shared empty storage and exported argv sentinels stable for another caller",
@@ -115,6 +117,8 @@ REQUIRED_MARKERS = {
         "pub fn argvSplitWithArgc",
         "pub fn argvFree",
         "pub fn cArgv",
+        'test "argvSplitOwnedStorage reuses the caller-owned storage copy"',
+        'test "argvSplitOwnedStorage frees blank caller-owned storage and reuses exported sentinels"',
         'test "argvSplit sizes argc and tokens from the owned copy prefix when copied storage contains an early NUL"',
         'test "argvSplit zeroes copied whitespace separators across the tokenized buffer"',
         'test "ArgvSplitResult deinit is idempotent after the exported views are cleared"',
@@ -345,6 +349,38 @@ def run_self_test() -> None:
             "argv_split_slice_zeroed_whitespace_marker",
             tmp_root,
             "Documentation/zigux/phase7-argv-split-slice.md: copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated",
+        )
+        case_count += 1
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
+            original_slice.replace(
+                "helper-local owned-storage handoff reviewability through the internal `argvSplitOwnedStorage()` path, including blank owned-storage fallback to the canonical empty storage and exported argv sentinels",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_slice_owned_storage_surface_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: helper-local owned-storage handoff reviewability through the internal `argvSplitOwnedStorage()` path, including blank owned-storage fallback to the canonical empty storage and exported argv sentinels",
+        )
+        case_count += 1
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
+            original_slice.replace(
+                "caller-owned owned-storage reuse keeps token pointers inside the supplied storage copy, and blank owned-storage input falls back to the shared empty storage and exported argv sentinels without inventing extra allocator-backed state",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_slice_owned_storage_tests_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: caller-owned owned-storage reuse keeps token pointers inside the supplied storage copy, and blank owned-storage input falls back to the shared empty storage and exported argv sentinels without inventing extra allocator-backed state",
         )
         case_count += 1
         slice_path.write_text(original_slice, encoding="utf-8")
@@ -738,6 +774,38 @@ def run_self_test() -> None:
             "argv_split_helper_surface_marker",
             tmp_root,
             "lib/argv_split.zig: pub fn argvSplitWithArgc",
+        )
+        case_count += 1
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                'test "argvSplitOwnedStorage reuses the caller-owned storage copy"',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_helper_owned_storage_reuse_marker",
+            tmp_root,
+            'lib/argv_split.zig: test "argvSplitOwnedStorage reuses the caller-owned storage copy"',
+        )
+        case_count += 1
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                'test "argvSplitOwnedStorage frees blank caller-owned storage and reuses exported sentinels"',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_helper_owned_storage_blank_marker",
+            tmp_root,
+            'lib/argv_split.zig: test "argvSplitOwnedStorage frees blank caller-owned storage and reuses exported sentinels"',
         )
         case_count += 1
         helper_path.write_text(original_helper, encoding="utf-8")
