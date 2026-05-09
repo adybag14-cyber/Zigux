@@ -6,6 +6,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
+- `PHASE9_LANE_KEY=P9-L10`
 - `PHASE9_SURVEYED_COMMIT=ccd5361c3b193d26587c6396f029fc335c783c6e`
 - scope: lifecycle starter, bounded event-emission and registration behavior, a tiny payload-oriented diff gate, a loader-handoff scaffold, the focused `phase9-runtime-trace-events-tests` build step, the adjacent lane-sequencing owner map reference, and lane-local survey note, module-slice note, and manifest closure while the shared runtime-loader lane keeps the reusable facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` shard adjacent but separately owned
 - product boundary:
@@ -48,7 +49,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - runtime task ownership or event-loop substrate parity remains blocked behind that shared runtime-loader surface
 - polling-backed wake or dispatch behavior remains blocked behind the same shared runtime-loader surface
 - dedicated Phase 9 sample, module, and diff tests that now assert those sample-local lifecycle proofs as well as the registration and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate
-- dedicated Phase 9 loader, survey note, survey, and manifest coverage plus the focused `phase9-runtime-trace-events-tests` build step wired into the shared `zigux/tests/phase9_build.zig` gate, the focused `make -C zigux phase9-runtime-trace-events-test` route, and `make -C zigux phase9`, while the separate shared loader lane keeps the shared runtime-loader facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` shard reviewable for this pilot
+- dedicated Phase 9 loader, survey note, survey, and manifest coverage plus the focused `phase9-runtime-trace-events-tests` build step wired into the shared `zigux/tests/phase9_build.zig` gate, the focused `make -C zigux phase9-runtime-trace-events-test` route, and `make -C zigux phase9`, while the separate shared loader lane keeps the shared runtime-loader facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` shard reviewable for this pilot; the existing survey gate is the packet-local exact-check that the metadata-only register/unregister labels and the idle-registration-snapshot prerequisite stay explicit without widening into shared runtime-loader ownership or runtime implementation
 - a manifest-backed ownership packet that now names the survey note, module-slice note, starter sample, loader scaffold, dedicated survey gate, and the focused `phase9-runtime-trace-events-tests` step together so this bounded packet stays reviewable without widening into shared runtime-loader ownership or runtime implementation
 
 ## Roadmap gap vs current pilot
