@@ -8,13 +8,14 @@ This document records the bounded shared Phase 7 integration-governance surface 
 - `PHASE7_SLICE=phase7-make-wrapper-selftest-alignment`
 - `PHASE7_LANE_KEY=P7-Y05`
 - scope: shared validator and make-wrapper self-test alignment only
-- lane state: dedicated alignment checker and shared validator route landed; parked unless the shared Phase 7 validator, Makefile, or bootstrap workflow drifts away from the same self-test packet
+- lane state: dedicated alignment checker and shared validator route landed; parked unless the shared Phase 7 validator, Makefile, bootstrap workflow, or sample-root no-sample reminder drifts away from the same self-test packet
 - product boundary:
   - `scripts/zigux/check-phase7-make-wrapper.py`
   - `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
   - `scripts/zigux/validate-phase7.py`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
+  - `samples/zigux/README.md`
 
 ## Why this note exists
 
@@ -25,7 +26,7 @@ Phase 7 is already parked as a shared validator-first helper bundle, but the mak
 - `scripts/zigux/check-phase7-make-wrapper.py --self-test` stays owned by `zigux/Makefile` rather than a direct workflow-only invocation
 - `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py` keeps `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around that centralized self-test path
 - `scripts/zigux/validate-phase7.py` keeps this shared governance note inside the parked Phase 7 validator-first packet
-- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` remain the shared reviewer-facing summaries that should name this alignment note when they describe the parked Phase 7 validator-first packet, so the make-wrapper self-test route does not disappear behind helper-local proofs alone
+- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `samples/zigux/README.md` remain the shared reviewer-facing summaries that should name this alignment note when they describe the parked Phase 7 validator-first and no-sample boundary packet, so the make-wrapper self-test route does not disappear behind helper-local proofs alone
 - `make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface
 
 ## Non-goals
@@ -35,4 +36,4 @@ Phase 7 is already parked as a shared validator-first helper bundle, but the mak
 
 ## Next bounded step
 
-Fresh repo inspection now shows the older validator-local follow-through is complete on `master`: `scripts/zigux/validate-phase7.py` already fails closed if `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, or `zigux/tests/README.md` drops this dedicated alignment note while the shared make-wrapper control surface remains part of the parked Phase 7 packet. Keep this lane parked unless a new tiny same-lane validator, checker, note, or manifest drift appears inside the existing string-helpers, cmdline, argv-split, rbtree, or shared make-wrapper packet.
+Fresh repo inspection now shows the older validator-local follow-through is complete on `master`: `scripts/zigux/validate-phase7.py` already fails closed if `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, or `samples/zigux/README.md` drops this dedicated alignment note while the shared make-wrapper control surface remains part of the parked Phase 7 packet. Keep this lane parked unless a new tiny same-lane validator, checker, note, or manifest drift appears inside the existing string-helpers, cmdline, argv-split, rbtree, or shared make-wrapper packet.
