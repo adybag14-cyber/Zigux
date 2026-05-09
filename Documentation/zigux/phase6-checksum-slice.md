@@ -86,7 +86,7 @@ The current tests check:
 - IPv4 and IPv6 pseudo-header accumulation parity between the dedicated helper paths and manual `partial` plus `blockAdd` composition
 - folded `tcpUdpMagic` and `tcpUdpV6Magic` wrapper parity stays explicit against the direct pseudo-header packet recomputation path
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement
-- a direct 39-case C-vs-Zig replay for compute, `ipFastCsum`, seeded partial, composition, IPv4 `tcpUdpNofold`, IPv6 `tcpUdpV6Nofold`, direct `negate`, direct `from32to16`, `fold`, `unfold`, `add16`, `sub16`, and incremental replacement behavior
+- a direct 41-case C-vs-Zig replay for compute, `ipFastCsum`, seeded partial, composition, IPv4 `tcpUdpNofold`, IPv6 `tcpUdpV6Nofold`, folded `tcpUdpMagic`, folded `tcpUdpV6Magic`, direct `negate`, direct `from32to16`, `fold`, `unfold`, `add16`, `sub16`, and incremental replacement behavior
 - helper-local wraparound, double-negation, and one's-complement carry checks for `negate`
 - helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop
 - the live perf fixture matrix keeps `64B` at `iterations = 200_000` and `1501B` at `iterations = 12_000`, with `max_slowdown_pct = 150` for both cases
