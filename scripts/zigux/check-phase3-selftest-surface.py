@@ -54,6 +54,7 @@ DOCS_ROOT_MARKERS = [
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "phase3_catalog.py --self-test",
     "make -C zigux phase3-validate",
+    "make -C zigux phase3",
     "without duplicating the default `phase3-validate` route",
 ]
 
@@ -257,7 +258,30 @@ def validate_root(root: Path) -> list[str]:
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
 
-    issues.extend(collect_marker_count_issues(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root", substring=True))
+    docs_root_inline_markers = [
+        marker for marker in DOCS_ROOT_MARKERS if marker != "without duplicating the default `phase3-validate` route"
+    ]
+    docs_root_phrase_markers = [
+        marker for marker in DOCS_ROOT_MARKERS if marker not in docs_root_inline_markers
+    ]
+    issues.extend(
+        collect_marker_count_issues(
+            docs_root,
+            docs_root_inline_markers,
+            prefix="docs_root",
+            substring=False,
+            normalized=False,
+            backticked=True,
+        )
+    )
+    issues.extend(
+        collect_marker_count_issues(
+            docs_root,
+            docs_root_phrase_markers,
+            prefix="docs_root",
+            substring=True,
+        )
+    )
     issues.extend(
         collect_marker_count_issues(
             review,
@@ -344,6 +368,7 @@ def run_self_test() -> int:
         assert "docs_root:python3 scripts/zigux/run-phase3-checks.py --slug abi" in issues
         assert "docs_root:phase3_catalog.py --self-test" in issues
         assert "docs_root:make -C zigux phase3-validate" in issues
+        assert "docs_root:make -C zigux phase3" in issues
         assert "docs_root:without duplicating the default `phase3-validate` route" in issues
 
         build_self_test_root(root)
@@ -360,11 +385,20 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/README.md",
+            "\n".join(DOCS_ROOT_MARKERS + ["make -C zigux phase3"]) + "\n",
+        )
+        issues = validate_root(root)
+        assert "duplicate_docs_root_marker:2:make -C zigux phase3" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/README.md",
             "The docs-root summary keeps scripts/zigux/validate_phase3_selftest.py visible inside a longer sentence.\n"
             + "\n".join(DOCS_ROOT_MARKERS[1:])
             + "\n",
         )
-        assert validate_root(root) == []
+        issues = validate_root(root)
+        assert "docs_root:scripts/zigux/validate_phase3_selftest.py" in issues
 
         build_self_test_root(root)
         write_text(
