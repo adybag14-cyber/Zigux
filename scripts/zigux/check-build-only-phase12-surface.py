@@ -174,6 +174,7 @@ REQUIRED_FILE_MARKERS = {
         "build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml`",
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
+        "the landed `virtio_net` segmented-rollout boundary remains lane-local review evidence inside this active packet",
         "there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` packet, no focused libbpf-only replay route, no raw-coverage packet guard, no cross-build replay packet, and no `make -C zigux phase12-validate` target on `master`",
     ],
     NVME_FALLBACK_MAP_PATH: [
@@ -242,11 +243,11 @@ REQUIRED_FILE_MARKERS = {
         "`make -C zigux phase12`",
     ],
     PHASE12_VIRTIO_NET_MANIFEST_PATH: [
-        '"lane_key": "P12-L04"',
-        '"phase": "Phase 12"',
-        '"anchor": "drivers/net/virtio_net.c"',
-        '"id": "phase12-virtio-net-syntax-lab-gate"',
-        '"id": "phase12-virtio-net-segmented-rollout-boundary"',
+        "\"lane_key\": \"P12-L04\"",
+        "\"phase\": \"Phase 12\"",
+        "\"anchor\": \"drivers/net/virtio_net.c\"",
+        "\"id\": \"phase12-virtio-net-syntax-lab-gate\"",
+        "\"id\": \"phase12-virtio-net-segmented-rollout-boundary\"",
     ],
     PHASE12_VIRTIO_NET_SURVEY_TEST_PATH: [
         'try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);',
