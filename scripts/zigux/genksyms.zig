@@ -53,6 +53,7 @@ const usage_text =
 
 const version_text = "genksyms version 2.5.60\n";
 const max_reference_files: usize = 16;
+const getopt_error_prefix = "genksyms: ";
 
 const LongOptionKind = enum {
     help,
@@ -108,6 +109,7 @@ fn writeJsonArray(writer: anytype, values: []const []const u8) !void {
 }
 
 fn writeInvalidOptionError(writer: anytype, option: []const u8) !void {
+    try writer.writeAll(getopt_error_prefix);
     if (std.mem.startsWith(u8, option, "--")) {
         try writer.print("unrecognized option '{s}'\n", .{option});
         return;
@@ -118,6 +120,7 @@ fn writeInvalidOptionError(writer: anytype, option: []const u8) !void {
 }
 
 fn writeAmbiguousOptionError(writer: anytype, option: []const u8) !void {
+    try writer.writeAll(getopt_error_prefix);
     try writer.print("option '{s}' is ambiguous; possibilities:", .{option});
     const option_name = if (std.mem.startsWith(u8, option, "--")) option[2..] else option;
     for (long_option_specs) |spec| {
@@ -129,6 +132,7 @@ fn writeAmbiguousOptionError(writer: anytype, option: []const u8) !void {
 }
 
 fn writeMissingOptionArgumentError(writer: anytype, option: []const u8) !void {
+    try writer.writeAll(getopt_error_prefix);
     if (std.mem.startsWith(u8, option, "--")) {
         try writer.print("option '{s}' requires an argument\n", .{option});
         return;
@@ -139,6 +143,7 @@ fn writeMissingOptionArgumentError(writer: anytype, option: []const u8) !void {
 }
 
 fn writeUnexpectedOptionArgumentError(writer: anytype, option: []const u8) !void {
+    try writer.writeAll(getopt_error_prefix);
     if (std.mem.startsWith(u8, option, "--")) {
         try writer.print("option '{s}' doesn't allow an argument\n", .{option});
         return;
@@ -592,7 +597,7 @@ test "genksyms bridge renders ambiguous long option possibilities" {
 
     try writeAmbiguousOptionError(&output.writer, "--du");
     try testing.expectEqualStrings(
-        "option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n",
+        "genksyms: option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n",
         output.written(),
     );
 }
