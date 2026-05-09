@@ -95,7 +95,7 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-09", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
@@ -136,7 +136,7 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     defer std.testing.allocator.free(governance_note);
 
     try expectContains(governance_note, "PHASE15_STATUS=governance_slice_landed");
-    try expectContains(governance_note, "PHASE15_LANE_KEY=P15-L01");
+    try expectContains(governance_note, "PHASE15_LANE_KEY=P15-L04");
     try expectContains(governance_note, "PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment");
     try expectContains(governance_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(governance_note, "current-master-readback-2026-05-09");
