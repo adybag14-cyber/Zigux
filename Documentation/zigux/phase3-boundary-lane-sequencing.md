@@ -116,6 +116,13 @@ The shared review surfaces below keep Phase 3 reviewable, but they do not transf
 
 If one of those shared surfaces drifts, fix the shared wording only after checking which packet-local owner actually moved first.
 
+When one of those shared surfaces names the validator-support packet, keep the paired packet-local owner notes explicit too:
+
+- mention `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` beside `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
+- mention `Documentation/zigux/phase3-export-uapi-boundary-survey.md` plus `Documentation/zigux/phase3-linux-zigux-header-governance.md` beside `scripts/zigux/validate-phase3-export-uapi-survey.py`
+
+That keeps the validator-first review route from flattening the low-level-wrapper and export/UAPI owner map back into one generic shared Phase 3 summary.
+
 ## Next-Step Routing
 
 When a later run finds a new Phase 3 mismatch, route it through the smallest owner above:
