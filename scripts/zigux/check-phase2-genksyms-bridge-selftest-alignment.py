@@ -32,6 +32,12 @@ BRIDGE_CONTRACT = {
         "dump_types_file",
     ],
 }
+EXPECTED_VERSION_STDERR_CASES = [
+    "version",
+    "abbreviated_version",
+    "version_then_short_help",
+    "version_then_long_help",
+]
 
 REQUIRED_BRIDGE_MARKERS = (
     "print('GENKSYMS_BRIDGE_SELF_TEST=pass')",
@@ -77,6 +83,19 @@ def ordered_unique(values: list[str]) -> list[str]:
         seen.add(value)
         ordered.append(value)
     return ordered
+
+
+def case_emits_version_stderr(argv: object) -> bool:
+    if not isinstance(argv, list):
+        return False
+    for arg in argv:
+        if not isinstance(arg, str):
+            continue
+        if arg.startswith("--ver"):
+            return True
+        if arg.startswith("-") and not arg.startswith("--") and "V" in arg[1:]:
+            return True
+    return False
 
 
 def load_bridge_checker_helper_local_anchors(
@@ -138,7 +157,9 @@ def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | N
     stdout_packet: list[str] = []
     process_packet: list[str] = []
     normalized_stderr_packet: list[str] = []
+    normalized_stderr_cases: list[str] = []
     action_abbrev_cases: list[str] = []
+    discovered_version_stderr_cases: list[str] = []
     seen_names: set[str] = set()
 
     for index, case in enumerate(cases):
@@ -172,8 +193,11 @@ def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | N
             process_packet.append(expected)
             if bool(case.get("normalize_stderr", False)):
                 normalized_stderr_packet.append(expected)
+                normalized_stderr_cases.append(name)
             if name.startswith("abbreviated_"):
                 action_abbrev_cases.append(name)
+            if case_emits_version_stderr(case.get("argv")):
+                discovered_version_stderr_cases.append(name)
 
     if issues or helper_local_anchors is None:
         return None, issues
@@ -191,6 +215,16 @@ def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | N
         "stdout_packet": ordered_unique(stdout_packet),
         "process_packet": ordered_unique(process_packet),
         "normalized_stderr_packet": ordered_unique(normalized_stderr_packet),
+        "expected_output_governance": {
+            "stdout_json_fields": ["tool", "stdin", "stdout", "argv", "options"],
+            "process_json_fields": ["stdout", "stderr", "exit_code"],
+            "normalized_stderr_cases": ordered_unique(normalized_stderr_cases),
+            "version_stderr_cases": [
+                name
+                for name in EXPECTED_VERSION_STDERR_CASES
+                if name in discovered_version_stderr_cases
+            ],
+        },
         "action_abbrev_cases": ordered_unique(action_abbrev_cases),
         "helper_local_anchors": helper_local_anchors,
     }
@@ -521,9 +555,11 @@ def run_self_test() -> int:
         path = root / BRIDGE_MANIFEST
         payload = json.loads(path.read_text(encoding="utf-8"))
         payload["bridge_contract"] = {"tool": "scripts/genksyms/genksyms", "stdin": "stdin", "stdout": "stdout"}
+        payload["expected_output_governance"] = {"stdout_json_fields": ["tool"]}
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
         assert any(block == "MANIFEST_FIELD_MISMATCHES" and value.startswith("bridge_contract:") for block, value in issues)
+        assert any(block == "MANIFEST_FIELD_MISMATCHES" and value.startswith("expected_output_governance:") for block, value in issues)
         cases += 1
 
         build_self_test_root(root)
