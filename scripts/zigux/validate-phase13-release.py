@@ -42,11 +42,14 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_libfs_reviewability.zig",
     "zigux/tests/phase13_libfs_manifest.json",
     "zigux/tests/phase13_devres_manifest.json",
-    "zigux/tests/phase13_landlock_ruleset_manifest.json",
+    "zigux/tests/phase13-landlock_ruleset_manifest.json",
     "zigux/tests/phase13_landlock_syscalls_manifest.json",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/list_view.zig",
+    "zigux/helpers/hlist_view.zig",
+    "include/zigux/abi.h",
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
     "scripts/zigux/check-phase13-devres-packet.py",
@@ -62,6 +65,9 @@ DOC_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/list_view.zig",
+    "zigux/helpers/hlist_view.zig",
+    "include/zigux/abi.h",
     "zigux/tests/phase13_devres_dma_coherent.zig",
     "zigux/tests/phase13_devres_boundary_evidence.zig",
     "include/zigux/notifier_abi.h",
@@ -76,6 +82,9 @@ REVIEW_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/list_view.zig",
+    "zigux/helpers/hlist_view.zig",
+    "include/zigux/abi.h",
     "zigux/tests/phase13_devres_dma_coherent.zig",
     "zigux/tests/phase13_devres_boundary_evidence.zig",
     "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
@@ -470,8 +479,8 @@ def validate(root: Path) -> list[str]:
     tests_review_companion = _read(root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
     scripts_readme = _read(root / "scripts/zigux/README.md")
     tests_readme = _read(root / "zigux/tests/README.md")
-    makefile = _read(root / "zigux/Makefile")
-    workflow = _read(root / ".github/workflows/zigux-bootstrap.yml")
+    makefile_text = _read(root / "zigux/Makefile")
+    workflow_text = _read(root / ".github/workflows/zigux-bootstrap.yml")
     phase13_build = _read(root / "zigux/tests/phase13_build.zig")
 
     issues.extend(_collect_missing_markers(docs_readme, DOC_REQUIRED_MARKERS, "docs-readme"))
@@ -481,13 +490,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(_collect_missing_markers(release_notes, RELEASE_NOTES_REQUIRED_MARKERS, "release-notes"))
     issues.extend(_collect_exact_count_issues(release_notes, RELEASE_NOTES_EXACT_COUNTS, "release-notes-exact"))
     issues.extend(_collect_missing_markers(roadmap_traceability, ROADMAP_TRACEABILITY_REQUIRED_MARKERS, "roadmap-traceability"))
-    issues.extend(
-        _collect_exact_count_issues(
-            roadmap_traceability,
-            ROADMAP_TRACEABILITY_EXACT_COUNTS,
-            "roadmap-traceability-exact",
-        )
-    )
+    issues.extend(_collect_exact_count_issues(roadmap_traceability, ROADMAP_TRACEABILITY_EXACT_COUNTS, "roadmap-traceability-exact"))
     issues.extend(_collect_missing_markers(contributor_workflow_guide, CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, "contributor-guide"))
     issues.extend(_collect_exact_count_issues(contributor_workflow_guide, CONTRIBUTOR_GUIDE_EXACT_COUNTS, "contributor-guide-exact"))
     issues.extend(_collect_missing_markers(contributor_surface_sync, CONTRIBUTOR_SYNC_REQUIRED_MARKERS, "contributor-surface-sync"))
@@ -498,14 +501,21 @@ def validate(root: Path) -> list[str]:
     issues.extend(_collect_exact_count_issues(scripts_readme, SCRIPTS_EXACT_COUNTS, "scripts-readme-exact"))
     issues.extend(_collect_missing_markers(tests_readme, TESTS_REQUIRED_MARKERS, "tests-readme"))
     issues.extend(_collect_exact_count_issues(tests_readme, TESTS_EXACT_COUNTS, "tests-readme-exact"))
-    issues.extend(_collect_missing_markers(makefile, MAKE_REQUIRED_LINES, "makefile"))
-    issues.extend(_collect_missing_markers(workflow, WORKFLOW_REQUIRED_MARKERS, "workflow"))
-    issues.extend(_collect_exact_count_issues(workflow, WORKFLOW_EXACT_COUNTS, "workflow-exact"))
+
+    for line in MAKE_REQUIRED_LINES:
+        if line not in makefile_text:
+            issues.append(f"makefile:{line}")
+    for line in MAKE_FORBIDDEN_LINES:
+        if line in makefile_text:
+            issues.append(f"makefile-forbidden:{line}")
+
+    issues.extend(_collect_missing_markers(workflow_text, WORKFLOW_REQUIRED_MARKERS, "workflow"))
+    issues.extend(_collect_exact_count_issues(workflow_text, WORKFLOW_EXACT_COUNTS, "workflow-exact"))
     issues.extend(_collect_exact_count_issues(phase13_build, PHASE13_BUILD_EXACT_COUNTS, "phase13-build"))
-    issues.extend(_collect_missing_markers(phase13_build, PHASE13_BUILD_REQUIRED_MARKERS, "phase13-build-marker"))
-    for forbidden in MAKE_FORBIDDEN_LINES:
-        if forbidden in makefile:
-            issues.append(f"makefile:forbidden_route:{forbidden}")
+    for marker in PHASE13_BUILD_REQUIRED_MARKERS:
+        if marker not in phase13_build:
+            issues.append(f"phase13-build-marker:{marker}")
+
     return issues
 
 
@@ -646,28 +656,28 @@ def run_self_test() -> int:
 
         docs_readme_path = root / "Documentation/zigux/README.md"
         docs_readme_path.write_text(
-            "\n".join(marker for marker in DOC_REQUIRED_MARKERS if marker != "zigux/tests/phase13_devres_boundary_evidence.zig")
+            "\n".join(marker for marker in DOC_REQUIRED_MARKERS if marker != "zigux/helpers/list_view.zig")
             + "\n",
             encoding="utf-8",
         )
         _assert_only(
             validate(root),
-            ["docs-readme:zigux/tests/phase13_devres_boundary_evidence.zig"],
-            "missing_docs_readme_boundary_evidence_marker_failed",
+            ["docs-readme:zigux/helpers/list_view.zig"],
+            "missing_docs_readme_list_view_marker_failed",
         )
         _write(docs_readme_path, _repeat_markers(DOC_REQUIRED_MARKERS, DOC_EXACT_COUNTS))
         case_count += 1
 
         review_checklist_path = root / "Documentation/zigux/review-checklist.md"
         review_checklist_path.write_text(
-            "\n".join(marker for marker in REVIEW_REQUIRED_MARKERS if marker != "zigux/tests/phase13_devres_boundary_evidence.zig")
+            "\n".join(marker for marker in REVIEW_REQUIRED_MARKERS if marker != "include/zigux/abi.h")
             + "\n",
             encoding="utf-8",
         )
         _assert_only(
             validate(root),
-            ["review-checklist:zigux/tests/phase13_devres_boundary_evidence.zig"],
-            "missing_review_checklist_boundary_evidence_marker_failed",
+            ["review-checklist:include/zigux/abi.h"],
+            "missing_review_checklist_exported_list_abi_marker_failed",
         )
         _write(review_checklist_path, _repeat_markers(REVIEW_REQUIRED_MARKERS, REVIEW_EXACT_COUNTS))
         case_count += 1
@@ -724,12 +734,14 @@ def run_self_test() -> int:
 
         contributor_guide_path = root / "Documentation/zigux/phase13-contributor-workflow-guide.md"
         contributor_guide_path.write_text(
-            "\n".join(
-                marker
-                for marker in CONTRIBUTOR_GUIDE_REQUIRED_MARKERS
-                if marker != "Documentation/zigux/phase13-landlock-syscalls-governance.md"
-            )
-            + "\n",
+            _repeat_markers(
+                CONTRIBUTOR_GUIDE_REQUIRED_MARKERS,
+                CONTRIBUTOR_GUIDE_EXACT_COUNTS,
+            ).replace(
+                "Documentation/zigux/phase13-landlock-syscalls-governance.md\n",
+                "",
+                1,
+            ),
             encoding="utf-8",
         )
         _assert_only(
@@ -745,12 +757,14 @@ def run_self_test() -> int:
 
         contributor_surface_sync_path = root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"
         contributor_surface_sync_path.write_text(
-            "\n".join(
-                marker
-                for marker in CONTRIBUTOR_SYNC_REQUIRED_MARKERS
-                if marker != "zigux/tests/phase13_landlock_syscalls_manifest.json"
-            )
-            + "\n",
+            _repeat_markers(
+                CONTRIBUTOR_SYNC_REQUIRED_MARKERS,
+                CONTRIBUTOR_SYNC_EXACT_COUNTS,
+            ).replace(
+                "zigux/tests/phase13_landlock_syscalls_manifest.json\n",
+                "",
+                1,
+            ),
             encoding="utf-8",
         )
         _assert_only(
