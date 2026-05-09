@@ -160,6 +160,7 @@ REQUIRED_FILE_MARKERS = {
     PHASE12_COORDINATION_MATRIX_PATH: [
         "Phase 12 Release Coordination Matrix",
         "PHASE12_RELEASE_CLOSED=no",
+        "PHASE12_TRANCHE=driver-and-libbpf-survey-bundle",
         "release-order authority: `Documentation/zigux/phase12-release-sequencing.md`",
         "PMO closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`",
         "adjacent release-readiness note: `Documentation/zigux/phase12-release-readiness-survey.md`",
