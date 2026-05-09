@@ -49,7 +49,7 @@ FORBIDDEN_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
     "run: python3 scripts/zigux/check-phase7-build-wiring.py",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 14
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def read_text(path: Path) -> str:
@@ -270,71 +270,16 @@ def run_self_test() -> int:
         assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[1]}:count=2") in issues
         cases += 1
 
-        build_self_test_root(root)
-        path = root / WORKFLOW
-        path.write_text(
-            path.read_text(encoding="utf-8")
-            + "        run: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[0]) in issues
-        cases += 1
-
-        build_self_test_root(root)
-        path = root / WORKFLOW
-        path.write_text(
-            path.read_text(encoding="utf-8")
-            + "        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[2]) in issues
-        cases += 1
-
-        build_self_test_root(root)
-        path = root / WORKFLOW
-        path.write_text(
-            path.read_text(encoding="utf-8")
-            + "        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[3]) in issues
-        cases += 1
-
-        build_self_test_root(root)
-        path = root / WORKFLOW
-        path.write_text(
-            path.read_text(encoding="utf-8")
-            + "        run: python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[4]) in issues
-        cases += 1
-
-        build_self_test_root(root)
-        path = root / WORKFLOW
-        path.write_text(
-            path.read_text(encoding="utf-8")
-            + "        run: python3 scripts/zigux/check-phase7-rbtree-parity.py\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[7]) in issues
-        cases += 1
-
-        build_self_test_root(root)
-        path = root / WORKFLOW
-        path.write_text(
-            path.read_text(encoding="utf-8")
-            + "        run: python3 scripts/zigux/check-phase7-build-wiring.py --self-test\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[8]) in issues
-        cases += 1
+        for marker in FORBIDDEN_WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = root / WORKFLOW
+            path.write_text(
+                path.read_text(encoding="utf-8") + f"        {marker}\n",
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_WORKFLOW_HOOKS", marker) in issues
+            cases += 1
 
         build_self_test_root(root)
         path = root / CHECKER
