@@ -73,6 +73,7 @@ Keep explicit
 - `runRegisteredBoundaryReplay()` for the already-registered duplicate-registration and replay-restart rejection packet plus the still-usable bounded foo roundtrip afterward
 - `runInputValidationReplay()` for the shared `baz`/`bar` dispatch plus parse-failure visibility while the sample stays registered
 - `ownershipSummary()` plus sample-owned `runOwnershipReplay()` for the `cold`, `initialized`, `registered`, and `exited` lifecycle packet
+- the init/register/exit counter progression inside `runOwnershipReplay()`, keeping the bounded ownership path visible as `0/0/0`, `1/0/0`, `1/1/0`, and `1/1/1`
 - `runTeardownReplay()` for the registered teardown reset plus post-`exit()` show-or-store, second-`exit()`, and anchor-replay rejection cues
 - the unnamed attribute-group shape
 - the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split
