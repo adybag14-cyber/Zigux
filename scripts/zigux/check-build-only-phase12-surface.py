@@ -179,6 +179,7 @@ REQUIRED_FILE_MARKERS = {
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "the landed `virtio_net` segmented-rollout boundary remains lane-local review evidence inside this active packet",
+        "the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback drill remains lab-only reversible-delivery evidence inside this active packet",
         "there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` packet, no focused libbpf-only replay route, no raw-coverage packet guard, no cross-build replay packet, and no `make -C zigux phase12-validate` target on `master`",
     ],
     NVME_FALLBACK_MAP_PATH: [
