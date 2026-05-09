@@ -16,6 +16,7 @@
     "watchdog_info_layout_assert_present": true,
     "winsize_layout_assert_present": true,
     "hvc_hv_ops_layout_assert_present": true,
+    "hvc_hv_ops_header_declarations_checked": true,
     "hvc_header_constants_checked": true,
     "hvc_export_surface_checked": true
   },
@@ -61,6 +62,13 @@
       "kind": "header_layout",
       "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
       "why_now": "The shared packet keeps struct hv_ops explicit at size 72, alignment 8, with callback-table offsets 0 through 64 so the public hvc callback boundary stays machine-checked without widening into struct hvc_struct or tty-core ownership."
+    },
+    {
+      "id": "phase11-hvc-console-hv-ops-header-declaration-assert",
+      "status": "starter_landed",
+      "kind": "header_layout",
+      "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+      "why_now": "The shared packet also keeps the exact struct hv_ops callback member declarations in hvc_console.h reviewable, so callback member declarations cannot drift behind a still-matching layout snapshot."
     },
     {
       "id": "phase11-hvc-console-header-constant-assert",
