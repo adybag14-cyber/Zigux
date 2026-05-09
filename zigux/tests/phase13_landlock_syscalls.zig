@@ -73,7 +73,7 @@ test "phase13 landlock syscalls manifest records the landed helper packet truthf
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(slice_note);
-    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
     try std.testing.expectEqualStrings("599ee1519c5464bb86a0ffdcab52dfe958c40571", manifest.surveyed_commit);
@@ -288,7 +288,7 @@ test "phase13 landlock syscalls survey note records the active lane key" {
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE13_LANE_KEY=P13-L13`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE13_LANE_KEY=P13-L16`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE13_SLICE=landlock-syscalls-helper-ruleset-fops`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "special `ruleset_fd == -1` mute-subdomains-only case") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the in-memory `add_rule_path_beneath()` planner") != null);
