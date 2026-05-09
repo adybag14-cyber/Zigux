@@ -169,6 +169,8 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "memdup and memchrInv preserve byte content"',
             'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
             'test "memchrInv follows the earliest dirty byte as long buffers change"',
+            'test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries"',
+            'test "memchrInv short zero-value scans stay byte-accurate"',
             'test "memparse handles decimal hexadecimal octal and suffixes"',
             'test "memparse keeps original rest when sign is not followed by digits"',
             'test "memparse saturates signed overflow instead of trapping"',
