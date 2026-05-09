@@ -159,6 +159,11 @@
       "expected": "trailing_escaped_backslash_expected.json"
     },
     {
+      "name": "malformed_quoted_value",
+      "input": "malformed_quoted_value.config",
+      "expected": "malformed_quoted_value_expected.json"
+    },
+    {
       "name": "sample_crlf",
       "input": "sample_crlf.config",
       "expected": "sample_crlf_expected.json"
