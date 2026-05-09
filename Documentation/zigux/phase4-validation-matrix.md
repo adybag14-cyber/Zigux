@@ -149,18 +149,20 @@ The dedicated perf-baseline survey stays outside the shared `phase4-test` entryp
 - current C anchor: `samples/kprobes/kprobe_example.c`
 - current replay path: `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`
 - dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`
+- validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`
 - survey owner: `Validation and Perf Team`
 - rollback owner: `Validation and Perf Team`
-- current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` keeps the current C anchor, replay command, dedicated local survey wrapper, owner, and rollback owner reviewable, and `Documentation/zigux/phase4-gate-evidence.md` now names that same adjacent survey note, manifest, replay command, and local survey wrapper without claiming a shipped Zig starter
+- current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now keeps the current C anchor, replay command, dedicated local survey wrapper, direct validation entrypoint, owner, and rollback owner reviewable, and `Documentation/zigux/phase4-gate-evidence.md` now names that same adjacent survey note, manifest, replay command, direct validation entrypoint, and local survey wrapper without claiming a shipped Zig starter
 - next bounded evidence step: keep the dedicated parked survey packet and the dedicated local survey wrapper adjacent to the shared Phase 4 gate-evidence note until a later bounded lane intentionally opens either a broader validation-surface promotion or the Zig starter itself
 
 ### `samples/zigux/test_fsmount.zig`
 - current C anchor: `samples/vfs/test-fsmount.c`
 - current replay path: `make M=samples/vfs`
 - dedicated local survey wrapper: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
+- validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - survey owner: `Validation and Perf Team`
 - rollback owner: `Validation and Perf Team`
-- current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, plus the dedicated local survey wrapper at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keep the current C anchor, replay command, owner, and rollback owner reviewable, and the packet intentionally stays outside the shared gate-evidence target set even while the shared validator rereads it through the dedicated exact-readback checker until a later bounded promotion lands
+- current measurable status: absent on current `master`; the dedicated parked gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`, plus the dedicated local survey wrapper and validation entrypoint at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, now keep the current C anchor, replay command, owner, and rollback owner reviewable, and the packet intentionally stays outside the shared gate-evidence target set even while the shared validator rereads it through the dedicated exact-readback checker until a later bounded promotion lands
 - next bounded evidence step: keep the dedicated parked survey packet and the dedicated local survey wrapper adjacent to the shared Phase 4 exact-readback packet until a later bounded promotion lands; if that same-family follow-through still stays below starter work, land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet to carry that same note, manifest, and replay command without claiming a shipped Zig starter
 
 ### `Phase 4 perf thresholds`
