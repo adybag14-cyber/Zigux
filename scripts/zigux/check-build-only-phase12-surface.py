@@ -504,7 +504,6 @@ def run_self_test() -> int:
             path = root / rel_path
             original = path.read_text(encoding="utf-8")
             for marker in markers:
-                path.writeText = None
                 path.write_text(original + f"- stale {marker}\n", encoding="utf-8")
                 failures = validate(root)
                 expected = f"{rel_path}:forbidden_marker:{marker}"
