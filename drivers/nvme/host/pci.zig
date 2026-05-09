@@ -173,6 +173,21 @@ pub const RecoveryRebuildProgressSummary = struct {
     admin_queue_must_be_replanned: bool,
 };
 
+pub const RecoveryBacklogRetirementPlanSummary = struct {
+    anchor: []const u8,
+    state: RecoveryState,
+    reset_generation: u32,
+    planned_io_queues: usize,
+    requested_rebuilt_io_queues: usize,
+    dropped_io_queues_initial: usize,
+    dropped_io_queues_retired_before: usize,
+    dropped_io_queues_remaining_before: usize,
+    dropped_io_queues_retired_after: usize,
+    dropped_io_queues_remaining_after: usize,
+    queue_planning_blocked: bool,
+    admin_queue_must_be_replanned: bool,
+};
+
 pub const RecoveryReplayRequest = struct {
     cached_prp_metadata_generation: u32,
     had_prp_metadata_plan: bool,
@@ -535,29 +550,52 @@ pub const NvmePciQueueLab = struct {
         };
     }
 
-    pub fn retireRecoveredIoQueues(
-        self: *Self,
+    pub fn planRecoveryBacklogRetirement(
+        self: *const Self,
         rebuilt_io_queues: usize,
-    ) !RecoveryRebuildProgressSummary {
+    ) !RecoveryBacklogRetirementPlanSummary {
         if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
         if (rebuilt_io_queues == 0) return error.InvalidRecoveredIoQueueCount;
         if (self.last_reset_io_queue_count == 0 or self.reset_generation == 0) {
             return error.NoRecoveryBacklog;
         }
-        if (self.last_admin_queue_generation != self.reset_generation) {
+
+        const admin_queue_must_be_replanned = self.last_admin_queue_generation != self.reset_generation;
+        if (admin_queue_must_be_replanned) {
             return error.AdminQueueReplayRequired;
         }
         if (rebuilt_io_queues > self.remaining_reset_io_queue_rebuilds) {
             return error.RebuiltIoQueuesExceedBacklog;
         }
 
-        const retired_after_update = try checkedAddUsize(self.retired_reset_io_queue_rebuilds, rebuilt_io_queues);
-        if (retired_after_update > self.planned_io_queues) {
+        const dropped_io_queues_retired_after = try checkedAddUsize(self.retired_reset_io_queue_rebuilds, rebuilt_io_queues);
+        if (dropped_io_queues_retired_after > self.planned_io_queues) {
             return error.RebuiltIoQueuesExceedPlanned;
         }
 
-        self.retired_reset_io_queue_rebuilds = retired_after_update;
-        self.remaining_reset_io_queue_rebuilds -= rebuilt_io_queues;
+        return .{
+            .anchor = descriptor().anchor,
+            .state = self.recovery_state,
+            .reset_generation = self.reset_generation,
+            .planned_io_queues = self.planned_io_queues,
+            .requested_rebuilt_io_queues = rebuilt_io_queues,
+            .dropped_io_queues_initial = self.last_reset_io_queue_count,
+            .dropped_io_queues_retired_before = self.retired_reset_io_queue_rebuilds,
+            .dropped_io_queues_remaining_before = self.remaining_reset_io_queue_rebuilds,
+            .dropped_io_queues_retired_after = dropped_io_queues_retired_after,
+            .dropped_io_queues_remaining_after = self.remaining_reset_io_queue_rebuilds - rebuilt_io_queues,
+            .queue_planning_blocked = false,
+            .admin_queue_must_be_replanned = false,
+        };
+    }
+
+    pub fn retireRecoveredIoQueues(
+        self: *Self,
+        rebuilt_io_queues: usize,
+    ) !RecoveryRebuildProgressSummary {
+        const plan = try self.planRecoveryBacklogRetirement(rebuilt_io_queues);
+        self.retired_reset_io_queue_rebuilds = plan.dropped_io_queues_retired_after;
+        self.remaining_reset_io_queue_rebuilds = plan.dropped_io_queues_remaining_after;
         return self.summarizeRecoveryRebuildProgress();
     }
 
@@ -739,3 +777,58 @@ const PrpListLayout = struct {
     link_entries: u16,
     last_page_entries: u16,
 };
+
+test "nvme pci recovery backlog retirement preflight stays non-mutating until commit" {
+    var lab = try NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, false);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    try std.testing.expectError(error.AdminQueueReplayRequired, lab.planRecoveryBacklogRetirement(1));
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.reserveIoQueues(2, 2);
+
+    const preflight = try lab.planRecoveryBacklogRetirement(1);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", preflight.anchor);
+    try std.testing.expectEqual(.running, preflight.state);
+    try std.testing.expectEqual(@as(u32, 1), preflight.reset_generation);
+    try std.testing.expectEqual(@as(usize, 2), preflight.planned_io_queues);
+    try std.testing.expectEqual(@as(usize, 1), preflight.requested_rebuilt_io_queues);
+    try std.testing.expectEqual(@as(usize, 2), preflight.dropped_io_queues_initial);
+    try std.testing.expectEqual(@as(usize, 0), preflight.dropped_io_queues_retired_before);
+    try std.testing.expectEqual(@as(usize, 2), preflight.dropped_io_queues_remaining_before);
+    try std.testing.expectEqual(@as(usize, 1), preflight.dropped_io_queues_retired_after);
+    try std.testing.expectEqual(@as(usize, 1), preflight.dropped_io_queues_remaining_after);
+    try std.testing.expect(!preflight.queue_planning_blocked);
+    try std.testing.expect(!preflight.admin_queue_must_be_replanned);
+
+    const before_commit = lab.summarizeRecoveryRebuildProgress();
+    try std.testing.expectEqual(@as(usize, 0), before_commit.dropped_io_queues_retired);
+    try std.testing.expectEqual(@as(usize, 2), before_commit.dropped_io_queues_remaining);
+
+    const committed = try lab.retireRecoveredIoQueues(1);
+    try std.testing.expectEqual(@as(usize, 1), committed.dropped_io_queues_retired);
+    try std.testing.expectEqual(@as(usize, 1), committed.dropped_io_queues_remaining);
+}
+
+test "nvme pci recovery backlog retirement preflight rejects empty missing and oversized requests" {
+    var missing = try NvmePciQueueLab.init(4096, 8);
+    _ = try missing.planAdminQueue(32, 64, false);
+    try std.testing.expectError(error.NoRecoveryBacklog, missing.planRecoveryBacklogRetirement(1));
+
+    var lab = try NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    _ = try lab.planIoQueue(8, 64, false);
+    _ = try lab.planIoQueue(8, 64, false);
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    _ = try lab.planAdminQueue(32, 64, false);
+    _ = try lab.reserveIoQueues(1, 1);
+
+    try std.testing.expectError(error.InvalidRecoveredIoQueueCount, lab.planRecoveryBacklogRetirement(0));
+    try std.testing.expectError(error.RebuiltIoQueuesExceedBacklog, lab.planRecoveryBacklogRetirement(3));
+    try std.testing.expectError(error.RebuiltIoQueuesExceedPlanned, lab.planRecoveryBacklogRetirement(2));
+}
