@@ -885,6 +885,9 @@ test "shared runtime loader contract keeps command, environment, registration-su
     try std.testing.expect(!@hasField(LoadPlan, "module_alias"));
     try std.testing.expect(!@hasField(LoadPlan, "module_aliases"));
     try std.testing.expect(!@hasField(LoadPlan, "modules_alias_path"));
+    try std.testing.expect(!@hasField(LoadPlan, "module_install_root"));
+    try std.testing.expect(!@hasField(LoadPlan, "modules_order_path"));
+    try std.testing.expect(!@hasField(LoadPlan, "modules_builtin_path"));
     try std.testing.expect(!@hasField(LoadPlan, "depmod_script"));
     try std.testing.expect(!@hasField(LoadPlan, "depmod_manifest"));
     try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));
