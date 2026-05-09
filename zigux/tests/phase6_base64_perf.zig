@@ -119,6 +119,8 @@ fn expectExactFitPerfBuffers(case: fixtures.PerfCase) !void {
     const helper_exact = helper_encoded[0..helper_needed];
     const helper_written = try base64.encode(helper_exact, case.payload, case.padding, variant);
     if (helper_written != helper_needed) return error.Base64PerfMatrixMismatch;
+    const helper_decoded_len = try base64.bytes(helper_exact[0..helper_written], case.padding, variant);
+    if (helper_decoded_len != case.payload.len) return error.Base64PerfMatrixMismatch;
 
     const reference_written = codec.Encoder.encode(reference_encoded[0..reference_needed], case.payload);
     if (!std.mem.eql(u8, helper_exact[0..helper_written], reference_written)) {
