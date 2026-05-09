@@ -63,6 +63,7 @@ SELF_TEST_CASES = [
     "bitmap_diff_survey_replay_marker_drift",
     "kprobe_gap_packet_presence_drift",
     "perf_baseline_packet_presence_drift",
+    "perf_baseline_note_split_marker_drift",
     "test_fsmount_gap_packet_presence_drift",
     "missing_note_file",
 ]
@@ -207,6 +208,7 @@ def validate_root(root: Path) -> list[str]:
             missing.append(f"note_status:{line}")
     required_markers = [
         "approved local-only command-and-limit evidence",
+        "exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope",
         "shared perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved",
         "phase4-runtime-atomic64-diff-survey-tests",
         "phase4-bitmap-live-helper-replay-tests",
@@ -282,7 +284,7 @@ def build_fixture_tree(root: Path) -> None:
     note = (
         "# Phase 4 Gate Evidence\n\n## Status\n"
         + status_lines
-        + "\n\n## Exact Readback Evidence\napproved local-only command-and-limit evidence\nphase4-runtime-atomic64-diff-survey-tests\nphase4-bitmap-live-helper-replay-tests\nmake -C zigux phase4-bitmap-diff-survey\nshared gate-evidence note now keeps that adjacent parked packet explicit without claiming a shipped Zig starter\nshared validator route now picks that same parked packet up through `scripts/zigux/check-phase4-gate-evidence.py` while `samples/zigux/test_fsmount.zig` remains absent on current `master`\n\n## Current Conclusion\nshared perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved\n"
+        + "\n\n## Exact Readback Evidence\napproved local-only command-and-limit evidence\nexact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope\nphase4-runtime-atomic64-diff-survey-tests\nphase4-bitmap-live-helper-replay-tests\nmake -C zigux phase4-bitmap-diff-survey\nshared gate-evidence note now keeps that adjacent parked packet explicit without claiming a shipped Zig starter\nshared validator route now picks that same parked packet up through `scripts/zigux/check-phase4-gate-evidence.py` while `samples/zigux/test_fsmount.zig` remains absent on current `master`\n\n## Current Conclusion\nshared perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved\n"
     )
     _write(root / NOTE_PATH, note)
 
@@ -296,6 +298,21 @@ def run_self_test() -> int:
         build_fixture_tree(bad)
         (bad / NOTE_PATH).unlink()
         assert validate_root(bad) == [f"file:{NOTE_PATH}"]
+
+        bad2 = Path(tmp_dir) / "bad2"
+        build_fixture_tree(bad2)
+        note_path = bad2 / NOTE_PATH
+        note_path.write_text(
+            note_path.read_text(encoding="utf-8").replace(
+                "exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert validate_root(bad2) == [
+            "note_marker:exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope"
+        ]
     print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
     print(f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")
     print("PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES))
