@@ -121,14 +121,7 @@ fn writeInvalidOptionError(writer: anytype, option: []const u8) !void {
 
 fn writeAmbiguousOptionError(writer: anytype, option: []const u8) !void {
     try writer.writeAll(getopt_error_prefix);
-    try writer.print("option '{s}' is ambiguous; possibilities:", .{option});
-    const option_name = if (std.mem.startsWith(u8, option, "--")) option[2..] else option;
-    for (long_option_specs) |spec| {
-        if (std.mem.startsWith(u8, spec.name, option_name)) {
-            try writer.print(" '{s}'", .{spec.failure_name});
-        }
-    }
-    try writer.writeByte('\n');
+    try writer.print("option '{s}' is ambiguous\n", .{option});
 }
 
 fn writeMissingOptionArgumentError(writer: anytype, option: []const u8) !void {
@@ -597,7 +590,7 @@ test "genksyms bridge renders ambiguous long option possibilities" {
 
     try writeAmbiguousOptionError(&output.writer, "--du");
     try testing.expectEqualStrings(
-        "genksyms: option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n",
+        "genksyms: option '--du' is ambiguous\n",
         output.written(),
     );
 }
