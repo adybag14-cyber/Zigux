@@ -98,6 +98,7 @@ REQUIRED_FILE_MARKERS = {
         "`PHASE12_TRANCHE=driver-and-libbpf-survey-bundle`",
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
+        "freeze-boundary authority: `Documentation/zigux/freeze-map.md`",
         "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
         "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
         "build-only contract drift still fails closed when the local runtime needs the fallback path.",
