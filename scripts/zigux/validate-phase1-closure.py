@@ -141,6 +141,7 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
             'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
             'test "rbtree cached root keeps the leftmost pointer in sync"',
+            'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
             'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
             'test "rbtree eraseCached returns null for a singleton cached tree"',
             'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
@@ -171,12 +172,13 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
             'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
             'test "rbtree cached root keeps the leftmost pointer in sync"',
+            'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
             'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
             'test "rbtree eraseCached returns null for a singleton cached tree"',
             'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
             'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
         ],
-        "review_packet_summary": "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root insert-miss, leftmost-sync, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys",
+        "review_packet_summary": "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys",
     },
     "tools/lib/string.zig": {
         "helper_test_anchors": [
