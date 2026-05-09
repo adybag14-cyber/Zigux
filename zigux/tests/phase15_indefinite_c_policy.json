@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-Y04",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-08",
+  "surveyed_commit": "current-master-readback-2026-05-09",
   "surveyed_commit_mode": "dated_master_readback",
   "surveyed_commit_mode_reason": "The indefinite-C policy packet reports current stay-in-C governance posture at the bounded packet level, so it now uses an explicit dated master-readback marker instead of implying exact post-commit branch-head parity.",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
