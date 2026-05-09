@@ -16,6 +16,23 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const Check = struct {
+    id: []const u8,
+    kind: []const u8,
+    expected: []const u8,
+};
+
+const OwnershipEntry = struct {
+    surface: []const u8,
+    owns: []const u8,
+};
+
+const CatalogEntry = struct {
+    id: []const u8,
+    path: []const u8,
+    role: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -24,6 +41,9 @@ const Manifest = struct {
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
     gaps: []const Gap,
+    checks: []const Check,
+    ownership: []const OwnershipEntry,
+    catalog: []const CatalogEntry,
 };
 
 fn isAllowedStatus(status: []const u8) bool {
@@ -58,6 +78,9 @@ test "phase 9 runtime atomic64 survey manifest records the roadmap selftest hook
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_doc_present);
     try std.testing.expect(manifest.gaps.len >= 7);
+    try std.testing.expect(manifest.checks.len >= 1);
+    try std.testing.expect(manifest.ownership.len >= 3);
+    try std.testing.expect(manifest.catalog.len >= 1);
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
@@ -68,6 +91,10 @@ test "phase 9 runtime atomic64 survey manifest records the roadmap selftest hook
     var saw_diff_gate = false;
     var saw_loader_scaffold = false;
     var saw_live_loader_blocker = false;
+    var saw_loader_request_surface = false;
+    var saw_atomic64_loader_scaffold_catalog = false;
+    var saw_atomic64_sample_ownership = false;
+    var saw_atomic64_loader_scaffold_ownership = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -114,6 +141,7 @@ test "phase 9 runtime atomic64 survey manifest records the roadmap selftest hook
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "requires_runtime_substrate") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "toSharedLoadPlan()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime_loader.prepareRequest()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "four-field atomic64 payload summary snapshot replay") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-atomic64-live-loader-binding")) {
             saw_live_loader_blocker = true;
@@ -127,6 +155,41 @@ test "phase 9 runtime atomic64 survey manifest records the roadmap selftest hook
         }
     }
 
+    for (manifest.catalog) |entry| {
+        if (std.mem.eql(u8, entry.id, "runtime-atomic64-loader-scaffold")) {
+            saw_atomic64_loader_scaffold_catalog = true;
+            try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "prepared loader-summary snapshot replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "released_without_substrate") != null);
+        }
+    }
+
+    for (manifest.ownership) |entry| {
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_atomic64.zig")) {
+            saw_atomic64_sample_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "selftest-hook metadata") != null);
+        }
+
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_atomic64_loader.zig")) {
+            saw_atomic64_loader_scaffold_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "prepared loader-summary snapshot replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "command_name preservation") != null);
+        }
+    }
+
+    for (manifest.checks) |check| {
+        if (std.mem.eql(u8, check.id, "loader-request-surface")) {
+            saw_loader_request_surface = true;
+            try std.testing.expectEqualStrings("runtime_loader_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "zigux_runtime_atomic64_init") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "prepared") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "waiting_on_runtime_substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_without_substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "kernel_heap") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "before later sample mutation") != null);
+        }
+    }
+
     try std.testing.expect(runtime_test_destination_count >= 4);
     try std.testing.expect(starter_landed_count >= 7);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
@@ -136,6 +199,10 @@ test "phase 9 runtime atomic64 survey manifest records the roadmap selftest hook
     try std.testing.expect(saw_diff_gate);
     try std.testing.expect(saw_loader_scaffold);
     try std.testing.expect(saw_live_loader_blocker);
+    try std.testing.expect(saw_loader_request_surface);
+    try std.testing.expect(saw_atomic64_loader_scaffold_catalog);
+    try std.testing.expect(saw_atomic64_sample_ownership);
+    try std.testing.expect(saw_atomic64_loader_scaffold_ownership);
 }
 
 test "phase 9 runtime atomic64 survey note keeps exact selftest and loader snapshot checks explicit" {
@@ -332,6 +399,7 @@ test "phase 9 runtime atomic64 survey source-checks the direct sample evidence p
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader emits the shared runtime-loader contract plan\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader keeps initialized-stage shared contract plans explicit\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader keeps initialized shared-request snapshots stable across later selftest activity\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader keeps selftest-complete shared-request snapshots stable across later exit activity\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader bridges the shared request lifecycle without widening atomic64 claims\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader keeps shared release failures from desynchronizing loader state\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader rejects prepared shared request drift before any local runtime handoff\"") != null);
