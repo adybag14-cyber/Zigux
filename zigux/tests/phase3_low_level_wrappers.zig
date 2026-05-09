@@ -259,6 +259,16 @@ test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edg
     try std.testing.expectEqual(@as(i32, 3), atomic.fetchSub(i32, &signed_arithmetic_value, 7, .seq_cst));
     try std.testing.expectEqual(@as(i32, -4), signed_arithmetic_value);
 
+    var ordered_fetch_value: i32 = -4;
+    try std.testing.expectEqual(@as(i32, -4), atomic.fetchAdd(i32, &ordered_fetch_value, 6, .monotonic));
+    try std.testing.expectEqual(@as(i32, 2), ordered_fetch_value);
+    try std.testing.expectEqual(@as(i32, 2), atomic.fetchSub(i32, &ordered_fetch_value, 3, .release));
+    try std.testing.expectEqual(@as(i32, -1), ordered_fetch_value);
+    try std.testing.expectEqual(@as(i32, -1), atomic.fetchMin(i32, &ordered_fetch_value, -7, .acquire));
+    try std.testing.expectEqual(@as(i32, -7), ordered_fetch_value);
+    try std.testing.expectEqual(@as(i32, -7), atomic.fetchMax(i32, &ordered_fetch_value, 5, .acq_rel));
+    try std.testing.expectEqual(@as(i32, 5), ordered_fetch_value);
+
     var monotonic_value: u32 = 5;
     try std.testing.expectEqual(
         @as(?u32, null),
