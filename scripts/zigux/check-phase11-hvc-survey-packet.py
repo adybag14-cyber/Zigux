@@ -40,6 +40,11 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
     "repo reality now carries one bounded starter for each Phase 11 simple-production-driver roadmap anchor",
     "khvcd polling-contract follow-through",
     "`hvc_hangup()` disconnect boundary",
+    "resize-work cancellation",
+    "stale-count short-circuiting",
+    "notifier-hangup ownership",
+    "buffered-write clearing",
+    "kept console binding",
     "stale hangup short-circuit",
     "targetless-sysrq",
     "notifier-prerequisite failure-mode replays",
@@ -180,7 +185,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 65
+SELF_TEST_CASE_COUNT = 70
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -281,13 +286,14 @@ The live archival packet now belongs to lane `P11-L16`.
 
 - `zigux/tests/phase11_hvc_console_survey.zig` now keeps a bounded driver-local layout checkpoint
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md` names the current shared gate
-- `Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, and remove ownership split explicit
+- `Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, remove, and hangup-disconnect ownership split explicit, including resize-work cancellation, stale-count short-circuiting, notifier-hangup ownership, buffered-write clearing, and kept console binding
 - `scripts/zigux/check-phase11-hvc-survey-packet.py` keeps the dedicated archival survey note, validation matrix, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around the same delivery route
 - `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` keep those HVC review surfaces coupled to the wider Phase 11 replay route
 - the bounded archival checkpoint keeps `drivers/tty/hvc/hvc_console.zig` framed as a direct-port driver starter with a hardware validation matrix and teardown and failure-mode parity kept host-free
 - repo reality now carries one bounded starter for each Phase 11 simple-production-driver roadmap anchor
 - current `master` now also carries the bounded khvcd polling-contract follow-through
 - current `master` also keeps the bounded `hvc_hangup()` disconnect boundary explicit beside the same archival packet
+- the archived note still names resize-work cancellation, stale-count short-circuiting, notifier-hangup ownership, buffered-write clearing, and kept console binding so the disconnect boundary stays explicit
 - the archived note still names the stale hangup short-circuit so buffered-write state does not get overstated when port count is already zero
 - the archived note still names the targetless-sysrq failure path so callback-free sysrq surfaces stay explicit
 - the archived note still names the notifier-prerequisite failure-mode replays so callback-free notifier boundaries stay reviewable
@@ -598,6 +604,36 @@ def run_self_test() -> int:
                 SURVEY_NOTE_PATH,
                 "`hvc_hangup()` disconnect boundary",
                 "survey_note:`hvc_hangup()` disconnect boundary",
+            )
+            expect_failure(
+                root,
+                SURVEY_NOTE_PATH,
+                "resize-work cancellation",
+                "survey_note:resize-work cancellation",
+            )
+            expect_failure(
+                root,
+                SURVEY_NOTE_PATH,
+                "stale-count short-circuiting",
+                "survey_note:stale-count short-circuiting",
+            )
+            expect_failure(
+                root,
+                SURVEY_NOTE_PATH,
+                "notifier-hangup ownership",
+                "survey_note:notifier-hangup ownership",
+            )
+            expect_failure(
+                root,
+                SURVEY_NOTE_PATH,
+                "buffered-write clearing",
+                "survey_note:buffered-write clearing",
+            )
+            expect_failure(
+                root,
+                SURVEY_NOTE_PATH,
+                "kept console binding",
+                "survey_note:kept console binding",
             )
             expect_failure(
                 root,
