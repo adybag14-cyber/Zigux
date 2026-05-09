@@ -38,49 +38,52 @@ REQUIRED_GAP_SPECS = {
         "status": "starter_landed",
         "kind": "validation",
         "zigux_destination": "zigux/tests/phase11_build.zig",
-        "why_now_contains": "shared Phase 11 build gate",
+        "why_now_contains": ["shared Phase 11 build gate"],
     },
     "phase11-uapi-header-parity-survey-gate": {
         "status": "starter_landed",
         "kind": "validation",
         "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-        "why_now_contains": "watchdog_info, winsize, and hv_ops layout checkpoints",
+        "why_now_contains": ["watchdog_info, winsize, and hv_ops layout checkpoints"],
     },
     "phase11-uapi-header-parity-note": {
         "status": "starter_landed",
         "kind": "documentation",
         "zigux_destination": "Documentation/zigux/phase11-uapi-header-parity-survey.md",
-        "why_now_contains": "shared-versus-dedicated replay split",
+        "why_now_contains": ["shared-versus-dedicated replay split"],
     },
     "phase11-dw-wdt-watchdog-info-layout-assert": {
         "status": "starter_landed",
         "kind": "header_layout",
         "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-        "why_now_contains": "size 40, alignment 4",
+        "why_now_contains": ["size 40, alignment 4"],
     },
     "phase11-hvc-console-winsize-layout-assert": {
         "status": "starter_landed",
         "kind": "header_layout",
         "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-        "why_now_contains": "size 8, alignment 2",
+        "why_now_contains": ["size 8, alignment 2"],
     },
     "phase11-hvc-console-hv-ops-layout-assert": {
         "status": "starter_landed",
         "kind": "header_layout",
         "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-        "why_now_contains": "size 72, alignment 8",
+        "why_now_contains": [
+            "size 72, alignment 8",
+            "callback-table offsets 0 through 64",
+        ],
     },
     "phase11-hvc-console-header-constant-assert": {
         "status": "starter_landed",
         "kind": "header_constants",
         "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-        "why_now_contains": "MAX_NR_HVC_CONSOLES and HVC_ALLOC_TTY_ADAPTERS",
+        "why_now_contains": ["MAX_NR_HVC_CONSOLES and HVC_ALLOC_TTY_ADAPTERS"],
     },
     "phase11-hvc-console-export-signature-assert": {
         "status": "starter_landed",
         "kind": "export_surface",
         "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-        "why_now_contains": "notifier_hangup_irq",
+        "why_now_contains": ["notifier_hangup_irq"],
     },
 }
 
@@ -136,7 +139,23 @@ REQUIRED_SURVEY_MARKERS = [
     'layout_assert.assertOffset(WinSize, "ws_ypixel", 6);',
     "layout_assert.assertSize(HvOps, 72);",
     "layout_assert.assertAlign(HvOps, 8);",
+    'layout_assert.assertFieldType(HvOps, "get_chars", HvOpsGetChars);',
+    'layout_assert.assertFieldType(HvOps, "put_chars", HvOpsPutChars);',
+    'layout_assert.assertFieldType(HvOps, "flush", HvOpsFlush);',
+    'layout_assert.assertFieldType(HvOps, "notifier_add", HvOpsNotifierAdd);',
+    'layout_assert.assertFieldType(HvOps, "notifier_del", HvOpsNotifierDel);',
+    'layout_assert.assertFieldType(HvOps, "notifier_hangup", HvOpsNotifierHangup);',
+    'layout_assert.assertFieldType(HvOps, "tiocmget", HvOpsTiocmget);',
+    'layout_assert.assertFieldType(HvOps, "tiocmset", HvOpsTiocmset);',
     'layout_assert.assertFieldType(HvOps, "dtr_rts", HvOpsDtrRts);',
+    'layout_assert.assertOffset(HvOps, "get_chars", 0);',
+    'layout_assert.assertOffset(HvOps, "put_chars", 8);',
+    'layout_assert.assertOffset(HvOps, "flush", 16);',
+    'layout_assert.assertOffset(HvOps, "notifier_add", 24);',
+    'layout_assert.assertOffset(HvOps, "notifier_del", 32);',
+    'layout_assert.assertOffset(HvOps, "notifier_hangup", 40);',
+    'layout_assert.assertOffset(HvOps, "tiocmget", 48);',
+    'layout_assert.assertOffset(HvOps, "tiocmset", 56);',
     'layout_assert.assertOffset(HvOps, "dtr_rts", 64);',
     'try expectContains(hvc_header, "#define MAX_NR_HVC_CONSOLES\\t16");',
     'try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS\\t8");',
@@ -239,8 +258,15 @@ def check_manifest(manifest: dict[str, object]) -> None:
             if gap.get(key) != expected[key]:
                 raise SystemExit(f"{gap_id} {key} mismatch")
         why_now = gap.get("why_now")
-        if not isinstance(why_now, str) or expected["why_now_contains"] not in why_now:
+        if not isinstance(why_now, str):
             raise SystemExit(f"{gap_id} why_now mismatch")
+        missing_fragments = [
+            fragment for fragment in expected["why_now_contains"] if fragment not in why_now
+        ]
+        if missing_fragments:
+            raise SystemExit(
+                f"{gap_id} why_now mismatch: missing {', '.join(missing_fragments)}"
+            )
 
 
 def check_repo(root: Path) -> None:
@@ -277,7 +303,7 @@ def build_fixture_repo(root: Path) -> None:
                 "status": spec["status"],
                 "kind": spec["kind"],
                 "zigux_destination": spec["zigux_destination"],
-                "why_now": f"fixture {spec['why_now_contains']}",
+                "why_now": "fixture " + " and ".join(spec["why_now_contains"]),
             }
             for gap_id, spec in REQUIRED_GAP_SPECS.items()
         ],
@@ -410,6 +436,12 @@ def run_self_test() -> int:
         )
         run_case(
             "zigux/tests/phase11_uapi_header_parity_manifest.json",
+            "callback-table offsets 0 through 64",
+            "callback-table offsets 0 through 56",
+            "phase11-hvc-console-hv-ops-layout-assert why_now mismatch",
+        )
+        run_case(
+            "zigux/tests/phase11_uapi_header_parity_manifest.json",
             '"zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig"',
             '"zigux_destination": "zigux/tests/phase11_uapi_header_packet_survey.zig"',
             "zigux_destination mismatch",
@@ -430,6 +462,18 @@ def run_self_test() -> int:
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
             'layout_assert.assertFieldType(WinSize, "ws_ypixel", u16);',
             'layout_assert.assertFieldType(WinSize, "ws_ypixel", u32);',
+            "survey missing markers",
+        )
+        run_case(
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            'layout_assert.assertFieldType(HvOps, "notifier_add", HvOpsNotifierAdd);',
+            'layout_assert.assertFieldType(HvOps, "notifier_add", HvOpsNotifierDel);',
+            "survey missing markers",
+        )
+        run_case(
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            'layout_assert.assertOffset(HvOps, "notifier_hangup", 40);',
+            'layout_assert.assertOffset(HvOps, "notifier_hangup", 32);',
             "survey missing markers",
         )
         run_case(
