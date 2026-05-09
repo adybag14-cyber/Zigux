@@ -43,6 +43,9 @@ It is a release-coordination artifact, not a closure claim.
 5. If the local runtime does not provide `zig` on `PATH`, keep the same smoke-first order and rerun the shipped Make routes with an attached toolchain override instead of inventing a new Phase 12 entrypoint.
    - `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
    - `make -C zigux phase12 ZIG=<attached-zig-path>`
+   - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
+   - `python3 scripts/zigux/check-build-only-phase12-surface.py`
+   - Keep those checker reruns before or beside the attached-toolchain Make reruns so build-only contract drift still fails closed when the fallback path is in use.
    - This is an environment override for the existing replay packet, not a validator-first or `phase12-validate` route.
 
 ## Owner map
