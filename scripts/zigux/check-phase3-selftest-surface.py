@@ -14,6 +14,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate_phase3_selftest.py",
@@ -36,6 +37,7 @@ REQUIRED_FILES = [
 ]
 
 DOCS_ROOT_MARKERS = [
+    "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
@@ -60,6 +62,7 @@ DOCS_ROOT_MARKERS = [
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
+    "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/check-phase3-selftest-surface.py",
@@ -364,6 +367,7 @@ def run_self_test() -> int:
 
         write_text(root / "Documentation/zigux/README.md", "make -C zigux phase3-selftest\n")
         issues = validate_root(root)
+        assert "docs_root:Documentation/zigux/phase3-boundary-lane-sequencing.md" in issues
         assert "docs_root:scripts/zigux/validate_phase3_selftest.py" in issues
         assert "docs_root:scripts/zigux/check-phase3-selftest-surface.py" in issues
         assert "docs_root:scripts/zigux/check-phase3-readme-tooling-inventory.py" in issues
@@ -389,7 +393,18 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/README.md",
-            "\n".join(DOCS_ROOT_MARKERS + [DOCS_ROOT_MARKERS[1]]) + "\n",
+            "\n".join(DOCS_ROOT_MARKERS + [DOCS_ROOT_MARKERS[0]]) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "duplicate_docs_root_marker:2:Documentation/zigux/phase3-boundary-lane-sequencing.md"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/README.md",
+            "\n".join(DOCS_ROOT_MARKERS + [DOCS_ROOT_MARKERS[2]]) + "\n",
         )
         issues = validate_root(root)
         assert (
@@ -400,24 +415,18 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/README.md",
-            "\n".join(DOCS_ROOT_MARKERS + ["python3 scripts/zigux/validate-phase3.py"]) + "\n",
+            "The docs-root summary keeps Documentation/zigux/phase3-boundary-lane-sequencing.md visible inside a longer sentence.\n"
+            + "\n".join(marker for marker in DOCS_ROOT_MARKERS[1:] if marker != "scripts/zigux/validate_phase3_selftest.py")
+            + "\n",
         )
         issues = validate_root(root)
-        assert "duplicate_docs_root_marker:2:python3 scripts/zigux/validate-phase3.py" in issues
-
-        build_self_test_root(root)
-        write_text(
-            root / "Documentation/zigux/README.md",
-            "\n".join(DOCS_ROOT_MARKERS + ["make -C zigux phase3"]) + "\n",
-        )
-        issues = validate_root(root)
-        assert "duplicate_docs_root_marker:2:make -C zigux phase3" in issues
+        assert "docs_root:Documentation/zigux/phase3-boundary-lane-sequencing.md" in issues
 
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/README.md",
             "The docs-root summary keeps scripts/zigux/validate_phase3_selftest.py visible inside a longer sentence.\n"
-            + "\n".join(DOCS_ROOT_MARKERS[1:])
+            + "\n".join(DOCS_ROOT_MARKERS[2:])
             + "\n",
         )
         issues = validate_root(root)
@@ -434,6 +443,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root / "Documentation/zigux/review-checklist.md", "scripts/zigux/validate_phase3_selftest.py\n")
         issues = validate_root(root)
+        assert "review_checklist:Documentation/zigux/phase3-boundary-lane-sequencing.md" in issues
         assert "review_checklist:scripts/zigux/validate-phase3.py" in issues
         assert "review_checklist:scripts/zigux/check-phase3-selftest-surface.py" in issues
         assert "review_checklist:scripts/zigux/check-phase3-readme-tooling-inventory.py" in issues
@@ -456,11 +466,11 @@ def run_self_test() -> int:
         write_text(
             root / "Documentation/zigux/review-checklist.md",
             "\n".join(
-                REVIEW_CHECKLIST_MARKERS[:3]
+                REVIEW_CHECKLIST_MARKERS[:4]
                  + [
                      "the review packet keeps scripts/zigux/check-phase3-readme-tooling-inventory.py, scripts/zigux/check-phase3-abi-dump-gate.py, scripts/zigux/check-phase3-catalog-selftest.py, scripts/zigux/validate-phase3-policy-unsafe-survey.py, scripts/zigux/check-phase3-policy-byte-guards.py, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, scripts/zigux/validate-phase3-export-uapi-survey.py, scripts/zigux/validate-phase3-abi-bindings-syntax.py, scripts/zigux/survey-phase3-abi-constant-parity.py, scripts/zigux/phase3_catalog.py, scripts/zigux/phase3_check_lib.py, scripts/zigux/generate-phase3-check-wrappers.py, scripts/zigux/run-phase3-checks.py, python3 scripts/zigux/phase3_catalog.py --audit-doc-sync, and make -C zigux phase3-selftest visible inside one longer checklist sentence"
                  ]
-                + REVIEW_CHECKLIST_MARKERS[18:]
+                + REVIEW_CHECKLIST_MARKERS[19:]
             )
             + "\n",
         )
@@ -469,7 +479,18 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[17]]) + "\n",
+            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[0]]) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "duplicate_review_checklist_marker:2:Documentation/zigux/phase3-boundary-lane-sequencing.md"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[18]]) + "\n",
         )
         issues = validate_root(root)
         assert "duplicate_review_checklist_marker:2:make -C zigux phase3-selftest" in issues
@@ -477,7 +498,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[11]]) + "\n",
+            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[12]]) + "\n",
         )
         issues = validate_root(root)
         assert (
@@ -488,7 +509,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[15]]) + "\n",
+            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[16]]) + "\n",
         )
         issues = validate_root(root)
         assert (
@@ -832,6 +853,11 @@ def run_self_test() -> int:
         (root / "scripts/zigux/survey-phase3-abi-constant-parity.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
+
+        build_self_test_root(root)
+        (root / "Documentation/zigux/phase3-boundary-lane-sequencing.md").unlink()
+        issues = validate_root(root)
+        assert "missing_file:Documentation/zigux/phase3-boundary-lane-sequencing.md" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
     print(f"PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT={case_count}")
