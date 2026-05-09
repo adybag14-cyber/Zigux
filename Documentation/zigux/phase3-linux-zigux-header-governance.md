@@ -27,6 +27,13 @@ This note closes the dedicated ownership and boundary-note gap for `include/linu
 - header-only naming growth does not count as Phase 3 closure by itself
 - repetitive wrapper, summary, or suffix-chain expansion without new bounded proof should be treated as churn, not progress
 
+## Current Gap
+
+- live `master` already uses `include/linux/zigux.h` as a broad aggregation header for many landed helper views and summaries, so the current Phase 3 interop gap is no longer missing header-starter scaffolding
+- the remaining roadmap gap is that this growth is still concentrated in the shared `zigux.h` relay plus the same curated binding roots `zigux/bindings/abi.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/notifier_abi.zig`, rather than being split into additional top-level curated boundary families with their own proof surfaces
+- `zigux/uapi/` still stops at `version.zig`, so wider exported boundary ownership is still absent from the shipped substrate
+- until a new boundary family lands with its own header, bindings, manifest-backed replay, and note refresh, more `include/linux/zigux.h` aggregation alone should be treated as reviewability risk, not interop closure
+
 ## Boundary
 
 - `include/linux/zigux.h` may aggregate already-approved helper entry points, but it should not become a second source of truth for canonical struct layout, policy enums, or UAPI version ownership
