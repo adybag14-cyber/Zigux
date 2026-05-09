@@ -52,9 +52,10 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
 
     try module.init(0x1111_1111_2222_2222);
-    try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
+    const initialized = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized.stage);
     try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), module.snapshotCounter());
-    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized.init_runs);
 
     try module.addCounter(4);
     try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2226), module.snapshotCounter());
@@ -118,19 +119,21 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectEqual(@as(i64, 19), module.snapshotCounter());
 
     const summary = try module.runSelftest();
-    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+    const selftested = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, selftested.stage);
     try std.testing.expectEqualStrings("lib/atomic64_test.c", summary.anchor);
     try std.testing.expectEqual(@as(usize, 5), summary.operation_families.len);
     try std.testing.expect(summary.checked_returning_paths);
     try std.testing.expect(summary.checked_bitwise_paths);
     try std.testing.expect(summary.checked_guard_paths);
     try std.testing.expectEqual(@as(i64, 19), module.snapshotCounter());
-    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested.selftest_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
 
     try module.exit();
-    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    const exited = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, exited.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init(23));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
@@ -156,10 +159,11 @@ test "runtime atomic64 sample keeps post-selftest replay local to the module pac
 
     try module.init(11);
     const selftest = try module.runSelftest();
+    const selftested = module.lifecycleSnapshot();
 
-    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, selftested.stage);
     try std.testing.expectEqual(@as(usize, 5), selftest.operation_families.len);
-    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested.selftest_runs);
     try std.testing.expectEqual(@as(i64, 11), module.snapshotCounter());
 
     const replay_swap = try module.swapCounter(17);
@@ -184,11 +188,12 @@ test "runtime atomic64 sample keeps post-selftest replay local to the module pac
     try std.testing.expectEqual(@as(i64, 3), replay_xor);
     try std.testing.expectEqual(@as(i64, 17), module.snapshotCounter());
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested.selftest_runs);
 
     try module.exit();
-    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    const exited = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, exited.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 17));
 }
@@ -197,16 +202,18 @@ test "runtime atomic64 sample allows exit from initialized state without claimin
     var module = sample.RuntimeAtomic64Sample{};
 
     try module.init(-5);
-    try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
+    const initialized = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized.stage);
     try std.testing.expectEqual(@as(i64, -5), module.snapshotCounter());
-    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
-    try std.testing.expectEqual(@as(usize, 0), module.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 0), module.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.exit_runs);
 
     try module.exit();
-    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
-    try std.testing.expectEqual(@as(usize, 0), module.selftest_runs);
+    const exited = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, exited.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), exited.selftest_runs);
     try std.testing.expectEqual(@as(i64, -5), module.snapshotCounter());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
