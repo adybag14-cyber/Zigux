@@ -24,6 +24,7 @@ REQUIRED_FILES = [
 
 SLICE_MARKERS = [
     "devm_arch_phys_wc_add()",
+    "devm_ioremap_np()",
     "keep the `devm_iounmap()` pointer match exact",
     "device-tree walking",
     "live arch memtype reservation or removal side effects",
@@ -40,6 +41,7 @@ SURVEY_MARKERS = [
     "keeps `devm_iounmap()` pointer matching exact",
     "devm_ioremap_uc()",
     "devm_ioremap_wc()",
+    "devm_ioremap_np()",
     "devm_ioremap_resource_wc()",
     "zigux/tests/phase13_devres_boundary_evidence.zig",
 ]
@@ -254,6 +256,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                "phase13-devres-slice:devm_ioremap_np()",
                 "phase13-devres-slice:keep the `devm_iounmap()` pointer match exact",
                 "phase13-devres-slice:device-tree walking",
                 "phase13-devres-slice:live arch memtype reservation or removal side effects",
@@ -276,6 +279,7 @@ def run_self_test() -> int:
                 "phase13-devres-survey:keeps `devm_iounmap()` pointer matching exact",
                 "phase13-devres-survey:devm_ioremap_uc()",
                 "phase13-devres-survey:devm_ioremap_wc()",
+                "phase13-devres-survey:devm_ioremap_np()",
                 "phase13-devres-survey:devm_ioremap_resource_wc()",
                 "phase13-devres-survey:zigux/tests/phase13_devres_boundary_evidence.zig",
             ],
