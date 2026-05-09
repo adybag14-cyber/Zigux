@@ -125,7 +125,7 @@ Primary Phase 5 packet
 
 Keep explicit
 - `formattedMessage()`, the selected-string plus `iter=%d` replay, and the public `runPayloadBoundaryReplay()` formatting cue
-- the public `runConditionalBoundaryReplay()` helper plus the count-0 `Mother Goose` branch, `iter=%d` replay, `0xdeadbeef` bitmask cue, and six main-thread family counts without private sample-state reads
+- the public `runConditionalBoundaryReplay()` helper plus the count-0 `Mother Goose` branch, the count-5 wraparound back to `Mother Goose`, the selected-string boundary, the `iter=%d` replay, the `0xdeadbeef` bitmask cue, and six main-thread family counts without private sample-state reads
 - vararg-payload and relative-location markers in the public replay summary
 - the exact `checked_focus` order
 - the public `runCallbackBoundaryReplay()` helper plus the explicit callback-path replay, the registration depth rising to `1` after register and returning to `0` after unregister, and the bounded `init()` -> replay helpers -> `exit()` ownership path
