@@ -280,6 +280,10 @@ REQUIRED_DOCS_ROOT_MARKERS = [
     "make -C zigux phase2",
 ]
 
+REQUIRED_TOOLCHAIN_NOTES_MARKERS = [
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+]
+
 REQUIRED_REVIEW_MARKERS = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
@@ -375,6 +379,7 @@ def validate_root(root: Path) -> list[str]:
     artifact_doc = (root / "Documentation" / "zigux" / "artifact-diff.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts" / "zigux" / "README.md").read_text(encoding="utf-8")
     docs_root = (root / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
+    toolchain_notes = (root / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md").read_text(encoding="utf-8")
     review_checklist = (root / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
     review_phase2_line = extract_phase2_review_packet_line(review_checklist)
 
@@ -401,6 +406,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_DOCS_ROOT_MARKERS:
         if marker not in docs_root:
             issues.append(f"docs_root:{marker}")
+    for marker in REQUIRED_TOOLCHAIN_NOTES_MARKERS:
+        if marker not in toolchain_notes:
+            issues.append(f"toolchain_notes:{marker}")
     if review_phase2_line is None:
         issues.append(f"review_packet:{PHASE2_REVIEW_PACKET_LEAD}")
     for marker in REQUIRED_REVIEW_MARKERS:
@@ -609,6 +617,7 @@ def run_self_test() -> int:
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-zig-toolchain.py"] == 1
     assert "python3 scripts/zigux/check-kconfig-bridge.py --self-test" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-kconfig-bridge.py --self-test"] == 1
+    assert REQUIRED_TOOLCHAIN_NOTES_MARKERS == ["zigux/tests/fixtures/phase2_artifact_tools_manifest.json"]
     assert "python3 scripts/zigux/check-zig-toolchain.py --self-test" in REQUIRED_REVIEW_MARKERS
     assert "scripts/zigux/check-genksyms-bridge.py" in REQUIRED_REVIEW_MARKERS
     assert "scripts/zigux/check-genksyms-crc-diff.py" in REQUIRED_REVIEW_MARKERS
@@ -700,7 +709,7 @@ def main() -> int:
     print(f"PHASE2_REQUIRED_FILE_COUNT={len(required_files(ROOT))}")
     print(
         "PHASE2_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_SCRIPT_MARKERS) + len(REQUIRED_SCRIPT_HELPER_INDEX_MARKERS) + len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_REVIEW_MARKERS)}"
+        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_SCRIPT_MARKERS) + len(REQUIRED_SCRIPT_HELPER_INDEX_MARKERS) + len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_TOOLCHAIN_NOTES_MARKERS) + len(REQUIRED_REVIEW_MARKERS)}"
     )
     return 0
 
