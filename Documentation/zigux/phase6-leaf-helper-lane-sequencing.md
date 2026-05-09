@@ -49,7 +49,7 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-bsearch-slice.md`
 - the `bsearch` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-### `P6-Y06` and `P6-L16` checksum packet
+### checksum packet
 
 Keep helper-local work under:
 
@@ -63,9 +63,9 @@ Keep helper-local work under:
 - `Documentation/zigux/phase6-checksum-slice.md`
 - the `checksum` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat `P6-Y06` as the checksum note or count-correction lane and `P6-L16` as the checksum helper-or-fixture drift lane when both could plausibly touch the same helper packet.
+Treat checksum note, count-correction, helper, or fixture follow-ups as checksum-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note.
 
-### `P6-Y08` hexdump packet
+### hexdump packet
 
 Keep helper-local work under:
 
@@ -75,6 +75,8 @@ Keep helper-local work under:
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - `Documentation/zigux/phase6-hexdump-slice.md`
 - the `hexdump` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
+
+Treat hexdump row, threshold, or fixture follow-ups as hexdump-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note.
 
 ## Anti-Overlap Rules
 
@@ -86,4 +88,4 @@ Keep helper-local work under:
 
 ## Current Bounded Next Step
 
-Leave this lane parked unless a later Phase 6 run changes the shared `phase6` packet routing, the aggregate `phase6-perf` posture, the shared surface checker, or the owner split between the shared packet and the four helper packets. When that happens, keep the follow-up shared-surface-only and route helper-local evidence repairs back to `P6-L04`, `P6-L09`, `P6-Y06` or `P6-L16`, and `P6-Y08`.
+Leave this lane parked unless a later Phase 6 run changes the shared `phase6` packet routing, the aggregate `phase6-perf` posture, the shared surface checker, or the owner split between the shared packet and the four helper packets. When that happens, keep the follow-up shared-surface-only and route helper-local evidence repairs back to the corresponding base64, bsearch, checksum, or hexdump packet in Memory rather than relying on stale lane ids recorded here.
