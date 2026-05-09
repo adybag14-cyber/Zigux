@@ -121,6 +121,10 @@ pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) UnsafeSco
     return requireRawPointerBridgePolicyBytes(policy.unsafe_scope, policy.reserved);
 }
 
+pub fn requireRawPointerBridgeByte(unsafe_scope: u8) UnsafeScopeError!void {
+    return requireRawPointerBridgePolicyBytes(unsafe_scope, 0);
+}
+
 pub fn pointerAtInteropPolicyBytes(
     comptime T: type,
     base: usize,
@@ -139,6 +143,16 @@ pub fn pointerAtInteropPolicy(
     policy: abi.InteropPolicy,
 ) UnsafeScopeError!*align(1) volatile T {
     try requireRawPointerBridgeInteropPolicy(policy);
+    return pointerAt(T, base, offset);
+}
+
+pub fn pointerAtByte(
+    comptime T: type,
+    base: usize,
+    offset: usize,
+    unsafe_scope: u8,
+) UnsafeScopeError!*align(1) volatile T {
+    try requireRawPointerBridgeByte(unsafe_scope);
     return pointerAt(T, base, offset);
 }
 
@@ -163,6 +177,16 @@ pub fn constSliceAtInteropPolicy(
     return constSliceAt(T, base, len);
 }
 
+pub fn constSliceAtByte(
+    comptime T: type,
+    base: usize,
+    len: usize,
+    unsafe_scope: u8,
+) UnsafeScopeError![]const T {
+    try requireRawPointerBridgeByte(unsafe_scope);
+    return constSliceAt(T, base, len);
+}
+
 pub fn constPointerAtInteropPolicyBytes(
     comptime T: type,
     addr: usize,
@@ -179,6 +203,15 @@ pub fn constPointerAtInteropPolicy(
     policy: abi.InteropPolicy,
 ) UnsafeScopeError!*const T {
     try requireRawPointerBridgeInteropPolicy(policy);
+    return constPointerAt(T, addr);
+}
+
+pub fn constPointerAtByte(
+    comptime T: type,
+    addr: usize,
+    unsafe_scope: u8,
+) UnsafeScopeError!*const T {
+    try requireRawPointerBridgeByte(unsafe_scope);
     return constPointerAt(T, addr);
 }
 
@@ -200,6 +233,16 @@ pub fn writeValueAtInteropPolicy(
     policy: abi.InteropPolicy,
 ) UnsafeScopeError!void {
     try requireRawPointerBridgeInteropPolicy(policy);
+    writeValueAt(T, addr, value);
+}
+
+pub fn writeValueAtByte(
+    comptime T: type,
+    addr: usize,
+    value: T,
+    unsafe_scope: u8,
+) UnsafeScopeError!void {
+    try requireRawPointerBridgeByte(unsafe_scope);
     writeValueAt(T, addr, value);
 }
 
@@ -343,6 +386,9 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(none_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(mmio_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(reserved_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeByte(0));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeByte(9));
+    try requireRawPointerBridgeByte(2);
 
     var bridge_value: u32 = 27;
     const bridge_addr = addressOf(&bridge_value);
@@ -350,8 +396,12 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expectEqual(@as(u32, 27), scoped_ptr.*);
     const scoped_byte_ptr = try constPointerAtInteropPolicyBytes(u32, bridge_addr, 2, 0);
     try std.testing.expectEqual(@as(u32, 27), scoped_byte_ptr.*);
+    const byte_scoped_ptr = try constPointerAtByte(u32, bridge_addr, 2);
+    try std.testing.expectEqual(@as(u32, 27), byte_scoped_ptr.*);
     const scoped_slice = try constSliceAtInteropPolicyBytes(u32, bridge_addr, 1, 2, 0);
     try std.testing.expectEqual(@as(u32, 27), scoped_slice[0]);
+    const byte_scoped_slice = try constSliceAtByte(u32, bridge_addr, 1, 2);
+    try std.testing.expectEqual(@as(u32, 27), byte_scoped_slice[0]);
 
     const scoped_write_ptr = try pointerAtInteropPolicy(u32, bridge_addr, 0, raw_policy);
     scoped_write_ptr.* = 33;
@@ -359,18 +409,27 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     const scoped_write_ptr_bytes = try pointerAtInteropPolicyBytes(u32, bridge_addr, 0, 2, 0);
     scoped_write_ptr_bytes.* = 45;
     try std.testing.expectEqual(@as(u32, 45), bridge_value);
+    const byte_write_ptr = try pointerAtByte(u32, bridge_addr, 0, 2);
+    byte_write_ptr.* = 57;
+    try std.testing.expectEqual(@as(u32, 57), bridge_value);
 
-    try writeValueAtInteropPolicy(u32, bridge_addr, 51, raw_policy);
-    try std.testing.expectEqual(@as(u32, 51), bridge_value);
-    try writeValueAtInteropPolicyBytes(u32, bridge_addr, 63, 2, 0);
+    try writeValueAtInteropPolicy(u32, bridge_addr, 63, raw_policy);
     try std.testing.expectEqual(@as(u32, 63), bridge_value);
+    try writeValueAtInteropPolicyBytes(u32, bridge_addr, 75, 2, 0);
+    try std.testing.expectEqual(@as(u32, 75), bridge_value);
+    try writeValueAtByte(u32, bridge_addr, 87, 2);
+    try std.testing.expectEqual(@as(u32, 87), bridge_value);
 
     try std.testing.expectError(error.UnsafeScopeDenied, pointerAtInteropPolicy(u32, bridge_addr, 0, none_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, pointerAtInteropPolicy(u32, bridge_addr, 0, mmio_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, pointerAtInteropPolicyBytes(u32, bridge_addr, 0, 2, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, pointerAtByte(u32, bridge_addr, 0, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, constPointerAtInteropPolicy(u32, bridge_addr, none_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, constPointerAtByte(u32, bridge_addr, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, constSliceAtInteropPolicy(u32, bridge_addr, 1, mmio_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, constSliceAtInteropPolicyBytes(u32, bridge_addr, 1, 2, 1));
-    try std.testing.expectError(error.UnsafeScopeDenied, writeValueAtInteropPolicy(u32, bridge_addr, 77, mmio_policy));
-    try std.testing.expectError(error.UnsafeScopeDenied, writeValueAtInteropPolicyBytes(u32, bridge_addr, 89, 0, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, constSliceAtByte(u32, bridge_addr, 1, 9));
+    try std.testing.expectError(error.UnsafeScopeDenied, writeValueAtInteropPolicy(u32, bridge_addr, 99, mmio_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, writeValueAtInteropPolicyBytes(u32, bridge_addr, 111, 0, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, writeValueAtByte(u32, bridge_addr, 123, 1));
 }
