@@ -9,6 +9,7 @@ const Manifest = struct {
     sample_present: bool,
     current_replay: []const u8,
     local_lab_replay: []const u8,
+    makefile_wrapper: []const u8,
     survey_note: []const u8,
     survey_owner: []const u8,
     rollback_owner: []const u8,
@@ -54,6 +55,10 @@ test "phase4 test_fsmount gap manifest keeps the parked survey explicit" {
         manifest.local_lab_replay,
     );
     try std.testing.expectEqualStrings(
+        "make -C zigux phase4-test-fsmount-survey",
+        manifest.makefile_wrapper,
+    );
+    try std.testing.expectEqualStrings(
         "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
         manifest.survey_note,
     );
@@ -70,7 +75,7 @@ test "phase4 test_fsmount gap manifest keeps the parked survey explicit" {
         manifest.review_prompts[0],
     );
     try std.testing.expectEqualStrings(
-        "the packet keeps the live VFS replay command and the dedicated local survey wrapper explicit without implying a shipped Zig sample",
+        "the packet keeps the live VFS replay command plus the dedicated local and Linux-style survey wrappers explicit without implying a shipped Zig sample",
         manifest.review_prompts[1],
     );
     try std.testing.expectEqualStrings(
@@ -119,6 +124,7 @@ test "phase4 test_fsmount gap survey note stays honest about the parked boundary
         "PHASE4_SAMPLE_PRESENT=false",
         "PHASE4_CURRENT_REPLAY=make M=samples/vfs",
         "PHASE4_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+        "PHASE4_MAKEFILE_WRAPPER=make -C zigux phase4-test-fsmount-survey",
         "PHASE4_SURVEY_OWNER=Validation and Perf Team",
         "PHASE4_ROLLBACK_OWNER=Validation and Perf Team",
         "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false",
@@ -139,6 +145,7 @@ test "phase4 test_fsmount gap survey note stays honest about the parked boundary
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.anchor_blob_sha) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.validation_entrypoint) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.local_lab_replay) != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, manifest.makefile_wrapper) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "claiming a shipped Zig starter") != null);
 }
 
