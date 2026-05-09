@@ -89,6 +89,7 @@ pub const CallbackBoundarySummary = struct {
     registration_depth_after_register: usize,
     registration_depth_after_unregister: usize,
     registration_balance_restored: bool,
+    checked_focus: []const SampleFocus,
 };
 
 pub const OwnershipSummary = struct {
@@ -392,6 +393,7 @@ pub const TraceEventsReferenceSample = struct {
             .registration_depth_after_register = registration_depth_after_register,
             .registration_depth_after_unregister = registration_depth_after_unregister,
             .registration_balance_restored = registration_depth_after_unregister == 0,
+            .checked_focus = reviewContract().focus,
         };
     }
 
@@ -608,6 +610,13 @@ test "trace-events sample keeps payload and callback boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 1), callback_boundary.registration_depth_after_register);
     try std.testing.expectEqual(@as(usize, 0), callback_boundary.registration_depth_after_unregister);
     try std.testing.expect(callback_boundary.registration_balance_restored);
+    try std.testing.expectEqual(@as(usize, 6), callback_boundary.checked_focus.len);
+    try std.testing.expectEqual(SampleFocus.payload_shape, callback_boundary.checked_focus[0]);
+    try std.testing.expectEqual(SampleFocus.string_selection, callback_boundary.checked_focus[1]);
+    try std.testing.expectEqual(SampleFocus.formatted_message, callback_boundary.checked_focus[2]);
+    try std.testing.expectEqual(SampleFocus.conditional_event_families, callback_boundary.checked_focus[3]);
+    try std.testing.expectEqual(SampleFocus.function_callback_registration, callback_boundary.checked_focus[4]);
+    try std.testing.expectEqual(SampleFocus.ownership_and_lifetime, callback_boundary.checked_focus[5]);
 }
 
 test "trace-events sample ownership summary keeps lifecycle snapshots public" {
