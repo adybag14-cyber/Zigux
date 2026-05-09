@@ -18,6 +18,7 @@ The current helper stays intentionally narrow:
 - adds the landed transaction release helper surface around `simple_transaction_release()` by keeping the work in page-backed private-data cleanup, release bookkeeping, and the zero return path before any live file lifecycle, readback, or cursor-backed state is claimed
 - adds the landed `generic_check_addressable()` planner by keeping the work in shift-overflow rejection, zero-block passthrough, minimum block-size validation, and explicit sector-addressability plus page-cache limit checks before any live superblock, page-cache, or inode ownership is claimed
 - adds the landed `simple_open()` planner by keeping the work in the `inode->i_private` to `file->private_data` handoff, the null-private no-op branch, and the unconditional zero return path before any live file lifecycle, cursor ownership, or inode mutation is claimed
+- adds the exported `simple_dir_operations` wrapper plan by keeping the work in the shared handler names `dcache_dir_open`, `dcache_dir_close`, `dcache_dir_lseek`, `generic_read_dir`, `dcache_readdir`, and `noop_fsync` without claiming live file_operations registration or VFS object ownership
 
 This slice does not claim `d_add()` side effects, cursor-backed directory iteration, inode allocation, pseudo-fs mounting, or any other live VFS plumbing from the wider `fs/libfs.c` body.
 
