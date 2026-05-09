@@ -193,6 +193,7 @@ test "phase13 libfs reviewability gate records the landed helper surfaces and re
     try std.testing.expect(contains(survey_note, "blocked `phase13-libfs-dcache-cursor-helpers`"));
     try std.testing.expect(contains(survey_note, "focused `zigux/tests/phase13_libfs_addressability.zig` file"));
     try std.testing.expect(contains(survey_note, "focused addressability proof"));
+    try std.testing.expect(contains(survey_note, "Documentation/zigux/phase13-roadmap-traceability.md"));
     try std.testing.expect(contains(survey_note, "dedicated helper-local evidence rather than a ninth shared replay step"));
     try std.testing.expect(contains(survey_note, "shared eight-test `phase13_build.zig` route"));
     try std.testing.expect(!contains(survey_note, "landed `phase13-libfs-helper-starter`"));
