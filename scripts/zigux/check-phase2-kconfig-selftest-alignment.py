@@ -14,6 +14,8 @@ CHECKER = Path("scripts/zigux/check-kconfig-bridge.py")
 VALIDATOR = Path("scripts/zigux/validate-phase2.py")
 MAKEFILE = Path("zigux/Makefile")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
+SCRIPT_README = Path("scripts/zigux/README.md")
+TESTS_README = Path("zigux/tests/README.md")
 CLOSURE = Path("Documentation/zigux/phase2-closure.md")
 TOOL_MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 CONF_PACKET_PATH = "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json"
@@ -80,6 +82,30 @@ REQUIRED_VALIDATOR_GUARD_EXACT_COUNTS = {
     "KCONFIG_BRIDGE_DIFF=pass": 1,
     "FIXTURE_DIR=": 1,
 }
+REQUIRED_SCRIPT_README_MARKERS = (
+    "check-phase2-kconfig-selftest-alignment.py",
+    "check-kconfig-bridge.py",
+    "phase2-kconfig",
+    "bounded kconfig bridge packet",
+)
+REQUIRED_SCRIPT_README_EXACT_COUNTS = {
+    "check-phase2-kconfig-selftest-alignment.py": 1,
+    "check-kconfig-bridge.py": 1,
+}
+REQUIRED_TESTS_README_MARKERS = (
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-kconfig-bridge.py",
+    "zig test scripts/zigux/kconfig/conf_bridge.zig",
+    "zig test scripts/zigux/kconfig/confdata_bridge.zig",
+    "the shipped direct kconfig bridge replays",
+)
+REQUIRED_TESTS_README_EXACT_COUNTS = {
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
+    "scripts/zigux/check-kconfig-bridge.py": 1,
+    "zig test scripts/zigux/kconfig/conf_bridge.zig": 1,
+    "zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
+    "the shipped direct kconfig bridge replays": 1,
+}
 REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
@@ -105,7 +131,7 @@ REQUIRED_CLOSURE_EXACT_COUNTS = {
     f"`PHASE2_KCONFIG_BRIDGE_CONFDATA_PACKET={CONFDATA_PACKET_PATH}`": 1,
     "`kconfig_confdata_bridge_packet`": 1,
 }
-EXPECTED_SELF_TEST_CASE_COUNT = 60
+EXPECTED_SELF_TEST_CASE_COUNT = 64
 
 
 def read_text(path: Path) -> str:
@@ -130,10 +156,29 @@ def count_validator_marker_lines(text: str, marker: str) -> int:
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
+    required_files = (
+        CHECKER,
+        VALIDATOR,
+        MAKEFILE,
+        WORKFLOW,
+        SCRIPT_README,
+        TESTS_README,
+        CLOSURE,
+        TOOL_MANIFEST,
+        CONFDATA_MANIFEST,
+    )
+    for rel_path in required_files:
+        if not (root / rel_path).exists():
+            issues.append(("MISSING_REQUIRED_FILES", str(rel_path)))
+    if issues:
+        return issues
+
     checker_text = read_text(root / CHECKER)
     validator_text = read_text(root / VALIDATOR)
     makefile_text = read_text(root / MAKEFILE)
     workflow_text = read_text(root / WORKFLOW)
+    script_readme_text = read_text(root / SCRIPT_README)
+    tests_readme_text = read_text(root / TESTS_README)
     closure_text = read_text(root / CLOSURE)
     tool_manifest = json.loads(read_text(root / TOOL_MANIFEST))
     confdata_manifest = json.loads(read_text(root / CONFDATA_MANIFEST))
@@ -158,6 +203,22 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_VALIDATOR_GUARD_MARKERS", marker))
         elif count != REQUIRED_VALIDATOR_GUARD_EXACT_COUNTS[marker]:
             issues.append(("DUPLICATE_VALIDATOR_GUARD_MARKERS", f"{marker}:count={count}:expected={REQUIRED_VALIDATOR_GUARD_EXACT_COUNTS[marker]}"))
+
+    for marker in REQUIRED_SCRIPT_README_MARKERS:
+        if marker not in script_readme_text:
+            issues.append(("MISSING_SCRIPT_README_MARKERS", marker))
+    for marker, expected_count in REQUIRED_SCRIPT_README_EXACT_COUNTS.items():
+        count = count_exact_substrings(script_readme_text, marker)
+        if count != expected_count:
+            issues.append(("DUPLICATE_SCRIPT_README_MARKERS", f"{marker}:count={count}:expected={expected_count}"))
+
+    for marker in REQUIRED_TESTS_README_MARKERS:
+        if marker not in tests_readme_text:
+            issues.append(("MISSING_TESTS_README_MARKERS", marker))
+    for marker, expected_count in REQUIRED_TESTS_README_EXACT_COUNTS.items():
+        count = count_exact_substrings(tests_readme_text, marker)
+        if count != expected_count:
+            issues.append(("DUPLICATE_TESTS_README_MARKERS", f"{marker}:count={count}:expected={expected_count}"))
 
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -276,6 +337,31 @@ def build_self_test_root(root: Path) -> None:
                 "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=21",
                 "KCONFIG_BRIDGE_DIFF=pass",
                 "FIXTURE_DIR=",
+                "",
+            )
+        ),
+    )
+    write_text(
+        root / SCRIPT_README,
+        "\n".join(
+            (
+                "check-phase2-kconfig-selftest-alignment.py",
+                "check-kconfig-bridge.py",
+                "phase2-kconfig",
+                "bounded kconfig bridge packet",
+                "",
+            )
+        ),
+    )
+    write_text(
+        root / TESTS_README,
+        "\n".join(
+            (
+                "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+                "scripts/zigux/check-kconfig-bridge.py",
+                "zig test scripts/zigux/kconfig/conf_bridge.zig",
+                "zig test scripts/zigux/kconfig/confdata_bridge.zig",
+                "the shipped direct kconfig bridge replays",
                 "",
             )
         ),
@@ -607,6 +693,34 @@ def run_self_test() -> int:
         cases += 1
 
         build_self_test_root(root)
+        path = root / SCRIPT_README
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_SCRIPT_README_MARKERS[0] + "\n", "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_SCRIPT_README_MARKERS", REQUIRED_SCRIPT_README_MARKERS[0]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / SCRIPT_README
+        path.write_text(path.read_text(encoding="utf-8") + REQUIRED_SCRIPT_README_MARKERS[0] + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_SCRIPT_README_MARKERS", f"{REQUIRED_SCRIPT_README_MARKERS[0]}:count=2:expected=1") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / TESTS_README
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_TESTS_README_MARKERS[0] + "\n", "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_TESTS_README_MARKERS", REQUIRED_TESTS_README_MARKERS[0]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / TESTS_README
+        path.write_text(path.read_text(encoding="utf-8") + REQUIRED_TESTS_README_MARKERS[0] + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_TESTS_README_MARKERS", f"{REQUIRED_TESTS_README_MARKERS[0]}:count=2:expected=1") in issues
+        cases += 1
+
+        build_self_test_root(root)
         path = root / MAKEFILE
         path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[0], "\ttrue"), encoding="utf-8")
         issues = collect_issues(root)
@@ -838,6 +952,8 @@ def main() -> int:
     print(f"PHASE2_KCONFIG_ALIGNMENT_CHECKER_MARKER_COUNT={len(REQUIRED_CHECKER_MARKERS)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_VALIDATOR_MARKER_COUNT={len(REQUIRED_VALIDATOR_MARKERS)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_VALIDATOR_GUARD_MARKER_COUNT={len(REQUIRED_VALIDATOR_GUARD_MARKERS)}")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_SCRIPT_README_MARKER_COUNT={len(REQUIRED_SCRIPT_README_MARKERS)}")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_TESTS_README_MARKER_COUNT={len(REQUIRED_TESTS_README_MARKERS)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_CLOSURE_MARKER_COUNT={len(REQUIRED_CLOSURE_MARKERS)}")
