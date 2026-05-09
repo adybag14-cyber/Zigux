@@ -46,9 +46,10 @@ REQUIRED_SNIPPETS = {
         "- `PHASE6_PACKET=base64-bsearch-checksum-hexdump`",
         "- shared packet manifest: `zigux/tests/phase6_helper_parity_manifest.json`",
         "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
-        "- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay; there is no separate timing-style perf target in the shipped packet today",
-        "- current review posture: helper parity plus the shipped dedicated slowdown gate exposed through `make -C zigux phase6-checksum-perf`",
-        "- `phase6-hexdump-test`, alongside the shipped formatter-sensitive slowdown gate exposed through `make -C zigux phase6-hexdump-perf`",
+        "- focused lower-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
+        "- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated lower-bound C ABI companion that keeps the typed and raw lower-bound comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today",
+        "- current review posture: helper parity plus the shipped direct 39-case C-vs-Zig replay through the dedicated parity replay, C harness, and checker script, alongside the dedicated slowdown gate exposed through `make -C zigux phase6-checksum-perf`",
+        "- current review posture: helper parity is now individually rerunnable through `make -C zigux phase6-hexdump-test`, alongside the shipped formatter-sensitive slowdown gate exposed through `make -C zigux phase6-hexdump-perf`",
         "- `make -C zigux phase6-hexdump-test`",
         "- `make -C zigux phase6-validate`",
         "- `make -C zigux phase6`",
@@ -60,7 +61,7 @@ REQUIRED_SNIPPETS = {
     "zigux/tests/phase6_helper_parity_manifest.json": [
         "\"phase\": \"Phase 6\",",
         "\"tranche\": \"leaf-helper-parity\",",
-        "\"surveyed_commit\": \"\",",
+        "\"surveyed_commit\": \"",
         "\"id\": \"base64\"",
         "\"id\": \"bsearch\"",
         "\"id\": \"checksum\"",
@@ -90,7 +91,7 @@ REQUIRED_SNIPPETS = {
     "Documentation/zigux/phase6-bsearch-slice.md": [
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_SLICE=bsearch-leaf-helper`",
-        "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, or packet-alignment drift appears",
+        "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower-bound companion, or packet-alignment drift appears",
         "- `searchIndex`",
         "- `search`",
         "- `searchMutable`",
@@ -99,7 +100,7 @@ REQUIRED_SNIPPETS = {
         "- `bsearchMutable`",
         "- mutable typed and raw lookup write-through parity",
         "- runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses",
-        "The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable.",
+        "The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable, and the same focused replay now carries the bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route.",
     ],
     "Documentation/zigux/phase6-checksum-slice.md": [
         "- `PHASE6_STATUS=parked`",
@@ -172,9 +173,9 @@ REQUIRED_SNIPPETS = {
     ],
     "zigux/tests/phase6_base64_perf.zig": [
         'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
-        'fn runHelperEncodeBench(case: fixtures.PerfCase, variant: base64.Variant) !BenchResult {',
-        'for (fixtures.perf_cases) |case| {',
-        'const variant = fixtureVariant(case.variant_name);',
+        "fn runHelperEncodeBench(case: fixtures.PerfCase, variant: base64.Variant) !BenchResult {",
+        "for (fixtures.perf_cases) |case| {",
+        "const variant = fixtureVariant(case.variant_name);",
         'try stdout_writer.interface.print("PHASE6_BASE64_PERF_CASE_COUNT={d}\\n", .{fixtures.perf_cases.len});',
         'try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_ENCODE_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_encode_slowdown_pct });',
         'try stdout_writer.interface.print("PHASE6_BASE64_PERF_{s}_DECODE_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_decode_slowdown_pct });',
@@ -234,10 +235,10 @@ REQUIRED_SNIPPETS = {
     ],
     "zigux/tests/phase6_hexdump_perf.zig": [
         'const fixtures = @import("phase6_hexdump_vectors");',
-        'for (fixtures.perf_cases) |case| {',
-        'const expected = fixtures.prepareExpectedLine(',
-        'try std.testing.expectEqual(fixtures.expectedLength(case.len, case.rowsize, case.groupsize, case.ascii), required);',
-        'try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(helper_line[0..], 0));',
+        "for (fixtures.perf_cases) |case| {",
+        "const expected = fixtures.prepareExpectedLine(",
+        "try std.testing.expectEqual(fixtures.expectedLength(case.len, case.rowsize, case.groupsize, case.ascii), required);",
+        "try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(helper_line[0..], 0));",
         'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_CASE_COUNT={d}\\n", .{fixtures.perf_cases.len});',
         'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_SLOWDOWN_PCT={d}\\n", .{ case.label, slowdown_pct });',
         'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
@@ -468,7 +469,7 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "Documentation/zigux/phase6-bsearch-slice.md",
-            "lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, or packet-alignment drift appears",
+            "lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower-bound companion, or packet-alignment drift appears",
             "lane state: helper slice landed; parked unless a new `bsearch.c` parity issue appears",
         )
         assert_failure(
@@ -498,8 +499,8 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "zigux/tests/phase6_base64_perf.zig",
-            'for (fixtures.perf_cases) |case| {',
-            'for (inline_perf_cases) |case| {',
+            "for (fixtures.perf_cases) |case| {",
+            "for (inline_perf_cases) |case| {",
         )
         assert_failure(
             root,
@@ -510,8 +511,8 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "zigux/tests/phase6_hexdump_perf.zig",
-            'for (fixtures.perf_cases) |case| {',
-            'for (inline_perf_cases) |case| {',
+            "for (fixtures.perf_cases) |case| {",
+            "for (inline_perf_cases) |case| {",
         )
         assert_failure(
             root,
