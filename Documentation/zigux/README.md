@@ -165,7 +165,7 @@ Phase 8 notes
 - `zigux/tests/phase8_pin_path.zig`
 - `zigux/tests/phase8_bpf_type_names.zig`
 - `zigux/tests/phase8_file_path_handle_bridge.zig`
-- `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
+- `zigux/tests/phase8_file_path_handleBridgeOnlyBuild.zig`
 - `zigux/tests/phase8_perf_buffer_poll.zig`
 - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
 - `zigux/tests/phase8_libbpf_segments.zig`
@@ -226,6 +226,7 @@ Phase 12 notes
 - `Documentation/zigux/phase12-release-coordination-matrix.md`
 - `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
 - `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
+- `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/phase12-nvme-pci-slice.md`
 - `Documentation/zigux/phase12-nvme-pci-survey.md`
