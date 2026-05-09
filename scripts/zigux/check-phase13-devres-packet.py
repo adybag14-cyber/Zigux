@@ -128,6 +128,8 @@ MANIFEST_EXPECTED_SURVEYED_COMMIT = "032c57dbde9a95ad6e28ad891cca54bd2e3bfcf1"
 MANIFEST_SUMMARY_KEYS = [
     "preexisting_phase13_devres_test_present",
     "preexisting_phase13_devres_reviewability_present",
+    "preexisting_phase13_devres_dma_coherent_present",
+    "preexisting_phase13_devres_boundary_evidence_present",
     "preexisting_phase13_devres_survey_present",
 ]
 
@@ -364,6 +366,8 @@ def run_self_test() -> int:
                 "phase13-devres-manifest-surveyed-commit",
                 "phase13-devres-manifest-summary:preexisting_phase13_devres_test_present",
                 "phase13-devres-manifest-summary:preexisting_phase13_devres_reviewability_present",
+                "phase13-devres-manifest-summary:preexisting_phase13_devres_dma_coherent_present",
+                "phase13-devres-manifest-summary:preexisting_phase13_devres_boundary_evidence_present",
                 "phase13-devres-manifest-summary:preexisting_phase13_devres_survey_present",
                 "phase13-devres-manifest-gap:phase13-devres-boundary-evidence-gate",
                 "phase13-devres-manifest-gap:phase13-devres-live-mmio-side-effects",
