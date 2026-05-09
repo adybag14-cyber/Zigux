@@ -467,6 +467,15 @@ pub const RcuTreeBridgeLab = struct {
         return critical_freeze_checkpoint_ids.len;
     }
 
+    pub fn criticalFreezeBoundaryAreaCount() usize {
+        return critical_freeze_checkpoint_ids.len;
+    }
+
+    pub fn criticalFreezeBoundaryAreaById(id: []const u8) ?BoundaryArea {
+        if (!isCriticalFreezeCheckpoint(id)) return null;
+        return boundaryAreaById(id);
+    }
+
     pub fn isCriticalFreezeCheckpoint(id: []const u8) bool {
         for (critical_freeze_checkpoint_ids) |checkpoint_id| {
             if (std.mem.eql(u8, checkpoint_id, id)) return true;
@@ -609,12 +618,16 @@ test "rcu tree bridge critical freeze checkpoint catalog stays anchored to the d
     try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.criticalFreezeCheckpointIds().len);
     try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.criticalFreezeBlockedBehaviors().len);
     try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.criticalFreezeEvidenceBindingCount());
+    try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.criticalFreezeBoundaryAreaCount());
 
     for (RcuTreeBridgeLab.criticalFreezeCheckpointIds(), 0..) |checkpoint_id, index| {
         const checkpoint = RcuTreeBridgeLab.checkpointById(checkpoint_id) orelse return error.MissingCheckpoint;
         const binding = RcuTreeBridgeLab.criticalFreezeEvidenceBindingByCheckpointId(checkpoint_id) orelse return error.MissingEvidenceBinding;
+        const area = RcuTreeBridgeLab.criticalFreezeBoundaryAreaById(checkpoint_id) orelse return error.MissingBoundaryArea;
         try std.testing.expect(checkpoint.ownership == .stay_in_c);
+        try std.testing.expect(area.ownership == .stay_in_c);
         try std.testing.expectEqualStrings(checkpoint_id, binding.checkpoint_id);
+        try std.testing.expectEqualStrings(checkpoint_id, area.id);
         try std.testing.expectEqualStrings(RcuTreeBridgeLab.criticalFreezeBlockedBehaviors()[index], binding.blocked_behavior);
         try std.testing.expectEqual(@as(usize, 3), binding.required_evidence.len);
         try std.testing.expectEqual(@as(usize, 3), binding.automatic_return_triggers.len);
@@ -628,17 +641,23 @@ test "rcu tree bridge critical freeze checkpoint catalog stays anchored to the d
 
     const ordering = RcuTreeBridgeLab.checkpointById("memory-ordering-lock-network") orelse return error.MissingCheckpoint;
     const ordering_binding = RcuTreeBridgeLab.criticalFreezeEvidenceBindingByCheckpointId("memory-ordering-lock-network") orelse return error.MissingEvidenceBinding;
+    const ordering_area = RcuTreeBridgeLab.criticalFreezeBoundaryAreaById("memory-ordering-lock-network") orelse return error.MissingBoundaryArea;
     try std.testing.expect(ordering.guard == .memory_ordering_lock_network);
+    try std.testing.expectEqualStrings("smp_store_release", ordering_area.anchor_symbols[2]);
     try std.testing.expect(std.mem.indexOf(u8, ordering_binding.replay_focus, "lock-network ordering path") != null);
 
     const public_wait = RcuTreeBridgeLab.checkpointById("public-wait-and-barrier-contract") orelse return error.MissingCheckpoint;
     const public_wait_binding = RcuTreeBridgeLab.criticalFreezeEvidenceBindingByCheckpointId("public-wait-and-barrier-contract") orelse return error.MissingEvidenceBinding;
+    const public_wait_area = RcuTreeBridgeLab.criticalFreezeBoundaryAreaById("public-wait-and-barrier-contract") orelse return error.MissingBoundaryArea;
     try std.testing.expect(public_wait.guard == .public_wait_and_barrier_contract);
+    try std.testing.expectEqualStrings("start_poll_synchronize_rcu", public_wait_area.anchor_symbols[1]);
     try std.testing.expect(std.mem.indexOf(u8, public_wait_binding.replay_focus, "public wait, polling-cookie, and callback-barrier contract") != null);
 
     const hotplug = RcuTreeBridgeLab.checkpointById("cpu-hotplug-callback-migration") orelse return error.MissingCheckpoint;
     const hotplug_binding = RcuTreeBridgeLab.criticalFreezeEvidenceBindingByCheckpointId("cpu-hotplug-callback-migration") orelse return error.MissingEvidenceBinding;
+    const hotplug_area = RcuTreeBridgeLab.criticalFreezeBoundaryAreaById("cpu-hotplug-callback-migration") orelse return error.MissingBoundaryArea;
     try std.testing.expect(hotplug.guard == .cpu_hotplug_callback_migration);
+    try std.testing.expectEqualStrings("rcutree_migrate_callbacks", hotplug_area.anchor_symbols[2]);
     try std.testing.expect(std.mem.indexOf(u8, hotplug_binding.replay_focus, "CPU-hotplug enrollment, teardown, and callback migration") != null);
 
     for (RcuTreeBridgeLab.criticalFreezeBlockedBehaviors()) |behavior| {
@@ -649,6 +668,7 @@ test "rcu tree bridge critical freeze checkpoint catalog stays anchored to the d
 
     try std.testing.expect(RcuTreeBridgeLab.criticalFreezeEvidenceBindingByCheckpointId("grace-period-sequence-publication") == null);
     try std.testing.expect(RcuTreeBridgeLab.criticalFreezeEvidenceBindingByBlockedBehavior("grace-period sequence publication and rcu_node propagation") == null);
+    try std.testing.expect(RcuTreeBridgeLab.criticalFreezeBoundaryAreaById("grace-period-sequence-publication") == null);
     try std.testing.expect(!RcuTreeBridgeLab.isCriticalFreezeCheckpoint("grace-period-sequence-publication"));
     try std.testing.expect(!RcuTreeBridgeLab.checkpointRequiresGovernanceEvidence("grace-period-sequence-publication", governance_required_evidence[0]));
     try std.testing.expect(!RcuTreeBridgeLab.checkpointHasAutomaticReturnTrigger("grace-period-sequence-publication", governance_automatic_return_triggers[0]));
