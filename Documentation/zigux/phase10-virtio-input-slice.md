@@ -6,12 +6,14 @@ This document tracks the first bounded `drivers/virtio/virtio_input.c` lab helpe
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-input-lab-helper`
-- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, bounded capability-setup staging, bounded multitouch slot planning, bounded registration-preflight summaries, bounded queue-callback preflight summaries, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, bounded status-completion drain summaries, the wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay, the focused `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig` replay, dedicated Phase 10 input tests, the committed input survey manifest and survey gate, the dedicated input-packet review guard, the focused status-drain replay, and the shared Phase 10 build-and-make routes
+- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, bounded capability-setup staging, bounded multitouch slot planning, bounded probe-preflight summaries, bounded registration-preflight summaries, bounded queue-callback preflight summaries, bounded teardown-observation summaries, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, bounded status-completion drain summaries, the wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay, the focused `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig` replay, the focused `zigux/tests/phase10_virtio_input_registration_preflight.zig` replay, the focused `zigux/tests/phase10_virtio_input_teardown_observation.zig` replay, dedicated Phase 10 input tests, the committed input survey manifest and survey gate, the dedicated input-packet review guard, the focused status-drain replay, and the shared Phase 10 build-and-make routes
 - product boundary:
   - `drivers/virtio/virtio_input.zig`
   - `drivers/virtio/virtio_input_verify.zig`
   - `zigux/tests/phase10_virtio_input.zig`
   - `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
+  - `zigux/tests/phase10_virtio_input_registration_preflight.zig`
+  - `zigux/tests/phase10_virtio_input_teardown_observation.zig`
   - `zigux/tests/phase10_virtio_input_status_drain.zig`
   - `zigux/tests/phase10_virtio_input_manifest.json`
   - `zigux/tests/phase10_virtio_input_survey.zig`
@@ -26,13 +28,15 @@ This document tracks the first bounded `drivers/virtio/virtio_input.c` lab helpe
   - `drivers/virtio/virtio_input_verify.zig`
   - `zigux/tests/phase10_virtio_input.zig`
   - `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
+  - `zigux/tests/phase10_virtio_input_registration_preflight.zig`
+  - `zigux/tests/phase10_virtio_input_teardown_observation.zig`
   - `zigux/tests/phase10_virtio_input_status_drain.zig`
   - `zigux/tests/phase10_virtio_input_manifest.json`
   - `zigux/tests/phase10_virtio_input_survey.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
 - current review note:
-  - current `master` carries an adjacent module slice, a dedicated survey note and survey gate, the committed `zigux/tests/phase10_virtio_input_manifest.json` anchor, the dedicated `check-phase10-input-packet.py` guard, the wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay, the focused `phase10_virtio_input_queue_callback_preflight.zig` and `phase10_virtio_input_status_drain.zig` replays, and the shared `phase10_build.zig` plus Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` routes; reviewers should treat the input lane as one bounded manifest-backed checker-backed packet instead of a slice-note-only surface
+  - current `master` carries an adjacent module slice, a dedicated survey note and survey gate, the committed `zigux/tests/phase10_virtio_input_manifest.json` anchor, the dedicated `check-phase10-input-packet.py` guard, the wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay, the focused `phase10_virtio_input_queue_callback_preflight.zig`, `phase10_virtio_input_registration_preflight.zig`, `phase10_virtio_input_teardown_observation.zig`, and `phase10_virtio_input_status_drain.zig` replays, and the shared `phase10_build.zig` plus Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` routes; reviewers should treat the input lane as one bounded manifest-backed checker-backed packet instead of a slice-note-only surface
 
 ## Why this slice exists
 
@@ -44,6 +48,7 @@ The live repo now has a bounded `drivers/virtio/virtio_input.zig` helper plus de
 
 - module descriptor metadata anchored to `drivers/virtio/virtio_input.c`
 - bounded config identity snapshots for name, serial, phys path, device IDs, and the small set of config selects already modeled by the helper
+- one bounded probe-preflight summary that keeps identity staging, queue-fill readiness, and capability-setup blockers explicit before any future ready-state toggle or `input_register_device()` handoff
 - in-memory property-bit and event-bit config bitmap summaries keyed by selector and subselector, including the event-type surfacing rule from `virtinput_cfg_bits()`
 - in-memory ABS metadata summaries for min, max, fuzz, flat, and resolution keyed by ABS code, mirroring the bounded `virtinput_cfg_abs()` readout without claiming real `input_dev` mutation
 - in-memory capability-setup staging that only advances when event-bit configuration exists and keeps ABS parameter intent gated on matching `EV_ABS` capability bits
@@ -55,8 +60,9 @@ The live repo now has a bounded `drivers/virtio/virtio_input.zig` helper plus de
 - ready-state gating so status sends stay blocked until both queues are configured
 - multitouch `EV_MSC` and `MSC_TIMESTAMP` suppression bookkeeping that mirrors the loop-prevention branch in `virtio_input.c`
 - in-memory status-completion drain summaries that reclaim queued status sends without touching suppressed multitouch counters
-- dedicated Phase 10 tests and build wiring for the helper, including the wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay, the focused queue-callback-preflight replay, and the focused status-drain replay
-- an adjacent manifest-backed survey-and-checker packet: the current input lane is also reviewed through the module slice, the dedicated survey note and survey gate, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input_manifest.json`, the dedicated input-packet guard, the focused queue-callback-preflight replay, the focused status-drain replay, `phase10_build.zig`, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes
+- one bounded teardown-observation summary that keeps identity preservation plus runtime- and capability-state cleanup explicit before any future transport-backed remove, freeze, or restore work
+- dedicated Phase 10 tests and build wiring for the helper, including the wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay, the focused queue-callback-preflight replay, the focused registration-preflight replay, the focused teardown-observation replay, and the focused status-drain replay
+- an adjacent manifest-backed survey-and-checker packet: the current input lane is also reviewed through the module slice, the dedicated survey note and survey gate, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input_manifest.json`, the dedicated input-packet guard, the focused queue-callback-preflight replay, the focused registration-preflight replay, the focused teardown-observation replay, the focused status-drain replay, `phase10_build.zig`, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes
 
 ## Non-goals
 
@@ -82,20 +88,26 @@ This slice does not yet claim:
 4. run the focused queue-callback-preflight replay
 - `zig test zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
 
-5. run the focused status-drain replay
+5. run the focused registration-preflight replay
+- `zig test zigux/tests/phase10_virtio_input_registration_preflight.zig`
+
+6. run the focused teardown-observation replay
+- `zig test zigux/tests/phase10_virtio_input_teardown_observation.zig`
+
+7. run the focused status-drain replay
 - `zig test zigux/tests/phase10_virtio_input_status_drain.zig`
 
-6. run the dedicated input survey gate
+8. run the dedicated input survey gate
 - `zig test zigux/tests/phase10_virtio_input_survey.zig`
 
-7. run the dedicated Phase 10 build
+9. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-8. run the Linux-style Phase 10 test entrypoints
+10. run the Linux-style Phase 10 test entrypoints
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Taken together, these gates keep the bounded input helper plus the direct helper-facing replay, the wrapper-facing verify replay, the focused queue-callback-preflight replay, the focused status-drain replay, and the dedicated survey replay reviewable through the dedicated packet guard, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints on `master`.
+Taken together, these gates keep the bounded input helper plus the direct helper-facing replay, the wrapper-facing verify replay, the focused queue-callback-preflight replay, the focused registration-preflight replay, the focused teardown-observation replay, the focused status-drain replay, and the dedicated survey replay reviewable through the dedicated packet guard, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints on `master`.
 
 ## Next bounded step
 
