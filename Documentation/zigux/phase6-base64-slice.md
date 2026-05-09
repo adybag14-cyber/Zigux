@@ -79,7 +79,7 @@ The current landed helper and replay tests check:
 - exhaustive canonical tail acceptance for padded and unpadded std, URL-safe, and IMAP decode paths
 - exhaustive one-byte and two-byte roundtrip coverage across std, URL-safe, and IMAP variants with and without padding
 - dedicated encode and decode perf sanity across std and URL-safe paths with and without padding through `zigux/tests/phase6_base64_perf.zig`
-- a direct 15-case C-vs-Zig spot check covering representative std, URL-safe, and IMAP encode parity, decode parity, and malformed-tail rejection through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- a direct 24-case C-vs-Zig spot check covering representative std, URL-safe, and IMAP encode parity, decoded-byte parity, returned encoded-size parity through `chars`, returned decoded-size parity through `bytes`, and malformed-tail rejection through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 
 The fixture layer stays intentionally small. It keeps the Phase 6 base64 parity matrix reviewable in one place and now pairs that shared fixture corpus with a direct external C replay so portability-sensitive behavior does not stop at Zig-only expectations.
 
