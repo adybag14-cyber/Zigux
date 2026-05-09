@@ -17,6 +17,8 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
   - `samples/zigux/README.md`
   - `scripts/zigux/README.md`
   - `zigux/tests/README.md`
+  - `zigux/Makefile`
+  - `.github/workflows/zigux-bootstrap.yml`
   - `samples/zigux/kretprobe_example.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_kretprobe_example.zig`
@@ -39,8 +41,8 @@ Fresh repo inspection now shows the bounded roadmap anchor already landed as `sa
   - return-value and duration reporting from the stored entry timestamp
   - real registration and teardown substrate through `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs`, and module init or exit hooks
 - the honest Phase 5 move is to make symbol choice, skip behavior, the one-word private timestamp record, return-duration bookkeeping, the fixed `maxactiveBudget()` review cue at `20`, the `nmissed` summary, and ownership snapshots reviewable in memory while leaving probe registration and module plumbing out of scope.
-- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now keep this kretprobe note aligned with the same four-sample Phase 5 packet described from the docs root, guide, sample root, scripts root, and tests root.
-- the narrower same-lane guidance risk on current `master` is no longer missing broad shared-packet coverage; it is sample-local drift between this survey note, the shared Phase 5 guide, and the manifest-backed replay prompts whenever sample-owned retargeting, lifecycle-guard, recovery-replay, or teardown wording changes.
+- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` now keep this kretprobe note aligned with the same four-sample Phase 5 packet described from the docs root, guide, sample root, scripts root, tests root, Linux-style make replay surface, and workflow-backed replay surface.
+- the narrower same-lane guidance risk on current `master` is no longer missing broad shared-packet coverage; it is sample-local drift between this survey note, the shared Phase 5 guide, the manifest-backed replay prompts, and the shipped Makefile plus workflow replay surfaces whenever sample-owned retargeting, lifecycle-guard, recovery-replay, or teardown wording changes.
 
 ## Landed sample and exact checks
 
@@ -99,11 +101,11 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 - does the focused `zigux/tests/phase5_kretprobe_example.zig` replay still keep direct handler boundaries, outstanding-instance rejection, timestamp-order rejection and recovery, and post-exit teardown rejection explicit while the sample-owned helpers stay bounded?
 - do the sample-owned prompts still keep the fixed `maxactiveBudget()` cue at `20`, timestamp-order rejection and recovery, and post-exit handler rejection explicit instead of leaving those probe-lifecycle boundaries implied?
 - do `ownershipSummary()` and `runOwnershipReplay()` still keep the `cold`, `initialized`, `armed`, `replay_complete`, and `exited` lifecycle packet explicit without implying the separate Phase 9 runtime summary surface?
-- do the shared Phase 5 contributor surfaces in `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still point at this exact kretprobe packet, keep `ownershipSummary()` plus sample-owned `runOwnershipReplay()` explicit as the shared lifecycle cues, keep the shared `phase5_build.zig` plus make replay route explicit, and keep it separate from the later `runtime_kretprobe` family instead of leaving this note or the shared guide to carry that boundary alone?
+- do the shared Phase 5 contributor surfaces in `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still point at this exact kretprobe packet, keep `ownershipSummary()` plus sample-owned `runOwnershipReplay()` explicit as the shared lifecycle cues, keep the shared `phase5_build.zig` plus `make -C zigux phase5-test` and `make -C zigux phase5` replay routes explicit, and keep the workflow-backed replay surface explicit too while still separating this sample from the later `runtime_kretprobe` family instead of leaving this note or the shared guide to carry that boundary alone?
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
 - if the sample behavior changes, is the manifest updated alongside the replay and teardown contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and runtime module wiring remain out of scope for this Phase 5 sample?
-- if the broader shared review packet is refreshed, does it keep the landed `samples/zigux/kretprobe_example.zig` packet, the shared `Documentation/zigux/phase5-sample-review-guide.md` map, and the shipped `phase5_build.zig` plus make replay route explicit while still separating this sample from the later `runtime_kretprobe` family instead of leaving that distinction trace-events-only?
+- if the broader shared review packet is refreshed, does it keep the landed `samples/zigux/kretprobe_example.zig` packet, the shared `Documentation/zigux/phase5-sample-review-guide.md` map, the shipped `phase5_build.zig` plus make replay route, and the workflow-backed replay surface explicit while still separating this sample from the later `runtime_kretprobe` family instead of leaving that distinction trace-events-only?
 
 ## Recorded gap vs roadmap
 
@@ -111,7 +113,7 @@ The current gap is no longer "Zigux has no kretprobe sample guidance." The more 
 
 - the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, skip behavior, private-data shape, return timing, summary recording, ownership snapshots, lifecycle-guard behavior, sample-owned retarget replay, and teardown recovery
 - this sample must remain visibly separate from the later Phase 9 runtime `kretprobe` starter so contributors do not over-claim runtime substrate coverage
-- the live same-lane reviewability risk is no longer missing shared-packet coverage; it is drift between the kretprobe-owned survey note, the shared Phase 5 guide, and the existing manifest-backed replay prompts when the sample-owned retarget, lifecycle, recovery, or teardown contract changes
+- the live same-lane reviewability risk is no longer missing shared-packet coverage; it is drift between the kretprobe-owned survey note, the shared Phase 5 guide, the existing manifest-backed replay prompts, and the shipped `zigux/Makefile` plus `.github/workflows/zigux-bootstrap.yml` replay surfaces when the sample-owned retarget, lifecycle, recovery, or teardown contract changes
 - current `master` now carries all four roadmap-backed Phase 5 reference samples, so this slice should stay explicit about its own boundary rather than implying another anchor is still missing
 
 ## Review gates for this survey
@@ -136,4 +138,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection shows the kretprobe-owned survey note, the shared Phase 5 guide, and the manifest-backed replay prompts drifting apart. If that happens, keep the follow-through limited to the smallest truthfulness repair across those existing sample-owned surfaces and the shipped `phase5_build.zig` plus make replay route instead of widening into new sample semantics or runtime substrate claims.
+Leave this lane parked unless fresh repo inspection shows the kretprobe-owned survey note, the shared Phase 5 guide, the manifest-backed replay prompts, or the shipped make and workflow replay surfaces drifting apart. If that happens, keep the follow-through limited to the smallest truthfulness repair across those existing sample-owned surfaces and the shipped `phase5_build.zig` plus make replay route instead of widening into new sample semantics or runtime substrate claims.
