@@ -185,7 +185,14 @@
     ],
     "inline_corpus_helpers": [
       "bsearch"
-    ]
+    ],
+    "inline_corpus_governance": {
+      "bsearch": {
+        "focused_replay": "zigux/tests/phase6_bsearch.zig",
+        "lower_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+        "policy": "keep representative sorted slices, duplicate-bearing insertion probes, and packed-record member_size cases inline in the focused bsearch replays instead of a separate Phase 6 fixture module"
+      }
+    }
   },
   "determinism_evidence": {
     "base64": {
