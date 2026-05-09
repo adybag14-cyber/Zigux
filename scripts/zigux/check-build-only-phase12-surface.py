@@ -152,7 +152,9 @@ REQUIRED_FILE_MARKERS = {
     ],
     PHASE12_RAW_GITHUB_COVERAGE_PATH: [
         "commit-pinned fallback artifacts:",
+        "`PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2`",
         "shared-tree-only anchors:",
+        "`PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2`",
         "freeze-boundary guard: `Documentation/zigux/freeze-map.md`; queueing, throughput, rollback, and recovery wording in this shared fallback overview must stay below active delivery claims against frozen `net/core/skbuff.c` and below boundary-study-only `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c`",
         "The shipped Phase 12 packet on `master` still keeps the same four-step smoke-first replay order used by the PMO sequencing and closure companion notes.",
         "PHASE12_SHARED_SMOKE_SURFACE_COUNT=6",
@@ -356,6 +358,8 @@ EXACT_COUNT_FILE_MARKERS = {
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`": 1,
     },
     PHASE12_RAW_GITHUB_COVERAGE_PATH: {
+        "`PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2`": 1,
+        "`PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2`": 1,
         "PHASE12_SHARED_SMOKE_SURFACE_COUNT=6": 1,
         "current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`": 1,
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`": 1,
