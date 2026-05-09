@@ -154,6 +154,20 @@ PERF_BASELINE_REQUIRED_GAPS = {
         "zigux_destination": "Documentation/zigux/phase4-validation-matrix.md",
     },
 }
+SHARED_PHASE4_REVIEW_SURFACE_MARKERS = {
+    "Documentation/zigux/README.md": [
+        "dedicated local-only perf-baseline survey packet's approved benchmark commands and acceptable limits",
+        "intentionally unapproved perf-threshold posture explicit for the shipped Phase 4 gates",
+    ],
+    "scripts/zigux/README.md": [
+        "approved local-only benchmark commands and acceptable limits",
+        "without implying a shipped Phase 4 slowdown budget",
+    ],
+    "Documentation/zigux/review-checklist.md": [
+        "the dedicated local-only perf-baseline survey packet",
+        "shared CI coverage",
+    ],
+}
 
 
 def git_blob_sha1(payload: bytes) -> str:
@@ -325,6 +339,16 @@ def validate_gap_packets(root: Path) -> list[str]:
     return missing
 
 
+def validate_shared_phase4_review_surfaces(root: Path) -> list[str]:
+    missing: list[str] = []
+    for relative_path, markers in SHARED_PHASE4_REVIEW_SURFACE_MARKERS.items():
+        text = read_text(root, relative_path)
+        for marker in markers:
+            if marker not in text:
+                missing.append(f"shared_review_surface:{relative_path}:{marker}")
+    return missing
+
+
 def required_status_lines(root: Path) -> list[str]:
     lines = [
         "PHASE4_EVIDENCE_MODE=github_connector_readback",
@@ -381,6 +405,7 @@ def validate_root(root: Path) -> list[str]:
     missing.extend(validate_runtime_atomic64_packet(root))
     missing.extend(validate_perf_baseline_packet(root))
     missing.extend(validate_gap_packets(root))
+    missing.extend(validate_shared_phase4_review_surfaces(root))
     return missing
 
 
@@ -398,14 +423,23 @@ def build_fixture_tree(root: Path) -> None:
         "zigux/tests/phase4_build.zig": "phase4 build fixture\n",
         "zigux/Makefile": "makefile fixture\n",
         ".github/workflows/zigux-bootstrap.yml": "workflow fixture\n",
-        "Documentation/zigux/README.md": "doc readme fixture\n",
-        "scripts/zigux/README.md": "script readme fixture\n",
+        "Documentation/zigux/README.md": (
+            "dedicated local-only perf-baseline survey packet's approved benchmark commands and acceptable limits\n"
+            "intentionally unapproved perf-threshold posture explicit for the shipped Phase 4 gates\n"
+        ),
+        "scripts/zigux/README.md": (
+            "approved local-only benchmark commands and acceptable limits\n"
+            "without implying a shipped Phase 4 slowdown budget\n"
+        ),
         "zigux/tests/README.md": "tests readme fixture\n",
         "zigux/tests/atomic64_diff.zig": "atomic64 diff fixture\n",
         "zigux/tests/runtime_atomic64_diff.zig": "runtime atomic64 diff fixture\n",
         "zigux/tests/bitmap_diff.zig": "bitmap diff fixture\n",
         "zigux/tests/phase4_bitmap_live_helper_replay.zig": "bitmap live helper fixture\n",
-        "Documentation/zigux/review-checklist.md": "review checklist fixture\n",
+        "Documentation/zigux/review-checklist.md": (
+            "the dedicated local-only perf-baseline survey packet\n"
+            "shared CI coverage\n"
+        ),
         "zigux/tests/phase9_build.zig": "phase9 build fixture\n",
         str(KPROBE_NOTE_PATH): "kprobe note fixture\n",
         str(KPROBE_SURVEY_PATH): "kprobe survey fixture\n",
@@ -534,6 +568,22 @@ def run_self_test() -> int:
             "perf_baseline_manifest:gaps:starter_landed:9:8",
             "perf_baseline_manifest:gaps:ready_next:0:1",
             "perf_baseline_gap:phase4-perf-baseline-shared-promotion-decision:status:starter_landed:ready_next",
+        ]
+
+        bad5 = Path(tmp_dir) / "bad5"
+        build_fixture_tree(bad5)
+        script_readme_path = bad5 / "scripts/zigux/README.md"
+        script_readme_path.write_text(
+            script_readme_path.read_text(encoding="utf-8").replace(
+                "approved local-only benchmark commands and acceptable limits\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert validate_root(bad5) == [
+            f"note_status:PHASE4_SCRIPT_README_BLOB_SHA={git_blob_sha1(read_bytes(bad5, 'scripts/zigux/README.md'))}",
+            "shared_review_surface:scripts/zigux/README.md:approved local-only benchmark commands and acceptable limits"
         ]
 
     print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
