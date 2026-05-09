@@ -183,6 +183,34 @@ test "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet expl
     try std.testing.expect(std.mem.indexOf(u8, checklist, "separate `kernel/workqueue.c` Phase 14 boundary-study target") != null);
 }
 
+test "phase 8 exec-cmd workflow keeps the focused replay ahead of sibling help shards" {
+    const io = std.testing.io;
+    const workflow = try std.Io.Dir.cwd().readFileAlloc(
+        io,
+        ".github/workflows/zigux-bootstrap.yml",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(workflow);
+
+    const validate_index = std.mem.indexOf(u8, workflow, "      - name: Validate Phase 8 tooling packet");
+    const exec_cmd_index = std.mem.indexOf(u8, workflow, "      - name: Run focused Phase 8 exec-cmd tests");
+    const help_index = std.mem.indexOf(u8, workflow, "      - name: Run focused Phase 8 help tests");
+    const kallsyms_index = std.mem.indexOf(u8, workflow, "      - name: Run focused Phase 8 kallsyms tests");
+    const shared_help_index = std.mem.indexOf(u8, workflow, "      - name: Run focused Phase 8 help and kallsyms tests");
+
+    try std.testing.expect(validate_index != null);
+    try std.testing.expect(exec_cmd_index != null);
+    try std.testing.expect(help_index != null);
+    try std.testing.expect(kallsyms_index != null);
+    try std.testing.expect(shared_help_index != null);
+    try std.testing.expect(validate_index.? < exec_cmd_index.?);
+    try std.testing.expect(exec_cmd_index.? < help_index.?);
+    try std.testing.expect(help_index.? < kallsyms_index.?);
+    try std.testing.expect(kallsyms_index.? < shared_help_index.?);
+    try std.testing.expect(std.mem.indexOf(u8, workflow, "        run: make -C zigux phase8-exec-cmd-test") != null);
+}
+
 test "phase 8 exec-cmd docs root summary keeps the focused replay route explicit" {
     const io = std.testing.io;
     const docs_root = try std.Io.Dir.cwd().readFileAlloc(
