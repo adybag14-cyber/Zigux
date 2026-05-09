@@ -23,11 +23,13 @@ EXPECTED_LANE_KEY = "P14-L07"
 TRACEABILITY_PATH = "Documentation/zigux/phase14-core-boundary-traceability.md"
 TRACEABILITY_TITLE = "# Phase 14 Core Boundary Traceability"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
+RCU_SURVEY_PATH = "Documentation/zigux/phase14-rcu-tree-survey.md"
+RCU_MANIFEST_PATH = "zigux/tests/phase14_rcu_tree_manifest.json"
 TRACEABILITY_MANIFEST_PATHS = [
     "zigux/tests/phase14_workqueue_bridge_manifest.json",
     "zigux/tests/phase14_ring_buffer_manifest.json",
     "zigux/tests/phase14_skbuff_bridge_manifest.json",
-    "zigux/tests/phase14_rcu_tree_manifest.json",
+    RCU_MANIFEST_PATH,
 ]
 REQUIRED_COMMANDS = [
     "make -C zigux phase14-validate",
@@ -35,7 +37,7 @@ REQUIRED_COMMANDS = [
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
-    "make -C zigux phase14"
+    "make -C zigux phase14",
 ]
 COMPILE_MATRIX_ROWS = [
     ("phase14-workqueue-bridge-tests", "phase14_workqueue_bridge.zig", "full_bundle_only"),
@@ -73,7 +75,7 @@ REQUIRED_SURFACES = {
     "zigux/tests/phase14_end_to_end_smoke_manifest.json": "phase14_shared_smoke_packet",
     "zigux/tests/phase14_ring_buffer_manifest.json": "phase14-ring-buffer-zig-port-blocker",
     "zigux/tests/phase14_ring_buffer_survey.zig": "phase 14 ring-buffer survey manifest records the study-only gap without inventing a port",
-    "zigux/tests/phase14_rcu_tree_manifest.json": "phase14-rcu-tree-bridge-blocker",
+    RCU_MANIFEST_PATH: "phase14-rcu-tree-bridge-blocker",
     "zigux/tests/phase14_rcu_tree_survey.zig": "phase 14 rcu tree survey manifest records the freeze-boundary gap without inventing a bridge",
     WORKFLOW_PATH: "Run focused Phase 14 smoke shard",
     "kernel/workqueue_bridge.zig": "pub const WorkqueueBridgeLab",
@@ -97,6 +99,21 @@ FORBIDDEN_DIRECT_WORKFLOW_RUNS = [
     "run: zig build test --build-file zigux/tests/phase14_build.zig --summary all",
     "run: zig build test --build-file zigux/tests/phase14_build.zig",
 ]
+RCU_REQUIRED_NOTE_MARKERS = [
+    "- status bucket: `freeze_in_c`",
+    "- blocker status: `blocked_on_stay_in_c_evidence`",
+    "- rollback owner: `Repo Tooling Pod`",
+    "- Architecture Council reopen record linked from the reviewable packet",
+    "- parity scorecard evidence and benchmark notes attached to the same review packet",
+    "- validation replay command and evidence archive path recorded beside the latest blocker disposition",
+    "- any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record",
+    "- missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
+    "- freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner",
+]
+RCU_REQUIRED_GAP_STATUSES = {
+    "phase14-rcu-tree-rollback-threshold-guardrail": "starter_landed",
+    "phase14-rcu-tree-bridge-blocker": "blocked_on_stay_in_c_evidence",
+}
 
 
 def repo_root() -> Path:
@@ -132,6 +149,16 @@ def ready_next_gap_id(manifest: dict) -> str | None:
             gap_id = gap.get("id")
             if isinstance(gap_id, str):
                 return gap_id
+    return None
+
+
+def gap_status(manifest: dict, gap_id: str) -> str | None:
+    for gap in manifest.get("gaps", []):
+        if gap.get("id") == gap_id:
+            status = gap.get("status")
+            if isinstance(status, str):
+                return status
+            return None
     return None
 
 
@@ -201,6 +228,45 @@ def check_traceability_note(root: Path) -> list[str]:
     return errors
 
 
+def check_rcu_rollback_threshold(root: Path) -> list[str]:
+    errors: list[str] = []
+    survey_path = root / RCU_SURVEY_PATH
+    if not survey_path.exists():
+        errors.append(f"missing file: {RCU_SURVEY_PATH}")
+    else:
+        survey_text = read_text(survey_path)
+        for marker in RCU_REQUIRED_NOTE_MARKERS:
+            if marker not in survey_text:
+                errors.append(f"missing marker in {RCU_SURVEY_PATH}: {marker}")
+                continue
+            actual_count = survey_text.count(marker)
+            if actual_count != 1:
+                errors.append(
+                    f"marker count drift in {RCU_SURVEY_PATH}: {marker} "
+                    f"(expected 1, found {actual_count})"
+                )
+
+    manifest_path = root / RCU_MANIFEST_PATH
+    if not manifest_path.exists():
+        errors.append(f"missing file: {RCU_MANIFEST_PATH}")
+        return errors
+
+    try:
+        manifest = load_json_file(manifest_path)
+    except json.JSONDecodeError as exc:
+        errors.append(f"invalid json in {RCU_MANIFEST_PATH}: {exc}")
+        return errors
+
+    for gap_id, expected_status in RCU_REQUIRED_GAP_STATUSES.items():
+        actual_status = gap_status(manifest, gap_id)
+        if actual_status != expected_status:
+            errors.append(
+                f"phase14 rcu rollback-threshold gap drift for {gap_id} "
+                f"(expected {expected_status}, found {actual_status})"
+            )
+    return errors
+
+
 def run_checker(root: Path, rel_path: str, missing_message: str, failure_message: str) -> list[str]:
     checker = root / rel_path
     if not checker.exists():
@@ -257,6 +323,10 @@ def check_compile_matrix(root: Path) -> list[str]:
         errors.append("phase14 smoke note focused compile-shard count drifted from the current one-shard packet")
     if smoke_note_text.count("coverage `full_bundle_only`") != 5:
         errors.append("phase14 smoke note full-bundle-only compile count drifted from the current five-artifact packet")
+    if build_text.count("b.addTest(.") != 0 and build_text.count("b.addTest(."):
+        pass
+    if build_text.count("b.addTest(.") != 0:
+        pass
     if build_text.count("b.addTest(.{") != 6:
         errors.append("phase14 build bundle no longer declares the current six compile artifacts")
     if build_text.count("b.addRunArtifact(") != 6:
@@ -359,6 +429,7 @@ def check(root: Path) -> list[str]:
 
     errors.extend(check_compile_matrix(root))
     errors.extend(check_traceability_note(root))
+    errors.extend(check_rcu_rollback_threshold(root))
     return errors
 
 
@@ -406,10 +477,13 @@ def run_self_test() -> int:
                 "surveyed_commit": "synthetic-skbuff-commit",
                 "gaps": [{"id": "phase14-skbuff-live-ownership-blocker", "status": "blocked_on_stay_in_c_evidence"}],
             },
-            "zigux/tests/phase14_rcu_tree_manifest.json": {
+            RCU_MANIFEST_PATH: {
                 "lane_key": "P14-L13",
                 "surveyed_commit": "synthetic-rcu-commit",
-                "gaps": [{"id": "phase14-rcu-tree-bridge-blocker", "status": "blocked_on_stay_in_c_evidence"}],
+                "gaps": [
+                    {"id": "phase14-rcu-tree-rollback-threshold-guardrail", "status": "starter_landed"},
+                    {"id": "phase14-rcu-tree-bridge-blocker", "status": "blocked_on_stay_in_c_evidence"},
+                ],
             },
         }
         for rel_path, data in anchor_manifests.items():
@@ -427,6 +501,19 @@ def run_self_test() -> int:
             "Documentation/zigux/phase14-release-boundary-survey.md": "PHASE14_RELEASE_BOUNDARY=present\nDocumentation/zigux/phase14-core-boundary-traceability.md\nmake -C zigux phase14-smoke\nmake -C zigux phase14-test\nmake -C zigux phase14\n",
             "Documentation/zigux/freeze-map.md": "kernel/workqueue.c\n",
             "Documentation/zigux/review-checklist.md": "shared Phase 14 smoke packet\n",
+            RCU_SURVEY_PATH: "\n".join([
+                "# Phase 14 RCU Tree Survey",
+                "## Rollback threshold",
+                "- status bucket: `freeze_in_c`",
+                "- blocker status: `blocked_on_stay_in_c_evidence`",
+                "- rollback owner: `Repo Tooling Pod`",
+                "- Architecture Council reopen record linked from the reviewable packet",
+                "- parity scorecard evidence and benchmark notes attached to the same review packet",
+                "- validation replay command and evidence archive path recorded beside the latest blocker disposition",
+                "- any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record",
+                "- missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
+                "- freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner",
+            ]) + "\n",
             "scripts/zigux/README.md": "Phase 14 flow\npython3 scripts/zigux/validate-phase14.py\nmake -C zigux phase14-validate\nDocumentation/zigux/phase14-core-boundary-traceability.md\n",
             "scripts/zigux/check-phase14-docs-root-smoke-summary.py": f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n",
             "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n",
@@ -540,6 +627,40 @@ def run_self_test() -> int:
         errors = check(root)
         if "phase14 build bundle no longer wires the current six compile-artifact runs" not in errors:
             print("self-test expected build run-count failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
+        rcu_survey_path = root / RCU_SURVEY_PATH
+        rcu_survey_path.write_text(
+            rcu_survey_path.read_text(encoding="utf-8").replace(
+                "- rollback owner: `Repo Tooling Pod`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "missing marker in Documentation/zigux/phase14-rcu-tree-survey.md: - rollback owner: `Repo Tooling Pod`"
+            in error
+            for error in errors
+        ):
+            print("self-test expected rcu rollback-owner failure", file=sys.stderr)
+            return 1
+
+        write_text(root / RCU_SURVEY_PATH, placeholder_text[RCU_SURVEY_PATH])
+        broken_rcu_manifest = load_json_file(root / RCU_MANIFEST_PATH)
+        for gap in broken_rcu_manifest["gaps"]:
+            if gap.get("id") == "phase14-rcu-tree-rollback-threshold-guardrail":
+                gap["status"] = "blocked_on_stay_in_c_evidence"
+        write_text(root / RCU_MANIFEST_PATH, json.dumps(broken_rcu_manifest, indent=2) + "\n")
+        errors = check(root)
+        if not any(
+            "phase14 rcu rollback-threshold gap drift for phase14-rcu-tree-rollback-threshold-guardrail"
+            in error
+            for error in errors
+        ):
+            print("self-test expected rcu rollback-threshold manifest failure", file=sys.stderr)
             return 1
 
         return 0
