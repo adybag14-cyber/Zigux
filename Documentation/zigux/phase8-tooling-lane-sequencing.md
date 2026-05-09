@@ -78,6 +78,7 @@ The live heading for this lane is the parked wording above, and the helper-famil
 
 Current parked review packet:
 - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
+- `Documentation/zigux/phase8-libbpf-logging-slice.md`
 - `Documentation/zigux/phase8-bpf-type-names-slice.md`
 - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
 - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
