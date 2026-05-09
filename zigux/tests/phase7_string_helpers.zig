@@ -209,6 +209,24 @@ test "phase 7 stringUnescape supports in-place and bounded destination behavior"
     try std.testing.expectEqual(@as(u8, '!'), bounded[3]);
 }
 
+test "phase 7 stringUnescape keeps exact-fit, terminator-only, and zero-capacity destinations reviewable" {
+    var exact_fit = [_]u8{ '!', '!', '!' };
+    const exact_fit_len = string_helpers.stringUnescape("\\n\\r", &exact_fit, exact_fit.len, string_helpers.UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 2), exact_fit_len);
+    try std.testing.expectEqualSlices(u8, "\n\r", exact_fit[0..2]);
+    try std.testing.expectEqual(@as(u8, 0), exact_fit[2]);
+
+    var terminator_only = [_]u8{ '!', '!' };
+    const terminator_only_len = string_helpers.stringUnescape("\\n\\r", &terminator_only, 1, string_helpers.UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 0), terminator_only_len);
+    try std.testing.expectEqual(@as(u8, 0), terminator_only[0]);
+    try std.testing.expectEqual(@as(u8, '!'), terminator_only[1]);
+
+    var zero_capacity = [_]u8{};
+    const zero_capacity_len = string_helpers.stringUnescape("\\n", &zero_capacity, 0, string_helpers.UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 0), zero_capacity_len);
+}
+
 test "phase 7 stringUnescapeInplace reuses the core escape path without extra buffers" {
     var inplace = [_]u8{ '\\', 'n', '\\', 'x', '4', '1', 0, '?', '?' };
     const len = string_helpers.stringUnescapeInplace(inplace[0..], string_helpers.UNESCAPE_ANY);
@@ -241,6 +259,17 @@ test "phase 7 stringEscapeMem keeps only and append behavior deterministic" {
     const append_len = string_helpers.stringEscapeMem("A\nZ", &out, string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND, "\n");
     try std.testing.expectEqual(@as(usize, 6), append_len);
     try std.testing.expectEqualSlices(u8, "A\\x0aZ", out[0..append_len]);
+}
+
+test "phase 7 stringEscapeMem reports full escaped length for truncated and zero-capacity destinations" {
+    var truncated = [_]u8{ '!', '!', '!', '!' };
+    const truncated_len = string_helpers.stringEscapeMem("\n\\\x00", &truncated, string_helpers.ESCAPE_ANY, null);
+    try std.testing.expectEqual(@as(usize, 6), truncated_len);
+    try std.testing.expectEqualSlices(u8, "\\n\\\\", truncated[0..4]);
+
+    var zero_capacity = [_]u8{};
+    const zero_capacity_len = string_helpers.stringEscapeMem("\n\\\x00", &zero_capacity, string_helpers.ESCAPE_ANY, null);
+    try std.testing.expectEqual(@as(usize, 6), zero_capacity_len);
 }
 
 test "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator" {
