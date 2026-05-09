@@ -72,11 +72,11 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expectEqualStrings("P14-L08", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.anchor);
     try std.testing.expectEqualStrings("946d5c73fdb763ba860a20879b05da54e1896e8c", manifest.surveyed_commit);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L08") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L05") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=946d5c73fdb763ba860a20879b05da54e1896e8c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Nested writer stack audit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`MAX_NEST`") != null);
