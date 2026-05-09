@@ -68,12 +68,22 @@ PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER = (
     "- `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references"
 )
 
+PHASE9_LANE_SEQUENCING_FOCUSED_TARGET_MARKERS = [
+    "- shared loader lane: `make -C zigux phase9-runtime-loader-shared-tests`",
+    "- atomic64 pilot lane: `make -C zigux phase9-runtime-atomic64-test`",
+    "- bitmap pilot lane: `make -C zigux phase9-runtime-bitmap-top-bit-test`",
+    "- trace-events pilot lane: `make -C zigux phase9-runtime-trace-events-test`",
+    "- kretprobe pilot lane: `make -C zigux phase9-runtime-kretprobe-test`",
+    "- bundled Phase 9 replay: `make -C zigux phase9`",
+]
+
 REQUIRED_PHASE9_LANE_SEQUENCING_MARKERS = [
     PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER,
     PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER,
     PHASE9_LANE_SEQUENCING_REVIEW_CHECKLIST_COUPLING_MARKER,
     PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER,
     PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER,
+    *PHASE9_LANE_SEQUENCING_FOCUSED_TARGET_MARKERS,
 ]
 
 REQUIRED_PHASE9_LANE_SEQUENCING_EXACT_COUNTS = {
@@ -82,6 +92,7 @@ REQUIRED_PHASE9_LANE_SEQUENCING_EXACT_COUNTS = {
     PHASE9_LANE_SEQUENCING_REVIEW_CHECKLIST_COUPLING_MARKER: 1,
     PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER: 1,
     PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER: 1,
+    **{marker: 1 for marker in PHASE9_LANE_SEQUENCING_FOCUSED_TARGET_MARKERS},
 }
 
 REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS = [
@@ -801,6 +812,50 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing.replace(PHASE9_LANE_SEQUENCING_FOCUSED_TARGET_MARKERS[0], "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing:{PHASE9_LANE_SEQUENCING_FOCUSED_TARGET_MARKERS[0]}",
+        )
+
+        write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing + PHASE9_LANE_SEQUENCING_FOCUSED_TARGET_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing_exact_count:{PHASE9_LANE_SEQUENCING_FOCUSED_TARGET_MARKERS[0]}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing.replace(PHASE9_LANE_SEQUENCING_FOCUSED_TARGET_MARKERS[-1], "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing:{PHASE9_LANE_SEQUENCING_FOCUSED_TARGET_MARKERS[-1]}",
+        )
+
+        write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing + PHASE9_LANE_SEQUENCING_FOCUSED_TARGET_MARKERS[-1] + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing_exact_count:{PHASE9_LANE_SEQUENCING_FOCUSED_TARGET_MARKERS[-1]}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
         runtime_loader_contract = runtime_loader_contract_path.read_text(encoding="utf-8")
         runtime_loader_contract_path.write_text(
             runtime_loader_contract.replace(
@@ -874,7 +929,7 @@ def run_self_test() -> int:
         expect_failure(base, "makefile_forbidden:phase9-validate:")
 
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=24")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=28")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
