@@ -52,6 +52,7 @@ REQUIRED_MANIFEST_FILES = (
     "zigux/tests/build.zig",
     "zigux/tests/fixtures/phase3_abi/expected.json",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
+    "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/phase3_catalog.py",
@@ -311,7 +312,7 @@ def run_self_test() -> int:
                     "- `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`",
                     "- `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`",
                     "- `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
-                    "- `PHASE3_ABI_MANIFEST_FILE_COUNT=47`",
+                    f"- `PHASE3_ABI_MANIFEST_FILE_COUNT={len(REQUIRED_MANIFEST_FILES)}`",
                     "- `PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof`",
                     "",
                 ]
