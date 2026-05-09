@@ -70,6 +70,10 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
+    "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/phase3_check_lib.py",
+    "scripts/zigux/generate-phase3-check-wrappers.py",
+    "scripts/zigux/run-phase3-checks.py",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "make -C zigux phase3-selftest",
     "manual-only support-script rerun",
@@ -189,8 +193,18 @@ def exact_marker_count(text: str, marker: str, *, normalized: bool) -> int:
     return count
 
 
-def substring_marker_count(text: str, marker: str) -> int:
-    return text.count(marker)
+def substring_marker_count(
+    text: str,
+    marker: str,
+    *,
+    subtract_markers: list[str] | None = None,
+) -> int:
+    count = text.count(marker)
+    if subtract_markers:
+        for other in subtract_markers:
+            if other != marker and marker in other:
+                count -= text.count(other)
+    return count
 
 
 def backticked_or_line_marker_count(text: str, marker: str) -> int:
@@ -205,11 +219,16 @@ def collect_marker_count_issues(
     normalized: bool = True,
     substring: bool = False,
     backticked: bool = False,
+    subtract_containing_markers: bool = False,
 ) -> list[str]:
     issues: list[str] = []
     for marker in markers:
         if substring:
-            count = substring_marker_count(text, marker)
+            count = substring_marker_count(
+                text,
+                marker,
+                subtract_markers=markers if subtract_containing_markers else None,
+            )
         elif backticked:
             count = backticked_or_line_marker_count(text, marker)
         else:
@@ -239,7 +258,15 @@ def validate_root(root: Path) -> list[str]:
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
 
     issues.extend(collect_marker_count_issues(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root", substring=True))
-    issues.extend(collect_marker_count_issues(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist", substring=True))
+    issues.extend(
+        collect_marker_count_issues(
+            review,
+            REVIEW_CHECKLIST_MARKERS,
+            prefix="review_checklist",
+            substring=True,
+            subtract_containing_markers=True,
+        )
+    )
     issues.extend(collect_marker_count_issues(abi_slice, ABI_SLICE_MARKERS, prefix="abi_slice"))
     issues.extend(collect_marker_count_issues(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme", substring=True))
     tests_readme_inline_markers = [
@@ -361,6 +388,10 @@ def run_self_test() -> int:
         assert "review_checklist:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
         assert "review_checklist:scripts/zigux/validate-phase3-abi-bindings-syntax.py" in issues
         assert "review_checklist:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
+        assert "review_checklist:scripts/zigux/phase3_catalog.py" in issues
+        assert "review_checklist:scripts/zigux/phase3_check_lib.py" in issues
+        assert "review_checklist:scripts/zigux/generate-phase3-check-wrappers.py" in issues
+        assert "review_checklist:scripts/zigux/run-phase3-checks.py" in issues
         assert "review_checklist:python3 scripts/zigux/phase3_catalog.py --audit-doc-sync" in issues
         assert "review_checklist:make -C zigux phase3-selftest" in issues
 
@@ -370,9 +401,9 @@ def run_self_test() -> int:
             "\n".join(
                 REVIEW_CHECKLIST_MARKERS[:3]
                  + [
-                     "the review packet keeps scripts/zigux/check-phase3-readme-tooling-inventory.py, scripts/zigux/check-phase3-abi-dump-gate.py, scripts/zigux/check-phase3-catalog-selftest.py, scripts/zigux/validate-phase3-policy-unsafe-survey.py, scripts/zigux/check-phase3-policy-byte-guards.py, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, scripts/zigux/validate-phase3-export-uapi-survey.py, scripts/zigux/validate-phase3-abi-bindings-syntax.py, scripts/zigux/survey-phase3-abi-constant-parity.py, python3 scripts/zigux/phase3_catalog.py --audit-doc-sync, and make -C zigux phase3-selftest visible inside one longer checklist sentence"
+                     "the review packet keeps scripts/zigux/check-phase3-readme-tooling-inventory.py, scripts/zigux/check-phase3-abi-dump-gate.py, scripts/zigux/check-phase3-catalog-selftest.py, scripts/zigux/validate-phase3-policy-unsafe-survey.py, scripts/zigux/check-phase3-policy-byte-guards.py, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, scripts/zigux/validate-phase3-export-uapi-survey.py, scripts/zigux/validate-phase3-abi-bindings-syntax.py, scripts/zigux/survey-phase3-abi-constant-parity.py, scripts/zigux/phase3_catalog.py, scripts/zigux/phase3_check_lib.py, scripts/zigux/generate-phase3-check-wrappers.py, scripts/zigux/run-phase3-checks.py, python3 scripts/zigux/phase3_catalog.py --audit-doc-sync, and make -C zigux phase3-selftest visible inside one longer checklist sentence"
                  ]
-                + REVIEW_CHECKLIST_MARKERS[14:]
+                + REVIEW_CHECKLIST_MARKERS[18:]
             )
             + "\n",
         )
@@ -381,7 +412,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[13]]) + "\n",
+            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[17]]) + "\n",
         )
         issues = validate_root(root)
         assert "duplicate_review_checklist_marker:2:make -C zigux phase3-selftest" in issues
@@ -394,6 +425,17 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             "duplicate_review_checklist_marker:2:scripts/zigux/survey-phase3-abi-constant-parity.py"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[15]]) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "duplicate_review_checklist_marker:2:scripts/zigux/run-phase3-checks.py"
             in issues
         )
 
@@ -696,7 +738,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=36")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
