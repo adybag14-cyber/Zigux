@@ -61,6 +61,12 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-argv-split-slice.md");
     defer allocator.free(slice_note);
 
+    const shared_make_wrapper_note = try readRepoFile(
+        allocator,
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+    );
+    defer allocator.free(shared_make_wrapper_note);
+
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
 
@@ -136,6 +142,16 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(slice_note, "- `argvFree()` plus `deinit()`");
     try expectCount(slice_note, "null-terminated pointer-vector access through `cArgv()`", 1);
     try expectCount(slice_note, "zigux/tests/phase7_argv_split_manifest.json", 2);
+    try expectContains(shared_make_wrapper_note, "PHASE7_LANE_KEY=P7-Y05");
+    try expectContains(shared_make_wrapper_note, "`scripts/zigux/validate-phase7.py`");
+    try expectContains(
+        shared_make_wrapper_note,
+        "`make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface",
+    );
+    try expectContains(
+        shared_make_wrapper_note,
+        "this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`",
+    );
 
     try expectContains(build_file, "\"phase7_argv_split.zig\"");
     try expectContains(build_file, "\"phase7_argv_split_survey.zig\"");
