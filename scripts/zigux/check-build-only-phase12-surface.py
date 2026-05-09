@@ -131,7 +131,7 @@ REQUIRED_FILE_MARKERS = {
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
         "shared reviewability surfaces that describe or gate the live Phase 12 libbpf packet",
-        "shared reviewability owns the survey, manifest, deterministic snapshot fixture, snapshot determinism replay, and shared build alignment",
+        "shared reviewability owns the survey, manifest, deterministic snapshot fixture, snapshot determinism replay, reviewability gate, and shared build alignment",
     ],
     PHASE12_RAW_GITHUB_COVERAGE_PATH: [
         "commit-pinned fallback artifacts:",
