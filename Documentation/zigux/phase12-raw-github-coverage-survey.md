@@ -12,7 +12,9 @@ It is a fallback-read overview, not a closure claim, not a validator-first route
 - `PHASE12_SLICE=raw-github-coverage-survey`
 - scope: shared fallback-read coverage for the shipped `nvme_pci`, `virtio_net`, `virtio_scsi`, and libbpf Phase 12 packet plus the compact release-coordination matrix, PMO closure companion, the two anti-overlap companions, the freeze-boundary guard, and shared replay surfaces that travel with the active release-order packet
 - commit-pinned fallback artifacts: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
+- `PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2`
 - shared-tree-only anchors: `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md`
+- `PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2`
 - deterministic libbpf artifact companions: `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, and `zigux/tests/phase12_libbpf_snapshot_determinism.zig`
 - driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
 - shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
