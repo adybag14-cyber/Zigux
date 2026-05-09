@@ -278,6 +278,19 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
             "next_match_serials",
             "next_match_terminal_null",
         ],
+        "duplicate_search_anchors": [
+            'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+            'test "rbtree nextMatch walks the duplicate range in order"',
+            'test "rbtree matchIterator walks the duplicate range in order"',
+        ],
+        "cached_root_followup_anchors": [
+            'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
+            'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
+            'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
+            'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
+            'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
+        ],
+        "review_packet_summary": "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root insert-miss, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys",
     },
     "tools/lib/string.zig": {
         "helper_test_anchors": [
@@ -294,6 +307,8 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
             'test "memdup and memchrInv preserve byte content"',
             'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
             'test "memchrInv follows the earliest dirty byte as long buffers change"',
+            'test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries"',
+            'test "memchrInv short zero-value scans stay byte-accurate"',
             'test "memparse handles decimal hexadecimal octal and suffixes"',
             'test "memparse keeps original rest when sign is not followed by digits"',
             'test "memparse saturates signed overflow instead of trapping"',
