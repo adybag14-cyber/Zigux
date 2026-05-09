@@ -193,7 +193,11 @@ MARKERS = {
         'try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase10_virtio_mmio_verify_tests.step") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, slice_note, "configured-queue coverage summary") != null);',
         'try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_verify_present);',
-        'try std.testing.expect(starter_landed_count >= 17);',
+        'var saw_mmio_configured_queue_coverage = false;',
+        'if (std.mem.eql(u8, gap.id, "phase10-mmio-configured-queue-coverage-helper")) {',
+        'try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "configured, programmed, ready, and handoff-ready queue counts") != null);',
+        'try std.testing.expect(saw_mmio_configured_queue_coverage);',
+        'try std.testing.expect(starter_landed_count >= 18);',
     ],
     "Documentation/zigux/phase10-virtio-mmio-slice.md": [
         "one explicit transport-identity summary",
@@ -285,6 +289,7 @@ EXPECTED_GAPS = {
     "phase10-mmio-probe-preflight-helper": "starter_landed",
     "phase10-mmio-config-write-disposition-helper": "starter_landed",
     "phase10-mmio-selected-queue-readiness-helper": "starter_landed",
+    "phase10-mmio-configured-queue-coverage-helper": "starter_landed",
     "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
 }
 
@@ -416,11 +421,11 @@ def run_self_test() -> int:
             manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             for gap in manifest["gaps"]:
-                if gap["id"] == "phase10-mmio-config-write-plan-helper":
+                if gap["id"] == "phase10-mmio-configured-queue-coverage-helper":
                     gap["status"] = "ready_next"
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
             _, markers = validate(root)
-            expected = "manifest:gap_status:phase10-mmio-config-write-plan-helper='ready_next'"
+            expected = "manifest:gap_status:phase10-mmio-configured-queue-coverage-helper='ready_next'"
             if expected not in markers:
                 raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
             case_count += 1
@@ -509,6 +514,12 @@ def run_self_test() -> int:
                 "try std.testing.expectEqual(@as(usize, 3), summary.handoff_ready_queue_count);",
                 "try std.testing.expectEqual(@as(usize, 2), summary.handoff_ready_queue_count);",
                 "phase10_virtio_mmio.zig:try std.testing.expectEqual(@as(usize, 3), summary.handoff_ready_queue_count);",
+            ),
+            (
+                "zigux/tests/phase10_virtio_mmio_survey.zig",
+                'if (std.mem.eql(u8, gap.id, "phase10-mmio-configured-queue-coverage-helper")) {',
+                'if (std.mem.eql(u8, gap.id, "phase10-mmio-configured-queue-coverage-drift")) {',
+                'phase10_virtio_mmio_survey.zig:if (std.mem.eql(u8, gap.id, "phase10-mmio-configured-queue-coverage-helper")) {',
             ),
             (
                 "Documentation/zigux/phase10-virtio-mmio-survey.md",
