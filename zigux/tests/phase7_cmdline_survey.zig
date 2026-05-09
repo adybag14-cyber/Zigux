@@ -54,11 +54,15 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try std.testing.expectEqualStrings("lib/cmdline.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/cmdline.zig", manifest.roadmap_destinations[0]);
-    try std.testing.expectEqual(@as(usize, 13), manifest.review_surfaces.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.review_surfaces.len);
+    try expectSliceContains(manifest.review_surfaces, "Documentation/zigux/README.md");
+    try expectSliceContains(manifest.review_surfaces, "Documentation/zigux/review-checklist.md");
     try expectSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-cmdline-slice.md");
     try expectSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
     try expectSliceContains(manifest.review_surfaces, "samples/zigux/README.md");
     try expectSliceContains(manifest.review_surfaces, "scripts/zigux/validate-phase7.py");
+    try expectSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-make-wrapper.py");
+    try expectSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
     try expectSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-build-wiring.py");
     try expectSliceContains(manifest.review_surfaces, "zigux/tests/phase7_build.zig");
     try expectSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline.zig");
@@ -106,6 +110,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(docs_root, "Documentation/zigux/phase7-cmdline-slice.md");
     try expectContains(docs_root, "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample");
     try expectContains(docs_root, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectContains(docs_root, "zigux/tests/phase7_cmdline_manifest.json");
     try expectContains(docs_root, "zigux/tests/phase7_build.zig");
     try expectContains(docs_root, "`scripts/zigux/validate-phase7.py`");
     try expectContains(docs_root, "`scripts/zigux/check-phase7-make-wrapper.py`");
@@ -114,12 +119,14 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(docs_root, "`make -C zigux phase7`");
     try expectContains(docs_root, "scripts/zigux/check-phase7-build-wiring.py");
     try expectCount(docs_root, "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample", 1);
+    try expectCount(docs_root, "zigux/tests/phase7_cmdline_manifest.json", 1);
 
     const review_checklist = try readRepoFile(allocator, "Documentation/zigux/review-checklist.md");
     defer allocator.free(review_checklist);
     try expectContains(review_checklist, "shared Phase 7 leaf-helper packet");
     try expectContains(review_checklist, "Documentation/zigux/phase7-cmdline-slice.md");
     try expectContains(review_checklist, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectContains(review_checklist, "zigux/tests/phase7_cmdline_manifest.json");
     try expectContains(review_checklist, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
     try expectContains(review_checklist, "scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(review_checklist, "make -C zigux phase7-validate");
