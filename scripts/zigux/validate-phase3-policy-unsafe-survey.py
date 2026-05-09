@@ -65,8 +65,12 @@ MAKEFILE_REQUIRED_LINES = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
 )
 
-REQUIRED_SURVEY_SNIPPETS = (
+LAYOUT_ASSERT_SURVEY_SNIPPET_VARIANTS = (
     "`zigux/helpers/layout_assert.zig` keeps compile-time size, alignment, field-type, and offset checks for the canonical ABI root while also covering the shipped `MmioRange` and `RbtreeRootView` layouts that now sit inside the same bounded packet.",
+    "`zigux/helpers/layout_assert.zig` keeps compile-time size, alignment, field-type, offset, and interop-policy byte-value checks for the canonical ABI root while also covering the shipped `MmioRange` and `RbtreeRootView` layouts that now sit inside the same bounded packet.",
+)
+
+REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromInteropPolicyBytes`, `actionForInteropPolicyBytes`, and `canReturnInteropPolicyBytes` so unknown panic modes and nonzero reserved bytes fail closed before raw-byte callers infer behavior elsewhere in the packet.",
     "`zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromInteropPolicyBytes`, `requiresExplicitCallerPolicyBytes`, `requiresExplicitCallerInteropPolicy`, `requiresExplicitCallerByte`, `permitsGlobalFallbackPolicyBytes`, `permitsGlobalFallbackInteropPolicy`, and `permitsGlobalFallbackByte` so unknown allocator modes and nonzero reserved bytes fail closed before raw-byte or typed shared callers infer behavior elsewhere in the packet.",
     "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.",
@@ -238,6 +242,31 @@ def require_exact_normalized_snippets(
         issues.append(f"duplicate_{prefix}_snippet:{snippet}:{count}")
 
 
+def require_any_exact_normalized_snippet(
+    issues: list[str],
+    text: str,
+    prefix: str,
+    snippets: tuple[str, ...],
+) -> None:
+    lines = normalized_marker_lines(text)
+    matches = 0
+    for snippet in snippets:
+        count = lines.count(snippet)
+        if count == 1:
+            matches += 1
+            continue
+        if count == 0:
+            continue
+        issues.append(f"duplicate_{prefix}_snippet:{snippet}:{count}")
+        return
+    if matches == 1:
+        return
+    if matches == 0:
+        issues.append(f"missing_{prefix}_snippet:{'|'.join(snippets)}")
+        return
+    issues.append(f"duplicate_{prefix}_snippet_variant:{matches}")
+
+
 def validate(root: Path) -> list[str]:
     required_paths = {
         SURVEY_REL,
@@ -307,6 +336,12 @@ def validate(root: Path) -> list[str]:
         for line in checker.stderr.splitlines():
             issues.append(f"policy_byte_guard_stderr:{line}")
 
+    require_any_exact_normalized_snippet(
+        issues,
+        survey,
+        "survey_layout_assert",
+        LAYOUT_ASSERT_SURVEY_SNIPPET_VARIANTS,
+    )
     require_exact_normalized_snippets(issues, survey, "survey", REQUIRED_SURVEY_SNIPPETS)
     require_snippets(issues, layout_assert, "layout_assert", REQUIRED_LAYOUT_ASSERT_SNIPPETS)
     require_snippets(issues, panic_policy, "panic_policy", REQUIRED_PANIC_POLICY_SNIPPETS)
@@ -346,6 +381,7 @@ def build_valid_workspace(root: Path) -> None:
         survey_lines.append(f"- `{marker}={rel}`")
     for marker in STATIC_MARKERS:
         survey_lines.append(f"- `{marker}`")
+    survey_lines.append(f"- {LAYOUT_ASSERT_SURVEY_SNIPPET_VARIANTS[1]}")
     for snippet in REQUIRED_SURVEY_SNIPPETS:
         survey_lines.append(f"- {snippet}")
     for marker, rel in BLOB_MARKERS.items():
@@ -361,6 +397,15 @@ def run_self_test() -> int:
         build_valid_workspace(root)
         assert validate(root) == []
 
+        legacy_layout_wording = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            LAYOUT_ASSERT_SURVEY_SNIPPET_VARIANTS[1],
+            LAYOUT_ASSERT_SURVEY_SNIPPET_VARIANTS[0],
+            1,
+        )
+        write_file(root / SURVEY_REL, legacy_layout_wording)
+        assert validate(root) == []
+
+        build_valid_workspace(root)
         stale_note = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
             "PHASE3_PANIC_POLICY_BLOB_SHA=",
             "PHASE3_PANIC_POLICY_BLOB_SHA=stale-",
@@ -403,53 +448,53 @@ def run_self_test() -> int:
 
         build_valid_workspace(root)
         missing_mmio_policy_wording = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_SURVEY_SNIPPETS[6] + "\n",
+            REQUIRED_SURVEY_SNIPPETS[5] + "\n",
             "",
             1,
         )
         write_file(root / SURVEY_REL, missing_mmio_policy_wording)
         issues = validate(root)
-        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[6]}" in issues
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[5]}" in issues
 
         build_valid_workspace(root)
         duplicate_guard_wording = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_SURVEY_SNIPPETS[7] + "\n",
-            REQUIRED_SURVEY_SNIPPETS[7] + "\n" + REQUIRED_SURVEY_SNIPPETS[7] + "\n",
+            REQUIRED_SURVEY_SNIPPETS[6] + "\n",
+            REQUIRED_SURVEY_SNIPPETS[6] + "\n" + REQUIRED_SURVEY_SNIPPETS[6] + "\n",
             1,
         )
         write_file(root / SURVEY_REL, duplicate_guard_wording)
         issues = validate(root)
-        assert f"duplicate_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[7]}:2" in issues
+        assert f"duplicate_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[6]}:2" in issues
 
         build_valid_workspace(root)
         missing_guard_wording = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_SURVEY_SNIPPETS[7] + "\n",
+            REQUIRED_SURVEY_SNIPPETS[6] + "\n",
             "",
             1,
         )
         write_file(root / SURVEY_REL, missing_guard_wording)
         issues = validate(root)
-        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[7]}" in issues
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[6]}" in issues
 
         build_valid_workspace(root)
         missing_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_SURVEY_SNIPPETS[2] + "\n",
+            REQUIRED_SURVEY_SNIPPETS[1] + "\n",
             "",
             1,
         )
         write_file(root / SURVEY_REL, missing_survey_snippet)
         issues = validate(root)
-        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[2]}" in issues
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[1]}" in issues
 
         build_valid_workspace(root)
         missing_typed_unsafe_survey = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            REQUIRED_SURVEY_SNIPPETS[4] + "\n",
+            REQUIRED_SURVEY_SNIPPETS[3] + "\n",
             "",
             1,
         )
         write_file(root / SURVEY_REL, missing_typed_unsafe_survey)
         issues = validate(root)
-        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[4]}" in issues
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[3]}" in issues
 
         build_valid_workspace(root)
         broken_layout = (root / LAYOUT_ASSERT_REL).read_text(encoding="utf-8").replace(
@@ -527,7 +572,7 @@ def run_self_test() -> int:
         assert "policy_byte_guard_exit:1" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=18")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
