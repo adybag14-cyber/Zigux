@@ -80,7 +80,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-Y04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-08", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-09", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings(
         "The indefinite-C policy packet reports current stay-in-C governance posture at the bounded packet level, so it now uses an explicit dated master-readback marker instead of implying exact post-commit branch-head parity.",
@@ -193,7 +193,7 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
         "PHASE15_LANE_KEY=P15-Y04",
         "PHASE15_SLICE=indefinite-c-policy-current-readback-provenance-sync",
         "PHASE15_PROVENANCE_MODE=dated_master_readback",
-        "survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-08` on 2026-05-08 because this policy packet reports current stay-in-C governance posture at the bounded packet level instead of implying exact post-commit branch-head parity",
+        "survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 because this policy packet reports current stay-in-C governance posture at the bounded packet level instead of implying exact post-commit branch-head parity",
         "exact branch-head parity is not recorded for this packet; the current policy packet therefore uses an explicit dated readback marker instead of implying exact-head provenance",
         "the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build",
         "scripts/zigux/README.md",
