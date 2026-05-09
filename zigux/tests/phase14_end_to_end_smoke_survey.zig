@@ -288,6 +288,6 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
         try std.testing.expect(containsMarker(traceability_text, expected.retained_boundary_marker));
         try std.testing.expect(containsMarker(traceability_text, expected.blocked_gap_marker));
     }
-    try std.testing.expectEqual(@as(usize, 3), std.mem.count(u8, traceability_text, "- ready-next gap: none currently recorded"));
-    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, traceability_text, "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`"));
+    try std.testing.expectEqual(@as(usize, 4), std.mem.count(u8, traceability_text, "- ready-next gap: none currently recorded"));
+    try std.testing.expectEqual(@as(usize, 0), std.mem.count(u8, traceability_text, "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`"));
 }
