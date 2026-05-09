@@ -43,6 +43,14 @@ REQUIRED_SNIPPETS = {
         "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- `Documentation/zigux/phase6-bsearch-slice.md`",
     ],
+    "Documentation/zigux/phase6-base64-slice.md": [
+        "- `PHASE6_STATUS=parked`",
+        "- `PHASE6_SLICE=base64-leaf-helper`",
+        "- `zigux/tests/phase6_base64_c_parity.zig`",
+        "- `zigux/tests/fixtures/phase6_base64_c_harness.c`",
+        "- `scripts/zigux/check-phase6-base64-c-parity.py`",
+        "- a direct 15-case C-vs-Zig spot check covering representative std, URL-safe, and IMAP encode parity, decode parity, and malformed-tail rejection through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
+    ],
     "Documentation/zigux/phase6-bsearch-slice.md": [
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_SLICE=bsearch-leaf-helper`",
@@ -98,6 +106,9 @@ REQUIRED_SNIPPETS = {
         "\"tranche\": \"leaf-helper-parity\",",
         "\"surveyed_commit\": \"911470d\",",
         "\"id\": \"base64\"",
+        "\"zigux/tests/phase6_base64_c_parity.zig\"",
+        "\"zigux/tests/fixtures/phase6_base64_c_harness.c\"",
+        "\"scripts/zigux/check-phase6-base64-c-parity.py\"",
         "\"id\": \"bsearch\"",
         "\"id\": \"checksum\"",
         "\"id\": \"hexdump\"",
@@ -106,6 +117,8 @@ REQUIRED_SNIPPETS = {
         "\"Documentation/zigux/phase6-perf-gate-survey.md\",",
         "\"Documentation/zigux/phase6-leaf-helper-lane-sequencing.md\",",
         "\"scripts/zigux/check-phase6-shared-surface.py\",",
+        "\"python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test\",",
+        "\"python3 scripts/zigux/check-phase6-base64-c-parity.py\",",
         "\"make -C zigux phase6-validate\",",
         "\"make -C zigux phase6\",",
         "\"make -C zigux phase6-hexdump-test\",",
@@ -319,6 +332,18 @@ def run_self_test() -> None:
             "zigux/tests/phase6_helper_parity_manifest.json",
             "\"surveyed_commit\": \"911470d\",",
             "\"surveyed_commit\": \"\",",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-base64-slice.md",
+            "- `scripts/zigux/check-phase6-base64-c-parity.py`",
+            "- `scripts/zigux/check-phase6-base64-c-parity-missing.py`",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_helper_parity_manifest.json",
+            "\"zigux/tests/phase6_base64_c_parity.zig\"",
+            "\"zigux/tests/phase6_base64_c_parity_missing.zig\"",
         )
         assert_failure(
             root,
