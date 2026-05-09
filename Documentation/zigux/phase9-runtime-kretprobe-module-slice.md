@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-module-starter`
-- `PHASE9_SURVEYED_COMMIT=5a88aec1d9c12e11745cb125b7c7fa56fd5e85f2`
+- `PHASE9_SURVEYED_COMMIT=677b836ed1fb334493e877a77fa89a2ea5572b9b`
 - lane: `P9-L13`
 - scope: lifecycle starter, bounded return-probe bookkeeping, a tiny differential gate, a loader-handoff scaffold, dedicated Phase 9 test wiring, survey-note plus survey-manifest closure, and explicit adjacency to the separate shared runtime-loader lane that owns the facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` step
 - product boundary:
@@ -35,6 +35,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - the sample and diff gate also keep overlapping entry stamps explicit under concurrent load, so the bounded pilot proves per-instance return timing stays distinct before any shared loader handoff is prepared.
 - the loader-owned prepared handoff snapshot stays stable once captured, so later sample mutation or late selftest activity does not silently rewrite the parked registration plan before runtime-substrate review.
 - that same loader-owned snapshot also remains the single post-release review surface after `releaseWithoutSubstrate()` or `releaseSharedWithoutSubstrate()` closes the waiting state, so this pilot does not split ownership across a second release-only note path.
+- the shared runtime-loader contract also keeps release-side prepared-plan drift explicit, so a waiting request cannot advance through `releaseWithoutSubstrate()` after init-flow or exit-symbol mutation and the original prepared snapshot stays reviewable.
 - the loader scaffold also keeps shared release-failure guards explicit, so a premature `releaseSharedWithoutSubstrate()` attempt cannot desynchronize loader state from the shared request while the runtime substrate is still unavailable.
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` now stays inside this slice's shipped product boundary too, so the kretprobe starter keeps the pilot-family owner split explicit instead of leaving the shared loader lane versus pilot-local packet implicit.
 
