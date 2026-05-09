@@ -522,6 +522,11 @@ test "phase 9 runtime loader allocator/init-flow replay rejects selftest-hook ev
     try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(missing_hook_after_selftest));
     try std.testing.expectError(error.InvalidSelftestHookEvidence, runtime_loader.prepareRequest(missing_hook_after_selftest));
 
+    var initialized_without_hook = makePlan("runtime_bitmap", "lib/test_bitmap.c", "zigux_runtime_bitmap_init", "zigux_runtime_bitmap_exit", .arena, .{ .handoff_stage = .initialized, .init_runs = 1, .selftest_runs = 0, .exit_runs = 0 });
+    initialized_without_hook.provides_selftest_hook = false;
+    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(initialized_without_hook));
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, runtime_loader.prepareRequest(initialized_without_hook));
+
     var selftest_runs_without_hook = makePlan("runtime_bitmap", "lib/test_bitmap.c", "zigux_runtime_bitmap_init", "zigux_runtime_bitmap_exit", .arena, .{ .handoff_stage = .initialized, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 });
     selftest_runs_without_hook.provides_selftest_hook = false;
     try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(selftest_runs_without_hook));
