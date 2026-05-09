@@ -183,6 +183,12 @@ EXACT_OCCURRENCE_MARKERS = {
         ("try std.testing.expect(counted_compare_calls <= 4);", 10),
         ("try std.testing.expect(counted_raw_compare_calls <= 4);", 10),
     ],
+    "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig": [
+        ("try std.testing.expect(typed_c_compare_calls <= 1);", 8),
+        ("try std.testing.expect(raw_c_compare_calls <= 1);", 12),
+        ("try std.testing.expect(typed_c_compare_calls <= budget);", 2),
+        ("try std.testing.expect(raw_c_compare_calls <= budget);", 3),
+    ],
 }
 
 REMOVED_PATHS = [
@@ -509,6 +515,18 @@ def run_self_test() -> None:
             "zigux/tests/phase6_bsearch.zig",
             "try std.testing.expect(counted_raw_compare_calls <= 4);",
             "try std.testing.expect(counted_raw_compare_calls <= 5);",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+            "try std.testing.expect(raw_c_compare_calls <= budget);",
+            "try std.testing.expect(raw_c_compare_calls <= budget + 1);",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+            "try std.testing.expect(typed_c_compare_calls <= 1);",
+            "try std.testing.expect(typed_c_compare_calls <= 2);",
         )
 
     print("self-test passed")
