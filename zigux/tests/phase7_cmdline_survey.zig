@@ -144,7 +144,9 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(helper_impl, "try std.testing.expect(!parseOptionStr(\"debug,\", \"\"));");
     try expectContains(helper_impl, "test \"nextArg keeps embedded equals inside quoted values\"");
     try expectContains(helper_impl, "test \"nextArg keeps param, value, and rest borrowed from the caller buffer\"");
+    try expectContains(helper_impl, "test \"nextArg keeps unquoted values and empty quoted values bounded to the current token\"");
     try expectContains(helper_impl, "test \"nextArg trims mixed trailing whitespace from rest and leaves whitespace-only tails empty\"");
+    try expectContains(helper_impl, "test \"nextArg returns an empty sentinel token before leading whitespace and trims the following rest\"");
     try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[0])), @as(usize, @intFromPtr(parsed.param.ptr)));");
     try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[6])), @as(usize, @intFromPtr(parsed.value.?.ptr)));");
     try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[17])), @as(usize, @intFromPtr(parsed.rest.ptr)));");
@@ -155,9 +157,10 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(helper_impl, "test \"nextArg keeps empty-input param and rest borrowed from the caller slice\"");
     try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(args.ptr)), @as(usize, @intFromPtr(parsed.param.ptr)));");
     try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(args.ptr)), @as(usize, @intFromPtr(parsed.rest.ptr)));");
-    try expectContains(helper_impl, "test \"nextArg returns an empty sentinel token before leading whitespace and trims the following rest\"");
     try expectCount(helper_impl, "test \"nextArg keeps param, value, and rest borrowed from the caller buffer\"", 1);
+    try expectCount(helper_impl, "test \"nextArg keeps unquoted values and empty quoted values bounded to the current token\"", 1);
     try expectCount(helper_impl, "test \"nextArg trims mixed trailing whitespace from rest and leaves whitespace-only tails empty\"", 1);
+    try expectCount(helper_impl, "test \"nextArg returns an empty sentinel token before leading whitespace and trims the following rest\"", 1);
 
     const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
     defer allocator.free(tests_root);
