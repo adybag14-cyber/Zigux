@@ -23,12 +23,23 @@ PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure
 MAKEFILE = ROOT / "zigux" / "Makefile"
 
 EXPECTED_PIN_TARGETS = ["x86_64-linux"]
+EXPECTED_APPROVAL_POLICY = {
+    "shared_phase2_checklist_ack_required": True,
+    "fresh_bootstrap_runner_evidence_required": True,
+    "separate_cross_target_expansion_approval_required": True,
+}
 ARCHIVE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 NOTE_STATIC_MARKERS = [
     "the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence",
     "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
     "the Linux-style `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the docs-root summary, the shared validators, the closure note, and the shared review checklist",
+]
+
+NOTE_APPROVAL_MARKERS = [
+    "`scripts/zigux/zig-toolchain-policy.json` now also keeps the Phase 2 pin-change approval rule machine-checkable.",
+    "pinned toolchain changes require explicit shared Phase 2 checklist acknowledgement and fresh bootstrap-runner evidence before merge.",
+    "widening the bootstrap archive beyond `x86_64-linux` still needs separate approval instead of piggybacking on the three-target compile matrix.",
 ]
 
 README_MARKERS = [
@@ -167,6 +178,11 @@ EXACT_SURFACE_COUNTS = {
         "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
         "PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json": 1,
     },
+    "phase2_toolchain_notes": {
+        "`scripts/zigux/zig-toolchain-policy.json` now also keeps the Phase 2 pin-change approval rule machine-checkable.": 1,
+        "pinned toolchain changes require explicit shared Phase 2 checklist acknowledgement and fresh bootstrap-runner evidence before merge.": 1,
+        "widening the bootstrap archive beyond `x86_64-linux` still needs separate approval instead of piggybacking on the three-target compile matrix.": 1,
+    },
 }
 
 
@@ -212,13 +228,26 @@ def validate_policy(payload: dict[str, object]) -> list[str]:
     archive_sha256 = payload.get("archive_sha256")
     if not isinstance(archive_sha256, dict):
         issues.append("policy:archive_sha256:expected_object")
-        return issues
-    keys = list(archive_sha256.keys())
-    if keys != EXPECTED_PIN_TARGETS:
-        issues.append(f"policy:archive_sha256_keys={keys!r}:expected={EXPECTED_PIN_TARGETS!r}")
-    for target_key, digest in archive_sha256.items():
-        if not isinstance(digest, str) or not ARCHIVE_SHA256_RE.fullmatch(digest.lower()):
-            issues.append(f"policy:archive_sha256:{target_key}:expected_sha256_hex")
+    else:
+        keys = list(archive_sha256.keys())
+        if keys != EXPECTED_PIN_TARGETS:
+            issues.append(f"policy:archive_sha256_keys={keys!r}:expected={EXPECTED_PIN_TARGETS!r}")
+        for target_key, digest in archive_sha256.items():
+            if not isinstance(digest, str) or not ARCHIVE_SHA256_RE.fullmatch(digest.lower()):
+                issues.append(f"policy:archive_sha256:{target_key}:expected_sha256_hex")
+
+    approval_policy = payload.get("approval_policy")
+    if not isinstance(approval_policy, dict):
+        issues.append("policy:approval_policy:expected_object")
+    else:
+        expected_keys = list(EXPECTED_APPROVAL_POLICY.keys())
+        keys = list(approval_policy.keys())
+        if keys != expected_keys:
+            issues.append(f"policy:approval_policy_keys={keys!r}:expected={expected_keys!r}")
+        for key, expected in EXPECTED_APPROVAL_POLICY.items():
+            actual = approval_policy.get(key)
+            if actual != expected:
+                issues.append(f"policy:approval_policy:{key}={actual!r}:expected={expected!r}")
     return issues
 
 
@@ -254,6 +283,9 @@ def validate_phase2_notes(text: str, *, payload: dict[str, object]) -> list[str]
                 issues.append(f"phase2_toolchain_notes:missing_marker:{digest_marker}")
 
     for marker in NOTE_STATIC_MARKERS:
+        if marker not in text:
+            issues.append(f"phase2_toolchain_notes:missing_marker:{marker}")
+    for marker in NOTE_APPROVAL_MARKERS:
         if marker not in text:
             issues.append(f"phase2_toolchain_notes:missing_marker:{marker}")
     return issues
@@ -355,6 +387,11 @@ def run_self_test() -> int:
         "archive_sha256": {
             "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
         },
+        "approval_policy": {
+            "shared_phase2_checklist_ack_required": True,
+            "fresh_bootstrap_runner_evidence_required": True,
+            "separate_cross_target_expansion_approval_required": True,
+        },
     }
     assert validate_policy(valid_policy) == []
 
@@ -364,6 +401,7 @@ def run_self_test() -> int:
             "- current minimum Zig version: `0.17.0-dev.87+9b177a7d2`",
             "- current pinned bootstrap archive target: `x86_64-linux`",
             "- current pinned bootstrap archive sha256 (`x86_64-linux`): `313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`",
+            *[f"- {marker}" for marker in NOTE_APPROVAL_MARKERS],
             *[f"- {marker}" for marker in NOTE_STATIC_MARKERS],
         ]
     )
@@ -419,6 +457,16 @@ def run_self_test() -> int:
     leaked_issues = validate_toolchain_target_scope(leaked_scope)
     assert any(issue.startswith("makefile_target_scope:phase2-toolchain:") for issue in leaked_issues)
     assert any(issue.startswith("makefile_target_scope:phase2-validate:") for issue in leaked_issues)
+    assert "policy:approval_policy:shared_phase2_checklist_ack_required=False:expected=True" in validate_policy(
+        {
+            **valid_policy,
+            "approval_policy": {
+                "shared_phase2_checklist_ack_required": False,
+                "fresh_bootstrap_runner_evidence_required": True,
+                "separate_cross_target_expansion_approval_required": True,
+            },
+        }
+    )
 
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
@@ -466,7 +514,16 @@ def main() -> int:
     policy_payload = load_json_object(POLICY, label="policy")
     issues: list[str] = []
     issues.extend(validate_policy(policy_payload))
-    issues.extend(validate_phase2_notes(NOTES_DOC.read_text(encoding="utf-8"), payload=policy_payload))
+
+    notes_text = NOTES_DOC.read_text(encoding="utf-8")
+    issues.extend(validate_phase2_notes(notes_text, payload=policy_payload))
+    issues.extend(
+        validate_exact_marker_counts(
+            notes_text,
+            label="phase2_toolchain_notes",
+            checks=EXACT_SURFACE_COUNTS["phase2_toolchain_notes"],
+        )
+    )
 
     scripts_readme_text = README.read_text(encoding="utf-8")
     issues.extend(validate_required_markers(scripts_readme_text, label="scripts_readme", markers=README_MARKERS))
