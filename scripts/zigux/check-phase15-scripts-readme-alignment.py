@@ -57,6 +57,8 @@ REQUIRED_FILES = (
 
 README_SNIPPETS = (
     "- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_readiness_gate.zig`, and `zigux/tests/phase15_build.zig`.",
+    "- `validate-phase15.py` keeps the shared `phase15-validate` route fail-closed on the parked Phase 15 readiness packet and the parity scorecard's machine-reported review-field and aggregate-metric surface before the narrower handoff checkers run.",
+    "- `make -C zigux phase15-validate` now reruns `validate-phase15.py`, `check-phase15-scripts-readme-alignment.py`, and `check-phase15-review-process-handoff.py` together so the shipped validator-first route covers both the broad readiness packet and the dedicated parity-scorecard reporting packet before `make -C zigux phase15-test` replays `zigux/tests/phase15_build.zig`.",
     "- `check-phase15-scripts-readme-alignment.py` keeps `scripts/zigux/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_governance_lane_sequencing.zig`, and `zigux/tests/phase15_build.zig` aligned around the parked governance packet's scripts-root validator-first route and no-approval-yet posture.",
     "- `check-phase15-review-process-handoff.py` keeps the dedicated review-process note and its manifest-backed handoff evidence aligned around the self-reference, product-boundary, and parked-route markers that keep the Architecture Council packet reviewable without inventing a broader governance surface.",
     "- `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15` rerun the parked freeze-map governance, parity-scorecard, Architecture Council review-process, handoff-next-steps, dedicated indefinite-C policy, lane-owner alignment, and readiness-gate packet without implying any new approval claim for a freeze-map anchor.",
@@ -364,6 +366,25 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         _assert_only(validate(root), [], "baseline_failed")
         case_count += 1
+
+        readme_path = root / README_REL
+        baseline_readme = _read(readme_path)
+        for marker, replacement, label in (
+            (
+                "- `validate-phase15.py` keeps the shared `phase15-validate` route fail-closed on the parked Phase 15 readiness packet and the parity scorecard's machine-reported review-field and aggregate-metric surface before the narrower handoff checkers run.",
+                "- `validate-phase15.py` keeps the shared `phase15-validate` route fail-closed on a missing packet instead of the parked readiness and parity-scorecard packet.",
+                "missing_readme_validate_phase15_summary_guard_failed",
+            ),
+            (
+                "- `make -C zigux phase15-validate` now reruns `validate-phase15.py`, `check-phase15-scripts-readme-alignment.py`, and `check-phase15-review-process-handoff.py` together so the shipped validator-first route covers both the broad readiness packet and the dedicated parity-scorecard reporting packet before `make -C zigux phase15-test` replays `zigux/tests/phase15_build.zig`.",
+                "- `make -C zigux phase15-validate` now reruns only one checker and skips the shipped readiness-plus-scorecard reporting contract.",
+                "missing_readme_phase15_validate_replay_guard_failed",
+            ),
+        ):
+            _write(readme_path, baseline_readme.replace(marker, replacement, 1))
+            _assert_only(validate(root), [f"readme:missing:{marker}"], label)
+            _write(readme_path, baseline_readme)
+            case_count += 1
 
         tests_readme_path = root / TESTS_README_REL
         baseline_tests_readme = _read(tests_readme_path)
