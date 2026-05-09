@@ -621,6 +621,22 @@ def run_self_test() -> int:
         if "phase14 smoke note focused compile-shard count drifted from the current one-shard packet" not in errors:
             print("self-test expected duplicate focused compile-shard coverage failure", file=sys.stderr)
             return 1
+        smoke_note_path.write_text(
+            smoke_note_path.read_text(encoding="utf-8").replace(
+                "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4\n",
+                "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=3\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4"
+            in error
+            for error in errors
+        ):
+            print("self-test expected full-bundle-only marker failure", file=sys.stderr)
+            return 1
         write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "\n".join(matrix_lines) + "\n")
 
         build_path = root / "zigux/tests/phase14_build.zig"
@@ -636,6 +652,14 @@ def run_self_test() -> int:
         errors = check(root)
         if "phase14 smoke shard stopped being dedicated to the shared end-to-end smoke survey" not in errors:
             print("self-test expected forbidden smoke dependency failure", file=sys.stderr)
+            return 1
+        build_path.write_text(
+            build_path.read_text(encoding="utf-8").replace("b.addRunArtifact(\n", "", 1),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 build bundle no longer wires the current five compile-artifact runs" not in errors:
+            print("self-test expected build run-count failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
 
