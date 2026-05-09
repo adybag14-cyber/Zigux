@@ -64,7 +64,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-survey.md",
-      "why_now": "The lane needs a note that compares the landed queue planner, queue-window summary, probe snapshot helper, host-shape summary, restore queue rebind summary, request-queue restart summary, recovery event-rearm summary, event-buffer ownership summary, and rollback summary against the much larger virtio_scsi.c surface, while keeping the active owner lane, fallback path, reversible-delivery drill, segmented-rollout boundary, and recovery-parity boundary explicit so future runs do not mistake this bounded foothold for a production SCSI HBA port."
+      "why_now": "The lane needs a note that compares the landed queue planner, queue-window summary, probe snapshot helper, host-shape summary, restore queue rebind summary, request-queue restart summary, request-queue ownership summary, recovery event-rearm summary, event-buffer ownership summary, and rollback summary against the much larger virtio_scsi.c surface, while keeping the active owner lane, fallback path, reversible-delivery drill, segmented-rollout boundary, and recovery-parity boundary explicit so future runs do not mistake this bounded foothold for a production SCSI HBA port."
     },
     {
       "id": "phase12-virtio-scsi-driver-starter",
@@ -78,14 +78,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi.zig",
-      "why_now": "Dedicated driver tests now keep the starter honest around queue-count validation, poll-queue clamping, stable global virtqueue indexes, queue-window ownership boundaries, the bounded probe-config snapshot, the pre-registration host-shape summary, and the bounded freeze or restore contract for planning and event recycling intent."
+      "why_now": "Dedicated driver tests now keep the starter honest around queue-count validation, poll-queue clamping, stable global virtqueue indexes, queue-window ownership boundaries, the bounded probe-config snapshot, the pre-registration host-shape summary, the bounded request-queue ownership summary, and the bounded freeze or restore contract for planning and event recycling intent."
     },
     {
       "id": "phase12-virtio-scsi-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-slice.md",
-      "why_now": "The slice note records exactly what the queue-layout, queue-window summary, probe-config snapshot, pre-registration host-shape summary, request-queue restart summary, and recovery starter covers so the survey can stay focused on the deeper transport, SCSI-host, and DMA-backed work that is still intentionally missing."
+      "why_now": "The slice note records exactly what the queue-layout, queue-window summary, probe-config snapshot, pre-registration host-shape summary, request-queue restart summary, request-queue ownership summary, and recovery starter covers so the survey can stay focused on the deeper transport, SCSI-host, and DMA-backed work that is still intentionally missing."
     },
     {
       "id": "phase12-virtio-scsi-queue-window-summary-starter",
@@ -121,6 +121,13 @@
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
       "why_now": "The bounded recovery packet now records the post-reset request-queue restart boundary by keeping request-queue counts, default-versus-poll partitioning, the frozen event queue index, find_vqs-before-restart, device-ready-before-restart, event-rearm-before-restart, and fresh replanning explicit without claiming live command submission, completion handling, or host scan replay."
+    },
+    {
+      "id": "phase12-virtio-scsi-recovery-request-queue-ownership-summary-starter",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+      "why_now": "The bounded recovery packet now also records restore-time request-queue ownership by keeping request-queue access blocked until restore, requiring fresh replanning after restore, preserving the default-versus-poll partition, and making event rearm complete before request-queue reuse without claiming live command submission or `scsi_scan_host()` replay."
     },
     {
       "id": "phase12-virtio-scsi-recovery-event-rearm-summary-starter",
