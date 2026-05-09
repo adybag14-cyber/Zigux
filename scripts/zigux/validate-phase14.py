@@ -200,18 +200,23 @@ REQUIRED_FILE_MARKERS = {
     "kernel/rcu/tree_bridge.zig": ["pub const RcuTreeBridgeLab"],
 }
 
+
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
+
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
 
+
 def load_json_file(path: Path) -> dict:
     return json.loads(read_text(path))
+
 
 def blocked_gap_id(manifest: dict) -> str | None:
     for gap in manifest.get("gaps", []):
@@ -222,6 +227,7 @@ def blocked_gap_id(manifest: dict) -> str | None:
                 return gap_id
     return None
 
+
 def ready_next_gap_id(manifest: dict) -> str | None:
     for gap in manifest.get("gaps", []):
         if gap.get("status") == "ready_next":
@@ -230,8 +236,10 @@ def ready_next_gap_id(manifest: dict) -> str | None:
                 return gap_id
     return None
 
+
 def compile_matrix_note_row(label: str, root_source: str, coverage: str) -> str:
     return f"- `{label}`: root `{root_source}`, coverage `{coverage}`"
+
 
 def traceability_expected_markers(root: Path) -> tuple[list[str], list[str]]:
     errors: list[str] = []
@@ -273,6 +281,7 @@ def traceability_expected_markers(root: Path) -> tuple[list[str], list[str]]:
             markers.append(f"- blocked gap: `{blocked_gap}`")
     return markers, errors
 
+
 def check_traceability_note(root: Path) -> list[str]:
     traceability_path = root / TRACEABILITY_PATH
     if not traceability_path.exists():
@@ -291,6 +300,7 @@ def check_traceability_note(root: Path) -> list[str]:
                 f"(expected {expected_count}, found {actual_count})"
             )
     return errors
+
 
 def check_compile_matrix(root: Path) -> list[str]:
     errors: list[str] = []
@@ -342,6 +352,7 @@ def check_compile_matrix(root: Path) -> list[str]:
             errors.append(f"missing compile-artifact root in zigux/tests/phase14_build.zig: {root_source}")
     return errors
 
+
 def collect_manifest_surface_markers(manifest: dict) -> tuple[dict[str, str], Counter[str], list[str]]:
     raw_surfaces = manifest.get("surfaces", [])
     if not isinstance(raw_surfaces, list):
@@ -365,6 +376,7 @@ def collect_manifest_surface_markers(manifest: dict) -> tuple[dict[str, str], Co
         surfaces[path] = required_marker
     return surfaces, surface_counts, errors
 
+
 def run_checker(root: Path, rel_path: str, missing_message: str, failure_message: str) -> list[str]:
     checker = root / rel_path
     if not checker.exists():
@@ -385,6 +397,7 @@ def run_checker(root: Path, rel_path: str, missing_message: str, failure_message
     if stdout:
         return stdout
     return [failure_message]
+
 
 def check(root: Path) -> list[str]:
     manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
@@ -424,6 +437,7 @@ def check(root: Path) -> list[str]:
     errors.extend(check_compile_matrix(root))
     errors.extend(check_traceability_note(root))
     return errors
+
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -534,6 +548,15 @@ def run_self_test() -> int:
         errors = check(root)
         if "phase14 shared smoke manifest lane_key drifted from the current shared-lane owner" not in errors:
             print("self-test expected manifest lane-key drift failure", file=sys.stderr)
+            return 1
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", "{\n")
+        errors = check(root)
+        if not any(
+            error.startswith(f"invalid json in {(root / 'zigux/tests/phase14_end_to_end_smoke_manifest.json').as_posix()}:")
+            for error in errors
+        ):
+            print("self-test expected invalid main-manifest json failure", file=sys.stderr)
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken_workqueue_manifest = load_json_file(root / "zigux/tests/phase14_workqueue_bridge_manifest.json")
@@ -743,6 +766,7 @@ def run_self_test() -> int:
         write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_FILE_MARKERS[WORKFLOW_PATH]) + "\n")
         return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--self-test", action="store_true", help="run the built-in validator self-test")
@@ -756,6 +780,7 @@ def main() -> int:
         return 1
     print("phase14 shared smoke packet validated")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
