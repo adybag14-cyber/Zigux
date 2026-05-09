@@ -333,23 +333,39 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
 
     const expected_build_markers = [_][]const u8{
         "const repo_root = b.path(\"../..\");",
+        "phase7-string-helpers-survey-tests",
+        "phase7_string_helpers_survey.zig",
+        "run_string_helpers_survey_tests.setCwd(repo_root);",
+        "phase7-string-helpers-sample-boundary-tests",
+        "phase7_string_helpers_sample_boundary.zig",
+        "run_string_helpers_sample_boundary_tests.setCwd(repo_root);",
         "../../samples/zigux/string_helpers_sample.zig",
         "phase7-string-helpers-sample-tests",
         "phase7-string-helpers-sample-survey-tests",
         "phase7_string_helpers_sample_survey.zig",
         "string_helpers_sample_survey_root_module.addImport(\"string_helpers\", string_helpers_module);",
         "run_string_helpers_sample_survey_tests.setCwd(repo_root);",
+        "test_step.dependOn(&run_string_helpers_survey_tests.step);",
+        "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step);",
         "test_step.dependOn(&run_string_helpers_sample_tests.step);",
         "test_step.dependOn(&run_string_helpers_sample_survey_tests.step);",
     };
     for (expected_build_markers) |marker| {
         try expectContains(build_source, marker);
     }
+    try expectExactCount(build_source, "phase7-string-helpers-survey-tests", 1);
+    try expectExactCount(build_source, "phase7_string_helpers_survey.zig", 1);
+    try expectExactCount(build_source, "run_string_helpers_survey_tests.setCwd(repo_root);", 1);
+    try expectExactCount(build_source, "phase7-string-helpers-sample-boundary-tests", 1);
+    try expectExactCount(build_source, "phase7_string_helpers_sample_boundary.zig", 1);
+    try expectExactCount(build_source, "run_string_helpers_sample_boundary_tests.setCwd(repo_root);", 1);
     try expectExactCount(build_source, "../../samples/zigux/string_helpers_sample.zig", 1);
     try expectExactCount(build_source, "phase7-string-helpers-sample-tests", 1);
     try expectExactCount(build_source, "phase7-string-helpers-sample-survey-tests", 1);
     try expectExactCount(build_source, "phase7_string_helpers_sample_survey.zig", 1);
     try expectExactCount(build_source, "run_string_helpers_sample_survey_tests.setCwd(repo_root);", 1);
+    try expectExactCount(build_source, "test_step.dependOn(&run_string_helpers_survey_tests.step);", 1);
+    try expectExactCount(build_source, "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step);", 1);
     try expectExactCount(build_source, "test_step.dependOn(&run_string_helpers_sample_tests.step);", 1);
     try expectExactCount(build_source, "test_step.dependOn(&run_string_helpers_sample_survey_tests.step);", 1);
 
