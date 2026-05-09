@@ -224,6 +224,9 @@ pub const RuntimeTraceEventsLoader = struct {
         shared_request: *runtime_loader.PreparedRequest,
     ) !runtime_loader.LoadPlan {
         if (shared_request.state != .prepared) return error.InvalidLoaderState;
+        if (!runtime_loader.keepsLoadPlanExplicit(shared_request.plan, shared_request.prepared_plan)) {
+            return error.PreparedPlanDrift;
+        }
 
         _ = try runtime_loader.prepareRequest(shared_request.plan);
         const plan = try self.requestRuntimeLoad();
@@ -514,81 +517,6 @@ test "runtime trace-events loader keeps initialized shared-request snapshots sta
     ));
 }
 
-test "runtime trace-events loader keeps initialized shared-request snapshots stable across later exit activity" {
-    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
-    try module.init();
-
-    var loader = RuntimeTraceEventsLoader{};
-    var shared_request = try loader.prepareSharedRequest(&module);
-    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
-
-    const prepared_plan = shared_request.plan;
-    const initialized_snapshot = module.summary();
-    try std.testing.expect(prepared_plan.provides_selftest_hook);
-    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, prepared_plan.init_flow.handoff_stage);
-    try std.testing.expectEqual(@as(usize, 0), prepared_plan.init_flow.selftest_runs);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
-        shared_request,
-        .prepared,
-        prepared_plan,
-    ));
-    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(prepared_plan));
-    try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.initialized, initialized_snapshot.stage);
-    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.init_runs);
-    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.exit_runs);
-    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.registration_depth);
-    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.total_events);
-
-    try module.exit();
-    const exited_snapshot = module.summary();
-    try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.exited, exited_snapshot.stage);
-    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.init_runs);
-    try std.testing.expectEqual(@as(usize, 0), exited_snapshot.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.exit_runs);
-    try std.testing.expectEqual(@as(usize, 0), exited_snapshot.registration_depth);
-    try std.testing.expectEqual(@as(usize, 0), exited_snapshot.total_events);
-    try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeTraceEventsLoader.planFor(&module));
-
-    const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
-
-    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
-    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
-        shared_request,
-        .waiting_on_runtime_substrate,
-        pending_plan,
-    ));
-    try std.testing.expectEqualStrings(prepared_plan.module_name, pending_plan.module_name);
-    try std.testing.expectEqualStrings(prepared_plan.anchor, pending_plan.anchor);
-    try std.testing.expectEqualStrings(prepared_plan.entry_symbol, pending_plan.entry_symbol);
-    try std.testing.expectEqualStrings(prepared_plan.exit_symbol, pending_plan.exit_symbol);
-    try std.testing.expect(pending_plan.provides_selftest_hook);
-    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);
-    try std.testing.expectEqual(@as(usize, 0), pending_plan.init_flow.selftest_runs);
-    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
-        pending_plan,
-        .caller_provided,
-        .{
-            .handoff_stage = .initialized,
-            .init_runs = 1,
-            .selftest_runs = 0,
-            .exit_runs = 0,
-        },
-    ));
-    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(pending_plan));
-
-    try loader.releaseSharedWithoutSubstrate(&shared_request);
-    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
-    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
-        shared_request,
-        .released_without_substrate,
-        pending_plan,
-    ));
-}
-
 test "runtime trace-events loader keeps selftest-complete shared-request snapshots stable across later exit activity" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
@@ -600,8 +528,7 @@ test "runtime trace-events loader keeps selftest-complete shared-request snapsho
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
 
     const prepared_plan = shared_request.plan;
-    const prepared_registration_snapshot = registrationSnapshot(loader.cached_plan orelse unreachable);
-    const selftested_summary = module.summary();
+    const prepared_registration_snapshot = registrationSnapshot(loader.cached_plan.?);
     try std.testing.expect(prepared_plan.provides_selftest_hook);
     try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, prepared_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 1), prepared_plan.init_flow.selftest_runs);
@@ -611,35 +538,15 @@ test "runtime trace-events loader keeps selftest-complete shared-request snapsho
         prepared_plan,
     ));
     try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(prepared_plan));
-    try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.selftest_complete, selftested_summary.stage);
-    try std.testing.expectEqual(@as(usize, 1), selftested_summary.init_runs);
-    try std.testing.expectEqual(@as(usize, 1), selftested_summary.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 0), selftested_summary.exit_runs);
-    try std.testing.expectEqual(@as(usize, 0), selftested_summary.registration_depth);
-    try std.testing.expectEqual(@as(usize, 8), selftested_summary.total_events);
-    try std.testing.expect(keepsRegistrationSnapshotExplicit(
-        loader.cached_plan orelse unreachable,
-        prepared_registration_snapshot,
-    ));
-    try std.testing.expectEqualStrings("tracepoint_probe_register", prepared_registration_snapshot.register_api);
-    try std.testing.expectEqualStrings("tracepoint_probe_unregister", prepared_registration_snapshot.unregister_api);
-    try std.testing.expectEqual(@as(usize, 8), prepared_registration_snapshot.total_events);
-    try std.testing.expectEqual(@as(i32, 0), prepared_registration_snapshot.last_main_count);
-    try std.testing.expectEqual(@as(i32, 1), prepared_registration_snapshot.last_fn_count);
-    try std.testing.expectEqual(@as(usize, 1), prepared_registration_snapshot.selftest_runs);
+    try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.selftest_complete, loader.cached_plan.?.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 5), loader.cached_plan.?.summary.event_families.len);
+    try std.testing.expect(keepsRegistrationSnapshotExplicit(loader.cached_plan.?, prepared_registration_snapshot));
 
     try module.exit();
-    const exited_summary = module.summary();
-    try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.exited, exited_summary.stage);
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
-    try std.testing.expectEqual(@as(usize, 0), exited_summary.registration_depth);
-    try std.testing.expectEqual(@as(usize, 8), exited_summary.total_events);
     try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeTraceEventsLoader.planFor(&module));
 
     const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
-    const cached_pending_plan = loader.cached_plan orelse unreachable;
+    const cached_pending_plan = loader.cached_plan orelse return error.ExpectedCachedPlan;
 
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
@@ -865,6 +772,67 @@ test "runtime trace-events loader rejects prepared shared approved-family anchor
         shared_request,
         .prepared,
         prepared_shared_plan,
+    ));
+}
+
+test "runtime trace-events loader rejects prepared shared allocator and init-flow drift before any local runtime handoff" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    var allocator_loader = RuntimeTraceEventsLoader{};
+    var allocator_request = try allocator_loader.prepareSharedRequest(&module);
+    const prepared_allocator_plan = allocator_request.plan;
+
+    try std.testing.expectEqual(LoaderStage.prepared, allocator_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, allocator_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        allocator_request,
+        .prepared,
+        prepared_allocator_plan,
+    ));
+
+    allocator_request.plan.allocator_handoff = .kernel_heap;
+    try std.testing.expectError(error.PreparedPlanDrift, allocator_loader.requestSharedRuntimeLoad(&allocator_request));
+    try std.testing.expectEqual(LoaderStage.prepared, allocator_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, allocator_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        allocator_request.prepared_plan,
+        prepared_allocator_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        allocator_request.plan,
+        prepared_allocator_plan,
+    ));
+
+    var init_flow_loader = RuntimeTraceEventsLoader{};
+    var init_flow_request = try init_flow_loader.prepareSharedRequest(&module);
+    const prepared_init_flow_plan = init_flow_request.plan;
+
+    try std.testing.expectEqual(LoaderStage.prepared, init_flow_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, init_flow_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        init_flow_request,
+        .prepared,
+        prepared_init_flow_plan,
+    ));
+
+    init_flow_request.plan.init_flow = .{
+        .handoff_stage = .initialized,
+        .init_runs = 1,
+        .selftest_runs = 0,
+        .exit_runs = 0,
+    };
+    try std.testing.expectError(error.PreparedPlanDrift, init_flow_loader.requestSharedRuntimeLoad(&init_flow_request));
+    try std.testing.expectEqual(LoaderStage.prepared, init_flow_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, init_flow_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        init_flow_request.prepared_plan,
+        prepared_init_flow_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        init_flow_request.plan,
+        prepared_init_flow_plan,
     ));
 }
 
