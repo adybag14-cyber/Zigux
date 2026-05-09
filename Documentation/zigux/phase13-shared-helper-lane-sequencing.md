@@ -99,6 +99,8 @@ Until `master` ships a dedicated `landlock syscalls` packet checker, treat `Docu
 
 When shared scripts-root or tests-root reminder text is refreshed, use that syscall-owned truthfulness trio as the shorthand for this lane rather than borrowing `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, which remains ruleset-lane evidence on `master`.
 
+Broad contributor-facing reminders must also spell the split as `landlock/ruleset` and `landlock/syscalls` rather than collapsing both anchors into generic `landlock` shorthand.
+
 ### Adjacent notifier release-surface evidence
 
 These surfaces remain adjacent release evidence:
