@@ -572,6 +572,12 @@ EXACT_COUNT_MARKERS = {
     ],
 }
 
+PHASE7_VALIDATE_TARGET = "phase7-validate"
+REQUIRED_PHASE7_VALIDATE_BLOCK_LINES = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+)
+
 FORBIDDEN_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": [
         "run: make -C zigux phase7",
@@ -662,11 +668,43 @@ def collect_forbidden_markers(root: Path) -> list[str]:
     return forbidden
 
 
+def extract_make_target_block(text: str, target: str) -> str:
+    block_lines: list[str] = []
+    collecting = False
+    for line in text.splitlines():
+        if not collecting:
+            if line == f"{target}:":
+                collecting = True
+                block_lines.append(line)
+            continue
+        if line and not line.startswith("\t"):
+            break
+        block_lines.append(line)
+    return "\n".join(block_lines)
+
+
+def collect_phase7_validate_block_markers(root: Path) -> list[str]:
+    missing: list[str] = []
+    makefile_text = (root / "zigux/Makefile").read_text(encoding="utf-8")
+    block = extract_make_target_block(makefile_text, PHASE7_VALIDATE_TARGET)
+    if not block:
+        missing.append(f"zigux/Makefile: missing {PHASE7_VALIDATE_TARGET} target block")
+        return missing
+    for marker in REQUIRED_PHASE7_VALIDATE_BLOCK_LINES:
+        actual_count = block.count(marker)
+        if actual_count != 1:
+            missing.append(
+                f"zigux/Makefile {PHASE7_VALIDATE_TARGET} block: {marker}:expected=1:actual={actual_count}"
+            )
+    return missing
+
+
 def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, [], []
     missing_markers = collect_missing_markers(root)
+    missing_markers.extend(collect_phase7_validate_block_markers(root))
     forbidden_markers = collect_forbidden_markers(root)
     return [], missing_markers, forbidden_markers
 
@@ -726,6 +764,27 @@ def duplicate_first_marker(text: str, marker: str) -> str:
     return updated
 
 
+def relocate_makefile_marker_outside_target(text: str, target: str, marker: str) -> str:
+    lines = text.splitlines()
+    updated_lines: list[str] = []
+    in_target = False
+    moved = False
+    for line in lines:
+        if not in_target and line == f"{target}:":
+            in_target = True
+            updated_lines.append(line)
+            continue
+        if in_target and line and not line.startswith("\t"):
+            in_target = False
+        if in_target and line.strip() == marker:
+            moved = True
+            continue
+        updated_lines.append(line)
+    assert moved
+    updated_lines.extend(["phase7-relocated:", f"\t{marker}"])
+    return "\n".join(updated_lines) + "\n"
+
+
 def mutate_file(path: Path, transform: callable) -> None:
     original = path.read_text(encoding="utf-8")
     path.write_text(transform(original), encoding="utf-8")
@@ -769,6 +828,23 @@ def run_self_test() -> None:
                 write_fixture_root(tmp_root)
                 exact_count_case_count += 1
 
+        target_block_case_count = 0
+        for marker in REQUIRED_PHASE7_VALIDATE_BLOCK_LINES:
+            path = tmp_root / "zigux/Makefile"
+            mutate_file(
+                path,
+                lambda text, marker=marker: relocate_makefile_marker_outside_target(
+                    text, PHASE7_VALIDATE_TARGET, marker
+                ),
+            )
+            expect_missing_marker(
+                f"phase7_validate_block:{marker}",
+                tmp_root,
+                f"zigux/Makefile {PHASE7_VALIDATE_TARGET} block: {marker}:expected=1:actual=0",
+            )
+            write_fixture_root(tmp_root)
+            target_block_case_count += 1
+
         forbidden_marker_case_count = 0
         for rel, markers in FORBIDDEN_MARKERS.items():
             path = tmp_root / rel
@@ -785,6 +861,7 @@ def run_self_test() -> None:
         missing_file_case_count
         + missing_marker_case_count
         + exact_count_case_count
+        + target_block_case_count
         + forbidden_marker_case_count
     )
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
