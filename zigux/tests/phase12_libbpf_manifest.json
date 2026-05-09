@@ -127,7 +127,7 @@
       "id": "phase12-libbpf-perf-buffer-online-cpu-routing-boundary",
       "status": "deferred_high_risk",
       "kind": "interrupt_routing",
-      "zigux_destination": "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
       "why_now": "The online-CPU routing path still combines sysfs reads, `perf_event_open` setup, mmap-backed ring state, map updates, epoll registration, and timeout-sensitive polling, so it stays a separate deferred queueing-risk bucket beside the bounded helper surfaces that feed it."
     },
     {
