@@ -11,7 +11,7 @@ This catalog records the current shared review surface for the bounded Phase 6 l
   - `lib/bsearch.c`
   - `lib/checksum.c`
   - `lib/hexdump.c`
-- verification note: this catalog was refreshed by direct readback of the current `master` Phase 6 slice notes, shared docs indexes, perf survey, build entrypoint, Makefile routes, helper parity manifest, and the shared owner map on `2026-05-08`
+- verification note: this catalog was refreshed by direct readback of the current `master` Phase 6 slice notes, shared docs indexes, perf survey, build entrypoint, Makefile routes, helper parity manifest, and the shared owner map on `2026-05-09`
 
 ## Why this catalog exists
 
@@ -48,6 +48,7 @@ Use `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` before reopening
 - roadmap anchor: `lib/bsearch.c`
 - Zig helper: `lib/bsearch.zig`
 - focused replay: `zigux/tests/phase6_bsearch.zig`
+- roadmap-facing parity surface: raw `bsearch` and `bsearchMutable` replay kept explicit inside `zigux/tests/phase6_bsearch.zig`
 - focused lower-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
 - shared build route: `zigux/tests/phase6_build.zig`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
