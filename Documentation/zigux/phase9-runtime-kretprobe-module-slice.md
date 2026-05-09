@@ -35,6 +35,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - the sample and diff gate also keep overlapping entry stamps explicit under concurrent load, so the bounded pilot proves per-instance return timing stays distinct before any shared loader handoff is prepared.
 - the loader-owned prepared handoff snapshot stays stable once captured, so later sample mutation or late selftest activity does not silently rewrite the parked registration plan before runtime-substrate review.
 - that same loader-owned snapshot also remains the single post-release review surface after `releaseWithoutSubstrate()` or `releaseSharedWithoutSubstrate()` closes the waiting state, so this pilot does not split ownership across a second release-only note path.
+- the loader scaffold also keeps shared release-failure guards explicit, so a premature `releaseSharedWithoutSubstrate()` attempt cannot desynchronize loader state from the shared request while the runtime substrate is still unavailable.
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` now stays inside this slice's shipped product boundary too, so the kretprobe starter keeps the pilot-family owner split explicit instead of leaving the shared loader lane versus pilot-local packet implicit.
 
 ## Roadmap gap vs current pilot
