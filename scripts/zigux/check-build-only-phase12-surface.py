@@ -87,6 +87,8 @@ REQUIRED_FILE_MARKERS = {
     PHASE12_CLOSURE_CHECKLIST_PATH: [
         "Phase 12 Release Closure Checklist",
         "compact release-coordination matrix: `Documentation/zigux/phase12-release-coordination-matrix.md`",
+        "adjacent release-readiness note: `Documentation/zigux/phase12-release-readiness-survey.md`",
+        "complex-driver anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "scripts/zigux/check-build-only-phase12-surface.py",
         "Documentation/zigux/phase12-raw-github-coverage-survey.md",
