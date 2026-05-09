@@ -85,6 +85,7 @@
       "owner": "Architecture Council",
       "phase": "Phase 15",
       "status_bucket": "freeze_in_c",
+      "required_approver_set": "Architecture Council + PMO / Release Management",
       "validation_gate": "Phase 15 parity scorecard plus Architecture Council reopen record",
       "rollback_owner": "Architecture Council + PMO / Release Management",
       "evidence_archive_path": "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
@@ -97,6 +98,7 @@
       "owner": "Architecture Council",
       "phase": "Phase 15",
       "status_bucket": "freeze_in_c",
+      "required_approver_set": "Architecture Council + Validation and Perf Team",
       "validation_gate": "Phase 15 parity scorecard plus Architecture Council reopen record",
       "rollback_owner": "Architecture Council + Validation and Perf Team",
       "evidence_archive_path": "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
@@ -109,6 +111,7 @@
       "owner": "ABI and Runtime Team",
       "phase": "Phase 15",
       "status_bucket": "freeze_in_c",
+      "required_approver_set": "Architecture Council + ABI and Runtime Team",
       "validation_gate": "Phase 15 parity scorecard plus Architecture Council reopen record",
       "rollback_owner": "Architecture Council + ABI and Runtime Team",
       "evidence_archive_path": "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
@@ -121,6 +124,7 @@
       "owner": "Shared Subsystems Pod",
       "phase": "Phase 15",
       "status_bucket": "freeze_in_c",
+      "required_approver_set": "Architecture Council + Shared Subsystems Pod",
       "validation_gate": "Phase 15 parity scorecard plus Architecture Council reopen record",
       "rollback_owner": "Architecture Council + Shared Subsystems Pod",
       "evidence_archive_path": "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md",
@@ -211,6 +215,13 @@
       "kind": "owner_inventory",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
       "why_now": "Each freeze-in-C anchor now needs explicit owner, validation-gate, and rollback-owner inventory so the maintenance-mode freeze-map packet proves the same review scope required by the root policy."
+    },
+    {
+      "id": "phase15-freeze-map-required-approver-sync",
+      "status": "starter_landed",
+      "kind": "approval_governance",
+      "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
+      "why_now": "Each freeze-in-C anchor now needs the same required-approver-set inventory that the root freeze-map policy and Architecture Council review-process packet already require for any status-review request."
     },
     {
       "id": "phase15-anchor-reporting-field-sync",
