@@ -19,6 +19,8 @@ These surfaces keep the current helper tranche reviewable, but they do not make 
   * `Documentation/zigux/review-checklist.md`
   * `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
   * `Documentation/zigux/phase13-contributor-workflow-guide.md`
+  * `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+  * `Documentation/zigux/phase13-landlock-syscalls-governance.md`
   * `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
   * `scripts/zigux/README.md`
   * `zigux/tests/README.md`
