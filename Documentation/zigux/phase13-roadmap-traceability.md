@@ -102,6 +102,8 @@ That packet is truthful to the roadmap because it records only bounded helper pl
 
 The shipped helper-owned boundary note `Documentation/zigux/phase13-landlock-syscalls-governance.md` stays paired with that anchor too. It keeps the current FD, path, and release-side governance cues explicit for contributors and reviewers without turning that helper-owned policy note into a ninth shared replay step.
 
+Together, `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and `zigux/tests/phase13_landlock_syscalls_reviewability.zig` are the current syscall-owned truthfulness trio for this helper packet. Keeping that trio explicit in the roadmap note matches the newer contributor and tests-root guidance on `master` without borrowing the unrelated ruleset checker as shorthand for syscall evidence.
+
 Keep this packet parked unless a future same-lane step can add another equally bounded planner without widening into live file-operations wiring, FD ownership, credential work, or domain state.
 
 ## Adjacent release evidence
