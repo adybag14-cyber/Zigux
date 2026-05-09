@@ -78,6 +78,7 @@
     "specialist_lane_owned_anchor_count": 2,
     "reserved_decision_record_template_count": 4,
     "blocked_status_change_anchor_count": 4,
+    "shared_governance_replay_route_count": 4,
     "review_packet_field_count": 20,
     "ownership_evidence_field_count": 15
   },
@@ -356,6 +357,13 @@
       "kind": "reporting",
       "zigux_destination": "zigux/tests/phase15_parity_scorecard.json",
       "why_now": "The scorecard now publishes one machine-checked aggregate metrics block for anchor count, frozen-line footprint, carried-forward Phase 14 evidence, ownership split, reserved decision-record templates, blocked status-change count, and mirrored review-packet field coverage so reviewers can understand the parked freeze set without recomputing totals from prose."
+    },
+    {
+      "id": "phase15-shared-governance-replay-route-metric",
+      "status": "starter_landed",
+      "kind": "reporting",
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.json",
+      "why_now": "The parked Phase 15 governance packet now relies on one validator-first route, one dedicated make-backed test route, one direct shared-build route, and the shared make convenience route, so the scorecard now records that four-route replay inventory explicitly instead of leaving the bounded governance surface implied by prose alone."
     },
     {
       "id": "phase15-scorecard-handoff-evidence-readback-sync",
