@@ -85,7 +85,14 @@
       "kind": "freeze_map",
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
       "why_now": "The freeze-in-C posture still lacks enough evidence for any deep-core status change."
+    },
+    {
+      "id": "phase15-tests-root-dedicated-make-route-undercount",
+      "status": "blocked_on_tests_root_phase15_summary_sync",
+      "kind": "shared_review_surface",
+      "zigux_destination": "zigux/tests/README.md",
+      "why_now": "The broad tests-root Phase 15 reminder still leaves the dedicated `make -C zigux phase15-test` route implicit beside the validator-first and shared build-and-make path."
     }
   ],
-  "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the shared review checklist drops the explicit workflow-backed or direct shared-build replay markers, one of the two dedicated `phase15-validate` checker routes disappears, the dedicated `make -C zigux phase15-test` route disappears, or one of the four recorded deep-core blocker dispositions changes."
+  "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the shared review checklist drops the explicit workflow-backed or direct shared-build replay markers, one of the two dedicated `phase15-validate` checker routes disappears, the dedicated `make -C zigux phase15-test` route disappears, one of the four recorded deep-core blocker dispositions changes, or a safe exact edit path appears for updating `zigux/tests/README.md` so its broad Phase 15 reminder names the dedicated `phase15-test` route explicitly."
 }
