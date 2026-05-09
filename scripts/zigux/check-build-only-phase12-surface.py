@@ -239,6 +239,7 @@ REQUIRED_FILE_MARKERS = {
         "`make -C zigux phase12`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
+        "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
         "`check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed",
         "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
     ],
@@ -315,6 +316,7 @@ EXACT_COUNT_FILE_MARKERS = {
         "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`": 1,
         "`make -C zigux phase12-smoke`": 1,
         "`make -C zigux phase12`": 1,
+        "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`": 1,
     },
     TESTS_README_PATH: {
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`": 1,
@@ -339,7 +341,6 @@ EXACT_COUNT_FILE_MARKERS = {
         "PHASE12_RELEASE_CLOSED=no": 1,
     },
 }
-
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
