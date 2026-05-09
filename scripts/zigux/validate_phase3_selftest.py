@@ -472,6 +472,48 @@ def run_self_test() -> int:
         ]
         case_count += 1
 
+        missing_catalog_selftest_aux_root = tmp_root / "missing-catalog-selftest-aux"
+        _populate_root(missing_catalog_selftest_aux_root)
+        write_script(
+            missing_catalog_selftest_aux_root / "scripts/zigux/check-phase3-catalog-selftest.py",
+            "PHASE3_CATALOG_SELF_TEST=pass",
+        )
+        assert run_targets(missing_catalog_selftest_aux_root) == [
+            "missing_aux_marker:scripts/zigux/check-phase3-catalog-selftest.py:PHASE3_CATALOG_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        duplicate_catalog_selftest_aux_root = tmp_root / "duplicate-catalog-selftest-aux"
+        _populate_root(duplicate_catalog_selftest_aux_root)
+        duplicate_catalog_selftest_aux_path = (
+            duplicate_catalog_selftest_aux_root / "scripts/zigux/check-phase3-catalog-selftest.py"
+        )
+        duplicate_catalog_selftest_aux_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "import sys",
+                    "",
+                    'if "--self-test" in sys.argv:',
+                    '    print("PHASE3_CATALOG_SELF_TEST=pass")',
+                    '    print("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=1")',
+                    '    print("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=2")',
+                    "    raise SystemExit(0)",
+                    "",
+                    'raise SystemExit("expected --self-test")',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert run_targets(duplicate_catalog_selftest_aux_root) == [
+            "duplicate_aux_marker:scripts/zigux/check-phase3-catalog-selftest.py:2:PHASE3_CATALOG_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
         missing_root = tmp_root / "missing"
         _populate_root(missing_root)
         (missing_root / "scripts/zigux/survey-phase3-abi-constant-parity.py").unlink()
