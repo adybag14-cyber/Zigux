@@ -457,3 +457,11 @@ test "phase12 virtio scsi request queue restart summary requires a frozen transp
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRequestQueueRestartSummary());
 }
+
+test "phase12 virtio scsi remaining recovery summaries require a frozen transport" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRestoreSummary());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRestoreQueueRebindSummary());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventBufferOwnershipSummary());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRollbackSummary());
+}
