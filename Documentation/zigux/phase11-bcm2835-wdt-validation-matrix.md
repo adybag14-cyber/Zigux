@@ -5,7 +5,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
 ## Status
 
 - `PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed`
-- reviewed against live `master` `55568844ac3ce835b0e0bef624c24c17f22b78a1`
+- reviewed against live `master` `affdebd460c9c33ce939c7535cdb929352648e93`
 - archival packet identity remains `P11-L08` for traceability, while current scheduled watchdog-family continuity for this archived bcm2835 packet is tracked through `P11-L10`
 - scope: keep the current `bcm2835_wdt` starter honest about what is already validated, name the current timeout-window and register-image evidence alongside the registration-outcome, platform-handoff, poweroff-path, and remove-time callback-identity evidence, and avoid overclaiming live platform registration, PM wiring, or poweroff coordination before those behaviors exist in Zigux
 - latest focused replays: `zig test zigux/tests/phase11_bcm2835_wdt.zig`, `zig test drivers/watchdog/bcm2835_wdt_verify.zig`, and `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still pass for the bounded bcm2835 packet on current `master`
