@@ -10,6 +10,7 @@ import tempfile
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
+DOCS_ROOT_REL = "Documentation/zigux/README.md"
 DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
 BUILD_REL = "zigux/tests/build.zig"
 MAKEFILE_REL = "zigux/Makefile"
@@ -17,6 +18,7 @@ DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 SELF_REL = "scripts/zigux/check-phase3-abi-dump-gate.py"
 ABI_WRAPPER_REL = "scripts/zigux/check-phase3-abi.py"
+DOCS_ROOT_ABI_TEST_GATE = "zig build phase3-test --build-file zigux/tests/build.zig"
 DUMP_GATE = "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig"
 BUILD_STEP = 'b.step("phase3-dump"'
 MAKEFILE_TARGET = "phase3-validate"
@@ -68,6 +70,10 @@ def _prefix_count(text: str, prefix: str) -> int:
     return sum(1 for line in _normalized_lines(text) if line.startswith(prefix))
 
 
+def _backticked_or_plain_line_count(text: str, needle: str) -> int:
+    return text.count(f"`{needle}`") + sum(1 for raw_line in text.splitlines() if raw_line.strip() == needle)
+
+
 def _collect_makefile_target_lines(text: str, target: str) -> list[str] | None:
     in_target = False
     lines: list[str] = []
@@ -91,6 +97,7 @@ def _command_count(lines: list[str], command: str) -> int:
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
+    docs_root_path = root / DOCS_ROOT_REL
     doc_path = root / DOC_REL
     build_path = root / BUILD_REL
     makefile_path = root / MAKEFILE_REL
@@ -99,9 +106,20 @@ def validate(root: Path) -> list[str]:
     abi_wrapper_path = root / ABI_WRAPPER_REL
 
     try:
+        docs_root_text = docs_root_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        issues.append(f"missing_docs_root:{DOCS_ROOT_REL}")
+    else:
+        docs_root_count = _backticked_or_plain_line_count(docs_root_text, DOCS_ROOT_ABI_TEST_GATE)
+        if docs_root_count == 0:
+            issues.append(f"missing_docs_root_marker:{DOCS_ROOT_ABI_TEST_GATE}")
+        elif docs_root_count != 1:
+            issues.append(f"duplicate_docs_root_marker:{DOCS_ROOT_ABI_TEST_GATE}")
+
+    try:
         doc_text = doc_path.read_text(encoding="utf-8")
     except FileNotFoundError:
-        return [f"missing_doc:{DOC_REL}"]
+        return [f"missing_doc:{DOC_REL}", *issues]
 
     marker_count = _line_count(doc_text, DUMP_GATE)
     if marker_count == 0:
@@ -221,6 +239,17 @@ def run_self_test() -> int:
         (root / "zigux/uapi").mkdir(parents=True, exist_ok=True)
         (root / ABI_WRAPPER_REL).parent.mkdir(parents=True, exist_ok=True)
 
+        (root / DOCS_ROOT_REL).write_text(
+            "\n".join(
+                [
+                    "# Zigux Documentation",
+                    "- `zig build phase3-test --build-file zigux/tests/build.zig`, `make -C zigux phase3-validate`, and `make -C zigux phase3` now keep the current ABI substrate reviewable.",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
         (root / DOC_REL).write_text(
             "\n".join(
                 [
@@ -286,6 +315,47 @@ def run_self_test() -> int:
         )
 
         assert validate(root) == []
+
+        (root / DOCS_ROOT_REL).unlink()
+        issues = validate(root)
+        assert f"missing_docs_root:{DOCS_ROOT_REL}" in issues
+        (root / DOCS_ROOT_REL).write_text(
+            "\n".join(
+                [
+                    "# Zigux Documentation",
+                    "- `zig build phase3-test --build-file zigux/tests/build.zig`, `make -C zigux phase3-validate`, and `make -C zigux phase3` now keep the current ABI substrate reviewable.",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        (root / DOCS_ROOT_REL).write_text(
+            "\n".join(
+                [
+                    "# Zigux Documentation",
+                    "- `zig build phase3-test --build-file zigux/tests/build.zig`, `make -C zigux phase3-validate`, and `make -C zigux phase3` now keep the current ABI substrate reviewable.",
+                    "- `zig build phase3-test --build-file zigux/tests/build.zig` stays explicit beside the Linux-style replay route.",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert f"duplicate_docs_root_marker:{DOCS_ROOT_ABI_TEST_GATE}" in issues
+        (root / DOCS_ROOT_REL).write_text(
+            "\n".join(
+                [
+                    "# Zigux Documentation",
+                    "- `zig build phase3-test --build-file zigux/tests/build.zig`, `make -C zigux phase3-validate`, and `make -C zigux phase3` now keep the current ABI substrate reviewable.",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
 
         (root / DOC_REL).write_text("# Phase 3 ABI Substrate Slice\n", encoding="utf-8", newline="\n")
         (root / MAKEFILE_REL).write_text(
@@ -533,7 +603,7 @@ def run_self_test() -> int:
         assert f"manifest_duplicate_file:{DUMP_REL}:2" in issues
 
     print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")
-    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
