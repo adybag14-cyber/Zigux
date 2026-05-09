@@ -89,3 +89,84 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
     try std.testing.expectEqual(sample.SampleFocus.function_callback_registration, callback_boundary.checked_focus[4]);
     try std.testing.expectEqual(sample.SampleFocus.ownership_and_lifetime, callback_boundary.checked_focus[5]);
 }
+
+test "phase 5 trace-events sample keeps the public conditional helper explicit" {
+    var module = sample.TraceEventsReferenceSample{};
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runConditionalBoundaryReplay(0));
+    try module.init();
+
+    const zero_boundary = try module.runConditionalBoundaryReplay(0);
+    try std.testing.expectEqual(sample.SampleStage.initialized, zero_boundary.stage_before_iteration);
+    try std.testing.expectEqual(sample.SampleStage.initialized, zero_boundary.stage_after_iteration);
+    try std.testing.expectEqual(@as(i32, 0), zero_boundary.main_count);
+    try std.testing.expectEqualStrings("iter=0", zero_boundary.formatted_message);
+    try std.testing.expectEqualStrings("Mother Goose", zero_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 0), zero_boundary.selected_index);
+    try std.testing.expectEqual(@as(usize, 0xdeadbeef), zero_boundary.bitmask_word);
+    try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, zero_boundary.main_thread_event_calls);
+    try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, zero_boundary.total_event_calls_after_replay);
+    try std.testing.expect(zero_boundary.conditional_paths_checked);
+    try std.testing.expect(zero_boundary.vararg_payload_path_checked);
+    try std.testing.expect(zero_boundary.relative_location_path_checked);
+
+    const wrap_boundary = try module.runConditionalBoundaryReplay(5);
+    try std.testing.expectEqual(sample.SampleStage.initialized, wrap_boundary.stage_before_iteration);
+    try std.testing.expectEqual(sample.SampleStage.initialized, wrap_boundary.stage_after_iteration);
+    try std.testing.expectEqual(@as(i32, 5), wrap_boundary.main_count);
+    try std.testing.expectEqualStrings("iter=5", wrap_boundary.formatted_message);
+    try std.testing.expectEqualStrings("Mother Goose", wrap_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 0), wrap_boundary.selected_index);
+    try std.testing.expectEqual(@as(usize, 0xdeadbeef), wrap_boundary.bitmask_word);
+    try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, wrap_boundary.main_thread_event_calls);
+    try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count * 2, wrap_boundary.total_event_calls_after_replay);
+    try std.testing.expect(wrap_boundary.conditional_paths_checked);
+    try std.testing.expect(wrap_boundary.vararg_payload_path_checked);
+    try std.testing.expect(wrap_boundary.relative_location_path_checked);
+}
+
+test "phase 5 trace-events sample keeps ownership replay explicit" {
+    var module = sample.TraceEventsReferenceSample{};
+
+    var summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.cold, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), summary.total_event_calls);
+    try std.testing.expectEqual(@as(usize, 0), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.replay_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.exit_runs);
+    try std.testing.expectEqualStrings("", summary.selected_string);
+    try std.testing.expectEqualStrings("", summary.formatted_message);
+
+    const ownership_replay = try module.runOwnershipReplay();
+    try std.testing.expectEqual(sample.SampleStage.cold, ownership_replay.stage_before_init);
+    try std.testing.expectEqual(sample.SampleStage.initialized, ownership_replay.stage_after_init);
+    try std.testing.expectEqual(sample.SampleStage.replay_complete, ownership_replay.stage_after_replay);
+    try std.testing.expectEqual(sample.SampleStage.exited, ownership_replay.stage_after_exit);
+    try std.testing.expectEqual(@as(usize, 1), ownership_replay.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), ownership_replay.replay_runs);
+    try std.testing.expectEqual(@as(usize, 1), ownership_replay.exit_runs);
+    try std.testing.expectEqual(@as(usize, 8), ownership_replay.total_event_calls);
+    try std.testing.expectEqualStrings("Gandalf", ownership_replay.selected_string);
+    try std.testing.expectEqual(@as(usize, 2), ownership_replay.selected_index);
+    try std.testing.expectEqualStrings("iter=7", ownership_replay.formatted_message);
+    try std.testing.expectEqual(@as(usize, 2), ownership_replay.function_callback_event_calls);
+    try std.testing.expect(ownership_replay.registration_balance_restored);
+    try std.testing.expect(ownership_replay.saw_conditional_path);
+    try std.testing.expect(ownership_replay.saw_vararg_payload);
+    try std.testing.expect(ownership_replay.saw_rel_loc_payload);
+    try std.testing.expect(ownership_replay.saw_function_callback_path);
+
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.exited, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), summary.total_event_calls);
+    try std.testing.expectEqual(@as(usize, 1), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary.replay_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary.exit_runs);
+    try std.testing.expectEqualStrings("Gandalf", summary.selected_string);
+    try std.testing.expectEqualStrings("iter=7", summary.formatted_message);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runOwnershipReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionCallback());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.replayMainIteration(1));
+}
