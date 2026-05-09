@@ -18,7 +18,7 @@ ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 C_HARNESS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'genksyms_bridge_c_harness.c'
 ZIG_TOOL = ROOT / 'scripts' / 'zigux' / 'genksyms.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 8
 EXPECTED_HELPER_LOCAL_ANCHORS = [
     'genksyms bridge parses repeated short flags and arguments',
     'genksyms bridge parses long options and quiet override',
@@ -319,7 +319,7 @@ def normalize_cli_stderr(text: str) -> str:
         re.compile(r"^.+: (option requires an argument -- '.+')$"),
         re.compile(r"^.+: (option '--.+?' requires an argument)$"),
         re.compile(r"^.+: (option '--.+?' doesn't allow an argument)$"),
-        re.compile(r"^.+: (option '--.+?' is ambiguous)(?:; possibilities: .+)?$"),
+        re.compile(r"^(?:.+: )?(option '--.+?' is ambiguous)(?:; possibilities: .+)?$"),
         re.compile(r"^.+: (unrecognized option '.+')$"),
     )
     normalized_lines: list[str] = []
@@ -472,6 +472,7 @@ def run_self_test() -> int:
         assert normalize_cli_stderr("genksyms: option '--reference' requires an argument\n") == "option '--reference' requires an argument\n"
         assert normalize_cli_stderr("genksyms: option '--help' doesn't allow an argument\n") == "option '--help' doesn't allow an argument\n"
         assert normalize_cli_stderr("genksyms: option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n") == "option '--du' is ambiguous\n"
+        assert normalize_cli_stderr("option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n") == "option '--du' is ambiguous\n"
 
         # Keep the count aligned to grouped success-marker contract coverage.
         assert success_lines(refresh=False)[:2] == [
