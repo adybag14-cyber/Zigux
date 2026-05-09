@@ -26,6 +26,20 @@ const RoadmapGapSummary = struct {
     next_gate: []const u8,
 };
 
+const DeliveryEvidenceEntry = struct {
+    id: []const u8,
+    kind: []const u8,
+    path: []const u8,
+    why_now: []const u8,
+};
+
+const OwnershipEntry = struct {
+    surface: []const u8,
+    role: []const u8,
+    owner: []const u8,
+    boundary: []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -43,6 +57,8 @@ const Manifest = struct {
     survey_summary: SurveySummary,
     lifecycle_boundary_summary: LifecycleBoundarySummary,
     roadmap_gap_summary: RoadmapGapSummary,
+    delivery_evidence_catalog: []const DeliveryEvidenceEntry,
+    ownership_map: []const OwnershipEntry,
     gaps: []const Gap,
 };
 
@@ -187,6 +203,8 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
         manifest.roadmap_gap_summary.blocked_deliverable,
     );
     try expectContains(manifest.roadmap_gap_summary.next_gate, "shared runtime loader substrate");
+    try std.testing.expectEqual(@as(usize, 4), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.ownership_map.len);
     try std.testing.expect(manifest.gaps.len >= 6);
 
     try expectContains(survey_doc, "PHASE9_SLICE=runtime-kretprobe-survey");
@@ -260,6 +278,113 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(makefile_source, "phase9-runtime-kretprobe-test:");
     try expectContains(makefile_source, "phase9-test:");
     try expectContains(makefile_source, "phase9: phase9-test");
+
+    var saw_catalog_survey_note = false;
+    var saw_catalog_module_slice = false;
+    var saw_catalog_survey_gate = false;
+    var saw_catalog_shared_build_gate = false;
+    for (manifest.delivery_evidence_catalog, 0..) |entry, i| {
+        try std.testing.expect(entry.id.len > 0);
+        try std.testing.expect(entry.kind.len > 0);
+        try std.testing.expect(entry.path.len > 0);
+        try std.testing.expect(entry.why_now.len > 0);
+
+        if (std.mem.eql(u8, entry.id, "kretprobe-survey-note")) {
+            saw_catalog_survey_note = true;
+            try std.testing.expectEqualStrings("review_note", entry.kind);
+            try std.testing.expectEqualStrings(
+                "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
+                entry.path,
+            );
+            try expectContains(entry.why_now, "shared runtime-substrate blocker");
+        }
+        if (std.mem.eql(u8, entry.id, "kretprobe-module-slice-note")) {
+            saw_catalog_module_slice = true;
+            try std.testing.expectEqualStrings("review_note", entry.kind);
+            try std.testing.expectEqualStrings(
+                "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md",
+                entry.path,
+            );
+            try expectContains(entry.why_now, "loader scaffold");
+        }
+        if (std.mem.eql(u8, entry.id, "kretprobe-survey-gate")) {
+            saw_catalog_survey_gate = true;
+            try std.testing.expectEqualStrings("validation", entry.kind);
+            try std.testing.expectEqualStrings("zigux/tests/runtime_kretprobe_survey.zig", entry.path);
+            try expectContains(entry.why_now, "focused Phase 9 kretprobe build-step boundary");
+        }
+        if (std.mem.eql(u8, entry.id, "kretprobe-shared-build-gate")) {
+            saw_catalog_shared_build_gate = true;
+            try std.testing.expectEqualStrings("validation", entry.kind);
+            try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", entry.path);
+            try expectContains(entry.why_now, "phase9-runtime-kretprobe-tests");
+        }
+
+        for (manifest.delivery_evidence_catalog[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.id, other.id));
+            try std.testing.expect(!std.mem.eql(u8, entry.path, other.path));
+        }
+    }
+    try std.testing.expect(saw_catalog_survey_note);
+    try std.testing.expect(saw_catalog_module_slice);
+    try std.testing.expect(saw_catalog_survey_gate);
+    try std.testing.expect(saw_catalog_shared_build_gate);
+
+    var saw_ownership_survey_note = false;
+    var saw_ownership_module_slice = false;
+    var saw_ownership_sample = false;
+    var saw_ownership_loader = false;
+    var saw_ownership_survey_gate = false;
+    var saw_ownership_build_step = false;
+    for (manifest.ownership_map, 0..) |entry, i| {
+        try std.testing.expect(entry.surface.len > 0);
+        try std.testing.expect(entry.role.len > 0);
+        try std.testing.expect(entry.owner.len > 0);
+        try std.testing.expect(entry.boundary.len > 0);
+        try std.testing.expectEqualStrings("P9-L13", entry.owner);
+
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-kretprobe-survey.md")) {
+            saw_ownership_survey_note = true;
+            try std.testing.expectEqualStrings("survey_note", entry.role);
+            try expectContains(entry.boundary, "shared runtime-substrate blocker");
+        }
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md")) {
+            saw_ownership_module_slice = true;
+            try std.testing.expectEqualStrings("module_slice_note", entry.role);
+            try expectContains(entry.boundary, "loader scaffold");
+        }
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_kretprobe.zig")) {
+            saw_ownership_sample = true;
+            try std.testing.expectEqualStrings("starter_sample", entry.role);
+            try expectContains(entry.boundary, "selftest hook");
+        }
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_kretprobe_loader.zig")) {
+            saw_ownership_loader = true;
+            try std.testing.expectEqualStrings("loader_scaffold", entry.role);
+            try expectContains(entry.boundary, "idle registration snapshot");
+            try expectContains(entry.boundary, "shared runtime-loader lane owns the reusable facade");
+        }
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/runtime_kretprobe_survey.zig")) {
+            saw_ownership_survey_gate = true;
+            try std.testing.expectEqualStrings("survey_gate", entry.role);
+            try expectContains(entry.boundary, "Fail-closes");
+        }
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/phase9_build.zig")) {
+            saw_ownership_build_step = true;
+            try std.testing.expectEqualStrings("shared_build_bundle", entry.role);
+            try expectContains(entry.boundary, "phase9-runtime-kretprobe-tests");
+        }
+
+        for (manifest.ownership_map[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.surface, other.surface));
+        }
+    }
+    try std.testing.expect(saw_ownership_survey_note);
+    try std.testing.expect(saw_ownership_module_slice);
+    try std.testing.expect(saw_ownership_sample);
+    try std.testing.expect(saw_ownership_loader);
+    try std.testing.expect(saw_ownership_survey_gate);
+    try std.testing.expect(saw_ownership_build_step);
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
