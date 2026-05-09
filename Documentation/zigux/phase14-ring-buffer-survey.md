@@ -6,7 +6,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
-- `PHASE14_LANE_KEY=P14-L05`
+- `PHASE14_LANE_KEY=P14-L08`
 - `PHASE14_SURVEYED_COMMIT=946d5c73fdb763ba860a20879b05da54e1896e8c`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
 - survey provenance refreshed against verified `master` head `946d5c73fdb763ba860a20879b05da54e1896e8c`
