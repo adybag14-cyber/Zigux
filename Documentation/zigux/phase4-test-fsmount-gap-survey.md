@@ -11,6 +11,7 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs
 - `PHASE4_SAMPLE_PATH=samples/zigux/test_fsmount.zig`
 - `PHASE4_SAMPLE_PRESENT=false`
 - `PHASE4_CURRENT_REPLAY=make M=samples/vfs`
+- `PHASE4_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `PHASE4_SURVEY_OWNER=Validation and Perf Team`
 - `PHASE4_ROLLBACK_OWNER=Validation and Perf Team`
 - `PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false`
@@ -18,7 +19,7 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs
 
 ## Scope
 
-- keep the current C anchor path, anchor blob, replay command, owner, rollback owner, and missing-Zig-starter posture reviewable
+- keep the current C anchor path, anchor blob, replay command, dedicated local survey wrapper, owner, rollback owner, and missing-Zig-starter posture reviewable
 - keep this packet adjacent to the shared Phase 4 validator-first packet instead of pretending the exact-readback gate already owns it
 - prepare the smallest truthful handoff for a future manifest-backed promotion into the broader Phase 4 validation surfaces
 
