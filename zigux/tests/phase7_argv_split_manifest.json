@@ -34,7 +34,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_argv_split.zig",
-      "why_now": "A dedicated Phase 7 gate keeps the argv_split starter surface reviewable around whitespace collapsing, first-NUL stop behavior, quote-as-literal non-goals, per-call ownership independence, and blank-input sentinel teardown safety."
+      "why_now": "A dedicated Phase 7 gate keeps the argv_split starter surface reviewable around whitespace collapsing, first-NUL stop behavior, quote-as-literal non-goals, per-call ownership independence, and blank-input sentinel teardown safety across both deinit and argvFree, including shared-sentinel stability when one blank result is torn down beside another."
     },
     {
       "id": "phase7-argv-split-shared-fixtures",
