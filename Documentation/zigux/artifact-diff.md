@@ -9,10 +9,12 @@ Current Phase 1 use
 
 Current Phase 2 use
 - `zigux/tests/fixtures/fixdep/sample_expected.txt` is generated from the current in-tree C `scripts/basic/fixdep.c` behavior on a bounded committed sample.
+- `zigux/tests/fixtures/fixdep/sample_escaped_space_expected.txt` anchors the escaped-whitespace dependency-token path so `fixdep.zig` must preserve escaped separators the same way as the C tool.
 - `zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt` widens that claim with a second committed depfile covering multi-target parsing, comments, duplicate deps, no-parse files, and escaped `#`.
 - `zigux/tests/fixtures/fixdep/sample_comment_only_expected.txt` plus `sample_comment_only_expected.stderr.txt` anchor the bounded comment-only depfile failure path while keeping the saved command line deterministic.
 - `zigux/tests/fixtures/fixdep/sample_missing_dep_expected.txt` plus `sample_missing_dep_expected.stderr.txt` anchor the bounded missing-dependency open error and its exit-code contract while keeping stdout stable.
-- `zigux/tests/fixtures/fixdep/cases.json` keeps the current four-case fixdep packet reviewable by naming the committed stdout artifact for every shipped case and the expected stderr or exit-code contract whenever the case is not a plain success path.
+- `zigux/tests/fixtures/fixdep/sample_escaped_hash_comment_chain_expected.txt` anchors the rustc-style escaped `#` dependency path, the continued comment line, and the concatenated second-target tail inside the shared packet.
+- `zigux/tests/fixtures/fixdep/cases.json` keeps the current six-case fixdep packet reviewable by naming the committed stdout artifact for every shipped case and the expected stderr or exit-code contract whenever the case is not a plain success path.
 - `scripts/zigux/check-fixdep-diff.py` compares the committed fixdep samples against both the C tool and `scripts/zigux/fixdep.zig`.
 - `zigux/tests/fixtures/genksyms_bridge/*.json` capture bounded wrapper-first `genksyms` invocation planning for committed flag combinations.
 - `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json` anchors the smallest wrapper-first `genksyms` invocation claim.
