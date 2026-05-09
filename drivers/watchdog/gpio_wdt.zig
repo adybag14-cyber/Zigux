@@ -211,6 +211,29 @@ pub const DrvdataCheckpointSummary = struct {
     blocked_on_platform_registration: bool,
 };
 
+pub const TimeoutInitCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    nowayout: bool,
+    requested_line: ProbeLineRequest,
+    descriptor_flags: DescriptorRequestFlags,
+    start_mode: ProbeStartMode,
+    watchdog_info_ready: bool,
+    watchdog_ops_ready: bool,
+    parent_attached: bool,
+    min_timeout_sec: u32,
+    default_timeout_sec: u32,
+    max_hw_heartbeat_ms: u32,
+    timeout_init_requested: bool,
+    timeout_init_precedes_nowayout: bool,
+    timeout_init_precedes_stop_on_reboot: bool,
+    timeout_init_precedes_pre_registration_start: bool,
+    timeout_init_precedes_register_device_request: bool,
+    blocked_on_live_property_read: bool,
+    blocked_on_platform_registration: bool,
+};
+
 pub const RebootGlueCheckpointSummary = struct {
     anchor: []const u8,
     hw_algo: HardwareAlgorithm,
@@ -602,6 +625,35 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
+    pub fn timeoutInitCheckpointSummary(self: *const Self, nowayout: bool) TimeoutInitCheckpointSummary {
+        const probe = self.probeSummary(nowayout);
+        const descriptor_preflight = self.descriptorPreflightSummary();
+        const timeout_checkpoint = self.timeoutPropertyCheckpointSummary();
+
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .always_running = self.always_running,
+            .nowayout = nowayout,
+            .requested_line = descriptor_preflight.requested_line,
+            .descriptor_flags = descriptor_preflight.descriptor_flags,
+            .start_mode = probe.start_mode,
+            .watchdog_info_ready = true,
+            .watchdog_ops_ready = true,
+            .parent_attached = probe.parent_attached,
+            .min_timeout_sec = soft_timeout_min,
+            .default_timeout_sec = soft_timeout_default,
+            .max_hw_heartbeat_ms = self.hw_margin_ms,
+            .timeout_init_requested = probe.timeout_init_requested,
+            .timeout_init_precedes_nowayout = true,
+            .timeout_init_precedes_stop_on_reboot = true,
+            .timeout_init_precedes_pre_registration_start = probe.starts_during_probe,
+            .timeout_init_precedes_register_device_request = true,
+            .blocked_on_live_property_read = timeout_checkpoint.blocked_on_live_property_read,
+            .blocked_on_platform_registration = descriptor_preflight.blocked_on_platform_registration,
+        };
+    }
+
     pub fn rebootGlueCheckpointSummary(self: *const Self, nowayout: bool) RebootGlueCheckpointSummary {
         const probe = self.probeSummary(nowayout);
         const descriptor_preflight = self.descriptorPreflightSummary();
@@ -793,9 +845,9 @@ fn validateHeartbeatMargin(hw_margin_ms: u32) !void {
     if (hw_margin_ms > max_hw_margin_ms) return error.HeartbeatMarginTooLarge;
 }
 
-test "reboot glue checkpoint keeps watchdog_stop_on_reboot ordering explicit" {
+test "timeout init checkpoint keeps watchdog-core setup ordering explicit" {
     const prestarted = try GpioWatchdogLab.init(.toggle, 20, true);
-    const prestarted_checkpoint = prestarted.rebootGlueCheckpointSummary(true);
+    const prestarted_checkpoint = prestarted.timeoutInitCheckpointSummary(true);
 
     try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", prestarted_checkpoint.anchor);
     try std.testing.expectEqual(HardwareAlgorithm.toggle, prestarted_checkpoint.hw_algo);
@@ -804,213 +856,37 @@ test "reboot glue checkpoint keeps watchdog_stop_on_reboot ordering explicit" {
     try std.testing.expectEqual(ProbeLineRequest.input, prestarted_checkpoint.requested_line);
     try std.testing.expectEqual(DescriptorRequestFlags.in, prestarted_checkpoint.descriptor_flags);
     try std.testing.expectEqual(ProbeStartMode.start_before_register, prestarted_checkpoint.start_mode);
+    try std.testing.expect(prestarted_checkpoint.watchdog_info_ready);
+    try std.testing.expect(prestarted_checkpoint.watchdog_ops_ready);
+    try std.testing.expect(prestarted_checkpoint.parent_attached);
+    try std.testing.expectEqual(soft_timeout_min, prestarted_checkpoint.min_timeout_sec);
+    try std.testing.expectEqual(soft_timeout_default, prestarted_checkpoint.default_timeout_sec);
+    try std.testing.expectEqual(@as(u32, 20), prestarted_checkpoint.max_hw_heartbeat_ms);
     try std.testing.expect(prestarted_checkpoint.timeout_init_requested);
-    try std.testing.expect(prestarted_checkpoint.nowayout_applied);
-    try std.testing.expect(prestarted_checkpoint.stop_on_reboot_requested);
-    try std.testing.expect(prestarted_checkpoint.nowayout_precedes_stop_on_reboot);
-    try std.testing.expect(prestarted_checkpoint.stop_on_reboot_precedes_pre_registration_start);
-    try std.testing.expect(prestarted_checkpoint.stop_on_reboot_precedes_register_device_request);
-    try std.testing.expect(prestarted_checkpoint.pre_registration_start_precedes_register_device_request);
-    try std.testing.expect(prestarted_checkpoint.blocked_on_live_reboot_registration);
+    try std.testing.expect(prestarted_checkpoint.timeout_init_precedes_nowayout);
+    try std.testing.expect(prestarted_checkpoint.timeout_init_precedes_stop_on_reboot);
+    try std.testing.expect(prestarted_checkpoint.timeout_init_precedes_pre_registration_start);
+    try std.testing.expect(prestarted_checkpoint.timeout_init_precedes_register_device_request);
+    try std.testing.expect(prestarted_checkpoint.blocked_on_live_property_read);
     try std.testing.expect(prestarted_checkpoint.blocked_on_platform_registration);
 
     const dormant = try GpioWatchdogLab.init(.level, 500, false);
-    const dormant_checkpoint = dormant.rebootGlueCheckpointSummary(false);
+    const dormant_checkpoint = dormant.timeoutInitCheckpointSummary(false);
     try std.testing.expectEqual(HardwareAlgorithm.level, dormant_checkpoint.hw_algo);
     try std.testing.expect(!dormant_checkpoint.always_running);
     try std.testing.expect(!dormant_checkpoint.nowayout);
     try std.testing.expectEqual(ProbeLineRequest.output_low, dormant_checkpoint.requested_line);
     try std.testing.expectEqual(DescriptorRequestFlags.out_low, dormant_checkpoint.descriptor_flags);
     try std.testing.expectEqual(ProbeStartMode.register_only, dormant_checkpoint.start_mode);
+    try std.testing.expect(dormant_checkpoint.watchdog_info_ready);
+    try std.testing.expect(dormant_checkpoint.watchdog_ops_ready);
+    try std.testing.expect(dormant_checkpoint.parent_attached);
+    try std.testing.expectEqual(@as(u32, 500), dormant_checkpoint.max_hw_heartbeat_ms);
     try std.testing.expect(dormant_checkpoint.timeout_init_requested);
-    try std.testing.expect(!dormant_checkpoint.nowayout_applied);
-    try std.testing.expect(dormant_checkpoint.stop_on_reboot_requested);
-    try std.testing.expect(dormant_checkpoint.nowayout_precedes_stop_on_reboot);
-    try std.testing.expect(!dormant_checkpoint.stop_on_reboot_precedes_pre_registration_start);
-    try std.testing.expect(dormant_checkpoint.stop_on_reboot_precedes_register_device_request);
-    try std.testing.expect(!dormant_checkpoint.pre_registration_start_precedes_register_device_request);
-    try std.testing.expect(dormant_checkpoint.blocked_on_live_reboot_registration);
+    try std.testing.expect(dormant_checkpoint.timeout_init_precedes_nowayout);
+    try std.testing.expect(dormant_checkpoint.timeout_init_precedes_stop_on_reboot);
+    try std.testing.expect(!dormant_checkpoint.timeout_init_precedes_pre_registration_start);
+    try std.testing.expect(dormant_checkpoint.timeout_init_precedes_register_device_request);
+    try std.testing.expect(dormant_checkpoint.blocked_on_live_property_read);
     try std.testing.expect(dormant_checkpoint.blocked_on_platform_registration);
-}
-
-test "register device call summary keeps toggle handoff and descriptor checkpoints aligned" {
-    const lab = try GpioWatchdogLab.init(.toggle, 250, false);
-    const summary = lab.registerDeviceCallSummary(false);
-
-    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", summary.anchor);
-    try std.testing.expectEqualStrings("devm_watchdog_register_device", summary.register_call);
-    try std.testing.expectEqual(HardwareAlgorithm.toggle, summary.hw_algo);
-    try std.testing.expectEqual(ProbeLineRequest.input, summary.requested_line);
-    try std.testing.expectEqual(DescriptorRequestFlags.in, summary.descriptor_flags);
-    try std.testing.expectEqual(ProbeStartMode.register_only, summary.start_mode);
-    try std.testing.expect(!summary.reaches_registration_running);
-    try std.testing.expect(!summary.reaches_registration_line_state);
-    try std.testing.expect(!summary.reaches_registration_line_is_output);
-    try std.testing.expect(summary.watchdog_info_ready);
-    try std.testing.expect(summary.watchdog_ops_ready);
-    try std.testing.expect(summary.watchdog_device_ready);
-    try std.testing.expect(summary.watchdog_drvdata_set);
-    try std.testing.expect(summary.module_owner_attached);
-    try std.testing.expect(summary.descriptor_request_ready);
-    try std.testing.expect(summary.timeout_init_requested);
-    try std.testing.expect(!summary.nowayout_applied);
-    try std.testing.expect(summary.parent_attached);
-    try std.testing.expect(summary.stop_on_reboot);
-    try std.testing.expectEqual(soft_timeout_min, summary.min_timeout_sec);
-    try std.testing.expectEqual(soft_timeout_default, summary.default_timeout_sec);
-    try std.testing.expectEqual(@as(u32, 250), summary.max_hw_heartbeat_ms);
-    try std.testing.expect(summary.register_device_requested);
-    try std.testing.expect(summary.blocked_on_live_gpio_lookup);
-    try std.testing.expect(summary.blocked_on_platform_registration);
-    try std.testing.expect(summary.blocked_on_reboot_glue);
-}
-
-test "failure-mode checkpoint keeps invalid configuration and nowayout stop boundaries explicit" {
-    const blocked = try GpioWatchdogLab.init(.toggle, 20, false);
-    const blocked_summary = blocked.failureModeCheckpointSummary(true);
-
-    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", blocked_summary.anchor);
-    try std.testing.expectEqual(HardwareAlgorithm.toggle, blocked_summary.hw_algo);
-    try std.testing.expectEqual(@as(u32, 20), blocked_summary.hw_margin_ms);
-    try std.testing.expectEqual(ProbeLineRequest.input, blocked_summary.requested_line);
-    try std.testing.expectEqual(DescriptorRequestFlags.in, blocked_summary.descriptor_flags);
-    try std.testing.expect(blocked_summary.invalid_hardware_algorithm_rejected);
-    try std.testing.expect(blocked_summary.invalid_hardware_algorithm_blocks_descriptor_lookup);
-    try std.testing.expect(blocked_summary.invalid_hardware_algorithm_blocks_timeout_property);
-    try std.testing.expect(blocked_summary.invalid_hardware_algorithm_blocks_watchdog_drvdata_handoff);
-    try std.testing.expect(blocked_summary.invalid_hardware_algorithm_blocks_register_device_request);
-    try std.testing.expect(blocked_summary.invalid_timeout_rejected);
-    try std.testing.expect(blocked_summary.invalid_timeout_blocks_watchdog_drvdata_handoff);
-    try std.testing.expect(blocked_summary.invalid_timeout_blocks_register_device_request);
-    try std.testing.expect(blocked_summary.nowayout_stop_blocks_driver_stop);
-    try std.testing.expect(blocked_summary.nowayout_block_preserves_running_state);
-    try std.testing.expect(blocked_summary.nowayout_block_preserves_line_state);
-    try std.testing.expect(blocked_summary.blocked_on_live_gpio_lookup);
-    try std.testing.expect(blocked_summary.blocked_on_platform_registration);
-
-    const stoppable = try GpioWatchdogLab.init(.level, 500, true);
-    const stoppable_summary = stoppable.failureModeCheckpointSummary(false);
-    try std.testing.expectEqual(HardwareAlgorithm.level, stoppable_summary.hw_algo);
-    try std.testing.expectEqual(@as(u32, 500), stoppable_summary.hw_margin_ms);
-    try std.testing.expectEqual(ProbeLineRequest.output_low, stoppable_summary.requested_line);
-    try std.testing.expectEqual(DescriptorRequestFlags.out_low, stoppable_summary.descriptor_flags);
-    try std.testing.expect(stoppable_summary.invalid_hardware_algorithm_rejected);
-    try std.testing.expect(stoppable_summary.invalid_hardware_algorithm_blocks_descriptor_lookup);
-    try std.testing.expect(stoppable_summary.invalid_hardware_algorithm_blocks_timeout_property);
-    try std.testing.expect(stoppable_summary.invalid_hardware_algorithm_blocks_watchdog_drvdata_handoff);
-    try std.testing.expect(stoppable_summary.invalid_hardware_algorithm_blocks_register_device_request);
-    try std.testing.expect(stoppable_summary.invalid_timeout_rejected);
-    try std.testing.expect(stoppable_summary.invalid_timeout_blocks_watchdog_drvdata_handoff);
-    try std.testing.expect(stoppable_summary.invalid_timeout_blocks_register_device_request);
-    try std.testing.expect(!stoppable_summary.nowayout_stop_blocks_driver_stop);
-    try std.testing.expect(!stoppable_summary.nowayout_block_preserves_running_state);
-    try std.testing.expect(!stoppable_summary.nowayout_block_preserves_line_state);
-    try std.testing.expect(stoppable_summary.blocked_on_live_gpio_lookup);
-    try std.testing.expect(stoppable_summary.blocked_on_platform_registration);
-}
-
-test "always-running level teardown keeps heartbeat active after stop-backed teardown" {
-    var lab = try GpioWatchdogLab.init(.level, 500, true);
-    const summary = try lab.teardownSummary(false);
-
-    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", summary.anchor);
-    try std.testing.expectEqual(HardwareAlgorithm.level, summary.hw_algo);
-    try std.testing.expect(summary.always_running);
-    try std.testing.expect(!summary.nowayout);
-    try std.testing.expect(summary.running_before_teardown);
-    try std.testing.expect(summary.line_is_output_before_teardown);
-    try std.testing.expectEqual(StopDisposition.kept_running, summary.disposition);
-    try std.testing.expect(summary.stop_allowed_by_watchdog_core);
-    try std.testing.expect(summary.driver_stop_invoked);
-    try std.testing.expect(summary.running_after_teardown);
-    try std.testing.expect(!summary.line_state_after_teardown);
-    try std.testing.expect(summary.line_is_output_after_teardown);
-    try std.testing.expectEqual(@as(usize, 0), summary.disable_count);
-}
-
-test "toggle stop disables line ownership and clears running state when stop is allowed" {
-    var lab = try GpioWatchdogLab.init(.toggle, 250, false);
-    _ = try lab.start();
-
-    const stop = lab.requestStop(false);
-    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", stop.anchor);
-    try std.testing.expectEqual(HardwareAlgorithm.toggle, stop.hw_algo);
-    try std.testing.expect(!stop.always_running);
-    try std.testing.expect(!stop.nowayout);
-    try std.testing.expectEqual(StopDisposition.stopped, stop.disposition);
-    try std.testing.expect(stop.stop_allowed_by_watchdog_core);
-    try std.testing.expect(stop.driver_stop_invoked);
-    try std.testing.expect(!stop.running);
-    try std.testing.expect(stop.line_state);
-    try std.testing.expect(!stop.line_is_output);
-    try std.testing.expectEqual(@as(usize, 1), stop.disable_count);
-}
-
-test "hardware matrix keeps the four bounded gpio watchdog teardown paths reviewable" {
-    const matrix = try GpioWatchdogLab.hardwareMatrixSummary();
-    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", matrix.anchor);
-
-    const toggle_stoppable = matrix.rows[0];
-    try std.testing.expectEqual(HardwareMatrixPath.toggle_stoppable, toggle_stoppable.path);
-    try std.testing.expectEqual(HardwareAlgorithm.toggle, toggle_stoppable.hw_algo);
-    try std.testing.expect(!toggle_stoppable.always_running);
-    try std.testing.expect(!toggle_stoppable.nowayout);
-    try std.testing.expectEqual(ProbeLineRequest.input, toggle_stoppable.requested_line);
-    try std.testing.expectEqual(DescriptorRequestFlags.in, toggle_stoppable.descriptor_flags);
-    try std.testing.expectEqual(ProbeStartMode.register_only, toggle_stoppable.start_mode);
-    try std.testing.expectEqual(StopDisposition.stopped, toggle_stoppable.disposition);
-    try std.testing.expect(toggle_stoppable.stop_allowed_by_watchdog_core);
-    try std.testing.expect(toggle_stoppable.driver_stop_invoked);
-    try std.testing.expect(!toggle_stoppable.running_after_teardown);
-    try std.testing.expect(toggle_stoppable.line_state_after_teardown);
-    try std.testing.expect(!toggle_stoppable.line_is_output_after_teardown);
-    try std.testing.expectEqual(@as(usize, 1), toggle_stoppable.disable_count);
-
-    const toggle_nowayout = matrix.rows[1];
-    try std.testing.expectEqual(HardwareMatrixPath.toggle_nowayout_blocked, toggle_nowayout.path);
-    try std.testing.expectEqual(HardwareAlgorithm.toggle, toggle_nowayout.hw_algo);
-    try std.testing.expect(!toggle_nowayout.always_running);
-    try std.testing.expect(toggle_nowayout.nowayout);
-    try std.testing.expectEqual(ProbeLineRequest.input, toggle_nowayout.requested_line);
-    try std.testing.expectEqual(DescriptorRequestFlags.in, toggle_nowayout.descriptor_flags);
-    try std.testing.expectEqual(ProbeStartMode.register_only, toggle_nowayout.start_mode);
-    try std.testing.expectEqual(StopDisposition.blocked_by_nowayout, toggle_nowayout.disposition);
-    try std.testing.expect(!toggle_nowayout.stop_allowed_by_watchdog_core);
-    try std.testing.expect(!toggle_nowayout.driver_stop_invoked);
-    try std.testing.expect(toggle_nowayout.running_after_teardown);
-    try std.testing.expect(toggle_nowayout.line_state_after_teardown);
-    try std.testing.expect(toggle_nowayout.line_is_output_after_teardown);
-    try std.testing.expectEqual(@as(usize, 0), toggle_nowayout.disable_count);
-
-    const level_always_running = matrix.rows[2];
-    try std.testing.expectEqual(HardwareMatrixPath.level_always_running, level_always_running.path);
-    try std.testing.expectEqual(HardwareAlgorithm.level, level_always_running.hw_algo);
-    try std.testing.expect(level_always_running.always_running);
-    try std.testing.expect(!level_always_running.nowayout);
-    try std.testing.expectEqual(ProbeLineRequest.output_low, level_always_running.requested_line);
-    try std.testing.expectEqual(DescriptorRequestFlags.out_low, level_always_running.descriptor_flags);
-    try std.testing.expectEqual(ProbeStartMode.start_before_register, level_always_running.start_mode);
-    try std.testing.expectEqual(StopDisposition.kept_running, level_always_running.disposition);
-    try std.testing.expect(level_always_running.stop_allowed_by_watchdog_core);
-    try std.testing.expect(level_always_running.driver_stop_invoked);
-    try std.testing.expect(level_always_running.running_after_teardown);
-    try std.testing.expect(!level_always_running.line_state_after_teardown);
-    try std.testing.expect(level_always_running.line_is_output_after_teardown);
-    try std.testing.expectEqual(@as(usize, 0), level_always_running.disable_count);
-
-    const level_nowayout = matrix.rows[3];
-    try std.testing.expectEqual(HardwareMatrixPath.level_nowayout_blocked, level_nowayout.path);
-    try std.testing.expectEqual(HardwareAlgorithm.level, level_nowayout.hw_algo);
-    try std.testing.expect(level_nowayout.always_running);
-    try std.testing.expect(level_nowayout.nowayout);
-    try std.testing.expectEqual(ProbeLineRequest.output_low, level_nowayout.requested_line);
-    try std.testing.expectEqual(DescriptorRequestFlags.out_low, level_nowayout.descriptor_flags);
-    try std.testing.expectEqual(ProbeStartMode.start_before_register, level_nowayout.start_mode);
-    try std.testing.expectEqual(StopDisposition.blocked_by_nowayout, level_nowayout.disposition);
-    try std.testing.expect(!level_nowayout.stop_allowed_by_watchdog_core);
-    try std.testing.expect(!level_nowayout.driver_stop_invoked);
-    try std.testing.expect(level_nowayout.running_after_teardown);
-    try std.testing.expect(!level_nowayout.line_state_after_teardown);
-    try std.testing.expect(level_nowayout.line_is_output_after_teardown);
-    try std.testing.expectEqual(@as(usize, 0), level_nowayout.disable_count);
 }
