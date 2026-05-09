@@ -34,7 +34,7 @@ REQUIRED_CHECKER_MARKERS = (
     "cmd.append(f\"probability={case['probability']}\")",
     "cmd.append(f\"nosilentupdate={case['nosilentupdate']}\")",
     "cmd.append(\"silent\")",
-    "EXPECTED_SELF_TEST_CASE_COUNT = 17",
+    "EXPECTED_SELF_TEST_CASE_COUNT = 21",
     'print("KCONFIG_BRIDGE_SELF_TEST=pass")',
     'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")',
 )
@@ -48,7 +48,7 @@ REQUIRED_CHECKER_EXACT_COUNTS = {
     "cmd.append(f\"probability={case['probability']}\")": 1,
     "cmd.append(f\"nosilentupdate={case['nosilentupdate']}\")": 1,
     "cmd.append(\"silent\")": 1,
-    "EXPECTED_SELF_TEST_CASE_COUNT = 17": 1,
+    "EXPECTED_SELF_TEST_CASE_COUNT = 21": 1,
     'print("KCONFIG_BRIDGE_SELF_TEST=pass")': 1,
     'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")': 1,
 }
@@ -70,13 +70,13 @@ REQUIRED_VALIDATOR_EXACT_COUNTS = {
 }
 REQUIRED_VALIDATOR_GUARD_MARKERS = (
     "KCONFIG_BRIDGE_SELF_TEST=pass",
-    "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=17",
+    "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=21",
     "KCONFIG_BRIDGE_DIFF=pass",
     "FIXTURE_DIR=",
 )
 REQUIRED_VALIDATOR_GUARD_EXACT_COUNTS = {
     "KCONFIG_BRIDGE_SELF_TEST=pass": 1,
-    "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=17": 1,
+    "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=21": 1,
     "KCONFIG_BRIDGE_DIFF=pass": 1,
     "FIXTURE_DIR=": 1,
 }
@@ -255,7 +255,7 @@ def build_self_test_root(root: Path) -> None:
                 "cmd.append(f\"probability={case['probability']}\")",
                 "cmd.append(f\"nosilentupdate={case['nosilentupdate']}\")",
                 "cmd.append(\"silent\")",
-                "EXPECTED_SELF_TEST_CASE_COUNT = 17",
+                "EXPECTED_SELF_TEST_CASE_COUNT = 21",
                 'print("KCONFIG_BRIDGE_SELF_TEST=pass")',
                 'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")',
                 "",
@@ -273,7 +273,7 @@ def build_self_test_root(root: Path) -> None:
                 "zig test scripts/zigux/kconfig/conf_bridge.zig",
                 "zig test scripts/zigux/kconfig/confdata_bridge.zig",
                 "KCONFIG_BRIDGE_SELF_TEST=pass",
-                "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=17",
+                "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=21",
                 "KCONFIG_BRIDGE_DIFF=pass",
                 "FIXTURE_DIR=",
                 "",
