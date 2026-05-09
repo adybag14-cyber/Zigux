@@ -13,6 +13,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
   - `lib/argv_split.zig`
   - `samples/zigux/README.md`
   - `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
+  - `Documentation/zigux/review-checklist.md`
   - `zigux/tests/phase7_argv_split.zig`
   - `zigux/tests/phase7_argv_split_survey.zig`
   - `zigux/tests/phase7_argv_split_manifest.json`
@@ -36,7 +37,7 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 - an explicit result object that owns the copied token buffer
 - deterministic Zig-only validation without quote or shell expansion behavior
 - stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path
-- integration with the parked shared Phase 7 validator-first and make-wrapper control packet through `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, and `make -C zigux phase7`
+- integration with the parked shared Phase 7 validator-first, review-checklist, and make-wrapper control packet through `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 
@@ -95,7 +96,7 @@ The current tests check:
 - allocator-failure cleanup when intermediate setup work is interrupted
 - overflow rejection before sizing the exported null-terminated argv vector
 
-The dedicated Phase 7 survey gate now imports the committed manifest under `zigux/tests/phase7_argv_split_manifest.json`, while the dedicated packet checker keeps that survey, the slice note, the focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, and the helper test entrypoint aligned. The shared `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md` note plus `validate-phase7.py`, `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `check-phase7-build-wiring.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep that same parked ownership-preserving packet reviewable through the validator-first, shared make-wrapper self-test, and Linux-style replay surfaces instead of leaving the shared Phase 7 packet implicit.
+The dedicated Phase 7 survey gate now imports the committed manifest under `zigux/tests/phase7_argv_split_manifest.json`, while the dedicated packet checker keeps that survey, the slice note, the focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, and the helper test entrypoint aligned. The shared `Documentation/zigux/review-checklist.md` note plus `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `validate-phase7.py`, `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `check-phase7-build-wiring.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep that same parked ownership-preserving packet reviewable through the validator-first, shared make-wrapper self-test, and Linux-style replay surfaces instead of leaving the shared Phase 7 packet implicit.
 
 ## Non-goals
 
