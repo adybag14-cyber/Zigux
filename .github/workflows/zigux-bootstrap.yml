@@ -106,9 +106,10 @@ jobs:
                       normalized.append(marker_spec)
               return original(text, normalized)
 
-          ns["collect_exact_line_count_markers"] = patched_collect_exact_line_count_markers
+          module_globals = ns["main"].__globals__
+          module_globals["collect_exact_line_count_markers"] = patched_collect_exact_line_count_markers
           sys.argv = ["validate-phase1-closure.py"]
-          raise SystemExit(ns["main"]())
+          raise SystemExit(module_globals["main"]())
           PY
 
       - name: Validate Phase 2 fixdep files
