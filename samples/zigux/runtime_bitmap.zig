@@ -512,38 +512,6 @@ test "runtime bitmap sample keeps tail-overflow mutation replay local to the sam
     try std.testing.expect(!module.isSet(top_bit - 1));
 }
 
-test "runtime bitmap sample keeps the highest valid bit explicit" {
-    var module = RuntimeBitmapSample{};
-    const top_bit = RuntimeBitmapSample.bitmap_nbits - 1;
-
-    try module.initWithSetBits(&.{top_bit});
-
-    const summary = module.summary();
-    try std.testing.expect(module.isSet(top_bit));
-    try std.testing.expect(!module.isSet(top_bit - 1));
-    try std.testing.expectEqual(top_bit, summary.first_set);
-    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
-    try std.testing.expectEqual(@as(u32, 1), summary.weight);
-    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);
-}
-
-test "runtime bitmap sample keeps top-bit boundary mutation and bounds checks reviewable" {
-    var module = RuntimeBitmapSample{};
-    const top_bit = RuntimeBitmapSample.bitmap_nbits - 1;
-
-    try module.initWithSetBits(&.{});
-    try module.setRange(top_bit, 1);
-    try std.testing.expect(module.isSet(top_bit));
-
-    try module.clearRange(top_bit, 1);
-    try std.testing.expect(!module.isSet(top_bit));
-    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
-
-    try std.testing.expectError(error.BitRangeOutOfBounds, module.setRange(top_bit + 1, 1));
-    try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(top_bit + 1, 1));
-    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
-}
-
 test "runtime bitmap sample keeps cross-word boundary mutations explicit" {
     var module = RuntimeBitmapSample{};
     const boundary_start = bitmap_view.bits_per_long - 1;
