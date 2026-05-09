@@ -71,7 +71,7 @@ REQUIRED_SHARED_CONTRACT_MARKERS = [
 ]
 
 REQUIRED_LANE_SEQUENCING_MARKERS = [
-    "`P11-L08` bcm2835 watchdog lane owns the bounded bcm2835 packet:",
+    "`P11-L10` now carries current scheduled continuity for the archived bcm2835 watchdog packet, whose packet identity remains `P11-L08` for traceability:",
     "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`",
     "dedicated bcm2835 packet checker",
 ]
@@ -227,7 +227,7 @@ The dedicated archival bcm2835 evidence also stays explicit beside that shared r
         root / LANE_SEQUENCING_PATH,
         """# Phase 11 Driver Lane Sequencing
 
-`P11-L08` bcm2835 watchdog lane owns the bounded bcm2835 packet:
+`P11-L10` now carries current scheduled continuity for the archived bcm2835 watchdog packet, whose packet identity remains `P11-L08` for traceability:
 
 - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
 
