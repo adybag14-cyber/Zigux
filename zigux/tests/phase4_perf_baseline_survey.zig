@@ -102,7 +102,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.owner);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
     try std.testing.expectEqual(@as(usize, 2), manifest.surveyed_gates.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
     try std.testing.expectEqualStrings(
         "zigux/tests/atomic64_diff.zig",
@@ -216,6 +216,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     var saw_bitmap_command_evidence_gap = false;
     var saw_bitmap_command_gap = false;
     var saw_bitmap_acceptable_limit_gap = false;
+    var saw_shared_promotion_decision_gap = false;
 
     for (manifest.gaps) |gap| {
         try std.testing.expect(gap.id.len > 0);
@@ -323,10 +324,21 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "121289") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared CI perf coverage") != null);
         }
+
+        if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-shared-promotion-decision")) {
+            saw_shared_promotion_decision_gap = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", gap.zigux_destination);
+            try std.testing.expect(gap.benchmark_command == null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "approved local benchmark commands") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "approved local-only acceptable limits") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "keep those limits local-only or intentionally promote a broader shared CI perf-coverage claim") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without widening the current validator-first packet by accident") != null);
+        }
     }
 
     try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_manifest_gap);
     try std.testing.expect(saw_gate_gap);
     try std.testing.expect(saw_atomic64_command_evidence_gap);
@@ -335,4 +347,5 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try std.testing.expect(saw_bitmap_command_evidence_gap);
     try std.testing.expect(saw_bitmap_command_gap);
     try std.testing.expect(saw_bitmap_acceptable_limit_gap);
+    try std.testing.expect(saw_shared_promotion_decision_gap);
 }
