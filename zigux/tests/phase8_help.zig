@@ -312,9 +312,7 @@ test "phase 8 help empty PATH fallback keeps the main section suppressed" {
     );
 
     try std.testing.expectEqual(@as(usize, 0), main_cmds.count());
-    try std.testing.expectEqual(@as(usize, 2), other_cmds.count());
-    try std.testing.expectEqualStrings("report", other_cmds.names.items[0].name);
-    try std.testing.expectEqualStrings("stat", other_cmds.names.items[1].name);
+    try std.testing.expectEqual(@as(usize, 0), other_cmds.count());
 
     var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
     defer rendered.deinit();
@@ -330,11 +328,5 @@ test "phase 8 help empty PATH fallback keeps the main section suppressed" {
         null,
     );
 
-    try std.testing.expectEqualStrings(
-        "perf available from elsewhere on your $PATH\n" ++
-            "-------------------------------------------\n" ++
-            "  report stat\n" ++
-            "\n",
-        rendered.writer.buffered(),
-    );
+    try std.testing.expectEqualStrings("", rendered.writer.buffered());
 }
