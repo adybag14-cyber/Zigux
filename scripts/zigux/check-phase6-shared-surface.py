@@ -66,6 +66,7 @@ REQUIRED_SNIPPETS = {
         "\"id\": \"bsearch\"",
         "\"id\": \"checksum\"",
         "\"id\": \"hexdump\"",
+        "\"zigux/tests/phase6_bsearch_lower_bound_c_abi.zig\"",
         "\"Documentation/zigux/phase6-helper-parity-catalog.md\",",
         "\"Documentation/zigux/phase6-perf-gate-survey.md\",",
         "\"Documentation/zigux/phase6-leaf-helper-lane-sequencing.md\",",
@@ -99,6 +100,7 @@ REQUIRED_SNIPPETS = {
         "- `bsearch`",
         "- `bsearchMutable`",
         "- mutable typed and raw lookup write-through parity",
+        "- focused typed and raw lower-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses",
         "The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable, and the same focused replay now carries the bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route.",
     ],
@@ -150,14 +152,17 @@ REQUIRED_SNIPPETS = {
     ],
     "zigux/tests/phase6_build.zig": [
         'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
+        '.root_source_file = b.path("phase6_bsearch_lower_bound_c_abi.zig"),',
         '.name = "phase6-base64-tests"',
         '.name = "phase6-base64-perf"',
         '.name = "phase6-bsearch-tests"',
+        '.name = "phase6-bsearch-lower-bound-c-abi-tests"',
         '.name = "phase6-checksum-tests"',
         '.name = "phase6-hexdump-tests"',
         '.name = "phase6-checksum-perf"',
         '.name = "phase6-hexdump-perf"',
         'const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");',
+        'test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);',
         'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
         'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
         'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
@@ -445,6 +450,12 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "zigux/tests/phase6_helper_parity_manifest.json",
+            "\"zigux/tests/phase6_bsearch_lower_bound_c_abi.zig\"",
+            "\"zigux/tests/phase6_bsearch_lower_bound.zig\"",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_helper_parity_manifest.json",
             "\"Documentation/zigux/phase6-leaf-helper-lane-sequencing.md\",",
             "\"Documentation/zigux/phase6-lane-sequencing.md\",",
         )
@@ -471,6 +482,12 @@ def run_self_test() -> None:
             "Documentation/zigux/phase6-bsearch-slice.md",
             "lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower-bound companion, or packet-alignment drift appears",
             "lane state: helper slice landed; parked unless a new `bsearch.c` parity issue appears",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-bsearch-slice.md",
+            "focused typed and raw lower-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
+            "focused typed and raw lower-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound.zig`",
         )
         assert_failure(
             root,
@@ -567,6 +584,24 @@ def run_self_test() -> None:
             "Documentation/zigux/review-checklist.md",
             "`zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_bsearch.zig`",
             "`zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_build.zig",
+            '.root_source_file = b.path("phase6_bsearch_lower_bound_c_abi.zig"),',
+            '.root_source_file = b.path("phase6_bsearch_lower_bound.zig"),',
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_build.zig",
+            '.name = "phase6-bsearch-lower-bound-c-abi-tests"',
+            '.name = "phase6-bsearch-lower-bound-tests"',
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_build.zig",
+            'test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);',
+            'test_step.dependOn(&run_bsearch_tests.step);',
         )
         assert_failure(
             root,
