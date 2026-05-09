@@ -644,7 +644,7 @@ pub const SyscallsHelperLab = struct {
             .parent_fd = add_rule_plan.parent_fd,
             .reuses_add_rule_validation = true,
             .reuses_path_fd_validation = true,
-            .acquires_parentPathReference = path_plan.acquires_path_reference,
+            .acquires_parent_path_reference = path_plan.acquires_path_reference,
             .releases_parent_path_reference = true,
         };
     }
