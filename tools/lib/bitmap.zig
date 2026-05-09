@@ -415,6 +415,11 @@ pub fn copyAndExtend(dst: []Word, src: []const Word, count: usize, size: usize) 
     assertBitmapLen(dst, size);
     assertBitmapLen(src, count);
 
+    const size_words = bitsToWords(size);
+    if (size_words == 0) {
+        return;
+    }
+
     const copy_words = bitsToWords(count);
     if (copy_words != 0) {
         @memcpy(dst[0..copy_words], src[0..copy_words]);
@@ -423,7 +428,7 @@ pub fn copyAndExtend(dst: []Word, src: []const Word, count: usize, size: usize) 
         }
     }
 
-    @memset(dst[copy_words..bitsToWords(size)], 0);
+    @memset(dst[copy_words..size_words], 0);
 }
 
 pub fn bitmap_copy_and_extend(dst: []Word, src: []const Word, count: usize, size: usize) void {
@@ -764,6 +769,27 @@ test "bitmap copy and extend handles zero and aligned counts" {
     var alias_aligned_extended = [_]Word{ 0, 1, 2 };
     bitmap_copy_and_extend(&alias_aligned_extended, src[0..1], aligned_count, size);
     try std.testing.expectEqualSlices(Word, &aligned_extended, &alias_aligned_extended);
+}
+
+test "bitmap copy helpers keep zero-sized destination views untouched" {
+    const sentinel = @as(Word, 0x55aa55aa55aa55aa);
+    const src = [_]Word{~@as(Word, 0)};
+
+    var cleared = [_]Word{sentinel};
+    copyClearTail(cleared[0..0], src[0..0], 0);
+    try std.testing.expectEqual(sentinel, cleared[0]);
+
+    var alias_cleared = [_]Word{sentinel};
+    bitmap_copy_clear_tail(alias_cleared[0..0], src[0..0], 0);
+    try std.testing.expectEqual(sentinel, alias_cleared[0]);
+
+    var extended = [_]Word{sentinel};
+    copyAndExtend(extended[0..0], src[0..0], 0, 0);
+    try std.testing.expectEqual(sentinel, extended[0]);
+
+    var alias_extended = [_]Word{sentinel};
+    bitmap_copy_and_extend(alias_extended[0..0], src[0..0], 0, 0);
+    try std.testing.expectEqual(sentinel, alias_extended[0]);
 }
 
 test "bitmap zero-bit helpers stay explicit no-ops" {
