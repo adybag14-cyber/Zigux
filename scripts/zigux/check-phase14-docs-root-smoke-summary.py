@@ -2,9 +2,9 @@
 """PHASE14_CHECK_PACKET=docs_root_smoke_summary
 
 Fail-closed checker for the docs-root summary of the shared Phase 14 smoke packet.
-This companion checker keeps `Documentation/zigux/README.md` aligned with the
-current study-only replay route, the shipped shared-smoke note surfaces, and the
-manifest-backed checker inventory.
+This checker keeps `Documentation/zigux/README.md` aligned with the compact
+study-only replay route, the shared smoke note, and the manifest-backed checker
+inventory without demanding every anchor-local manifest from the docs root.
 """
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ SMOKE_SURVEY_PATH = "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
 MAKEFILE_PATH = "zigux/Makefile"
 MANIFEST_PATH = "zigux/tests/phase14_end_to_end_smoke_manifest.json"
 CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
+
 COMPILE_SHARD_SMOKE_MARKERS = [
     "PHASE14_COMPILE_ARTIFACT_COUNT=5",
     "PHASE14_FOCUSED_SHARD_COUNT=1",
@@ -28,6 +29,7 @@ COMPILE_SHARD_SMOKE_MARKERS = [
     "- `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle`",
     "- `phase14-ring-buffer-survey-tests`: root `phase14_ring_buffer_survey.zig`, coverage `full_bundle_only`",
 ]
+
 SURFACE_COUNT_SMOKE_MARKERS = [
     "PHASE14_SHARED_SURFACE_COUNT=28",
     "PHASE14_DOC_SURFACE_COUNT=6",
@@ -37,7 +39,8 @@ SURFACE_COUNT_SMOKE_MARKERS = [
     "PHASE14_WORKFLOW_SURFACE_COUNT=1",
     "PHASE14_MAKEFILE_SURFACE_COUNT=1",
 ]
-REQUIRED_MARKERS = [
+
+DOCS_ROOT_REQUIRED_MARKERS = [
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
     "Documentation/zigux/phase14-release-boundary-survey.md",
     "Documentation/zigux/phase14-core-boundary-traceability.md",
@@ -54,10 +57,7 @@ REQUIRED_MARKERS = [
     "zigux/tests/phase14_skbuff_bridge_manifest.json",
     "zigux/tests/phase14_ring_buffer_survey.zig",
     "zigux/tests/phase14_rcu_tree_survey.zig",
-    "zigux/tests/phase14_ring_buffer_manifest.json",
-    "zigux/tests/phase14_rcu_tree_manifest.json",
     "zigux/tests/phase14_end_to_end_smoke_survey.zig",
-    "zigux/tests/phase14_end_to_end_smoke_manifest.json",
     "zigux/Makefile",
     "make -C zigux phase14-validate",
     "make -C zigux phase14-smoke",
@@ -66,13 +66,14 @@ REQUIRED_MARKERS = [
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14",
 ]
+
 DOCS_ROOT_EXACT_COUNT_MARKERS = [
     CHECKER_PATH,
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
-    "zigux/tests/phase14_end_to_end_smoke_manifest.json",
 ]
-REQUIRED_SMOKE_SURVEY_MARKERS = [
+
+SMOKE_SURVEY_REQUIRED_MARKERS = [
     CHECKER_PATH,
     "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.",
     "make -C zigux phase14-validate ZIG=/absolute/path/to/attached-zig/zig",
@@ -82,6 +83,7 @@ REQUIRED_SMOKE_SURVEY_MARKERS = [
     *COMPILE_SHARD_SMOKE_MARKERS,
     *SURFACE_COUNT_SMOKE_MARKERS,
 ]
+
 SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     CHECKER_PATH,
     "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.",
@@ -104,12 +106,65 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
 def require_exact_marker_count(errors: list[str], rel_path: str, text: str, marker: str) -> None:
-    actual_count = text.count(marker)
-    if actual_count != 1:
+    count = text.count(marker)
+    if count != 1:
+        errors.append(f"marker count drift in {rel_path}: {marker} (expected 1, found {count})")
+
+
+def check_manifest(errors: list[str], root: Path) -> None:
+    manifest_path = root / MANIFEST_PATH
+    if not manifest_path.exists():
+        errors.append(f"missing file: {MANIFEST_PATH}")
+        return
+    try:
+        manifest = json.loads(read_text(manifest_path))
+    except json.JSONDecodeError as exc:
+        errors.append(f"invalid json in {MANIFEST_PATH}: {exc}")
+        return
+    surfaces = manifest.get("surfaces")
+    if not isinstance(surfaces, list):
+        errors.append("phase14 shared smoke manifest surfaces payload is not a list")
+        return
+    checker_surfaces = [
+        surface
+        for surface in surfaces
+        if isinstance(surface, dict) and surface.get("path") == CHECKER_PATH
+    ]
+    if len(checker_surfaces) != 1:
         errors.append(
-            f"marker count drift in {rel_path}: {marker} (expected 1, found {actual_count})"
+            "phase14 docs-root smoke-summary checker surface count drift in "
+            f"{MANIFEST_PATH} (expected 1, found {len(checker_surfaces)})"
         )
+        return
+    if checker_surfaces[0].get("required_marker") != MARKER:
+        errors.append(
+            "missing docs-root smoke-summary checker surface in zigux/tests/phase14_end_to_end_smoke_manifest.json"
+        )
+
+
+def check_text_file(
+    errors: list[str],
+    root: Path,
+    rel_path: str,
+    required_markers: list[str],
+    exact_count_markers: list[str],
+) -> None:
+    path = root / rel_path
+    if not path.exists():
+        errors.append(f"missing file: {rel_path}")
+        return
+    text = read_text(path)
+    for marker in required_markers:
+        if marker not in text:
+            errors.append(f"missing marker in {rel_path}: {marker}")
+    for marker in exact_count_markers:
+        require_exact_marker_count(errors, rel_path, text, marker)
 
 
 def check(root: Path) -> list[str]:
@@ -117,71 +172,25 @@ def check(root: Path) -> list[str]:
     if MARKER not in read_text(Path(__file__)):
         errors.append("checker marker missing from checker source")
 
-    docs_root_path = root / DOCS_ROOT_PATH
-    if not docs_root_path.exists():
-        return [f"missing file: {DOCS_ROOT_PATH}"]
-
-    text = read_text(docs_root_path)
-    for marker in REQUIRED_MARKERS:
-        if marker not in text:
-            errors.append(f"missing marker in {DOCS_ROOT_PATH}: {marker}")
-    for marker in DOCS_ROOT_EXACT_COUNT_MARKERS:
-        require_exact_marker_count(errors, DOCS_ROOT_PATH, text, marker)
-
-    smoke_survey_path = root / SMOKE_SURVEY_PATH
-    if not smoke_survey_path.exists():
-        errors.append(f"missing file: {SMOKE_SURVEY_PATH}")
-    else:
-        smoke_text = read_text(smoke_survey_path)
-        for marker in REQUIRED_SMOKE_SURVEY_MARKERS:
-            if marker not in smoke_text:
-                errors.append(f"missing marker in {SMOKE_SURVEY_PATH}: {marker}")
-        for marker in SMOKE_SURVEY_EXACT_COUNT_MARKERS:
-            require_exact_marker_count(errors, SMOKE_SURVEY_PATH, smoke_text, marker)
-
-    makefile_path = root / MAKEFILE_PATH
-    if not makefile_path.exists():
-        errors.append(f"missing file: {MAKEFILE_PATH}")
-    else:
-        makefile_text = read_text(makefile_path)
-        require_exact_marker_count(errors, MAKEFILE_PATH, makefile_text, CHECKER_PATH)
-        if CHECKER_PATH not in makefile_text:
-            errors.append(f"missing marker in {MAKEFILE_PATH}: {CHECKER_PATH}")
-
-    manifest_path = root / MANIFEST_PATH
-    if not manifest_path.exists():
-        errors.append(f"missing file: {MANIFEST_PATH}")
-    else:
-        try:
-            manifest = json.loads(read_text(manifest_path))
-        except json.JSONDecodeError as exc:
-            errors.append(f"invalid json in {MANIFEST_PATH}: {exc}")
-        else:
-            surfaces = manifest.get("surfaces", [])
-            if not isinstance(surfaces, list):
-                errors.append("phase14 shared smoke manifest surfaces payload is not a list")
-            else:
-                checker_surfaces = [
-                    surface
-                    for surface in surfaces
-                    if isinstance(surface, dict) and surface.get("path") == CHECKER_PATH
-                ]
-                if len(checker_surfaces) != 1:
-                    errors.append(
-                        "phase14 docs-root smoke-summary checker surface count drift in "
-                        f"{MANIFEST_PATH} (expected 1, found {len(checker_surfaces)})"
-                    )
-                elif checker_surfaces[0].get("required_marker") != MARKER:
-                    errors.append(
-                        "missing docs-root smoke-summary checker surface in zigux/tests/phase14_end_to_end_smoke_manifest.json"
-                    )
-
+    check_text_file(errors, root, DOCS_ROOT_PATH, DOCS_ROOT_REQUIRED_MARKERS, DOCS_ROOT_EXACT_COUNT_MARKERS)
+    check_text_file(errors, root, SMOKE_SURVEY_PATH, SMOKE_SURVEY_REQUIRED_MARKERS, SMOKE_SURVEY_EXACT_COUNT_MARKERS)
+    check_text_file(errors, root, MAKEFILE_PATH, [CHECKER_PATH], [CHECKER_PATH])
+    check_manifest(errors, root)
     return errors
 
 
-def write_text(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
+def good_manifest_text() -> str:
+    return json.dumps(
+        {
+            "surfaces": [
+                {
+                    "path": CHECKER_PATH,
+                    "required_marker": MARKER,
+                }
+            ]
+        },
+        indent=2,
+    ) + "\n"
 
 
 def run_self_test() -> int:
@@ -189,25 +198,15 @@ def run_self_test() -> int:
         root = Path(tmpdir)
         current_checker_path = Path(__file__)
         original_checker_source = current_checker_path.read_text(encoding="utf-8")
-        good_text = "\n".join(REQUIRED_MARKERS) + "\n"
-        good_smoke_text = "\n".join(REQUIRED_SMOKE_SURVEY_MARKERS) + "\n"
-        write_text(root / DOCS_ROOT_PATH, good_text)
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-        write_text(root / MAKEFILE_PATH, f"phase14-validate:\n\tpython3 {CHECKER_PATH}\n")
-        write_text(
-            root / MANIFEST_PATH,
-            json.dumps(
-                {
-                    "surfaces": [
-                        {
-                            "path": CHECKER_PATH,
-                            "required_marker": MARKER,
-                        }
-                    ]
-                },
-                indent=2,
-            ) + "\n",
-        )
+
+        good_docs_root = "\n".join(DOCS_ROOT_REQUIRED_MARKERS) + "\n"
+        good_smoke = "\n".join(SMOKE_SURVEY_REQUIRED_MARKERS) + "\n"
+        good_makefile = f"phase14-validate:\n\tpython3 {CHECKER_PATH}\n"
+
+        write_text(root / DOCS_ROOT_PATH, good_docs_root)
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke)
+        write_text(root / MAKEFILE_PATH, good_makefile)
+        write_text(root / MANIFEST_PATH, good_manifest_text())
 
         errors = check(root)
         if errors:
@@ -216,570 +215,72 @@ def run_self_test() -> int:
                 print(f"- {error}", file=sys.stderr)
             return 1
 
-        broken_path = root / DOCS_ROOT_PATH
-        broken_path.write_text(
-            good_text.replace(
-                "scripts/zigux/check-phase14-release-boundary-exact-counts.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "missing marker in Documentation/zigux/README.md: "
-            "scripts/zigux/check-phase14-release-boundary-exact-counts.py" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the release-boundary checker marker drifted",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / DOCS_ROOT_PATH, good_text)
-
-        broken_path.write_text(
-            good_text.replace(
-                "zigux/tests/phase14_end_to_end_smoke_manifest.json\n",
-                "zigux/tests/phase14_end_to_end_smoke_manifest.json\nzigux/tests/phase14_end_to_end_smoke_manifest.json\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "marker count drift in Documentation/zigux/README.md: "
-            "zigux/tests/phase14_end_to_end_smoke_manifest.json (expected 1, found 2)" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the docs-root summary duplicated the shared smoke manifest marker",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / DOCS_ROOT_PATH, good_text)
-
-        broken_path.write_text(
-            good_text.replace(
+        write_text(
+            root / DOCS_ROOT_PATH,
+            good_docs_root.replace(
                 f"{CHECKER_PATH}\n",
                 f"{CHECKER_PATH}\n{CHECKER_PATH}\n",
                 1,
             ),
-            encoding="utf-8",
         )
         errors = check(root)
-        if not errors or not any(
-            "marker count drift in Documentation/zigux/README.md: "
-            f"{CHECKER_PATH} (expected 1, found 2)" in error
+        if not any(
+            f"marker count drift in {DOCS_ROOT_PATH}: {CHECKER_PATH} (expected 1, found 2)" in error
             for error in errors
         ):
-            print(
-                "self-test expected failure when the docs-root summary duplicated the docs-root checker path",
-                file=sys.stderr,
-            )
+            print("self-test expected duplicate docs-root checker-path failure", file=sys.stderr)
             return 1
-        write_text(root / DOCS_ROOT_PATH, good_text)
+        write_text(root / DOCS_ROOT_PATH, good_docs_root)
 
-        broken_docs_root_path = root / DOCS_ROOT_PATH
-        broken_docs_root_path.unlink()
-        errors = check(root)
-        if not errors or f"missing file: {DOCS_ROOT_PATH}" not in errors:
-            print(
-                "self-test expected failure when the docs-root summary file was missing",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / DOCS_ROOT_PATH, good_text)
-
-        broken_smoke_path = root / SMOKE_SURVEY_PATH
-        broken_smoke_path.write_text(
-            good_smoke_text.replace(
+        write_text(
+            root / SMOKE_SURVEY_PATH,
+            good_smoke.replace(
                 "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig\n",
                 "",
                 1,
             ),
-            encoding="utf-8",
         )
         errors = check(root)
-        if not errors or not any(
-            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
-            "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the shared smoke survey lost an attached-toolchain fallback command",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-
-        broken_smoke_path.write_text(
-            good_smoke_text.replace(
-                f"{CHECKER_PATH}\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
-            f"{CHECKER_PATH}" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the shared smoke survey lost the docs-root checker path",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-
-        broken_smoke_path.write_text(
-            good_smoke_text.replace(
-                "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
-            "Use the attached-toolchain fallback only when `zig` is not already on `PATH`." in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the shared smoke survey lost the attached-toolchain scope guard",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-
-        broken_smoke_path.write_text(
-            good_smoke_text.replace(
-                "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.\n",
-                "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.\n"
-                "Use the attached-toolchain fallback only when `zig` is not already on `PATH`.\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
-            "Use the attached-toolchain fallback only when `zig` is not already on `PATH`. "
-            "(expected 1, found 2)" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the shared smoke survey duplicated the attached-toolchain scope guard",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-
-        broken_smoke_path.write_text(
-            good_smoke_text.replace(
-                f"{CHECKER_PATH}\n",
-                f"{CHECKER_PATH}\n{CHECKER_PATH}\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
-            f"{CHECKER_PATH} (expected 1, found 2)" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the shared smoke survey duplicated the docs-root checker path",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-
-        broken_smoke_path.write_text(
-            good_smoke_text.replace(
-                "PHASE14_COMPILE_ARTIFACT_COUNT=5\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
-            "PHASE14_COMPILE_ARTIFACT_COUNT=5" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the shared smoke survey lost the compile-artifact count marker",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-
-        broken_smoke_path.write_text(
-            good_smoke_text.replace(
-                "PHASE14_FOCUSED_SHARD_COUNT=1\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
-            "PHASE14_FOCUSED_SHARD_COUNT=1" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the shared smoke survey lost the focused compile-shard count marker",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-
-        broken_smoke_path.write_text(
-            good_smoke_text.replace(
-                "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4\n",
-                "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4\nPHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
-            "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4 (expected 1, found 2)" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the shared smoke survey duplicated the full-bundle-only compile count marker",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-
-        broken_smoke_path.write_text(
-            good_smoke_text.replace(
-                "- `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
-            "- `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle`" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the shared smoke survey lost the focused compile-matrix row",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-
-        broken_smoke_path.write_text(
-            good_smoke_text.replace(
-                "PHASE14_SHARED_SURFACE_COUNT=28\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
-            "PHASE14_SHARED_SURFACE_COUNT=28" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the shared smoke survey lost the total shared-surface count marker",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-
-        broken_smoke_path.write_text(
-            good_smoke_text.replace(
-                "PHASE14_DOC_SURFACE_COUNT=6\n",
-                "PHASE14_DOC_SURFACE_COUNT=6\nPHASE14_DOC_SURFACE_COUNT=6\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
-            "PHASE14_DOC_SURFACE_COUNT=6 (expected 1, found 2)" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the shared smoke survey duplicated the docs-surface count marker",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-
-        broken_makefile_path = root / MAKEFILE_PATH
-        broken_makefile_path.write_text(
-            "phase14-validate:\n\tpython3 scripts/zigux/validate-phase14.py\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            f"missing marker in {MAKEFILE_PATH}: {CHECKER_PATH}" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the Makefile lost the docs-root checker route",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / MAKEFILE_PATH, f"phase14-validate:\n\tpython3 {CHECKER_PATH}\n")
-
-        broken_makefile_path.write_text(
-            f"phase14-validate:\n\tpython3 {CHECKER_PATH}\n\tpython3 {CHECKER_PATH}\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            f"marker count drift in {MAKEFILE_PATH}: {CHECKER_PATH} (expected 1, found 2)"
+        if not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig"
             in error
             for error in errors
         ):
-            print(
-                "self-test expected failure when the Makefile duplicated the docs-root checker route",
-                file=sys.stderr,
-            )
+            print("self-test expected missing attached-toolchain smoke route failure", file=sys.stderr)
             return 1
-        write_text(root / MAKEFILE_PATH, f"phase14-validate:\n\tpython3 {CHECKER_PATH}\n")
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke)
 
-        smoke_survey_path = root / SMOKE_SURVEY_PATH
-        smoke_survey_path.unlink()
-        errors = check(root)
-        if not errors or f"missing file: {SMOKE_SURVEY_PATH}" not in errors:
-            print(
-                "self-test expected failure when the shared smoke survey file was missing",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
-
-        broken_manifest_path = root / MANIFEST_PATH
-        broken_manifest_path.write_text(json.dumps({"surfaces": []}, indent=2) + "\n", encoding="utf-8")
-        errors = check(root)
-        if not errors or not any(
-            "missing docs-root smoke-summary checker surface" in error for error in errors
-        ):
-            print(
-                "self-test expected failure when the manifest lost the docs-root checker surface",
-                file=sys.stderr,
-            )
-            return 1
         write_text(
-            root / MANIFEST_PATH,
-            json.dumps(
-                {
-                    "surfaces": [
-                        {
-                            "path": CHECKER_PATH,
-                            "required_marker": MARKER,
-                        }
-                    ]
-                },
-                indent=2,
-            ) + "\n",
-        )
-
-        broken_manifest_path.write_text(
-            json.dumps(
-                {
-                    "surfaces": [
-                        {
-                            "path": CHECKER_PATH,
-                            "required_marker": MARKER,
-                        },
-                        {
-                            "path": CHECKER_PATH,
-                            "required_marker": MARKER,
-                        }
-                    ]
-                },
-                indent=2,
-            ) + "\n",
-            encoding="utf-8",
+            root / MAKEFILE_PATH,
+            good_makefile.replace(
+                f"python3 {CHECKER_PATH}\n",
+                f"python3 {CHECKER_PATH}\n\tpython3 {CHECKER_PATH}\n",
+                1,
+            ),
         )
         errors = check(root)
-        if not errors or not any(
-            "phase14 docs-root smoke-summary checker surface count drift in zigux/tests/phase14_end_to_end_smoke_manifest.json (expected 1, found 2)"
-            in error
+        if not any(
+            f"marker count drift in {MAKEFILE_PATH}: {CHECKER_PATH} (expected 1, found 2)" in error
             for error in errors
         ):
-            print(
-                "self-test expected failure when the manifest duplicated the docs-root checker surface",
-                file=sys.stderr,
-            )
+            print("self-test expected duplicate makefile checker-route failure", file=sys.stderr)
             return 1
-        write_text(
-            root / MANIFEST_PATH,
-            json.dumps(
-                {
-                    "surfaces": [
-                        {
-                            "path": CHECKER_PATH,
-                            "required_marker": MARKER,
-                        }
-                    ]
-                },
-                indent=2,
-            ) + "\n",
-        )
+        write_text(root / MAKEFILE_PATH, good_makefile)
 
-        broken_manifest_path.write_text(
-            json.dumps(
-                {
-                    "surfaces": "not-a-list"
-                },
-                indent=2,
-            ) + "\n",
-            encoding="utf-8",
-        )
+        write_text(root / MANIFEST_PATH, json.dumps({"surfaces": []}, indent=2) + "\n")
         errors = check(root)
-        if not errors or "phase14 shared smoke manifest surfaces payload is not a list" not in errors:
-            print(
-                "self-test expected failure when the manifest surfaces payload stopped being a list",
-                file=sys.stderr,
-            )
+        if not any("phase14 docs-root smoke-summary checker surface count drift in zigux/tests/phase14_end_to_end_smoke_manifest.json (expected 1, found 0)" in error for error in errors):
+            print("self-test expected missing manifest surface failure", file=sys.stderr)
             return 1
-        write_text(
-            root / MANIFEST_PATH,
-            json.dumps(
-                {
-                    "surfaces": [
-                        {
-                            "path": CHECKER_PATH,
-                            "required_marker": MARKER,
-                        }
-                    ]
-                },
-                indent=2,
-            ) + "\n",
-        )
-
-        broken_manifest_path.write_text(
-            json.dumps(
-                {
-                    "surfaces": [
-                        {
-                            "path": CHECKER_PATH,
-                            "required_marker": "PHASE14_CHECK_PACKET=wrong_marker",
-                        }
-                    ]
-                },
-                indent=2,
-            ) + "\n",
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "missing docs-root smoke-summary checker surface" in error for error in errors
-        ):
-            print(
-                "self-test expected failure when the manifest kept the checker path but drifted its required marker",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(
-            root / MANIFEST_PATH,
-            json.dumps(
-                {
-                    "surfaces": [
-                        {
-                            "path": CHECKER_PATH,
-                            "required_marker": MARKER,
-                        }
-                    ]
-                },
-                indent=2,
-            ) + "\n",
-        )
-
-        broken_manifest_path.unlink()
-        errors = check(root)
-        if not errors or f"missing file: {MANIFEST_PATH}" not in errors:
-            print(
-                "self-test expected failure when the shared smoke manifest file was missing",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(
-            root / MANIFEST_PATH,
-            json.dumps(
-                {
-                    "surfaces": [
-                        {
-                            "path": CHECKER_PATH,
-                            "required_marker": MARKER,
-                        }
-                    ]
-                },
-                indent=2,
-            ) + "\n",
-        )
-
-        broken_manifest_path = root / MANIFEST_PATH
-        broken_manifest_path.write_text("{\n", encoding="utf-8")
-        errors = check(root)
-        if not errors or not any(
-            f"invalid json in {MANIFEST_PATH}:" in error
-            for error in errors
-        ):
-            print(
-                "self-test expected failure when the shared smoke manifest JSON was invalid",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(
-            root / MANIFEST_PATH,
-            json.dumps(
-                {
-                    "surfaces": [
-                        {
-                            "path": CHECKER_PATH,
-                            "required_marker": MARKER,
-                        }
-                    ]
-                },
-                indent=2,
-            ) + "\n",
-        )
-
-        makefile_path = root / MAKEFILE_PATH
-        makefile_path.unlink()
-        errors = check(root)
-        if not errors or f"missing file: {MAKEFILE_PATH}" not in errors:
-            print(
-                "self-test expected failure when the Makefile was missing",
-                file=sys.stderr,
-            )
-            return 1
-        write_text(root / MAKEFILE_PATH, f"phase14-validate:\n\tpython3 {CHECKER_PATH}\n")
+        write_text(root / MANIFEST_PATH, good_manifest_text())
 
         current_checker_path.write_text(
             original_checker_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
             encoding="utf-8",
         )
         errors = check(root)
-        if not errors or "checker marker missing from checker source" not in errors:
-            print(
-                "self-test expected failure when the checker source marker drifted",
-                file=sys.stderr,
-            )
+        if "checker marker missing from checker source" not in errors:
+            print("self-test expected checker source marker failure", file=sys.stderr)
             current_checker_path.write_text(original_checker_source, encoding="utf-8")
             return 1
         current_checker_path.write_text(original_checker_source, encoding="utf-8")
