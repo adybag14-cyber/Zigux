@@ -9,7 +9,7 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 - `PHASE15_SLICE=indefinite-c-policy-current-readback-provenance-sync`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one dedicated indefinite-C policy note, one manifest, one Zig test, the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build, and one dated master-readback provenance sync that keeps the stay-in-C packet honest without reopening the parity scorecard, readiness note, handoff packet, or Architecture Council review-process packet
-- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-08` on 2026-05-08 because this policy packet reports current stay-in-C governance posture at the bounded packet level instead of implying exact post-commit branch-head parity
+- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 because this policy packet reports current stay-in-C governance posture at the bounded packet level instead of implying exact post-commit branch-head parity
 - exact branch-head parity is not recorded for this packet; the current policy packet therefore uses an explicit dated readback marker instead of implying exact-head provenance
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
