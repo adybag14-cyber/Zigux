@@ -36,4 +36,4 @@ Phase 13 is still scheduled around `fs/libfs.c`, `lib/devres.c`, and the two Lan
 
 ## Validation intent
 
-`zigux/tests/phase13_notifier_list_reviewability.zig` and `scripts/zigux/check-phase13-notifier-packet.py` should keep the current list-side and notifier-side helper headers, the paired Zig helper footholds, the adjacent-only build posture, and the remaining no-callback or no-registration boundaries aligned with this note and the manifest.
+`zigux/tests/phase13_notifier_list_reviewability.zig` now covers the dedicated list-side header together with the paired list and notifier helper footholds, while `scripts/zigux/check-phase13-notifier-packet.py` continues to fail closed on the adjacent notifier packet and the adjacent-only build posture.
