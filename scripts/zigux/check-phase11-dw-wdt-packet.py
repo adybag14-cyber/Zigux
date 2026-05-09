@@ -65,6 +65,20 @@ REQUIRED_TEARDOWN_NOTE_MARKERS = [
     "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
 ]
 
+REQUIRED_REGISTRATION_SCAFFOLD_MARKERS = [
+    'test "platform handoff stays blocked when drvdata publication is missing"',
+    'test "registration order summary keeps blocked registration explicit when drvdata is missing"',
+    'test "platform registration scaffold summary keeps ready imported-state probe anchors explicit"',
+    'test "platform registration scaffold summary keeps blocked timeout-programming branch explicit"',
+]
+
+REQUIRED_VERIFY_REPLAY_MARKERS = [
+    'test "dw_wdt verify keeps teardown split between reset-controlled and unstoppable hardware"',
+    'test "dw_wdt verify keeps idle remove-time no-reset path from fabricating continued heartbeat"',
+    'test "dw_wdt verify keeps idle remove-time reset path from fabricating stale heartbeat"',
+    'test "dw_wdt verify keeps irq-mode teardown summaries aligned with stop failure semantics"',
+]
+
 REQUIRED_MANIFEST_MARKERS = [
     '"lane_key": "P11-L12"',
     '"id": "phase11-dw-wdt-survey-gate"',
@@ -81,7 +95,7 @@ REQUIRED_BUILD_MARKERS = [
     '.name = "phase11-dw-wdt-survey-tests"',
 ]
 
-SELF_TEST_CASE_COUNT = 28
+SELF_TEST_CASE_COUNT = 32
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -124,6 +138,12 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_TEARDOWN_NOTE_MARKERS:
         if marker not in read_text(root, TEARDOWN_NOTE_PATH):
             failures.append(f"teardown_note:{marker}")
+    for marker in REQUIRED_REGISTRATION_SCAFFOLD_MARKERS:
+        if marker not in read_text(root, REGISTRATION_SCAFFOLD_PATH):
+            failures.append(f"registration_scaffold:{marker}")
+    for marker in REQUIRED_VERIFY_REPLAY_MARKERS:
+        if marker not in read_text(root, VERIFY_REPLAY_PATH):
+            failures.append(f"verify_replay:{marker}")
     for marker in REQUIRED_MANIFEST_MARKERS:
         if marker not in read_text(root, MANIFEST_PATH):
             failures.append(f"manifest:{marker}")
@@ -209,14 +229,20 @@ This survey note keeps lane identity `P11-L12` explicit beside the current revie
 """,
     )
     write_text(root / SURVEY_GATE_PATH, "const std = @import(\"std\");\ntest \"synthetic dw survey gate\" { try std.testing.expect(true); }\n")
-    write_text(root / REGISTRATION_SCAFFOLD_PATH, "const std = @import(\"std\");\ntest \"synthetic dw registration scaffold\" { try std.testing.expect(true); }\n")
-    write_text(root / VERIFY_REPLAY_PATH, "const std = @import(\"std\");\ntest \"synthetic dw verify replay\" { try std.testing.expect(true); }\n")
+    write_text(
+        root / REGISTRATION_SCAFFOLD_PATH,
+        "\n".join(REQUIRED_REGISTRATION_SCAFFOLD_MARKERS) + "\n",
+    )
+    write_text(
+        root / VERIFY_REPLAY_PATH,
+        "\n".join(REQUIRED_VERIFY_REPLAY_MARKERS) + "\n",
+    )
     write_text(
         root / BUILD_PATH,
-        """const phase11_dw_wdt_tests = b.addTest(.{ .name = \"phase11-dw-wdt-tests\" });
-const phase11_dw_wdt_registration_scaffold_tests = b.addTest(.{ .name = \"phase11-dw-wdt-registration-scaffold-tests\" });
-const dw_wdt_verify_tests = b.addTest(.{ .name = \"phase11-dw-wdt-verify-tests\" });
-const phase11_dw_wdt_survey_tests = b.addTest(.{ .name = \"phase11-dw-wdt-survey-tests\" });
+        """const phase11_dw_wdt_tests = b.addTest(.{ .name = "phase11-dw-wdt-tests" });
+const phase11_dw_wdt_registration_scaffold_tests = b.addTest(.{ .name = "phase11-dw-wdt-registration-scaffold-tests" });
+const dw_wdt_verify_tests = b.addTest(.{ .name = "phase11-dw-wdt-verify-tests" });
+const phase11_dw_wdt_survey_tests = b.addTest(.{ .name = "phase11-dw-wdt-survey-tests" });
 """,
     )
     write_text(root / SCRIPT_PATH, "#!/usr/bin/env python3\nprint(\"synthetic checker\")\n")
@@ -265,6 +291,10 @@ def run_self_test() -> int:
             (TEARDOWN_NOTE_PATH, "continued-heartbeat", "teardown_note:continued-heartbeat"),
             (TEARDOWN_NOTE_PATH, "`dw_wdt_drv_shutdown`", "teardown_note:`dw_wdt_drv_shutdown`"),
             (TEARDOWN_NOTE_PATH, "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`", "teardown_note:`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`"),
+            (REGISTRATION_SCAFFOLD_PATH, 'test "platform registration scaffold summary keeps ready imported-state probe anchors explicit"', 'registration_scaffold:test "platform registration scaffold summary keeps ready imported-state probe anchors explicit"'),
+            (REGISTRATION_SCAFFOLD_PATH, 'test "platform registration scaffold summary keeps blocked timeout-programming branch explicit"', 'registration_scaffold:test "platform registration scaffold summary keeps blocked timeout-programming branch explicit"'),
+            (VERIFY_REPLAY_PATH, 'test "dw_wdt verify keeps teardown split between reset-controlled and unstoppable hardware"', 'verify_replay:test "dw_wdt verify keeps teardown split between reset-controlled and unstoppable hardware"'),
+            (VERIFY_REPLAY_PATH, 'test "dw_wdt verify keeps idle remove-time reset path from fabricating stale heartbeat"', 'verify_replay:test "dw_wdt verify keeps idle remove-time reset path from fabricating stale heartbeat"'),
             (MANIFEST_PATH, '"id": "phase11-dw-wdt-platform-resource-preflight"', 'manifest:"id": "phase11-dw-wdt-platform-resource-preflight"'),
             (MANIFEST_PATH, '"id": "phase11-dw-wdt-registration-order-scaffold"', 'manifest:"id": "phase11-dw-wdt-registration-order-scaffold"'),
             (BUILD_PATH, '.name = "phase11-dw-wdt-survey-tests"', 'build:.name = "phase11-dw-wdt-survey-tests"'),
