@@ -11,7 +11,7 @@ The starter stays intentionally narrow:
 - adds a tiny probe-time summary for bootloader-carried running status, watchdog-core timeout and nowayout initialization, restart priority, stop-on-reboot setup, watchdog parent linkage, and system-power-controller eligibility
 - adds a tiny registration-facing handoff summary for watchdog registration intent plus poweroff-handler claim-vs-conflict outcomes
 - adds a tiny registration-outcome summary for register-device success versus failure, probe-error return intent, and poweroff-handler claim follow-through or blocking when registration does not complete
-- adds a tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability
+- adds a tiny platform-handoff and PM-base readiness summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability
 - adds a tiny poweroff-path summary for shared system-poweroff callback ownership, Raspberry Pi halt-partition request bits, and the short restart arming sequence without claiming a live poweroff hook installation
 - adds a tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff callback only when `pm_power_off` still points at `bcm2835_power_off`
 - preserves the Raspberry Pi halt-partition state in the lab snapshot without claiming full poweroff plumbing
