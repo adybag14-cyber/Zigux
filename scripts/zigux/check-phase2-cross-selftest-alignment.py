@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[2]
 TOOLCHAIN_NOTES = Path("Documentation/zigux/phase2-toolchain-bootstrap-notes.md")
 CLOSURE_DOC = Path("Documentation/zigux/phase2-closure.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
+SCRIPT_README = Path("scripts/zigux/README.md")
+TESTS_README = Path("zigux/tests/README.md")
 VALIDATE_PHASE2 = Path("scripts/zigux/validate-phase2.py")
 VALIDATE_PHASE2_CLOSURE = Path("scripts/zigux/validate-phase2-closure.py")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
@@ -22,6 +24,8 @@ REQUIRED_FILES = [
     TOOLCHAIN_NOTES,
     CLOSURE_DOC,
     REVIEW_CHECKLIST,
+    SCRIPT_README,
+    TESTS_README,
     VALIDATE_PHASE2,
     VALIDATE_PHASE2_CLOSURE,
     WORKFLOW,
@@ -62,6 +66,20 @@ CLOSURE_MARKERS = [
 
 REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+]
+
+SCRIPT_README_MARKERS = [
+    "check-phase2-cross-selftest-alignment.py",
+    "check-phase2-cross.py",
+    "phase2_cross_targets.json",
+    "bounded three-target compile matrix",
+]
+
+TESTS_README_MARKERS = [
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+    "bounded three-target compile matrix",
 ]
 
 VALIDATE_PHASE2_MARKERS = [
@@ -205,6 +223,20 @@ def validate_root(root: Path) -> list[str]:
     )
     issues.extend(
         collect_missing_markers(
+            abspath(root, SCRIPT_README).read_text(encoding="utf-8"),
+            SCRIPT_README_MARKERS,
+            prefix="script_readme",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            abspath(root, TESTS_README).read_text(encoding="utf-8"),
+            TESTS_README_MARKERS,
+            prefix="tests_readme",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
             abspath(root, VALIDATE_PHASE2).read_text(encoding="utf-8"),
             VALIDATE_PHASE2_MARKERS,
             prefix="validate_phase2",
@@ -248,6 +280,8 @@ def build_self_test_root(root: Path) -> None:
     write_text(abspath(root, TOOLCHAIN_NOTES), "\n".join(TOOLCHAIN_NOTE_MARKERS) + "\n")
     write_text(abspath(root, CLOSURE_DOC), "\n".join(CLOSURE_MARKERS) + "\n")
     write_text(abspath(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
+    write_text(abspath(root, SCRIPT_README), "\n".join(SCRIPT_README_MARKERS) + "\n")
+    write_text(abspath(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
     write_text(abspath(root, VALIDATE_PHASE2), "\n".join(VALIDATE_PHASE2_MARKERS) + "\n")
     write_text(
         abspath(root, VALIDATE_PHASE2_CLOSURE),
@@ -352,6 +386,16 @@ def run_self_test() -> int:
         )
 
         build_self_test_root(root)
+        write_text(abspath(root, SCRIPT_README), "check-phase2-cross.py\n")
+        issues = validate_root(root)
+        assert "script_readme:check-phase2-cross-selftest-alignment.py" in issues
+
+        build_self_test_root(root)
+        write_text(abspath(root, TESTS_README), "scripts/zigux/check-phase2-cross.py\n")
+        issues = validate_root(root)
+        assert "tests_readme:scripts/zigux/check-phase2-cross-selftest-alignment.py" in issues
+
+        build_self_test_root(root)
         write_text(abspath(root, VALIDATE_PHASE2), "phase2_cross_targets.json\n")
         issues = validate_root(root)
         assert "validate_phase2:check-phase2-cross-selftest-alignment.py" in issues
@@ -421,6 +465,16 @@ def run_self_test() -> int:
         assert "toolchain_notes:python3 scripts/zigux/check-phase2-cross.py --self-test" in issues
 
         build_self_test_root(root)
+        abspath(root, SCRIPT_README).unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/README.md" in issues
+
+        build_self_test_root(root)
+        abspath(root, TESTS_README).unlink()
+        issues = validate_root(root)
+        assert "missing_file:zigux/tests/README.md" in issues
+
+        build_self_test_root(root)
         abspath(root, TARGETS).unlink()
         issues = validate_root(root)
         assert "missing_file:zigux/tests/fixtures/phase2_cross_targets.json" in issues
@@ -431,15 +485,15 @@ def run_self_test() -> int:
         assert "missing_file:Documentation/zigux/review-checklist.md" in issues
 
     print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=17")
+    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Keep the Phase 2 cross-target self-test note, workflow, Makefile, "
-            "closure references, and manifest aligned with the current checker packet."
+            "Keep the Phase 2 cross-target self-test note, scripts root, tests root, workflow, "
+            "Makefile, closure references, and manifest aligned with the current checker packet."
         )
     )
     parser.add_argument(
@@ -464,7 +518,7 @@ def main() -> int:
     print("PHASE2_CROSS_SELFTEST_ALIGNMENT=pass")
     print(
         "PHASE2_CROSS_SELFTEST_ALIGNMENT_MARKER_COUNT="
-        f"{len(TOOLCHAIN_NOTE_MARKERS) + len(CLOSURE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(VALIDATE_PHASE2_MARKERS) + len(VALIDATE_PHASE2_CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(MAKEFILE_MARKERS) + len(EXPECTED_TARGETS) + len(EXPECTED_TOOLS)}"
+        f"{len(TOOLCHAIN_NOTE_MARKERS) + len(CLOSURE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPT_README_MARKERS) + len(TESTS_README_MARKERS) + len(VALIDATE_PHASE2_MARKERS) + len(VALIDATE_PHASE2_CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(MAKEFILE_MARKERS) + len(EXPECTED_TARGETS) + len(EXPECTED_TOOLS)}"
     )
     return 0
 
