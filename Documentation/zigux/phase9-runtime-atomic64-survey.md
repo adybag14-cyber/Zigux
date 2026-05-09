@@ -22,6 +22,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
   - `zigux/tests/phase9_build.zig`
   - `zigux/Makefile`
   - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
+  - `Documentation/zigux/phase9-runtime-atomic64-module-slice.md`
   - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 
 ## Why this slice exists
@@ -42,6 +43,7 @@ The live repo now has a bounded `runtime_atomic64` starter, dedicated module tes
 - ownership split: `samples/zigux/runtime_atomic64_loader.zig` remains atomic64 pilot-owned review surface, while `zigux/kernel/runtime_loader.zig` and `zigux/kernel/runtime_loader_contract.zig` stay shared Phase 9 loader-lane evidence.
 - guarded init, selftest, and exit transitions plus the bounded loader handoff make lifecycle evidence reviewable, but full runtime module lifecycle parity still depends on the shared runtime substrate.
 - the live repo now also carries `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and `zigux/Makefile`, and the atomic64 loader packet now makes its shared request-surface proof explicit through `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` while keeping the caller-provided allocator handoff, init-flow counts, initialized-stage shared-request snapshot stability, the selftest-complete prepared-snapshot stability replay across the caller-provided atomic64 and trace-events families, prepared selftest-hook and shared-plan drift checks, release-without-substrate path, and release-order synchronization reviewable without claiming a real module-loading substrate.
+- the directly coupled blocked-state packet also includes `Documentation/zigux/phase9-runtime-atomic64-module-slice.md`, so the survey boundary now names the module-slice companion explicitly instead of relying on the survey gate alone to imply it.
 - the shared `zigux/kernel/runtime_loader.zig` facade remains a review-only Phase 9 packet under the freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary, so this lane keeps the handoff proof explicit without claiming scheduler-facing substrate closure or a freeze-map status change.
 - runtime substrate work is still missing, so the lane intentionally stops at bounded lifecycle, selftest-hook, and loader-handoff behavior rather than claiming real module registration parity.
 
@@ -52,6 +54,7 @@ The live repo now has a bounded `runtime_atomic64` starter, dedicated module tes
 - the honest current state is `starter_landed_without_loadable_runtime_substrate`.
 - the missing capability is a shared runtime substrate that can turn the bounded init, selftest, and exit handoff plan into a real loadable module path.
 - the blocked deliverable is loadable Phase 9 runtime atomic64 pilot module parity.
+- until that shared substrate lands, the blocked-state review packet must keep both `Documentation/zigux/phase9-runtime-atomic64-survey.md` and `Documentation/zigux/phase9-runtime-atomic64-module-slice.md` explicit alongside the bounded sample, loader scaffold, and survey gate evidence.
 
 ## Direct Sample Checks
 
