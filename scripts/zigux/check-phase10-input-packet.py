@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FILES = [
     "scripts/zigux/check-phase10-input-packet.py",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
@@ -60,6 +61,18 @@ EXPECTED_DOCS_README_MARKERS = [
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "make -C zigux phase10-test",
+]
+
+EXPECTED_REVIEW_CHECKLIST_MARKERS = [
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "drivers/virtio/virtio_input_verify.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_manifest.json",
+    "make -C zigux phase10-test",
+    "make -C zigux phase10",
 ]
 
 EXPECTED_CLOSURE_NOTE_MARKERS = [
@@ -314,6 +327,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_DOCS_README_MARKERS:
         if marker not in docs_readme_text:
             missing_markers.append(f"docs_readme:{marker}")
+
+    review_checklist_text = read_text(root, "Documentation/zigux/review-checklist.md")
+    for marker in EXPECTED_REVIEW_CHECKLIST_MARKERS:
+        if marker not in review_checklist_text:
+            missing_markers.append(f"review_checklist:{marker}")
 
     closure_note_text = read_text(root, "Documentation/zigux/phase10-closure-evidence.md")
     for marker in EXPECTED_CLOSURE_NOTE_MARKERS:
@@ -687,6 +705,21 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_docs_readme_closure_note_marker_missing")
         docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
 
+        review_checklist_path = tmp_root / "Documentation/zigux/review-checklist.md"
+        original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "Documentation/zigux/phase10-closure-evidence.md",
+                "Documentation/zigux/phase10-closure-evidence-drift.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "review_checklist:Documentation/zigux/phase10-closure-evidence.md" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_review_checklist_marker_missing")
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
         closure_note_path = tmp_root / "Documentation/zigux/phase10-closure-evidence.md"
         original_closure_note = closure_note_path.read_text(encoding="utf-8")
         closure_note_path.write_text(
@@ -821,7 +854,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=29")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
