@@ -496,6 +496,34 @@ pub const SkbuffBridgeLab = struct {
         return concurrency_sensitive_blocked_behaviors[0..];
     }
 
+    pub fn freezeCriticalChecklistCoverageCount() usize {
+        var count: usize = 0;
+        for (concurrency_sensitive_checkpoint_ids) |checkpoint_id| {
+            if (decisionChecklistEntryById(checkpoint_id) != null) {
+                count += 1;
+            }
+        }
+        return count;
+    }
+
+    pub fn hasFullFreezeCriticalChecklistCoverage() bool {
+        return freezeCriticalChecklistCoverageCount() == concurrency_sensitive_checkpoint_ids.len;
+    }
+
+    pub fn freezeCriticalBlockedBehaviorCoverageCount() usize {
+        var count: usize = 0;
+        for (concurrency_sensitive_blocked_behaviors) |behavior| {
+            if (blocksLiveBehavior(behavior)) {
+                count += 1;
+            }
+        }
+        return count;
+    }
+
+    pub fn hasFullFreezeCriticalBlockedBehaviorCoverage() bool {
+        return freezeCriticalBlockedBehaviorCoverageCount() == concurrency_sensitive_blocked_behaviors.len;
+    }
+
     pub fn requiredFreezeEvidenceCount() usize {
         return freeze_required_evidence.len;
     }
@@ -688,11 +716,18 @@ test "skbuff bridge concurrency-sensitive checkpoint catalog stays anchored to t
     try std.testing.expectEqual(@as(usize, 3), SkbuffBridgeLab.concurrencySensitiveCheckpointCount());
     try std.testing.expectEqual(@as(usize, 3), SkbuffBridgeLab.concurrencySensitiveCheckpointIds().len);
     try std.testing.expectEqual(@as(usize, 3), SkbuffBridgeLab.concurrencySensitiveBlockedBehaviors().len);
+    try std.testing.expectEqual(@as(usize, 3), SkbuffBridgeLab.freezeCriticalChecklistCoverageCount());
+    try std.testing.expect(SkbuffBridgeLab.hasFullFreezeCriticalChecklistCoverage());
+    try std.testing.expectEqual(@as(usize, 3), SkbuffBridgeLab.freezeCriticalBlockedBehaviorCoverageCount());
+    try std.testing.expect(SkbuffBridgeLab.hasFullFreezeCriticalBlockedBehaviorCoverage());
 
     for (SkbuffBridgeLab.concurrencySensitiveCheckpointIds()) |checkpoint_id| {
         const checkpoint = SkbuffBridgeLab.checkpointById(checkpoint_id) orelse return error.MissingCheckpoint;
+        const checklist_entry = SkbuffBridgeLab.decisionChecklistEntryById(checkpoint_id) orelse return error.MissingChecklistEntry;
         try std.testing.expect(checkpoint.ownership == .stay_in_c);
         try std.testing.expect(SkbuffBridgeLab.isConcurrencySensitiveCheckpoint(checkpoint_id));
+        try std.testing.expectEqualStrings(checkpoint.summary, checklist_entry.summary);
+        try std.testing.expectEqualStrings(checkpoint.blocked_by, checklist_entry.rationale);
     }
 
     const tail_owner = SkbuffBridgeLab.checkpointById("segmentation-partial-tail-owner-transfer") orelse return error.MissingCheckpoint;
