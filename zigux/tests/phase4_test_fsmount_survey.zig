@@ -8,6 +8,7 @@ const Manifest = struct {
     sample_path: []const u8,
     sample_present: bool,
     current_replay: []const u8,
+    local_lab_replay: []const u8,
     survey_note: []const u8,
     survey_owner: []const u8,
     rollback_owner: []const u8,
@@ -49,6 +50,10 @@ test "phase4 test_fsmount gap manifest keeps the parked survey explicit" {
     try std.testing.expect(!manifest.sample_present);
     try std.testing.expectEqualStrings("make M=samples/vfs", manifest.current_replay);
     try std.testing.expectEqualStrings(
+        "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+        manifest.local_lab_replay,
+    );
+    try std.testing.expectEqualStrings(
         "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
         manifest.survey_note,
     );
@@ -65,7 +70,7 @@ test "phase4 test_fsmount gap manifest keeps the parked survey explicit" {
         manifest.review_prompts[0],
     );
     try std.testing.expectEqualStrings(
-        "the packet keeps the live VFS replay command explicit without implying a shipped Zig sample",
+        "the packet keeps the live VFS replay command and the dedicated local survey wrapper explicit without implying a shipped Zig sample",
         manifest.review_prompts[1],
     );
     try std.testing.expectEqualStrings(
@@ -113,12 +118,14 @@ test "phase4 test_fsmount gap survey note stays honest about the parked boundary
         "PHASE4_SAMPLE_PATH=samples/zigux/test_fsmount.zig",
         "PHASE4_SAMPLE_PRESENT=false",
         "PHASE4_CURRENT_REPLAY=make M=samples/vfs",
+        "PHASE4_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
         "PHASE4_SURVEY_OWNER=Validation and Perf Team",
         "PHASE4_ROLLBACK_OWNER=Validation and Perf Team",
         "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=false",
         "zigux/tests/phase4_test_fsmount_manifest.json",
         "zigux/tests/phase4_test_fsmount_survey.zig",
         "`samples/zigux/test_fsmount.zig` is still absent",
+        "the dedicated local survey wrapper now lives at `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
         "the shared validator route already rereads this parked packet through `scripts/zigux/check-phase4-gate-evidence.py`",
         "Keep this parked packet adjacent to the shared gate-evidence note,",
         "claiming that the shared Phase 4 exact-readback gate already carries this packet",
@@ -131,6 +138,7 @@ test "phase4 test_fsmount gap survey note stays honest about the parked boundary
 
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.anchor_blob_sha) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.validation_entrypoint) != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, manifest.local_lab_replay) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "claiming a shipped Zig starter") != null);
 }
 
