@@ -15,7 +15,7 @@ The current shared Phase 5 packet on `master` is:
 - `zigux/tests/README.md`
 - the four survey notes under `Documentation/zigux/`
 - the four sample modules under `samples/zigux/`
-- the four manifest-backed test packets under `zigux/tests/`
+- the four focused sample replays, the four manifest files, and the four survey gates under `zigux/tests/`
 - `zigux/tests/phase5_build.zig`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
