@@ -161,6 +161,12 @@ REQUIRED_WORKFLOW_MARKERS = [
 ]
 EXACT_COUNT_MARKERS = [
     (
+        DOCS_README_PATH,
+        "`Documentation/zigux/phase11-driver-lane-sequencing.md`",
+        1,
+        "docs_readme_lane_owner_map",
+    ),
+    (
         TESTS_README_PATH,
         "`Documentation/zigux/phase11-driver-lane-sequencing.md`",
         1,
@@ -190,7 +196,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 73
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 74
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
