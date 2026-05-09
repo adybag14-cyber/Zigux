@@ -8,7 +8,7 @@ This note keeps the current `include/zigux/abi.h` boundary honest without wideni
 - `PHASE3_BOUNDARY_FILE=include/zigux/abi.h`
 - `PHASE3_BOUNDARY_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
 - `PHASE3_BOUNDARY_BINDINGS=zigux/bindings/abi.zig`
-- `PHASE3_BOUNDARY_BINDINGS_BLOB_SHA=7a2d25c8ae492cbdf5a8af7097e4bdaa749b5674`
+- `PHASE3_BOUNDARY_BINDINGS_BLOB_SHA=d8df5a2a888ed29c71d2c75e7f6cd0bd18d37771`
 - `PHASE3_NOTE_SCOPE=one bounded next-safe-step note for the authoritative C ABI header only`
 
 ## Current Repo Evidence
@@ -18,8 +18,8 @@ This note keeps the current `include/zigux/abi.h` boundary honest without wideni
 - `zigux/bindings/abi.zig` mirrors that same large family, so this is real shared boundary surface, not a C-only stub.
 - The current shipped guards around this boundary are still narrower than the live family growth:
   - `scripts/zigux/validate-phase3-abi-bindings-syntax.py` fail-closes on fused top-level declarations and verifies the shared ABI packet contract.
-  - `scripts/zigux/survey-phase3-abi-constant-parity.py` currently checks only five baseline constants: facility, status flag, panic mode, allocator mode, and one unsafe scope constant.
-- That means current `master` does document and syntax-guard the header, but it does not yet carry a dedicated family-growth survey for the large chrdev notify or ack ladder now living in `include/zigux/abi.h`.
+  - `scripts/zigux/survey-phase3-abi-constant-parity.py` now checks the baseline facility, status, panic, allocator, and unsafe constants plus two landed chrdev ack-window policy budget binding markers, but it still does not carry a dedicated family-growth survey for the broader chrdev notify or ack ladder now living in `include/zigux/abi.h`.
+- That means current `master` does document and syntax-guard the header and now carries a small constant-parity plus binding-marker survey, but it does not yet carry a dedicated family-growth survey for the large chrdev notify or ack ladder now living in `include/zigux/abi.h`.
 
 ## Next Safe Step
 
