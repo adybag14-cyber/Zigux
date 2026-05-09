@@ -20,7 +20,7 @@ The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspac
 
 This parked packet stays helper-first expansion inside that `tools/lib/symbol/*.zig` family. Its review surface remains on output-stable tooling behavior rather than downstream symbol plumbing.
 
-The live repo already had the parse-first `kallsyms.zig` surface plus the injected chunked reader path, and the previous bounded follow-ups added thin reader-backed, path-backed, and already-open-file adapters. The parked review surface still includes one direct `kallsymsParseFile()` wrapper for caller-owned open files alongside one direct `kallsymsParse()` wrapper that opens a path, without widening into ELF emission or downstream symbol plumbing.
+The live repo already had the parse-first `kallsyms.zig` surface plus the injected chunked reader path, and the previous bounded follow-ups added thin reader-backed, path-backed, and already-open-file adapters. The parked review surface still includes one direct `kallsymsParseFile()` wrapper for caller-owned open files alongside one direct `kallsymsParse()` wrapper that opens a path, without widening into ELF emission or downstream symbol plumbing. The current review note keeps the caller-owned file-handle boundary explicit so nearby runs do not drift into path-ownership claims the helper does not make.
 
 ## Gates
 
@@ -54,10 +54,10 @@ The current parked parser-and-wrapper slice covers:
 - `kallsyms2elf_type()`-adjacent symbol-type classification
 - `kallsyms__is_function()`-adjacent function detection
 - injected per-line parsing for `"<hex> <type> <name>"` records with malformed-line skipping
-- injected chunked reader iteration that reconstructs split lines before reusing the same parser
+- injected chunked reader iteration that reconstructs split lines before reusing the same parser while preserving raw carriage returns before newline on the current output-stable path
 - thin reader-backed parsing that reuses the same malformed-line and callback semantics
 - thin path-backed parsing that opens a file and feeds the same reader-backed path
-- one direct `kallsymsParseFile()` wrapper that accepts an already-open file plus a C-shaped callback contract and stops on the same integer callback result the C helper returns
+- one direct `kallsymsParseFile()` wrapper that accepts an already-open file plus a C-shaped callback contract, stops on the same integer callback result the C helper returns, and keeps the caller-owned file-handle boundary explicit
 - one direct `kallsymsParse()` wrapper that accepts a path plus a C-shaped callback contract and stops on the same integer callback result the C helper returns
 - direct parser now truncates oversized symbol names to `KSYM_NAME_LEN` on both direct and chunk-reconstructed parse paths without keeping a parser-local long-name error contract that the C helper never exposes
 - weak-object `V` and `v` classes still follow the current C header contract: only uppercase `W` maps to weak binding, while `V` and `v` stay object-typed and keep the normal uppercase-global and lowercase-local binding split
@@ -67,9 +67,9 @@ The current tests check:
 - uppercase and lowercase symbol types map to the same binding and function classifications as the C helper
 - valid symbol lines expose the expected address, type, and name slices
 - malformed lines are skipped without stopping iteration
-- split records still parse correctly when a file-like reader delivers partial lines and CRLF endings across chunk boundaries
+- split records still parse correctly when a file-like reader delivers partial lines and CRLF endings across chunk boundaries, preserving raw carriage returns before newline
 - the thin reader, path, and already-open-file adapters preserve the same callback and malformed-line behavior as the lower-level parser
-- the direct `kallsymsParseFile()` wrapper keeps an already-open file handle on the same callback-stop contract without reopening path ownership inside the helper
+- the direct `kallsymsParseFile()` wrapper keeps an already-open file handle on the caller-owned file-handle boundary explicit without reopening path ownership inside the helper
 - the direct `kallsymsParse()` wrapper reuses that same path surface while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
 - the focused `phase8_kallsyms_only_build.zig` shard keeps the parked parser-and-wrapper packet reviewable without rerunning the whole Phase 8 bundle
 - the focused `phase8_help_kallsyms_only_build.zig` shard and `make -C zigux phase8-help-kallsyms-test` route keep the parked help-and-kallsyms packet reviewable without widening into unrelated Phase 8 tooling slices
