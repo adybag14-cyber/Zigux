@@ -28,7 +28,7 @@ test "phase14 workqueue reviewability guard keeps the shared reviewer surface al
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L02", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("9b98d3b9c812840bf279508030be0b8de093736c", manifest.surveyed_commit);
 
@@ -93,7 +93,7 @@ test "phase14 workqueue reviewability guard keeps the shared reviewer surface al
     );
     defer std.testing.allocator.free(survey_note);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_STATUS=blocked_maintenance") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L02") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L04") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=9b98d3b9c812840bf279508030be0b8de093736c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=workqueue-scheduler-visible-worker-state-refinement") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "delayed_work_timer_fn()") != null);
