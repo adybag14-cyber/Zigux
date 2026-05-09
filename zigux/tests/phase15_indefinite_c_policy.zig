@@ -33,6 +33,7 @@ const Manifest = struct {
     supporting_artifacts: []const []const u8,
     indefinite_c_requirements: []const Requirement,
     exception_posture: ExceptionPosture,
+    reopen_trigger_catalog: []const []const u8,
     gaps: []const Gap,
 };
 
@@ -94,6 +95,10 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     try std.testing.expectEqualStrings("retired_from_active_discussion", manifest.exception_posture.retained_closeout_state);
     try std.testing.expectEqualStrings("existing_blocker_remains_recorded_until_reopen_approved", manifest.exception_posture.blocker_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.exception_posture.required_reopen_inputs.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.reopen_trigger_catalog.len);
+    try std.testing.expectEqualStrings("narrower_followup_answers_blocker", manifest.reopen_trigger_catalog[0]);
+    try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", manifest.reopen_trigger_catalog[1]);
+    try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.reopen_trigger_catalog[2]);
     try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.anchors[0]);
@@ -158,9 +163,13 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
             try std.testing.expectEqualStrings("Architecture Council review request", requirement.required_terms[3]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-trigger-catalog")) {
             saw_reopen_trigger_catalog = true;
+            try std.testing.expectEqual(manifest.reopen_trigger_catalog.len, requirement.required_terms.len);
             try std.testing.expectEqualStrings("narrower_followup_answers_blocker", requirement.required_terms[0]);
             try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", requirement.required_terms[1]);
             try std.testing.expectEqualStrings("ownership_or_validation_changed", requirement.required_terms[2]);
+            for (manifest.reopen_trigger_catalog, requirement.required_terms) |catalog_item, required_term| {
+                try std.testing.expectEqualStrings(catalog_item, required_term);
+            }
         }
 
         for (manifest.indefinite_c_requirements[i + 1 ..]) |other| {
