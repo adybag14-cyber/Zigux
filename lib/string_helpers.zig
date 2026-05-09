@@ -115,6 +115,25 @@ pub fn kstrdupQuotable(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8 
     return dup[0..escaped_len :0];
 }
 
+pub fn kstrdupQuotableCmdlineBuffer(
+    allocator: std.mem.Allocator,
+    src: ?[]const u8,
+) !?[:0]u8 {
+    const current = src orelse return null;
+    const duplicated = try allocator.dupe(u8, current);
+    defer allocator.free(duplicated);
+
+    var end = duplicated.len;
+    while (end > 0 and duplicated[end - 1] == 0) : (end -= 1) {}
+    for (duplicated[0..end]) |*ch| {
+        if (ch.* == 0) {
+            ch.* = ' ';
+        }
+    }
+
+    return kstrdupQuotable(allocator, duplicated[0..end]);
+}
+
 pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
     std.debug.assert(src.len >= count);
 
@@ -511,6 +530,15 @@ fn runKstrdupQuotableWithFailingAllocator(allocator: std.mem.Allocator, input: ?
     }
 }
 
+fn runKstrdupQuotableCmdlineBufferWithFailingAllocator(
+    allocator: std.mem.Allocator,
+    input: ?[]const u8,
+) !void {
+    if (try kstrdupQuotableCmdlineBuffer(allocator, input)) |dup| {
+        allocator.free(dup);
+    }
+}
+
 fn unescapeSpace(src: []const u8, src_index: *usize, dst: []u8, dst_index: *usize) bool {
     const value: u8 = switch (src[src_index.*]) {
         'n' => '\n',
@@ -723,6 +751,30 @@ test "kstrdupQuotable frees the owned copy when allocation fails" {
         std.testing.allocator,
         runKstrdupQuotableWithFailingAllocator,
         .{"alpha\nbeta"},
+    );
+}
+
+test "kstrdupQuotableCmdlineBuffer collapses interior NULs before escaping" {
+    const collapsed = (try kstrdupQuotableCmdlineBuffer(std.testing.allocator, "alpha\x00beta\x00\x00")) orelse return error.TestUnexpectedResult;
+    defer std.testing.allocator.free(collapsed);
+    try std.testing.expectEqualStrings("alpha beta", collapsed);
+
+    const escaped = (try kstrdupQuotableCmdlineBuffer(std.testing.allocator, "A\n\x00B\t\x00\x00")) orelse return error.TestUnexpectedResult;
+    defer std.testing.allocator.free(escaped);
+    try std.testing.expectEqualStrings("A\\x0a B\\x09", escaped);
+
+    const empty = (try kstrdupQuotableCmdlineBuffer(std.testing.allocator, "\x00\x00")) orelse return error.TestUnexpectedResult;
+    defer std.testing.allocator.free(empty);
+    try std.testing.expectEqualStrings("", empty);
+
+    try std.testing.expectEqual(@as(?[:0]u8, null), try kstrdupQuotableCmdlineBuffer(std.testing.allocator, null));
+}
+
+test "kstrdupQuotableCmdlineBuffer frees allocations cleanly on retrying allocators" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKstrdupQuotableCmdlineBufferWithFailingAllocator,
+        .{"quoted\x00cmdline\x00"},
     );
 }
 
