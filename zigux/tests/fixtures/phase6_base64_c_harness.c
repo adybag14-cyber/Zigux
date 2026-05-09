@@ -132,6 +132,13 @@ static void print_encode(const char *label, const uint8_t *input, int len, bool 
 	printf("encode\t%s\t%s\n", label, out);
 }
 
+static void print_chars(const char *label, const uint8_t *input, int len, bool padding, enum base64_variant variant)
+{
+	char out[128];
+	int written = base64_encode(input, len, out, padding, variant);
+	printf("chars\t%s\t%d\n", label, written);
+}
+
 static void print_decode_hex(const char *label, const char *input, bool padding, enum base64_variant variant)
 {
 	uint8_t out[64];
@@ -142,6 +149,13 @@ static void print_decode_hex(const char *label, const char *input, bool padding,
 	for (i = 0; i < written; ++i)
 		printf("%02x", out[i]);
 	putchar('\n');
+}
+
+static void print_bytes(const char *label, const char *input, bool padding, enum base64_variant variant)
+{
+	uint8_t out[64];
+	int written = base64_decode(input, (int)strlen(input), out, padding, variant);
+	printf("bytes\t%s\t%d\n", label, written);
 }
 
 static void print_invalid(const char *label, const char *input, int len, bool padding, enum base64_variant variant)
@@ -166,10 +180,21 @@ int main(void)
 	print_encode("urlsafe-pad-variant", variant_sample, 5, true, BASE64_URLSAFE);
 	print_encode("imap-no-pad-variant", variant_sample, 5, false, BASE64_IMAP);
 
+	print_chars("std-pad-f", (const uint8_t *)"f", 1, true, BASE64_STD);
+	print_chars("std-no-pad-fo", (const uint8_t *)"fo", 2, false, BASE64_STD);
+	print_chars("std-pad-hello", (const uint8_t *)"Hello, world!", 13, true, BASE64_STD);
+	print_chars("urlsafe-pad-variant", variant_sample, 5, true, BASE64_URLSAFE);
+	print_chars("imap-no-pad-variant", variant_sample, 5, false, BASE64_IMAP);
+
 	print_decode_hex("std-pad-foobar", "Zm9vYmFy", true, BASE64_STD);
 	print_decode_hex("std-no-pad-hello", "SGVsbG8sIHdvcmxkIQ", false, BASE64_STD);
 	print_decode_hex("urlsafe-pad-variant", "APv_f4A=", true, BASE64_URLSAFE);
 	print_decode_hex("imap-no-pad-variant", "APv,f4A", false, BASE64_IMAP);
+
+	print_bytes("std-pad-foobar", "Zm9vYmFy", true, BASE64_STD);
+	print_bytes("std-no-pad-hello", "SGVsbG8sIHdvcmxkIQ", false, BASE64_STD);
+	print_bytes("urlsafe-pad-variant", "APv_f4A=", true, BASE64_URLSAFE);
+	print_bytes("imap-no-pad-variant", "APv,f4A", false, BASE64_IMAP);
 
 	print_invalid("std-pad-noncanonical-pair", "Zh==", 4, true, BASE64_STD);
 	print_invalid("urlsafe-pad-noncanonical-pair", "Zh==", 4, true, BASE64_URLSAFE);
