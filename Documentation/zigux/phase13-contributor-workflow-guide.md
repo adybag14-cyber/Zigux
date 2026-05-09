@@ -7,10 +7,10 @@ Use `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` when nearby r
 ## Scope
 
 Use this guide when a change touches any part of the current shipped Phase 13 packet:
-  * `fs/libfs.c` through `zigux/tests/phase13_libfs_manifest.json`
-  * `lib/devres.c` through `zigux/tests/phase13_devres_manifest.json`
-  * `security/landlock/ruleset.c` through `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
-  * `security/landlock/syscalls.c` through `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+  * `fs/libfs.zig` through `zigux/tests/phase13_libfs_manifest.json`
+  * `lib/devres.zig` through `zigux/tests/phase13_devres_manifest.json`
+  * `security/landlock/ruleset.zig` through `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+  * `security/landlock/syscalls.zig` through `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 
 Adjacent notifier release-surface evidence under `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig` stays in scope for contributor guidance too, but it remains adjacent evidence rather than a fifth shared-helper anchor or an extra shared replay step.
 
