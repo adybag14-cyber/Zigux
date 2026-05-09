@@ -110,6 +110,31 @@ fn compareRawRecordKeyCountedC(key: *const anyopaque, item: *const anyopaque) ca
     return compareRawRecordKey(key, item);
 }
 
+fn compareU32CountedAliasC(key: *const u32, item: *const u32) callconv(.c) i32 {
+    typed_c_compare_calls += 1;
+    return compareU32(key, item);
+}
+
+fn compareDescendingU32CountedAliasC(key: *const u32, item: *const u32) callconv(.c) i32 {
+    typed_c_compare_calls += 1;
+    return compareDescendingU32(key, item);
+}
+
+fn compareOpaqueU32CountedAliasC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    raw_c_compare_calls += 1;
+    return compareOpaqueU32(key, item);
+}
+
+fn compareDescendingOpaqueU32CountedAliasC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    raw_c_compare_calls += 1;
+    return compareDescendingOpaqueU32(key, item);
+}
+
+fn compareRawRecordKeyCountedAliasC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    raw_c_compare_calls += 1;
+    return compareRawRecordKey(key, item);
+}
+
 fn binarySearchBudget(len: usize) usize {
     if (len == 0) return 0;
 
@@ -320,6 +345,109 @@ test "phase 6 bsearch lower-bound c abi helpers short-circuit empty input and ke
         bsearch.bsearchLowerBoundIndex(&@as(u32, 5), @ptrCast(record_singleton[0..].ptr), record_singleton.len, @sizeOf(RawRecord), compareRawRecordKeyCountedC),
     );
     try std.testing.expect(raw_c_compare_calls <= 1);
+}
+
+test "phase 6 bsearch lower-bound c abi alias comparator pointers keep empty and singleton bounds" {
+    const empty = [_]u32{};
+    const singleton = [_]u32{4};
+    const descending_singleton = [_]u32{4};
+    const record_singleton = [_]RawRecord{.{ .key = 4, .tag = 11, .flags = 1, .value = 40 }};
+
+    const ascending_alias = [_]bsearch.CComparator(u32, u32){compareU32CountedAliasC};
+    const descending_alias = [_]bsearch.CComparator(u32, u32){compareDescendingU32CountedAliasC};
+    const raw_ascending_alias = [_]bsearch.CRawComparator{compareOpaqueU32CountedAliasC};
+    const raw_descending_alias = [_]bsearch.CRawComparator{compareDescendingOpaqueU32CountedAliasC};
+    const raw_record_alias = [_]bsearch.CRawComparator{compareRawRecordKeyCountedAliasC};
+
+    for (ascending_alias) |compare| {
+        typed_c_compare_calls = 0;
+        try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 4), empty[0..], compare));
+        try std.testing.expectEqual(@as(usize, 0), typed_c_compare_calls);
+
+        typed_c_compare_calls = 0;
+        try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 3), singleton[0..], compare));
+        try std.testing.expect(typed_c_compare_calls <= 1);
+
+        typed_c_compare_calls = 0;
+        try std.testing.expectEqual(@as(usize, 1), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 5), singleton[0..], compare));
+        try std.testing.expect(typed_c_compare_calls <= 1);
+    }
+
+    for (descending_alias) |compare| {
+        typed_c_compare_calls = 0;
+        try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 4), empty[0..], compare));
+        try std.testing.expectEqual(@as(usize, 0), typed_c_compare_calls);
+
+        typed_c_compare_calls = 0;
+        try std.testing.expectEqual(@as(usize, 1), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 3), descending_singleton[0..], compare));
+        try std.testing.expect(typed_c_compare_calls <= 1);
+
+        typed_c_compare_calls = 0;
+        try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 5), descending_singleton[0..], compare));
+        try std.testing.expect(typed_c_compare_calls <= 1);
+    }
+
+    for (raw_ascending_alias) |compare| {
+        raw_c_compare_calls = 0;
+        try std.testing.expectEqual(
+            @as(usize, 0),
+            bsearch.bsearchLowerBoundIndex(&@as(u32, 4), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compare),
+        );
+        try std.testing.expectEqual(@as(usize, 0), raw_c_compare_calls);
+
+        raw_c_compare_calls = 0;
+        try std.testing.expectEqual(
+            @as(usize, 0),
+            bsearch.bsearchLowerBoundIndex(&@as(u32, 3), @ptrCast(singleton[0..].ptr), singleton.len, @sizeOf(u32), compare),
+        );
+        try std.testing.expect(raw_c_compare_calls <= 1);
+
+        raw_c_compare_calls = 0;
+        try std.testing.expectEqual(
+            @as(usize, 1),
+            bsearch.bsearchLowerBoundIndex(&@as(u32, 5), @ptrCast(singleton[0..].ptr), singleton.len, @sizeOf(u32), compare),
+        );
+        try std.testing.expect(raw_c_compare_calls <= 1);
+    }
+
+    for (raw_descending_alias) |compare| {
+        raw_c_compare_calls = 0;
+        try std.testing.expectEqual(
+            @as(usize, 0),
+            bsearch.bsearchLowerBoundIndex(&@as(u32, 4), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compare),
+        );
+        try std.testing.expectEqual(@as(usize, 0), raw_c_compare_calls);
+
+        raw_c_compare_calls = 0;
+        try std.testing.expectEqual(
+            @as(usize, 1),
+            bsearch.bsearchLowerBoundIndex(&@as(u32, 3), @ptrCast(descending_singleton[0..].ptr), descending_singleton.len, @sizeOf(u32), compare),
+        );
+        try std.testing.expect(raw_c_compare_calls <= 1);
+
+        raw_c_compare_calls = 0;
+        try std.testing.expectEqual(
+            @as(usize, 0),
+            bsearch.bsearchLowerBoundIndex(&@as(u32, 5), @ptrCast(descending_singleton[0..].ptr), descending_singleton.len, @sizeOf(u32), compare),
+        );
+        try std.testing.expect(raw_c_compare_calls <= 1);
+    }
+
+    for (raw_record_alias) |compare| {
+        raw_c_compare_calls = 0;
+        try std.testing.expectEqual(
+            @as(usize, 0),
+            bsearch.bsearchLowerBoundIndex(&@as(u32, 4), @ptrCast(record_singleton[0..].ptr), record_singleton.len, @sizeOf(RawRecord), compare),
+        );
+        try std.testing.expect(raw_c_compare_calls <= 1);
+
+        raw_c_compare_calls = 0;
+        try std.testing.expectEqual(
+            @as(usize, 1),
+            bsearch.bsearchLowerBoundIndex(&@as(u32, 5), @ptrCast(record_singleton[0..].ptr), record_singleton.len, @sizeOf(RawRecord), compare),
+        );
+        try std.testing.expect(raw_c_compare_calls <= 1);
+    }
 }
 
 test "phase 6 bsearch lower-bound c abi helpers match bounded insertion points across ascending and descending ranges" {
