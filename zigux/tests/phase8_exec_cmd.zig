@@ -67,6 +67,48 @@ test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet 
     try std.testing.expectEqual(@as(?[]const u8, null), deferred_execl.call.argv[4]);
 }
 
+test "phase 8 exec-cmd focused replay keeps an explicitly cleared exec path ahead of env fallback" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = exec_cmd.ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&env, config);
+    try env.set("PERF_EXEC_PATH", "/env/perf");
+    try env.set("PATH", "/usr/bin:/bin");
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &state, "scripts");
+
+    var planned = try exec_cmd.planDeferredExecvCall(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        &[_][]const u8{"record"},
+    );
+    defer planned.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings("", state.argv_exec_path.?);
+    try std.testing.expectEqualStrings("", env.get("PERF_EXEC_PATH").?);
+    try std.testing.expectEqualStrings(
+        "/repo/scripts:/usr/bin:/bin",
+        planned.path,
+    );
+    try std.testing.expectEqualStrings(planned.path, env.get("PATH").?);
+    try std.testing.expectEqualStrings("perf", planned.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", planned.call.argv[1].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), planned.call.argv[2]);
+}
+
 test "phase 8 exec-cmd focused replay accepts the last deferred execl handoff before overflow" {
     const config = exec_cmd.Config{
         .exec_name = "perf",
