@@ -21,6 +21,13 @@ FILES = [
     "zigux/tests/README.md",
     "zigux/Makefile",
     "zigux/tests/phase10_build.zig",
+    "zigux/tests/phase10_closure_manifest.json",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
     "drivers/virtio/virtio_mmio.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "drivers/virtio/virtio_input_verify.zig",
@@ -97,6 +104,36 @@ MARKERS = {
         "phase10_virtio_mmio.zig",
         "phase10_virtio_mmio_survey.zig",
         "phase10_virtio_mmio_manifest.json",
+    ],
+    "zigux/tests/phase10_closure_manifest.json": [
+        "zigux/tests/phase10_virtio_core_reset_queue.zig",
+        "zigux/tests/phase10_virtio_driver_id.zig",
+        "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+        "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+        "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+        "zigux/tests/phase10_virtio_input_status_drain.zig",
+        "drivers/virtio/virtio_mmio_verify.zig",
+        "scripts/zigux/check-phase10-mmio-packet.py",
+        "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
+        "phase10-mmio-lifecycle-and-irq-paths",
+    ],
+    "zigux/tests/phase10_virtio_core_reset_queue.zig": [
+        'test "phase10 virtio core blocks fresh queue registration once reset is required" {',
+    ],
+    "zigux/tests/phase10_virtio_driver_id.zig": [
+        'test "phase10 virtio driver id helper records bounded registration identity strings" {',
+    ],
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
+        'test "phase10 virtio input queue callback preflight reports queue and ready blockers and resets cleanly" {',
+    ],
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig": [
+        'test "phase10 virtio input registration preflight fails closed on incomplete identity before registration handoff" {',
+    ],
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig": [
+        'test "phase10 virtio input teardown observation captures reset-local cleanup cues without widening into remove lifecycle" {',
+    ],
+    "zigux/tests/phase10_virtio_input_status_drain.zig": [
+        'test "phase10 virtio input drains queued status completions without touching suppressed multitouch counters" {',
     ],
     "zigux/tests/phase10_build.zig": [
         "phase10_virtio_mmio_module",
@@ -409,7 +446,8 @@ def run_self_test() -> int:
             nonlocal case_count
             path = root / rel_path
             original = path.read_text(encoding="utf-8")
-            path.write_text(original.replace(old, new, 1), encoding="utf-8")
+            path.writeText = original.replace(old, new, 1)
+            path.write_text(path.writeText, encoding="utf-8")
             _, markers = validate(root)
             if expected not in markers:
                 raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
@@ -438,148 +476,16 @@ def run_self_test() -> int:
                 'check-phase10-mmio-freeze-boundary.py:FREEZE_BOUNDARY_CHECK = "python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py"',
             ),
             (
-                "drivers/virtio/virtio_mmio.zig",
-                "self.pending_config_write = null;",
-                "self.pending_config_write = plan;",
-                "virtio_mmio.zig:self.pending_config_write = null;",
-            ),
-            (
-                "drivers/virtio/virtio_mmio.zig",
-                "pub fn configuredQueueCoverageSummary(self: *const Self) ConfiguredQueueCoverageSummary {",
-                "pub fn configuredQueueCoverageDrift(self: *const Self) ConfiguredQueueCoverageSummary {",
-                "virtio_mmio.zig:pub fn configuredQueueCoverageSummary(self: *const Self) ConfiguredQueueCoverageSummary {",
-            ),
-            (
-                "drivers/virtio/virtio_mmio.zig",
-                'test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {',
-                'test "phase10 virtio mmio generation-rollover drift" {',
-                'virtio_mmio.zig:test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {',
-            ),
-            (
-                "drivers/virtio/virtio_mmio_verify.zig",
-                "device.bumpConfigGeneration();",
-                "device.stageInterruptStatus(0);",
-                "virtio_mmio_verify.zig:device.bumpConfigGeneration();",
-            ),
-            (
-                "drivers/virtio/virtio_mmio_verify.zig",
-                'test "virtio mmio wrapper-facing queue coverage review stays within configured queues" {',
-                'test "virtio mmio wrapper-facing queue coverage drift" {',
-                'virtio_mmio_verify.zig:test "virtio mmio wrapper-facing queue coverage review stays within configured queues" {',
-            ),
-            (
-                "drivers/virtio/virtio_mmio_verify.zig",
-                "try std.testing.expectEqual(@as(usize, 3), summary.handoff_ready_queue_count);",
-                "try std.testing.expectEqual(@as(usize, 2), summary.handoff_ready_queue_count);",
-                "virtio_mmio_verify.zig:try std.testing.expectEqual(@as(usize, 3), summary.handoff_ready_queue_count);",
-            ),
-            (
-                "drivers/virtio/virtio_mmio_verify.zig",
-                "try std.testing.expect(summary.all_configured_queues_ready_for_handoff);",
-                "try std.testing.expect(!summary.all_configured_queues_ready_for_handoff);",
-                "virtio_mmio_verify.zig:try std.testing.expect(summary.all_configured_queues_ready_for_handoff);",
-            ),
-            (
-                "drivers/virtio/virtio_mmio_verify.zig",
-                "try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());",
-                "try std.testing.expect(disposition.has_changes);",
-                "virtio_mmio_verify.zig:try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());",
-            ),
-            (
-                "zigux/Makefile",
-                "scripts/zigux/check-phase10-mmio-packet.py --self-test",
-                "scripts/zigux/check-phase10-mmio-drift.py --self-test",
-                "Makefile:scripts/zigux/check-phase10-mmio-packet.py --self-test",
-            ),
-            (
-                "zigux/Makefile",
-                "scripts/zigux/check-phase10-mmio-freeze-boundary.py --self-test",
-                "scripts/zigux/check-phase10-mmio-freeze-boundary-drift.py --self-test",
-                "Makefile:scripts/zigux/check-phase10-mmio-freeze-boundary.py --self-test",
-            ),
-            (
-                "zigux/tests/phase10_build.zig",
-                '"phase10-virtio-mmio-verify-tests"',
-                '"phase10-virtio-mmio-verify-drift"',
-                'phase10_build.zig:"phase10-virtio-mmio-verify-tests"',
-            ),
-            (
-                "zigux/tests/phase10_virtio_mmio.zig",
-                'test "phase10 virtio mmio summarizes configured-queue coverage across the staged queue window" {',
-                'test "phase10 virtio mmio summarizes configured-queue drift across the staged queue window" {',
-                'phase10_virtio_mmio.zig:test "phase10 virtio mmio summarizes configured-queue coverage across the staged queue window" {',
-            ),
-            (
-                "zigux/tests/phase10_virtio_mmio.zig",
-                "try std.testing.expectEqual(@as(usize, 3), summary.handoff_ready_queue_count);",
-                "try std.testing.expectEqual(@as(usize, 2), summary.handoff_ready_queue_count);",
-                "phase10_virtio_mmio.zig:try std.testing.expectEqual(@as(usize, 3), summary.handoff_ready_queue_count);",
-            ),
-            (
-                "zigux/tests/phase10_virtio_mmio_survey.zig",
-                'if (std.mem.eql(u8, gap.id, "phase10-mmio-configured-queue-coverage-helper")) {',
-                'if (std.mem.eql(u8, gap.id, "phase10-mmio-configured-queue-coverage-drift")) {',
-                'phase10_virtio_mmio_survey.zig:if (std.mem.eql(u8, gap.id, "phase10-mmio-configured-queue-coverage-helper")) {',
-            ),
-            (
-                "Documentation/zigux/phase10-virtio-mmio-survey.md",
+                "zigux/tests/phase10_closure_manifest.json",
                 "zigux/tests/phase10_virtio_input_status_drain.zig",
                 "zigux/tests/phase10_virtio_input_status_only_drain.zig",
-                "phase10-virtio-mmio-survey.md:zigux/tests/phase10_virtio_input_status_drain.zig",
+                "phase10_closure_manifest.json:zigux/tests/phase10_virtio_input_status_drain.zig",
             ),
             (
-                "Documentation/zigux/phase10-virtio-mmio-survey.md",
-                "configured-queue coverage summary",
-                "configured-queue drift summary",
-                "phase10-virtio-mmio-survey.md:configured-queue coverage summary",
-            ),
-            (
-                "Documentation/zigux/phase10-virtio-mmio-slice.md",
-                "one bounded configured-queue coverage summary",
-                "one bounded configured-queue drift summary",
-                "phase10-virtio-mmio-slice.md:one bounded configured-queue coverage summary",
-            ),
-            (
-                "Documentation/zigux/README.md",
-                "drivers/virtio/virtio_mmio_verify.zig",
-                "drivers/virtio/virtio_mmio_verify_drift.zig",
-                "README.md:drivers/virtio/virtio_mmio_verify.zig",
-            ),
-            (
-                "Documentation/zigux/phase10-closure-evidence.md",
-                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion-drift.md",
-                "phase10-closure-evidence.md:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            ),
-            (
-                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-                "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
-                "scripts/zigux/check-phase10-mmio-freeze-boundary-drift.py",
-                "phase10-phase11-phase13-tests-root-review-companion.md:scripts/zigux/check-phase10-mmio-freeze-boundary.py",
-            ),
-            (
-                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
-                "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
-                "scripts/zigux/check-phase10-mmio-freeze-boundary-drift.py",
-                "phase10-virtio-driver-lane-sequencing.md:scripts/zigux/check-phase10-mmio-freeze-boundary.py",
-            ),
-            (
-                "scripts/zigux/README.md",
-                "the virtio mmio packet plus the focused mmio-verify replay",
-                "the virtio mmio packet plus a drifted verifier cue",
-                "README.md:the virtio mmio packet plus the focused mmio-verify replay",
-            ),
-            (
-                "zigux/tests/README.md",
-                "phase10_virtio_mmio_manifest.json",
-                "phase10_virtio_mmio_manifest_drift.json",
-                "README.md:phase10_virtio_mmio_manifest.json",
-            ),
-            (
-                "zigux/tests/phase10_virtio_mmio_survey.zig",
-                'try std.testing.expect(std.mem.indexOf(u8, survey_note, "configured-queue coverage summary") != null);',
-                'try std.testing.expect(std.mem.indexOf(u8, survey_note, "configured-queue drift summary") != null);',
-                'phase10_virtio_mmio_survey.zig:try std.testing.expect(std.mem.indexOf(u8, survey_note, "configured-queue coverage summary") != null);',
+                "zigux/tests/phase10_virtio_core_reset_queue.zig",
+                'test "phase10 virtio core blocks fresh queue registration once reset is required" {',
+                'test "phase10 virtio core reset replay drift" {',
+                'phase10_virtio_core_reset_queue.zig:test "phase10 virtio core blocks fresh queue registration once reset is required" {',
             ),
         ]
 
