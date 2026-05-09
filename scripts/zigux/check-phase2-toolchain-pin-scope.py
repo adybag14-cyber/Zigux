@@ -115,6 +115,11 @@ MAKEFILE_MARKERS = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "phase2-cross:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
     "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
 ]
 
@@ -143,6 +148,7 @@ TOOLCHAIN_TARGET_NAME = "phase2-toolchain"
 PHASE2_VALIDATE_TARGET_NAME = "phase2-validate"
 PHASE2_TOOLS_TARGET_NAME = "phase2-tools"
 PHASE2_KCONFIG_TARGET_NAME = "phase2-kconfig"
+PHASE2_CROSS_TARGET_NAME = "phase2-cross"
 TOOLCHAIN_TARGET_REQUIRED_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -166,6 +172,12 @@ PHASE2_KCONFIG_TARGET_REQUIRED_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
+]
+PHASE2_CROSS_TARGET_REQUIRED_LINES = [
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
 ]
 REPO_LOCAL_ZIG_FALLBACK_REQUIRED_LINES = [
     "REPO_LOCAL_ZIG := $(lastword $(sort $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig $(ZIGUX_ROOT)/.zig-toolchain/*/zig.exe $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig.exe)))",
@@ -433,6 +445,7 @@ def validate_repo_local_zig_make_routes(text: str) -> list[str]:
     for target_name, expected_lines in (
         (PHASE2_TOOLS_TARGET_NAME, PHASE2_TOOLS_TARGET_REQUIRED_LINES),
         (PHASE2_KCONFIG_TARGET_NAME, PHASE2_KCONFIG_TARGET_REQUIRED_LINES),
+        (PHASE2_CROSS_TARGET_NAME, PHASE2_CROSS_TARGET_REQUIRED_LINES),
     ):
         target_lines = extract_makefile_target_lines(text, target_name)
         if target_lines is None:
@@ -586,6 +599,11 @@ def run_self_test() -> int:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
             "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
             "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
+            "phase2-cross:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
             "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
         ]
     )
@@ -606,6 +624,14 @@ def run_self_test() -> int:
         valid_makefile.replace("\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig\n", "", 1)
     )
     assert any(issue.startswith("makefile_target_scope:phase2-kconfig:") for issue in leaked_phase2_kconfig_route)
+    leaked_phase2_cross_route = validate_repo_local_zig_make_routes(
+        valid_makefile.replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --zig /tmp/other-zig\n",
+            1,
+        )
+    )
+    assert any(issue.startswith("makefile_target_scope:phase2-cross:") for issue in leaked_phase2_cross_route)
 
     workflow_text = "\n".join(
         [
