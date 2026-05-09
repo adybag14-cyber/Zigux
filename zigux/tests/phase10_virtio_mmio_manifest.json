@@ -167,7 +167,7 @@
       "status": "starter_landed",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The live helper now summarizes the currently selected queue's queue_num_max, queue_num, queue_ready, programmed-size posture, and queue-ready-for-handoff posture so queue handling stays reviewable without widening into queue discovery, reset flows, or probe lifecycle behavior."
+      "why_now": "The live helper now summarizes the currently selected queue's queue_num_max, queue_num, queue_ready, programmed-size posture, queue-ready-for-handoff posture, and configured-queue coverage counts across the staged queue window so queue handling stays reviewable without widening into queue discovery, reset flows, or probe lifecycle behavior."
     },
     {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
