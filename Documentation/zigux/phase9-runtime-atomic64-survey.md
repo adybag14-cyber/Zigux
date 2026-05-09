@@ -87,13 +87,16 @@ This keeps the roadmap's selftest-hook requirement explicitly landed while still
 2. run the focused shared runtime-loader shard
 - `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
 
-3. run the dedicated Phase 9 survey gate
+3. run the focused shared runtime-loader convenience target
+- `make -C zigux phase9-runtime-loader-shared-tests`
+
+4. run the dedicated Phase 9 survey gate
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-4. run the focused convenience target
+5. run the focused convenience target
 - `make -C zigux phase9-runtime-atomic64-test`
 
-5. run the bundled convenience target
+6. run the bundled convenience target
 - `make -C zigux phase9`
 
 ## Non-goals
