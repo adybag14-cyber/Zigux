@@ -315,7 +315,7 @@ pub fn memparse(text: []const u8) MemparseResult {
         }
     }
 
-    var result = clampSignedMagnitude(magnitude, prefix.negative);
+    var result = if (signed_input) clampSignedMagnitude(magnitude, prefix.negative) else magnitude;
     if (idx < text.len) {
         if (!signed_input) {
             result = applySuffix(result, text[idx]);
@@ -650,6 +650,10 @@ test "memparse keeps original rest when sign is not followed by digits" {
 }
 
 test "memparse saturates signed overflow instead of trapping" {
+    const unsigned = memparse("18446744073709551615");
+    try std.testing.expectEqual(std.math.maxInt(u64), unsigned.value);
+    try std.testing.expectEqualStrings("", unsigned.rest);
+
     const positive = memparse("9223372036854775808");
     try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), positive.value);
     try std.testing.expectEqualStrings("", positive.rest);
