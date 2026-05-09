@@ -438,7 +438,7 @@ def validate_root(root: Path) -> list[str]:
         run_guard(
             root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-genksyms-bridge.py"), "--self-test"],
-            ["GENKSYMS_BRIDGE_SELF_TEST=pass", "GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=7"],
+            ["GENKSYMS_BRIDGE_SELF_TEST=pass", "GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=8"],
         )
     )
     guard_issues.extend(
