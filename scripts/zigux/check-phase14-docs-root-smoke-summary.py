@@ -316,6 +316,51 @@ def run_self_test() -> int:
             return 1
         write_text(root / MANIFEST_PATH, good_manifest_text())
 
+        write_text(root / MANIFEST_PATH, "{\n")
+        errors = check(root)
+        if not any(
+            error.startswith("invalid json in zigux/tests/phase14_end_to_end_smoke_manifest.json:")
+            for error in errors
+        ):
+            print("self-test expected invalid manifest json failure", file=sys.stderr)
+            return 1
+        write_text(root / MANIFEST_PATH, good_manifest_text())
+
+        write_text(root / MANIFEST_PATH, json.dumps({"surfaces": "not-a-list"}, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 shared smoke manifest surfaces payload is not a list" not in errors:
+            print("self-test expected non-list manifest surfaces failure", file=sys.stderr)
+            return 1
+        write_text(root / MANIFEST_PATH, good_manifest_text())
+
+        write_text(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    "surfaces": [
+                        {
+                            "path": CHECKER_PATH,
+                            "required_marker": MARKER,
+                        },
+                        {
+                            "path": CHECKER_PATH,
+                            "required_marker": MARKER,
+                        },
+                    ]
+                },
+                indent=2,
+            ) + "\n",
+        )
+        errors = check(root)
+        if not any(
+            "phase14 docs-root smoke-summary checker surface count drift in zigux/tests/phase14_end_to_end_smoke_manifest.json (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate manifest surface failure", file=sys.stderr)
+            return 1
+        write_text(root / MANIFEST_PATH, good_manifest_text())
+
         current_checker_path.write_text(
             original_checker_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
             encoding="utf-8",
