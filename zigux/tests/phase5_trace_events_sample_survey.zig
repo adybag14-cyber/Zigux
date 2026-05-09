@@ -124,7 +124,9 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             saw_public_payload_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "runConditionalBoundaryReplay()") != null and
-            std.mem.indexOf(u8, prompt, "Mother Goose") != null and
+            std.mem.indexOf(u8, prompt, "0..5 selected-string") != null and
+            std.mem.indexOf(u8, prompt, "Snoopy") != null and
+            std.mem.indexOf(u8, prompt, "One ring to rule them all") != null and
             std.mem.indexOf(u8, prompt, "private sample-state reads") != null)
         {
             saw_public_conditional_prompt = true;
@@ -181,7 +183,13 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "public-conditional-boundary-helper")) {
             saw_public_conditional_helper_check = true;
             try expectContains(check.expected, "runConditionalBoundaryReplay");
+            try expectContains(check.expected, "0..5 selected-string");
             try expectContains(check.expected, "Mother Goose");
+            try expectContains(check.expected, "Snoopy");
+            try expectContains(check.expected, "Gandalf");
+            try expectContains(check.expected, "Frodo");
+            try expectContains(check.expected, "One ring to rule them all");
+            try expectContains(check.expected, "count-5 wraparound back to Mother Goose");
             try expectContains(check.expected, "0xdeadbeef");
             try expectContains(check.expected, "private sample-state reads");
         }
