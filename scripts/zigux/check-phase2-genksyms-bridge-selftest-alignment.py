@@ -5,12 +5,14 @@ import argparse
 import ast
 import json
 from pathlib import Path
+import re
 import tempfile
 
 
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 BRIDGE_CHECKER = Path("scripts/zigux/check-genksyms-bridge.py")
+GENKSYMS_ZIG = Path("scripts/zigux/genksyms.zig")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE = Path("zigux/Makefile")
 BRIDGE_CASES = Path("zigux/tests/fixtures/genksyms_bridge/cases.json")
@@ -18,6 +20,7 @@ BRIDGE_MANIFEST = Path("zigux/tests/fixtures/genksyms_bridge/manifest.json")
 PHASE2_TOOL_MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 BRIDGE_MANIFEST_PATH = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
 EXPECTED_HELPER_LOCAL_ANCHORS_NAME = "EXPECTED_HELPER_LOCAL_ANCHORS"
+GENKSYMS_TEST_DECL_PATTERN = re.compile(r'^test "([^"]+)" \{$', re.MULTILINE)
 BRIDGE_CONTRACT = {
     "tool": "scripts/genksyms/genksyms",
     "stdin": "cpp-stream",
@@ -139,6 +142,31 @@ def load_bridge_checker_helper_local_anchors(
     return None, [("BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES", f"missing:{EXPECTED_HELPER_LOCAL_ANCHORS_NAME}")]
 
 
+def load_genksyms_test_names(
+    root: Path,
+) -> tuple[list[str] | None, list[tuple[str, str]]]:
+    genksyms_path = root / GENKSYMS_ZIG
+    try:
+        text = genksyms_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return None, [("BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES", f"missing:{GENKSYMS_ZIG}")]
+
+    names = GENKSYMS_TEST_DECL_PATTERN.findall(text)
+    if not names:
+        return None, [("BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES", "missing:test_declarations")]
+
+    issues: list[tuple[str, str]] = []
+    seen_names: set[str] = set()
+    for name in names:
+        if name in seen_names:
+            issues.append(("BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES", f"duplicate_genksyms_zig_test:{name}"))
+            continue
+        seen_names.add(name)
+    if issues:
+        return None, issues
+    return names, []
+
+
 def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | None, list[tuple[str, str]]]:
     issues: list[tuple[str, str]] = []
     cases_path = root / BRIDGE_CASES
@@ -148,6 +176,8 @@ def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | N
 
     helper_local_anchors, helper_local_anchor_issues = load_bridge_checker_helper_local_anchors(root)
     issues.extend(helper_local_anchor_issues)
+    genksyms_test_names, genksyms_test_issues = load_genksyms_test_names(root)
+    issues.extend(genksyms_test_issues)
 
     cases = manifest.get("cases")
     if not isinstance(cases, list):
@@ -198,6 +228,12 @@ def collect_expected_manifest_payload(root: Path) -> tuple[dict[str, object] | N
                 action_abbrev_cases.append(name)
             if case_emits_version_stderr(case.get("argv")):
                 discovered_version_stderr_cases.append(name)
+
+    if helper_local_anchors is not None and genksyms_test_names is not None:
+        genksyms_test_name_set = set(genksyms_test_names)
+        for anchor in helper_local_anchors:
+            if anchor not in genksyms_test_name_set:
+                issues.append(("BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES", f"missing_genksyms_zig_test:{anchor}"))
 
     if issues or helper_local_anchors is None:
         return None, issues
@@ -306,10 +342,10 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT=fail")
     for block, values in grouped.items():
-        print(f"{block}_START")
+        print(f'{block}_START')
         for value in values:
             print(value)
-        print(f"{block}_END")
+        print(f'{block}_END')
     return 1
 
 
@@ -324,7 +360,7 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
         if line.strip() == marker:
             lines[index] = replacement
             return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
+    raise AssertionError(f'marker line not found: {marker}')
 
 
 def duplicate_exact_line(text: str, marker: str) -> str:
@@ -333,7 +369,7 @@ def duplicate_exact_line(text: str, marker: str) -> str:
         if line.strip() == marker:
             lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
+    raise AssertionError(f'marker line not found: {marker}')
 
 
 def build_self_test_root(root: Path) -> None:
@@ -350,6 +386,18 @@ def build_self_test_root(root: Path) -> None:
                 "print('GENKSYMS_BRIDGE_SELF_TEST=pass')",
                 "print(f'GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}')",
                 "",
+            )
+        ),
+    )
+    write_text(
+        root / GENKSYMS_ZIG,
+        "\n".join(
+            (
+                'test "genksyms bridge parses repeated short flags and arguments" {',
+                '}',
+                'test "genksyms bridge reports invalid short option in getopt style" {',
+                '}',
+                '',
             )
         ),
     )
@@ -581,9 +629,22 @@ def run_self_test() -> int:
         cases += 1
 
         build_self_test_root(root)
-        (root / BRIDGE_MANIFEST).unlink()
+        path = root / GENKSYMS_ZIG
+        path.write_text(
+            "\n".join(
+                (
+                    'test "genksyms bridge parses repeated short flags and arguments" {',
+                    '}',
+                    '',
+                )
+            ),
+            encoding="utf-8",
+        )
         issues = collect_issues(root)
-        assert ("MISSING_MANIFEST_FILES", str(BRIDGE_MANIFEST)) in issues
+        assert (
+            "BRIDGE_HELPER_LOCAL_ANCHOR_ISSUES",
+            "missing_genksyms_zig_test:genksyms bridge reports invalid short option in getopt style",
+        ) in issues
         cases += 1
 
     assert cases == 18
