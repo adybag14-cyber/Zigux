@@ -1,3 +1,5 @@
+const std = @import("std");
+
 pub const NOTIFIER_CHAIN_FLAG_EMPTY: u32 = 1;
 pub const NOTIFIER_CHAIN_FLAG_TERMINATED: u32 = 2;
 pub const NOTIFIER_CHAIN_FLAG_TRUNCATED: u32 = 4;
@@ -26,3 +28,171 @@ pub const NotifierChainSummary = extern struct {
     lowest_priority: i32,
     flags: u32,
 };
+
+pub fn chainViewValid(view: *const NotifierChainView) bool {
+    return view.head != null and view.max_nodes != 0 and view.reserved == 0;
+}
+
+pub fn summarizeChain(view: *const NotifierChainView) NotifierChainSummary {
+    var summary = NotifierChainSummary{
+        .length = 0,
+        .highest_priority = 0,
+        .lowest_priority = 0,
+        .flags = 0,
+    };
+
+    if (!chainViewValid(view)) {
+        return summary;
+    }
+
+    var current = view.head.?.head;
+    if (current == null) {
+        summary.flags = NOTIFIER_CHAIN_FLAG_EMPTY | NOTIFIER_CHAIN_FLAG_TERMINATED;
+        return summary;
+    }
+
+    var previous_priority: i32 = 0;
+    var have_previous = false;
+    var priorities_nonincreasing = true;
+
+    while (current) |node| {
+        if (summary.length == view.max_nodes) {
+            summary.flags |= NOTIFIER_CHAIN_FLAG_TRUNCATED;
+            break;
+        }
+
+        if (summary.length == 0) {
+            summary.highest_priority = node.priority;
+            summary.lowest_priority = node.priority;
+        } else {
+            summary.highest_priority = @max(summary.highest_priority, node.priority);
+            summary.lowest_priority = @min(summary.lowest_priority, node.priority);
+        }
+
+        if (have_previous and node.priority > previous_priority) {
+            priorities_nonincreasing = false;
+        }
+
+        previous_priority = node.priority;
+        have_previous = true;
+        summary.length += 1;
+
+        if (node.next == node) {
+            summary.flags |= NOTIFIER_CHAIN_FLAG_SELF_LOOP;
+            break;
+        }
+
+        current = node.next;
+    }
+
+    if (current == null) {
+        summary.flags |= NOTIFIER_CHAIN_FLAG_TERMINATED;
+    }
+    if (priorities_nonincreasing) {
+        summary.flags |= NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING;
+    }
+
+    return summary;
+}
+
+test "notifier summary reports an empty terminated chain" {
+    const head = RawNotifierHeadRef{ .head = null };
+    const view = NotifierChainView{
+        .head = &head,
+        .max_nodes = 4,
+    };
+
+    const summary = summarizeChain(&view);
+    try std.testing.expectEqual(@as(u32, 0), summary.length);
+    try std.testing.expectEqual(
+        @as(u32, NOTIFIER_CHAIN_FLAG_EMPTY | NOTIFIER_CHAIN_FLAG_TERMINATED),
+        summary.flags,
+    );
+}
+
+test "notifier summary keeps terminated nonincreasing priorities reviewable" {
+    const tail = NotifierBlockRef{
+        .notifier_call = null,
+        .next = null,
+        .priority = 5,
+    };
+    const head_node = NotifierBlockRef{
+        .notifier_call = null,
+        .next = &tail,
+        .priority = 9,
+    };
+    const head = RawNotifierHeadRef{ .head = &head_node };
+    const view = NotifierChainView{
+        .head = &head,
+        .max_nodes = 4,
+    };
+
+    const summary = summarizeChain(&view);
+    try std.testing.expectEqual(@as(u32, 2), summary.length);
+    try std.testing.expectEqual(@as(i32, 9), summary.highest_priority);
+    try std.testing.expectEqual(@as(i32, 5), summary.lowest_priority);
+    try std.testing.expect((summary.flags & NOTIFIER_CHAIN_FLAG_TERMINATED) != 0);
+    try std.testing.expect((summary.flags & NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING) != 0);
+}
+
+test "notifier summary flags self loops and truncation without inventing termination" {
+    var loop = NotifierBlockRef{
+        .notifier_call = null,
+        .next = undefined,
+        .priority = 7,
+    };
+    loop.next = &loop;
+    const loop_head = RawNotifierHeadRef{ .head = &loop };
+    const loop_view = NotifierChainView{
+        .head = &loop_head,
+        .max_nodes = 4,
+    };
+
+    const loop_summary = summarizeChain(&loop_view);
+    try std.testing.expectEqual(@as(u32, 1), loop_summary.length);
+    try std.testing.expect((loop_summary.flags & NOTIFIER_CHAIN_FLAG_SELF_LOOP) != 0);
+    try std.testing.expect((loop_summary.flags & NOTIFIER_CHAIN_FLAG_TERMINATED) == 0);
+
+    const tail = NotifierBlockRef{
+        .notifier_call = null,
+        .next = null,
+        .priority = 11,
+    };
+    const head_node = NotifierBlockRef{
+        .notifier_call = null,
+        .next = &tail,
+        .priority = 9,
+    };
+    const capped_head = RawNotifierHeadRef{ .head = &head_node };
+    const capped_view = NotifierChainView{
+        .head = &capped_head,
+        .max_nodes = 1,
+    };
+
+    const capped_summary = summarizeChain(&capped_view);
+    try std.testing.expectEqual(@as(u32, 1), capped_summary.length);
+    try std.testing.expect((capped_summary.flags & NOTIFIER_CHAIN_FLAG_TRUNCATED) != 0);
+    try std.testing.expect((capped_summary.flags & NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING) != 0);
+}
+
+test "notifier summary omits the priority-order flag when the chain rises" {
+    const tail = NotifierBlockRef{
+        .notifier_call = null,
+        .next = null,
+        .priority = 12,
+    };
+    const head_node = NotifierBlockRef{
+        .notifier_call = null,
+        .next = &tail,
+        .priority = 8,
+    };
+    const head = RawNotifierHeadRef{ .head = &head_node };
+    const view = NotifierChainView{
+        .head = &head,
+        .max_nodes = 4,
+    };
+
+    const summary = summarizeChain(&view);
+    try std.testing.expect((summary.flags & NOTIFIER_CHAIN_FLAG_TERMINATED) != 0);
+    try std.testing.expect((summary.flags & NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING) == 0);
+}
