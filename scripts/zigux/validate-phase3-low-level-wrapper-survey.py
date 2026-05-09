@@ -32,8 +32,8 @@ MMIO_POINTER_AT_CALL_COUNT = 8
 MMIO_FORBIDDEN_RAW_POINTER_TOKENS = (
     "@ptrFromInt",
 )
-DOC_MMIO_SCOPE = "range-read8-write8-read16-write16-read32-write32-read64-write64"
-DOC_LOW_LEVEL_TEST_SCOPE = "focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay"
+DOC_MMIO_SCOPE = "range-range-interop-policy-byte-read8-write8-read16-write16-read32-write32-read64-write64"
+DOC_LOW_LEVEL_TEST_SCOPE = "focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-byte-scoped-mmio-range-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay"
 DOC_BOUNDARY_GAP = "focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-byte-16-bit-32-bit-and-64-bit-mmio-range-and-barrier-locality-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof"
 
 ABI_MANIFEST_REQUIRED_FILES = (
@@ -252,12 +252,10 @@ TOKEN_CHECKS = {
     ),
 }
 
-
 def blob_sha(path: Path) -> str:
     data = path.read_bytes()
     header = f"blob {len(data)}\0".encode("ascii")
     return hashlib.sha1(header + data).hexdigest()
-
 
 def doc_payload(line: str) -> str:
     payload = line.strip()
@@ -269,14 +267,11 @@ def doc_payload(line: str) -> str:
         payload = payload[1:-1]
     return payload
 
-
 def exact_doc_count(doc: str, expected: str) -> int:
     return sum(1 for line in doc.splitlines() if doc_payload(line) == expected)
 
-
 def prefixed_doc_values(doc: str, prefix: str) -> list[str]:
     return [payload for line in doc.splitlines() for payload in (doc_payload(line),) if payload.startswith(prefix)]
-
 
 def require_doc_marker(issues: list[str], doc: str, expected: str) -> None:
     count = exact_doc_count(doc, expected)
@@ -287,18 +282,15 @@ def require_doc_marker(issues: list[str], doc: str, expected: str) -> None:
     else:
         issues.append(f"duplicate_doc_marker:{expected}:{count}")
 
-
 def require_tokens(issues: list[str], text: str, prefix: str, tokens: tuple[str, ...]) -> None:
     for token in tokens:
         if token not in text:
             issues.append(f"{prefix}:{token}")
 
-
 def require_token_count(issues: list[str], text: str, prefix: str, token: str, expected: int) -> None:
     count = text.count(token)
     if count != expected:
         issues.append(f"{prefix}:{token}:{count}!={expected}")
-
 
 def validate_mmio_pointer_bridge(root: Path, issues: list[str]) -> None:
     path = root / MMIO_REL
@@ -316,7 +308,6 @@ def validate_mmio_pointer_bridge(root: Path, issues: list[str]) -> None:
     for token in MMIO_FORBIDDEN_RAW_POINTER_TOKENS:
         if token in source:
             issues.append(f"mmio_forbidden_raw_pointer_token:{MMIO_REL}:{token}")
-
 
 def load_manifest(root: Path, issues: list[str]) -> list[str] | None:
     path = root / ABI_MANIFEST_REL
@@ -348,7 +339,6 @@ def load_manifest(root: Path, issues: list[str]) -> list[str] | None:
         if file_count != expected_count:
             issues.append(f"manifest_packet_count_mismatch:{file_count}!={expected_count}")
     return files
-
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
@@ -413,11 +403,9 @@ def validate(root: Path) -> list[str]:
 
     return issues
 
-
 def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
-
 
 def build_self_test_doc(root: Path) -> str:
     lines = [
@@ -448,7 +436,6 @@ def build_self_test_doc(root: Path) -> str:
     for key, rel in BLOB_MARKERS:
         lines.append(f"{key}={blob_sha(root / rel)}")
     return "\n".join(lines) + "\n"
-
 
 def build_self_test_mmio_source() -> str:
     return "\n".join(
@@ -513,7 +500,6 @@ def build_self_test_mmio_source() -> str:
         )
     ) + "\n"
 
-
 def build_valid_workspace(root: Path) -> None:
     for rel in ABI_MANIFEST_REQUIRED_FILES + (DOC_REL, ABI_MANIFEST_REL, ABI_HARNESS_REL, ABI_SLICE_DOC_REL):
         path = root / rel
@@ -545,7 +531,6 @@ def build_valid_workspace(root: Path) -> None:
         + "\n",
     )
     write(root / DOC_REL, build_self_test_doc(root))
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_low_level_wrapper_") as tmp_dir:
@@ -652,7 +637,6 @@ def run_self_test() -> int:
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the Phase 3 low-level-wrapper survey against current repo state.")
