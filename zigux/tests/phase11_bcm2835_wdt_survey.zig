@@ -109,7 +109,7 @@ test "phase11 bcm2835_wdt survey manifest, teardown note, shared contract, and v
     try std.testing.expectEqualStrings("P11-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("55568844ac3ce835b0e0bef624c24c17f22b78a1", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("affdebd460c9c33ce939c7535cdb929352648e93", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_c_lines >= 240);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
