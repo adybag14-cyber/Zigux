@@ -97,7 +97,7 @@ test "phase13 devres boundary evidence keeps dma and scatterlist blockers aligne
     const arch_memtype_block = findGap(manifest.gaps, "phase13-devres-live-arch-memtype-state") orelse return error.MissingArchMemtypeBlock;
     try std.testing.expectEqualStrings("blocked_on_arch_memtype_state", arch_memtype_block.status);
     try expectContains(arch_memtype_block.why_now, "bookkeeping and error shaping");
-    try expectContains(arch_memtype_block.why_now, "live arch memtype token or release path");
+    try expectContains(arch_memtype_block.why_now, "arch memtype token or release path");
 
     try expectContains(slice_note, "actual MMIO mappings");
     try expectContains(slice_note, "device-tree walking");
