@@ -79,6 +79,9 @@ pub const RegisteredBoundarySummary = struct {
     stage_before_boundary_checks: SampleStage,
     stage_after_boundary_checks: SampleStage,
     active_attr_count: usize,
+    init_runs: usize,
+    register_runs: usize,
+    exit_runs: usize,
     rejected_duplicate_registration: bool,
     rejected_registered_anchor_replay: bool,
     post_rejection_store_len: usize,
@@ -324,6 +327,9 @@ pub const KobjectExampleSample = struct {
             .stage_before_boundary_checks = stage_before_checks,
             .stage_after_boundary_checks = self.stage(),
             .active_attr_count = self.activeAttrCount(),
+            .init_runs = self.init_runs,
+            .register_runs = self.register_runs,
+            .exit_runs = self.exit_runs,
             .rejected_duplicate_registration = rejected_duplicate_registration,
             .rejected_registered_anchor_replay = rejected_registered_anchor_replay,
             .post_rejection_store_len = post_rejection_store_len,
@@ -576,6 +582,9 @@ test "kobject sample keeps already-registered lifecycle boundaries explicit" {
     try std.testing.expectEqual(SampleStage.registered, replay.stage_before_boundary_checks);
     try std.testing.expectEqual(SampleStage.registered, replay.stage_after_boundary_checks);
     try std.testing.expectEqual(@as(usize, 3), replay.active_attr_count);
+    try std.testing.expectEqual(@as(usize, 1), replay.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.exit_runs);
     try std.testing.expect(replay.rejected_duplicate_registration);
     try std.testing.expect(replay.rejected_registered_anchor_replay);
     try std.testing.expectEqual(@as(usize, 3), replay.post_rejection_store_len);
