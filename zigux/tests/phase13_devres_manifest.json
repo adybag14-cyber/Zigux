@@ -40,14 +40,14 @@
       "status": "starter_landed",
       "kind": "resource_lifetime_helper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The landed helper lab already mirrors the bounded __devm_ioremap() lifetime split, keeps the direct devm_ioremap_uc() and devm_ioremap_wc() wrappers explicit as pure uncached and write-combined lifetime-planning steps, preserves exact devm_iounmap() pointer matching, and stays inside the helper-first posture the roadmap allows."
+      "why_now": "The landed helper lab already mirrors the bounded __devm_ioremap() lifetime split, keeps the direct devm_ioremap_uc(), devm_ioremap_wc(), and devm_ioremap_np() wrappers explicit as pure uncached, write-combined, and non-posted lifetime-planning steps, preserves exact devm_iounmap() pointer matching, and stays inside the helper-first posture the roadmap allows."
     },
     {
       "id": "phase13-devres-test-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres.zig",
-      "why_now": "Dedicated devres tests keep the current helper-only packet honest around managed acquire cleanup, the direct devm_ioremap_uc() wrapper cleanup path, the direct devm_ioremap_wc() wrapper success and map-failure cleanup path, devm_ioremap_resource_wc() resource-wrapper success and busy-region shaping, resource-backed planning, devm_of_iomap() size reporting, WC memtype reservation shaping, and arch phys WC release-token bookkeeping."
+      "why_now": "Dedicated devres tests keep the current helper-only packet honest around managed acquire cleanup, the direct devm_ioremap_uc(), devm_ioremap_wc(), and devm_ioremap_np() wrapper cleanup paths, devm_ioremap_resource_wc() resource-wrapper success and busy-region shaping, resource-backed planning, devm_of_iomap() size reporting, WC memtype reservation shaping, and arch phys WC release-token bookkeeping."
     },
     {
       "id": "phase13-devres-slice-note",
@@ -61,7 +61,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
-      "why_now": "The dedicated reviewability gate keeps the helper-only DMA/scatterlist boundary machine-checkable instead of leaving that packet implied only by prose or shared build wiring."
+      "why_now": "The dedicated reviewability gate keeps the helper-only DMA/scatterlist boundary and the explicit direct uncached, write-combined, and non-posted wrapper packet machine-checkable instead of leaving that packet implied only by prose or shared build wiring."
     },
     {
       "id": "phase13-devres-coherent-dma-replay",
