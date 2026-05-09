@@ -24,13 +24,23 @@ The exported `libbpf_bpf_{attach,link,map,prog}_type_str()` helpers are a good f
 
 ## Gates
 
-1. run the focused Zig module tests
+1. run the shared Phase 8 validator route first
+- `make -C zigux phase8-validate`
+
+2. run the shared Phase 8 validator self-test
+- `python3 scripts/zigux/validate-phase8.py --self-test`
+
+3. run the shared Phase 8 validator
+- `python3 scripts/zigux/validate-phase8.py`
+
+4. run the focused Zig module tests
 - `zig test tools/lib/bpf/zigux_segments/type_names.zig`
 
-2. run the dedicated Phase 8 tooling gate
-- `zig build test --build-file zigux/tests/phase8_build.zig`
+5. run the dedicated Phase 8 tooling gate
+- `make -C zigux phase8-test`
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-3. run the convenience target
+6. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -60,4 +70,4 @@ This segment does not yet claim:
 
 ## Next bounded step
 
-Park the `type_names` segment unless fresh repo review finds another tiny table-alignment or docs-truthfulness gap; otherwise keep later libbpf follow-up in a different bounded helper-only segment and do not reopen object-loading, syscall-backed, or parser-driven surfaces from this note.
+Park the `type_names` segment unless fresh repo review finds another tiny table-alignment or docs-truthfulness gap; otherwise keep the shared `make -C zigux phase8-validate` route aligned with this parked type-name packet, keep later libbpf follow-up in a different bounded helper-only segment, and do not reopen object-loading, syscall-backed, or parser-driven surfaces from this note.
