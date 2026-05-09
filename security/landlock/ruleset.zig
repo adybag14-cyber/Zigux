@@ -130,6 +130,19 @@ pub const RuleTreeReplacementPlan = struct {
     resulting_num_rules: u32,
 };
 
+fn insertionSiteMatchesTerminalSearchStep(search_plan: RuleTreeSearchPlan, insertion_site: InsertionSite) bool {
+    if (search_plan.search_depth == 0 or search_plan.search_depth > max_tree_search_depth) {
+        return false;
+    }
+
+    const terminal_step = search_plan.search_steps[search_plan.search_depth - 1];
+    return switch (terminal_step.direction) {
+        .left => insertion_site == .left,
+        .right => insertion_site == .right,
+        .match => false,
+    };
+}
+
 pub const RulesetHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -468,6 +481,9 @@ pub const RulesetHelperLab = struct {
         if (insertion_site != .root and search_plan.parent_key_data == null) {
             return error.MissingParentNode;
         }
+        if (insertion_site != .root and !insertionSiteMatchesTerminalSearchStep(search_plan, insertion_site)) {
+            return error.InconsistentInsertionSite;
+        }
 
         return .{
             .anchor = search_plan.anchor,
@@ -551,6 +567,24 @@ test "landlock ruleset tree-link rejects attachment plans without a recorded sea
     };
 
     try std.testing.expectError(error.MissingSearchPath, RulesetHelperLab.planRuleTreeLink(malformed_search_plan));
+}
+
+test "landlock ruleset tree-link rejects attachment plans that disagree with the final search step" {
+    const malformed_search_plan = RuleTreeSearchPlan{
+        .anchor = RulesetHelperLab.descriptor().anchor,
+        .root = .inode,
+        .search_depth = 2,
+        .search_steps = [_]TreeSearchStep{
+            .{ .node_key_data = 10, .direction = .right },
+            .{ .node_key_data = 40, .direction = .right },
+        } ++ ([_]TreeSearchStep{.{ .node_key_data = 0, .direction = .left }} ** (max_tree_search_depth - 2)),
+        .matched_existing_rule = false,
+        .parent_key_data = 40,
+        .insertion_site = .left,
+        .resulting_num_rules = 5,
+    };
+
+    try std.testing.expectError(error.InconsistentInsertionSite, RulesetHelperLab.planRuleTreeLink(malformed_search_plan));
 }
 
 test "landlock ruleset tree-replacement rejects empty access in merged-layer followups" {
