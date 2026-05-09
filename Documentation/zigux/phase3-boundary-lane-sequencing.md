@@ -124,6 +124,8 @@ The shared review surfaces below keep Phase 3 reviewable, but they do not transf
 
 That shared-surface bucket includes the focused validator-support packet nested under the ABI slice too: the self-test runner, review-surface checker, README tooling inventory guard, dump-gate proof, catalog self-check, shared checker-library self-check, wrapper-drift guard, and runner self-check all keep the shipped Phase 3 support route honest, but they still do not become packet-local owners on their own.
 
+Within that shared validator-support packet, `scripts/zigux/validate_phase3_selftest.py` is still the contract surface for which child support scripts must remain in the shipped replay set and which exact `--self-test` pass-plus-case-count markers they expose. If that runner roster drifts, treat the runner as the first shared surface that moved rather than widening immediately into a broader README or checklist refresh.
+
 If one of those shared surfaces drifts, fix the shared wording only after checking which packet-local owner actually moved first.
 
 When one of those shared surfaces names the validator-support packet, keep the paired packet-local owner notes explicit too:
@@ -141,6 +143,7 @@ When a later run finds a new Phase 3 mismatch, route it through the smallest own
 - if boundary-header relay helpers or starter UAPI wording moves, reopen the export/UAPI survey and the focused layout replay
 - if panic, allocator, or unsafe policy bytes move, reopen the policy-and-unsafe survey and the policy-byte guard
 - if atomic, barrier, or MMIO helper behavior moves, reopen the low-level-wrapper survey and the focused wrapper replay
+- if the validator-support packet drifts because a child self-test script joins, leaves, or changes its shared `--self-test` marker contract while no packet-local owner moved first, reopen `scripts/zigux/validate_phase3_selftest.py` before widening into broader shared-surface wording
 - if the validator-support packet drifts but no packet-local owner moved first, reopen the shared ABI slice plus the smallest shared support surface such as `validate_phase3_selftest.py` or the specific checker-local script that went stale
 - if the aggregate packet, manifest-backed replay, or shared route wording drifts, reopen the shared ABI slice or the shared validator-first review surface
 
