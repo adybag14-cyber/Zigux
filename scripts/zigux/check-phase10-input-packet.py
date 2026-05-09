@@ -22,8 +22,10 @@ FILES = [
     "zigux/Makefile",
     "zigux/tests/phase10_build.zig",
     "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_probe_preflight.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input.zig",
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
@@ -37,6 +39,7 @@ FILES = [
 
 EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_input_module",
+    "phase10_virtio_input_probe_preflight_module",
     "phase10_virtio_input_status_drain_module",
     "phase10_virtio_input_queue_callback_preflight_module",
     "phase10_virtio_input_registration_preflight_module",
@@ -44,6 +47,7 @@ EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_input_verify_module",
     "phase10_virtio_input_survey_module",
     '"phase10-virtio-input-tests"',
+    '"phase10-virtio-input-probe-preflight-tests"',
     '"phase10-virtio-input-status-drain-tests"',
     '"phase10-virtio-input-queue-callback-preflight-tests"',
     '"phase10-virtio-input-registration-preflight-tests"',
@@ -145,6 +149,23 @@ EXPECTED_HELPER_MARKERS = [
     "pub fn registrationPreflightSummary(self: *const Self) RegistrationPreflightSummary {",
     "pub fn drainStatusQueue(self: *Self, completed_status_count: usize) !StatusDrainSummary {",
     "pub fn teardownObservationSummary(self: *const Self) TeardownObservationSummary {",
+]
+
+EXPECTED_PROBE_PREFLIGHT_HELPER_MARKERS = [
+    "pub const ProbePreflightBlocker = enum {",
+    "pub const ProbePreflightSummary = struct {",
+    "registration_preflight_ready: bool,",
+    "pub fn summarize(device: *const virtio_input.VirtioInputLab) ProbePreflightSummary {",
+]
+
+EXPECTED_PROBE_PREFLIGHT_TEST_MARKERS = [
+    'test "phase10 virtio input probe preflight keeps identity visible before queue setup" {',
+    'test "phase10 virtio input probe preflight reports the next bounded blocker before handoff" {',
+    "ProbePreflightBlocker.queue_plan_incomplete",
+    "ProbePreflightBlocker.capability_setup_incomplete",
+    "ProbePreflightBlocker.multitouch_slots_unplanned",
+    "summary.registration_preflight_ready",
+    "summary.ready_for_probe_handoff",
 ]
 
 EXPECTED_VERIFY_MARKERS = [
@@ -368,6 +389,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         if marker not in helper_text:
             missing_markers.append(f"helper:{marker}")
 
+    probe_preflight_helper_text = read_text(root, "drivers/virtio/virtio_input_probe_preflight.zig")
+    for marker in EXPECTED_PROBE_PREFLIGHT_HELPER_MARKERS:
+        if marker not in probe_preflight_helper_text:
+            missing_markers.append(f"probe_preflight_helper:{marker}")
+
     verify_text = read_text(root, "drivers/virtio/virtio_input_verify.zig")
     for marker in EXPECTED_VERIFY_MARKERS:
         if marker not in verify_text:
@@ -377,6 +403,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_TEST_MARKERS:
         if marker not in test_text:
             missing_markers.append(f"tests:{marker}")
+
+    probe_preflight_test_text = read_text(root, "zigux/tests/phase10_virtio_input_probe_preflight.zig")
+    for marker in EXPECTED_PROBE_PREFLIGHT_TEST_MARKERS:
+        if marker not in probe_preflight_test_text:
+            missing_markers.append(f"probe_preflight_test:{marker}")
 
     status_drain_text = read_text(root, "zigux/tests/phase10_virtio_input_status_drain.zig")
     for marker in EXPECTED_STATUS_DRAIN_MARKERS:
@@ -639,6 +670,21 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_probe_helper_marker_missing")
         helper_path.write_text(original_helper, encoding="utf-8")
 
+        probe_preflight_helper_path = tmp_root / "drivers/virtio/virtio_input_probe_preflight.zig"
+        original_probe_preflight_helper = probe_preflight_helper_path.read_text(encoding="utf-8")
+        probe_preflight_helper_path.write_text(
+            original_probe_preflight_helper.replace(
+                "registration_preflight_ready: bool,",
+                "registration_preflight_drift: bool,",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "probe_preflight_helper:registration_preflight_ready: bool," not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_probe_preflight_helper_marker_missing")
+        probe_preflight_helper_path.write_text(original_probe_preflight_helper, encoding="utf-8")
+
         verify_path = tmp_root / "drivers/virtio/virtio_input_verify.zig"
         original_verify = verify_path.read_text(encoding="utf-8")
         verify_path.write_text(
@@ -660,6 +706,17 @@ def run_self_test() -> int:
         if "tests:ProbePreflightBlocker.identity_incomplete" not in missing_markers:
             raise SystemExit("phase10-input-self-test:expected_probe_test_marker_missing")
         test_path.write_text(original_test, encoding="utf-8")
+
+        probe_preflight_test_path = tmp_root / "zigux/tests/phase10_virtio_input_probe_preflight.zig"
+        original_probe_preflight_test = probe_preflight_test_path.read_text(encoding="utf-8")
+        probe_preflight_test_path.write_text(
+            original_probe_preflight_test.replace("summary.registration_preflight_ready", "summary.registration_preflight_drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "probe_preflight_test:summary.registration_preflight_ready" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_probe_preflight_test_marker_missing")
+        probe_preflight_test_path.write_text(original_probe_preflight_test, encoding="utf-8")
 
         queue_callback_preflight_path = tmp_root / "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig"
         original_queue_callback_preflight = queue_callback_preflight_path.read_text(encoding="utf-8")
@@ -786,6 +843,15 @@ def run_self_test() -> int:
         build_path = tmp_root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
+            original_build.replace("phase10_virtio_input_probe_preflight_module", "phase10_virtio_input_probe_preflight_drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "build:phase10_virtio_input_probe_preflight_module" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_build_probe_preflight_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
+        build_path.write_text(
             original_build.replace("phase10_virtio_input_queue_callback_preflight_module", "phase10_virtio_input_queue_callback_preflight_drift", 1),
             encoding="utf-8",
         )
@@ -856,7 +922,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=30")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
