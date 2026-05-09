@@ -33,7 +33,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_rbtree.zig",
-      "why_now": "A dedicated Phase 7 test file keeps the intrusive-tree starter surface reviewable around linked-neighbour updates, traversal order, balancing invariants, duplicate-key lookup ranges, eraseInit reset, and detached-node ownership discipline. For linked teardown specifically, that ownership discipline is reviewed through eraseLinked() driving clearLinkedNode() on the Zig side, not through a separate committed C parity fixture."
+      "why_now": "A dedicated Phase 7 test file keeps the intrusive-tree starter surface reviewable around linked-neighbour updates, cached-leftmost handoff state including the final null handoff from `eraseCached()`, traversal order, balancing invariants, duplicate-key lookup ranges, postorder helper completion, `eraseInit()` reset, dirty replacement-state overwrite, and detached-node ownership discipline. For linked teardown specifically, that ownership discipline is reviewed through `eraseLinked()` driving `clearLinkedNode()` on the Zig side, not through a separate committed C parity fixture."
     },
     {
       "id": "phase7-rbtree-slice-note",
