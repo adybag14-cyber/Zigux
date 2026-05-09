@@ -170,6 +170,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "python3 scripts/zigux/validate-phase2-closure.py",
     "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
     "python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "python3 scripts/zigux/check-fixdep-diff.py --self-test",
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
     "python3 scripts/zigux/check-genksyms-bridge.py --self-test",
@@ -205,6 +206,7 @@ REQUIRED_EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-zig-toolchain.py": 1,
     "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-fixdep-gate.py": 1,
+    "python3 scripts/zigux/check-fixdep-diff.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1,
     "python3 scripts/zigux/check-genksyms-bridge.py --self-test": 1,
@@ -606,6 +608,8 @@ def run_self_test() -> int:
     helper_block = REQUIRED_SCRIPT_HELPER_INDEX_MARKERS[0]
     assert "`check-phase2-kconfig-selftest-alignment.py`" in helper_block
     assert helper_block.index("check-phase2-kconfig-selftest-alignment.py") < helper_block.index("check-phase2-tests-readme-alignment.py")
+    assert "python3 scripts/zigux/check-fixdep-diff.py --self-test" in REQUIRED_WORKFLOW_MARKERS
+    assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-fixdep-diff.py --self-test"] == 1
     assert "python3 scripts/zigux/check-genksyms-bridge.py" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-genksyms-bridge.py"] == 1
     assert "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test" in REQUIRED_WORKFLOW_MARKERS
