@@ -66,6 +66,7 @@ REQUIRED_CONTRACT_MARKERS = [
     "- `Documentation/zigux/phase11-gpio-wdt-survey.md`\n- `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`\n- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
     "- gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`",
     "`Documentation/zigux/phase11-gpio-wdt-teardown-note.md` keeps the bounded GPIO stop-policy, stop-transition, and teardown-handoff split explicit for the starter packet",
+    "khvcd worker-entry sleep, kick, poll-mask, minimum-timeout flooring, maximum-timeout clamping, timeout-backoff, and invalid-open-count replays beside the shared packet",
 ]
 REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS = [
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
@@ -207,7 +208,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 84
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 85
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -237,6 +238,7 @@ SELF_TEST_CASES = [
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[23], REQUIRED_CONTRACT_MARKERS[23]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[24], REQUIRED_CONTRACT_MARKERS[24]),
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[25], REQUIRED_CONTRACT_MARKERS[25]),
+    (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[-1], REQUIRED_CONTRACT_MARKERS[-1]),
     (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[0], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[0]),
     (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2]),
     (DOCS_README_PATH, "docs_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_DOCS_README_MARKERS[13]),
