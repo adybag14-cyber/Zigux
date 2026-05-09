@@ -408,14 +408,15 @@ CLOSURE_MARKERS = [
     "PHASE1_FIND_BIT_ZERO_SIZED_REVIEW=helper-local zero-sized short-circuit proof stays explicit through the direct find_bit test anchor so zero-sized windows ignore populated backing words and return the caller-visible boundary without dereferencing live data",
     "PHASE1_FIND_BIT_PAST_NBITS_REVIEW=helper-local past-nbits short-circuit proof stays explicit through the direct find_bit test anchor so next scans starting at or beyond nbits return the boundary without reading bitmap words outside the caller-visible window",
     "PHASE1_FIND_BIT_TAIL_WORD_SET_SKIP_REVIEW=helper-local tail-word next-set skip proof stays explicit through the direct find_bit test anchor so tail-word next set scans skip earlier in-range matches before clamping to nbits",
-    "PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore alias proof stays explicit through the direct find_bit test anchor so the Linux-style underscore entry points remain behaviorally locked to the primary Zig helpers",
+    "PHASE1_FIND_BIT_UNDERSCORE_ALIAS_REVIEW=helper-local underscore-alias proof stays explicit through the direct find_bit test anchor and the Phase 1 helper manifest so the low-level alias surface cannot drift away from the primary helper entrypoints without a visible anchor update",
+    "PHASE1_FIND_BIT_TAIL_CLAMP_PACKET=tail_clamped_first, tail_clamped_next, tail_zero_clamped_first, tail_zero_clamped_next, tail_and_clamped_first, tail_and_clamped_next, tail_clamped_last, and tail_clamped_empty_last stay explicit through the shared Phase 1 parity fixture and replay so tail-word set, zero, and shared find_bit scans keep their in-range clamp semantics visible beyond the direct helper-local anchors",
     "PHASE1_BITMAP_PARTIAL_XOR_REVIEW=partial_xor_nbits and partial_xor_masked_values stay explicit through the shared Phase 1 parity fixture and replay so caller-selected bit windows cannot silently leak tail bits beyond nbits",
-    "PHASE1_BITMAP_PREDICATE_TAIL_MASK_REVIEW=helper-local bitmap predicate tail-mask proof stays explicit through the direct bitmap test anchor so equal, intersects, and subset ignore out-of-range tail bits instead of treating tail noise as live data",
-    "PHASE1_BITMAP_FIRST_WORD_BOUNDARY_REVIEW=helper-local bitmap first-word boundary proof stays explicit through the direct bitmap test anchor so setRange and clearRange preserve exact first-word masks when a range ends on the first-word boundary",
-    "PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW=helper-local bitmap final partial-word proof stays explicit through the direct bitmap test anchor so setRange and clearRange clamp trailing partial-word masks to the requested tail window instead of spilling work beyond it",
-    "PHASE1_BITMAP_SCNPRINTF_TRUNCATION_REVIEW=helper-local bitmap.scnprintf truncation proof stays explicit through the direct bitmap test anchor because the shared Phase 1 parity fixture only locks the full rendered range string",
+    "PHASE1_BITMAP_FIRST_WORD_REVIEW=helper-local first-word range semantics stay explicit through the direct bitmap test anchor because the shared Phase 1 fixture still focuses on full helper parity instead of isolated leading-word boundary cases",
+    "PHASE1_BITMAP_FINAL_PARTIAL_REVIEW=helper-local final-partial-word semantics stay explicit through the direct bitmap test anchor and the shared fixture so range helpers keep the last partial word clamped without widening the shared replay surface",
+    "PHASE1_BITMAP_TAIL_MASK_REVIEW=helper-local tail-bit masking semantics stay explicit through the direct bitmap test anchor because predicate helpers still need a dedicated boundary proof beyond the shared parity fixture",
+    "PHASE1_BITMAP_CROSS_WORD_SCNPRINTF_REVIEW=helper-local cross-word bitmap.scnprintf range collapse stays explicit through the direct bitmap test anchor so caller-visible formatting still spans word boundaries without widening the shared Phase 1 fixture packet",
     "PHASE1_BITMAP_SCNPRINTF_TINY_BUFFER_REVIEW=helper-local bitmap.scnprintf tiny-buffer proof stays explicit through the direct bitmap test anchor plus the shared Phase 1 parity fixture and replay so terminator-only caller buffers stay NUL-terminated and zero-length caller views return without writing hidden bytes",
-    "PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias proof stays explicit through the direct bitmap test anchor so bitmap_copy_clear_tail and bitmap_copy_and_extend preserve tail masking and zero-filled extension semantics",
+    "PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias tail-clearing and extension semantics stay explicit through the direct bitmap test anchor so copy variants cannot drift away from caller-visible masking and extension semantics",
     "PHASE1_BITMAP_RAW_COPY_ALIAS_REVIEW=helper-local raw bitmap_copy alias proof stays explicit through the direct bitmap test anchor so copy and bitmap_copy preserve unmasked source words instead of silently adopting tail-clearing semantics",
     "PHASE1_BITMAP_COPY_EXTEND_ZERO_ALIGNED_REVIEW=helper-local bitmap copy-and-extend zero-count and aligned-count proof stays explicit through the direct bitmap test anchor so zero-count copies clear the destination extension and aligned word counts preserve copied words without accidental tail masking",
     "PHASE1_BITMAP_ZERO_BIT_NOOP_REVIEW=helper-local bitmap zero-bit no-op proof stays explicit through the direct bitmap test anchor so zero-bit windows keep mutating helpers, boolean queries, and the rendered empty-window path from touching caller-visible storage or writing hidden bytes",
@@ -536,7 +537,7 @@ def collect_guard_issues(root: Path) -> list[str]:
         ],
         [
             "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass",
-            "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=18",
+            "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=19",
         ],
     ) + run_guard(
         root,
@@ -776,7 +777,7 @@ def run_self_test() -> None:
         checker_path = root / "phase1_installer_guard.py"
         checker_path.write_text(
             "print(\"PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass\")\n"
-            "print(\"PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=18\")\n",
+            "print(\"PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=19\")\n",
             encoding="utf-8",
         )
         assert run_guard(
@@ -784,7 +785,7 @@ def run_self_test() -> None:
             [sys.executable, str(checker_path)],
             [
                 "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass",
-                "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=18",
+                "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=19",
             ],
         ) == []
         cases += 1
@@ -798,11 +799,11 @@ def run_self_test() -> None:
             [sys.executable, str(checker_path)],
             [
                 "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass",
-                "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=18",
+                "PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=19",
             ],
         )
         assert any(
-            issue.endswith("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=18")
+            issue.endswith("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=19")
             for issue in issues
         )
         cases += 1
