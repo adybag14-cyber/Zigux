@@ -33,6 +33,12 @@ EXPECTED_HELPER_LOCAL_ANCHORS = [
     'genksyms bridge renders normalized invocation plan',
     'genksyms bridge ignores positional args while still parsing later options',
 ]
+EXPECTED_VERSION_STDERR_CASES = [
+    'version',
+    'abbreviated_version',
+    'version_then_short_help',
+    'version_then_long_help',
+]
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -83,11 +89,24 @@ def dedup_append(items: list[str], value: str) -> None:
         items.append(value)
 
 
+def case_emits_version_stderr(argv: object) -> bool:
+    if not isinstance(argv, list):
+        return False
+    for arg in argv:
+        if not isinstance(arg, str):
+            continue
+        if arg.startswith('--ver'):
+            return True
+        if arg.startswith('-') and not arg.startswith('--') and 'V' in arg[1:]:
+            return True
+    return False
+
+
 def collect_expected_packets(
     cases_payload: dict[str, object],
     *,
     fixture_dir: Path,
-) -> tuple[list[str], list[str], list[str], list[str], list[str], list[tuple[str, str]]]:
+) -> tuple[list[str], list[str], list[str], list[str], list[str], list[str], list[tuple[str, str]]]:
     issues: list[tuple[str, str]] = []
     supported_modes = {'stdout_json', 'process_json'}
     seen_names: set[str] = set()
@@ -95,7 +114,9 @@ def collect_expected_packets(
     stdout_packet: list[str] = []
     process_packet: list[str] = []
     normalized_stderr_packet: list[str] = []
+    normalized_stderr_cases: list[str] = []
     action_abbrev_cases: list[str] = []
+    discovered_version_stderr_cases: list[str] = []
 
     for case in cases_payload['cases']:
         name = case['name']
@@ -123,14 +144,19 @@ def collect_expected_packets(
             dedup_append(process_packet, expected)
             if case.get('normalize_stderr', False):
                 dedup_append(normalized_stderr_packet, expected)
+                dedup_append(normalized_stderr_cases, name)
             if name.startswith('abbreviated_'):
                 action_abbrev_cases.append(name)
+            if case_emits_version_stderr(case.get('argv')):
+                dedup_append(discovered_version_stderr_cases, name)
 
     return (
         case_names,
         stdout_packet,
         process_packet,
         normalized_stderr_packet,
+        normalized_stderr_cases,
+        [name for name in EXPECTED_VERSION_STDERR_CASES if name in discovered_version_stderr_cases],
         action_abbrev_cases,
         issues,
     )
@@ -144,6 +170,8 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
         stdout_packet,
         process_packet,
         normalized_stderr_packet,
+        normalized_stderr_cases,
+        version_stderr_cases,
         action_abbrev_cases,
         issues,
     ) = collect_expected_packets(cases_payload, fixture_dir=fixture_dir)
@@ -195,6 +223,21 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
                     f'{field}:expected={expected!r}:actual={actual!r}',
                 )
             )
+
+    expected_output_governance = {
+        'stdout_json_fields': ['tool', 'stdin', 'stdout', 'argv', 'options'],
+        'process_json_fields': ['stdout', 'stderr', 'exit_code'],
+        'normalized_stderr_cases': normalized_stderr_cases,
+        'version_stderr_cases': version_stderr_cases,
+    }
+    if manifest.get('expected_output_governance') != expected_output_governance:
+        issues.append(
+            (
+                'GENKSYMS_BRIDGE_MANIFEST_DRIFT',
+                'expected_output_governance:'
+                f'expected={expected_output_governance!r}:actual={manifest.get("expected_output_governance")!r}',
+            )
+        )
 
     return issues
 
@@ -371,6 +414,12 @@ def build_self_test_root(root: Path) -> None:
                 'stdout_packet': ['minimal_expected.json'],
                 'process_packet': ['invalid_short_opt_expected.json', 'help_expected.json'],
                 'normalized_stderr_packet': ['invalid_short_opt_expected.json'],
+                'expected_output_governance': {
+                    'stdout_json_fields': ['tool', 'stdin', 'stdout', 'argv', 'options'],
+                    'process_json_fields': ['stdout', 'stderr', 'exit_code'],
+                    'normalized_stderr_cases': ['invalid_short_opt'],
+                    'version_stderr_cases': [],
+                },
                 'action_abbrev_cases': ['abbreviated_help'],
                 'helper_local_anchors': EXPECTED_HELPER_LOCAL_ANCHORS,
             },
@@ -413,9 +462,11 @@ def run_self_test() -> int:
         manifest_path = root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'manifest.json'
         payload = json.loads(manifest_path.read_text(encoding='utf-8'))
         payload['helper_local_anchors'] = []
+        payload['expected_output_governance'] = {}
         write_text(manifest_path, json.dumps(payload, indent=2) + '\n')
         issues = collect_manifest_issues(root)
         assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'helper_local_anchors:' in value for block, value in issues)
+        assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'expected_output_governance:' in value for block, value in issues)
 
         # Keep the count aligned to grouped stderr-normalization contract coverage.
         assert normalize_cli_stderr("genksyms: option '--reference' requires an argument\n") == "option '--reference' requires an argument\n"
