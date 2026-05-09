@@ -463,6 +463,25 @@ def run_self_test() -> int:
             return 1
         write_text(broken_scripts_readme_path, required_text(root, SCRIPTS_README_PATH))
 
+        broken_scripts_readme_path.write_text(
+            broken_scripts_readme_path.read_text(encoding="utf-8").replace(
+                "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.\n",
+                "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.\n"
+                "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in scripts/zigux/README.md: exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim. (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate scripts README rollback-summary failure", file=sys.stderr)
+            return 1
+        write_text(broken_scripts_readme_path, required_text(root, SCRIPTS_README_PATH))
+
         current_checker_path.write_text(
             original_checker_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
             encoding="utf-8",
