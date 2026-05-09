@@ -20,6 +20,13 @@ from phase3_check_lib import legacy_wrapper_gate_for_slug, render_wrapper_stub, 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_FILE_REL = "zigux/tests/build.zig"
 ABI_DUMP_GATE = "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig"
+ABI_REQUIRED_EXPECTED_CONSTANTS = {
+    "facility_kernel": 1,
+    "status_flag_error": 1,
+    "panic_abort": 0,
+    "allocator_caller_provided": 0,
+    "unsafe_scope_raw_pointer_bridge": 2,
+}
 ABI_REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
     "include/zigux/dev_t.h",
@@ -157,6 +164,12 @@ def _required_manifest_files_for_slug(slug: str) -> tuple[str, ...]:
     return ()
 
 
+def _required_expected_constants_for_slug(slug: str) -> dict[str, int]:
+    if slug == "abi":
+        return ABI_REQUIRED_EXPECTED_CONSTANTS
+    return {}
+
+
 def _expected_wrapper_template_for_slug(slug: str) -> str:
     if slug == "abi":
         return ABI_WRAPPER_STUB
@@ -273,6 +286,30 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
     current = script_path.read_text(encoding="utf-8")
     if current != expected:
         issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}")
+
+
+def validate_expected_fixture(path: Path, slug: str, issues: list[str]) -> None:
+    required_constants = _required_expected_constants_for_slug(slug)
+    if not required_constants:
+        return
+
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        issues.append(f"{slug}:missing_expected:{path.as_posix()}")
+        return
+    except json.JSONDecodeError as exc:
+        issues.append(f"{slug}:invalid_expected:{path.as_posix()}:{exc.msg}")
+        return
+
+    constants = payload.get("constants")
+    if not isinstance(constants, dict):
+        issues.append(f"{slug}:expected_constants={type(constants).__name__}")
+        return
+
+    for key, value in required_constants.items():
+        if constants.get(key) != value:
+            issues.append(f"{slug}:expected_constant={key}:{constants.get(key)}!={value}")
 
 
 def validate_low_level_wrapper_markers(root: Path, slug: str, issues: list[str]) -> None:
@@ -395,6 +432,7 @@ def validate_slices(
         manifest = validate_manifest(root, entry.manifest_path, entry.slug, issues)
         validate_doc_markers(root, entry.doc_path, entry.slug, manifest, issues)
         validate_wrapper_template(root, entry.check_script, entry.slug, issues)
+        validate_expected_fixture(entry.expected_path, entry.slug, issues)
         validate_low_level_wrapper_markers(root, entry.slug, issues)
 
     validate_build_steps(root, slices, issues)
@@ -505,6 +543,31 @@ def run_self_test() -> int:
         missing_dump_gate_issues: list[str] = []
         validate_doc_markers(root, doc_path, "abi", manifest_payload, missing_dump_gate_issues)
         assert missing_dump_gate_issues == [f"abi:missing_doc_marker={ABI_DUMP_GATE}"]
+        case_count += 1
+
+        abi_expected_path = root / "tmp" / "phase3_abi_expected.json"
+        abi_expected_path.parent.mkdir(parents=True, exist_ok=True)
+        abi_expected_path.write_text(
+            json.dumps({"constants": {"panic_abort": 0}}),
+            encoding="utf-8",
+            newline="\n",
+        )
+        abi_issues = []
+        validate_expected_fixture(abi_expected_path, "abi", abi_issues)
+        for key, value in ABI_REQUIRED_EXPECTED_CONSTANTS.items():
+            if key == "panic_abort":
+                continue
+            assert f"abi:expected_constant={key}:None!={value}" in abi_issues
+        case_count += 1
+
+        abi_expected_path.write_text(
+            json.dumps({"constants": ABI_REQUIRED_EXPECTED_CONSTANTS}),
+            encoding="utf-8",
+            newline="\n",
+        )
+        abi_issues = []
+        validate_expected_fixture(abi_expected_path, "abi", abi_issues)
+        assert abi_issues == []
         case_count += 1
 
         manifest_payload["files"] = list(ABI_REQUIRED_MANIFEST_FILES[:-1])
