@@ -66,7 +66,7 @@ test "phase13 libfs reviewability gate records the landed helper surfaces and re
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
 
     const descriptor = libfs.LibFsHelperLab.descriptor();
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);
@@ -83,6 +83,7 @@ test "phase13 libfs reviewability gate records the landed helper surfaces and re
     try std.testing.expect(descriptor.provides_transaction_release_planning);
     try std.testing.expect(descriptor.provides_addressability_planning);
     try std.testing.expect(descriptor.provides_simple_open_planning);
+    try std.testing.expect(descriptor.provides_simple_dir_operations_wrapper);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -91,6 +92,7 @@ test "phase13 libfs reviewability gate records the landed helper surfaces and re
     var helper_surface_count: usize = 0;
     var saw_dir_close = false;
     var saw_cursor_reposition = false;
+    var saw_simple_dir_operations_wrapper = false;
     var saw_cursor_blocker = false;
 
     for (manifest.gaps) |gap| {
@@ -163,6 +165,13 @@ test "phase13 libfs reviewability gate records the landed helper surfaces and re
             try std.testing.expect(contains(gap.why_now, "simple_open()"));
             try std.testing.expect(contains(gap.why_now, "inode->i_private"));
         }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-simple-dir-operations-wrapper")) {
+            saw_simple_dir_operations_wrapper = true;
+            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
+            try std.testing.expect(contains(gap.why_now, "simple_dir_operations"));
+            try std.testing.expect(contains(gap.why_now, "dcache_dir_open()"));
+            try std.testing.expect(contains(gap.why_now, "noop_fsync()"));
+        }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-helpers")) {
             saw_cursor_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_vfs_state", gap.status);
@@ -171,11 +180,12 @@ test "phase13 libfs reviewability gate records the landed helper surfaces and re
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 17), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 18), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
-    try std.testing.expectEqual(@as(usize, 12), helper_surface_count);
+    try std.testing.expectEqual(@as(usize, 13), helper_surface_count);
     try std.testing.expect(saw_dir_close);
     try std.testing.expect(saw_cursor_reposition);
+    try std.testing.expect(saw_simple_dir_operations_wrapper);
     try std.testing.expect(saw_cursor_blocker);
 
     const survey_note = try readPacketFile(
@@ -196,6 +206,7 @@ test "phase13 libfs reviewability gate records the landed helper surfaces and re
     try std.testing.expect(contains(survey_note, "landed `phase13-libfs-transaction-release-helper`"));
     try std.testing.expect(contains(survey_note, "landed `phase13-libfs-addressability-helper`"));
     try std.testing.expect(contains(survey_note, "landed `phase13-libfs-simple-open-helper`"));
+    try std.testing.expect(contains(survey_note, "landed `phase13-libfs-simple-dir-operations-wrapper`"));
     try std.testing.expect(contains(survey_note, "blocked `phase13-libfs-dcache-cursor-helpers`"));
     try std.testing.expect(contains(survey_note, "focused `zigux/tests/phase13_libfs_addressability.zig` file"));
     try std.testing.expect(contains(survey_note, "focused addressability proof"));
@@ -220,6 +231,7 @@ test "phase13 libfs reviewability gate records the landed helper surfaces and re
     try std.testing.expect(contains(traceability_note, "transaction acquire, publish, and release helpers"));
     try std.testing.expect(contains(traceability_note, "`generic_check_addressable()` planner"));
     try std.testing.expect(contains(traceability_note, "`simple_open()` private-data handoff"));
+    try std.testing.expect(contains(traceability_note, "`simple_dir_operations` wrapper"));
     try std.testing.expect(contains(traceability_note, "deeper `dcache_readdir()` cursor-resume packet"));
     try std.testing.expect(!contains(traceability_note, "A pure `simple_open()` private-data handoff planner is the best next helper-first candidate"));
     try std.testing.expect(contains(traceability_note, "helper-first filesystem planning"));
