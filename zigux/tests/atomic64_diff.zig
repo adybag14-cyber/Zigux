@@ -169,11 +169,11 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_gate_evidence_blob_sha\": \"4374fc76b3b463426540184b05b7e6b2c387c042\"",
+        "\"phase4_gate_evidence_blob_sha\": \"30d3ea871565fe9a2a0eb1c56d583ee5681013e7\"",
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_review_checklist_blob_sha\": \"4de871b5b7991bf0bdc64c744b1a7118c76356e8\"",
+        "\"phase4_review_checklist_blob_sha\": \"25534f350062ffe0fb7171f83be52841e83b89e2\"",
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
@@ -310,7 +310,7 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     );
     defer std.testing.allocator.free(gate_evidence_source);
 
-    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=19");
+    try expectMarker(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=21");
     try expectMarker(gate_evidence_source, "phase4_build_manifest_blob_pin_drift");
     try expectMarker(gate_evidence_source, "phase4_build_survey_blob_pin_drift");
     try expectMarker(gate_evidence_source, "phase9_build_manifest_blob_pin_drift");
@@ -322,7 +322,7 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16");
-    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=19");
+    try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=21");
     try expectMarker(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false");
