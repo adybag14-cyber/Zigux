@@ -108,6 +108,7 @@ REQUIRED_HVC_CONSOLE_MATRIX_MARKERS = [
 REQUIRED_DOCS_README_MARKERS = [
     "Phase 11 notes",
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
+    "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
     "`Documentation/zigux/phase11-bcm2835-wdt-survey.md`",
     "`Documentation/zigux/phase11-closure-note.md`",
     "`Documentation/zigux/phase11-driver-lane-sequencing.md`",
@@ -196,7 +197,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 74
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 75
 
 TARGETS = [
     (PHASE11_CONTRACT_PATH, REQUIRED_CONTRACT_MARKERS, "phase11_contract"),
@@ -228,10 +229,11 @@ SELF_TEST_CASES = [
     (PHASE11_CONTRACT_PATH, "phase11_contract", REQUIRED_CONTRACT_MARKERS[25], REQUIRED_CONTRACT_MARKERS[25]),
     (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[0], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[0]),
     (DRIVER_LANE_SEQUENCING_PATH, "driver_lane_sequencing", REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2], REQUIRED_DRIVER_LANE_SEQUENCING_MARKERS[2]),
-    (DOCS_README_PATH, "docs_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_DOCS_README_MARKERS[5]),
+    (DOCS_README_PATH, "docs_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_DOCS_README_MARKERS[6]),
     (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[2], REQUIRED_DOCS_README_MARKERS[2]),
     (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[3], REQUIRED_DOCS_README_MARKERS[3]),
     (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[4], REQUIRED_DOCS_README_MARKERS[4]),
+    (DOCS_README_PATH, "docs_readme", REQUIRED_DOCS_README_MARKERS[5], REQUIRED_DOCS_README_MARKERS[5]),
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-shared-replay-contract.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-bcm2835-wdt-packet.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
     (SCRIPTS_README_PATH, "scripts_readme", "`scripts/zigux/check-phase11-header-boundary-packet.py`, ", REQUIRED_SCRIPT_README_MARKERS[1]),
