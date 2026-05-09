@@ -132,6 +132,7 @@ When one of those shared surfaces names the validator-support packet, keep the p
 
 - mention `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` beside `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - mention `Documentation/zigux/phase3-export-uapi-boundary-survey.md` plus `Documentation/zigux/phase3-linux-zigux-header-governance.md` beside `scripts/zigux/validate-phase3-export-uapi-survey.py`
+- mention `Documentation/zigux/phase3-boundary-lane-sequencing.md` itself whenever a shared reminder is routing future follow-up work across the validator-support packet, so the owner map stays explicit instead of collapsing back into one generic Phase 3 summary
 
 That keeps the validator-first review route from flattening the low-level-wrapper and export/UAPI owner map back into one generic shared Phase 3 summary.
 
