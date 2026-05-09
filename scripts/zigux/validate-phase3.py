@@ -49,6 +49,7 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/check-phase3-abi.py",
+    "scripts/zigux/run-phase3-checks.py",
 )
 PHASE3_CHECK_SUPPORT_SCRIPTS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
