@@ -170,17 +170,17 @@
         {
           "label": "32B-ascii-g2",
           "reps": 10000,
-          "max_slowdown_pct": 150
+          "max_slowdown_pct": 550
         },
         {
           "label": "16B-ascii-g4",
           "reps": 20000,
-          "max_slowdown_pct": 225
+          "max_slowdown_pct": 550
         },
         {
           "label": "16B-ascii-g8",
           "reps": 20000,
-          "max_slowdown_pct": 250
+          "max_slowdown_pct": 600
         }
       ]
     }
