@@ -17,16 +17,12 @@ This note records the current export-shim and starter UAPI boundary that still s
 - `PHASE3_LINUX_HEADER_BLOB_SHA=c8cfd9590d2d0039ad087bb020a236fdc0a2b4ff`
 - `PHASE3_ABI_HEADER_PATH=include/zigux/abi.h`
 - `PHASE3_ABI_HEADER_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
-- `PHASE3_LINUX_HEADER_GOVERNANCE_PATH=Documentation/zigux/phase3-linux-zigux-header-governance.md`
-- `PHASE3_LINUX_HEADER_GOVERNANCE_BLOB_SHA=e5163cbe1b047b05565e6838ffdae6b1fbaa39b3`
 - `PHASE3_EXPORT_UAPI_LAYOUT_PATH=zigux/tests/phase3_export_uapi_layout.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA=b76e6ae686ea7e8baa600f4f29b5925b3bb64e00`
-- `PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py`
-- `PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA=6d28c3bac329e1b570bc8eb68af746dff3c29ddc`
 
 ## Live Boundary
 
-The blob markers above are the authoritative packet-local evidence for the currently shipped export shim, starter UAPI helper, Linux-facing aggregation header, canonical ABI header, dedicated Linux `zigux.h` governance note, focused layout replay, and dedicated export/UAPI survey validator in this current-head public GitHub fallback readback.
+The blob markers above are the authoritative packet-local evidence for the currently shipped export shim, starter UAPI helper, Linux-facing aggregation header, canonical ABI header, and focused layout replay in this current-head public GitHub fallback readback. The dedicated Linux `zigux.h` governance note and the dedicated export/UAPI survey validator remain coupled review surfaces for this packet, but they are not themselves part of the blob-pinned boundary-artifact list above.
 
 - `zigux/kernel/export_shim.zig` keeps the starter export boundary narrow by relaying the shared `Header`, `HeaderCompatibility`, and `HeaderAcceptance` types plus the boundary-header helpers from `zigux/uapi/version.zig`, by exposing an explicit `compatibilityStatus()` relay for status-based callers, and by normalizing explicit success or errno-style export status values.
 - `zigux/uapi/version.zig` keeps the starter UAPI version contract reviewable through canonical versus future-compatible boundary-header helpers plus a compact `acceptHeader()` path that returns compatibility classification beside the canonical header without widening into a broader UAPI packet.
