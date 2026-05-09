@@ -59,6 +59,7 @@ fn validatePerfMatrix() !void {
 
         for (fixtures.perf_cases[idx + 1 ..]) |other| {
             if (std.mem.eql(u8, case.label, other.label)) return error.ChecksumPerfMatrixMismatch;
+            if (case.fingerprint == other.fingerprint) return error.ChecksumPerfMatrixMismatch;
         }
     }
 
@@ -188,6 +189,16 @@ pub fn main(init: std.process.Init) !void {
 
 test "phase 6 checksum perf matrix preflight stays aligned with the documented packet" {
     try validatePerfMatrix();
+}
+
+test "phase 6 checksum perf packet keeps distinct payload fingerprints across shipped cases" {
+    for (fixtures.perf_cases, 0..) |case, idx| {
+        try std.testing.expectEqual(case.fingerprint, perfPayloadFingerprint(case.bytes));
+        for (fixtures.perf_cases[idx + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, case.label, other.label));
+            try std.testing.expect(case.fingerprint != other.fingerprint);
+        }
+    }
 }
 
 test "medianNs selects the middle sample after sorting" {
