@@ -4,7 +4,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 ## Status
 
-- `PHASE9_STATUS=active`
+- `PHASE9_STATUS=parked`
 - `PHASE9_SLICE=runtime-trace-events-survey`
 - `PHASE9_LANE_KEY=P9-L10`
 - `PHASE9_SURVEYED_COMMIT=ccd5361c3b193d26587c6396f029fc335c783c6e`
