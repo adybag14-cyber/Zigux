@@ -73,11 +73,12 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 
 ## Latest verification snapshot
 
-A focused current-`master` scratch replay was re-run on 2026-05-07 with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2`.
+A focused replay for the recorded `PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231` packet was re-run on 2026-05-07 with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2`.
 
 - `zig fmt --check` passed for `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, and a temporary out-of-tree scratch build file used only for the focused paired replay
 - `zig test samples/zigux/kretprobe_example.zig` passed `5/5` sample self-checks
-- a focused scratch replay assembled from the current `master` versions of `samples/zigux/kretprobe_example.zig` and `zigux/tests/phase5_kretprobe_example.zig` passed `6/6` paired boundary tests via a temporary out-of-tree scratch build file that imported the live sample and paired boundary test modules
+- a focused scratch replay assembled from the recorded `PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231` packet versions of `samples/zigux/kretprobe_example.zig` and `zigux/tests/phase5_kretprobe_example.zig` passed `6/6` paired boundary tests via a temporary out-of-tree scratch build file that imported the recorded sample and paired boundary test modules
+- this verification snapshot is commit-pinned to `PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231`; newer unrelated `master` commits should not be read as automatically re-verified unless this note, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig` move together
 - `python3 -m json.tool zigux/tests/phase5_kretprobe_example_manifest.json` also succeeded for the refreshed manifest packet
 - the earlier full-packet replay captured on 2026-05-06 still stands as the last complete shared-packet readback: `zig fmt --check` covered `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_survey.zig`, and the same temporary out-of-tree scratch build file, while `zig test samples/zigux/kretprobe_example.zig` and the full `zigux/tests/phase5_build.zig` packet both passed the then-current sample and shared replay sets via `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
 - the observed sample markers matched the manifest-backed replay contract exactly: `symbol_name = kernel_clone`, `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `maxactive_budget = 20`, `nmissed = 1`, `maxactive = 20`, and `replay_runs = 1`
