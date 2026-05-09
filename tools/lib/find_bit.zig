@@ -425,6 +425,25 @@ test "single-word next scans honor start masks" {
     try std.testing.expectEqual(nbits, findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, nbits));
 }
 
+test "single-word partial next scans ignore out-of-range tail bits" {
+    const nbits = 12;
+    const set_bits = [_]Word{(@as(Word, 1) << 2) | (@as(Word, 1) << 9) | (@as(Word, 1) << 20)};
+    const zero_bits = [_]Word{lastWordMask(nbits) & ~((@as(Word, 1) << 4) | (@as(Word, 1) << 9))};
+    const and_lhs = [_]Word{(@as(Word, 1) << 1) | (@as(Word, 1) << 9) | (@as(Word, 1) << 17)};
+    const and_rhs = [_]Word{(@as(Word, 1) << 0) | (@as(Word, 1) << 9) | (@as(Word, 1) << 17)};
+    const andnot_lhs = [_]Word{(@as(Word, 1) << 1) | (@as(Word, 1) << 9) | (@as(Word, 1) << 17)};
+    const andnot_rhs = [_]Word{(@as(Word, 1) << 1) | (@as(Word, 1) << 18)};
+
+    try std.testing.expectEqual(@as(usize, 9), findNextBit(&set_bits, nbits, 3));
+    try std.testing.expectEqual(@as(usize, nbits), findNextBit(&set_bits, nbits, 10));
+    try std.testing.expectEqual(@as(usize, 9), findNextZeroBit(&zero_bits, nbits, 5));
+    try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&zero_bits, nbits, 10));
+    try std.testing.expectEqual(@as(usize, 9), findNextAndBit(&and_lhs, &and_rhs, nbits, 2));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&and_lhs, &and_rhs, nbits, 10));
+    try std.testing.expectEqual(@as(usize, 9), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 2));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 10));
+}
+
 test "zero-bit windows return without reading bitmap words" {
     const empty = [_]Word{};
 
