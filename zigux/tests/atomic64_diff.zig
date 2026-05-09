@@ -156,6 +156,18 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
+        "\"phase4_gate_evidence_path\": \"Documentation/zigux/phase4-gate-evidence.md\"",
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "\"phase4_gate_evidence_blob_sha\": \"7988fdacd5dcc4e169916160eba507c447c434b9\"",
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "\"phase4_review_checklist_blob_sha\": \"4de871b5b7991bf0bdc64c744b1a7118c76356e8\"",
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_manifest_source,
         "\"phase4_validation_matrix_atomic64_diff_note_present\": true",
     );
     try expectMarker(
@@ -171,6 +183,21 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     try expectMarker(phase4_runtime_atomic64_manifest_source, "Phase 4 reviewer packet");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "current wrapper-first rollback surface");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "shared runtime replay body");
+}
+
+test "atomic64 diff wrapper keeps the current roadmap gap summary reviewable" {
+    try expectOrderedMarkersInSection(
+        phase4_runtime_atomic64_manifest_source,
+        "\"roadmap_gap_summary\": \"",
+        "\",\n  \"reversible_delivery_evidence\": \"",
+        &.{
+            "gate-evidence surfaces again",
+            "approved local benchmark commands",
+            "approved local-only acceptable limits",
+            "broader sample follow-ups remain intentionally open",
+            "shared CI perf promotion",
+        },
+    );
 }
 
 test "atomic64 diff wrapper keeps reversible delivery and next-step evidence explicit" {
