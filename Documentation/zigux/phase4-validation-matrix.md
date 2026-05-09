@@ -4,10 +4,11 @@ This document records the live Phase 4 differential-validation ownership and rep
 
 ## Status
 - `PHASE4_STATUS=differential_validation_matrix_landed`
-- scope: keep the currently shipped Phase 4 rollback-readiness gates, the host-side artifact-diff contract replay, the dedicated exact-readback gate-evidence packet, the manifest-backed runtime atomic64 and bitmap rollback survey packets, and the dedicated local perf-baseline posture survey reviewable, name the rollback owners for each bounded gate or survey, and make the current CI and local replay paths explicit
+- scope: keep the currently shipped Phase 4 rollback-readiness gates, the host-side artifact-diff contract replay, the dedicated artifact-diff determinism checker, the dedicated exact-readback gate-evidence packet, the manifest-backed runtime atomic64 and bitmap rollback survey packets, and the dedicated local perf-baseline posture survey reviewable, name the rollback owners for each bounded gate or survey, and make the current CI and local replay paths explicit
 - current repo reality:
   - `scripts/zigux/artifact_diff.py`
   - `scripts/zigux/check-artifact-diff-contract.py`
+  - `scripts/zigux/check-phase4-artifact-diff-determinism.py`
   - `scripts/zigux/check-phase4-gate-evidence.py`
   - `Documentation/zigux/artifact-diff.md`
   - `Documentation/zigux/phase4-gate-evidence.md`
@@ -36,7 +37,7 @@ The roadmap says Phase 4 must make future Zigux ports measurable and reversible.
 - the bounded rollback owner for each live Phase 4 gate
 - the current perf threshold status for those gates
 - the manifest-backed survey packets that keep the atomic64 wrapper-to-runtime handoff and the bitmap rollback packet measurable
-- the shipped host-side artifact-diff contract packet and the dedicated gate-evidence checker-plus-note packet that the broader validator already depends on
+- the shipped host-side artifact-diff contract packet, the dedicated artifact-diff determinism checker, and the dedicated gate-evidence checker-plus-note packet that the broader validator already depends on
 - the dedicated local perf-baseline survey route that keeps the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked without treating it as shared CI perf approval
 - the shared review-checklist guardrail that keeps the same Phase 4 packet explicit when reviewers touch it
 - the remaining roadmap-backed gaps that are still intentionally outside the shipped Phase 4 packet
@@ -53,6 +54,15 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
 - implementation note: `scripts/zigux/check-artifact-diff-contract.py` reruns the shipped CLI missing-required-args, missing-actual-operand, invalid-mode, text, JSON, SHA-256, missing-path, malformed-input, and repeat-run determinism cases through the outward `scripts/zigux/artifact_diff.py` CLI so the shared host-side helper contract stays reviewable before the broader Phase 4 validator and Zig rollback gates run
 - fallback path: keep `Documentation/zigux/artifact-diff.md` plus the current helper self-test as the truthful contract record if the direct CLI replay regresses until the outward checker is repaired
 - perf threshold status: reviewability-only gate today; there is no timing claim on the host-side helper contract packet
+
+### `scripts/zigux/check-phase4-artifact-diff-determinism.py`
+- anchor: `scripts/zigux/artifact_diff.py` and `scripts/zigux/check-artifact-diff-contract.py`
+- phase bucket: `Phase 4 host-side differential-validation tooling determinism catalog replay`
+- owner: `Tooling and Validation Team`
+- rollback owner: `Tooling and Validation Team`
+- implementation note: `scripts/zigux/check-phase4-artifact-diff-determinism.py` reruns the helper self-test summary, the contract self-test summary, the base-case catalog, the repeat-case catalog, and the full contract catalog together with the required `Documentation/zigux/artifact-diff.md` Phase 4 markers so helper, checker, and review-note case-count or case-order drift fails closed before the broader Phase 4 validator and Zig rollback gates run
+- fallback path: keep `Documentation/zigux/artifact-diff.md`, `scripts/zigux/check-artifact-diff-contract.py`, and the current helper `--self-test` packet as the truthful deterministic catalog record if the dedicated catalog checker regresses until that narrower gate is repaired
+- perf threshold status: reviewability-only gate today; there is no timing claim on the deterministic catalog packet
 
 ### `scripts/zigux/check-phase4-gate-evidence.py`
 - anchor: `Documentation/zigux/phase4-gate-evidence.md`
@@ -122,6 +132,7 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
 
 lane surface purpose owner rollback owner bootstrap CI replay local lab replay threshold posture
 `scripts/zigux/check-artifact-diff-contract.py` bounded host-side `artifact_diff.py` CLI contract replay for missing-required-args, missing-actual-operand, invalid-mode, text, JSON, SHA-256, missing-path, malformed-input, and repeat-run determinism `Tooling and Validation Team` `Tooling and Validation Team` `python3 scripts/zigux/validate-phase4.py` in `.github/workflows/zigux-bootstrap.yml`, which reruns the contract checker before the Zig gates `python3 scripts/zigux/check-artifact-diff-contract.py` then `python3 scripts/zigux/validate-phase4.py` `reviewability_only_no_perf_threshold`
+`scripts/zigux/check-phase4-artifact-diff-determinism.py` bounded host-side catalog replay for the helper self-test summary, the contract self-test summary, the base-case catalog, the repeat-case catalog, the full contract catalog, and the required Phase 4 review-note markers `Tooling and Validation Team` `Tooling and Validation Team` `python3 scripts/zigux/validate-phase4.py` in `.github/workflows/zigux-bootstrap.yml`, which reruns the determinism checker before the Zig gates `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test` then `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py` then `python3 scripts/zigux/validate-phase4.py` `reviewability_only_no_perf_threshold`
 `scripts/zigux/check-phase4-gate-evidence.py` dedicated exact-readback replay for the shipped rollback-ownership note, validator-backed blob pins, the runtime atomic64 manifest-backed survey pair, the bitmap rollback survey pair, the helper-backed bitmap replay command plus its shared ownership and threshold-posture anchors, the adjacent parked kprobe gap packet, and the still-absent sample packet flags `Tooling and Validation Team` `Tooling and Validation Team` `python3 scripts/zigux/validate-phase4.py` in `.github/workflows/zigux-bootstrap.yml`, which reruns the gate-evidence checker before the Zig gates `python3 scripts/zigux/check-phase4-gate-evidence.py --self-test` then `python3 scripts/zigux/check-phase4-gate-evidence.py` then `python3 scripts/zigux/validate-phase4.py` `reviewability_only_no_perf_threshold`
 `zigux/tests/atomic64_diff.zig` bounded atomic64 exchange, cmpxchg, add_unless, bitwise, and selftest-family replay via the shared runtime-backed gate `ABI and Runtime Team` `ABI and Runtime Team` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_runtime_atomic64_scope_widens`
 `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` manifest-backed survey that keeps the wrapper, runtime replay body, validator, matrix, and reviewer checklist aligned around the same bounded atomic64 handoff `ABI and Runtime Team` `ABI and Runtime Team` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_runtime_atomic64_scope_widens`
