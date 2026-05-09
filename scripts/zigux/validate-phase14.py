@@ -141,6 +141,11 @@ REQUIRED_FILE_MARKERS = {
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py": [RELEASE_BOUNDARY_CHECKER_MARKER],
     "zigux/tests/README.md": [
         "keep the current Phase 14 smoke packet reviewable through",
+        "Documentation/zigux/phase14-release-boundary-survey.md",
+        "Documentation/zigux/phase14-core-boundary-traceability.md",
+        "Documentation/zigux/freeze-map.md",
+        "Documentation/zigux/review-checklist.md",
+        "scripts/zigux/README.md",
         "scripts/zigux/validate-phase14.py",
         "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
         "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
@@ -269,15 +274,15 @@ def traceability_expected_markers(root: Path) -> tuple[list[str], list[str]]:
         if blocked_gap is None:
             errors.append(f"missing blocked gap in {manifest_rel_path}")
         ready_next_gap = ready_next_gap_id(manifest)
+        if ready_next_gap is None:
+            markers.append(f"- ready-next gap: none currently recorded")
+        else:
+            markers.append(f"- ready-next gap: `{ready_next_gap}`")
         markers.append(f"- manifest: `{manifest_rel_path}`")
         if isinstance(lane_key, str):
             markers.append(f"- lane key: `{lane_key}`")
         if isinstance(surveyed_commit, str):
             markers.append(f"- surveyed commit: `{surveyed_commit}`")
-        if ready_next_gap is None:
-            markers.append("- ready-next gap: none currently recorded")
-        else:
-            markers.append(f"- ready-next gap: `{ready_next_gap}`")
         if blocked_gap is not None:
             markers.append(f"- blocked gap: `{blocked_gap}`")
     return markers, errors
@@ -503,6 +508,19 @@ def run_self_test() -> int:
             return 1
         write_text(root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py", f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         tests_readme_path = root / "zigux/tests/README.md"
+        write_text(
+            tests_readme_path,
+            read_text(tests_readme_path).replace(
+                "Documentation/zigux/phase14-core-boundary-traceability.md\n",
+                "",
+                1,
+            ),
+        )
+        errors = check(root)
+        if "missing marker in zigux/tests/README.md: Documentation/zigux/phase14-core-boundary-traceability.md" not in errors:
+            print("self-test expected missing tests-root traceability marker failure", file=sys.stderr)
+            return 1
+        write_text(tests_readme_path, "\n".join(REQUIRED_FILE_MARKERS["zigux/tests/README.md"]) + "\n")
         write_text(
             tests_readme_path,
             read_text(tests_readme_path).replace(
