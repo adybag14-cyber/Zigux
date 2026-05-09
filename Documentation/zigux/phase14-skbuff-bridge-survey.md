@@ -4,7 +4,7 @@ This document records the bounded Phase 14 survey lane around `net/core/skbuff.c
 
 ## Status
 
-- `PHASE14_STATUS=active`
+- `PHASE14_STATUS=freeze_in_c`
 - `PHASE14_SURVEYED_COMMIT=4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7`
 - `PHASE14_LANE_KEY=P14-L10`
 - `PHASE14_SLICE=skbuff-boundary-map-roadmap-query`
