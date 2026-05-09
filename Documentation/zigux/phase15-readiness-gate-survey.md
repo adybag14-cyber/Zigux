@@ -43,6 +43,7 @@ This document records the bounded Phase 15 governance lane for checking whether 
 ## Remaining Readiness Gaps
 
 - `phase15-deep-core-status-change-blocker`: the freeze-in-C posture still holds because the four current deep-core blocker dispositions above have not changed on `master`
+- `phase15-tests-root-dedicated-make-route-undercount`: the broad `zigux/tests/README.md` Phase 15 summary still leaves `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_readiness_gate_manifest.json` implicit even though it now keeps the dedicated `make -C zigux phase15-test` route explicit beside the validator-first and shared build-and-make path; current owner mapping keeps that shared-summary follow-through on `P15-Y06`
 
 ## Readiness Gate
 
