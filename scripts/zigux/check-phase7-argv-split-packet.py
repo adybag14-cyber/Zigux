@@ -10,6 +10,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-argv-split-slice.md",
+    "samples/zigux/README.md",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "zigux/Makefile",
     "zigux/tests/phase7_build.zig",
@@ -30,6 +31,15 @@ REQUIRED_MARKERS = {
         "allocator-failure cleanup when intermediate setup work is interrupted",
         "overflow rejection before sizing the exported null-terminated argv vector",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
+    ],
+    "samples/zigux/README.md": [
+        "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under",
+        "lib/argv_split.zig",
+        "zigux/tests/phase7_argv_split_survey.zig",
+        "zigux/tests/phase7_argv_split_manifest.json",
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
+        "zigux/tests/phase7_build.zig",
     ],
     "scripts/zigux/check-phase7-argv-split-packet.py": [
         "--self-test",
@@ -135,6 +145,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 def write_fixture_root(tmp_root: Path) -> None:
     fixture_text = {
         "Documentation/zigux/phase7-argv-split-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-argv-split-slice.md"]) + "\n",
+        "samples/zigux/README.md": "\n".join(REQUIRED_MARKERS["samples/zigux/README.md"]) + "\n",
         "scripts/zigux/check-phase7-argv-split-packet.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-argv-split-packet.py"]) + "\n",
         "zigux/Makefile": "\n".join(REQUIRED_MARKERS["zigux/Makefile"]) + "\n",
         "zigux/tests/phase7_build.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_build.zig"]) + "\n",
@@ -228,6 +239,16 @@ def run_self_test() -> None:
             "missing_argv_split_manifest",
             tmp_root,
             "zigux/tests/phase7_argv_split_manifest.json",
+        )
+        case_count += 1
+        write_fixture_root(tmp_root)
+
+        samples_path = tmp_root / "samples" / "zigux" / "README.md"
+        samples_path.unlink()
+        expect_missing_file(
+            "missing_argv_split_samples_boundary_note",
+            tmp_root,
+            "samples/zigux/README.md",
         )
         case_count += 1
         write_fixture_root(tmp_root)
@@ -333,6 +354,36 @@ def run_self_test() -> None:
         )
         case_count += 1
         slice_path.write_text(original_slice, encoding="utf-8")
+
+        samples_path = tmp_root / "samples" / "zigux" / "README.md"
+        original_samples = samples_path.read_text(encoding="utf-8")
+        samples_path.write_text(
+            original_samples.replace(
+                "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_samples_boundary_marker",
+            tmp_root,
+            "samples/zigux/README.md: current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under",
+        )
+        case_count += 1
+        samples_path.write_text(original_samples, encoding="utf-8")
+
+        samples_path.write_text(
+            original_samples.replace("scripts/zigux/check-phase7-argv-split-packet.py", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_samples_checker_marker",
+            tmp_root,
+            "samples/zigux/README.md: scripts/zigux/check-phase7-argv-split-packet.py",
+        )
+        case_count += 1
+        samples_path.write_text(original_samples, encoding="utf-8")
 
         build_path = tmp_root / "zigux" / "tests" / "phase7_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
