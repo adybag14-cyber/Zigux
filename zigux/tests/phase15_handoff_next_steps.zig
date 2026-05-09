@@ -68,12 +68,12 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-09", manifest.surveyed_commit);
-    try std.testing.expectEqualStrings("dated_master_readback_blocker_posture_alignment", manifest.cross_packet_truthfulness_mode);
+    try std.testing.expectEqualStrings("dated_master_readback_same_marker_alignment", manifest.cross_packet_truthfulness_mode);
     try std.testing.expect(!manifest.paired_parity_scorecard_exact_head_matches);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-08", manifest.paired_parity_scorecard_provenance_marker);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-09", manifest.paired_parity_scorecard_provenance_marker);
     try std.testing.expect(std.mem.indexOf(u8, manifest.paired_parity_scorecard_exact_head_fallback_reason, manifest.paired_parity_scorecard_provenance_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.paired_parity_scorecard_exact_head_fallback_reason, manifest.surveyed_commit) != null);
-    try std.testing.expectEqualStrings("This handoff packet was refreshed against current-master-readback-2026-05-09 while the paired parity scorecard still records the earlier dated master readback marker current-master-readback-2026-05-08, so the parked governance packet now keeps blocker-posture alignment explicit instead of overstating same-marker packet parity.", manifest.paired_parity_scorecard_exact_head_fallback_reason);
+    try std.testing.expectEqualStrings("This handoff packet was refreshed against current-master-readback-2026-05-09 and the paired parity scorecard now records the same dated master readback marker current-master-readback-2026-05-09, so the parked governance packet keeps same-marker dated-readback truthfulness explicit without implying exact-head parity.", manifest.paired_parity_scorecard_exact_head_fallback_reason);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expect(manifest.repo_evidence.freeze_map_present);
@@ -187,10 +187,10 @@ test "phase 15 handoff note keeps the repaired validator-first surface and remai
 
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_LANE_KEY=P15-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "reviewed handoff provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 so this dedicated handoff packet now records current master reread timing without implying exact-head parity across later maintenance commits") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "paired parity scorecard provenance marker is still `current-master-readback-2026-05-08`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "the paired current `Documentation/zigux/phase15-parity-scorecard.md` packet still records the earlier dated `master` readback marker `current-master-readback-2026-05-08`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "keeps blocker-posture alignment explicit instead of overstating same-marker packet parity") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "machine-check `dated_master_readback_blocker_posture_alignment` as the active cross-packet truthfulness mode while exact-head provenance remains intentionally deferred for this parked governance bundle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "paired parity scorecard provenance marker is now `current-master-readback-2026-05-09`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "the paired current `Documentation/zigux/phase15-parity-scorecard.md` packet now records the same dated `master` readback marker `current-master-readback-2026-05-09`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "keeps same-marker dated-readback alignment explicit instead of overstating exact-head parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "machine-check `dated_master_readback_same_marker_alignment` as the active cross-packet truthfulness mode while exact-head provenance remains intentionally deferred for this parked governance bundle") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Current Handoff Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "review checklist") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "the scripts root") != null);
@@ -205,7 +205,7 @@ test "phase 15 handoff note keeps the repaired validator-first surface and remai
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "lane identity is refreshed to `P15-L08`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "remaining blocked work is only the deep-core status-change evidence") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "current dated-readback timing explicit while the paired scorecard marker still remains on `current-master-readback-2026-05-08` until a dedicated scorecard-lane provenance refresh lands") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "matched dated-readback timing explicit beside that scorecard packet without implying exact-head parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "parked next-bound queue now mirrors the named scorecard reopen-trigger catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "narrower_followup_answers_blocker") != null);
