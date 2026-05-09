@@ -167,6 +167,8 @@ test "phase 15 architecture council review-process packet stays aligned on parke
     try expectContains(manifest_json, "deep_core_blocker_posture_change");
     try expectContains(manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-governance-lane-sequencing.md");
     try expectContains(manifest.handoff_evidence.current_repo_handoff, "zigux/tests/phase15_indefinite_c_blocker_evidence.zig");
+    try expectContains(manifest.handoff_evidence.current_repo_handoff, "zigux/tests/phase15_handoff_next_steps_manifest.json");
+    try expectContains(manifest.handoff_evidence.current_repo_handoff, "zigux/tests/phase15_readiness_gate_manifest.json");
     try expectContains(manifest.handoff_evidence.current_bounded_lane, "dedicated `make -C zigux phase15-test` route");
     try expectContains(manifest.handoff_evidence.current_bounded_lane, "direct `zig build test --build-file zigux/tests/phase15_build.zig` route");
 }
