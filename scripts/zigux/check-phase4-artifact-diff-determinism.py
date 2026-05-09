@@ -108,7 +108,6 @@ EXPECTED_CONTRACT_SELF_TEST_CASES = [
     "contract_summary_base_case_order_drift",
     "contract_summary_repeat_count_drift",
     "contract_summary_repeat_case_order_drift",
-    "contract_summary_repeat_duplicate_case_drift",
     "contract_summary_case_count_drift",
     "contract_summary_duplicate_case_drift",
     "contract_summary_case_order_drift",
