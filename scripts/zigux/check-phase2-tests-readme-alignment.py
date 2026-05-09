@@ -92,6 +92,10 @@ TOOLCHAIN_NOTES_MARKERS = [
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     "python3 scripts/zigux/check-phase2-cross.py --self-test",
     "python3 scripts/zigux/check-phase2-cross.py",
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "python3 scripts/zigux/check-fixdep-diff.py --self-test",
+    "python3 scripts/zigux/check-fixdep-diff.py",
     "python3 scripts/zigux/check-genksyms-crc-diff.py",
     "- shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
     "- shared kconfig selftest-alignment guard: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -186,6 +190,10 @@ EXACT_COUNT_CHECKS = {
     },
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": {
         "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+        "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
+        "python3 scripts/zigux/check-phase2-fixdep-gate.py": 1,
+        "python3 scripts/zigux/check-fixdep-diff.py --self-test": 1,
+        "python3 scripts/zigux/check-fixdep-diff.py": 1,
         "python3 scripts/zigux/check-genksyms-crc-diff.py": 1,
         "- shared mk_elfconfig parity self-test: `python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test`": 1,
         "- shared mk_elfconfig parity gate: `python3 scripts/zigux/check-mk-elfconfig-diff.py`": 1,
@@ -391,7 +399,7 @@ def run_self_test() -> int:
             assert f"missing_file:{rel_path}" in issues
             case_count += 1
 
-    assert case_count == 128
+    assert case_count == 136
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
