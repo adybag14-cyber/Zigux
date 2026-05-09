@@ -364,7 +364,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         fused_notifier_issues = validate_bindings(notifier_bindings)
-        assert fused_notifier_issues == [f"{notifier_bindings}:1:{BINDINGS_FUSED_LABEL}]
+        assert fused_notifier_issues == [f"{notifier_bindings}:1:{BINDINGS_FUSED_LABEL}"]
         case_count += 1
 
         notifier_bindings.write_text(
