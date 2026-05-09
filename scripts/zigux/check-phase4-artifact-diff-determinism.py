@@ -90,6 +90,7 @@ EXPECTED_CONTRACT_SELF_TEST_CASES = [
     "contract_summary_base_case_order_drift",
     "contract_summary_repeat_count_drift",
     "contract_summary_repeat_case_order_drift",
+    "contract_summary_repeat_duplicate_case_drift",
     "contract_summary_case_count_drift",
     "contract_summary_duplicate_case_drift",
     "contract_summary_case_order_drift",
@@ -319,7 +320,7 @@ def run_self_test() -> None:
             lambda: assert_contract_self_test_lines(
                 [
                     "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass",
-                    "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=17",
+                    "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=18",
                     "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES="
                     + ",".join(
                         [
@@ -354,6 +355,34 @@ def run_self_test() -> None:
                     + ",".join(
                         [case for case in EXPECTED_CONTRACT_CASES if case != "cli_invalid_mode"]
                     ),
+                ]
+            ),
+        )
+        expect_assertion(
+            "contract_repeat_case_duplicate_drift",
+            lambda: assert_contract_lines(
+                [
+                    "ARTIFACT_DIFF_CONTRACT=pass",
+                    "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23",
+                    "ARTIFACT_DIFF_CONTRACT_BASE_CASES="
+                    + ",".join(
+                        [
+                            case
+                            for case in EXPECTED_CONTRACT_CASES
+                            if case not in EXPECTED_REPEAT_CONTRACT_CASES
+                        ]
+                    ),
+                    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5",
+                    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES="
+                    + ",".join(
+                        [
+                            "helper_self_test_repeat",
+                            "helper_self_test_repeat",
+                            *EXPECTED_REPEAT_CONTRACT_CASES[2:],
+                        ]
+                    ),
+                    "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28",
+                    "ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(EXPECTED_CONTRACT_CASES),
                 ]
             ),
         )
