@@ -41,6 +41,9 @@ This note records the bounded Phase 2 x86_64-linux bootstrap archive-pin contrac
 - current minimum Zig version: `0.17.0-dev.87+9b177a7d2`
 - current pinned bootstrap archive target: `x86_64-linux`
 - current pinned bootstrap archive sha256 (`x86_64-linux`): `a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858`
+- `scripts/zigux/zig-toolchain-policy.json` now also keeps the Phase 2 pin-change approval rule machine-checkable.
+- pinned toolchain changes require explicit shared Phase 2 checklist acknowledgement and fresh bootstrap-runner evidence before merge.
+- widening the bootstrap archive beyond `x86_64-linux` still needs separate approval instead of piggybacking on the three-target compile matrix.
 - the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
 - the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin
 - the shared tests README alignment self-test and gate keep this dedicated bootstrap note aligned with `zigux/tests/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/Makefile`, and the Linux-style `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay surface instead of leaving this note coupled to the broader Phase 2 packet by implication alone
