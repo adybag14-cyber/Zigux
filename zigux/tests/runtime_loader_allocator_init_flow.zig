@@ -158,6 +158,15 @@ fn expectFileContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectPreparedPlanDriftKeepsPreparedState(
+    request: runtime_loader.PreparedRequest,
+    stable_plan: runtime_loader.LoadPlan,
+) !void {
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, request.state);
+    try std.testing.expect(runtime_loader_contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
+    try std.testing.expect(!runtime_loader_contract.keepsLoadPlanExplicit(request.plan, stable_plan));
+}
+
 test "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs" {
     const plans = [_]runtime_loader.LoadPlan{
         makePlan("runtime_atomic64", "lib/atomic64_test.c", "zigux_runtime_atomic64_init", "zigux_runtime_atomic64_exit", .caller_provided, .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 }),
@@ -390,7 +399,11 @@ test "phase 9 runtime loader allocator/init-flow replay keeps selftest-complete 
     const expected_trace_events = makePlan("runtime_trace_events", "samples/trace_events/trace-events-sample.c", "zigux_runtime_trace_events_init", "zigux_runtime_trace_events_exit", .caller_provided, .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 });
     var trace_events_request = try runtime_loader.prepareRequest(expected_trace_events);
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, trace_events_request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(trace_events_request, .prepared, expected_trace_events));
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        trace_events_request,
+        .prepared,
+        expected_trace_events,
+    ));
 
     var trace_events_live_exited = expected_trace_events;
     trace_events_live_exited.init_flow.exit_runs = 1;
@@ -533,7 +546,7 @@ test "phase 9 runtime loader allocator/init-flow replay rejects selftest-hook ev
     try std.testing.expectError(error.InvalidSelftestHookEvidence, runtime_loader.prepareRequest(selftest_runs_without_hook));
 }
 
-test "phase 9 runtime loader allocator/init-flow replay keeps prepared requests pinned when requestRuntimeLoad sees plan drift" {
+test "phase 9 runtime loader allocator/init-flow replay keeps prepared snapshots pinned when requestRuntimeLoad sees prepared-plan drift" {
     const stable_plan = makePlan(
         "runtime_trace_events",
         "samples/trace_events/trace-events-sample.c",
@@ -553,45 +566,40 @@ test "phase 9 runtime loader allocator/init-flow replay keeps prepared requests 
     try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, stable_plan));
 
     request.plan.requires_runtime_substrate = false;
-    try std.testing.expectError(error.LoaderNotRequired, request.requestRuntimeLoad());
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
 
     request.plan = stable_plan;
     request.plan.module_name = "runtime_trace_events_drift";
-    try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
+    try std.testing.expectEqualStrings(stable_plan.module_name, request.prepared_plan.module_name);
+    try std.testing.expectEqualStrings("runtime_trace_events_drift", request.plan.module_name);
 
     request.plan = stable_plan;
     request.plan.anchor = "samples/trace_events/trace-events-sample-drift.c";
-    try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
 
     request.plan = stable_plan;
     request.plan.entry_symbol = "zigux_runtime_trace_events_init_drift";
-    try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
 
     request.plan = stable_plan;
     request.plan.exit_symbol = "zigux_runtime_trace_events_exit_drift";
-    try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
 
     request.plan = stable_plan;
     request.plan.provides_selftest_hook = false;
-    try std.testing.expectError(error.InvalidSelftestHookEvidence, request.requestRuntimeLoad());
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
 
     request.plan = stable_plan;
     request.plan.init_flow.selftest_runs = 2;
-    try std.testing.expectError(error.InvalidInitFlow, request.requestRuntimeLoad());
-    try std.testing.expectEqual(runtime_loader.RequestState.prepared, request.state);
-    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try expectPreparedPlanDriftKeepsPreparedState(request, stable_plan);
 }
 
 test "phase 9 runtime loader allocator/init-flow replay rejects stale loader state transitions" {
