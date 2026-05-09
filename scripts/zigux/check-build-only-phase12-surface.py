@@ -118,6 +118,7 @@ REQUIRED_FILE_MARKERS = {
         "excluded from this note on purpose: the shared PMO release packet and the non-driver libbpf helper packet",
         "`Documentation/zigux/phase12-release-sequencing.md`",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`Documentation/zigux/phase12-release-readiness-survey.md`",
         "`Documentation/zigux/phase12-release-coordination-matrix.md`",
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` keeps the shared libbpf reviewability lane",
         "`Documentation/zigux/phase12-libbpf-segment-survey.md` and `tools/lib/bpf/zigux_segments/manifest.json` remain real Phase 12 evidence",
