@@ -131,7 +131,7 @@ REQUIRED_FILE_MARKERS = {
         "Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
         "shipped shared coordination surfaces on `master`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
-        "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
         "shared reviewability surfaces that describe or gate the live Phase 12 libbpf packet",
         "shared reviewability owns the survey, manifest, deterministic snapshot fixture, snapshot determinism replay, reviewability gate, and shared build alignment",
     ],
@@ -159,6 +159,7 @@ REQUIRED_FILE_MARKERS = {
     ],
     PHASE12_COORDINATION_MATRIX_PATH: [
         "Phase 12 Release Coordination Matrix",
+        "PHASE12_RELEASE_CLOSED=no",
         "release-order authority: `Documentation/zigux/phase12-release-sequencing.md`",
         "PMO closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`",
         "adjacent release-readiness note: `Documentation/zigux/phase12-release-readiness-survey.md`",
@@ -309,10 +310,13 @@ EXACT_COUNT_FILE_MARKERS = {
         "`make -C zigux phase12`": 1,
         "PHASE12_LIBBPF_TRACKED_HELPER_COUNT=5": 1,
     },
+    PHASE12_COORDINATION_MATRIX_PATH: {
+        "PHASE12_RELEASE_CLOSED=no": 1,
+    },
 }
 
 
-def read_text(root: Path, rel_path: str) -> str:
+def read_text(root: Path) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
 
