@@ -65,7 +65,14 @@ const ScorecardAnchor = struct {
     evidence_archive: ScorecardEvidenceArchive,
 };
 
+const ScorecardMetrics = struct {
+    active_freeze_in_c_anchor_count: usize,
+    blocked_status_change_anchor_count: usize,
+};
+
 const ScorecardManifest = struct {
+    surveyed_commit: []const u8,
+    metrics: ScorecardMetrics,
     anchors: []const ScorecardAnchor,
 };
 
@@ -170,6 +177,11 @@ test "phase 15 freeze-map required terms and scorecard ownership stay aligned" {
     defer parsed.deinit();
     const scorecard = try std.json.parseFromSlice(ScorecardManifest, std.testing.allocator, scorecard_json, .{});
     defer scorecard.deinit();
+
+    try std.testing.expectEqualStrings(parsed.value.surveyed_commit, scorecard.value.surveyed_commit);
+    try std.testing.expectEqual(parsed.value.freeze_in_c_targets.len, scorecard.value.metrics.active_freeze_in_c_anchor_count);
+    try std.testing.expectEqual(parsed.value.blocker_ownership.len, scorecard.value.metrics.blocked_status_change_anchor_count);
+    try std.testing.expectEqual(parsed.value.deep_core_blocker_survey.len, scorecard.value.metrics.blocked_status_change_anchor_count);
 
     for (parsed.value.governance_requirements) |requirement| {
         for (requirement.required_terms) |term| {
