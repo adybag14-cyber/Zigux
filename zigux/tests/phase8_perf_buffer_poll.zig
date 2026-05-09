@@ -48,6 +48,7 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "make -C zigux phase8-validate");
     try expectContains(note, "python3 scripts/zigux/validate-phase8.py --self-test");
     try expectContains(note, "python3 scripts/zigux/validate-phase8.py");
+    try expectContains(note, "python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py");
     try expectContains(note, "make -C zigux phase8-perf-buffer-poll-test");
     try expectContains(note, "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all");
     try expectContains(note, "make -C zigux phase8-test");
@@ -55,6 +56,21 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "make -C zigux phase8");
     try expectContains(note, "no standalone timer helper");
     try expectContains(note, "no standalone clockevent helper");
+}
+
+test "phase 8 perf-buffer poll gate checker keeps the dedicated review packet explicit" {
+    const gate_checker = try readWorkspaceFile(
+        std.testing.allocator,
+        "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(gate_checker);
+
+    try expectContains(gate_checker, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
+    try expectContains(gate_checker, "python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py");
+    try expectContains(gate_checker, "zigux/tests/phase8_perf_buffer_poll.zig");
+    try expectContains(gate_checker, "zigux/tests/phase8_perf_buffer_poll_only_build.zig");
+    try expectContains(gate_checker, "make -C zigux phase8-perf-buffer-poll-test");
 }
 
 test "phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds" {
