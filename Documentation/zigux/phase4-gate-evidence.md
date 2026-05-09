@@ -54,7 +54,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - The shipped local perf-baseline survey packet is intentionally separate from that shared exact-readback set: it exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.
 
 ## Current Conclusion
-- shared perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.
-- that shared-only-unapproved posture now lives beside a different local-only truth: the dedicated perf-baseline survey packet already approves the local benchmark commands and local acceptable limits for both rollback gates while still keeping shared CI perf coverage out of scope.
+- shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.
+- that shared-CI-only unapproved posture now lives beside a different local-only truth: the dedicated perf-baseline survey packet already approves the local benchmark commands and local acceptable limits for both rollback gates while still keeping shared CI perf coverage out of scope.
 - the dedicated local perf-baseline survey packet is still the truthful way to keep that split posture measurable: it exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.
 - The current exact-readback note is aligned again to the live validator, workflow, Makefile, and the full docs-root, scripts-root, and tests-root Phase 4 packet on `master`; `zigux/tests/README.md` now explicitly carries the shipped local-only perf-baseline pair `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig`, the adjacent parked kprobe gap survey, and the parked `test_fsmount` gap packet, so the compact tests-root reminder now matches the existing exact-readback note and dedicated local survey wrappers.
