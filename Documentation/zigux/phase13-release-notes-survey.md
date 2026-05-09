@@ -54,7 +54,11 @@ These files are shipped adjacent release-surface evidence on `master`, but they 
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/validate-phase13-release.py`
+- `scripts/zigux/check-phase13-devres-packet.py`
+- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-packet.py`
+- `zigux/Makefile`
 - `zigux/tests/phase13_libfs_addressability.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_notifier_list_manifest.json`
@@ -69,6 +73,8 @@ These files are shipped adjacent release-surface evidence on `master`, but they 
 The helper-owned Landlock boundary notes stay in the broader shipped release packet because they record the current ruleset ownership and syscall-governance limits that still block tranche closure, but they do not add extra shared replay steps beyond the eight-test route above.
 
 The contributor workflow guide, shared contributor-surface sync note, compact tests-root review companion, and shared review checklist stay in that same adjacent release packet too. They keep the broader Phase 13 contributor prompts honest beside the validator-first route without promoting those reminder surfaces into extra shared replay steps or shifting ownership away from the helper-family lanes.
+
+The shared release validator, the dedicated `devres` packet checker, the dedicated `landlock/ruleset` packet checker, the adjacent notifier packet checker, and `zigux/Makefile` stay in that same adjacent release packet too. They keep the shipped validator-first command surface explicit beside the eight-test helper route without promoting those validator-owned files into extra shared replay steps.
 
 ## Current blocker posture
 
