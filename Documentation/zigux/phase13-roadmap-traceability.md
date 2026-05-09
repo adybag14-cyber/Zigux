@@ -114,6 +114,7 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `Documentation/zigux/phase13-release-notes-survey.md`
   * `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
   * `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+  * `zigux/tests/phase13_libfs_addressability.zig`
   * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
   * `scripts/zigux/validate-phase13-release.py`
   * `scripts/zigux/check-phase13-devres-packet.py`
@@ -127,7 +128,7 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `zigux/helpers/notifier_chain_view.zig`
   * `zigux/Makefile`
 
-The direct `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard stays in that adjacent release-evidence set for the same reason already recorded in the syscall lane section and the release-notes packet: it is shipped focused direct evidence on current `master`, but it does not expand the shared replay beyond the eight build-backed tests.
+The direct `zigux/tests/phase13_libfs_addressability.zig` and `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shards stay in that adjacent release-evidence set for the same reason already recorded in their helper-lane sections and the release-notes packet: they are shipped focused direct evidence on current `master`, but they do not expand the shared replay beyond the eight build-backed tests.
 
 `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` stays in that same adjacent evidence set as the owner-map note for the active `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` helper families. It keeps the shared validator-first route and adjacent notifier evidence from collapsing into one ownerless packet, but it does not add a ninth replay step or change which helper lane owns which backlog.
 
