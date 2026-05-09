@@ -16,6 +16,7 @@ This document records the bounded Phase 13 survey and reviewability lane around 
   - `zigux/tests/phase13_build.zig`
   - `Documentation/zigux/phase13-libfs-slice.md`
   - `Documentation/zigux/phase13-libfs-survey.md`
+  - `Documentation/zigux/phase13-roadmap-traceability.md`
 
 ## Why this slice exists
 
@@ -31,7 +32,7 @@ The live Zigux tree is no longer survey-only here. It already carries a small `f
 - the live repo now has a landed `fs/libfs.zig` starter plus `zigux/tests/phase13_libfs.zig`, and `zigux/tests/phase13_build.zig` compiles that dedicated libfs helper test path.
 - the current starter stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, the pure `dcache_dir_open()` cursor-setup planner, the pure `dcache_dir_close()` cursor-release planner, the pure post-scan cursor-reposition planner around hashed-cursor detach plus before-target versus behind-target reinsertion, the pure `simple_transaction_get()` acquire planner, the pure `simple_transaction_set()` publish planner, the pure `simple_transaction_release()` lifetime planner, the pure `generic_check_addressable()` planner around shift overflow, zero-block passthrough, minimum block size, and explicit sector or page-index caps, and the pure `simple_open()` planner around the `inode->i_private` to `file->private_data` handoff.
 - the focused `zigux/tests/phase13_libfs_addressability.zig` file keeps the `generic_check_addressable()` planner directly exercised without widening the broader Phase 13 build route in this run.
-- the reviewability gate and manifest now tie the starter, tests, focused addressability proof, build wire, slice note, and survey note together so future runs can verify the exact Phase 13 lane state before widening helper coverage.
+- the reviewability gate and manifest now tie the starter, tests, focused addressability proof, build wire, slice note, survey note, and roadmap traceability note together so future runs can verify the exact Phase 13 lane state before widening helper coverage.
 - the focused `zigux/tests/phase13_libfs_addressability.zig` shard remains dedicated helper-local evidence rather than a ninth shared replay step, so future packet updates should keep naming it explicitly without inflating the shared eight-test `phase13_build.zig` route.
 - directory cursor helpers such as the now-landed `dcache_dir_open()`, `dcache_dir_close()`, and cursor-reposition planner still stay below the deeper cursor-backed `dcache_readdir()` traversal, which remains riskier because it depends on cursor dentries, sibling lists, lock ordering, and reschedule-aware traversal.
 
