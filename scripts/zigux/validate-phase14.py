@@ -614,6 +614,15 @@ def run_self_test() -> int:
             return 1
 
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken["lane_key"] = "P14-L99"
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 shared smoke manifest lane_key drifted from the current shared-lane owner" not in errors:
+            print("self-test expected lane-key drift failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken["compile_shards"] = REQUIRED_COMPILE_SHARDS[:-1]
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
         errors = check(root)
@@ -631,8 +640,8 @@ def run_self_test() -> int:
 
         write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
         rcu_survey_path = root / RCU_SURVEY_PATH
-        rcu_survey_path.write_text(
-            rcu_survey_path.read_text(encoding="utf-8").replace(
+        rcu_survey_path.writeText(
+            rcu_survey_path.readText(encoding="utf-8").replace(
                 "- rollback owner: `Repo Tooling Pod`\n",
                 "",
                 1,
