@@ -215,6 +215,7 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
         "helper_test_anchors": [
             'test "bitmap predicates ignore out-of-range tail bits"',
             'test "bitmap range helpers clamp the final partial word"',
+            'test "bitmap zero-bit binary helpers stay explicit identity operations"',
             'test "bitmap Linux-style aliases mirror the primary helper surface"',
         ],
         "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
@@ -233,6 +234,7 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
         "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
         "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
         "zero_bit_noop_anchor": 'test "bitmap zero-bit helpers stay explicit no-ops"',
+        "zero_bit_binary_identity_anchor": 'test "bitmap zero-bit binary helpers stay explicit identity operations"',
         "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror the primary helper surface"',
     },
     "tools/lib/find_bit.zig": {
@@ -611,7 +613,7 @@ def run_self_test() -> None:
         tmp_root = Path(tmp)
         make_fixture_root(tmp_root)
         (tmp_root / "Documentation" / "zigux" / "README.md").write_text(DOC_MARKERS["docs_root_phase1_packet"][0] + "\n" + DOC_MARKERS["docs_root_phase1_packet"][1] + "\n", encoding="utf-8")
-        (tmp_root / "zigux" / "tests" / "README.md").write_text(DOC_MARKERS["tests_root_phase1_packet"][0] + "\n" + DOC_MARKERS["tests_root_phase1_packet"][1] + "\n", encoding="utf-8")
+        (tmp_root / "zigux" / "tests" / "README.md").write_text(DOC_MARKERS["tests_root_phase1_packet"][0] + "\n", encoding="utf-8")
         (tmp_root / "Documentation" / "zigux" / "review-checklist.md").write_text(DOC_MARKERS["review_checklist_phase1_packet"][0] + "\n" + DOC_MARKERS["review_checklist_phase1_packet"][1] + "\n", encoding="utf-8")
         (tmp_root / "tools" / "lib" / "bitmap.zig").write_text('\n'.join(SOURCE_MARKERS["bitmap_test_anchor"][1]) + '\n', encoding="utf-8")
         (tmp_root / "tools" / "lib" / "find_bit.zig").write_text('\n'.join(SOURCE_MARKERS["find_bit_test_anchor"][1]) + '\n', encoding="utf-8")
@@ -620,7 +622,7 @@ def run_self_test() -> None:
         (tmp_root / "zigux" / "tests" / "phase1_helpers.zig").write_text('\n'.join(PHASE1_IMPORT_MARKERS) + '\n' + 'test "phase 1 helper ports match committed parity fixture"\n' + '\n'.join(PHASE1_REPLAY_MARKERS) + '\n' + '\n'.join(HELPER_FOLLOWUP_TESTS) + '\n', encoding="utf-8")
         fixture_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json"
         fixture_path.write_text(json.dumps({"argv_split": {}, "bitmap": {"scnprintf": "1-3,7,10-11", "truncated_scnprintf_len": 7, "truncated_scnprintf": "1-3,7,1", "terminator_only_scnprintf_len": 0, "terminator_only_nul": 0, "zero_length_scnprintf_len": 0, "partial_xor_nbits": 4, "partial_xor_masked_values": [14]}, "cmdline": {}, "ctype": {}, "find_bit": {"bits_per_long": 64, "inclusive_boundary_next": 63, "inclusive_boundary_zero": 63, "inclusive_boundary_and": 63, "past_nbits_next": 7, "past_nbits_zero": 7, "past_nbits_and": 7, "tail_clamped_first": 69, "tail_clamped_next": 69, "tail_zero_clamped_first": 69, "tail_zero_clamped_next": 69, "tail_and_clamped_first": 69, "tail_and_clamped_next": 69, "tail_clamped_last": 67, "tail_clamped_empty_last": 69}, "hweight": {}, "list_sort": {}, "rbtree": {"empty_root": True, "insert_order": [5, 10, 15, 20, 25], "reverse_order": [25, 20, 15, 10, 5], "replace_order": [5, 10, 15, 25], "erase_init_order": [5, 15, 25], "postorder_count": 3, "erase_init_node_empty": True, "cleared_node_empty": True, "find_found_key": 15, "find_missing": True, "find_first_serial": 0, "next_match_serials": [0, 2, 4], "next_match_terminal_null": True}, "slab": {}, "str_error_r": {}, "string": {"strtobool_y": True, "strtobool_on": True, "strtobool_zero": False, "strtobool_off": False, "strtobool_invalid": -22, "strlcpy_len": 5, "strlcpy_buffer": "hel", "skip_spaces": "hello", "trim_spaces": "hi", "remove_spaces": "abc", "replace_char": "a_b", "replace_char_end": 3, "replace_char_cstr_end": 2, "replace_char_cstr_bytes": [97, 95, 0, 45, 122], "memchr_inv_index": 4, "memchr_inv_none": True}, "vsprintf": {}, "zalloc": {}}, separators=(",", ":")), encoding="utf-8")
-        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").write_text(json.dumps({"phase": "Phase 1", "status": "closed", "helper_count": len(EXPECTED_HELPERS), "helpers": EXPECTED_HELPERS, "lane_sequencing": EXPECTED_LANE_SEQUENCING, "review_anchors": EXPECTED_MANIFEST_HELPER_FIELDS}, indent=2) + "\n", encoding="utf-8")
+        (tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").writeText(json.dumps({"phase": "Phase 1", "status": "closed", "helper_count": len(EXPECTED_HELPERS), "helpers": EXPECTED_HELPERS, "lane_sequencing": EXPECTED_LANE_SEQUENCING, "review_anchors": EXPECTED_MANIFEST_HELPER_FIELDS}, indent=2) + "\n", encoding="utf-8")
         assert not collect_missing_markers(tmp_root)
 
         bitmap_path = tmp_root / "tools" / "lib" / "bitmap.zig"
@@ -663,6 +665,12 @@ def run_self_test() -> None:
         assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:linux_alias_anchor" in missing
 
         manifest = json.loads(json.dumps(pristine_manifest))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("zero_bit_binary_identity_anchor")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:zero_bit_binary_identity_anchor" in missing
+
+        manifest = json.loads(json.dumps(pristine_manifest))
         manifest["review_anchors"]["tools/lib/bitmap.zig"]["helper_test_anchors"] = [
             anchor
             for anchor in manifest["review_anchors"]["tools/lib/bitmap.zig"]["helper_test_anchors"]
@@ -671,6 +679,16 @@ def run_self_test() -> None:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = collect_missing_markers(tmp_root)
         assert 'phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:helper_test_anchors:test "bitmap Linux-style aliases mirror the primary helper surface"' in missing
+
+        manifest = json.loads(json.dumps(pristine_manifest))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"]["helper_test_anchors"] = [
+            anchor
+            for anchor in manifest["review_anchors"]["tools/lib/bitmap.zig"]["helper_test_anchors"]
+            if anchor != 'test "bitmap zero-bit binary helpers stay explicit identity operations"'
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert 'phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:helper_test_anchors:test "bitmap zero-bit binary helpers stay explicit identity operations"' in missing
 
         manifest = json.loads(json.dumps(pristine_manifest))
         manifest["review_anchors"]["tools/lib/rbtree.zig"]["helper_test_anchors"] = [
@@ -710,7 +728,7 @@ def run_self_test() -> None:
         missing = collect_missing_markers(tmp_root)
         assert "phase1_fixture_string:strtobool_y:expected=True:actual=False" in missing
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=16")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=18")
 
 
 def main() -> int:
