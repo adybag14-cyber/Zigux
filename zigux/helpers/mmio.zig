@@ -181,6 +181,15 @@ pub fn read32InteropPolicyBytes(
     return read32(base_addr, offset);
 }
 
+pub fn read32InteropPolicyByte(
+    base_addr: usize,
+    offset: usize,
+    unsafe_scope: u8,
+) PolicyError!u32 {
+    try requireInteropPolicyBytes(unsafe_scope, 0);
+    return read32(base_addr, offset);
+}
+
 pub fn read32InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) PolicyError!u32 {
     try requireInteropPolicy(policy);
     return read32(base_addr, offset);
@@ -194,6 +203,16 @@ pub fn write32InteropPolicyBytes(
     reserved: u8,
 ) PolicyError!void {
     try requireInteropPolicyBytes(unsafe_scope, reserved);
+    write32(base_addr, offset, value);
+}
+
+pub fn write32InteropPolicyByte(
+    base_addr: usize,
+    offset: usize,
+    value: u32,
+    unsafe_scope: u8,
+) PolicyError!void {
+    try requireInteropPolicyBytes(unsafe_scope, 0);
     write32(base_addr, offset, value);
 }
 
@@ -357,11 +376,25 @@ test "phase3 mmio interop policy gates stay explicit" {
         try read8InteropPolicyBytes(base, 1, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0),
     );
 
+    try write32InteropPolicyByte(base, 4, 0xc001_d00d, @intFromEnum(abi.UnsafeScope.volatile_mmio));
+    try std.testing.expectEqual(
+        @as(u32, 0xc001_d00d),
+        try read32InteropPolicyByte(base, 4, @intFromEnum(abi.UnsafeScope.volatile_mmio)),
+    );
+
     try std.testing.expectError(error.UnsafeScopeDenied, requireInteropPolicy(no_unsafe_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, requireInteropPolicy(raw_pointer_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, requireInteropPolicy(reserved_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, read32InteropPolicy(base, 4, no_unsafe_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, write16InteropPolicy(base, 2, 0x7777, raw_pointer_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, read8InteropPolicyBytes(base, 1, 1, 1));
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        read32InteropPolicyByte(base, 4, @intFromEnum(abi.UnsafeScope.none)),
+    );
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        write32InteropPolicyByte(base, 4, 0, @intFromEnum(abi.UnsafeScope.raw_pointer_bridge)),
+    );
     try std.testing.expectError(error.UnsafeScopeDenied, write64InteropPolicyBytes(base, 8, 0, 0, 0));
 }
