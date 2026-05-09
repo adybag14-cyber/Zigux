@@ -17,6 +17,7 @@ class ValidationError(RuntimeError):
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 BASE64_C_PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
+CHECKSUM_C_PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-checksum-c-parity.py")
 CATALOG_SURVEYED_HEAD_PREFIX = "- surveyed head: `"
 
 
@@ -154,6 +155,8 @@ REQUIRED_SNIPPETS = {
         "\"make -C zigux phase6-base64-perf\",",
         "\"make -C zigux phase6-checksum-perf\",",
         "\"make -C zigux phase6-hexdump-perf\",",
+        "\"python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test\",",
+        "\"python3 scripts/zigux/check-phase6-checksum-c-parity.py\",",
         "\"c_parity_cases\": 24",
         "\"generated_fixture_artifacts_committed\": false",
     ],
@@ -325,6 +328,40 @@ def validate_base64_c_parity_alignment(repo_root: Path) -> None:
         )
 
 
+def validate_checksum_c_parity_alignment(repo_root: Path) -> None:
+    manifest_rel = MANIFEST_PATH.as_posix()
+    manifest_data = read_json(repo_root / manifest_rel)
+    if not isinstance(manifest_data, dict):
+        raise ValidationError(f"expected object in {manifest_rel}")
+
+    determinism = manifest_data.get("determinism_evidence")
+    if not isinstance(determinism, dict):
+        raise ValidationError(f"missing determinism_evidence in {manifest_rel}")
+
+    checksum_data = determinism.get("checksum")
+    if not isinstance(checksum_data, dict):
+        raise ValidationError(f"missing determinism_evidence.checksum in {manifest_rel}")
+
+    c_parity_cases = checksum_data.get("c_parity_cases")
+    if not isinstance(c_parity_cases, int) or c_parity_cases <= 0:
+        raise ValidationError(f"missing positive checksum c_parity_cases in {manifest_rel}")
+
+    script_rel = CHECKSUM_C_PARITY_SCRIPT_PATH.as_posix()
+    script_text = read_text(repo_root / script_rel)
+    if 'PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}' not in script_text:
+        raise ValidationError(
+            f"missing expected Phase 6 marker in {script_rel}: PHASE6_CHECKSUM_C_PARITY_CASES"
+        )
+
+    expected_sorted_lines = extract_sorted_literal_list(script_text, script_rel, "EXPECTED_SORTED_LINES")
+    expected_case_count = len(expected_sorted_lines)
+    if c_parity_cases != expected_case_count:
+        raise ValidationError(
+            "Phase 6 checksum direct C parity case count drifted between "
+            f"{manifest_rel} ({c_parity_cases}) and {script_rel} ({expected_case_count})"
+        )
+
+
 def run_checks(repo_root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
         content = read_text(repo_root / rel_path)
@@ -336,6 +373,7 @@ def run_checks(repo_root: Path) -> None:
 
     validate_surveyed_head_alignment(repo_root)
     validate_base64_c_parity_alignment(repo_root)
+    validate_checksum_c_parity_alignment(repo_root)
 
     for rel_path, markers in EXACT_OCCURRENCE_MARKERS.items():
         content = read_text(repo_root / rel_path)
@@ -418,10 +456,15 @@ def scaffold_repo(root: Path) -> None:
                     "make -C zigux phase6-base64-perf",
                     "make -C zigux phase6-checksum-perf",
                     "make -C zigux phase6-hexdump-perf",
+                    "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
+                    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
                 ],
                 "determinism_evidence": {
                     "base64": {
                         "c_parity_cases": 24,
+                    },
+                    "checksum": {
+                        "c_parity_cases": 39,
                     },
                     "generated_fixture_artifacts_committed": False,
                 },
@@ -440,6 +483,22 @@ def scaffold_repo(root: Path) -> None:
                         "    ]",
                         ")",
                         'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
+                        "",
+                    ]
+                ),
+            )
+            continue
+        if rel_path == CHECKSUM_C_PARITY_SCRIPT_PATH.as_posix():
+            write(
+                root / rel_path,
+                "\n".join(
+                    [
+                        "EXPECTED_SORTED_LINES = sorted(",
+                        "    [",
+                        *[f'        \"case-{index:02d}\",' for index in range(1, 40)],
+                        "    ]",
+                        ")",
+                        'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")',
                         "",
                     ]
                 ),
@@ -528,6 +587,24 @@ def run_self_test() -> None:
             root,
             "scripts/zigux/check-phase6-base64-c-parity.py",
             '        "case-24",\n',
+            "",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_helper_parity_manifest.json",
+            '"python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",',
+            '"python3 scripts/zigux/check-phase6-checksum-c-parity.py --smoke",',
+        )
+        assert_failure(
+            root,
+            "scripts/zigux/check-phase6-checksum-c-parity.py",
+            'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")',
+            'print(f"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}")',
+        )
+        assert_failure(
+            root,
+            "scripts/zigux/check-phase6-checksum-c-parity.py",
+            '        "case-39",\n',
             "",
         )
         assert_failure(
