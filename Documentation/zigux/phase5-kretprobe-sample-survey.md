@@ -55,7 +55,7 @@ The sample intentionally stays small:
 - it provides `runLifecycleGuardReplay()` so pre-init rejection, double-init rejection, and post-init retarget rejection stay reviewable without implying a runtime-ready kretprobe implementation
 - it provides `runRetargetReplay()` so empty-symbol rejection, pre-init retargeting, and post-init retarget rejection stay reviewable inside the sample-owned packet instead of living only in a focused external test
 - it provides `runRecoveryReplay()` so retargeting, outstanding-instance exit rejection, invalid timestamp order recovery, and post-`exit()` handler rejection stay reviewable inside the sample-owned packet instead of living only in a focused external test
-- it provides `ownershipSummary()` so the sample-owned lifecycle packet stays explicit across `cold`, `initialized`, `armed`, `replay_complete`, and `exited` without borrowing the separate Phase 9 runtime summary surface
+- it provides `ownershipSummary()` plus `runOwnershipReplay()` so the sample-owned lifecycle packet stays explicit across `cold`, `initialized`, `armed`, `replay_complete`, and `exited` without borrowing the separate Phase 9 runtime summary surface
 
 The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
@@ -66,7 +66,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 - the replay records return value `42` and duration `75 ns` after an entry timestamp of `100` and a return timestamp of `175`
 - `maxactiveBudget()` keeps the fixed review-only budget at `20` without implying runtime registration-pressure handling
 - the replay records one missed instance so the exit-side `nmissed` summary stays reviewable without claiming registration-pressure parity
-- `ownershipSummary()` keeps `cold`, `initialized`, `armed`, `replay_complete`, and `exited` snapshots explicit with active-instance and entry-timestamp state
+- `ownershipSummary()` and `runOwnershipReplay()` keep `cold`, `initialized`, `armed`, `replay_complete`, and `exited` snapshots explicit with active-instance and entry-timestamp state
 - `runLifecycleGuardReplay()` keeps the pre-init anchor and exit rejections, double-init rejection, post-init retarget rejection, and initialized post-init state explicit without implying runtime registration parity
 - `runRecoveryReplay()` keeps direct retargeting, exit rejection while armed, invalid timestamp rejection and recovery, the recovered duration `60 ns`, and post-`exit()` `recordMissedInstance()`, `entryHandler()`, and `retHandler()` rejection explicit until `retHandler()` clears the tracked instance
 - after `exit()` the sample rejects later `recordMissedInstance()`, `entryHandler()`, and `retHandler()` calls, with `runRecoveryReplay()` keeping that post-exit packet explicit too
@@ -98,7 +98,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 - do the survey note and focused survey gate still name `runRetargetReplay()`, `runAnchorReplay()`, `runLifecycleGuardReplay()`, and `runRecoveryReplay()` so the sample-owned symbol-selection, replay, lifecycle-guard, and teardown-recovery surfaces stay explicit?
 - does the focused `zigux/tests/phase5_kretprobe_example.zig` replay still keep direct handler boundaries, outstanding-instance rejection, timestamp-order rejection and recovery, and post-exit teardown rejection explicit while the sample-owned helpers stay bounded?
 - do the sample-owned prompts still keep the fixed `maxactiveBudget()` cue at `20`, timestamp-order rejection and recovery, and post-exit handler rejection explicit instead of leaving those probe-lifecycle boundaries implied?
-- does `ownershipSummary()` still keep the `cold`, `initialized`, `armed`, `replay_complete`, and `exited` lifecycle packet explicit without implying the separate Phase 9 runtime summary surface?
+- do `ownershipSummary()` and `runOwnershipReplay()` still keep the `cold`, `initialized`, `armed`, `replay_complete`, and `exited` lifecycle packet explicit without implying the separate Phase 9 runtime summary surface?
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
 - if the sample behavior changes, is the manifest updated alongside the replay and teardown contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and runtime module wiring remain out of scope for this Phase 5 sample?
