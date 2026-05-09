@@ -432,6 +432,110 @@ test "phase12 virtio net receive refill planning keeps buffer mode and replay ne
     try std.testing.expect(reset_refill.requires_post_restore_probe_replay);
 }
 
+test "phase12 virtio net control queue restore keeps disposition and replay needs explicit" {
+    var active_lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+        virtio_net.feature_rss,
+    });
+    _ = try active_lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 3,
+        .max_queue_pairs = 3,
+    });
+    _ = try active_lab.freezeForRecovery();
+    const active_restore = try active_lab.planControlQueueRestore();
+    try std.testing.expectEqual(virtio_net.QueueResumeReadiness.ready, active_restore.readiness);
+    try std.testing.expectEqual(
+        virtio_net.ControlQueueRestoreDisposition.restore_before_rss_reapply,
+        active_restore.restore_disposition,
+    );
+    try std.testing.expectEqual(@as(u16, 3), active_restore.restore_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 7), active_restore.restore_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, 6), active_restore.restore_control_queue_index);
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.none,
+        active_restore.remembered_queue_recovery_action,
+    );
+    try std.testing.expectEqual(
+        virtio_net.RssRecoveryState.active,
+        active_restore.remembered_rss_recovery_state,
+    );
+    try std.testing.expect(active_restore.requires_rss_reapply);
+    try std.testing.expect(active_restore.requires_fresh_probe_snapshot);
+    try std.testing.expect(active_restore.requires_post_restore_probe_replay);
+
+    var reset_lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+    });
+    _ = try reset_lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+        },
+        .requested_queue_pairs = 2,
+        .max_queue_pairs = 2,
+        .device_signals_reset = true,
+    });
+    _ = try reset_lab.freezeForRecovery();
+    const reset_restore = try reset_lab.planControlQueueRestore();
+    try std.testing.expectEqual(
+        virtio_net.QueueResumeReadiness.requires_reset,
+        reset_restore.readiness,
+    );
+    try std.testing.expectEqual(
+        virtio_net.ControlQueueRestoreDisposition.restore_after_data_queue_restore,
+        reset_restore.restore_disposition,
+    );
+    try std.testing.expectEqual(@as(u16, 2), reset_restore.restore_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 5), reset_restore.restore_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, 4), reset_restore.restore_control_queue_index);
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.require_reset,
+        reset_restore.remembered_queue_recovery_action,
+    );
+    try std.testing.expectEqual(
+        virtio_net.RssRecoveryState.not_requested,
+        reset_restore.remembered_rss_recovery_state,
+    );
+    try std.testing.expect(!reset_restore.requires_rss_reapply);
+    try std.testing.expect(reset_restore.requires_fresh_probe_snapshot);
+    try std.testing.expect(reset_restore.requires_post_restore_probe_replay);
+
+    var data_only_lab = try virtio_net.VirtioNetProbeLab.init(&.{});
+    _ = try data_only_lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{},
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+    _ = try data_only_lab.freezeForRecovery();
+    const data_only_restore = try data_only_lab.planControlQueueRestore();
+    try std.testing.expectEqual(virtio_net.QueueResumeReadiness.ready, data_only_restore.readiness);
+    try std.testing.expectEqual(
+        virtio_net.ControlQueueRestoreDisposition.not_required,
+        data_only_restore.restore_disposition,
+    );
+    try std.testing.expectEqual(@as(u16, 1), data_only_restore.restore_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), data_only_restore.restore_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), data_only_restore.restore_control_queue_index);
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.none,
+        data_only_restore.remembered_queue_recovery_action,
+    );
+    try std.testing.expectEqual(
+        virtio_net.RssRecoveryState.not_requested,
+        data_only_restore.remembered_rss_recovery_state,
+    );
+    try std.testing.expect(!data_only_restore.requires_rss_reapply);
+    try std.testing.expect(data_only_restore.requires_fresh_probe_snapshot);
+    try std.testing.expect(data_only_restore.requires_post_restore_probe_replay);
+}
+
 test "phase12 virtio net transmit recycle keeps control and rss ordering explicit" {
     var active_lab = try virtio_net.VirtioNetProbeLab.init(&.{
         virtio_net.feature_mergeable_rx_buffers,
@@ -597,6 +701,102 @@ test "phase12 virtio net transmit recycle refreshes after a repeated recovery cy
     try std.testing.expect(second_recycle.requires_receive_refill_coordination);
     try std.testing.expect(second_recycle.requires_fresh_probe_snapshot);
     try std.testing.expect(second_recycle.requires_post_restore_probe_replay);
+}
+
+test "phase12 virtio net recovery ownership refreshes after a repeated recovery cycle" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+        virtio_net.feature_rss,
+    });
+
+    _ = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 3,
+        .max_queue_pairs = 3,
+    });
+    _ = try lab.freezeForRecovery();
+    const first_ownership = try lab.planRecoveryOwnership();
+    try std.testing.expectEqual(@as(u16, 0), first_ownership.recovery_generation);
+    try std.testing.expectEqual(virtio_net.QueueResumeReadiness.ready, first_ownership.readiness);
+    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.none, first_ownership.queue_recovery_action);
+    try std.testing.expectEqual(
+        virtio_net.RecoveryOwnershipStage.frozen_snapshot,
+        first_ownership.queue_shape_owner,
+    );
+    try std.testing.expectEqual(
+        virtio_net.RecoveryOwnershipStage.data_queue_resume,
+        first_ownership.data_queue_owner,
+    );
+    try std.testing.expectEqual(
+        @as(?virtio_net.RecoveryOwnershipStage, .control_queue_restore),
+        first_ownership.control_queue_owner,
+    );
+    try std.testing.expectEqual(
+        @as(?virtio_net.RecoveryOwnershipStage, .rss_reapply),
+        first_ownership.rss_owner,
+    );
+    try std.testing.expectEqual(
+        virtio_net.RecoveryOwnershipStage.receive_refill,
+        first_ownership.receive_refill_owner,
+    );
+    try std.testing.expectEqual(
+        virtio_net.RecoveryOwnershipStage.transmit_recycle,
+        first_ownership.transmit_recycle_owner,
+    );
+    try std.testing.expectEqual(
+        virtio_net.RecoveryOwnershipStage.post_restore_probe_replay,
+        first_ownership.steady_state_owner,
+    );
+    try std.testing.expectEqual(@as(u16, 3), first_ownership.planned_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 7), first_ownership.total_queue_count);
+    try std.testing.expectEqual(@as(?u16, 6), first_ownership.control_queue_index);
+    try std.testing.expect(first_ownership.requires_mergeable_buffer_headroom);
+    try std.testing.expect(first_ownership.requires_control_queue_restore);
+    try std.testing.expect(first_ownership.requires_rss_reapply);
+    try std.testing.expect(first_ownership.requires_fresh_probe_snapshot);
+    try std.testing.expect(first_ownership.requires_post_restore_probe_replay);
+    _ = try lab.restoreAfterRecovery();
+
+    _ = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 4,
+        .max_queue_pairs = 8,
+    });
+    _ = try lab.freezeForRecovery();
+    const second_ownership = try lab.planRecoveryOwnership();
+    try std.testing.expectEqual(@as(u16, 1), second_ownership.recovery_generation);
+    try std.testing.expectEqual(virtio_net.QueueResumeReadiness.ready, second_ownership.readiness);
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.degrade_to_single_queue,
+        second_ownership.queue_recovery_action,
+    );
+    try std.testing.expectEqual(
+        @as(?virtio_net.RecoveryOwnershipStage, null),
+        second_ownership.control_queue_owner,
+    );
+    try std.testing.expectEqual(
+        @as(?virtio_net.RecoveryOwnershipStage, null),
+        second_ownership.rss_owner,
+    );
+    try std.testing.expectEqual(@as(u16, 1), second_ownership.planned_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), second_ownership.total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), second_ownership.control_queue_index);
+    try std.testing.expect(second_ownership.requires_mergeable_buffer_headroom);
+    try std.testing.expect(!second_ownership.requires_control_queue_restore);
+    try std.testing.expect(!second_ownership.requires_rss_reapply);
+    try std.testing.expect(second_ownership.requires_fresh_probe_snapshot);
+    try std.testing.expect(second_ownership.requires_post_restore_probe_replay);
 }
 
 test "phase12 virtio net clamps mergeable buffer length to the minimum floor" {
