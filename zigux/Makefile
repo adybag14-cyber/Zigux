@@ -271,7 +271,7 @@ phase8-perf-buffer-poll-test:
 phase8-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all
 
-phase8: phase8-validate phase8-test phase8-cpu-mask-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test
+phase8: phase8-validate phase8-help-kallsyms-test phase8-test phase8-cpu-mask-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test
 
 phase9-runtime-atomic64-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig
@@ -372,4 +372,4 @@ phase15-validate:
 phase15-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase15_build.zig
 
-phase15: phase15-validate phase15-test
+phase15: phase15-validate phase15-test phase15
