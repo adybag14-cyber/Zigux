@@ -158,6 +158,7 @@ fn validateBoundaryBuffers(case: fixtures.PerfCase) !void {
 
     var exact: [fixtures.test_hexdump_buf_size]u8 = undefined;
     var truncated: [fixtures.test_hexdump_buf_size]u8 = [_]u8{fixtures.fill_char} ** fixtures.test_hexdump_buf_size;
+    var single = [_]u8{fixtures.fill_char};
 
     const exact_slice = exact[0..required_with_nul];
     const truncated_slice = truncated[0 .. required_with_nul - 1];
@@ -187,6 +188,16 @@ fn validateBoundaryBuffers(case: fixtures.PerfCase) !void {
         return error.HexdumpPerfMatrixMismatch;
     }
     if (truncated_slice[truncated_slice.len - 1] != 0) return error.HexdumpPerfMatrixMismatch;
+
+    const single_required = hexdump.hexDumpToBuffer(
+        fixtures.data_b[0..case.len],
+        case.rowsize,
+        case.groupsize,
+        single[0..],
+        case.ascii,
+    );
+    if (single_required != case.expected_text.current().len) return error.HexdumpPerfMatrixMismatch;
+    if (single[0] != 0) return error.HexdumpPerfMatrixMismatch;
 }
 
 fn monotonicNs() !u64 {
