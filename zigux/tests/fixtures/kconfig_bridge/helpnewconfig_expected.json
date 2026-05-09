@@ -1,1 +1,1 @@
-{"tool":"scripts/kconfig/conf","mode":"helpnewconfig","argv":["scripts/kconfig/conf","--helpnewconfig","Kconfig"],"env":{"ARCH":"riscv64","KCONFIG_CONFIG":"out/help.config"}}
+{"tool":"scripts/kconfig/conf","mode":"helpnewconfig","argv":["scripts/kconfig/conf","--silent","--helpnewconfig","Kconfig"],"env":{"ARCH":"riscv64","KCONFIG_CONFIG":"out/help.config"}}
