@@ -5,7 +5,7 @@ PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtim
 PHONY += phase5-test phase5
 PHONY += phase6-validate phase6-test phase6-hexdump-test phase6-perf phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6
 PHONY += phase7-validate phase7-test phase7
-PHONY += phase7-string-helpers-survey phase7-string-helpers-sample-boundary phase7-cmdline-survey phase7-argv-split-survey phase7-rbtree-survey
+PHONY += phase7-string-helpers-survey phase7-string-helpers-sample-boundary phase7-cmdline-survey phase7-argv-split-survey phase7-rbtree-survey phase7-surveys
 PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-cpu-mask-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8
 PHONY += phase9-runtime-atomic64-test phase9-runtime-bitmap-top-bit-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-runtime-loader-shared-tests phase9-test phase9
 PHONY += phase10-test phase10
@@ -229,6 +229,9 @@ phase7-argv-split-survey:
 
 phase7-rbtree-survey:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase7-rbtree-survey --build-file zigux/tests/phase7_build.zig --summary all
+
+phase7-surveys:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase7-surveys --build-file zigux/tests/phase7_build.zig --summary all
 
 phase7: phase7-validate phase7-test
 
