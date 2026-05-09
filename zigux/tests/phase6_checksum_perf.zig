@@ -26,9 +26,10 @@ fn validatePerfMatrix() !void {
         iterations: usize,
         max_slowdown_pct: u64,
         fingerprint: u64,
+        expected_compute: u16,
     }{
-        .{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0x3193_4305_ba03_9b45 },
-        .{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0x457f_efb1_ea64_3164 },
+        .{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0x3193_4305_ba03_9b45, .expected_compute = 0x7fe0 },
+        .{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0x457f_efb1_ea64_3164, .expected_compute = 0x28d3 },
     };
 
     var saw_64b = false;
@@ -49,7 +50,13 @@ fn validatePerfMatrix() !void {
         if (case.bytes.len == 0 or case.iterations == 0 or case.max_slowdown_pct == 0) {
             return error.ChecksumPerfMatrixMismatch;
         }
-        if (checksum.compute(case.bytes) != referenceInternetChecksum(case.bytes)) {
+
+        const helper_compute = checksum.compute(case.bytes);
+        const reference_compute = referenceInternetChecksum(case.bytes);
+        if (helper_compute != reference_compute) {
+            return error.ChecksumPerfMatrixMismatch;
+        }
+        if (helper_compute != expected[idx].expected_compute or reference_compute != expected[idx].expected_compute) {
             return error.ChecksumPerfMatrixMismatch;
         }
 
