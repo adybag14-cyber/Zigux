@@ -123,7 +123,7 @@ DEVRES_TEST_MARKERS = [
     "try std.testing.expectEqual(@as(?devres.ErrorStage, .pretty_name), failure.resource_stage);",
 ]
 
-MANIFEST_EXPECTED_LANE_KEY = "P13-L05"
+MANIFEST_EXPECTED_LANE_KEY = "P13-L10"
 MANIFEST_EXPECTED_SURVEYED_COMMIT = "032c57dbde9a95ad6e28ad891cca54bd2e3bfcf1"
 MANIFEST_SUMMARY_KEYS = [
     "preexisting_phase13_devres_test_present",
