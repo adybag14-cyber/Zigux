@@ -78,7 +78,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-Y04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-09", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
@@ -190,7 +190,7 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
     defer io_instance.deinit();
 
     try expectContains(io_instance.io(), "Documentation/zigux/phase15-indefinite-c-policy.md", &.{
-        "PHASE15_LANE_KEY=P15-Y04",
+        "PHASE15_LANE_KEY=P15-L16",
         "PHASE15_SLICE=indefinite-c-policy-current-readback-provenance-sync",
         "PHASE15_PROVENANCE_MODE=dated_master_readback",
         "survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 because this policy packet reports current stay-in-C governance posture at the bounded packet level instead of implying exact post-commit branch-head parity",
