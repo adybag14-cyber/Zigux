@@ -334,6 +334,9 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "approved local-only acceptable limits") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "keep those limits local-only or intentionally promote a broader shared CI perf-coverage claim") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without widening the current validator-first packet by accident") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Validation and Perf Team") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ABI and Runtime Team") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Shared Subsystems Pod") != null);
         }
     }
 
