@@ -78,5 +78,33 @@
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
       "why_now": "The roadmap's loadable runtime pilot module step still depends on a shared runtime substrate that can turn the bounded init, selftest, and exit handoff plan into a real loadable module path."
     }
+  ],
+  "checks": [
+    {
+      "id": "loader-request-surface",
+      "kind": "runtime_loader_contract",
+      "expected": "the loader scaffold keeps entry symbol zigux_runtime_atomic64_init, exit symbol zigux_runtime_atomic64_exit, a prepared four-field atomic64 payload summary snapshot, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and kernel_heap allocator flow machine-checkable through the shared runtime-loader request surface before later sample mutation"
+    }
+  ],
+  "ownership": [
+    {
+      "surface": "samples/zigux/runtime_atomic64_loader.zig",
+      "owns": "the sample-side loader projection, explicit shared command_name preservation, prepared loader-summary snapshot replay, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and atomic64 payload summary"
+    },
+    {
+      "surface": "samples/zigux/runtime_atomic64.zig",
+      "owns": "the runtime atomic64 sample descriptor, selftest-hook metadata, lifecycle starter, and counter-operation family replay"
+    },
+    {
+      "surface": "zigux/tests/runtime_atomic64_diff.zig",
+      "owns": "the bounded exchange, cmpxchg, add_unless, bitwise, and threshold replay evidence packet"
+    }
+  ],
+  "catalog": [
+    {
+      "id": "runtime-atomic64-loader-scaffold",
+      "path": "samples/zigux/runtime_atomic64_loader.zig",
+      "role": "owns the entry and exit symbol names, explicit shared command_name preservation, prepared loader-summary snapshot replay, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and atomic64 payload summary for the sample-side loader projection"
+    }
   ]
 }
