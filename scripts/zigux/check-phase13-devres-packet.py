@@ -25,8 +25,9 @@ REQUIRED_FILES = [
 SLICE_MARKERS = [
     "devm_arch_phys_wc_add()",
     "devm_ioremap_np()",
-    "keep the `devm_iounmap()` pointer match exact",
+    "keep the `devm_iounmap()` and `devm_ioport_unmap()` pointer matches exact",
     "device-tree walking",
+    "live ioport mappings or broader ioport-helper ownership",
     "live arch memtype reservation or removal side effects",
 ]
 
@@ -38,10 +39,11 @@ SURVEY_MARKERS = [
     "blocked `phase13-devres-live-device-tree-walk`",
     "blocked `phase13-devres-live-arch-memtype-state`",
     "helper-only DMA/scatterlist boundary",
-    "keeps `devm_iounmap()` pointer matching exact",
+    "keeps `devm_iounmap()` and `devm_ioport_unmap()` pointer matching exact",
     "devm_ioremap_uc()",
     "devm_ioremap_wc()",
     "devm_ioremap_np()",
+    "devm_ioport_unmap()",
     "devm_ioremap_resource_wc()",
     "zigux/tests/phase13_devres_boundary_evidence.zig",
 ]
@@ -98,13 +100,16 @@ RELEASE_MARKERS = [
 
 DEVRES_HELPER_MARKERS = [
     "fail_pretty_name_allocation: bool = false,",
+    "provides_ioport_unmap_call_planning = true,",
     "pub fn ioremapReleaseMatches(tracked_address: usize, candidate_address: usize) bool {",
     "return tracked_address == candidate_address;",
+    "pub fn planManagedIoportUnmap(tracked_address: usize, candidate_address: usize) ManagedIoportUnmapPlan {",
     "const reported_size = if (input.report_size) translated_size else null;",
     ".fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
 ]
 
 DEVRES_TEST_MARKERS = [
+    'try std.testing.expect(descriptor.provides_ioport_unmap_call_planning);',
     'test "phase13 devres uncached ioremap wrapper preserves the managed lifetime path" {',
     'test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
     'test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
@@ -257,8 +262,9 @@ def run_self_test() -> int:
             validate(root),
             [
                 "phase13-devres-slice:devm_ioremap_np()",
-                "phase13-devres-slice:keep the `devm_iounmap()` pointer match exact",
+                "phase13-devres-slice:keep the `devm_iounmap()` and `devm_ioport_unmap()` pointer matches exact",
                 "phase13-devres-slice:device-tree walking",
+                "phase13-devres-slice:live ioport mappings or broader ioport-helper ownership",
                 "phase13-devres-slice:live arch memtype reservation or removal side effects",
             ],
             "slice_guard_failed",
@@ -276,10 +282,11 @@ def run_self_test() -> int:
                 "phase13-devres-survey:blocked `phase13-devres-live-device-tree-walk`",
                 "phase13-devres-survey:blocked `phase13-devres-live-arch-memtype-state`",
                 "phase13-devres-survey:helper-only DMA/scatterlist boundary",
-                "phase13-devres-survey:keeps `devm_iounmap()` pointer matching exact",
+                "phase13-devres-survey:keeps `devm_iounmap()` and `devm_ioport_unmap()` pointer matching exact",
                 "phase13-devres-survey:devm_ioremap_uc()",
                 "phase13-devres-survey:devm_ioremap_wc()",
                 "phase13-devres-survey:devm_ioremap_np()",
+                "phase13-devres-survey:devm_ioport_unmap()",
                 "phase13-devres-survey:devm_ioremap_resource_wc()",
                 "phase13-devres-survey:zigux/tests/phase13_devres_boundary_evidence.zig",
             ],
@@ -292,8 +299,10 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                "devres-helper:provides_ioport_unmap_call_planning = true,",
                 "devres-helper:pub fn ioremapReleaseMatches(tracked_address: usize, candidate_address: usize) bool {",
                 "devres-helper:return tracked_address == candidate_address;",
+                "devres-helper:pub fn planManagedIoportUnmap(tracked_address: usize, candidate_address: usize) ManagedIoportUnmapPlan {",
                 "devres-helper:const reported_size = if (input.report_size) translated_size else null;",
                 "devres-helper:.fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
             ],
@@ -331,6 +340,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                "phase13-devres-test:try std.testing.expect(descriptor.provides_ioport_unmap_call_planning);",
                 'phase13-devres-test:test "phase13 devres uncached ioremap wrapper preserves the managed lifetime path" {',
                 'phase13-devres-test:test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
                 'phase13-devres-test:test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
