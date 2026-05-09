@@ -580,6 +580,10 @@ FORBIDDEN_MARKERS = {
         "run: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
         "run: zig build test --build-file zigux/tests/phase7_build.zig",
     ],
+    "zigux/Makefile": [
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig\n",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/build.zig\n",
+    ],
 }
 
 FIXTURE_OVERRIDES = {
