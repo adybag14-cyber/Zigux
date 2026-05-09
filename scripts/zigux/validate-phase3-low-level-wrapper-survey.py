@@ -33,8 +33,8 @@ MMIO_FORBIDDEN_RAW_POINTER_TOKENS = (
     "@ptrFromInt",
 )
 DOC_MMIO_SCOPE = "range-range-interop-policy-byte-read8-write8-read16-write16-read32-write32-read64-write64"
-DOC_LOW_LEVEL_TEST_SCOPE = "focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-byte-scoped-mmio-range-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay"
-DOC_BOUNDARY_GAP = "focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-byte-16-bit-32-bit-and-64-bit-mmio-range-and-barrier-locality-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof"
+DOC_LOW_LEVEL_TEST_SCOPE = "focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-byte-scoped-mmio-range-raw-pointer-bridge-policy-gates-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay"
+DOC_BOUNDARY_GAP = "focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-non-seq-cst-ordering-byte-scoped-mmio-range-raw-pointer-bridge-policy-gates-byte-16-bit-32-bit-and-64-bit-mmio-range-and-barrier-locality-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof"
 
 ABI_MANIFEST_REQUIRED_FILES = (
     "include/zigux/abi.h",
@@ -210,6 +210,8 @@ TOKEN_CHECKS = {
     ),
     LOW_LEVEL_TEST_REL: (
         'test "phase3 low-level wrappers cover the shipped helper surface directly"',
+        'test "phase3 low-level wrappers keep mmio interop policy gates reviewable"',
+        'test "phase3 low-level wrappers keep raw pointer bridge policy gates reviewable"',
         'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable"',
         'test "phase3 low-level wrappers keep barrier locality reviewable"',
         "atomic.fetchAdd(i32, &signed_arithmetic_value, 5, .seq_cst)",
@@ -226,6 +228,8 @@ TOKEN_CHECKS = {
         "const weak_release_mismatch = atomic.compareExchangeWeak(",
         "try std.testing.expectEqual(@as(?u32, 19), weak_release_mismatch);",
         "mmio.rangeInteropPolicyByte(base, 12, 2, @intFromEnum(abi.UnsafeScope.volatile_mmio))",
+        "const scoped_ptr = try narrow.pointerAtInteropPolicy(u32, base, @sizeOf(u32), raw_policy);",
+        "try std.testing.expectError(error.UnsafeScopeDenied, narrow.pointerAtInteropPolicy(u32, base, 0, mmio_policy));",
         "const odd_doubleword: *align(1) const u64 = @ptrCast(&bytes[5]);",
     ),
     ABI_TEST_REL: (
