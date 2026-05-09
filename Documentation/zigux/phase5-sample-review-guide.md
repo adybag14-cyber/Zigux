@@ -145,9 +145,10 @@ Keep out of scope
 1. Start with the sample file and its directly coupled survey note.
 2. If the contract changed, update the manifest and the paired survey test in the same edit.
 3. If the change moves a shared boundary, refresh `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, this guide, and `Documentation/zigux/review-checklist.md` together instead of leaving the packet split across per-sample notes.
-4. If the change touches `kretprobe_example` or `trace_events_sample`, recheck both the sample-local survey note and the shared `phase5_build.zig` route so the current tracing-and-probe packet stays synchronized across the guide, checklist, docs root, sample root, scripts root, and tests root.
-5. Re-run the shared Phase 5 replay route through `zigux/tests/phase5_build.zig`.
-6. Keep the shared packet distinct from the separate Phase 9 runtime starters and loader-side follow-ons.
+4. If the change touches `kretprobe_example`, recheck the sample-local survey note, `zig test samples/zigux/kretprobe_example.zig`, the focused `zigux/tests/phase5_kretprobe_example.zig` boundary replay, and the shared `phase5_build.zig` route so symbol-retarget, lifecycle-guard, and recovery guidance do not drift apart across the note, guide, checklist, and shared packet map.
+5. If the change touches `trace_events_sample`, recheck the sample-local survey note, `zig test --test-no-exec zigux/tests/phase5_trace_events_sample_survey.zig`, and the shared `phase5_build.zig` route so the manifest-backed provenance, callback-boundary, and ownership-replay guidance stay synchronized across the note, guide, checklist, and shared packet map.
+6. Re-run the shared Phase 5 replay route through `zigux/tests/phase5_build.zig`.
+7. Keep the shared packet distinct from the separate Phase 9 runtime starters and loader-side follow-ons.
 
 ## Boundary reminders
 
