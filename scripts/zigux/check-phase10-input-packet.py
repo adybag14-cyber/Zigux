@@ -425,7 +425,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:phase=Phase 10")
     if manifest.get("anchor") != "drivers/virtio/virtio_input.c":
         missing_markers.append("manifest:anchor=drivers/virtio/virtio_input.c")
-    if manifest.get("surveyed_commit") != "7361ac51374149a96b7a7a2c6ea3c995d8cc1231":
+    if manifest.get("surveyed_commit") != "aab20011833191e49e31bcdf2a0fcfcd4c0451d0":
         missing_markers.append("manifest:surveyed_commit")
     if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]:
         missing_markers.append("manifest:roadmap_destinations")
@@ -525,6 +525,8 @@ def run_self_test() -> int:
         if "manifest:virtio_input_c_lines=421" not in missing_markers:
             raise SystemExit("phase10-input-self-test:expected_input_c_lines_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.writeText if False else None
 
         manifest_path.write_text(
             original_manifest.replace('"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "drifted"', 1),
