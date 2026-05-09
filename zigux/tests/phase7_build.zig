@@ -142,6 +142,16 @@ pub fn build(b: *std.Build) void {
     );
     string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step);
 
+    const survey_step = b.step(
+        "phase7-surveys",
+        "Run the dedicated Phase 7 survey and boundary gates",
+    );
+    survey_step.dependOn(&run_string_helpers_survey_tests.step);
+    survey_step.dependOn(&run_string_helpers_sample_boundary_tests.step);
+    survey_step.dependOn(&run_cmdline_survey_tests.step);
+    survey_step.dependOn(&run_argv_split_survey_tests.step);
+    survey_step.dependOn(&run_rbtree_survey_tests.step);
+
     const string_helpers_tests = b.addTest(.{
         .name = "phase7-string-helpers-tests",
         .root_module = string_helpers_root_module,
