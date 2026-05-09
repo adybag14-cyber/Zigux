@@ -110,6 +110,14 @@ REQUIRED_LOW_LEVEL_WRAPPER_SNIPPETS = (
     "const scoped_const_ptr = try narrow.constPointerAtInteropPolicyBytes(u32, third_addr, 2, 0);",
     "try narrow.writeValueAtInteropPolicy(u32, base, 55, raw_policy);",
     "try narrow.writeValueAtInteropPolicyBytes(u32, third_addr, 66, 2, 0);",
+    "try mmio.write8InteropPolicyBytes(base, 1, 0x44, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0);",
+    "try mmio.read8InteropPolicyBytes(base, 1, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0),",
+    "try mmio.write32InteropPolicyByte(base, 4, 0xc001_d00d, @intFromEnum(abi.UnsafeScope.volatile_mmio));",
+    "try mmio.read32InteropPolicyByte(base, 4, @intFromEnum(abi.UnsafeScope.volatile_mmio)),",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8InteropPolicyBytes(base, 1, 1, 1));",
+    "mmio.read32InteropPolicyByte(base, 4, @intFromEnum(abi.UnsafeScope.none)),",
+    "mmio.write32InteropPolicyByte(base, 4, 0, @intFromEnum(abi.UnsafeScope.raw_pointer_bridge)),",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64InteropPolicyBytes(base, 8, 0, 0, 0));",
     "try std.testing.expectError(error.UnsafeScopeDenied, narrow.pointerAtInteropPolicy(u32, base, 0, mmio_policy));",
     "try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAtInteropPolicy(u32, base, values.len, no_unsafe_policy));",
     "try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAtInteropPolicyBytes(u32, third_addr, 2, 1));",
@@ -351,8 +359,34 @@ def run_self_test() -> int:
             in issues
         )
 
+        build_valid_workspace(root)
+        broken_low_level_mmio_positive = (root / LOW_LEVEL_WRAPPER_TEST_REL).read_text(encoding="utf-8").replace(
+            "try mmio.write32InteropPolicyByte(base, 4, 0xc001_d00d, @intFromEnum(abi.UnsafeScope.volatile_mmio));\n",
+            "",
+            1,
+        )
+        write(root / LOW_LEVEL_WRAPPER_TEST_REL, broken_low_level_mmio_positive)
+        issues = validate(root)
+        assert (
+            "missing_low_level_wrapper_snippet:try mmio.write32InteropPolicyByte(base, 4, 0xc001_d00d, @intFromEnum(abi.UnsafeScope.volatile_mmio));"
+            in issues
+        )
+
+        build_valid_workspace(root)
+        broken_low_level_mmio_denial = (root / LOW_LEVEL_WRAPPER_TEST_REL).read_text(encoding="utf-8").replace(
+            "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64InteropPolicyBytes(base, 8, 0, 0, 0));\n",
+            "",
+            1,
+        )
+        write(root / LOW_LEVEL_WRAPPER_TEST_REL, broken_low_level_mmio_denial)
+        issues = validate(root)
+        assert (
+            "missing_low_level_wrapper_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64InteropPolicyBytes(base, 8, 0, 0, 0));"
+            in issues
+        )
+
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=14")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
