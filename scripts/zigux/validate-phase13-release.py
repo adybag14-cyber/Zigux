@@ -42,7 +42,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_libfs_reviewability.zig",
     "zigux/tests/phase13_libfs_manifest.json",
     "zigux/tests/phase13_devres_manifest.json",
-    "zigux/tests/phase13-landlock_ruleset_manifest.json",
+    "zigux/tests/phase13_landlock_ruleset_manifest.json",
     "zigux/tests/phase13_landlock_syscalls_manifest.json",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
