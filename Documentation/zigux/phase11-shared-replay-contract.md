@@ -134,6 +134,8 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `make -C zigux phase11-hvc-survey`
 
+`Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, remove, write-to-hangup, and hangup-disconnect ownership split explicit in one driver-local note.
+
 Repo reality now carries one bounded starter and validation matrix for each Phase 11 simple-production-driver roadmap anchor at starter depth:
 
 - `drivers/watchdog/gpio_wdt.zig`
