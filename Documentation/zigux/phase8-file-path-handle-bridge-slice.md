@@ -1,12 +1,12 @@
 # Phase 8 File-Path Handle Bridge Slice
 
-This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zigux around the procfs fdinfo pathname and text-parsing helpers adjacent to `bpf_get_map_info_from_fdinfo()` in `tools/lib/bpf/libbpf.c`.
+This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zigux around the procfs fdinfo and descriptor pathname helpers plus the adjacent fdinfo text-parsing packet beside `bpf_get_map_info_from_fdinfo()` in `tools/lib/bpf/libbpf.c`.
 
 ## Status
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-file-path-handle-bridge`
-- scope: `"/proc/%d/fdinfo/%d"` assembly plus bounded fdinfo text parsing for `map_type`, `key_size`, `value_size`, `max_entries`, `map_flags`, and `map_extra`, with bounded reuse-pinned-map attempt planning and a planning-only token-preparation gate kept reviewable without performing direct bpffs reopen work or token materialization
+- scope: exact `"/proc/%d/fdinfo/%d"` plus adjacent `"/proc/%d/fd/%d"` assembly, bounded fdinfo text parsing for `map_type`, `key_size`, `value_size`, `max_entries`, `map_flags`, and `map_extra`, with bounded reuse-pinned-map attempt planning and a planning-only token-preparation gate kept reviewable without performing direct bpffs reopen work or token materialization
 - product boundary:
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   - `zigux/tests/phase8_file_path_handle_bridge.zig`
@@ -15,7 +15,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 ## Why this slice exists
 
-The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/bpf/zigux_segments/`, and the current survey packet now treats the bounded fdinfo bridge helper, the helper-only reused-map compatibility packet, and the planning-only token-preparation gate as landed adjacent review surface while keeping the broader bridge follow-through queued.
+The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/bpf/zigux_segments/`, and the current survey packet now treats the bounded file-path-and-fdinfo bridge helper, the helper-only reused-map compatibility packet, and the planning-only token-preparation gate as landed adjacent review surface while keeping the broader bridge follow-through queued.
 
 `bpf_get_map_info_from_fdinfo()` stayed the right starter because it keeps the landed work inside reviewable path formatting, fdinfo text parsing, helper-only reused-map compatibility checks, planning-only reuse gating, and planning-only token-preparation gating without widening into direct procfs reads, pinned-map reopen flow, or object-loader state.
 
@@ -45,7 +45,7 @@ The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/
 
 The current bounded helper covers:
 
-- exact `"/proc/%d/fdinfo/%d"` pathname assembly for a caller-provided pid and fd
+- exact `"/proc/%d/fdinfo/%d"` and `"/proc/%d/fd/%d"` pathname assembly for a caller-provided pid and fd
 - bounded line splitting for libbpf-style `field:\tvalue` fdinfo text
 - numeric parsing for `map_type`, `key_size`, `value_size`, `max_entries`, `map_flags`, and `map_extra`
 - `map_flags` parsing that keeps decimal, octal, and hex prefixes explicit
@@ -58,7 +58,7 @@ The current bounded helper covers:
 
 The current tests check:
 
-- valid procfs fdinfo path rendering
+- valid procfs fdinfo and descriptor path rendering
 - explicit invalid pid, invalid fd, and path overflow failures
 - trimmed field-name and field-value parsing
 - complete five-field legacy fdinfo parsing with ignored unrelated lines
@@ -84,4 +84,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Park `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` unless fresh repo review finds another tiny reuse-planning or docs-truthfulness gap inside this same helper packet; if the lane reopens, keep the shared `make -C zigux phase8-validate` route aligned with this fdinfo-plus-planning surface and keep the next step smaller than actual token materialization, procfs reads, bpffs opens, `bpf_obj_get()` reopen flow, fd duplication, or broader object-model work.
+Park `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` unless fresh repo review finds another tiny reuse-planning or docs-truthfulness gap inside this same helper packet; if the lane reopens, keep the shared `make -C zigux phase8-validate` route aligned with this file-path-plus-fdinfo planning surface and keep the next step smaller than actual token materialization, procfs reads, bpffs opens, `bpf_obj_get()` reopen flow, fd duplication, or broader object-model work.
