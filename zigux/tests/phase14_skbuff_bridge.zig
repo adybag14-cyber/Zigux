@@ -66,7 +66,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L11", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.anchor);
     try std.testing.expectEqualStrings("4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7", manifest.surveyed_commit);
@@ -361,7 +361,7 @@ test "phase14 skbuff bridge notes and code agree the live ownership blocker is n
     try std.testing.expect(std.mem.indexOf(
         u8,
         survey_note,
-        "PHASE14_LANE_KEY=P14-L09",
+        "PHASE14_LANE_KEY=P14-L11",
     ) != null);
     try std.testing.expect(std.mem.indexOf(
         u8,
