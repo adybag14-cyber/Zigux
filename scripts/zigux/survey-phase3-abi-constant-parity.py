@@ -14,7 +14,7 @@ DEFAULT_BINDINGS = ROOT / "zigux" / "bindings" / "abi.zig"
 DEFAULT_DUMP = ROOT / "zigux" / "tests" / "phase3_abi_dump.zig"
 DEFAULT_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3_abi_c_harness.c"
 DEFAULT_EXPECTED = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
-PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 6
+PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 8
 
 BASELINE_CONSTANTS = (
     ("ZIGUX_FACILITY_KERNEL", "FACILITY_KERNEL", "facility_kernel", 1),
@@ -54,6 +54,32 @@ def parse_binding_constants(path: Path) -> dict[str, int]:
     return constants
 
 
+def collect_duplicate_header_constants(path: Path) -> list[str]:
+    seen: dict[str, list[int]] = {}
+    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        match = HEADER_DEFINE_RE.match(line.strip())
+        if match:
+            seen.setdefault(match.group("name"), []).append(line_no)
+    issues: list[str] = []
+    for name, lines in seen.items():
+        if len(lines) > 1:
+            issues.append(f"{path}:duplicate_header_constant:{name}:{','.join(str(line) for line in lines)}")
+    return issues
+
+
+def collect_duplicate_binding_constants(path: Path) -> list[str]:
+    seen: dict[str, list[int]] = {}
+    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        match = BINDING_CONST_RE.match(line.strip())
+        if match:
+            seen.setdefault(match.group("name"), []).append(line_no)
+    issues: list[str] = []
+    for name, lines in seen.items():
+        if len(lines) > 1:
+            issues.append(f"{path}:duplicate_binding_constant:{name}:{','.join(str(line) for line in lines)}")
+    return issues
+
+
 def validate_constant_parity(
     header_path: Path,
     bindings_path: Path,
@@ -61,7 +87,7 @@ def validate_constant_parity(
     harness_path: Path,
     expected_path: Path,
 ) -> list[str]:
-    issues: list[str] = []
+    issues = [*collect_duplicate_header_constants(header_path), *collect_duplicate_binding_constants(bindings_path)]
     header_constants = parse_header_constants(header_path)
     binding_constants = parse_binding_constants(bindings_path)
     dump_source = dump_path.read_text(encoding="utf-8")
@@ -188,6 +214,45 @@ def run_self_test() -> int:
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
         assert f"{expected}:wrong_expected_value:facility_kernel:7" in issues
         assert f"{expected}:missing_expected_key:status_flag_error" in issues
+        case_count += 1
+
+        reset_all()
+        header.write_text(
+            "\n".join(
+                [
+                    f"#define {BASELINE_CONSTANTS[0][0]} {BASELINE_CONSTANTS[0][3]}U",
+                    f"#define {BASELINE_CONSTANTS[0][0]} {BASELINE_CONSTANTS[0][3]}U",
+                    *[
+                        f"#define {header_name} {value}U"
+                        for header_name, _, _, value in BASELINE_CONSTANTS[1:]
+                    ],
+                ]
+            ) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        assert f"{header}:duplicate_header_constant:{BASELINE_CONSTANTS[0][0]}:1,2" in issues
+        case_count += 1
+
+        reset_all()
+        bindings.write_text(
+            "\n".join(
+                [
+                    f"pub const {BASELINE_CONSTANTS[0][1]}: u32 = {BASELINE_CONSTANTS[0][3]};",
+                    f"pub const {BASELINE_CONSTANTS[0][1]}: u32 = {BASELINE_CONSTANTS[0][3]};",
+                    *[
+                        f"pub const {binding_name}: u32 = {value};"
+                        for _, binding_name, _, value in BASELINE_CONSTANTS[1:]
+                    ],
+                    *[f"pub const {binding_name}: u32 = 1;" for binding_name in REQUIRED_BINDING_MARKERS],
+                ]
+            ) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constant_parity(header, bindings, dump, harness, expected)
+        assert f"{bindings}:duplicate_binding_constant:{BASELINE_CONSTANTS[0][1]}:1,2" in issues
         case_count += 1
 
     print("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass")
