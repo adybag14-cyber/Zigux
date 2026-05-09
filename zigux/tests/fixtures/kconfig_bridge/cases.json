@@ -101,6 +101,7 @@
       "kconfig": "Kconfig",
       "config": "out/help.config",
       "arch": "riscv64",
+      "silent": true,
       "expected": "helpnewconfig_expected.json"
     },
     {
