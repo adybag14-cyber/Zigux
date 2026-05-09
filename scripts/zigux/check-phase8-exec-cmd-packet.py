@@ -35,7 +35,7 @@ EXACT_ONCE_SECTION_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": [
         {
             "start": "      - name: Validate Phase 8 tooling packet\n",
-            "end": "      - name: Run focused Phase 8 help and kallsyms tests\n",
+            "end": "      - name: Run focused Phase 8 help tests\n",
             "needle": "      - name: Run focused Phase 8 exec-cmd tests\n",
         },
     ],
@@ -104,7 +104,7 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-validate",
         "Run focused Phase 8 exec-cmd tests",
         "make -C zigux phase8-exec-cmd-test",
-        "Run focused Phase 8 help and kallsyms tests",
+        "Run focused Phase 8 help tests",
         "Run Phase 8 tooling tests",
     ],
     "zigux/tests/phase8_build.zig": [
@@ -172,13 +172,11 @@ def collect_exact_section_errors(root: Path) -> list[str]:
             if start == -1:
                 errors.append(f"{rel}: missing_section_start:{spec['start'].strip()}")
                 continue
-
             section_start = start + len(spec["start"])
             end = text.find(spec["end"], section_start)
             if end == -1:
                 errors.append(f"{rel}: missing_section_end:{spec['end'].strip()}")
                 continue
-
             section = text[section_start:end]
             if section.count(spec["needle"]) != 1:
                 errors.append(
@@ -219,6 +217,15 @@ def build_workflow_fixture() -> str:
             "Run focused Phase 8 exec-cmd tests",
             "      - name: Run focused Phase 8 exec-cmd tests",
             "        run: make -C zigux phase8-exec-cmd-test",
+            "Run focused Phase 8 help tests",
+            "      - name: Run focused Phase 8 help tests",
+            "        run: make -C zigux phase8-help-test",
+            "Run focused Phase 8 kallsyms tests",
+            "      - name: Run focused Phase 8 kallsyms tests",
+            "        run: make -C zigux phase8-kallsyms-test",
+            "Run focused Phase 8 cpu-mask tests",
+            "      - name: Run focused Phase 8 cpu-mask tests",
+            "        run: make -C zigux phase8-cpu-mask-test",
             "Run focused Phase 8 help and kallsyms tests",
             "      - name: Run focused Phase 8 help and kallsyms tests",
             "Run Phase 8 tooling tests",
@@ -233,14 +240,18 @@ FIXTURE_OVERRIDES = {
 
 
 def write_fixture_root(tmp_root: Path) -> None:
-    for rel, markers in REQUIRED_MARKERS.items():
+    for rel in REQUIRED_FILES:
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         override = FIXTURE_OVERRIDES.get(rel)
         if override is not None:
             path.write_text(override, encoding="utf-8")
             continue
-        path.write_text("\n".join(markers) + "\n", encoding="utf-8")
+        path.write_text("\n".join(REQUIRED_MARKERS[rel]) + "\n", encoding="utf-8")
+
+
+def assert_valid(case: str, tmp_root: Path) -> None:
+    assert validate(tmp_root) == ([], []), case
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -249,10 +260,10 @@ def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
     assert missing_files == [rel], case
 
 
-def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
+def expect_marker_error(case: str, tmp_root: Path, expected: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
-    assert marker in missing_markers, case
+    assert missing_markers == [expected], case
 
 
 def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None:
@@ -264,350 +275,76 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 
 
 def run_self_test() -> None:
-    missing_file_cases = [
-        ("missing_slice", "Documentation/zigux/phase8-exec-cmd-slice.md"),
-        ("missing_docs_root", "Documentation/zigux/README.md"),
-        ("missing_checklist", "Documentation/zigux/review-checklist.md"),
-        ("missing_scripts_readme", "scripts/zigux/README.md"),
-        ("missing_tests_readme", "zigux/tests/README.md"),
-        ("missing_makefile", "zigux/Makefile"),
-        ("missing_workflow", ".github/workflows/zigux-bootstrap.yml"),
-        ("missing_phase8_build", "zigux/tests/phase8_build.zig"),
-        ("missing_exec_cmd_test", "zigux/tests/phase8_exec_cmd.zig"),
-        ("missing_exec_cmd_only_build", "zigux/tests/phase8_exec_cmd_only_build.zig"),
-        ("missing_exec_cmd_helper", "tools/lib/subcmd/exec-cmd.zig"),
-        ("missing_exec_cmd_c_anchor", "tools/lib/subcmd/exec-cmd.c"),
-    ]
+    with tempfile.TemporaryDirectory(prefix="zigux_phase8_exec_cmd_packet_") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        write_fixture_root(tmp_root)
+        assert_valid("baseline", tmp_root)
 
-    marker_cases = [
-        (
-            "slice_marker",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
-            "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
-            "PHASE8_SLICE=exec-cmd-drift",
-            "Documentation/zigux/phase8-exec-cmd-slice.md: PHASE8_SLICE=exec-cmd-deferred-exec-packet",
-        ),
-        (
-            "slice_roadmap_posture",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
-            "prove Zigux inside serious repo-hosted tooling, not just tiny helpers",
-            "prove Zigux inside starter tooling",
-            "Documentation/zigux/phase8-exec-cmd-slice.md: prove Zigux inside serious repo-hosted tooling, not just tiny helpers",
-        ),
-        (
-            "slice_output_stability",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
-            "output-stable tooling behavior",
-            "output-stable deferred-exec behavior",
-            "Documentation/zigux/phase8-exec-cmd-slice.md: output-stable tooling behavior",
-        ),
-        (
-            "slice_helper_test_gate",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
-            "zig test tools/lib/subcmd/exec-cmd.zig",
-            "zig test tools/lib/subcmd/exec_cmd.zig",
-            "Documentation/zigux/phase8-exec-cmd-slice.md: zig test tools/lib/subcmd/exec-cmd.zig",
-        ),
-        (
-            "slice_execl_boundary",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
-            "stops before any ownership of `execl_cmd()`",
-            "stops before any ownership of `execl_launch()`",
-            "Documentation/zigux/phase8-exec-cmd-slice.md: stops before any ownership of `execl_cmd()`",
-        ),
-        (
-            "slice_planner_packet",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
-            "integrated `planDeferredExecvCall()` plus `planDeferredExeclCall()` planner packet",
-            "integrated deferred planner packet",
-            "Documentation/zigux/phase8-exec-cmd-slice.md: integrated `planDeferredExecvCall()` plus `planDeferredExeclCall()` planner packet",
-        ),
-        (
-            "slice_focused_build_gate",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
-            "zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
-            "zig build test --build-file zigux/tests/phase8_exec_cmd_build.zig --summary all",
-            "Documentation/zigux/phase8-exec-cmd-slice.md: zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
-        ),
-        (
-            "slice_focused_make_gate",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
+        (tmp_root / "zigux/tests/phase8_exec_cmd_only_build.zig").unlink()
+        expect_missing_file(
+            "missing_exec_cmd_only_build",
+            tmp_root,
+            "zigux/tests/phase8_exec_cmd_only_build.zig",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "Documentation/zigux/README.md",
             "make -C zigux phase8-exec-cmd-test",
             "make -C zigux phase8-exec-test",
-            "Documentation/zigux/phase8-exec-cmd-slice.md: make -C zigux phase8-exec-cmd-test",
-        ),
-        (
-            "slice_shared_build_gate",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
-            "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
-            "zig build test --build-file zigux/tests/phase8_exec_build.zig --summary all",
-            "Documentation/zigux/phase8-exec-cmd-slice.md: zig build test --build-file zigux/tests/phase8_build.zig --summary all",
-        ),
-        (
-            "docs_root_slice_note",
-            "Documentation/zigux/README.md",
-            "Documentation/zigux/phase8-exec-cmd-slice.md",
-            "Documentation/zigux/phase8-exec-cmd-note.md",
-            "Documentation/zigux/README.md: Documentation/zigux/phase8-exec-cmd-slice.md",
-        ),
-        (
-            "docs_root_focused_replay",
-            "Documentation/zigux/README.md",
-            "zigux/tests/phase8_exec_cmd.zig",
-            "zigux/tests/phase8_exec_cmd_note.zig",
-            "Documentation/zigux/README.md: zigux/tests/phase8_exec_cmd.zig",
-        ),
-        (
-            "docs_root_focused_build",
-            "Documentation/zigux/README.md",
-            "zigux/tests/phase8_exec_cmd_only_build.zig",
-            "zigux/tests/phase8_exec_cmd_build.zig",
-            "Documentation/zigux/README.md: zigux/tests/phase8_exec_cmd_only_build.zig",
-        ),
-        (
             "docs_root_make_route",
-            "Documentation/zigux/README.md",
-            "make -C zigux phase8-exec-cmd-test",
-            "make -C zigux phase8-exec-test",
+        )
+        expect_marker_error(
+            "docs_root_make_route",
+            tmp_root,
             "Documentation/zigux/README.md: make -C zigux phase8-exec-cmd-test",
-        ),
-        (
-            "docs_root_validate_route",
-            "Documentation/zigux/README.md",
-            "make -C zigux phase8-validate",
-            "make -C zigux phase8-test",
-            "Documentation/zigux/README.md: make -C zigux phase8-validate",
-        ),
-        (
-            "scripts_readme_phase8_flow",
-            "scripts/zigux/README.md",
-            "Phase 8 flow",
-            "Phase 8 route",
-            "scripts/zigux/README.md: Phase 8 flow",
-        ),
-        (
-            "scripts_readme_checker",
-            "scripts/zigux/README.md",
-            "scripts/zigux/check-phase8-exec-cmd-packet.py",
-            "scripts/zigux/check-phase8-exec-cmd-gate.py",
-            "scripts/zigux/README.md: scripts/zigux/check-phase8-exec-cmd-packet.py",
-        ),
-        (
-            "scripts_readme_focused_build",
-            "scripts/zigux/README.md",
-            "zigux/tests/phase8_exec_cmd_only_build.zig",
-            "zigux/tests/phase8_exec_cmd_build.zig",
-            "scripts/zigux/README.md: zigux/tests/phase8_exec_cmd_only_build.zig",
-        ),
-        (
-            "scripts_readme_make_route",
-            "scripts/zigux/README.md",
-            "make -C zigux phase8-exec-cmd-test",
-            "make -C zigux phase8-exec-test",
-            "scripts/zigux/README.md: make -C zigux phase8-exec-cmd-test",
-        ),
-        (
-            "tests_readme_phase8_flow",
-            "zigux/tests/README.md",
-            "Phase 8 flow",
-            "Phase 8 route",
-            "zigux/tests/README.md: Phase 8 flow",
-        ),
-        (
-            "tests_readme_make_route",
-            "zigux/tests/README.md",
-            "`make -C zigux phase8-exec-cmd-test`",
-            "`make -C zigux phase8-exec-test`",
-            "zigux/tests/README.md: `make -C zigux phase8-exec-cmd-test`",
-        ),
-        (
-            "tests_readme_exec_cmd_exact_once_duplicate",
-            "zigux/tests/README.md",
-            "  * `zigux/tests/phase8_exec_cmd_only_build.zig`\n",
-            "  * `zigux/tests/phase8_exec_cmd_only_build.zig`\n  * `zigux/tests/phase8_exec_cmd_only_build.zig`\n",
-            "zigux/tests/README.md: exact_once_section_marker:  * `zigux/tests/phase8_exec_cmd_only_build.zig`",
-        ),
-        (
-            "makefile_route",
-            "zigux/Makefile",
-            "scripts/zigux/check-phase8-exec-cmd-packet.py --self-test",
-            "scripts/zigux/check-phase8-exec-cmd-gate.py --self-test",
-            "zigux/Makefile: scripts/zigux/check-phase8-exec-cmd-packet.py --self-test",
-        ),
-        (
-            "makefile_target",
-            "zigux/Makefile",
-            "phase8-exec-cmd-test:",
-            "phase8-exec-test:",
-            "zigux/Makefile: phase8-exec-cmd-test:",
-        ),
-        (
-            "makefile_command",
-            "zigux/Makefile",
-            "$(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
-            "$(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_build.zig --summary all",
-            "zigux/Makefile: $(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
-        ),
-        (
-            "checklist_focused_build_shard",
-            "Documentation/zigux/review-checklist.md",
-            "`zigux/tests/phase8_exec_cmd_only_build.zig`",
-            "`zigux/tests/phase8_exec_cmd_build.zig`",
-            "Documentation/zigux/review-checklist.md: `zigux/tests/phase8_exec_cmd_only_build.zig`",
-        ),
-        (
-            "checklist_boundary",
-            "Documentation/zigux/review-checklist.md",
-            "separate `kernel/workqueue.c` Phase 14 boundary-study target",
-            "separate `kernel/workqueue.c` freeze boundary",
-            "Documentation/zigux/review-checklist.md: separate `kernel/workqueue.c` Phase 14 boundary-study target",
-        ),
-        (
-            "workflow_step_name",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             ".github/workflows/zigux-bootstrap.yml",
-            "Run focused Phase 8 exec-cmd tests",
-            "Run focused Phase 8 exec tests",
-            ".github/workflows/zigux-bootstrap.yml: Run focused Phase 8 exec-cmd tests",
-        ),
-        (
-            "workflow_make_route",
-            ".github/workflows/zigux-bootstrap.yml",
-            "make -C zigux phase8-exec-cmd-test",
-            "make -C zigux phase8-exec-test",
-            ".github/workflows/zigux-bootstrap.yml: make -C zigux phase8-exec-cmd-test",
-        ),
-        (
-            "workflow_exec_cmd_exact_once_duplicate",
+            "      - name: Run focused Phase 8 exec-cmd tests\n        run: make -C zigux phase8-exec-cmd-test\nRun focused Phase 8 help tests\n      - name: Run focused Phase 8 help tests\n",
+            "Run focused Phase 8 help tests\n      - name: Run focused Phase 8 help tests\n      - name: Run focused Phase 8 exec-cmd tests\n        run: make -C zigux phase8-exec-cmd-test\n",
+            "workflow_exec_cmd_moved_after_help",
+        )
+        expect_marker_error(
+            "workflow_exec_cmd_moved_after_help",
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml: exact_once_section_marker:      - name: Run focused Phase 8 exec-cmd tests",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             ".github/workflows/zigux-bootstrap.yml",
             "      - name: Run focused Phase 8 exec-cmd tests\n",
             "      - name: Run focused Phase 8 exec-cmd tests\n      - name: Run focused Phase 8 exec-cmd tests\n",
+            "workflow_exec_cmd_duplicate",
+        )
+        expect_marker_error(
+            "workflow_exec_cmd_duplicate",
+            tmp_root,
             ".github/workflows/zigux-bootstrap.yml: exact_once_section_marker:      - name: Run focused Phase 8 exec-cmd tests",
-        ),
-        (
-            "shared_build_source",
-            "zigux/tests/phase8_build.zig",
-            "\"phase8_exec_cmd.zig\"",
-            "\"phase8_exec_cmd_drift.zig\"",
-            "zigux/tests/phase8_build.zig: \"phase8_exec_cmd.zig\"",
-        ),
-        (
-            "shared_build_test_name",
-            "zigux/tests/phase8_build.zig",
-            "phase8-exec-cmd-tests",
-            "phase8-exec-tests",
-            "zigux/tests/phase8_build.zig: phase8-exec-cmd-tests",
-        ),
-        (
-            "focused_test_roadmap_posture",
-            "zigux/tests/phase8_exec_cmd.zig",
-            "prove Zigux inside serious repo-hosted tooling, not just tiny helpers",
-            "prove Zigux inside starter tooling",
-            "zigux/tests/phase8_exec_cmd.zig: prove Zigux inside serious repo-hosted tooling, not just tiny helpers",
-        ),
-        (
-            "focused_test_guard",
-            "zigux/tests/phase8_exec_cmd.zig",
-            "shared Phase 8 validator-first route",
-            "shared Phase 8 tooling route",
-            "zigux/tests/phase8_exec_cmd.zig: shared Phase 8 validator-first route",
-        ),
-        (
-            "focused_test_integrated_packet",
-            "zigux/tests/phase8_exec_cmd.zig",
-            "focused Phase 8 replay keeps the integrated deferred-exec packet reviewable",
-            "focused Phase 8 replay keeps the deferred-exec packet reviewable",
-            "zigux/tests/phase8_exec_cmd.zig: focused Phase 8 replay keeps the integrated deferred-exec packet reviewable",
-        ),
-        (
-            "focused_test_c_anchor_boundary",
-            "zigux/tests/phase8_exec_cmd.zig",
-            "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors",
-            "phase 8 exec-cmd deferred boundary note still matches the live helper packet",
-            "zigux/tests/phase8_exec_cmd.zig: phase 8 exec-cmd deferred boundary note still matches the live C helper anchors",
-        ),
-        (
-            "focused_build_root",
-            "zigux/tests/phase8_exec_cmd_only_build.zig",
-            "\"phase8_exec_cmd.zig\"",
-            "\"phase8_exec_cmd_drift.zig\"",
-            "zigux/tests/phase8_exec_cmd_only_build.zig: \"phase8_exec_cmd.zig\"",
-        ),
-        (
-            "focused_build_name",
-            "zigux/tests/phase8_exec_cmd_only_build.zig",
-            "phase8-exec-cmd-tests",
-            "phase8-exec-tests",
-            "zigux/tests/phase8_exec_cmd_only_build.zig: phase8-exec-cmd-tests",
-        ),
-        (
-            "helper_deferred_execv",
-            "tools/lib/subcmd/exec-cmd.zig",
-            "pub fn buildDeferredExecvCall",
-            "pub fn buildDeferredExecCall",
-            "tools/lib/subcmd/exec-cmd.zig: pub fn buildDeferredExecvCall",
-        ),
-        (
-            "helper_planned_execv_with_pwd",
-            "tools/lib/subcmd/exec-cmd.zig",
-            "pub fn planDeferredExecvCallWithPwd",
-            "pub fn planDeferredExecCallWithPwd",
-            "tools/lib/subcmd/exec-cmd.zig: pub fn planDeferredExecvCallWithPwd",
-        ),
-        (
-            "helper_planned_execl_with_pwd",
+        )
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
             "tools/lib/subcmd/exec-cmd.zig",
             "pub fn planDeferredExeclCallWithPwd",
             "pub fn planDeferredExecLineCallWithPwd",
+            "helper_export",
+        )
+        expect_marker_error(
+            "helper_export",
+            tmp_root,
             "tools/lib/subcmd/exec-cmd.zig: pub fn planDeferredExeclCallWithPwd",
-        ),
-        (
-            "helper_pwd_alias",
-            "tools/lib/subcmd/exec-cmd.zig",
-            "pub fn choosePwdCwdFromFilesystem",
-            "pub fn choosePwdCwdFromStat",
-            "tools/lib/subcmd/exec-cmd.zig: pub fn choosePwdCwdFromFilesystem",
-        ),
-        (
-            "c_anchor_get_pwd_cwd",
-            "tools/lib/subcmd/exec-cmd.c",
-            "static const char *get_pwd_cwd",
-            "static const char *get_path_cwd",
-            "tools/lib/subcmd/exec-cmd.c: static const char *get_pwd_cwd",
-        ),
-        (
-            "c_anchor_execl_cmd",
-            "tools/lib/subcmd/exec-cmd.c",
-            "int execl_cmd",
-            "int exec_launch_cmd",
-            "tools/lib/subcmd/exec-cmd.c: int execl_cmd",
-        ),
-    ]
-
-    with tempfile.TemporaryDirectory(prefix="zigux_phase8_exec_cmd_packet_") as tmp_dir_str:
-        tmp_root = Path(tmp_dir_str)
-        write_fixture_root(tmp_root)
-        assert validate(tmp_root) == ([], [])
-
-        for case, rel in missing_file_cases:
-            (tmp_root / rel).unlink()
-            expect_missing_file(case, tmp_root, rel)
-            write_fixture_root(tmp_root)
-
-        for case, rel, old, new, expected in marker_cases:
-            mutate_file(tmp_root, rel, old, new, case)
-            if "exact_once_section_marker" in expected:
-                missing_files, missing_markers = validate(tmp_root)
-                assert missing_files == [], case
-                assert missing_markers == [expected], case
-            else:
-                expect_missing_marker(case, tmp_root, expected)
-            write_fixture_root(tmp_root)
+        )
 
     print("PHASE8_EXEC_CMD_PACKET_SELF_TEST=pass")
-    print(
-        "PHASE8_EXEC_CMD_PACKET_SELF_TEST_CASE_COUNT="
-        f"{len(missing_file_cases) + len(marker_cases)}"
-    )
+    print("PHASE8_EXEC_CMD_PACKET_SELF_TEST_CASE_COUNT=6")
 
 
 def main() -> int:
