@@ -59,7 +59,7 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 ## Current Verification Evidence
 
 - checked on: `2026-05-09`
-- latest visible public `master` head on the GitHub commits page: `c11221dc7a68d7511ae1c69d64b3f08528287ed8` (`test(zigux): harden phase2 cross selftest coverage`)
+- latest visible public `master` head checked before this catalog refresh: `c11221dc7a68d7511ae1c69d64b3f08528287ed8` (`test(zigux): harden phase2 cross selftest coverage`)
 - `PHASE12_TREE_VIEW_COUNT=18`
 - `PHASE12_RAW_VIEW_COUNT=18`
 - `PHASE12_VERIFIED_FILE_COUNT=18`
