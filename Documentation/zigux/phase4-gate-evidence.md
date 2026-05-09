@@ -6,23 +6,23 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
-- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=b317ef756a9aa98f190f663806b9721ee7f22731`
-- `PHASE4_VALIDATOR_BLOB_SHA=2ed1a2e7be2e9066f6d0e09ab59d3b2f95047679`
-- `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=225337a74b6c80eecaf34b3a3325576a5cf6acf5`
+- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=bebc806d351b204ef49241ddbb244b4bdfbd6606`
+- `PHASE4_VALIDATOR_BLOB_SHA=b03d10e18821c2a239c39906f81943e73f7fb306`
+- `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=eb5df7fd198f41845a95a1a6ab093bf8ac21dee0`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=b18cde58722cbb8bc7028575dcabd00f20eb9ba7`
 - `PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`
-- `PHASE4_MAKEFILE_BLOB_SHA=204ccb1d2390c0ba77db41699de11ce263d89350`
-- `PHASE4_WORKFLOW_BLOB_SHA=6b48c60d9fb83eb2281b73130d0f8e3c3a86bc63`
-- `PHASE4_DOC_README_BLOB_SHA=da163dcc382f127d8ad444ee1970dab72b67948c`
-- `PHASE4_SCRIPT_README_BLOB_SHA=aa3966ee1d2a28f678bb3a48bb43ca8cf90b97b6`
-- `PHASE4_TESTS_README_BLOB_SHA=1ae928237f33e777a00be03bb6b6187b9cad74b1`
+- `PHASE4_MAKEFILE_BLOB_SHA=528a0880037ef02e3c9cb52067fcb87d6eb2ff45`
+- `PHASE4_WORKFLOW_BLOB_SHA=88d4e9a5c8fbb71873e0886f52f3f932e369fed4`
+- `PHASE4_DOC_README_BLOB_SHA=83fdb88b39510390329e65451a5a086a27160f5e`
+- `PHASE4_SCRIPT_README_BLOB_SHA=99260a5df20d5cc22802bf1c4a0fd3c4187eb50d`
+- `PHASE4_TESTS_README_BLOB_SHA=39bd1615781674e6a9d3a5db85b40802d79de3fe`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=eb977733f62468925a07cbb75899bed0ed63551a`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=b52320323e1e6718245621253d11293d5cae03da`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=24418ad890696a59b95276fe8dec7eaeecf25172`
-- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=34a32caa2673f2e0226a54d444279fc5118f1370`
-- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=bd17c271cd970cb779c0cc99abb3b83b683898e9`
-- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=b6614791be217ec6c8a22ca12a09827766f72b22`
+- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=ac6266c43e4ec549497152987294f3a50f40393f`
+- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=18f42f6fe921993a0122656ced35be39e6355b18`
+- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=4de871b5b7991bf0bdc64c744b1a7118c76356e8`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=18`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift,missing_exact_readback_heading,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift,phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift,gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift,shared_validator_reruns_gate_evidence_self_test_drift,shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift,bitmap_diff_survey_replay_marker_drift,kprobe_gap_packet_presence_drift,perf_baseline_packet_presence_drift,test_fsmount_gap_packet_presence_drift,missing_note_file`
@@ -49,7 +49,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - The broader shared build and Makefile surface also still carries `make -C zigux phase4-bitmap-diff-survey` plus `zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig`, so the bitmap survey packet remains reviewable beside the helper-backed replay without widening the lane into perf-threshold approval.
 - The parked kprobe gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now stays explicit in this shared gate-evidence note as adjacent parked evidence only, its Linux replay remains `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`, and the shared gate-evidence note now keeps that adjacent parked packet explicit without claiming a shipped Zig starter while `samples/zigux/kprobe_example.zig` remains absent on current `master`.
 - The dedicated parked `test_fsmount` gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig` now also stays under the dedicated exact-readback checker, its Linux replay remains `make M=samples/vfs`, and the shared validator route now picks that same parked packet up through `scripts/zigux/check-phase4-gate-evidence.py` while `samples/zigux/test_fsmount.zig` remains absent on current `master`.
-- The shipped local perf-baseline survey packet is intentionally separate from that shared exact-readback set: it now keeps the approved local-only command-and-limit evidence for both rollback gates machine-checked without turning the Phase 4 validator or CI path into a shared perf-approval claim.
+- The shipped local perf-baseline survey packet is intentionally separate from that shared exact-readback set: it exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.
 
 ## Current Conclusion
 - shared perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.
