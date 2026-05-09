@@ -24,9 +24,11 @@ def main() -> int:
     parser.add_argument(
         "--self-test",
         action="store_true",
-        help="Compatibility flag for callers that already invoke this wrapper explicitly in self-test mode.",
+        help="Required compatibility flag for callers that invoke this wrapper as a self-test route.",
     )
-    parser.parse_args()
+    args = parser.parse_args()
+    if not args.self_test:
+        parser.error("expected --self-test")
     return run_catalog_self_test()
 
 
