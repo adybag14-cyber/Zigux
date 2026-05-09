@@ -217,6 +217,21 @@ pub const RecoveryReplaySummary = struct {
     last_admin_queue_depth: u16,
 };
 
+pub const RecoveryTransportPreflightSummary = struct {
+    anchor: []const u8,
+    state: RecoveryState,
+    reset_generation: u32,
+    descriptor_rebuild_required: bool,
+    descriptor_rebuild_dma_bytes: u32,
+    descriptor_rebuild_pages: u16,
+    queue_reservation_replay_required: bool,
+    reserved_io_queues_to_renegotiate: usize,
+    io_queues_must_be_rebuilt: bool,
+    io_queues_dropped_by_reset: usize,
+    next_io_queue_id: u16,
+    last_admin_queue_depth: u16,
+};
+
 pub const NvmePciQueueLab = struct {
     const Self = @This();
 
@@ -641,6 +656,42 @@ pub const NvmePciQueueLab = struct {
         };
     }
 
+    pub fn planRecoveryTransportPreflight(
+        self: *const Self,
+        request: RecoveryReplayRequest,
+    ) !RecoveryTransportPreflightSummary {
+        if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
+
+        const replay = self.summarizeRecoveryReplay(request);
+        if (replay.admin_queue_must_be_replanned) return error.AdminQueueReplayRequired;
+        if (!replay.descriptor_rebuild_required and
+            !replay.queue_reservation_replay_required and
+            !replay.io_queues_must_be_rebuilt)
+        {
+            return error.NoRecoveryTransportPreflightNeeded;
+        }
+
+        const descriptor_rebuild_pages: u16 = if (replay.descriptor_rebuild_required)
+            try checkedDivCeilU16(replay.descriptor_rebuild_dma_bytes, self.page_size)
+        else
+            0;
+
+        return .{
+            .anchor = replay.anchor,
+            .state = replay.state,
+            .reset_generation = replay.reset_generation,
+            .descriptor_rebuild_required = replay.descriptor_rebuild_required,
+            .descriptor_rebuild_dma_bytes = replay.descriptor_rebuild_dma_bytes,
+            .descriptor_rebuild_pages = descriptor_rebuild_pages,
+            .queue_reservation_replay_required = replay.queue_reservation_replay_required,
+            .reserved_io_queues_to_renegotiate = replay.reserved_io_queues_to_renegotiate,
+            .io_queues_must_be_rebuilt = replay.io_queues_must_be_rebuilt,
+            .io_queues_dropped_by_reset = replay.io_queues_dropped_by_reset,
+            .next_io_queue_id = replay.next_io_queue_id,
+            .last_admin_queue_depth = replay.last_admin_queue_depth,
+        };
+    }
+
     fn planQueue(
         self: *const Self,
         role: QueueRole,
@@ -831,4 +882,74 @@ test "nvme pci recovery backlog retirement preflight rejects empty missing and o
     try std.testing.expectError(error.InvalidRecoveredIoQueueCount, lab.planRecoveryBacklogRetirement(0));
     try std.testing.expectError(error.RebuiltIoQueuesExceedBacklog, lab.planRecoveryBacklogRetirement(3));
     try std.testing.expectError(error.RebuiltIoQueuesExceedPlanned, lab.planRecoveryBacklogRetirement(2));
+}
+
+test "nvme pci recovery transport preflight waits for admin replay and reports descriptor pages" {
+    var lab = try NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    const reservation = try lab.reserveIoQueues(8, 6);
+    const metadata = try lab.planPrpMetadata(4096 * 515, 0);
+    try std.testing.expect(metadata.requires_descriptor_rebuild_after_reset);
+    try std.testing.expectEqual(@as(u32, 8192), metadata.metadata_dma_bytes);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    const request: RecoveryReplayRequest = .{
+        .cached_prp_metadata_generation = metadata.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_descriptor_dma_bytes = metadata.metadata_dma_bytes,
+        .cached_requires_descriptor_rebuild = metadata.requires_descriptor_rebuild_after_reset,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    };
+    try std.testing.expectError(error.AdminQueueReplayRequired, lab.planRecoveryTransportPreflight(request));
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    const preflight = try lab.planRecoveryTransportPreflight(request);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", preflight.anchor);
+    try std.testing.expectEqual(.running, preflight.state);
+    try std.testing.expectEqual(@as(u32, 1), preflight.reset_generation);
+    try std.testing.expect(preflight.descriptor_rebuild_required);
+    try std.testing.expectEqual(@as(u32, 8192), preflight.descriptor_rebuild_dma_bytes);
+    try std.testing.expectEqual(@as(u16, 2), preflight.descriptor_rebuild_pages);
+    try std.testing.expect(preflight.queue_reservation_replay_required);
+    try std.testing.expectEqual(@as(usize, 6), preflight.reserved_io_queues_to_renegotiate);
+    try std.testing.expect(preflight.io_queues_must_be_rebuilt);
+    try std.testing.expectEqual(@as(usize, 6), preflight.io_queues_dropped_by_reset);
+    try std.testing.expectEqual(@as(u16, 1), preflight.next_io_queue_id);
+    try std.testing.expectEqual(@as(u16, 48), preflight.last_admin_queue_depth);
+
+    const recovery = lab.recoverySummary();
+    try std.testing.expectEqual(@as(usize, 0), recovery.planned_io_queues);
+    try std.testing.expectEqual(@as(u32, 1), recovery.reset_generation);
+}
+
+test "nvme pci recovery transport preflight rejects frozen and fully refreshed requests" {
+    var frozen = try NvmePciQueueLab.init(4096, 8);
+    _ = try frozen.planAdminQueue(32, 64, false);
+    _ = frozen.beginReset();
+    try std.testing.expectError(error.QueuePlanningBlockedByReset, frozen.planRecoveryTransportPreflight(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+    }));
+
+    var inline_only = try NvmePciQueueLab.init(4096, 8);
+    _ = try inline_only.planAdminQueue(32, 64, false);
+    const metadata = try inline_only.planPrpMetadata(4096, 0x80);
+    try std.testing.expect(!metadata.requires_descriptor_rebuild_after_reset);
+
+    _ = inline_only.beginReset();
+    _ = inline_only.completeReset();
+    _ = try inline_only.planAdminQueue(32, 64, false);
+    try std.testing.expectError(error.NoRecoveryTransportPreflightNeeded, inline_only.planRecoveryTransportPreflight(.{
+        .cached_prp_metadata_generation = metadata.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = false,
+        .cached_descriptor_dma_bytes = metadata.metadata_dma_bytes,
+        .cached_requires_descriptor_rebuild = metadata.requires_descriptor_rebuild_after_reset,
+    }));
 }
