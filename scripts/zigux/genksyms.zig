@@ -27,9 +27,14 @@ pub const ParseFailure = union(enum) {
     too_many_reference_files,
 };
 
+pub const ParsedFailure = struct {
+    reason: ParseFailure,
+    version_count: usize = 0,
+};
+
 pub const ParseOutcome = union(enum) {
     command: Command,
-    failure: ParseFailure,
+    failure: ParsedFailure,
 };
 
 const usage_text =
@@ -358,7 +363,7 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
                     }
                 },
                 .command => |command| return .{ .command = command },
-                .failure => |failure| return .{ .failure = failure },
+                .failure => |failure| return .{ .failure = .{ .reason = failure, .version_count = request.version_count } },
             }
         } else {
             const short_option_index = index;
@@ -370,7 +375,7 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
                     }
                 },
                 .command => |command| return .{ .command = command },
-                .failure => |failure| return .{ .failure = failure },
+                .failure => |failure| return .{ .failure = .{ .reason = failure, .version_count = request.version_count } },
             }
         }
     }
@@ -399,10 +404,13 @@ pub fn main(init: std.process.Init) !void {
 
     const command = switch (outcome) {
         .command => |command| command,
-        .failure => |failure| {
+        .failure => |parsed_failure| {
             var stderr_buffer: [512]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            switch (failure) {
+            for (0..parsed_failure.version_count) |_| {
+                try stderr_writer.interface.writeAll(version_text);
+            }
+            switch (parsed_failure.reason) {
                 .invalid_option => |option| try writeInvalidOptionError(&stderr_writer.interface, option),
                 .ambiguous_option => |option| try writeAmbiguousOptionError(&stderr_writer.interface, option),
                 .missing_option_argument => |option| try writeMissingOptionArgumentError(&stderr_writer.interface, option),
@@ -522,6 +530,22 @@ test "genksyms bridge keeps version as a side effect while parsing later options
     }
 }
 
+test "genksyms bridge preserves version side effects before later parse failures" {
+    const args = [_][]const u8{"-Vx"};
+    const outcome = try parseArgs(testing.allocator, &args);
+
+    switch (outcome) {
+        .failure => |failure| {
+            try testing.expectEqual(@as(usize, 1), failure.version_count);
+            switch (failure.reason) {
+                .invalid_option => |option| try testing.expectEqualStrings("x", option),
+                else => return error.UnexpectedParseFailure,
+            }
+        },
+        else => return error.ExpectedFailure,
+    }
+}
+
 test "genksyms bridge accepts unambiguous abbreviated long options" {
     var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena_state.deinit();
@@ -554,7 +578,7 @@ test "parseArgs reports ambiguous abbreviated long options" {
     const outcome = try parseArgs(arena_state.allocator(), &args);
 
     switch (outcome) {
-        .failure => |failure| switch (failure) {
+        .failure => |failure| switch (failure.reason) {
             .ambiguous_option => |option| try testing.expectEqualStrings("--d", option),
             else => return error.UnexpectedParseFailure,
         },
@@ -591,7 +615,7 @@ test "genksyms bridge canonicalizes unexpected long option argument failures" {
     const outcome = try parseArgs(testing.allocator, &args);
 
     switch (outcome) {
-        .failure => |failure| switch (failure) {
+        .failure => |failure| switch (failure.reason) {
             .unexpected_option_argument => |option| try testing.expectEqualStrings("--help", option),
             else => return error.UnexpectedParseFailure,
         },
@@ -646,7 +670,7 @@ test "genksyms bridge reports invalid short option in getopt style" {
     const outcome = try parseArgs(testing.allocator, &args);
 
     switch (outcome) {
-        .failure => |failure| switch (failure) {
+        .failure => |failure| switch (failure.reason) {
             .invalid_option => |option| try testing.expectEqualStrings("x", option),
             else => return error.UnexpectedParseFailure,
         },
@@ -659,7 +683,7 @@ test "genksyms bridge reports missing short option argument in getopt style" {
     const outcome = try parseArgs(testing.allocator, &args);
 
     switch (outcome) {
-        .failure => |failure| switch (failure) {
+        .failure => |failure| switch (failure.reason) {
             .missing_option_argument => |option| try testing.expectEqualStrings("T", option),
             else => return error.UnexpectedParseFailure,
         },
@@ -678,7 +702,7 @@ test "genksyms bridge rejects more than sixteen reference files like the C harne
 
     const outcome = try parseArgs(testing.allocator, &args);
     switch (outcome) {
-        .failure => |failure| try testing.expectEqual(ParseFailure.too_many_reference_files, failure),
+        .failure => |failure| try testing.expectEqual(ParseFailure.too_many_reference_files, failure.reason),
         else => return error.TestExpectedFailure,
     }
 }
