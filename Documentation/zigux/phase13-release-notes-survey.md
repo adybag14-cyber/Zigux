@@ -60,6 +60,9 @@ These files are shipped adjacent release-surface evidence on `master`, but they 
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
+- `zigux/helpers/list_view.zig`
+- `zigux/helpers/hlist_view.zig`
+- `include/zigux/abi.h`
 - `include/zigux/notifier_abi.h`
 - `zigux/helpers/notifier_chain_view.zig`
 
