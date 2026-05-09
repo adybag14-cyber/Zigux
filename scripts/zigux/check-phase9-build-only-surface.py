@@ -805,7 +805,7 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.writeText(
+        makefile_path.write_text(
             makefile + "phase9-runtime-loader-shared-tests:\n",
             encoding="utf-8",
         )
