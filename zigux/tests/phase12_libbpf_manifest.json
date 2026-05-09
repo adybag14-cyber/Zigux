@@ -75,11 +75,18 @@
       "why_now": "A dedicated survey gate keeps the roadmap placement explicit now that libbpf helper work started earlier under the tooling tranche but the heavy-consumer rollout still belongs to Phase 12."
     },
     {
+      "id": "phase12-libbpf-segments-verify-foundation",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/verify.zig",
+      "why_now": "The shared Phase 12 build packet already replays the focused zigux_segments verify surface, so the manifest should count that compile-and-entrypoint gate explicitly instead of hiding it behind the broader survey and reviewability tests."
+    },
+    {
       "id": "phase12-libbpf-reviewability-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_libbpf_reviewability.zig",
-      "why_now": "The Phase 12 lane should verify that the landed zigux_segments foundations still compile and that the manifest matches which segment files are landed versus still deferred, instead of relying only on older Phase 8 coverage."
+      "why_now": "The Phase 12 lane should verify that the landed zigux_segments foundations still compile, that the dedicated zigux_segments verify surface stays wired into the same build packet, and that the manifest matches which segment files are landed versus still deferred, instead of relying only on older Phase 8 coverage."
     },
     {
       "id": "phase12-libbpf-survey-note",
