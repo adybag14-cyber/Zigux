@@ -16,7 +16,7 @@ test "phase 5 bytestream fifo sample stays in the reference-sample lane" {
     try std.testing.expect(!descriptor.requires_runtime_substrate);
     try std.testing.expect(descriptor.provides_selfcheck);
     try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, descriptor.storage_backing);
-    try std.testing.expectEqual(@as(usize, 9), contract.focus.len);
+    try std.testing.expectEqual(@as(usize, 10), contract.focus.len);
     try std.testing.expectEqual(sample.SampleFocus.bounded_fifo_order, contract.focus[0]);
     try std.testing.expectEqual(sample.SampleFocus.wraparound_requeue, contract.focus[1]);
     try std.testing.expectEqual(sample.SampleFocus.peek_and_skip, contract.focus[2]);
@@ -24,8 +24,9 @@ test "phase 5 bytestream fifo sample stays in the reference-sample lane" {
     try std.testing.expectEqual(sample.SampleFocus.preview_truncation, contract.focus[4]);
     try std.testing.expectEqual(sample.SampleFocus.remaining_capacity, contract.focus[5]);
     try std.testing.expectEqual(sample.SampleFocus.queue_shape_boundaries, contract.focus[6]);
-    try std.testing.expectEqual(sample.SampleFocus.reset_and_replay, contract.focus[7]);
-    try std.testing.expectEqual(sample.SampleFocus.ownership_and_lifetime, contract.focus[8]);
+    try std.testing.expectEqual(sample.SampleFocus.helper_boundaries, contract.focus[7]);
+    try std.testing.expectEqual(sample.SampleFocus.reset_and_replay, contract.focus[8]);
+    try std.testing.expectEqual(sample.SampleFocus.ownership_and_lifetime, contract.focus[9]);
     try std.testing.expectEqual(@as(usize, expected_non_goals.len), contract.non_goals.len);
     for (expected_non_goals, contract.non_goals) |expected, actual| {
         try std.testing.expectEqualStrings(expected, actual);
@@ -98,6 +99,8 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 1), helper_replay.count_after_skip);
     try std.testing.expectEqual(@as(usize, 0), helper_replay.count_after_reset);
     try std.testing.expectEqual(@as(?u8, null), helper_replay.pop_after_reset);
+    try std.testing.expectEqual(@as(usize, 1), helper_replay.checked_focus.len);
+    try std.testing.expectEqual(sample.SampleFocus.helper_boundaries, helper_replay.checked_focus[0]);
 
     const short_drain = module.runShortDrainReplay();
     try std.testing.expectEqual(@as(usize, 5), short_drain.initial_copy_count);
@@ -108,6 +111,8 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     try std.testing.expectEqual(@as(usize, 2), short_drain.remaining_drain_count);
     try std.testing.expectEqualSlices(u8, "lo", short_drain.remaining_drain[0..]);
     try std.testing.expectEqual(@as(usize, 0), short_drain.empty_follow_up_drain_count);
+    try std.testing.expectEqual(@as(usize, 1), short_drain.checked_focus.len);
+    try std.testing.expectEqual(sample.SampleFocus.helper_boundaries, short_drain.checked_focus[0]);
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(sample.SampleStage.cold, module.stage());
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.available());
