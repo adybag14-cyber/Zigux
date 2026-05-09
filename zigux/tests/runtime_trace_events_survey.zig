@@ -454,9 +454,13 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader keeps initialized shared-request snapshots stable across later selftest activity\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader bridges the shared request lifecycle without widening registration claims\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects prepared shared request drift before any local runtime handoff\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects prepared shared runtime-substrate drift before any local runtime handoff\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects prepared shared approved-family anchor and symbol drift before any local runtime handoff\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader keeps shared release failures from desynchronizing loader state\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects prepared shared selftest-hook drift before any local runtime handoff\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects non-prepared shared requests before any local runtime handoff\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects shared selftest-hook drift before any local runtime handoff\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects shared-load-plan snapshot drift\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects registration snapshot drift\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader rejects non-idle registration state at the metadata-only handoff boundary\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader keeps selftest-ready outstanding registration drain explicit before shared handoff\"") != null);
