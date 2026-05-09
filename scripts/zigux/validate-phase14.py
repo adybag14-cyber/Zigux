@@ -35,7 +35,7 @@ REQUIRED_COMMANDS = [
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
-    "make -C zigux phase14",
+    "make -C zigux phase14"
 ]
 COMPILE_MATRIX_ROWS = [
     ("phase14-workqueue-bridge-tests", "phase14_workqueue_bridge.zig", "full_bundle_only"),
@@ -436,9 +436,9 @@ def run_self_test() -> int:
         write_text(root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py", f"#!/usr/bin/env python3\n\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         anchor_manifests = {
             "zigux/tests/phase14_ring_buffer_manifest.json": {"lane_key": "P14-L08", "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c", "gaps": [{"id": "phase14-ring-buffer-zig-port-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
-            "zigux/tests/phase14_skbuff_bridge_manifest.json": {"lane_key": "P14-L12", "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb", "gaps": [{"id": "phase14-skbuff-live-ownership-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
+            "zigux/tests/phase14_skbuff_bridge_manifest.json": {"lane_key": "P14-L11", "surveyed_commit": "4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7", "gaps": [{"id": "phase14-skbuff-live-ownership-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
             "zigux/tests/phase14_rcu_tree_manifest.json": {"lane_key": "P14-L13", "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312", "gaps": [{"id": "phase14-rcu-tree-bridge-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
-            "zigux/tests/phase14_workqueue_bridge_manifest.json": {"lane_key": "P14-L04", "surveyed_commit": "9e278f632d6d5097cb8cfc2dc61744ae105baa8c", "gaps": [{"id": "phase14-workqueue-live-execution-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
+            "zigux/tests/phase14_workqueue_bridge_manifest.json": {"lane_key": "P14-L02", "surveyed_commit": "9b98d3b9c812840bf279508030be0b8de093736c", "gaps": [{"id": "phase14-workqueue-live-execution-blocker", "status": "blocked_on_stay_in_c_evidence"}]},
         }
         for rel_path, data in anchor_manifests.items():
             write_text(root / rel_path, json.dumps(data, indent=2) + "\n")
