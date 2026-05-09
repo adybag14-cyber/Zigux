@@ -117,6 +117,33 @@ def require_exact_marker_count(errors: list[str], rel_path: str, text: str, mark
         errors.append(f"marker count drift in {rel_path}: {marker} (expected 1, found {count})")
 
 
+def collect_checker_surfaces(errors: list[str], surfaces: object) -> list[dict[str, str]]:
+    if not isinstance(surfaces, list):
+        errors.append("phase14 shared smoke manifest surfaces payload is not a list")
+        return []
+
+    checker_surfaces: list[dict[str, str]] = []
+    for surface in surfaces:
+        if not isinstance(surface, dict):
+            errors.append("phase14 shared smoke manifest surface entry is not an object")
+            continue
+        path = surface.get("path")
+        if not isinstance(path, str):
+            errors.append("phase14 shared smoke manifest surface entry is missing a string path")
+            continue
+        if path != CHECKER_PATH:
+            continue
+        required_marker = surface.get("required_marker")
+        if not isinstance(required_marker, str):
+            errors.append(
+                "phase14 docs-root smoke-summary checker surface is missing a string required_marker "
+                f"in {MANIFEST_PATH}"
+            )
+            continue
+        checker_surfaces.append({"path": path, "required_marker": required_marker})
+    return checker_surfaces
+
+
 def check_manifest(errors: list[str], root: Path) -> None:
     manifest_path = root / MANIFEST_PATH
     if not manifest_path.exists():
@@ -127,22 +154,16 @@ def check_manifest(errors: list[str], root: Path) -> None:
     except json.JSONDecodeError as exc:
         errors.append(f"invalid json in {MANIFEST_PATH}: {exc}")
         return
-    surfaces = manifest.get("surfaces")
-    if not isinstance(surfaces, list):
-        errors.append("phase14 shared smoke manifest surfaces payload is not a list")
+    checker_surfaces = collect_checker_surfaces(errors, manifest.get("surfaces"))
+    if errors:
         return
-    checker_surfaces = [
-        surface
-        for surface in surfaces
-        if isinstance(surface, dict) and surface.get("path") == CHECKER_PATH
-    ]
     if len(checker_surfaces) != 1:
         errors.append(
             "phase14 docs-root smoke-summary checker surface count drift in "
             f"{MANIFEST_PATH} (expected 1, found {len(checker_surfaces)})"
         )
         return
-    if checker_surfaces[0].get("required_marker") != MARKER:
+    if checker_surfaces[0]["required_marker"] != MARKER:
         errors.append(
             "missing docs-root smoke-summary checker surface in zigux/tests/phase14_end_to_end_smoke_manifest.json"
         )
@@ -330,6 +351,69 @@ def run_self_test() -> int:
         errors = check(root)
         if "phase14 shared smoke manifest surfaces payload is not a list" not in errors:
             print("self-test expected non-list manifest surfaces failure", file=sys.stderr)
+            return 1
+        write_text(root / MANIFEST_PATH, good_manifest_text())
+
+        write_text(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    "surfaces": [
+                        17,
+                        {
+                            "path": CHECKER_PATH,
+                            "required_marker": MARKER,
+                        },
+                    ]
+                },
+                indent=2,
+            ) + "\n",
+        )
+        errors = check(root)
+        if "phase14 shared smoke manifest surface entry is not an object" not in errors:
+            print("self-test expected non-object manifest surface failure", file=sys.stderr)
+            return 1
+        write_text(root / MANIFEST_PATH, good_manifest_text())
+
+        write_text(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    "surfaces": [
+                        {
+                            "required_marker": MARKER,
+                        }
+                    ]
+                },
+                indent=2,
+            ) + "\n",
+        )
+        errors = check(root)
+        if "phase14 shared smoke manifest surface entry is missing a string path" not in errors:
+            print("self-test expected missing-path manifest surface failure", file=sys.stderr)
+            return 1
+        write_text(root / MANIFEST_PATH, good_manifest_text())
+
+        write_text(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    "surfaces": [
+                        {
+                            "path": CHECKER_PATH,
+                        }
+                    ]
+                },
+                indent=2,
+            ) + "\n",
+        )
+        errors = check(root)
+        if not any(
+            "phase14 docs-root smoke-summary checker surface is missing a string required_marker in zigux/tests/phase14_end_to_end_smoke_manifest.json"
+            in error
+            for error in errors
+        ):
+            print("self-test expected missing required-marker manifest surface failure", file=sys.stderr)
             return 1
         write_text(root / MANIFEST_PATH, good_manifest_text())
 
