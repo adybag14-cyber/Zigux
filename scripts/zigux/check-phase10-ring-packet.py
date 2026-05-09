@@ -48,6 +48,8 @@ EXPECTED_MAKEFILE_MARKERS = [
 EXPECTED_HELPER_MARKERS = [
     "pub const PackedEventIndexSummary = struct {",
     "pub fn packedEventIndexSummary(self: *Self, queue_index: u16) !PackedEventIndexSummary {",
+    "pub const NotificationDataSummary = struct {",
+    "pub fn notificationDataSummary(self: *const Self, queue_index: u16) !NotificationDataSummary {",
     "pub const QueueResetReadinessSummary = struct {",
     "pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
     "pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary {",
@@ -69,6 +71,9 @@ EXPECTED_VERIFY_TEST_MARKERS = [
     "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.outstanding_chains, readiness.blocker.?);",
     "_ = try lab.clearBroken(6);",
     "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, readiness.blocker.?);",
+    'test "virtio ring notification-data summary tracks packed wrap and split reset transitions" {',
+    "try testing.expectEqual(@as(u32, 0x8001_0001), summary.notification_data);",
+    "try testing.expectEqual(@as(u32, 1), summary.notification_data);",
 ]
 
 EXPECTED_TEST_MARKERS = [
@@ -81,10 +86,18 @@ EXPECTED_TEST_MARKERS = [
 EXPECTED_SURVEY_TEST_MARKERS = [
     'test "phase10 virtio ring survey manifest records the queue-local foothold and remaining lab-driver bridge" {',
     'try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);',
-    'try std.testing.expectEqual(@as(usize, 14), starter_landed_count);',
+    'try std.testing.expect(manifest.gaps.len >= 16);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "notification-data summary") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, verify_replay, "test \\"virtio ring notification-data summary tracks packed wrap and split reset transitions\\" {") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, verify_replay, "try testing.expectEqual(@as(u32, 0x8001_0001), summary.notification_data);") != null);',
+    'var saw_notification_data_helper = false;',
+    'if (std.mem.eql(u8, gap.id, "phase10-notification-data-summary-helper")) {',
+    'try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "packed wrap-bit transitions") != null);',
+    'try std.testing.expectEqual(@as(usize, 15), starter_landed_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
     "var saw_ring_verify_replay = false;",
     "var saw_ring_lab_driver_bridge = false;",
+    'try std.testing.expect(saw_notification_data_helper);',
 ]
 
 EXPECTED_SLICE_MARKERS = [
@@ -99,6 +112,7 @@ EXPECTED_SLICE_MARKERS = [
 EXPECTED_SURVEY_NOTE_MARKERS = [
     "lab-driver threshold",
     "queue-local ring foothold",
+    "notification-data summary",
     "phase10-ring-lab-driver-bridge",
     "owned by the adjacent `P10-L10` MMIO packet",
     "`drivers/virtio/virtio_ring_verify.zig`",
@@ -171,6 +185,7 @@ EXPECTED_GAPS = {
     "phase10-callback-enable-helper": "starter_landed",
     "phase10-callback-delay-helper": "starter_landed",
     "phase10-notify-prepare-helper": "starter_landed",
+    "phase10-notification-data-summary-helper": "starter_landed",
     "phase10-broken-queue-poll-guard": "starter_landed",
     "phase10-queue-reset-helper": "starter_landed",
     "phase10-queue-reset-readiness-helper": "starter_landed",
@@ -250,6 +265,8 @@ const phase10_virtio_ring_verify_tests = b.addTest(.{ .name = "phase10-virtio-ri
 """,
     "drivers/virtio/virtio_ring.zig": """pub const PackedEventIndexSummary = struct {};
 pub fn packedEventIndexSummary(self: *Self, queue_index: u16) !PackedEventIndexSummary { _ = self; _ = queue_index; }
+pub const NotificationDataSummary = struct {};
+pub fn notificationDataSummary(self: *const Self, queue_index: u16) !NotificationDataSummary { _ = self; _ = queue_index; }
 pub const QueueResetReadinessSummary = struct {};
 pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary { _ = self; _ = queue_index; }
 pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary { _ = self; _ = queue_index; }
@@ -271,6 +288,10 @@ test "virtio ring packed event-index summary stays queue-local and reports when 
     try testing.expectEqual(@as(u16, 1), summary.event_index_window);
     try testing.expect(summary.should_poll);
 }
+test "virtio ring notification-data summary tracks packed wrap and split reset transitions" {
+    try testing.expectEqual(@as(u32, 0x8001_0001), summary.notification_data);
+    try testing.expectEqual(@as(u32, 1), summary.notification_data);
+}
 """,
     "zigux/tests/phase10_virtio_ring.zig": """test "phase10 virtio ring reset-readiness preflight reports the current queue blocker" {}
 test "phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work" {}
@@ -279,10 +300,19 @@ test "phase10 virtio ring callback re-enable reports pending used work and settl
 """,
     "zigux/tests/phase10_virtio_ring_survey.zig": """test "phase10 virtio ring survey manifest records the queue-local foothold and remaining lab-driver bridge" {
     try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);
-    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expect(manifest.gaps.len >= 16);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "notification-data summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, verify_replay, "test \"virtio ring notification-data summary tracks packed wrap and split reset transitions\" {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, verify_replay, "try testing.expectEqual(@as(u32, 0x8001_0001), summary.notification_data);") != null);
+    var saw_notification_data_helper = false;
     var saw_ring_verify_replay = false;
     var saw_ring_lab_driver_bridge = false;
+    if (std.mem.eql(u8, gap.id, "phase10-notification-data-summary-helper")) {
+        try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "packed wrap-bit transitions") != null);
+    }
+    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expect(saw_notification_data_helper);
 }
 """,
     "Documentation/zigux/phase10-virtio-ring-slice.md": """- dedicated ring packet review guard
@@ -294,6 +324,7 @@ test "phase10 virtio ring callback re-enable reports pending used work and settl
 """,
     "Documentation/zigux/phase10-virtio-ring-survey.md": """- lab-driver threshold
 - queue-local ring foothold
+- notification-data summary
 - phase10-ring-lab-driver-bridge
 - owned by the adjacent `P10-L10` MMIO packet
 - `drivers/virtio/virtio_ring_verify.zig`
@@ -358,6 +389,7 @@ test "phase10 virtio ring callback re-enable reports pending used work and settl
                 {"id": "phase10-callback-enable-helper", "status": "starter_landed"},
                 {"id": "phase10-callback-delay-helper", "status": "starter_landed"},
                 {"id": "phase10-notify-prepare-helper", "status": "starter_landed"},
+                {"id": "phase10-notification-data-summary-helper", "status": "starter_landed"},
                 {"id": "phase10-broken-queue-poll-guard", "status": "starter_landed"},
                 {"id": "phase10-queue-reset-helper", "status": "starter_landed"},
                 {"id": "phase10-queue-reset-readiness-helper", "status": "starter_landed"},
@@ -575,6 +607,13 @@ def run_self_test() -> int:
         assert_missing(
             tmp_root,
             "drivers/virtio/virtio_ring.zig",
+            "pub fn notificationDataSummary(self: *const Self, queue_index: u16) !NotificationDataSummary {",
+            "pub fn notificationDataDrift(self: *const Self, queue_index: u16) !NotificationDataSummary {",
+            "helper:pub fn notificationDataSummary(self: *const Self, queue_index: u16) !NotificationDataSummary {",
+        )
+        assert_missing(
+            tmp_root,
+            "drivers/virtio/virtio_ring.zig",
             "pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
             "pub fn queueResetReadinessDrift(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
             "helper:pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
@@ -585,6 +624,13 @@ def run_self_test() -> int:
             'test "virtio ring packed event-index summary stays queue-local and reports when polling can wait" {',
             'test "virtio ring packed event-index drift" {',
             'verify:test "virtio ring packed event-index summary stays queue-local and reports when polling can wait" {',
+        )
+        assert_missing(
+            tmp_root,
+            "drivers/virtio/virtio_ring_verify.zig",
+            'test "virtio ring notification-data summary tracks packed wrap and split reset transitions" {',
+            'test "virtio ring notification-data drift" {',
+            'verify:test "virtio ring notification-data summary tracks packed wrap and split reset transitions" {',
         )
         assert_missing(
             tmp_root,
@@ -613,6 +659,13 @@ def run_self_test() -> int:
             "lab-driver threshold",
             "roadmap threshold",
             "survey_note:lab-driver threshold",
+        )
+        assert_missing(
+            tmp_root,
+            "Documentation/zigux/phase10-virtio-ring-survey.md",
+            "notification-data summary",
+            "notification-data drift",
+            "survey_note:notification-data summary",
         )
         assert_missing(
             tmp_root,
@@ -708,13 +761,13 @@ def run_self_test() -> int:
         assert_missing(
             tmp_root,
             "zigux/tests/phase10_virtio_ring_survey.zig",
-            "var saw_ring_verify_replay = false;",
-            "var saw_ring_verify_drift = false;",
-            "survey_test:var saw_ring_verify_replay = false;",
+            "var saw_notification_data_helper = false;",
+            "var saw_notification_data_drift = false;",
+            "survey_test:var saw_notification_data_helper = false;",
         )
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=27")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
