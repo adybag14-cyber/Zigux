@@ -766,7 +766,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=27")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
