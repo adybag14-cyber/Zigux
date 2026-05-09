@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -12,11 +13,17 @@ class ValidationError(RuntimeError):
     pass
 
 
+CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
+MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
+CATALOG_SURVEYED_HEAD_PREFIX = "- surveyed head: `"
+
+
 REQUIRED_SNIPPETS = {
     "Documentation/zigux/phase6-helper-parity-catalog.md": [
         "# Phase 6 Helper Parity Catalog",
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_PACKET=base64-bsearch-checksum-hexdump`",
+        "- surveyed head: `911470d`",
         "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
         "- focused lower-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated lower-bound C ABI companion that keeps the typed and raw lower-bound comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today",
@@ -88,6 +95,7 @@ REQUIRED_SNIPPETS = {
     "zigux/tests/phase6_helper_parity_manifest.json": [
         "\"phase\": \"Phase 6\",",
         "\"tranche\": \"leaf-helper-parity\",",
+        "\"surveyed_commit\": \"911470d\",",
         "\"id\": \"base64\"",
         "\"id\": \"bsearch\"",
         "\"id\": \"checksum\"",
@@ -171,6 +179,33 @@ def read_text(path: Path) -> str:
         raise ValidationError(f"missing required file: {path}") from exc
 
 
+def read_json(path: Path) -> object:
+    try:
+        return json.loads(read_text(path))
+    except json.JSONDecodeError as exc:
+        raise ValidationError(f"invalid JSON in {path}: {exc}") from exc
+
+
+def validate_surveyed_head_alignment(repo_root: Path) -> None:
+    manifest_rel = MANIFEST_PATH.as_posix()
+    catalog_rel = CATALOG_PATH.as_posix()
+    manifest_data = read_json(repo_root / manifest_rel)
+    if not isinstance(manifest_data, dict):
+        raise ValidationError(f"expected object in {manifest_rel}")
+
+    surveyed_commit = manifest_data.get("surveyed_commit")
+    if not isinstance(surveyed_commit, str) or not surveyed_commit:
+        raise ValidationError(f"missing surveyed_commit in {manifest_rel}")
+
+    catalog_content = read_text(repo_root / catalog_rel)
+    expected_marker = f"{CATALOG_SURVEYED_HEAD_PREFIX}{surveyed_commit}`"
+    occurrences = catalog_content.count(expected_marker)
+    if occurrences != 1:
+        raise ValidationError(
+            f"expected exactly one surveyed-head marker in {catalog_rel}, found {occurrences}: {expected_marker}"
+        )
+
+
 def run_checks(repo_root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
         content = read_text(repo_root / rel_path)
@@ -179,6 +214,8 @@ def run_checks(repo_root: Path) -> None:
                 raise ValidationError(
                     f"missing expected Phase 6 marker in {rel_path}: {snippet}"
                 )
+
+    validate_surveyed_head_alignment(repo_root)
 
     for rel_path, markers in EXACT_OCCURRENCE_MARKERS.items():
         content = read_text(repo_root / rel_path)
@@ -240,6 +277,18 @@ def run_self_test() -> None:
             raise AssertionError("expected removed-path failure")
         removed_path.unlink()
 
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-helper-parity-catalog.md",
+            "- surveyed head: `911470d`",
+            "- surveyed head: `deadbeef`",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_helper_parity_manifest.json",
+            "\"surveyed_commit\": \"911470d\",",
+            "\"surveyed_commit\": \"\",",
+        )
         assert_failure(
             root,
             "Documentation/zigux/phase6-perf-gate-survey.md",
