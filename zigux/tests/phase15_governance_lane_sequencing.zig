@@ -38,7 +38,13 @@ test "phase 15 governance sequencing note keeps the owner split explicit" {
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "same dated `current-master-readback-2026-05-09` marker") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "future provenance refreshes stay handoff-lane `P15-L08` work") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "handoff provenance wording isolated inside the owning handoff packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "already closed the earlier shared tests-root plus checker manifest-pair follow-through") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "future `P15-L06` runs should stay parked unless another shared-summary or shared build-wiring drift appears") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "there is no standing shared-summary catch-up left in this packet today") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "still carries one narrower shared-summary follow-through") == null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "still leaves `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_readiness_gate_manifest.json` implicit there") == null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "next honest `P15-L06` shared touch stays bounded to that exact tests-root plus checker manifest-pair sync") == null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "already closed the earlier handoff exact-head parity catch-up") == null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "do not consume packet-local backlog") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Do not use this lane to change any deep-core blocker disposition") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "already closed the earlier handoff exact-head parity catch-up") == null);
 }
