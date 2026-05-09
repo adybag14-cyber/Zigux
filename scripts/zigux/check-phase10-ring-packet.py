@@ -88,7 +88,7 @@ EXPECTED_SURVEY_TEST_MARKERS = [
     'try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);',
     'try std.testing.expect(manifest.gaps.len >= 16);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "notification-data summary") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, verify_replay, "test \\"virtio ring notification-data summary tracks packed wrap and split reset transitions\\" {") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, verify_replay, "test \\\"virtio ring notification-data summary tracks packed wrap and split reset transitions\\\" {") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, verify_replay, "try testing.expectEqual(@as(u32, 0x8001_0001), summary.notification_data);") != null);',
     'var saw_notification_data_helper = false;',
     'if (std.mem.eql(u8, gap.id, "phase10-notification-data-summary-helper")) {',
@@ -543,28 +543,35 @@ def run_self_test() -> int:
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
 
-        assert_manifest_drift(
-            tmp_root,
+        case_count = 0
+
+        def run_manifest_case(transform, expected: str) -> None:
+            nonlocal case_count
+            assert_manifest_drift(tmp_root, transform, expected)
+            case_count += 1
+
+        def run_missing_case(rel_path: str, old: str, new: str, expected: str) -> None:
+            nonlocal case_count
+            assert_missing(tmp_root, rel_path, old, new, expected)
+            case_count += 1
+
+        run_manifest_case(
             lambda manifest: manifest.__setitem__("lane_key", "P10-drift"),
             "manifest:lane_key=P10-L07",
         )
-        assert_manifest_drift(
-            tmp_root,
+        run_manifest_case(
             lambda manifest: manifest.__setitem__("freeze_boundary_status", "drifted"),
             "manifest:freeze_boundary_status=aligned",
         )
-        assert_manifest_drift(
-            tmp_root,
+        run_manifest_case(
             lambda manifest: manifest.__setitem__("freeze_boundary_owner_lane", "P10-drift"),
             "manifest:freeze_boundary_owner_lane=P10-L10",
         )
-        assert_manifest_drift(
-            tmp_root,
+        run_manifest_case(
             lambda manifest: manifest.__setitem__("study_only_anchors", ["kernel/workqueue.c"]),
             "manifest:study_only_anchors",
         )
-        assert_manifest_drift(
-            tmp_root,
+        run_manifest_case(
             lambda manifest: manifest.__setitem__(
                 "freeze_in_c_anchors",
                 ["kernel/sched/core.c", "mm/page_alloc.c", "kernel/rcu/tree.c"],
@@ -577,188 +584,187 @@ def run_self_test() -> int:
                 if gap.get("id") == "phase10-queue-reset-helper":
                     gap["status"] = "ready_next"
 
-        assert_manifest_drift(
-            tmp_root,
+        run_manifest_case(
             drift_gap_status,
             "manifest:gap_status:phase10-queue-reset-helper=ready_next",
         )
 
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "zigux/Makefile",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-ring-packet.py --self-test\n",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-ring-drift.py --self-test\n",
             "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-ring-packet.py --self-test\n",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "zigux/tests/phase10_build.zig",
             '"phase10-virtio-ring-verify-tests"',
             '"phase10-virtio-ring-verify-drift-tests"',
             'build:"phase10-virtio-ring-verify-tests"',
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "drivers/virtio/virtio_ring.zig",
             "pub fn packedEventIndexSummary(self: *Self, queue_index: u16) !PackedEventIndexSummary {",
             "pub fn packedEventIndexDrift(self: *Self, queue_index: u16) !PackedEventIndexSummary {",
             "helper:pub fn packedEventIndexSummary(self: *Self, queue_index: u16) !PackedEventIndexSummary {",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "drivers/virtio/virtio_ring.zig",
             "pub fn notificationDataSummary(self: *const Self, queue_index: u16) !NotificationDataSummary {",
             "pub fn notificationDataDrift(self: *const Self, queue_index: u16) !NotificationDataSummary {",
             "helper:pub fn notificationDataSummary(self: *const Self, queue_index: u16) !NotificationDataSummary {",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "drivers/virtio/virtio_ring.zig",
             "pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
             "pub fn queueResetReadinessDrift(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
             "helper:pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "drivers/virtio/virtio_ring_verify.zig",
             'test "virtio ring packed event-index summary stays queue-local and reports when polling can wait" {',
             'test "virtio ring packed event-index drift" {',
             'verify:test "virtio ring packed event-index summary stays queue-local and reports when polling can wait" {',
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "drivers/virtio/virtio_ring_verify.zig",
             'test "virtio ring notification-data summary tracks packed wrap and split reset transitions" {',
             'test "virtio ring notification-data drift" {',
             'verify:test "virtio ring notification-data summary tracks packed wrap and split reset transitions" {',
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "drivers/virtio/virtio_ring_verify.zig",
             "_ = try lab.clearBroken(4);",
             "_ = try lab.clearBroken(7);",
             "verify:_ = try lab.clearBroken(4);",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "drivers/virtio/virtio_ring_verify.zig",
             "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, readiness.blocker.?);",
             "try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.queue_broken, readiness.blocker.?);",
             "verify:try testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, readiness.blocker.?);",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "zigux/tests/phase10_virtio_ring.zig",
             'test "phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work" {',
             'test "phase10 virtio ring blocks publish drift while a queue is broken" {',
             'tests:test "phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work" {',
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/phase10-virtio-ring-survey.md",
             "lab-driver threshold",
             "roadmap threshold",
             "survey_note:lab-driver threshold",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/phase10-virtio-ring-survey.md",
             "notification-data summary",
             "notification-data drift",
             "survey_note:notification-data summary",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/phase10-virtio-ring-survey.md",
             "`drivers/virtio/virtio_ring_verify.zig`",
             "`drivers/virtio/virtio_ring_verify_drift.zig`",
             "survey_note:`drivers/virtio/virtio_ring_verify.zig`",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/phase10-virtio-ring-survey.md",
             "freeze-boundary owner: `P10-L10`",
             "freeze-boundary owner: `P10-drift`",
             "survey_note:freeze-boundary owner: `P10-L10`",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/phase10-virtio-ring-survey.md",
             "roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
             "roadmap-backed destination boundary through `drivers/virtio/*.zig`",
             "survey_note:roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/phase10-virtio-ring-survey.md",
             "`kernel/workqueue.c` or `kernel/trace/ring_buffer.c`",
             "`kernel/workqueue.c` or `kernel/trace/ring_buffer_drift.c`",
             "survey_note:`kernel/workqueue.c` or `kernel/trace/ring_buffer.c`",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/phase10-virtio-ring-survey.md",
             "`kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`",
             "`kernel/sched/core.c`, `mm/page_alloc.c`, and `kernel/rcu/tree.c`",
             "survey_note:`kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/phase10-virtio-ring-survey.md",
             "does not claim a freeze-map status change or an attached Architecture Council reopen request",
             "does not claim a status change or reopen request",
             "survey_note:does not claim a freeze-map status change or an attached Architecture Council reopen request",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/README.md",
             "drivers/virtio/virtio_ring_verify.zig",
             "drivers/virtio/virtio_ring_verify_drift.zig",
             "docs_readme:drivers/virtio/virtio_ring_verify.zig",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/phase10-closure-evidence.md",
             "zigux/tests/phase10_virtio_ring_manifest.json",
             "zigux/tests/phase10_virtio_ring_manifest_drift.json",
             "closure_note:zigux/tests/phase10_virtio_ring_manifest.json",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "zigux/tests/README.md",
             "phase10_virtio_ring_manifest.json",
             "phase10_virtio_ring_manifest_drift.json",
             "tests_readme:phase10_virtio_ring_manifest.json",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
             "Documentation/zigux/phase10-closure-evidence.md",
             "Documentation/zigux/phase10-closure-drift.md",
             "companion:Documentation/zigux/phase10-closure-evidence.md",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
             "scripts/zigux/check-phase10-ring-packet.py",
             "scripts/zigux/check-phase10-ring-drift.py",
             "companion:scripts/zigux/check-phase10-ring-packet.py",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
             "scripts/zigux/check-phase10-ring-packet.py",
             "scripts/zigux/check-phase10-ring-drift.py",
             "sequencing:scripts/zigux/check-phase10-ring-packet.py",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "scripts/zigux/README.md",
             "the lane-sequenced virtio ring plus the focused ring-verify replay",
             "the lane-sequenced virtio ring plus a drifted verifier cue",
             "scripts_readme:the lane-sequenced virtio ring plus the focused ring-verify replay",
         )
-        assert_missing(
+        run_missing_case(
             tmp_root,
             "zigux/tests/phase10_virtio_ring_survey.zig",
             "var saw_notification_data_helper = false;",
@@ -767,7 +773,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=30")
+    print(f"PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
