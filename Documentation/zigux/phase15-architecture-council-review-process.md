@@ -5,13 +5,13 @@ This document records the bounded Phase 15 governance lane around the Architectu
 ## Status
 
 - `PHASE15_STATUS=review_process_slice_landed`
-- `PHASE15_SLICE=architecture-council-review-process-verified-master-head-provenance-sync`
+- `PHASE15_SLICE=architecture-council-review-process-dated-readback-truthfulness-refresh`
 - `PHASE15_LANE_KEY=P15-L06`
-- `PHASE15_PROVENANCE_MODE=verified_master_head`
-- scope: one review-process note, one dedicated manifest and Zig test, the focused lane-owner vocabulary alignment replay already shipped in the shared Phase 15 build, the focused indefinite-C blocker-evidence replay already shipped in the shared Phase 15 build, the shared governance-lane sequencing replay already shipped in the shared Phase 15 build, the shared Phase 15 build wiring, and a small review-checklist update that now also names the retained stay-in-C closeout state and reopen triggers
-- survey provenance refreshed against verified `master` head `4fc891b380cdd2991dff7676ade7f844df1b55fd`
-- exact branch-head parity is now recorded for this packet; the current survey keeps that verified-head provenance explicit instead of relying on a dated readback marker
-- maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires or the deep-core blocker posture changes
+- `PHASE15_PROVENANCE_MODE=dated_master_readback`
+- scope: one review-process note, one dedicated manifest and Zig test, the focused lane-owner vocabulary alignment replay already shipped in the shared Phase 15 build, the focused indefinite-C blocker-evidence replay already shipped in the shared Phase 15 build, the shared governance-lane sequencing replay already shipped in the shared Phase 15 build, the shared Phase 15 build wiring, and one bounded truthfulness refresh that retires a stale exact-head claim without reopening policy or freeze-map status discussion
+- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 after live compare-against-master showed the previously recorded verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` now sits `2591` commits behind current `master`
+- exact branch-head parity is not recorded for this packet; the parked review-process survey now uses an explicit dated readback marker instead of stale exact-head provenance
+- maintenance handoff: this review-process slice is parked in maintenance mode until one of the named reopen triggers fires, the deep-core blocker posture changes, or this packet drifts again
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
@@ -45,11 +45,11 @@ This document records the bounded Phase 15 governance lane around the Architectu
 
 ## Why this slice exists
 
-The roadmap's Phase 15 requirements include an Architecture Council review process, a parity scorecard, and the policy for code that remains in C indefinitely. Current `master` now carries the freeze map, stay-in-C governance language, and a landed parity-scorecard baseline, but this review-process note is still the reviewable record that says when the Architecture Council must be engaged, what evidence a request must carry, and which approving roles must sign off for the current anchor, and which decisions are legitimate inside the current mixed-language product plan.
+The roadmap's Phase 15 requirements include an Architecture Council review process, a parity scorecard, and the policy for code that remains in C indefinitely. Current `master` already carries the freeze map, stay-in-C governance language, and a landed parity-scorecard baseline, while this review-process note remains the reviewable record that says when the Architecture Council must be engaged, what evidence a request must carry, and which approving roles must sign off.
 
-That missing process leaves a governance gap between the roadmap and the live repo. Without it, a future patch can mention the Architecture Council in principle while still leaving reviewers to guess what packet a status-change request needs, which approving roles must sign off for the current anchor, and which decisions are legitimate inside the current mixed-language product plan.
+That governance packet was still materially useful, but its freshness claim had drifted. The parked note and manifest still said they tracked an exact verified `master` head from May 8, 2026 even though live compare-against-master now shows that recorded head is far behind current `master`.
 
-The honest bounded step is to land a survey-grade review-process note that turns the roadmap requirement into a concrete review artifact without pretending the council already has a full roster, cadence, or automation surface. The shared Phase 15 build now also carries focused lane-owner vocabulary alignment, indefinite-C blocker-evidence, governance-lane sequencing replays, and the dedicated `make -C zigux phase15-test` route beside the validator-first and workflow-backed routes, so this parked packet should name those replays directly instead of understating the current governance boundary.
+The honest bounded step is therefore truthfulness maintenance, not expansion: keep the same review-process packet, keep the same no-approval posture, and convert the stale exact-head claim into an explicit dated-readback marker so reviewers can still trust what the parked packet means without reopening freeze-map status discussion or inventing a new Architecture Council workflow surface.
 
 ## Trigger Conditions
 
@@ -112,8 +112,8 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 ## Current Approval Posture
 
 - no Architecture Council approval is currently recorded for a freeze-map status change
-- the current bounded evidence is the freeze map, this review-process note, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, the review checklist hook, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `Documentation/zigux/phase15-parity-scorecard.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the focused `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, and `zigux/tests/phase15_governance_lane_sequencing.zig` replays already wired through the shared Phase 15 build, the dedicated `make -C zigux phase15-test` route, and the rest of the parked `phase15_freeze_map_governance`, `phase15_architecture_council_review_process`, `phase15_handoff_next_steps`, `phase15_indefinite_c_policy`, and `phase15_readiness_gate` evidence packet carried by `zigux/tests/phase15_build.zig`
 - current review-process evidence is limited to named `phase`, `current status bucket`, `required approver set`, `owner`, `rollback owner`, `validation gate summary`, `parity scorecard link or blocker record`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records in the review packet plus the validator-first `make -C zigux phase15-validate` route, the workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`, the dedicated `make -C zigux phase15-test` route, the direct `zig build test --build-file zigux/tests/phase15_build.zig` route, and the anchor-specific rollback-owner records in the parity scorecard
+- the parked Architecture Council packet stays aligned with its scripts-root validator path, its workflow-backed replay path, its dedicated `make -C zigux phase15-test` route, its direct `zig build test --build-file zigux/tests/phase15_build.zig` route, its Linux-style `make -C zigux phase15-validate` route, its tests-root guidance path, and its dedicated handoff-checker route
 - until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
 
 ## Maintenance-Mode Handoff
@@ -125,8 +125,8 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
   - `make -C zigux phase15-test`
   - `zig build test --build-file zigux/tests/phase15_build.zig`
   - `make -C zigux phase15`
-- reopen only when one of the named catalog triggers now fits the evidence packet, or when the deep-core blocker posture changes enough to justify a new bounded review-process follow-up
-- next future target: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice
+- reopen only when one of the named catalog triggers now fits the evidence packet, when the deep-core blocker posture changes enough to justify a new bounded review-process follow-up, or when evidence_packet_stale_or_contradictory now fits this parked packet again
+- next future target: wait for one of the named reopen triggers, the deep-core blocker posture to change, or another same-packet truthfulness drift before opening another Phase 15 slice
 
 ## Recorded Gaps
 
@@ -146,9 +146,9 @@ The current lane state is:
 - landed `phase15-approver-set-field-sync`
 - landed `phase15-workflow-replay-anchor-visible`
 - landed `phase15-dedicated-make-test-replay-visible`
-- landed `phase15-verified-master-head-provenance-sync`
+- landed `phase15-dated-readback-provenance-refresh`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, restores the explicit indefinite-C policy linkage for stay-in-C requests, keeps the rollback-threshold gate explicit when evidence is weak or contradictory, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, keeps the roadmap-minimum `phase`, status-bucket, approver-set, and validation-gate evidence explicit in the parked packet, makes the workflow-backed replay anchor explicit beside the validator-first, dedicated `make -C zigux phase15-test`, direct-build, and full make-route replays, makes the already-landed lane-owner vocabulary alignment, indefinite-C blocker-evidence, and governance-lane sequencing replays visible inside the same governance boundary, and now keeps the exact verified `master` head explicit in both the note and the manifest instead of the older degraded dated-readback marker, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux keeps the same reviewable Architecture Council process description, the same required packet fields, the same parity-scorecard linkage, the same indefinite-C policy linkage, the same retained stay-in-C closeout rule, the same workflow-backed and dedicated test replay anchors, and the same no-approval posture. The only new maintenance claim is truthfulness: live compare-against-master showed the previously recorded exact verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` is now 2591 commits behind current `master`, so this parked packet now uses the explicit dated marker `current-master-readback-2026-05-09` instead of implying fresh exact-head parity.
 
 ## Non-goals
 
@@ -178,4 +178,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 15 governance lane in maintenance mode. The workflow-backed replay-anchor follow-through is now landed, so the next honest action is to wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice.
+Keep the Phase 15 governance lane in maintenance mode. The next honest action is to wait for one of the named reopen triggers, a deep-core blocker-posture change, or another same-packet truthfulness drift before opening another Phase 15 slice.
