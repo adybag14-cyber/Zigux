@@ -9,6 +9,7 @@ from pathlib import Path
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 TARGET = ROOT / "zigux/tests/phase7_build.zig"
+MAKEFILE = ROOT / "zigux/Makefile"
 
 HELPER_SPECS = [
     {
@@ -98,6 +99,7 @@ REVIEW_GATE_SPECS = [
         "depend_marker": "test_step.dependOn(&run_string_helpers_survey_tests.step);",
         "cwd_marker": 'run_string_helpers_survey_tests.setCwd(b.path("../.."));',
         "step_name_marker": '"phase7-string-helpers-survey",',
+        "step_name": "phase7-string-helpers-survey",
         "step_description_marker": '"Run the dedicated Phase 7 string_helpers survey gate",',
         "step_depend_marker": "string_helpers_survey_step.dependOn(&run_string_helpers_survey_tests.step);",
     },
@@ -113,6 +115,7 @@ REVIEW_GATE_SPECS = [
         "depend_marker": "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step);",
         "cwd_marker": 'run_string_helpers_sample_boundary_tests.setCwd(b.path("../.."));',
         "step_name_marker": '"phase7-string-helpers-sample-boundary",',
+        "step_name": "phase7-string-helpers-sample-boundary",
         "step_description_marker": '"Run the dedicated Phase 7 string_helpers sample-boundary gate",',
         "step_depend_marker": "string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step);",
     },
@@ -128,6 +131,7 @@ REVIEW_GATE_SPECS = [
         "depend_marker": "test_step.dependOn(&run_cmdline_survey_tests.step);",
         "cwd_marker": 'run_cmdline_survey_tests.setCwd(b.path("../.."));',
         "step_name_marker": '"phase7-cmdline-survey",',
+        "step_name": "phase7-cmdline-survey",
         "step_description_marker": '"Run the dedicated Phase 7 cmdline survey gate",',
         "step_depend_marker": "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step);",
     },
@@ -143,6 +147,7 @@ REVIEW_GATE_SPECS = [
         "depend_marker": "test_step.dependOn(&run_argv_split_survey_tests.step);",
         "cwd_marker": 'run_argv_split_survey_tests.setCwd(b.path("../.."));',
         "step_name_marker": '"phase7-argv-split-survey",',
+        "step_name": "phase7-argv-split-survey",
         "step_description_marker": '"Run the dedicated Phase 7 argv_split survey gate",',
         "step_depend_marker": "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step);",
     },
@@ -158,12 +163,13 @@ REVIEW_GATE_SPECS = [
         "depend_marker": "test_step.dependOn(&run_rbtree_survey_tests.step);",
         "cwd_marker": 'run_rbtree_survey_tests.setCwd(b.path("../.."));',
         "step_name_marker": '"phase7-rbtree-survey",',
+        "step_name": "phase7-rbtree-survey",
         "step_description_marker": '"Run the dedicated Phase 7 rbtree survey gate",',
         "step_depend_marker": "rbtree_survey_step.dependOn(&run_rbtree_survey_tests.step);",
     },
 ]
 
-REQUIRED_MARKERS = [
+BUILD_REQUIRED_MARKERS = [
     marker
     for spec in HELPER_SPECS
     for marker in (
@@ -187,23 +193,80 @@ REQUIRED_MARKERS = [
     )
 ]
 
-EXACT_COUNT_MARKERS = [(marker, 1) for marker in REQUIRED_MARKERS]
+BUILD_EXACT_COUNT_MARKERS = [(marker, 1) for marker in BUILD_REQUIRED_MARKERS]
 
 
-def collect_missing_markers(text: str) -> list[str]:
+def collect_build_missing_markers(text: str) -> list[str]:
     missing: list[str] = []
-    for marker in REQUIRED_MARKERS:
+    for marker in BUILD_REQUIRED_MARKERS:
         if marker not in text:
-            missing.append(marker)
-    for marker, expected_count in EXACT_COUNT_MARKERS:
+            missing.append(f"zigux/tests/phase7_build.zig: {marker}")
+    for marker, expected_count in BUILD_EXACT_COUNT_MARKERS:
         actual_count = text.count(marker)
         if actual_count != expected_count:
-            missing.append(f"{marker}:expected={expected_count}:actual={actual_count}")
+            missing.append(
+                f"zigux/tests/phase7_build.zig: {marker}:expected={expected_count}:actual={actual_count}"
+            )
     return missing
 
 
-def validate(path: Path) -> list[str]:
-    return collect_missing_markers(path.read_text(encoding="utf-8"))
+def extract_make_target_block(text: str, target: str) -> str:
+    block_lines: list[str] = []
+    collecting = False
+    for line in text.splitlines():
+        if not collecting:
+            if line == f"{target}:":
+                collecting = True
+                block_lines.append(line)
+            continue
+        if line and not line.startswith("\t"):
+            break
+        block_lines.append(line)
+    return "\n".join(block_lines)
+
+
+def collect_make_phony_counts(text: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for line in text.splitlines():
+        if not line.startswith("PHONY +="):
+            continue
+        for token in line.split()[2:]:
+            counts[token] = counts.get(token, 0) + 1
+    return counts
+
+
+def collect_makefile_missing_markers(text: str) -> list[str]:
+    missing: list[str] = []
+    phony_counts = collect_make_phony_counts(text)
+    for spec in REVIEW_GATE_SPECS:
+        target = spec["step_name"]
+        phony_count = phony_counts.get(target, 0)
+        if phony_count != 1:
+            missing.append(
+                f"zigux/Makefile PHONY: {target}:expected=1:actual={phony_count}"
+            )
+
+        expected_command = (
+            f"\tcd $(ZIGUX_ROOT) && $(ZIG) build {target} "
+            "--build-file zigux/tests/phase7_build.zig --summary all"
+        )
+        block = extract_make_target_block(text, target)
+        if not block:
+            missing.append(f"zigux/Makefile: missing target block {target}")
+            continue
+
+        actual_count = sum(1 for line in block.splitlines() if line == expected_command)
+        if actual_count != 1:
+            missing.append(
+                f"zigux/Makefile target {target}: {expected_command}:expected=1:actual={actual_count}"
+            )
+    return missing
+
+
+def validate(build_path: Path, makefile_path: Path) -> list[str]:
+    missing = collect_build_missing_markers(build_path.read_text(encoding="utf-8"))
+    missing.extend(collect_makefile_missing_markers(makefile_path.read_text(encoding="utf-8")))
+    return missing
 
 
 def mutate_text(path: Path, old: str, new: str, case: str) -> None:
@@ -217,8 +280,41 @@ def duplicate_first_marker(text: str, marker: str) -> str:
     return text.replace(marker, f"{marker}\n{marker}", 1)
 
 
+def remove_phony_token_once(text: str, target: str) -> str:
+    marker = f" {target}"
+    updated = text.replace(marker, "", 1)
+    assert updated != text
+    return updated
+
+
+def duplicate_phony_token_once(text: str, target: str) -> str:
+    marker = f" {target}"
+    updated = text.replace(marker, f"{marker}{marker}", 1)
+    assert updated != text
+    return updated
+
+
+def phase7_makefile_fixture() -> str:
+    phony_targets = " ".join(spec["step_name"] for spec in REVIEW_GATE_SPECS)
+    target_blocks: list[str] = [f"PHONY += {phony_targets}", ""]
+    for spec in REVIEW_GATE_SPECS:
+        target = spec["step_name"]
+        target_blocks.extend(
+            [
+                f"{target}:",
+                (
+                    f"\tcd $(ZIGUX_ROOT) && $(ZIG) build {target} "
+                    "--build-file zigux/tests/phase7_build.zig --summary all"
+                ),
+                "",
+            ]
+        )
+    return "\n".join(target_blocks)
+
+
 def run_self_test() -> None:
-    fixture = "\n".join(REQUIRED_MARKERS) + "\n"
+    build_fixture = "\n".join(BUILD_REQUIRED_MARKERS) + "\n"
+    makefile_fixture = phase7_makefile_fixture()
     marker_cases = []
     exact_count_cases = []
 
@@ -229,31 +325,31 @@ def run_self_test() -> None:
                     f"{spec['key']}_helper_module_target_drift",
                     spec["helper_module_marker"],
                     spec["helper_module_marker"].replace(".target = target,", ".target = b.graph.host,"),
-                    spec["helper_module_marker"],
+                    f"zigux/tests/phase7_build.zig: {spec['helper_module_marker']}",
                 ),
                 (
                     f"{spec['key']}_root_module_optimize_drift",
                     spec["root_module_marker"],
                     spec["root_module_marker"].replace(".optimize = optimize,", ".optimize = .ReleaseSafe,"),
-                    spec["root_module_marker"],
+                    f"zigux/tests/phase7_build.zig: {spec['root_module_marker']}",
                 ),
                 (
                     f"{spec['key']}_import_alias_drift",
                     spec["import_marker"],
                     spec["import_marker"].replace(f'\"{spec["key"]}\"', f'\"{spec["key"]}_drift\"'),
-                    spec["import_marker"],
+                    f"zigux/tests/phase7_build.zig: {spec['import_marker']}",
                 ),
                 (
                     f"{spec['key']}_test_name_drift",
                     spec["test_name_marker"],
                     spec["test_name_marker"].replace("-tests", "-tests-drift"),
-                    spec["test_name_marker"],
+                    f"zigux/tests/phase7_build.zig: {spec['test_name_marker']}",
                 ),
                 (
                     f"{spec['key']}_depend_drift",
                     spec["depend_marker"],
                     spec["depend_marker"].replace(".step);", "_drift.step);"),
-                    spec["depend_marker"],
+                    f"zigux/tests/phase7_build.zig: {spec['depend_marker']}",
                 ),
             ]
         )
@@ -262,22 +358,22 @@ def run_self_test() -> None:
                 (
                     f"{spec['key']}_helper_module_exact_count",
                     spec["helper_module_marker"],
-                    f"{spec['helper_module_marker']}:expected=1:actual=2",
+                    f"zigux/tests/phase7_build.zig: {spec['helper_module_marker']}:expected=1:actual=2",
                 ),
                 (
                     f"{spec['key']}_root_module_exact_count",
                     spec["root_module_marker"],
-                    f"{spec['root_module_marker']}:expected=1:actual=2",
+                    f"zigux/tests/phase7_build.zig: {spec['root_module_marker']}:expected=1:actual=2",
                 ),
                 (
                     f"{spec['key']}_import_exact_count",
                     spec["import_marker"],
-                    f"{spec['import_marker']}:expected=1:actual=2",
+                    f"zigux/tests/phase7_build.zig: {spec['import_marker']}:expected=1:actual=2",
                 ),
                 (
                     f"{spec['key']}_depend_exact_count",
                     spec["depend_marker"],
-                    f"{spec['depend_marker']}:expected=1:actual=2",
+                    f"zigux/tests/phase7_build.zig: {spec['depend_marker']}:expected=1:actual=2",
                 ),
             ]
         )
@@ -289,43 +385,43 @@ def run_self_test() -> None:
                     f"{spec['key']}_root_module_target_drift",
                     spec["root_module_marker"],
                     spec["root_module_marker"].replace(".target = target,", ".target = b.graph.host,"),
-                    spec["root_module_marker"],
+                    f"zigux/tests/phase7_build.zig: {spec['root_module_marker']}",
                 ),
                 (
                     f"{spec['key']}_test_name_drift",
                     spec["test_name_marker"],
                     spec["test_name_marker"].replace("-tests", "-tests-drift"),
-                    spec["test_name_marker"],
+                    f"zigux/tests/phase7_build.zig: {spec['test_name_marker']}",
                 ),
                 (
                     f"{spec['key']}_depend_drift",
                     spec["depend_marker"],
                     spec["depend_marker"].replace(".step);", "_drift.step);"),
-                    spec["depend_marker"],
+                    f"zigux/tests/phase7_build.zig: {spec['depend_marker']}",
                 ),
                 (
                     f"{spec['key']}_cwd_drift",
                     spec["cwd_marker"],
                     spec["cwd_marker"].replace("../..", "."),
-                    spec["cwd_marker"],
+                    f"zigux/tests/phase7_build.zig: {spec['cwd_marker']}",
                 ),
                 (
                     f"{spec['key']}_step_name_drift",
                     spec["step_name_marker"],
                     spec["step_name_marker"].replace('",', '-drift",'),
-                    spec["step_name_marker"],
+                    f"zigux/tests/phase7_build.zig: {spec['step_name_marker']}",
                 ),
                 (
                     f"{spec['key']}_step_description_drift",
                     spec["step_description_marker"],
                     spec["step_description_marker"].replace("dedicated ", "review-only "),
-                    spec["step_description_marker"],
+                    f"zigux/tests/phase7_build.zig: {spec['step_description_marker']}",
                 ),
                 (
                     f"{spec['key']}_step_depend_drift",
                     spec["step_depend_marker"],
                     spec["step_depend_marker"].replace(".step);", "_drift.step);"),
-                    spec["step_depend_marker"],
+                    f"zigux/tests/phase7_build.zig: {spec['step_depend_marker']}",
                 ),
             ]
         )
@@ -334,69 +430,107 @@ def run_self_test() -> None:
                 (
                     f"{spec['key']}_root_module_exact_count",
                     spec["root_module_marker"],
-                    f"{spec['root_module_marker']}:expected=1:actual=2",
+                    f"zigux/tests/phase7_build.zig: {spec['root_module_marker']}:expected=1:actual=2",
                 ),
                 (
                     f"{spec['key']}_test_name_exact_count",
                     spec["test_name_marker"],
-                    f"{spec['test_name_marker']}:expected=1:actual=2",
+                    f"zigux/tests/phase7_build.zig: {spec['test_name_marker']}:expected=1:actual=2",
                 ),
                 (
                     f"{spec['key']}_depend_exact_count",
                     spec["depend_marker"],
-                    f"{spec['depend_marker']}:expected=1:actual=2",
+                    f"zigux/tests/phase7_build.zig: {spec['depend_marker']}:expected=1:actual=2",
                 ),
                 (
                     f"{spec['key']}_cwd_exact_count",
                     spec["cwd_marker"],
-                    f"{spec['cwd_marker']}:expected=1:actual=2",
+                    f"zigux/tests/phase7_build.zig: {spec['cwd_marker']}:expected=1:actual=2",
                 ),
                 (
                     f"{spec['key']}_step_name_exact_count",
                     spec["step_name_marker"],
-                    f"{spec['step_name_marker']}:expected=1:actual=2",
+                    f"zigux/tests/phase7_build.zig: {spec['step_name_marker']}:expected=1:actual=2",
                 ),
                 (
                     f"{spec['key']}_step_description_exact_count",
                     spec["step_description_marker"],
-                    f"{spec['step_description_marker']}:expected=1:actual=2",
+                    f"zigux/tests/phase7_build.zig: {spec['step_description_marker']}:expected=1:actual=2",
                 ),
                 (
                     f"{spec['key']}_step_depend_exact_count",
                     spec["step_depend_marker"],
-                    f"{spec['step_depend_marker']}:expected=1:actual=2",
+                    f"zigux/tests/phase7_build.zig: {spec['step_depend_marker']}:expected=1:actual=2",
                 ),
             ]
         )
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_build_wiring_") as tmp_dir_str:
-        tmp_path = Path(tmp_dir_str) / "phase7_build.zig"
-        tmp_path.write_text(fixture, encoding="utf-8")
-        assert validate(tmp_path) == []
+        tmp_root = Path(tmp_dir_str)
+        build_path = tmp_root / "phase7_build.zig"
+        makefile_path = tmp_root / "Makefile"
+        build_path.write_text(build_fixture, encoding="utf-8")
+        makefile_path.write_text(makefile_fixture, encoding="utf-8")
+        assert validate(build_path, makefile_path) == []
 
         for case, old, new, expected in marker_cases:
-            mutate_text(tmp_path, old, new, case)
-            assert expected in validate(tmp_path), case
-            tmp_path.write_text(fixture, encoding="utf-8")
+            mutate_text(build_path, old, new, case)
+            assert expected in validate(build_path, makefile_path), case
+            build_path.write_text(build_fixture, encoding="utf-8")
 
         for case, marker, expected in exact_count_cases:
-            original = tmp_path.read_text(encoding="utf-8")
+            original = build_path.read_text(encoding="utf-8")
             updated = duplicate_first_marker(original, marker)
             assert updated != original, case
-            tmp_path.write_text(updated, encoding="utf-8")
-            assert expected in validate(tmp_path), case
-            tmp_path.write_text(fixture, encoding="utf-8")
+            build_path.write_text(updated, encoding="utf-8")
+            assert expected in validate(build_path, makefile_path), case
+            build_path.write_text(build_fixture, encoding="utf-8")
+
+        makefile_marker_cases = 0
+        for spec in REVIEW_GATE_SPECS:
+            target = spec["step_name"]
+            expected_command = (
+                f"\tcd $(ZIGUX_ROOT) && $(ZIG) build {target} "
+                "--build-file zigux/tests/phase7_build.zig --summary all"
+            )
+
+            original = makefile_path.read_text(encoding="utf-8")
+            makefile_path.write_text(remove_phony_token_once(original, target), encoding="utf-8")
+            expected = f"zigux/Makefile PHONY: {target}:expected=1:actual=0"
+            assert expected in validate(build_path, makefile_path), f"{target}_missing_phony"
+            makefile_path.write_text(makefile_fixture, encoding="utf-8")
+            makefile_marker_cases += 1
+
+            original = makefile_path.read_text(encoding="utf-8")
+            makefile_path.write_text(duplicate_phony_token_once(original, target), encoding="utf-8")
+            expected = f"zigux/Makefile PHONY: {target}:expected=1:actual=2"
+            assert expected in validate(build_path, makefile_path), f"{target}_duplicate_phony"
+            makefile_path.write_text(makefile_fixture, encoding="utf-8")
+            makefile_marker_cases += 1
+
+            mutate_text(
+                makefile_path,
+                expected_command,
+                expected_command.replace("--summary all", ""),
+                f"{target}_command_drift",
+            )
+            expected = (
+                f"zigux/Makefile target {target}: {expected_command}:expected=1:actual=0"
+            )
+            assert expected in validate(build_path, makefile_path), f"{target}_command_drift"
+            makefile_path.write_text(makefile_fixture, encoding="utf-8")
+            makefile_marker_cases += 1
 
     print("PHASE7_BUILD_WIRING_SELF_TEST=pass")
     print(
         "PHASE7_BUILD_WIRING_SELF_TEST_CASE_COUNT=%d"
-        % (len(marker_cases) + len(exact_count_cases))
+        % (len(marker_cases) + len(exact_count_cases) + makefile_marker_cases)
     )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check Phase 7 helper-module and review-gate wiring in zigux/tests/phase7_build.zig."
+        description="Check Phase 7 helper-module, build-step, and Makefile survey wiring."
     )
     parser.add_argument(
         "--self-test",
@@ -409,7 +543,7 @@ def main() -> int:
         run_self_test()
         return 0
 
-    missing = validate(TARGET)
+    missing = validate(TARGET, MAKEFILE)
     if missing:
         print("PHASE7_BUILD_WIRING=fail")
         print("MISSING_PHASE7_BUILD_WIRING_MARKERS_START")
@@ -419,7 +553,10 @@ def main() -> int:
         return 1
 
     print("PHASE7_BUILD_WIRING=pass")
-    print(f"PHASE7_BUILD_WIRING_REQUIRED_MARKER_COUNT={len(REQUIRED_MARKERS)}")
+    print(
+        "PHASE7_BUILD_WIRING_REQUIRED_MARKER_COUNT=%d"
+        % (len(BUILD_REQUIRED_MARKERS) + (2 * len(REVIEW_GATE_SPECS)))
+    )
     return 0
 
 
