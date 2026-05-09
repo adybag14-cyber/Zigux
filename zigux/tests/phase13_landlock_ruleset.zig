@@ -76,7 +76,7 @@ test "phase13 landlock ruleset tree-replacement planner rejects empty matched-ru
     );
 }
 
-test "phase13 landlock ruleset tree-replacement planner rejects non-matching search plans" {
+test "phase13 landlock ruleset tree-replacement planner rejects search plans without a matched rule" {
     const existing = ruleset.RulePlan{
         .num_layers = 2,
         .layers = [_]ruleset.Layer{
@@ -85,12 +85,45 @@ test "phase13 landlock ruleset tree-replacement planner rejects non-matching sea
         } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 2)),
     };
 
-    const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{ 10, 40, 120 }, 6);
+    const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 25, &.{ 10, 40, 30 }, 6);
 
     try std.testing.expectError(
-        error.RuleReplacementRequiresMatch,
+        error.RuleNotMatched,
         ruleset.RulesetHelperLab.planRuleTreeReplacement(
             search_plan,
+            existing,
+            .{ .level = 5, .access = 0x10 },
+        ),
+    );
+}
+
+test "phase13 landlock ruleset tree-replacement planner rejects matched plans that still carry an insertion site" {
+    const existing = ruleset.RulePlan{
+        .num_layers = 2,
+        .layers = [_]ruleset.Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 2)),
+    };
+
+    const malformed_search_plan = ruleset.RuleTreeSearchPlan{
+        .anchor = ruleset.RulesetHelperLab.descriptor().anchor,
+        .root = .inode,
+        .search_depth = 2,
+        .search_steps = [_]ruleset.TreeSearchStep{
+            .{ .node_key_data = 10, .direction = .right },
+            .{ .node_key_data = 40, .direction = .match },
+        } ++ ([_]ruleset.TreeSearchStep{.{ .node_key_data = 0, .direction = .left }} ** (ruleset.max_tree_search_depth - 2)),
+        .matched_existing_rule = true,
+        .parent_key_data = 40,
+        .insertion_site = .left,
+        .resulting_num_rules = 6,
+    };
+
+    try std.testing.expectError(
+        error.UnexpectedInsertionSite,
+        ruleset.RulesetHelperLab.planRuleTreeReplacement(
+            malformed_search_plan,
             existing,
             .{ .level = 5, .access = 0x10 },
         ),
