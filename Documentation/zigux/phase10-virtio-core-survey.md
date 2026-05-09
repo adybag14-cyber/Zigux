@@ -7,7 +7,7 @@ This document tracks the bounded Phase 10 governance lane around `drivers/virtio
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-core-survey`
 - lane: `P10-L01`
-- surveyed inspected `master` head: `31e9763eea7964dad7085d1a24bc098b4af49789`
+- surveyed inspected `master` head: `07a40625779a7681a8988fd10d6e1e8f6317ad8c`
 - scope: compare the already-landed core survey packet against the remaining roadmap lab-driver gap, keep the slice note and shared build wiring aligned with that packet, and stay out of ring, MMIO, input, or transport-facing lifecycle work
 - product boundary:
   - `zigux/tests/phase10_virtio_core_manifest.json`
