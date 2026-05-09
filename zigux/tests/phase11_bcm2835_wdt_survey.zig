@@ -193,7 +193,7 @@ test "phase11 bcm2835_wdt survey manifest, teardown note, shared contract, and v
     try std.testing.expect(std.mem.indexOf(u8, teardown_doc, "`zigux/tests/phase11_bcm2835_wdt_survey.zig`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "bounded `is_running`, `start`, `stop`, `get_timeleft`, and restart behavior") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny platform-handoff and PM-base readiness summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny poweroff-path summary for shared system-poweroff callback ownership, Raspberry Pi halt-partition request bits, and the short restart arming sequence") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff callback only when `pm_power_off` still points at `bcm2835_power_off`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "register-image transition coverage") != null);
