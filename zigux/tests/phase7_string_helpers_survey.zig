@@ -162,6 +162,11 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(docs_root, "lib/string_helpers.zig");
     try expectContains(docs_root, "scripts/zigux/check-phase7-build-wiring.py");
 
+    const review_checklist = try readRepoFile(allocator, "Documentation/zigux/review-checklist.md");
+    defer allocator.free(review_checklist);
+    try expectContains(review_checklist, "there is no standalone `samples/zigux/*string*` reference sample");
+    try expectContains(review_checklist, "string-helper reviewability remains under `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, and `zigux/tests/phase7_build.zig` rather than the four shipped Phase 5 samples?");
+
     const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
     defer allocator.free(tests_root);
     try expectContains(tests_root, "scripts/zigux/validate-phase7.py");
