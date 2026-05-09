@@ -63,7 +63,7 @@ test "phase13 landlock ruleset reviewability matches current helper packet" {
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     const descriptor = ruleset.RulesetHelperLab.descriptor();
     try std.testing.expectEqualStrings("landlock_ruleset_helper_lab", descriptor.name);
@@ -75,6 +75,7 @@ test "phase13 landlock ruleset reviewability matches current helper packet" {
     try std.testing.expect(descriptor.provides_rule_insertion_planning);
     try std.testing.expect(descriptor.provides_rule_tree_search_planning);
     try std.testing.expect(descriptor.provides_rule_tree_link_planning);
+    try std.testing.expect(descriptor.provides_rule_tree_replacement_planning);
     try std.testing.expect(!descriptor.touches_live_object_trees);
     try std.testing.expect(!descriptor.touches_live_hierarchy);
 
