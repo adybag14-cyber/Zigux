@@ -262,25 +262,6 @@ fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!u
     return out_len + try validateDecodedTriple(a, b, c);
 }
 
-fn validateTail(src: []const u8, variant: Variant) DecodeError!usize {
-    return validateTailWithMap(src, reverseMap(variant));
-}
-
-fn validateTailWithMap(src: []const u8, map: *const ReverseMap) DecodeError!usize {
-    if (src.len < 2 or src.len > 3) {
-        return DecodeError.InvalidInput;
-    }
-
-    const a = try decodeMapValue(map, src[0]);
-    const b = try decodeMapValue(map, src[1]);
-    if (src.len == 2) {
-        return validateDecodedPair(a, b);
-    }
-
-    const c = try decodeMapValue(map, src[2]);
-    return validateDecodedTriple(a, b, c);
-}
-
 fn validateDecodedPair(a: u8, b: u8) DecodeError!usize {
     const value = (@as(u32, a) << 12) | (@as(u32, b) << 6);
     if ((value & 0x3ff) != 0) {
@@ -295,10 +276,6 @@ fn validateDecodedTriple(a: u8, b: u8, c: u8) DecodeError!usize {
         return DecodeError.InvalidInput;
     }
     return 2;
-}
-
-fn decodeValue(ch: u8, variant: Variant) DecodeError!u8 {
-    return decodeMapValue(reverseMap(variant), ch);
 }
 
 fn decodeMapValue(map: *const ReverseMap, ch: u8) DecodeError!u8 {
