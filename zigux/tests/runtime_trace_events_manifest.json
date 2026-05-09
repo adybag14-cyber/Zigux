@@ -1,5 +1,5 @@
 {
-  "lane_key": "P9-L10",
+  "lane_key": "P9-L16",
   "phase": "Phase 9",
   "surveyed_commit": "ccd5361c3b193d26587c6396f029fc335c783c6e",
   "anchor": "samples/trace_events/trace-events-sample.c",
@@ -61,37 +61,37 @@
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
       "role": "survey_note",
-      "owner": "P9-L10",
+      "owner": "P9-L16",
       "boundary": "Records the shipped starter packet, points reviewers at the shared loader split, and keeps the remaining shared runtime-substrate blocker explicit."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
       "role": "module_slice_note",
-      "owner": "P9-L10",
+      "owner": "P9-L16",
       "boundary": "Tracks the bounded starter sample, loader scaffold, and directly coupled tests without widening into shared runtime-loader ownership or runtime implementation."
     },
     {
       "surface": "samples/zigux/runtime_trace_events.zig",
       "role": "starter_sample",
-      "owner": "P9-L10",
+      "owner": "P9-L16",
       "boundary": "Owns the in-memory trace-events starter and selftest hook without claiming live runtime-substrate parity."
     },
     {
       "surface": "samples/zigux/runtime_trace_events_loader.zig",
       "role": "loader_scaffold",
-      "owner": "P9-L10",
+      "owner": "P9-L16",
       "boundary": "Owns the sample-side loader-handoff scaffold, the selftest-complete shared-request snapshot that stays pinned even after a later sample exit, and release-without-substrate behavior, while the shared runtime-loader lane owns the reusable facade, contract, and allocator replay surfaces it consumes."
     },
     {
       "surface": "zigux/tests/runtime_trace_events_survey.zig",
       "role": "survey_gate",
-      "owner": "P9-L10",
+      "owner": "P9-L16",
       "boundary": "Fail-closes when the trace-events manifest, survey note, loader scaffold, or focused Phase 9 trace-events build-step boundary drifts."
     },
     {
       "surface": "zigux/tests/phase9_build.zig",
       "role": "shared_build_bundle",
-      "owner": "P9-L10",
+      "owner": "P9-L16",
       "boundary": "Owns only the `phase9-runtime-trace-events-tests` step in the shared Phase 9 replay bundle only while the shared loader lane keeps the facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` step aligned."
     }
   ],
