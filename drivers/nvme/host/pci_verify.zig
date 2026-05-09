@@ -541,3 +541,81 @@ test "nvme pci recovery rebuild progress rejects empty, missing, and oversized r
 
     try testing.expectError(error.RebuiltIoQueuesExceedBacklog, lab.retireRecoveredIoQueues(1));
 }
+
+test "nvme pci transport preflight only clears after reservation replay and full backlog retirement" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    const reservation = try lab.reserveIoQueues(8, 6);
+    const metadata = try lab.planPrpMetadata(4096 * 515, 0);
+    try testing.expect(metadata.requires_descriptor_rebuild_after_reset);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    _ = try lab.planAdminQueue(48, 64, false);
+
+    const refreshed_metadata = try lab.planPrpMetadata(4096 * 515, 0);
+    const transport_request_before_replay: nvme_pci.RecoveryReplayRequest = .{
+        .cached_prp_metadata_generation = refreshed_metadata.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_descriptor_dma_bytes = refreshed_metadata.metadata_dma_bytes,
+        .cached_requires_descriptor_rebuild = refreshed_metadata.requires_descriptor_rebuild_after_reset,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    };
+    const before_replay = try lab.planRecoveryTransportPreflight(transport_request_before_replay);
+    try testing.expect(!before_replay.descriptor_rebuild_required);
+    try testing.expectEqual(@as(u32, 0), before_replay.descriptor_rebuild_dma_bytes);
+    try testing.expectEqual(@as(u16, 0), before_replay.descriptor_rebuild_pages);
+    try testing.expect(before_replay.queue_reservation_replay_required);
+    try testing.expectEqual(@as(usize, 6), before_replay.reserved_io_queues_to_renegotiate);
+    try testing.expect(before_replay.io_queues_must_be_rebuilt);
+    try testing.expectEqual(@as(usize, 6), before_replay.io_queues_dropped_by_reset);
+    try testing.expectEqual(@as(u16, 1), before_replay.next_io_queue_id);
+
+    const replay = try lab.replayReservedIoQueues(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 6);
+    try testing.expectEqual(@as(usize, 6), replay.reserved_io_queues);
+    try testing.expectEqual(@as(u16, 1), replay.first_queue_id);
+    try testing.expectEqual(@as(u16, 6), replay.last_queue_id);
+
+    const transport_request_after_replay: nvme_pci.RecoveryReplayRequest = .{
+        .cached_prp_metadata_generation = refreshed_metadata.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_descriptor_dma_bytes = refreshed_metadata.metadata_dma_bytes,
+        .cached_requires_descriptor_rebuild = refreshed_metadata.requires_descriptor_rebuild_after_reset,
+        .cached_queue_reservation_generation = replay.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = replay.reserved_io_queues,
+    };
+    const after_replay = try lab.planRecoveryTransportPreflight(transport_request_after_replay);
+    try testing.expect(!after_replay.descriptor_rebuild_required);
+    try testing.expect(!after_replay.queue_reservation_replay_required);
+    try testing.expectEqual(@as(usize, 0), after_replay.reserved_io_queues_to_renegotiate);
+    try testing.expect(after_replay.io_queues_must_be_rebuilt);
+    try testing.expectEqual(@as(usize, 6), after_replay.io_queues_dropped_by_reset);
+
+    const partial_retirement = try lab.retireRecoveredIoQueues(2);
+    try testing.expectEqual(@as(usize, 2), partial_retirement.dropped_io_queues_retired);
+    try testing.expectEqual(@as(usize, 4), partial_retirement.dropped_io_queues_remaining);
+
+    const after_partial_retirement = try lab.planRecoveryTransportPreflight(transport_request_after_replay);
+    try testing.expect(!after_partial_retirement.descriptor_rebuild_required);
+    try testing.expect(!after_partial_retirement.queue_reservation_replay_required);
+    try testing.expect(after_partial_retirement.io_queues_must_be_rebuilt);
+    try testing.expectEqual(@as(usize, 4), after_partial_retirement.io_queues_dropped_by_reset);
+
+    const complete_retirement = try lab.retireRecoveredIoQueues(4);
+    try testing.expectEqual(@as(usize, 6), complete_retirement.dropped_io_queues_retired);
+    try testing.expectEqual(@as(usize, 0), complete_retirement.dropped_io_queues_remaining);
+
+    try testing.expectError(error.NoRecoveryTransportPreflightNeeded, lab.planRecoveryTransportPreflight(transport_request_after_replay));
+}
