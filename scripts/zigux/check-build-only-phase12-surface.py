@@ -49,6 +49,7 @@ REQUIRED_FILE_MARKERS = {
         "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
         "`drivers/nvme/host/pci_verify.zig`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
+        "`zigux/tests/phase12_virtio_scsi_manifest.json`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
@@ -257,6 +258,7 @@ REQUIRED_FILE_MARKERS = {
         "`make -C zigux phase12-smoke`",
         "`make -C zigux phase12`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
+        "`zigux/tests/phase12_virtio_scsi_manifest.json`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
         "`check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed",
@@ -332,6 +334,7 @@ REQUIRED_FILE_MARKERS = {
 EXACT_COUNT_FILE_MARKERS = {
     DOCS_README_PATH: {
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`": 1,
+        "`zigux/tests/phase12_virtio_scsi_manifest.json`": 1,
     },
     SCRIPTS_README_PATH: {
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`": 1,
@@ -339,6 +342,7 @@ EXACT_COUNT_FILE_MARKERS = {
         "`make -C zigux phase12-smoke`": 1,
         "`make -C zigux phase12`": 1,
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`": 1,
+        "`zigux/tests/phase12_virtio_scsi_manifest.json`": 1,
     },
     TESTS_README_PATH: {
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`": 1,
