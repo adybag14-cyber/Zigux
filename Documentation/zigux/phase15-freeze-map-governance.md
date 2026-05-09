@@ -5,7 +5,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 ## Status
 
 - `PHASE15_STATUS=governance_slice_landed`
-- `PHASE15_LANE_KEY=P15-L01`
+- `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, the shared validator-first route already shipped for the current governance packet, and one bounded maintenance follow-up that keeps the current freeze anchor set, blocker evidence, required approver sets, and shared governance provenance aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, per-anchor evidence-archive reporting posture, and an anchor-by-anchor deep-core blocker survey that compares roadmap posture against current repo reality
