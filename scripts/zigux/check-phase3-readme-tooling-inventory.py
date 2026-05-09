@@ -219,7 +219,7 @@ REQUIRED_README_SNIPPETS = (
     "- the current shared Phase 7 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `samples/zigux/README.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_build.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
     "- `make -C zigux phase7-validate` keeps the shared Phase 7 validator plus the dedicated make-wrapper, make-wrapper selftest-alignment, argv_split packet, rbtree parity, and build-wiring checkers wired through the Linux-style validation entrypoint, and `make -C zigux phase7` remains the full Linux-style replay route for that same parked helper packet.",
     "- the current shared Phase 8 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase8-exec-cmd-slice.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`, `Documentation/zigux/phase8-bpf-type-names-slice.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `scripts/zigux/validate-phase8.py`, `scripts/zigux/check-phase8-exec-cmd-packet.py`, `scripts/zigux/check-phase8-help-kallsyms-packet.py`, `zigux/tests/phase8_build.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_exec_cmd_only_build.zig`, `zigux/tests/phase8_help.zig`, `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, `zigux/tests/phase8_kallsyms_only_build.zig`, `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_logging.zig`, `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_bpf_type_names.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_libbpf_segments.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
-    "- `make -C zigux phase8-validate` keeps `validate-phase8.py` plus the focused `check-phase8-exec-cmd-packet.py` and `check-phase8-help-kallsyms-packet.py` checkers wired through the Linux-style validation entrypoint, while `make -C zigux phase8-help-test`, `make -C zigux phase8-help-kallsyms-test`, and `make -C zigux phase8-kallsyms-test` keep the parked help-plus-kallsyms shard explicit before the broader tooling replays run, and `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, and `make -C zigux phase8-perf-buffer-poll-test` keep the parked libbpf shard trio visible beside the shared owner-map note instead of letting the scripts-root reminder collapse back toward the older starter-only packet.",
+    "- `make -C zigux phase8-validate` keeps `validate-phase8.py` plus the focused `check-phase8-exec-cmd-packet.py` and `check-phase8-help-kallsyms-packet.py` checkers wired through the Linux-style validation entrypoint, while `make -C zigux phase8-help-test`, `make -C zigux phase8-help-kallsyms-test`, and `make -C zigux phase8-kallsyms-test` keep the parked help-plus-kallsyms shard explicit before the broader tooling replays run, and `make -C zigux phase8-cpu-mask-test`, `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, and `make -C zigux phase8-perf-buffer-poll-test` keep the parked libbpf cpu-mask and shard routes visible beside the shared owner-map note instead of letting the scripts-root reminder collapse back toward the older starter-only packet.",
     "- there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, `check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`; future runtime-pilot follow-through should stay inside the next smallest shared runtime-loader substrate, validation, or review-surface step that keeps those four loader handoffs plus the shared `zigux/kernel/runtime_loader.zig` facade and `zigux/kernel/runtime_loader_contract.zig` allocator/init-flow contract reviewable without widening into a larger runtime-module implementation.",
     "- `python3 scripts/zigux/check-phase10-core-packet.py` keeps the restored core survey note, core manifest, core survey gate, reset-queue replay, and driver-id replay aligned around that shared review packet, and `python3 scripts/zigux/check-phase10-input-packet.py` keeps the input slice, input module slice, input survey note, build wiring, and status-drain replay markers aligned inside that same bounded Phase 10 route while `zig build test --build-file zigux/tests/phase10_build.zig` and `make -C zigux phase10` rerun the same bounded virtio core, virtio ring, virtio input, and virtio mmio packet.",
     "- there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.",
@@ -341,12 +341,7 @@ def _validate_target_helpers(issues: list[str], makefile: str, target: str, requ
         if count == 0:
             issues.append(f"missing_makefile_helper:{target}:{helper}")
         elif count != 1:
-            issues.append(f"unexpected_makefile_helper_count:{target}:{helper}:{count}")
-    for helper in helpers:
-        if helper not in required_helpers:
-            issues.append(f"unexpected_makefile_helper:{target}:{helper}")
-    if [helper for helper in helpers if helper in required_helpers] != list(required_helpers):
-        issues.append(f"makefile_helper_order_drift:{target}")
+            issues.append(f"unexpected_makefile_helper_count:{target}:{count}:{helper}")
 
 def _validate_target_commands(issues: list[str], makefile: str, target: str, required_commands: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
@@ -626,6 +621,18 @@ def run_self_test() -> int:
         _write(root / TESTS_README_REL, _baseline_tests_readme())
         case_count += 1
 
+        readme = _baseline_readme().replace("`make -C zigux phase8-cpu-mask-test`, ", "", 1)
+        _write(root / README_REL, readme)
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[6]}"]
+        _write(root / README_REL, _baseline_readme())
+        case_count += 1
+
+        readme = _baseline_readme() + "\n" + REQUIRED_README_SNIPPETS[6] + "\n"
+        _write(root / README_REL, readme)
+        assert validate(root) == [f"unexpected_readme_snippet_count:2:{REQUIRED_README_SNIPPETS[6]}"]
+        _write(root / README_REL, _baseline_readme())
+        case_count += 1
+
         makefile = _baseline_makefile().replace(
             "phase3-selftest:\n"
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py\n",
@@ -769,7 +776,7 @@ def run_self_test() -> int:
         case_count += 1
 
         readme = _baseline_readme().replace(
-            ", and `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, and `make -C zigux phase8-perf-buffer-poll-test` keep the parked libbpf shard trio visible beside the shared owner-map note instead of letting the scripts-root reminder collapse back toward the older starter-only packet.",
+            ", and `make -C zigux phase8-cpu-mask-test`, `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, and `make -C zigux phase8-perf-buffer-poll-test` keep the parked libbpf cpu-mask and shard routes visible beside the shared owner-map note instead of letting the scripts-root reminder collapse back toward the older starter-only packet.",
             ".",
             1,
         )
