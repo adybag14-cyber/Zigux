@@ -156,7 +156,7 @@ That split matches the live docs-root Phase 8 summary and prevents scheduled too
 
 ## Next bounded step
 
-That older immediate next step is now complete: `zigux/tests/README.md` already keeps `zigux/tests/phase8_pin_path.zig` and `zigux/tests/phase8_bpf_type_names.zig` explicit inside the parked libbpf packet summary, so this sequencing note should treat the shared tests-root reminder as closed again until another same-lane drift appears.
+That older immediate next step is now complete was the previous closure claim, but it is not true on current `master`: `zigux/tests/README.md` now keeps `zigux/tests/phase8_bpf_type_names.zig` explicit inside the parked libbpf packet summary, but it still omits `zigux/tests/phase8_pin_path.zig`. This sequencing note should therefore keep the shared tests-root reminder open for one smaller wording-only follow-through that adds the missing pin-path shard without widening into helper logic or the parked help, exec-cmd, or kallsyms slices.
 
 The docs-root summary already keeps this owner map explicit on current `master`: `Documentation/zigux/README.md` names `Documentation/zigux/phase8-tooling-lane-sequencing.md` beside the parked help-plus-kallsyms shard routes, the file-path bridge route, the libbpf segment-survey route, and the perf-buffer-poll route.
 
