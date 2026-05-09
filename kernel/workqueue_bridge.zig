@@ -344,6 +344,18 @@ pub const WorkqueueBridgeLab = struct {
         return boundary_map_only_area_ids[0..];
     }
 
+    pub fn stayInCAreaIds() []const []const u8 {
+        return stay_in_c_area_ids[0..];
+    }
+
+    pub fn stayInCDecisionCount() usize {
+        return stay_in_c_area_ids.len;
+    }
+
+    pub fn auditCheckpointCount() usize {
+        return audit_checkpoints.len;
+    }
+
     pub fn rescuerGovernance() RescuerGovernance {
         return .{
             .boundary = boundaryAreaById("rescuer-and-scheduler-hooks").?,
@@ -358,18 +370,6 @@ pub const WorkqueueBridgeLab = struct {
             if (std.mem.eql(u8, checkpoint_id, id)) return true;
         }
         return false;
-    }
-
-    pub fn stayInCAreaIds() []const []const u8 {
-        return stay_in_c_area_ids[0..];
-    }
-
-    pub fn stayInCDecisionCount() usize {
-        return stay_in_c_area_ids.len;
-    }
-
-    pub fn auditCheckpointCount() usize {
-        return audit_checkpoints.len;
     }
 
     pub fn boundaryAreaById(id: []const u8) ?BoundaryArea {
@@ -498,4 +498,16 @@ test "workqueue bridge rescuer governance stays review-only" {
     try std.testing.expect(WorkqueueBridgeLab.rescuerGovernanceTracksCheckpoint("scheduler-running-hooks"));
     try std.testing.expect(WorkqueueBridgeLab.rescuerGovernanceTracksCheckpoint("rescuer-mayday-handoff"));
     try std.testing.expect(!WorkqueueBridgeLab.rescuerGovernanceTracksCheckpoint("flush-drain-color-ownership"));
+
+    const scheduler_hooks = WorkqueueBridgeLab.checkpointById(governance.checkpoint_ids[0]).?;
+    try std.testing.expect(scheduler_hooks.guard == .scheduler_callback_under_pool_lock);
+    try std.testing.expect(std.mem.indexOf(u8, scheduler_hooks.blocked_by, "pool->nr_running") != null);
+
+    const rescuer_handoff = WorkqueueBridgeLab.checkpointById(governance.checkpoint_ids[1]).?;
+    try std.testing.expect(rescuer_handoff.guard == .mayday_lock_then_pool_lock);
+    try std.testing.expect(std.mem.indexOf(u8, rescuer_handoff.blocked_by, "wq->maydays") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rescuer_handoff.blocked_by, "stay-in-C concurrency boundary") != null);
+
+    try std.testing.expect(WorkqueueBridgeLab.blocksLiveBehavior(governance.blocked_behaviors[0]));
+    try std.testing.expect(WorkqueueBridgeLab.blocksLiveBehavior(governance.blocked_behaviors[1]));
 }
