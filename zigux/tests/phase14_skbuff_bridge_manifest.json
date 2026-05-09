@@ -8,6 +8,12 @@
     "zigux/tests/",
     "Documentation/zigux/"
   ],
+  "roadmap_boundary_area_ids": [
+    "allocation-entrypoints",
+    "clone-and-private-copy",
+    "headroom-and-linearization-mutation",
+    "checksum-and-segmentation-surface"
+  ],
   "survey_summary": {
     "skbuff_c_lines": 7476,
     "skbuff_h_lines": 5467,
@@ -107,7 +113,7 @@
       "status": "starter_landed",
       "kind": "boundary_map",
       "zigux_destination": "net/core/skbuff_bridge.zig",
-      "why_now": "The bridge already names the four roadmap-approved boundary-study surfaces and the two explicit stay-in-C boundary areas, but without helper queries later runs would have to infer roadmap alignment from array order instead of a packet-local machine-checkable catalog."
+      "why_now": "The bridge and manifest now carry the exact four roadmap boundary-study area ids, so later runs can prove roadmap alignment from structured packet-local data instead of inferring intent from array order or broad survey wording."
     },
     {
       "id": "phase14-skbuff-test-gate",
