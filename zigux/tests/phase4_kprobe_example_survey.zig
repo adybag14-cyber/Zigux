@@ -14,6 +14,7 @@ const Manifest = struct {
     rollback_owner: []const u8,
     shared_gate_evidence_packet_present: bool,
     validation_entrypoint: []const u8,
+    reversible_delivery_evidence: []const u8,
     review_prompts: []const []const u8,
     non_goals: []const []const u8,
 };
@@ -42,7 +43,7 @@ test "phase4 kprobe gap manifest keeps the parked survey explicit" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("validation-perf", manifest.lane_key);
+    try std.testing.expectEqualStrings("P4-L23", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("samples/kprobes/kprobe_example.c", manifest.anchor_path);
     try std.testing.expect(isLowerHexSha(manifest.anchor_blob_sha));
@@ -66,6 +67,10 @@ test "phase4 kprobe gap manifest keeps the parked survey explicit" {
     try std.testing.expectEqualStrings(
         "zig test zigux/tests/phase4_kprobe_example_survey.zig",
         manifest.validation_entrypoint,
+    );
+    try std.testing.expectEqualStrings(
+        "the dedicated local survey wrapper `make -C zigux phase4-kprobe-example-survey` plus the adjacent shared gate-evidence packet keep the parked kprobe gap reviewable and reversible without claiming a shipped Zig starter",
+        manifest.reversible_delivery_evidence,
     );
     try std.testing.expectEqual(@as(usize, 4), manifest.review_prompts.len);
     try std.testing.expectEqualStrings(
@@ -119,7 +124,7 @@ test "phase4 kprobe gap survey note stays honest about the parked boundary" {
 
     const required_markers = [_][]const u8{
         "PHASE4_KPROBE_STATUS=parked_gap_survey",
-        "PHASE4_LANE_KEY=validation-perf",
+        "PHASE4_LANE_KEY=P4-L23",
         "PHASE4_ANCHOR_PATH=samples/kprobes/kprobe_example.c",
         "PHASE4_SAMPLE_PATH=samples/zigux/kprobe_example.zig",
         "PHASE4_SAMPLE_PRESENT=false",
@@ -128,10 +133,11 @@ test "phase4 kprobe gap survey note stays honest about the parked boundary" {
         "PHASE4_SURVEY_OWNER=Validation and Perf Team",
         "PHASE4_ROLLBACK_OWNER=Validation and Perf Team",
         "PHASE4_SHARED_GATE_EVIDENCE_PACKET_PRESENT=true",
+        "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=the dedicated local survey wrapper `make -C zigux phase4-kprobe-example-survey` plus the adjacent shared gate-evidence packet keep the parked kprobe gap reviewable and reversible without claiming a shipped Zig starter",
         "zigux/tests/phase4_kprobe_example_manifest.json",
         "zigux/tests/phase4_kprobe_example_survey.zig",
-        "shared gate-evidence note now names that same survey note, manifest, replay command, and local survey wrapper",
-        "the dedicated local survey wrapper now reruns this parked packet through `make -C zigux phase4-kprobe-example-survey`",
+        "shared gate-evidence note now names that same survey note, manifest, replay command, local survey wrapper, and reversible-delivery evidence",
+        "the dedicated local survey wrapper now reruns this parked packet through `make -C zigux phase4-kprobe-example-survey`, and together with the adjacent shared gate-evidence packet it serves as the reversible-delivery evidence for the parked gap",
         "`samples/zigux/kprobe_example.zig` is still absent",
         "dedicated local survey wrapper until a future bounded lane intentionally opens either the Zig starter or a broader validation-surface promotion",
         "treating adjacent gate-evidence visibility as a shipped Zig starter",
@@ -145,5 +151,6 @@ test "phase4 kprobe gap survey note stays honest about the parked boundary" {
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.anchor_blob_sha) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.validation_entrypoint) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.local_lab_replay) != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, manifest.reversible_delivery_evidence) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "claiming a shipped Zig starter") != null);
 }
