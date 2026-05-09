@@ -56,13 +56,16 @@
         "normalizeObservedReuseMapFlags() devmap readonly-prog normalization for reuse comparison",
         "summarizeMapReuseCompatibility() mismatch reporting for helper-only reused-map compatibility checks",
         "isMapReuseCompatible() helper-only reused-map compatibility comparison",
-        "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects"
+        "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects",
+        "planTokenPreparation() planning-only token-preparation gating after a ready reused-map bridge plan",
+        "planTokenBridgePath() planning-only prevented/optional/mandatory token bridge path selection before any future bpffs open attempt",
+        "resolveTokenBridgeAttempt() planning-only token bridge open/create outcome summaries before any future token install path"
       ],
       "queued_scope": [
         "direct procfs reads and descriptor ownership flow",
-        "token creation, bpffs reopen flow, and other fd-handle bridge side effects"
+        "real token materialization, token installation, bpffs reopen flow, and other fd-handle bridge side effects"
       ],
-      "why_now": "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, and pinned-map reuse planning packet as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor or reopen side effects."
+      "why_now": "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token-preparation plus token-bridge path and attempt packets as one reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor, bpffs, reopen, or token-install side effects."
     }
   ],
   "segments": [
