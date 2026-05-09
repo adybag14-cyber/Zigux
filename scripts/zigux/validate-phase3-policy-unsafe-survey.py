@@ -110,6 +110,27 @@ REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
     "try std.testing.expect(!permitsGlobalFallbackPolicyBytes(2, 1));",
 )
 
+REQUIRED_MMIO_SNIPPETS = (
+    'const narrow = @import("narrow_unsafe");',
+    "pub fn allowsInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
+    "return narrow.permitsVolatileMmioPolicyBytes(unsafe_scope, reserved);",
+    "pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "return narrow.permitsVolatileMmioInteropPolicy(policy);",
+    "pub fn requireInteropPolicyBytes(unsafe_scope: u8, reserved: u8) PolicyError!void {",
+    "if (!allowsInteropPolicyBytes(unsafe_scope, reserved)) return error.UnsafeScopeDenied;",
+    "pub fn rangeInteropPolicyBytes(",
+    "pub fn rangeInteropPolicy(",
+    "pub fn read8InteropPolicyBytes(",
+    "pub fn read8InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) PolicyError!u8 {",
+    "pub fn write64InteropPolicyBytes(",
+    "pub fn write64InteropPolicy(",
+    "try std.testing.expect(allowsInteropPolicy(mmio_policy));",
+    "try std.testing.expect(!allowsInteropPolicy(reserved_policy));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, rangeInteropPolicy(base, 16, 4, no_unsafe_policy));",
+    "try std.testing.expectEqual(@as(u8, 0x33), try read8InteropPolicy(base, 0, mmio_policy));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, write64InteropPolicyBytes(base, 8, 0, 0, 0));",
+)
+
 REQUIRED_UNSAFE_SNIPPETS = (
     'const abi = @import("abi_bindings");',
     "pub fn addressOf(ptr: anytype) usize {",
@@ -243,6 +264,7 @@ def validate(root: Path) -> list[str]:
     layout_assert = (root / LAYOUT_ASSERT_REL).read_text(encoding="utf-8")
     panic_policy = (root / PANIC_POLICY_REL).read_text(encoding="utf-8")
     allocator_policy = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8")
+    mmio = (root / MMIO_REL).read_text(encoding="utf-8")
     unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8")
     abi_test = (root / ABI_TEST_REL).read_text(encoding="utf-8")
     abi_dump = (root / ABI_DUMP_REL).read_text(encoding="utf-8")
@@ -289,6 +311,7 @@ def validate(root: Path) -> list[str]:
     require_snippets(issues, layout_assert, "layout_assert", REQUIRED_LAYOUT_ASSERT_SNIPPETS)
     require_snippets(issues, panic_policy, "panic_policy", REQUIRED_PANIC_POLICY_SNIPPETS)
     require_snippets(issues, allocator_policy, "allocator_policy", REQUIRED_ALLOCATOR_POLICY_SNIPPETS)
+    require_snippets(issues, mmio, "mmio", REQUIRED_MMIO_SNIPPETS)
     require_snippets(issues, unsafe, "unsafe", REQUIRED_UNSAFE_SNIPPETS)
     require_snippets(issues, abi_test, "abi_test", REQUIRED_ABI_TEST_SNIPPETS)
     require_snippets(issues, abi_dump, "abi_dump", REQUIRED_ABI_DUMP_SNIPPETS)
@@ -306,7 +329,7 @@ def build_valid_workspace(root: Path) -> None:
         LAYOUT_ASSERT_REL: "\n".join(REQUIRED_LAYOUT_ASSERT_SNIPPETS) + "\n",
         PANIC_POLICY_REL: "\n".join(REQUIRED_PANIC_POLICY_SNIPPETS) + "\n",
         ALLOCATOR_POLICY_REL: "\n".join(REQUIRED_ALLOCATOR_POLICY_SNIPPETS) + "\n",
-        MMIO_REL: "pub fn range() void {}\npub fn write32() void {}\n",
+        MMIO_REL: "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n",
         UNSAFE_NARROW_REL: "\n".join(REQUIRED_UNSAFE_SNIPPETS) + "\n",
         POLICY_BYTE_GUARD_REL: "#!/usr/bin/env python3\nprint(\"PHASE3_POLICY_BYTE_GUARDS=pass\")\n",
         ABI_TEST_REL: "\n".join(REQUIRED_ABI_TEST_SNIPPETS) + "\n",
@@ -459,6 +482,16 @@ def run_self_test() -> int:
         assert f"missing_allocator_policy_snippet:{REQUIRED_ALLOCATOR_POLICY_SNIPPETS[8]}" in issues
 
         build_valid_workspace(root)
+        broken_mmio = (root / MMIO_REL).read_text(encoding="utf-8").replace(
+            REQUIRED_MMIO_SNIPPETS[17] + "\n",
+            "",
+            1,
+        )
+        write_file(root / MMIO_REL, broken_mmio)
+        issues = validate(root)
+        assert f"missing_mmio_snippet:{REQUIRED_MMIO_SNIPPETS[17]}" in issues
+
+        build_valid_workspace(root)
         broken_unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8").replace(
             REQUIRED_UNSAFE_SNIPPETS[4] + "\n",
             "",
@@ -494,7 +527,7 @@ def run_self_test() -> int:
         assert "policy_byte_guard_exit:1" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=17")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
