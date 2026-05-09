@@ -271,7 +271,8 @@ test "phase11 dw_wdt survey note, slice note, validation matrix, and teardown no
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "drivers/watchdog/dw_wdt_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "phase11-dw-wdt-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "continued-heartbeat") != null);
-    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "reset-backed quiesce") == null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "idle remove-time no-fabricated-heartbeat") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "reset-backed quiesce") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "removeSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "teardownSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "platformRegistrationScaffoldSummary()") != null);
