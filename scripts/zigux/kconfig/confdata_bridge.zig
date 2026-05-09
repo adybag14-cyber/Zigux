@@ -522,7 +522,7 @@ test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
     try std.testing.expectEqualStrings("drivers\\", summary.entries[0].value);
 }
 
-test "confdata bridge ignores trailing suffix bytes after a closing quote like upstream confdata" {
+test "confdata bridge emits escaped quoted payloads before trailing suffix bytes" {
     const Capture = struct {
         list: std.ArrayList(u8),
         allocator: std.mem.Allocator,
