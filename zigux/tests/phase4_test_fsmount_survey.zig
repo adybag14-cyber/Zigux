@@ -120,7 +120,7 @@ test "phase4 test_fsmount gap survey note stays honest about the parked boundary
         "zigux/tests/phase4_test_fsmount_survey.zig",
         "`samples/zigux/test_fsmount.zig` is still absent",
         "the shared validator route already rereads this parked packet through `scripts/zigux/check-phase4-gate-evidence.py`",
-        "Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet",
+        "Keep this parked packet adjacent to the shared gate-evidence note,",
         "claiming that the shared Phase 4 exact-readback gate already carries this packet",
         "claiming approved hard perf thresholds for the test_fsmount anchor",
     };
@@ -208,7 +208,7 @@ test "phase4 test_fsmount survey keeps matrix and exact-readback checker anchors
         "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
         "zigux/tests/phase4_test_fsmount_manifest.json",
         "zigux/tests/phase4_test_fsmount_survey.zig",
-        "land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet",
+        "keep the dedicated parked survey packet and the dedicated local survey wrapper adjacent to the shared Phase 4 exact-readback packet",
     };
     for (required_matrix_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, marker) != null);
