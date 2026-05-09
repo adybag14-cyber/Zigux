@@ -54,7 +54,7 @@ Driver lanes may cite that shared packet when they explain current replay postur
 
 ## Lane map
 
-`P11-L08` bcm2835 watchdog lane owns the bounded bcm2835 packet:
+`P11-L10` now carries current scheduled continuity for the archived bcm2835 watchdog packet, whose packet identity remains `P11-L08` for traceability:
 
 - `Documentation/zigux/phase11-bcm2835-wdt-slice.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
@@ -66,7 +66,7 @@ Driver lanes may cite that shared packet when they explain current replay postur
 - `drivers/watchdog/bcm2835_wdt_verify.zig`
 - `zigux/tests/phase11_bcm2835_wdt.zig`
 
-This lane may mention shared replay drift and keep the dedicated bcm2835 packet checker explicit beside the archival survey packet, but it does not own GPIO, DesignWare, HVC, or shared header-boundary follow-through. Its next honest work stays inside bcm2835 registration truthfulness, platform-handoff wording, checker-backed packet truthfulness, or similarly narrow watchdog-local repairs.
+This lane may mention shared replay drift and keep the dedicated bcm2835 packet checker explicit beside the archival survey packet, but it does not own GPIO, DesignWare, HVC, or shared header-boundary follow-through. Its next honest work stays inside bcm2835 registration truthfulness, current-lane continuity wording, platform-handoff wording, checker-backed packet truthfulness, or similarly narrow watchdog-local repairs.
 
 The gpio watchdog lane owns GPIO-local starter, registration-handoff evidence, teardown-note truthfulness, and the focused platform-drvdata replay:
 
