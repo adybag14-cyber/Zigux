@@ -70,6 +70,8 @@ pub const LifecycleSnapshot = struct {
 pub const NoOpCopyBoundaryReplay = struct {
     summary_before: RuntimeBitmapSummary,
     summary_after: RuntimeBitmapSummary,
+    active_copy_summary: RuntimeBitmapSummary,
+    accepted_active_sources: u8,
     rejected_inactive_sources: u8,
 };
 
@@ -218,10 +220,24 @@ pub const RuntimeBitmapSample = struct {
         try self.ensureMutable();
 
         const summary_before = self.summary();
+        const original_words = self.words;
         try self.setRange(5, 0);
         try self.clearRange(bitmap_nbits, 0);
 
+        var accepted_active_sources: u8 = 0;
         var rejected_inactive_sources: u8 = 0;
+
+        var initialized_source = Self{};
+        try initialized_source.initWithSetBits(&.{ 3, 9 });
+        try self.copyFrom(&initialized_source);
+        accepted_active_sources += 1;
+
+        var selftested_source = Self{};
+        try selftested_source.initWithSetBits(&.{ bitmap_view.bits_per_long + 1, bitmap_view.bits_per_long + 8 });
+        _ = try selftested_source.runSelftest();
+        try self.copyFrom(&selftested_source);
+        accepted_active_sources += 1;
+        const active_copy_summary = self.summary();
 
         var cold_source = Self{};
         _ = self.copyFrom(&cold_source) catch |err| switch (err) {
@@ -241,9 +257,12 @@ pub const RuntimeBitmapSample = struct {
             else => return err,
         };
 
+        self.words = original_words;
         return .{
             .summary_before = summary_before,
             .summary_after = self.summary(),
+            .active_copy_summary = active_copy_summary,
+            .accepted_active_sources = accepted_active_sources,
             .rejected_inactive_sources = rejected_inactive_sources,
         };
     }
@@ -463,6 +482,11 @@ test "runtime bitmap sample keeps no-op mutations and copy boundaries explicit" 
     try std.testing.expectEqual(replay.summary_before.first_zero, replay.summary_after.first_zero);
     try std.testing.expectEqual(replay.summary_before.weight, replay.summary_after.weight);
     try std.testing.expectEqual(replay.summary_before.nbits, replay.summary_after.nbits);
+    try std.testing.expectEqual(@as(u32, bitmap_view.bits_per_long + 1), replay.active_copy_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), replay.active_copy_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 2), replay.active_copy_summary.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, replay.active_copy_summary.nbits);
+    try std.testing.expectEqual(@as(u8, 2), replay.accepted_active_sources);
     try std.testing.expectEqual(@as(u8, 2), replay.rejected_inactive_sources);
     try std.testing.expect(module.isSet(2));
     try std.testing.expect(module.isSet(7));
