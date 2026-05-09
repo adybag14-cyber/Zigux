@@ -39,6 +39,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    roadmap_boundary_area_ids: []const []const u8,
     survey_summary: SurveySummary,
     decision_checklist: []const DecisionChecklistEntry,
     gaps: []const Gap,
@@ -71,6 +72,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.anchor);
     try std.testing.expectEqualStrings("4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_boundary_area_ids.len);
     try std.testing.expect(manifest.survey_summary.skbuff_c_lines >= 7400);
     try std.testing.expect(manifest.survey_summary.skbuff_h_lines >= 5400);
     try std.testing.expect(manifest.survey_summary.datagram_c_lines >= 1000);
@@ -86,6 +88,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_survey_note_present);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_checklist.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 4), skbuff_bridge.SkbuffBridgeLab.roadmapBoundaryStudyAreaIds().len);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -99,6 +102,19 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     var saw_tail_owner_audit = false;
     var saw_followup = false;
     var saw_blocker = false;
+
+    for (manifest.roadmap_boundary_area_ids, 0..) |area_id, index| {
+        const area = skbuff_bridge.SkbuffBridgeLab.boundaryAreaById(area_id) orelse return error.MissingBoundaryArea;
+        try std.testing.expectEqualStrings(skbuff_bridge.SkbuffBridgeLab.roadmapBoundaryStudyAreaIds()[index], area_id);
+        try std.testing.expect(area.ownership == .boundary_map_only);
+        try std.testing.expect(skbuff_bridge.SkbuffBridgeLab.isRoadmapBoundaryStudyArea(area_id));
+        try std.testing.expect(!skbuff_bridge.SkbuffBridgeLab.isStayInCBoundaryArea(area_id));
+    }
+
+    try std.testing.expectEqualStrings("allocation-entrypoints", manifest.roadmap_boundary_area_ids[0]);
+    try std.testing.expectEqualStrings("clone-and-private-copy", manifest.roadmap_boundary_area_ids[1]);
+    try std.testing.expectEqualStrings("headroom-and-linearization-mutation", manifest.roadmap_boundary_area_ids[2]);
+    try std.testing.expectEqualStrings("checksum-and-segmentation-surface", manifest.roadmap_boundary_area_ids[3]);
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -126,8 +142,8 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("boundary_map", gap.kind);
             try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "roadmap-approved boundary-study surfaces") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "array order") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact four roadmap boundary-study area ids") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "structured packet-local data") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-skbuff-boundary-decision-checklist")) {
             saw_decision_checklist = true;
