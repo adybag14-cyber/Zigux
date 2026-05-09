@@ -15,6 +15,10 @@ Update these surfaces together when they describe the same active contributor pa
 - `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-closure-evidence.md`
+- `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
+- `Documentation/zigux/phase11-shared-replay-contract.md`
+- `Documentation/zigux/phase11-closure-note.md`
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
@@ -40,7 +44,7 @@ Also refresh the packet-local docs-root or scripts-root note when the wording ch
 
 1. Start from the packet-local source of truth.
 2. Refresh `Documentation/zigux/README.md` so the exact checker stack, replay route, and evidence names stay visible from the top-level product index.
-3. Refresh `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, and `Documentation/zigux/phase13-landlock-syscalls-governance.md` when the change sharpens the shared validator-first replay route, the owner-map split, the helper-owned boundary notes, or the broader shipped adjacent release-surface evidence for Phase 13 contributors, including the release-notes note, the roadmap-traceability note, the notifier survey plus checker route, and the adjacent notifier manifest, reviewability, ABI, and helper evidence.
+3. Refresh `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, and `Documentation/zigux/phase13-landlock-syscalls-governance.md` when the change sharpens the shared replay route, the owner-map split, the Phase 10 or Phase 11 closure wording, the helper-owned boundary notes, or the broader shipped adjacent release-surface evidence for Phase 13 contributors, including the release-notes note, the roadmap-traceability note, the notifier survey plus checker route, and the adjacent notifier manifest, reviewability, ABI, and helper evidence.
 4. Refresh the compact tests-root companion so the same packet stays reviewable in the short form.
 5. Refresh `scripts/zigux/README.md` when the wording change affects the scripts-root validator-first replay summary, checker inventory, or Linux-style command wording.
 6. Refresh `Documentation/zigux/review-checklist.md` if the change alters a shared reviewer prompt or release-discipline question.
@@ -202,6 +206,7 @@ For the active shared-helper release packet, keep the shared validator-first rep
 ## Drift checks
 
 Before closing a contributor-guidance change, ask:
+- Did the shared-surfaces list or update-order block still leave `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, or `Documentation/zigux/phase11-driver-lane-sequencing.md` implicit after the top-level docs summary and compact tests-root companion made those contributor-facing owner-map and closure notes explicit?
 - Did the compact tests-root companion now explicitly keep `Documentation/zigux/README.md` in its opening shared-surface sentence while this sync note or another shared contributor prompt still leaves the docs-root README implicit?
 - Did a short-form companion note gain wording that the broad tests-root prompt still skips?
 - Did a shared scripts-root Phase 13 summary keep `zigux/tests/phase13_landlock_syscalls_reviewability.zig` implicit after the contributor guide, compact tests-root companion, or review checklist made that focused landlock reviewability shard explicit as direct evidence beside `zigux/tests/phase13_landlock_syscalls.zig`?
