@@ -128,7 +128,7 @@ REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS = [
     "`make -C zigux phase11-hvc-survey`",
     "`zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff",
     "`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet",
-    "`Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, remove, and hangup-disconnect ownership split explicit in one driver-local note",
+    "`Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, remove, write-to-hangup, and hangup-disconnect ownership split explicit in one driver-local note",
 ]
 
 REQUIRED_DOCS_ROOT_README_MARKERS = [
