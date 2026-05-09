@@ -482,7 +482,6 @@ def assert_missing(root: Path, rel_path: str, old: str, new: str, expected: str)
     _, missing_markers = validate(root)
     if expected not in missing_markers:
         raise SystemExit(f"phase10-ring-self-test:expected_marker_missing:{expected}")
-    path.writeText = path.write_text
     path.write_text(original, encoding="utf-8")
 
 
