@@ -19,31 +19,38 @@ def workflow_run_lines(workflow_text: str) -> list[str]:
     return [line.strip() for line in workflow_text.splitlines()]
 
 
-def count_workflow_marker(lines: list[str], marker: str) -> int:
-    expected = f"run: {marker}"
-    return sum(1 for line in lines if line == expected)
+def workflow_run_commands(lines: list[str]) -> list[str]:
+    commands: list[str] = []
+    for line in lines:
+        if line.startswith("run: "):
+            commands.append(line.removeprefix("run: "))
+    return commands
+
+
+def count_workflow_marker(commands: list[str], marker: str) -> int:
+    return sum(1 for command in commands if command == marker)
+
+
+def has_exact_fixdep_packet(commands: list[str]) -> bool:
+    try:
+        start = commands.index(REQUIRED_WORKFLOW_RUNS[0])
+    except ValueError:
+        return False
+    return commands[start : start + len(REQUIRED_WORKFLOW_RUNS)] == REQUIRED_WORKFLOW_RUNS
 
 
 def validate_texts(workflow_text: str) -> list[str]:
     issues: list[str] = []
 
     workflow_lines = workflow_run_lines(workflow_text)
+    workflow_commands = workflow_run_commands(workflow_lines)
     for marker in REQUIRED_WORKFLOW_RUNS:
-        count = count_workflow_marker(workflow_lines, marker)
+        count = count_workflow_marker(workflow_commands, marker)
         if count != 1:
             issues.append(f"workflow_exact_marker:{marker}:count={count}:expected=1")
 
-    workflow_positions: list[int] = []
-    workflow_order_ready = True
-    for marker in REQUIRED_WORKFLOW_RUNS:
-        expected = f"run: {marker}"
-        try:
-            workflow_positions.append(workflow_lines.index(expected))
-        except ValueError:
-            workflow_order_ready = False
-            break
-    if workflow_order_ready and workflow_positions != sorted(workflow_positions):
-        issues.append("workflow_order:fixdep_gate_packet")
+    if not issues and not has_exact_fixdep_packet(workflow_commands):
+        issues.append("workflow_packet:fixdep_gate_packet")
 
     return issues
 
@@ -138,15 +145,24 @@ def run_self_test() -> int:
 
     issues = validate_texts(
         workflow_text.replace(
+            "run: python3 scripts/zigux/check-phase2-fixdep-gate.py\n",
+            "run: python3 scripts/zigux/check-phase1-parity.py\nrun: python3 scripts/zigux/check-phase2-fixdep-gate.py\n",
+            1,
+        )
+    )
+    assert "workflow_packet:fixdep_gate_packet" in issues
+
+    issues = validate_texts(
+        workflow_text.replace(
             "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test\nrun: python3 scripts/zigux/check-phase2-fixdep-gate.py\n",
             "run: python3 scripts/zigux/check-phase2-fixdep-gate.py\nrun: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test\n",
             1,
         )
     )
-    assert "workflow_order:fixdep_gate_packet" in issues
+    assert "workflow_packet:fixdep_gate_packet" in issues
 
     print("PHASE2_FIXDEP_GATE_SELF_TEST=pass")
-    print("PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
