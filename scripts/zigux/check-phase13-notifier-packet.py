@@ -28,7 +28,7 @@ REQUIRED_FILES = [
 ]
 
 SURVEY_MARKERS = [
-    "lane key: `P13-L18`",
+    "lane key: `P13-L16`",
     "`zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` already provide read-only list traversal summaries with explicit bounded scan limits.",
     "`include/zigux/notifier_abi.h` is now shipped as adjacent notifier interop evidence",
     "`include/zigux/abi.h` already exports the list and hlist ABI carrier structs that those helpers depend on.",
@@ -156,7 +156,7 @@ HEADER_MARKERS = [
 ]
 
 REVIEWABILITY_MARKERS = [
-    'try std.testing.expectEqualStrings("P13-L18", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("P13-L16", manifest.lane_key);',
     'const list_view_text = try readRepoFile(allocator, "zigux/helpers/list_view.zig");',
     'const hlist_view_text = try readRepoFile(allocator, "zigux/helpers/hlist_view.zig");',
     'const packet_checker_text = try readRepoFile(allocator, "scripts/zigux/check-phase13-notifier-packet.py");',
@@ -226,7 +226,7 @@ def validate_manifest(text: str) -> list[str]:
         return [f"phase13-notifier-manifest:json:{exc.msg}"]
 
     issues: list[str] = []
-    if manifest.get("lane_key") != "P13-L18":
+    if manifest.get("lane_key") != "P13-L16":
         issues.append("phase13-notifier-manifest:lane_key")
     if manifest.get("phase") != "Phase 13":
         issues.append("phase13-notifier-manifest:phase")
@@ -412,7 +412,7 @@ def seed_fixture_tree(root: Path) -> None:
         root / "zigux/tests/phase13_notifier_list_manifest.json",
         json.dumps(
             {
-                "lane_key": "P13-L18",
+                "lane_key": "P13-L16",
                 "phase": "Phase 13",
                 "survey_summary": {key: True for key in MANIFEST_SUMMARY_KEYS},
                 "gaps": [
@@ -445,7 +445,7 @@ def run_self_test() -> int:
         assert_only(validate(root), [], "baseline_failed")
         case_count += 1
 
-        write_text(root / "Documentation/zigux/phase13-notifier-list-survey.md", "lane key: `P13-L18`\n")
+        write_text(root / "Documentation/zigux/phase13-notifier-list-survey.md", "lane key: `P13-L16`\n")
         assert_only(
             validate(root),
             [
@@ -676,7 +676,7 @@ def run_self_test() -> int:
         seed_fixture_tree(root)
         case_count += 1
 
-        write_text(root / "zigux/tests/phase13_notifier_list_reviewability.zig", 'try std.testing.expectEqualStrings("P13-L18", manifest.lane_key);\n')
+        write_text(root / "zigux/tests/phase13_notifier_list_reviewability.zig", 'try std.testing.expectEqualStrings("P13-L16", manifest.lane_key);\n')
         assert_only(
             validate(root),
             [
@@ -704,7 +704,7 @@ def run_self_test() -> int:
 
         write_text(
             root / "zigux/tests/phase13_notifier_list_manifest.json",
-            json.dumps({"lane_key": "P13-L18", "phase": "Phase 13", "survey_summary": {}}, indent=2) + "\n",
+            json.dumps({"lane_key": "P13-L16", "phase": "Phase 13", "survey_summary": {}}, indent=2) + "\n",
         )
         assert_only(
             validate(root),
