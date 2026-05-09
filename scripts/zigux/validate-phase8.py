@@ -440,69 +440,36 @@ REQUIRED_MARKERS = {
         "buildValidatedSanitizedMapPinPath",
         "error.NameTooLong",
     ],
-    "tools/lib/bpf/zigux_segments/cpu_mask.zig": [
-        "pub fn parseCpuMaskString",
-        "pub fn parseCpuMaskFromReader",
-        "pub fn countPossibleCpus",
-        "error.InvalidReadCount",
-    ],
-    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig": [
-        "pub fn buildProcFdinfoPath",
-        "pub fn parseFdinfoMapInfo",
-        "pub fn summarizeFdinfoMapInfo",
-        "pub fn mapReuseObservationFromFdinfo",
-        "pub fn summarizeMapReuseCompatibility",
-        "pub fn resolveReusePinnedMapAttempt",
-        "pub fn planTokenPreparation",
-        "map_flags",
-        "/proc/{d}/fdinfo/{d}",
-    ],
-    "tools/lib/bpf/zigux_segments/logging.zig": [
-        "pub fn resolveMinPrintLevel",
-        "pub fn libbpfVersionString",
-        "pub fn formatErrorString",
-        "Kernel verifier blocks program loading",
-    ],
-    "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": [
-        "summarizePollExecution",
-        "ReadyBufferProcessingExceedsReadyCount",
-        "ReadyBufferProcessingExceedsObservedEvents",
-    ],
-    "tools/lib/bpf/zigux_segments/pin_path.zig": [
-        "pub const default_bpf_fs_path",
-        "pub fn validatePinRootPath",
-        "pub fn buildValidatedSanitizedMapPinPath",
-    ],
     "tools/lib/bpf/zigux_segments/type_names.zig": [
-        "pub const attach_type_names",
-        "pub const link_type_names",
-        "pub const map_type_names",
-        "pub const prog_type_names",
-        "pub fn bpfAttachTypeName",
-        "pub fn bpfLinkTypeName",
-        "pub fn bpfMapTypeName",
-        "pub fn bpfProgTypeName",
+        "pub fn libbpfBpfAttachTypeStr",
+        "pub fn libbpfBpfLinkTypeStr",
+        "pub fn libbpfBpfMapTypeStr",
+        "pub fn libbpfBpfProgTypeStr",
+        "trace_fsession",
+        "insn_array",
     ],
-    "tools/lib/bpf/zigux_segments/verify.zig": [
-        "comptime {",
-        "_ = @import(\"cpu_mask.zig\")",
-        "_ = @import(\"logging.zig\")",
-        "_ = @import(\"pin_path.zig\")",
-        "_ = @import(\"type_names.zig\")",
-        "_ = @import(\"file_path_handle_bridge.zig\")",
-        "_ = @import(\"perf_buffer_poll.zig\")",
+    "tools/lib/subcmd/exec-cmd.zig": [
+        "pub fn buildDeferredExecvCall",
+        "pub fn buildDeferredExeclCall",
+        "pub fn planDeferredExecvCall",
+        "pub fn planDeferredExeclCall",
+        "pub fn collectExeclArgs",
+        "pub fn choosePwdCwdFromFilesystem",
+        "pub const max_execl_slots",
     ],
 }
 
 
 def build_manifest_fixture() -> str:
-    payload = {
-        "segments": [
-            {"slug": slug, "status": status}
-            for slug, status in REQUIRED_SEGMENTS.items()
-        ]
-    }
-    return json.dumps(payload, indent=2) + "\n"
+    return json.dumps(
+        {
+            "segments": [
+                {"slug": slug, "status": status}
+                for slug, status in REQUIRED_SEGMENTS.items()
+            ]
+        },
+        indent=2,
+    ) + "\n"
 
 
 def build_phase8_libbpf_survey_fixture() -> str:
