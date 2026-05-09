@@ -41,7 +41,7 @@ REQUIRED_SLICE_NOTE_MARKERS = [
 ]
 
 REQUIRED_TEARDOWN_NOTE_MARKERS = [
-    "`ownershipMatrixSummary()`",
+    "keeps the four current callback-ownership paths aligned in one packet",
     "`claimed_poweroff_handler`, `conflicting_poweroff_handler`, `failed_registration`, and `not_system_power_controller`",
     "| ownership matrix paths | `ownershipMatrixSummary()` |",
     "`removeSummary()` and `removeAfterRegistrationSummary()`",
@@ -182,6 +182,7 @@ This archival watchdog note now keeps `P11-L08` packet identity explicit beside 
         root / TEARDOWN_NOTE_PATH,
         """# Phase 11 BCM2835 Watchdog Teardown Note
 
+- keeps the four current callback-ownership paths aligned in one packet
 - `ownershipMatrixSummary()`
 - `claimed_poweroff_handler`, `conflicting_poweroff_handler`, `failed_registration`, and `not_system_power_controller`
 - `removeSummary()` and `removeAfterRegistrationSummary()`
@@ -321,7 +322,7 @@ def run_self_test() -> int:
             (SURVEY_NOTE_PATH, "`P11-L10`", "survey_note:`P11-L10`"),
             (SURVEY_NOTE_PATH, "`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`", "survey_note:`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`"),
             (SLICE_NOTE_PATH, "tiny registration-outcome summary", "slice_note:tiny registration-outcome summary"),
-            (TEARDOWN_NOTE_PATH, "`ownershipMatrixSummary()`", "teardown_note:`ownershipMatrixSummary()`"),
+            (TEARDOWN_NOTE_PATH, "keeps the four current callback-ownership paths aligned in one packet", "teardown_note:keeps the four current callback-ownership paths aligned in one packet"),
             (VALIDATION_MATRIX_PATH, "`drivers/watchdog/bcm2835_wdt_verify.zig`", "validation_matrix:`drivers/watchdog/bcm2835_wdt_verify.zig`"),
             (VALIDATION_MATRIX_PATH, "`P11-L10`", "validation_matrix:`P11-L10`"),
             (VALIDATION_MATRIX_PATH, "`phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`", "validation_matrix:`phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`"),
@@ -329,7 +330,7 @@ def run_self_test() -> int:
             (SHARED_CONTRACT_PATH, "`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py`", "shared_contract:`python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py`"),
             (LANE_SEQUENCING_PATH, "dedicated bcm2835 packet checker", "lane_sequencing:dedicated bcm2835 packet checker"),
             (MANIFEST_PATH, '"id": "phase11-bcm2835-wdt-teardown-note"', 'manifest:"id": "phase11-bcm2835-wdt-teardown-note"'),
-            (BUILD_PATH, '.name = "phase11-bcm2835-wdt-survey-tests"', 'build:.name = "phase11-bcm2835-wdt-survey-tests"'),
+            (BUILD_PATH, '.name = \"phase11-bcm2835-wdt-survey-tests\"', 'build:.name = \"phase11-bcm2835-wdt-survey-tests\"'),
         ]
         for rel_path, marker, expected in checks:
             write_fixture_tree(root)
