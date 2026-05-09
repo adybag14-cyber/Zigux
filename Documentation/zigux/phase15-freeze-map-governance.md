@@ -9,7 +9,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - `PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, the shared validator-first route already shipped for the current governance packet, and one bounded maintenance follow-up that keeps the current freeze anchor set, blocker evidence, required approver sets, and shared governance provenance aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, per-anchor evidence-archive reporting posture, and an anchor-by-anchor deep-core blocker survey that compares roadmap posture against current repo reality
-- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 after live compare-against-master showed the previously recorded verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` now sits `2832` commits behind current `master`
+- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 after live compare-against-master showed the previously recorded verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` no longer matched current `master`
 - exact branch-head parity is not recorded for this packet; the parked freeze-map governance note now uses an explicit dated readback marker instead of stale exact-head provenance while keeping the same freeze anchor set and blocker posture
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
