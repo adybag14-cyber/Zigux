@@ -251,6 +251,24 @@ def run_self_test() -> int:
         write_text(root / SMOKE_SURVEY_PATH, good_smoke)
 
         write_text(
+            root / SMOKE_SURVEY_PATH,
+            good_smoke.replace(
+                "PHASE14_SHARED_SURFACE_COUNT=28\n",
+                "PHASE14_SHARED_SURFACE_COUNT=28\nPHASE14_SHARED_SURFACE_COUNT=28\n",
+                1,
+            ),
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_SHARED_SURFACE_COUNT=28 (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate shared-surface-count failure", file=sys.stderr)
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke)
+
+        write_text(
             root / MAKEFILE_PATH,
             good_makefile.replace(
                 f"python3 {CHECKER_PATH}\n",
