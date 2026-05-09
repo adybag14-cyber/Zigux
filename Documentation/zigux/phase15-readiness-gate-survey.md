@@ -10,7 +10,7 @@ This document records the bounded Phase 15 governance lane for checking whether 
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 after a live current-`master` reread confirmed the parked readiness packet still carries the same workflow-backed, validator-first, and make-backed replay surfaces explicit on current `master`
 - exact branch-head parity is not recorded for this packet; the parked readiness note now uses an explicit dated readback marker instead of looser fresh-readback wording while the shared replay contract stays unchanged
-- the shared replay surface is green on current `master` once this dedicated readiness note, its manifest, the focused `zigux/tests/phase15_readiness_gate.zig` guard, the dedicated `make -C zigux phase15-test` replay, and the shipped `phase15-validate` checker stack are present together beside that now-explicit checklist replay contract
+- the shared replay surface is still bounded on current `master`, but the broad tests-root reminder is not yet fully aligned with the focused handoff and readiness replay packet: the workflow-backed, validator-first, dedicated `make -C zigux phase15-test`, and shared build routes stay explicit in the dedicated Phase 15 notes and scripts-root guards, while the remaining same-lane truthfulness drift has narrowed to the tests-root summary undernaming part of that focused replay pair
 
 ## Roadmap Versus Ledger
 
@@ -28,10 +28,10 @@ This document records the bounded Phase 15 governance lane for checking whether 
 - `zigux/Makefile` still exposes `phase15-validate` and `phase15-test`, and those validator-first plus dedicated make-backed routes still rerun both dedicated Phase 15 checker paths before the shared `zigux/tests/phase15_build.zig` replay, so the current governance packet carries explicit release evidence for both the shipped validation route and the dedicated test replay instead of relying on the shared build or `phase15` convenience target alone
 - `Documentation/zigux/review-checklist.md` now carries `.github/workflows/zigux-bootstrap.yml` and `zig build test --build-file zigux/tests/phase15_build.zig` explicitly beside the existing validator-first and make-route markers, so this readiness packet no longer relies on those shared replay surfaces being implied from adjacent notes
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md` keeps the bounded handoff record, its focused manifest-backed replay pair, and the parked next-step packet visible beside this readiness gate, and the handoff packet already keeps the dedicated `make -C zigux phase15-test` replay explicit
-- `zigux/tests/README.md` remains the tests-root entry point for this parked governance packet, so the focused handoff replay pair `zigux/tests/phase15_handoff_next_steps.zig` plus `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused readiness replay pair `zigux/tests/phase15_readiness_gate.zig` plus `zigux/tests/phase15_readiness_gate_manifest.json` should stay named there beside the shared build-and-make route instead of leaving those manifest-backed maintenance surfaces implicit
+- `zigux/tests/README.md` remains the tests-root entry point for this parked governance packet, but live current-`master` rereads now show a narrower truthfulness gap than the older manifest-focused reminder: the broad Phase 15 summary already names `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_readiness_gate_manifest.json`, yet it still leaves `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_readiness_gate.zig`, and the dedicated `make -C zigux phase15-test` route implicit beside the shared build-and-make path
 - `Documentation/zigux/phase15-governance-lane-sequencing.md` keeps the shared owner split explicit, and the focused `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and `zigux/tests/phase15_governance_lane_sequencing.zig` replays keep the current blocker vocabulary, lane-owner vocabulary, and anti-overlap packet visible inside the shared Phase 15 build instead of leaving them implicit in adjacent notes
 - `Documentation/zigux/README.md` is the docs-root entry point for this parked governance packet, so `Documentation/zigux/phase15-readiness-gate-survey.md` must stay named there beside the freeze map, review process, parity scorecard, handoff note, and indefinite-C policy instead of leaving the maintenance-mode blocker inventory implicit
-- maintenance-mode ready: the parked Phase 15 packet is reviewable and rerunnable, but no freeze-map status-change approval is recorded
+- maintenance-mode parked: the Phase 15 packet remains bounded and the freeze-in-C blocker posture is unchanged, but the broad tests-root reminder still needs the focused handoff/readiness replay files plus the dedicated `phase15-test` route named explicitly before this parked governance packet is fully aligned across every shared reminder surface
 
 ## Current Deep-Core Blockers
 
@@ -43,6 +43,7 @@ This document records the bounded Phase 15 governance lane for checking whether 
 ## Remaining Readiness Gaps
 
 - `phase15-deep-core-status-change-blocker`: the freeze-in-C posture still holds because the four current deep-core blocker dispositions above have not changed on `master`
+- `phase15-tests-root-focused-replay-undercount`: the broad tests-root Phase 15 reminder already carries the manifest pair, but it still leaves the focused handoff/readiness replay files and the dedicated `make -C zigux phase15-test` route implicit beside the shared build-and-make path
 
 ## Readiness Gate
 
@@ -53,4 +54,4 @@ This document records the bounded Phase 15 governance lane for checking whether 
 
 ## Next bounded step
 
-Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the shared review checklist drops the explicit workflow-backed or direct shared-build replay markers, the dedicated `phase15-test` route disappears from this top-level readiness packet, one of the two dedicated `phase15-validate` checker routes disappears, or one of the four recorded deep-core blocker dispositions changes.
+Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the shared review checklist drops the explicit workflow-backed or direct shared-build replay markers, the dedicated `phase15-test` route disappears from this top-level readiness packet, one of the two dedicated `phase15-validate` checker routes disappears, or one of the four recorded deep-core blocker dispositions changes. If another same-lane maintenance follow-through is needed before any blocker-posture change, update `zigux/tests/README.md` so its broad Phase 15 reminder names `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_readiness_gate.zig`, and `make -C zigux phase15-test` beside the already-listed manifest pair and shared build-and-make route.
