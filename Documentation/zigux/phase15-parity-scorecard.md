@@ -5,7 +5,7 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 ## Status
 
 - `PHASE15_STATUS=freeze_in_c_governance`
-- `PHASE15_SLICE=parity-scorecard-review-field-coverage-sync`
+- `PHASE15_SLICE=parity-scorecard-shared-replay-route-metric-sync`
 - `PHASE15_LANE_KEY=P15-L12`
 - survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 because this scorecard packet reports current metrics and evidence at the bounded governance-packet level instead of implying exact post-commit branch-head parity
 - exact branch-head parity is not recorded for this packet; the current scorecard therefore uses an explicit dated readback marker instead of implying exact-head provenance
@@ -28,7 +28,7 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
 - roadmap title: `Full-Parity Blockers and Long-Term Governance`
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
-- current repo handoff: `Documentation/zigux/README.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/validate-phase15.py`, `check-phase15-scripts-readme-alignment.py`, `check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_readiness_gate.zig`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_build.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `zig build test --build-file zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_governance_lane_sequencing.zig`, and `make -C zigux phase15` keep the already-landed freeze-map-governance note, dedicated review-process note, handoff note, readiness note, scorecard note, indefinite-C policy note, governance-lane sequencing note, scripts-root validator-first route, tests-root reminder, workflow-backed replay anchor, dedicated review-process manifest-backed pair, paired handoff guard, dedicated readiness manifest-backed pair, dedicated freeze-map-governance replay, direct shared-build replay, indefinite-C policy manifest-backed pair, blocker-evidence replay, lane-owner-alignment replay, and make-backed governance routes visible from the scorecard instead of collapsing that future-target packet down to the scorecard alone.
+- current repo handoff: `Documentation/zigux/README.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/validate-phase15.py`, `check-phase15-scripts-readme-alignment.py`, `check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_readiness_gate.zig`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_build.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `zig build test --build-file zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_governance_lane_sequencing.zig`, and `make -C zigux phase15` keep the already-landed review-process packet, handoff note, readiness note, governance-lane sequencing note, workflow-backed replay anchor, dedicated review-process manifest-backed pair, paired handoff guard, dedicated readiness manifest-backed pair, direct shared-build replay, shared blocker-evidence replays, and make-backed governance routes visible from the scorecard instead of collapsing that future-target packet down to the scorecard alone.
 - maintenance-mode next step: wait for the named reopen triggers or a deep-core blocker posture change
 
 ## Scorecard Entries
@@ -85,6 +85,7 @@ The machine-checked aggregate scorecard metrics currently record:
 - specialist lane-owned anchors: `2`
 - reserved decision-record templates: `4`
 - blocked status-change anchors: `4`
+- shared Phase 15 governance replay routes visible from the scorecard: `4`
 - review-packet fields mirrored from the Architecture Council packet: `20`
 - ownership-evidence fields mirrored from the Architecture Council packet: `15`
 
@@ -110,6 +111,7 @@ The current lane state is:
 - landed `phase15-review-gate-benchmark-replay-field-sync`
 - landed `phase15-review-process-field-coverage-metrics`
 - landed `phase15-aggregate-scorecard-metrics`
+- landed `phase15-shared-governance-replay-route-metric`
 - landed `phase15-scorecard-handoff-evidence-readback-sync`
 - blocked `phase15-deep-core-status-change-blocker`
 
