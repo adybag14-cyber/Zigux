@@ -24,6 +24,7 @@ pub const ModuleDescriptor = struct {
     provides_transaction_release_planning: bool,
     provides_addressability_planning: bool,
     provides_simple_open_planning: bool,
+    provides_simple_dir_operations_wrapper: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -203,6 +204,16 @@ pub const SimpleOpenPlan = struct {
     return_code: i32,
 };
 
+pub const SimpleDirOperationsPlan = struct {
+    anchor: []const u8,
+    open_handler: []const u8,
+    release_handler: []const u8,
+    seek_handler: []const u8,
+    read_handler: []const u8,
+    iterate_shared_handler: []const u8,
+    fsync_handler: []const u8,
+};
+
 pub const LibFsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -222,6 +233,7 @@ pub const LibFsHelperLab = struct {
             .provides_transaction_release_planning = true,
             .provides_addressability_planning = true,
             .provides_simple_open_planning = true,
+            .provides_simple_dir_operations_wrapper = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -642,4 +654,16 @@ pub const LibFsHelperLab = struct {
             .return_code = 0,
         };
     }
-};
+
+    pub fn simpleDirOperationsPlan() SimpleDirOperationsPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .open_handler = "dcache_dir_open",
+            .release_handler = "dcache_dir_close",
+            .seek_handler = "dcache_dir_lseek",
+            .read_handler = "generic_read_dir",
+            .iterate_shared_handler = "dcache_readdir",
+            .fsync_handler = "noop_fsync",
+        };
+    }
+}
