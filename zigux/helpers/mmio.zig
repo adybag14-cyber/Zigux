@@ -49,6 +49,16 @@ pub fn rangeInteropPolicy(
     return range(base_addr, length, stride);
 }
 
+pub fn rangeInteropPolicyByte(
+    base_addr: usize,
+    length: u32,
+    stride: u32,
+    unsafe_scope: u8,
+) PolicyError!abi.MmioRange {
+    try requireInteropPolicyBytes(unsafe_scope, 0);
+    return range(base_addr, length, stride);
+}
+
 pub fn read8(base_addr: usize, offset: usize) u8 {
     const ptr = narrow.pointerAt(u8, base_addr, offset);
     return ptr.*;
@@ -322,9 +332,15 @@ test "phase3 mmio interop policy gates stay explicit" {
     try std.testing.expectEqual(base, scoped_desc.base_addr);
     try std.testing.expectEqual(@as(u32, 16), scoped_desc.length);
     try std.testing.expectEqual(@as(u32, 4), scoped_desc.stride);
+    const byte_scoped_desc = try rangeInteropPolicyByte(base, 12, 2, @intFromEnum(abi.UnsafeScope.volatile_mmio));
+    try std.testing.expectEqual(base, byte_scoped_desc.base_addr);
+    try std.testing.expectEqual(@as(u32, 12), byte_scoped_desc.length);
+    try std.testing.expectEqual(@as(u32, 2), byte_scoped_desc.stride);
     try std.testing.expectError(error.UnsafeScopeDenied, rangeInteropPolicy(base, 16, 4, no_unsafe_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, rangeInteropPolicy(base, 16, 4, raw_pointer_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, rangeInteropPolicy(base, 16, 4, reserved_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, rangeInteropPolicyByte(base, 12, 2, @intFromEnum(abi.UnsafeScope.none)));
+    try std.testing.expectError(error.UnsafeScopeDenied, rangeInteropPolicyByte(base, 12, 2, @intFromEnum(abi.UnsafeScope.raw_pointer_bridge)));
 
     try write8InteropPolicy(base, 0, 0x33, mmio_policy);
     try std.testing.expectEqual(@as(u8, 0x33), try read8InteropPolicy(base, 0, mmio_policy));
