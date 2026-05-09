@@ -97,19 +97,14 @@ pub const ErrorCode = enum(i32) {
 pub const ManagedIoremapPlan = struct {
     anchor: []const u8,
     pretty_name: []const u8,
-    pretty_name_owned_by_plan: bool,
     effective_type: IoremapType,
     size: u64,
     requests_region: bool,
     releases_region_on_remap_failure: bool,
 
     pub fn deinit(self: *ManagedIoremapPlan, allocator: std.mem.Allocator) void {
-        if (!self.pretty_name_owned_by_plan) {
-            return;
-        }
         allocator.free(@constCast(self.pretty_name));
         self.pretty_name = "";
-        self.pretty_name_owned_by_plan = false;
     }
 };
 
@@ -490,7 +485,6 @@ pub const DevresHelperLab = struct {
             .mapped = .{
                 .anchor = descriptor().anchor,
                 .pretty_name = pretty_name,
-                .pretty_name_owned_by_plan = true,
                 .effective_type = effective_type,
                 .size = size,
                 .requests_region = true,
