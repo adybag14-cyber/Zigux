@@ -91,6 +91,6 @@ Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO compan
 
 ## Next bounded step
 
-Keep this Phase 12 nvme PCI lane parked unless a same-driver reopen can stay below live DMA mapping and land one explicitly approved transport-facing descriptor, queueing, or recovery preflight that builds on the now-landed queue-count reservation, queue-reservation replay, PRP buffer-shape, PRP metadata, recovery rebuild-progress, recovery replay, and rebuild-progress helpers.
+Keep this Phase 12 nvme PCI lane parked unless a same-driver reopen can stay below live DMA mapping and land one explicitly approved transport-facing descriptor, queueing, or recovery preflight that builds on the now-landed queue-count reservation, queue-reservation replay, PRP buffer-shape, PRP metadata, recovery rebuild-progress, recovery replay, and backlog-retirement helpers.
 
 Until that narrower reopen is approved, keep this survey aligned with the shared smoke-plus-build replay packet, including the dedicated `drivers/nvme/host/pci_verify.zig` shard, instead of letting the focused preflight route drift back into build-file-only, Makefile-only, or fallback-map-only knowledge.
