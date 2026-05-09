@@ -304,6 +304,12 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         "Documentation/zigux/phase7-cmdline-slice.md",
         "zigux/tests/phase7_cmdline.zig",
         "zigux/tests/phase7_cmdline_survey.zig",
+        "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample",
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        "zigux/tests/phase7_rbtree.zig",
+        "zigux/tests/phase7_rbtree_survey.zig",
+        "scripts/zigux/check-phase7-rbtree-parity.py",
+        "scripts/zigux/check-phase7-build-wiring.py",
         "zigux/tests/phase7_build.zig",
     };
 
