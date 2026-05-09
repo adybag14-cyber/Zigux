@@ -288,6 +288,23 @@ def run_self_test() -> int:
             return 1
         write_text(broken_traceability_path, required_text(root, TRACEABILITY_PATH))
 
+        broken_skbuff_manifest_path = root / SKBUFF_MANIFEST_PATH
+        broken_skbuff_manifest = json.loads(read_text(broken_skbuff_manifest_path))
+        broken_skbuff_manifest.pop("lane_key", None)
+        write_text(
+            broken_skbuff_manifest_path,
+            json.dumps(broken_skbuff_manifest, indent=2) + "\n",
+        )
+        errors = check(root)
+        if not any(
+            "missing lane_key in zigux/tests/phase14_skbuff_bridge_manifest.json"
+            in error
+            for error in errors
+        ):
+            print("self-test expected missing skbuff lane-key failure", file=sys.stderr)
+            return 1
+        write_text(broken_skbuff_manifest_path, required_text(root, SKBUFF_MANIFEST_PATH))
+
         broken_workqueue_manifest_path = root / WORKQUEUE_MANIFEST_PATH
         broken_workqueue_manifest = json.loads(read_text(broken_workqueue_manifest_path))
         broken_workqueue_manifest.pop("surveyed_commit", None)
