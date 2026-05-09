@@ -361,6 +361,27 @@ def run_self_test() -> int:
 
         broken_smoke_path.write_text(
             good_smoke_text.replace(
+                "PHASE14_COMPILE_ARTIFACT_COUNT=5\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: "
+            "PHASE14_COMPILE_ARTIFACT_COUNT=5" in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when the shared smoke survey lost the compile-artifact count marker",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke_text)
+
+        broken_smoke_path.write_text(
+            good_smoke_text.replace(
                 "PHASE14_FOCUSED_SHARD_COUNT=1\n",
                 "",
                 1,
