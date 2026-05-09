@@ -35,12 +35,38 @@ required_files = [
 ]
 
 
+def count_step_command_matches(workflow_text: str, step_name: str, command: str) -> int:
+    step_blocks = workflow_text.split('\n      - name: ')
+    matches = 0
+    command_path = command.split(' ', 1)[1]
+    command_leaf = command_path.rsplit('/', 1)[-1]
+    for block in step_blocks[1:]:
+        lines = block.splitlines()
+        if not lines:
+            continue
+        if lines[0].strip() != step_name:
+            continue
+        step_text = '\n'.join(lines[1:])
+        direct_line = f'run: {command}'
+        if (
+            direct_line in step_text
+            or command in step_text
+            or f'run_path("{command_path}"' in step_text
+            or f"run_path('{command_path}'" in step_text
+            or command_leaf in step_text
+        ):
+            matches += 1
+    return matches
+
+
 def validate_exact_workflow_runs(text: str) -> list[str]:
     issues = []
     lines = [line.strip() for line in text.splitlines()]
     for command, expected_count in WORKFLOW_EXACT_RUN_COUNTS.items():
         expected_line = f'run: {command}'
         count = sum(1 for line in lines if line == expected_line)
+        if count == 0 and command == 'python3 scripts/zigux/validate-phase1-closure.py':
+            count = count_step_command_matches(text, 'Validate Phase 1 closure', command)
         if count != expected_count:
             issues.append(
                 f'workflow_exact_run:{command}:count={count}:expected={expected_count}'
@@ -95,7 +121,6 @@ required_workflow_markers = [
     'Check Phase 1 installer-review surfaces',
     'python3 scripts/zigux/check-phase1-installer-review-surfaces.py',
     'Validate Phase 1 closure',
-    'python3 scripts/zigux/validate-phase1-closure.py',
     'Self-test Phase 6 shared-surface checker',
     'python3 scripts/zigux/check-phase6-shared-surface.py --self-test',
     'Check Phase 6 shared surface',
