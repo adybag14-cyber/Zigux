@@ -108,7 +108,7 @@ test "runtime trace-events sample keeps registration balance explicit" {
     try module.exit();
 }
 
-test "runtime trace-events sample keeps nested callback-registration rollback explicit through the module gate" {
+test "runtime trace-events sample keeps duplicate-registration rejection and failed-exit rollback explicit through the module gate" {
     var module = sample.RuntimeTraceEventsSample{};
     try module.init();
 
