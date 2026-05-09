@@ -17,6 +17,10 @@ REQUIRED_CHECKER_MARKERS = (
     '"phase7-validate": [',
     '"phase7-test": [',
     '"phase7": [',
+    '"python3 scripts/zigux/check-phase7-build-wiring.py --self-test",',
+    '"python3 scripts/zigux/check-phase7-build-wiring.py",',
+    '"zig build test --build-file zigux/tests/phase7_build.zig --summary all",',
+    '"phase7-test: unexpected wrapper expansion: python3 scripts/zigux/check-phase7-build-wiring.py",',
     'print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")',
     'print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=17")',
     'print(f"PHASE7_MAKE_WRAPPER_TARGET_COUNT={len(EXPECTED_MAKE_EXPANSIONS)}")',
@@ -25,6 +29,10 @@ REQUIRED_CHECKER_EXACT_COUNTS = {
     '"phase7-validate": [': 1,
     '"phase7-test": [': 1,
     '"phase7": [': 1,
+    '"python3 scripts/zigux/check-phase7-build-wiring.py --self-test",': 1,
+    '"python3 scripts/zigux/check-phase7-build-wiring.py",': 1,
+    '"zig build test --build-file zigux/tests/phase7_build.zig --summary all",': 1,
+    '"phase7-test: unexpected wrapper expansion: python3 scripts/zigux/check-phase7-build-wiring.py",': 1,
     'print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")': 1,
     'print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=17")': 1,
     'print(f"PHASE7_MAKE_WRAPPER_TARGET_COUNT={len(EXPECTED_MAKE_EXPANSIONS)}")': 1,
@@ -49,7 +57,7 @@ FORBIDDEN_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
     "run: python3 scripts/zigux/check-phase7-build-wiring.py",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 22
 
 
 def read_text(path: Path) -> str:
@@ -150,6 +158,10 @@ def build_self_test_root(root: Path) -> None:
                 '    "phase7-validate": [',
                 '    "phase7-test": [',
                 '    "phase7": [',
+                '    "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",',
+                '    "python3 scripts/zigux/check-phase7-build-wiring.py",',
+                '    "zig build test --build-file zigux/tests/phase7_build.zig --summary all",',
+                '    "phase7-test: unexpected wrapper expansion: python3 scripts/zigux/check-phase7-build-wiring.py",',
                 "}",
                 'print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")',
                 'print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=17")',
@@ -196,21 +208,21 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = root / CHECKER
         path.write_text(
-            path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[4], "", 1),
+            path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[8], "", 1),
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[4]) in issues
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[8]) in issues
         cases += 1
 
         build_self_test_root(root)
         path = root / CHECKER
         path.write_text(
-            path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[5], "", 1),
+            path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[9], "", 1),
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[5]) in issues
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[9]) in issues
         cases += 1
 
         build_self_test_root(root)
@@ -284,12 +296,28 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = root / CHECKER
         path.write_text(
-            path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[6], "", 1),
+            path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[10], "", 1),
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[6]) in issues
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[10]) in issues
         cases += 1
+
+        for marker in (
+            REQUIRED_CHECKER_MARKERS[4],
+            REQUIRED_CHECKER_MARKERS[5],
+            REQUIRED_CHECKER_MARKERS[6],
+            REQUIRED_CHECKER_MARKERS[7],
+        ):
+            build_self_test_root(root)
+            path = root / CHECKER
+            path.write_text(
+                path.read_text(encoding="utf-8").replace(marker, "", 1),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("MISSING_CHECKER_MARKERS", marker) in issues
+            cases += 1
 
     assert cases == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_SELF_TEST=pass")
