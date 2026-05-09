@@ -81,6 +81,10 @@ The current perf fixture packet in `zigux/tests/fixtures/phase6_hexdump_vectors.
 - `32B-ascii-g2`
 - `16B-ascii-g4`
 - `16B-ascii-g8`
+- `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`
+- `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`
+- `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`
+- `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`
 
 ## Non-goals
 
