@@ -89,7 +89,7 @@ Phase 5 notes
 - current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample, so reviewers should keep string-helper reviewability under `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
 - current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample, so reviewers should keep cmdline reviewability under `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
 - current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample, so reviewers should keep `argv_split` reviewability under `Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `scripts/zigux/check-phase7-argv-split-packet.py`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
-- current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample, so reviewers should keep `rbtree` reviewability under `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `scripts/zigux/check-phase7-rbtree-parity.py`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
+- current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample, so reviewers should keep `rbtree` reviewability under `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
 - the Phase 5 notes now carry all four roadmap sample anchors as bounded `samples/zigux/` reference readings, while still keeping the separate Phase 9 runtime pilot tranche explicit for the same `trace-events` and `kretprobe` families.
 - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `zigux/Makefile`, `make -C zigux phase5-test`, and `make -C zigux phase5` now keep that same four-sample packet reviewable through a Linux-style replay route backed by `zigux/tests/phase5_build.zig`, without inventing a dedicated Phase 5 validator or widening into the separate Phase 9 runtime lane.
 Phase 4 notes
@@ -160,7 +160,7 @@ Phase 8 notes
 - `zigux/tests/phase8_help_only_build.zig`
 - `zigux/tests/phase8_help_kallsyms_only_build.zig`
 - `zigux/tests/phase8_kallsyms.zig`
-- `zigux/tests/phase8_kallsyms_only_build.zig`
+- `zigux/tests/phase8_kallsyms_ONLY_build.zig`
 - `zigux/tests/phase8_cpu_mask.zig`
 - `zigux/tests/phase8_logging.zig`
 - `zigux/tests/phase8_pin_path.zig`
