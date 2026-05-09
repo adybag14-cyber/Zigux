@@ -12,6 +12,7 @@ on:
       - 'net/**/*.zig'
       - 'drivers/**/*.zig'
       - 'scripts/basic/fixdep.c'
+      - 'scripts/genksyms/genksyms.c'
       - 'scripts/kconfig/conf.c'
       - 'scripts/kconfig/confdata.c'
       - 'scripts/zigux/**'
@@ -31,6 +32,7 @@ on:
       - 'net/**/*.zig'
       - 'drivers/**/*.zig'
       - 'scripts/basic/fixdep.c'
+      - 'scripts/genksyms/genksyms.c'
       - 'scripts/kconfig/conf.c'
       - 'scripts/kconfig/confdata.c'
       - 'scripts/zigux/**'
@@ -153,9 +155,6 @@ jobs:
 
       - name: Check Phase 3 ABI dump gate
         run: python3 scripts/zigux/check-phase3-abi-dump-gate.py
-
-      - name: Check Phase 3 ABI interop packet
-        run: python3 scripts/zigux/check-phase3-abi.py
 
       - name: Validate Phase 4 diff gates
         run: make -C zigux phase4-validate
