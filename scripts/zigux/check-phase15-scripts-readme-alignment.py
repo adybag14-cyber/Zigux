@@ -156,7 +156,7 @@ TESTS_README_MARKERS = (
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_indefinite_c_blocker_evidence.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_ALIGNMENT.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_readiness_gate.zig",
