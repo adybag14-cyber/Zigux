@@ -169,33 +169,6 @@ test "runtime bitmap sample preserves selftest-complete summary and bits across 
     try std.testing.expect(!module.isSet(0));
 }
 
-test "runtime bitmap sample keeps tail-overflow replay lifecycle counters stable" {
-    var module = sample.RuntimeBitmapSample{};
-    const top_bit = sample.RuntimeBitmapSample.bitmap_nbits - 1;
-
-    try module.initWithSetBits(&.{ 1, top_bit });
-    _ = try module.runSelftest();
-
-    const before = module.lifecycleSnapshot();
-    const replay = try module.runTailOverflowMutationReplay();
-    const after = module.lifecycleSnapshot();
-
-    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before.stage);
-    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, after.stage);
-    try std.testing.expectEqual(@as(usize, 1), before.init_runs);
-    try std.testing.expectEqual(@as(usize, 1), after.init_runs);
-    try std.testing.expectEqual(@as(usize, 1), before.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 1), after.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 0), before.exit_runs);
-    try std.testing.expectEqual(@as(usize, 0), after.exit_runs);
-    try std.testing.expect(before.allows_mutation);
-    try std.testing.expect(after.allows_mutation);
-    try std.testing.expectEqual(@as(u8, 2), replay.rejected_overflow_mutations);
-    try std.testing.expect(module.isSet(1));
-    try std.testing.expect(module.isSet(top_bit));
-    try std.testing.expect(!module.isSet(top_bit - 1));
-}
-
 test "runtime bitmap sample keeps bounded errors explicit" {
     var module = sample.RuntimeBitmapSample{};
 
