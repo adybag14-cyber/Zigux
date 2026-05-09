@@ -7,7 +7,7 @@ This document records the bounded shared closure packet for the active Phase 10 
 - `PHASE10_STATUS=active`
 - `PHASE10_TRANCHE=virtio-lab-bundle`
 - `PHASE10_CLOSURE_POSTURE=parked_shared_packet`
-- `PHASE10_LANE_KEY=P10-Y07`
+- shared packet: closure evidence spans the core, ring, input, and MMIO lanes rather than one dedicated lane key
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
