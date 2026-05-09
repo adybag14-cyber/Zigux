@@ -105,12 +105,13 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     try std.testing.expect(!descriptor.touches_live_mmio);
     try std.testing.expect(!descriptor.touches_live_arch_memtype);
 
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_arch_io_reserve_memtype_wc()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_ioremap_np()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "This slice does not claim live `devres_alloc_node()` ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "live DMA-backed helpers") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "live scatter-gather ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "sg_table lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reviewed against live `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_ioremap_np()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_phys_wc_add()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_io_reserve_memtype_wc()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_ioremap_wc()") != null);
@@ -152,7 +153,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
             saw_reviewability_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase13_devres_reviewability.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "helper-only DMA/scatterlist boundary machine-checkable") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "non-posted wrapper packet machine-checkable") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-coherent-dma-replay")) {
             saw_coherent_dma_replay = true;
@@ -169,11 +170,13 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
         if (std.mem.eql(u8, gap.id, "phase13-devres-helper-starter")) {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_wc()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact `devm_iounmap()` pointer matching") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_np()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact devm_iounmap() pointer matching") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-test-gate")) {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_wc()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_np()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-survey-note")) {
             saw_survey_note = true;
