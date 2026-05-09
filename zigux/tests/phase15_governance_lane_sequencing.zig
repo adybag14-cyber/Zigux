@@ -13,7 +13,7 @@ test "phase 15 governance sequencing note keeps the owner split explicit" {
     defer std.testing.allocator.free(sequencing_note);
 
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "PHASE15_SEQUENCE=governance-lane-anti-overlap") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "P15-Y06") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "P15-L06") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "P15-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "scripts/zigux/README.md") != null);
@@ -35,9 +35,9 @@ test "phase 15 governance sequencing note keeps the owner split explicit" {
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "keep every Phase 15 governance run parked unless a named reopen trigger fires") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "dated_master_readback_packet_alignment") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "same dated `current-master-readback-2026-05-08` marker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "same dated `current-master-readback-2026-05-09` marker") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "future provenance refreshes stay handoff-lane `P15-L08` work") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "the current handoff packet-alignment wording is already isolated inside its owning packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "handoff provenance wording isolated inside the owning handoff packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "do not consume packet-local backlog") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Do not use this lane to change any deep-core blocker disposition") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "already closed the earlier handoff exact-head parity catch-up") == null);
