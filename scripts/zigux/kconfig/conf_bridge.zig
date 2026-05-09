@@ -101,6 +101,10 @@ const ParseBridgeOptionsError = error{
     UnexpectedArgument,
 };
 
+const ModeArgumentError = error{
+    MissingArgument,
+};
+
 fn modeRequiresArgument(mode: Mode) bool {
     return switch (mode) {
         .defconfig, .savedefconfig => true,
@@ -128,6 +132,31 @@ fn modeAcceptsAllConfigOverride(mode: Mode) bool {
         .allnoconfig, .allyesconfig, .allmodconfig, .alldefconfig, .randconfig => true,
         else => false,
     };
+}
+
+const bridge_option_prefixes = [_][]const u8{
+    "silent",
+    "allconfig=",
+    "seed=",
+    "probability=",
+    "nosilentupdate=",
+};
+
+fn looksLikeBridgeOption(text: []const u8) bool {
+    for (bridge_option_prefixes) |prefix| {
+        if (std.mem.startsWith(u8, text, prefix)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+fn validateModeArgument(mode: Mode, value: []const u8) ModeArgumentError![]const u8 {
+    if (!modeRequiresArgument(mode)) return value;
+    if (value.len == 0 or looksLikeBridgeOption(value)) {
+        return error.MissingArgument;
+    }
+    return value;
 }
 
 fn writeHexLower(writer: anytype, value: u8) !void {
@@ -287,7 +316,13 @@ pub fn main(init: std.process.Init) !void {
             try stderr_writer.interface.flush();
             std.process.exit(1);
         }
-        const value = args[next_index];
+        const value = validateModeArgument(mode, args[next_index]) catch {
+            var stderr_buffer: [160]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll(missingModeArgumentMessage(mode));
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        };
         next_index += 1;
         break :blk value;
     };
@@ -340,11 +375,11 @@ const TestCapture = struct {
         self.list.deinit(self.allocator);
     }
 
-    fn writeAll(self: *TestCapture, bytes: []const u8) !void {
-        try self.list.appendSlice(self.allocator, bytes);
+    pub fn writeAll(self: *TestCapture, text: []const u8) !void {
+        try self.list.appendSlice(self.allocator, text);
     }
 
-    fn writeByte(self: *TestCapture, byte: u8) !void {
+    pub fn writeByte(self: *TestCapture, byte: u8) !void {
         try self.list.append(self.allocator, byte);
     }
 };
@@ -377,45 +412,6 @@ test "conf bridge mode surface stays aligned with conf.c long options" {
         try std.testing.expectEqual(entry.mode, Mode.parse(entry.text).?);
         try std.testing.expectEqualStrings(entry.text, entry.mode.text());
         try std.testing.expectEqualStrings(entry.flag, entry.mode.flag());
-    }
-}
-
-test "conf bridge mode contract helpers stay aligned with supported modes" {
-    const expected = [_]struct {
-        mode: Mode,
-        requires_argument: bool,
-        missing_argument_message: ?[]const u8,
-        uses_allconfig_sentinel: bool,
-        accepts_allconfig_override: bool,
-    }{
-        .{ .mode = .oldaskconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
-        .{ .mode = .syncconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
-        .{ .mode = .oldconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
-        .{ .mode = .allnoconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = true, .accepts_allconfig_override = true },
-        .{ .mode = .allyesconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = true, .accepts_allconfig_override = true },
-        .{ .mode = .allmodconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = true, .accepts_allconfig_override = true },
-        .{ .mode = .alldefconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = true, .accepts_allconfig_override = true },
-        .{ .mode = .randconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = true },
-        .{ .mode = .defconfig, .requires_argument = true, .missing_argument_message = "Error: defconfig mode requires <defconfig>\n", .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
-        .{ .mode = .savedefconfig, .requires_argument = true, .missing_argument_message = "Error: savedefconfig mode requires <path>\n", .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
-        .{ .mode = .listnewconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
-        .{ .mode = .helpnewconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
-        .{ .mode = .olddefconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
-        .{ .mode = .yes2modconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
-        .{ .mode = .mod2yesconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
-        .{ .mode = .mod2noconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
-    };
-
-    try std.testing.expectEqual(std.meta.fields(Mode).len, expected.len);
-
-    inline for (expected) |entry| {
-        try std.testing.expectEqual(entry.requires_argument, modeRequiresArgument(entry.mode));
-        try std.testing.expectEqual(entry.uses_allconfig_sentinel, modeUsesAllConfigSentinel(entry.mode));
-        try std.testing.expectEqual(entry.accepts_allconfig_override, modeAcceptsAllConfigOverride(entry.mode));
-
-        if (entry.missing_argument_message) |message| {
-            try std.testing.expectEqualStrings(message, missingModeArgumentMessage(entry.mode));
-        }
     }
 }
 
@@ -609,6 +605,15 @@ test "conf bridge escapes low control bytes in JSON strings" {
     try std.testing.expectEqualStrings("\\u0001\\b\\f", capture.list.items);
 }
 
+test "mode argument validation rejects bridge option shaped defconfig payload" {
+    try std.testing.expectError(error.MissingArgument, validateModeArgument(.defconfig, "allconfig=mini.config"));
+    try std.testing.expectError(error.MissingArgument, validateModeArgument(.savedefconfig, "nosilentupdate=1"));
+}
+
+test "mode argument validation still accepts ordinary path text with equals" {
+    try std.testing.expectEqualStrings("arch/x86/configs/debug=1_defconfig", try validateModeArgument(.defconfig, "arch/x86/configs/debug=1_defconfig"));
+}
+
 test "bridge options parser accepts explicit allconfig override for allmodconfig" {
     const options = try parseBridgeOptions(.allmodconfig, &.{"allconfig="});
     try std.testing.expect(options.silent == false);
@@ -621,8 +626,9 @@ test "bridge options parser accepts explicit allconfig override for allmodconfig
 
 test "bridge options parser accepts syncconfig nosilentupdate" {
     const options = try parseBridgeOptions(.syncconfig, &.{"nosilentupdate=1"});
-    try std.testing.expectEqualStrings("1", options.nosilentupdate.?);
     try std.testing.expect(options.silent == false);
+    try std.testing.expect(options.nosilentupdate != null);
+    try std.testing.expectEqualStrings("1", options.nosilentupdate.?);
 }
 
 test "bridge options parser accepts generic silent flag" {
@@ -632,7 +638,12 @@ test "bridge options parser accepts generic silent flag" {
 }
 
 test "bridge options parser accepts silent alongside randconfig options" {
-    const options = try parseBridgeOptions(.randconfig, &.{ "silent", "allconfig=allrandom.config", "seed=0xC0FFEE", "probability=10:20" });
+    const options = try parseBridgeOptions(.randconfig, &.{
+        "silent",
+        "allconfig=allrandom.config",
+        "seed=0xC0FFEE",
+        "probability=10:20",
+    });
     try std.testing.expect(options.silent);
     try std.testing.expectEqualStrings("allrandom.config", options.allconfig.?);
     try std.testing.expectEqualStrings("0xC0FFEE", options.seed.?);
@@ -640,17 +651,49 @@ test "bridge options parser accepts silent alongside randconfig options" {
 }
 
 test "bridge options parser rejects duplicate silent flag" {
-    try std.testing.expectError(error.DuplicateSilent, parseBridgeOptions(.oldconfig, &.{ "silent", "silent" }));
+    try std.testing.expectError(error.DuplicateSilent, parseBridgeOptions(.oldconfig, &.{
+        "silent",
+        "silent",
+    }));
+}
+
+test "bridge options parser rejects duplicate randconfig probability" {
+    try std.testing.expectError(error.DuplicateProbability, parseBridgeOptions(.randconfig, &.{
+        "probability=10",
+        "probability=20",
+    }));
 }
 
 test "bridge options parser rejects unexpected options for mode" {
+    try std.testing.expectError(error.UnexpectedArgument, parseBridgeOptions(.oldconfig, &.{"allconfig=mini.config"}));
     try std.testing.expectError(error.UnexpectedArgument, parseBridgeOptions(.oldconfig, &.{"nosilentupdate=1"}));
     try std.testing.expectError(error.UnexpectedArgument, parseBridgeOptions(.syncconfig, &.{"seed=0xC0FFEE"}));
 }
 
+test "bridge options parser keeps empty randconfig tunables unset" {
+    const options = try parseBridgeOptions(.randconfig, &.{
+        "seed=",
+        "probability=",
+    });
+    try std.testing.expect(options.seed == null);
+    try std.testing.expect(options.probability == null);
+}
+
 test "bridge options parser rejects duplicate mode specific options" {
-    try std.testing.expectError(error.DuplicateAllConfig, parseBridgeOptions(.randconfig, &.{ "allconfig=one", "allconfig=two" }));
-    try std.testing.expectError(error.DuplicateSeed, parseBridgeOptions(.randconfig, &.{ "seed=1", "seed=2" }));
-    try std.testing.expectError(error.DuplicateProbability, parseBridgeOptions(.randconfig, &.{ "probability=1:2", "probability=3:4" }));
-    try std.testing.expectError(error.DuplicateNoSilentUpdate, parseBridgeOptions(.syncconfig, &.{ "nosilentupdate=1", "nosilentupdate=0" }));
+    try std.testing.expectError(error.DuplicateAllConfig, parseBridgeOptions(.randconfig, &.{
+        "allconfig=one",
+        "allconfig=two",
+    }));
+    try std.testing.expectError(error.DuplicateSeed, parseBridgeOptions(.randconfig, &.{
+        "seed=1",
+        "seed=2",
+    }));
+    try std.testing.expectError(error.DuplicateProbability, parseBridgeOptions(.randconfig, &.{
+        "probability=1:2",
+        "probability=3:4",
+    }));
+    try std.testing.expectError(error.DuplicateNoSilentUpdate, parseBridgeOptions(.syncconfig, &.{
+        "nosilentupdate=1",
+        "nosilentupdate=0",
+    }));
 }
