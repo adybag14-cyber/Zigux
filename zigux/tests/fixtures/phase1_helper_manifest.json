@@ -102,7 +102,9 @@
       "same_word_start_masks": "test \"single-word next scans honor start masks\"",
       "inclusive_boundary_start": "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
       "zero_bit_window": "test \"zero-bit windows return without reading bitmap words\"",
+      "zero_sized_short_circuit": "test \"zero-sized scans ignore populated backing words\"",
       "past_nbits_short_circuit": "test \"next scans past nbits return without reading bitmap words\"",
+      "tail_word_set_skip_anchor": "test \"tail-word next set scans skip earlier in-range matches before clamping\"",
       "underscore_alias_anchor": "test \"low-level underscore aliases mirror the primary find helpers\"",
       "tail_word_skip_anchor": "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
       "tail_clamp_fixture_keys": [
