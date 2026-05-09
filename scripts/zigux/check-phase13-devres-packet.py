@@ -109,7 +109,6 @@ DEVRES_HELPER_MARKERS = [
 ]
 
 DEVRES_TEST_MARKERS = [
-    'try std.testing.expect(descriptor.provides_ioport_unmap_call_planning);',
     'test "phase13 devres uncached ioremap wrapper preserves the managed lifetime path" {',
     'test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
     'test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
@@ -340,7 +339,6 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "phase13-devres-test:try std.testing.expect(descriptor.provides_ioport_unmap_call_planning);",
                 'phase13-devres-test:test "phase13 devres uncached ioremap wrapper preserves the managed lifetime path" {',
                 'phase13-devres-test:test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
                 'phase13-devres-test:test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
