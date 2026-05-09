@@ -78,7 +78,7 @@ This closure note does not claim:
 
 Keep the next follow-through inside the smallest truthful Phase 11 packet:
 
-- first, fix the docs-root shared replay reminder in `Documentation/zigux/README.md` so it carries `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, and `Documentation/zigux/phase11-dw-wdt-survey.md` beside the already-listed watchdog matrices, HVC packet, and shared header-boundary note
+- first, fix the scripts-root shared replay reminder in `scripts/zigux/README.md` so it carries `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` beside the already-listed watchdog matrices, HVC packet, and shared header-boundary note
 - otherwise, take only a driver-local validation-matrix, teardown-note, survey, manifest, or registration-handoff sync inside one owning lane
 
 Do not widen from this note into new driver behavior or a broader validator asset until those surfaces actually land on `master`.
