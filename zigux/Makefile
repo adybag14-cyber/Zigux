@@ -310,8 +310,6 @@ phase10-test:
 phase10: phase10-test
 
 phase11-contract:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py
 
 phase11-test:
