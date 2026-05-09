@@ -438,6 +438,11 @@ test "phase12 virtio scsi raw fallback catalog stays aligned with the shipped bu
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/README.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/Makefile",
         "- current virtio_scsi smoke packet surfaces: `zigux/tests/phase12_virtio_scsi.zig` and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
+        "## Roadmap gap snapshot",
+        "Use the fallback packet to keep the roadmap comparison honest, not just reachable.",
+        "- landed bounded starter surfaces: the shipped `virtio_scsi` packet now exposes the queue-window summary, probe-config snapshot, pre-registration host-shape summary, repeated transport-reset recovery-generation gate, restore queue rebind summary, request-queue restart summary, request-queue ownership summary, recovery event-rearm summary, restore-time event-buffer ownership summary, and rollback summary as reviewable driver-local evidence.",
+        "- still-blocked complex-driver roadmap gap: this fallback route must still describe command submission, event completion, TMF flow, `scsi_add_host()`, `scsi_scan_host()`, blk-mq queue mapping, PM freeze or restore callback wiring, and DMA-backed virtqueue ownership as unported runtime work rather than implying production SCSI HBA parity.",
+        "- survey-owner split: the active gap judgment lives with `P12-L13` in `Documentation/zigux/phase12-virtio-scsi-survey.md` and `zigux/tests/phase12_virtio_scsi_manifest.json`; this historical `P12-L09` note should mirror that bounded gap snapshot for degraded reads, but it must not become a second owner lane.",
         "1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
         "2. `make -C zigux phase12-smoke`",
         "3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
@@ -449,6 +454,7 @@ test "phase12 virtio scsi raw fallback catalog stays aligned with the shipped bu
         "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback catalog, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback catalog into a second sequencing document.",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.",
         "This catalog should stay read-only and should not be used to imply an unshipped `validate-phase12.py`, any `check-phase12-*.py` packet, or a `make -C zigux phase12-validate` target.",
+        "If the bounded `virtio_scsi` packet gains or drops a shipped Phase 12 surface, if the shipped starter-facing queue-window or recovery-summary wording changes inside that existing packet, or if the survey-owned roadmap-gap snapshot changes, update this catalog in the same change so fallback inspection keeps matching the live reviewable packet on `master`.",
     };
 
     for (expected_fragments) |fragment| {
@@ -458,6 +464,18 @@ test "phase12 virtio scsi raw fallback catalog stays aligned with the shipped bu
     try std.testing.expectEqual(
         @as(usize, 1),
         std.mem.count(u8, catalog, "- current virtio_scsi smoke packet surfaces: `zigux/tests/phase12_virtio_scsi.zig` and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`"),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        std.mem.count(u8, catalog, "## Roadmap gap snapshot"),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        std.mem.count(u8, catalog, "- still-blocked complex-driver roadmap gap: this fallback route must still describe command submission, event completion, TMF flow, `scsi_add_host()`, `scsi_scan_host()`, blk-mq queue mapping, PM freeze or restore callback wiring, and DMA-backed virtqueue ownership as unported runtime work rather than implying production SCSI HBA parity."),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        std.mem.count(u8, catalog, "If the bounded `virtio_scsi` packet gains or drops a shipped Phase 12 surface, if the shipped starter-facing queue-window or recovery-summary wording changes inside that existing packet, or if the survey-owned roadmap-gap snapshot changes, update this catalog in the same change so fallback inspection keeps matching the live reviewable packet on `master`."),
     );
     try std.testing.expectEqual(
         @as(usize, 1),
