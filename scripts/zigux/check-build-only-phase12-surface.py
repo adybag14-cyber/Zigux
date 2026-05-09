@@ -138,6 +138,7 @@ REQUIRED_FILE_MARKERS = {
         "Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
         "shipped shared coordination surfaces on `master`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
         "shared reviewability surfaces that describe or gate the live Phase 12 libbpf packet",
         "shared reviewability owns the survey, manifest, deterministic snapshot fixture, snapshot determinism replay, reviewability gate, and shared build alignment",
