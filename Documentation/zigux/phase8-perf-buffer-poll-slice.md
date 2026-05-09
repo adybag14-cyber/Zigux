@@ -9,6 +9,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - scope: observed wait-result normalization, ready-buffer bookkeeping, ordered ready-buffer ordinal lookup plus return shaping, bounded buffer-fd and buffer-window lookup plus return shaping, signaled-buffer ordinal lookup plus return shaping, and ordered record-processing summaries only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+  - `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
   - `zigux/tests/phase8_perf_buffer_poll.zig`
   - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
   - `zigux/tests/phase8_build.zig`
@@ -30,15 +31,18 @@ The `perf_buffer__poll(timeout_ms)` path is a reasonable bounded adjunct because
 3. run the shared Phase 8 validator
 - `python3 scripts/zigux/validate-phase8.py`
 
-4. run the focused Phase 8 perf-buffer poll shard
+4. run the dedicated Phase 8 perf-buffer poll gate
+- `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+
+5. run the focused Phase 8 perf-buffer poll shard
 - `make -C zigux phase8-perf-buffer-poll-test`
 - `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
 
-5. run the shared Phase 8 tooling replay
+6. run the shared Phase 8 tooling replay
 - `make -C zigux phase8-test`
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-6. run the convenience target
+7. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -76,10 +80,11 @@ The current tests check:
 - buffer-fd slot lookups and errno-shaped invalid-index or missing-fd returns
 - buffer-window slot lookups and return shaping for valid buffer windows, invalid indices, and missing buffers
 - signaled-buffer ordinal lookup and return shaping for valid signaled slots and out-of-range ordinals
-- ready-buffer ordinal lookup and return shaping for valid ready slots and out-of-range ready ordinals
+- ready-buffer ordinal lookup and return shaping for valid ready slots and out-of-range ordinals
 - impossible processing paths that overrun the observed ready-event budget
 - the narrower counted-ready-buffer guard trips before any broader observed-ready-event mismatch
 - impossible post-wait buffer state combinations that must stay rejected
+- the dedicated poll gate stays reviewable beside the focused shard and shared replay routes
 
 ## Non-goals
 
