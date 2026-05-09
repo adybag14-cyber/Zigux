@@ -430,7 +430,8 @@ pub fn bitmap_copy_and_extend(dst: []Word, src: []const Word, count: usize, size
     copyAndExtend(dst, src, count, size);
 }
 
-fn appendSlice(buffer: []u8, written: *usize, text: []const u8) void {
+fn appendSlice(buffer: []u8, written: *usize, total: *usize, text: []const u8) void {
+    total.* += text.len;
     if (buffer.len == 0) {
         return;
     }
@@ -443,16 +444,17 @@ fn appendSlice(buffer: []u8, written: *usize, text: []const u8) void {
     }
 }
 
-fn appendUnsigned(buffer: []u8, written: *usize, value: usize) void {
+fn appendUnsigned(buffer: []u8, written: *usize, total: *usize, value: usize) void {
     var tmp: [32]u8 = undefined;
     const rendered = std.fmt.bufPrint(&tmp, "{d}", .{value}) catch unreachable;
-    appendSlice(buffer, written, rendered);
+    appendSlice(buffer, written, total, rendered);
 }
 
 pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
     assertBitmapLen(bitmap, nbits);
 
     var written: usize = 0;
+    var total: usize = 0;
     var first = true;
     var current = find_bit.findFirstBit(bitmap, nbits);
     if (current == nbits) {
@@ -470,24 +472,25 @@ pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
         }
 
         if (!first) {
-            appendSlice(buffer, &written, ",");
+            appendSlice(buffer, &written, &total, ",");
         }
         first = false;
 
-        appendUnsigned(buffer, &written, range_bottom);
+        appendUnsigned(buffer, &written, &total, range_bottom);
         if (range_bottom < range_top) {
-            appendSlice(buffer, &written, "-");
-            appendUnsigned(buffer, &written, range_top);
+            appendSlice(buffer, &written, &total, "-");
+            appendUnsigned(buffer, &written, &total, range_top);
         }
 
         range_bottom = current;
     }
 
-    if (buffer.len != 0 and written < buffer.len) {
-        buffer[written] = 0;
+    if (buffer.len != 0) {
+        const nul_index = @min(written, buffer.len - 1);
+        buffer[nul_index] = 0;
     }
 
-    return written;
+    return total;
 }
 
 pub fn bitmap_scnprintf(bitmap_words: []const Word, nbits: usize, buffer: []u8) usize {
@@ -678,7 +681,7 @@ test "bitmap scnprintf reports full length while truncating the buffer" {
     var buffer = [_]u8{0} ** 8;
     const len = scnprintf(&map, 32, &buffer);
 
-    try std.testing.expectEqual(@as(usize, 7), len);
+    try std.testing.expectEqual(@as(usize, 11), len);
     try std.testing.expectEqualStrings("1-3,7,1", buffer[0 .. buffer.len - 1]);
     try std.testing.expectEqual(@as(u8, 0), buffer[buffer.len - 1]);
 }
@@ -689,12 +692,12 @@ test "bitmap scnprintf handles terminator-only and zero-length caller views" {
 
     var terminator_only = [_]u8{0xaa};
     const terminator_only_len = scnprintf(&map, 32, &terminator_only);
-    try std.testing.expectEqual(@as(usize, 0), terminator_only_len);
+    try std.testing.expectEqual(@as(usize, 1), terminator_only_len);
     try std.testing.expectEqual(@as(u8, 0), terminator_only[0]);
 
     var zero_length_backing = [_]u8{0xaa};
     const zero_length_len = scnprintf(&map, 32, zero_length_backing[0..0]);
-    try std.testing.expectEqual(@as(usize, 0), zero_length_len);
+    try std.testing.expectEqual(@as(usize, 1), zero_length_len);
     try std.testing.expectEqual(@as(u8, 0xaa), zero_length_backing[0]);
 }
 
