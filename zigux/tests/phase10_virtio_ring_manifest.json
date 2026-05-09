@@ -112,6 +112,13 @@
       "why_now": "The live ring slice carries queue-local notify-prepare bookkeeping that reports avail shadow, num_added, and whether a kick is needed while flushing the staged publish count, which mirrors virtqueue_kick_prepare()."
     },
     {
+      "id": "phase10-notification-data-summary-helper",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring.zig",
+      "why_now": "The live ring slice also carries a queue-local notification-data summary that keeps split and packed next-available encoding reviewable in memory, including packed wrap-bit transitions that feed the existing ring verifier coverage."
+    },
+    {
       "id": "phase10-broken-queue-poll-guard",
       "status": "starter_landed",
       "kind": "queue_wrapper",
@@ -137,7 +144,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "drivers/virtio/virtio_ring_verify.zig",
-      "why_now": "The wrapper-facing verify replay keeps reset-readiness blockers and delayed-callback pacing live beside the direct ring-helper replay."
+      "why_now": "The wrapper-facing verify replay keeps reset-readiness blockers, delayed-callback pacing, clear-broken blocker exposure, packed-ring event-index polling thresholds, and notification-data wrap transitions live beside the direct ring-helper replay."
     },
     {
       "id": "phase10-virtio-ring-slice-note",
