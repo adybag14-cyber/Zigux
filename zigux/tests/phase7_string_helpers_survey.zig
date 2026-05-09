@@ -166,8 +166,10 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     defer allocator.free(tests_root);
     try expectContains(tests_root, "scripts/zigux/validate-phase7.py");
     try expectContains(tests_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(tests_root, "zigux/tests/phase7_string_helpers_manifest.json");
     try expectContains(tests_root, "zigux/tests/phase7_build.zig");
     try expectContains(tests_root, "the dedicated `zigux/tests/phase7_string_helpers_sample_boundary.zig` boundary replay");
+    try expectContains(tests_root, "the committed `zigux/tests/phase7_string_helpers_manifest.json` string-helper manifest packet");
 
     const samples_root = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(samples_root);
