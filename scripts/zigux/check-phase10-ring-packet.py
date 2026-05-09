@@ -12,7 +12,10 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 FILES = [
     "scripts/zigux/check-phase10-ring-packet.py",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase10-closure-evidence.md",
     "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "zigux/Makefile",
     "zigux/tests/phase10_build.zig",
     "drivers/virtio/virtio_ring.zig",
@@ -108,6 +111,29 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "does not claim a freeze-map status change or an attached Architecture Council reopen request",
 ]
 
+EXPECTED_DOCS_README_MARKERS = [
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "drivers/virtio/virtio_ring_verify.zig",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_ring_survey.zig",
+    "make -C zigux phase10-test",
+]
+
+EXPECTED_CLOSURE_NOTE_MARKERS = [
+    "Documentation/zigux/review-checklist.md",
+    "drivers/virtio/virtio_ring_verify.zig",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_ring_survey.zig",
+    "queue-local virtqueue foothold",
+]
+
+EXPECTED_TESTS_README_MARKERS = [
+    "phase10_virtio_ring.zig",
+    "phase10_virtio_ring_survey.zig",
+    "phase10_virtio_ring_manifest.json",
+]
+
 EXPECTED_COMPANION_MARKERS = [
     "Documentation/zigux/phase10-closure-evidence.md",
     "scripts/zigux/check-phase10-ring-packet.py",
@@ -181,11 +207,28 @@ EXPECTED_FREEZE_IN_C_ANCHORS = [
 
 BASELINE_FIXTURE = {
     "scripts/zigux/check-phase10-ring-packet.py": "# synthetic fixture for self-test\n",
+    "Documentation/zigux/README.md": """- Documentation/zigux/phase10-virtio-driver-lane-sequencing.md
+- Documentation/zigux/phase10-closure-evidence.md
+- drivers/virtio/virtio_ring_verify.zig
+- zigux/tests/phase10_virtio_ring_manifest.json
+- zigux/tests/phase10_virtio_ring_survey.zig
+- make -C zigux phase10-test
+""",
+    "Documentation/zigux/phase10-closure-evidence.md": """- Documentation/zigux/review-checklist.md
+- drivers/virtio/virtio_ring_verify.zig
+- zigux/tests/phase10_virtio_ring_manifest.json
+- zigux/tests/phase10_virtio_ring_survey.zig
+- queue-local virtqueue foothold
+""",
     "scripts/zigux/README.md": """- check-phase10-ring-packet.py
 - the lane-sequenced virtio ring plus the focused ring-verify replay
 - drivers/virtio/virtio_mmio_verify.zig
 - zigux/tests/phase10_closure_manifest.json
 - make -C zigux phase10
+""",
+    "zigux/tests/README.md": """- phase10_virtio_ring.zig
+- phase10_virtio_ring_survey.zig
+- phase10_virtio_ring_manifest.json
 """,
     "zigux/Makefile": """phase10-test:
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-core-packet.py --self-test
@@ -346,7 +389,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     missing_markers: list[str] = []
 
+    expect_markers(read_text(root, "Documentation/zigux/README.md"), EXPECTED_DOCS_README_MARKERS, "docs_readme", missing_markers)
+    expect_markers(read_text(root, "Documentation/zigux/phase10-closure-evidence.md"), EXPECTED_CLOSURE_NOTE_MARKERS, "closure_note", missing_markers)
     expect_markers(read_text(root, "scripts/zigux/README.md"), EXPECTED_SCRIPTS_README_MARKERS, "scripts_readme", missing_markers)
+    expect_markers(read_text(root, "zigux/tests/README.md"), EXPECTED_TESTS_README_MARKERS, "tests_readme", missing_markers)
     expect_markers(read_text(root, "zigux/tests/phase10_build.zig"), EXPECTED_BUILD_MARKERS, "build", missing_markers)
     expect_markers(read_text(root, "zigux/Makefile"), EXPECTED_MAKEFILE_MARKERS, "makefile", missing_markers)
     expect_markers(read_text(root, "drivers/virtio/virtio_ring.zig"), EXPECTED_HELPER_MARKERS, "helper", missing_markers)
@@ -436,6 +482,7 @@ def assert_missing(root: Path, rel_path: str, old: str, new: str, expected: str)
     _, missing_markers = validate(root)
     if expected not in missing_markers:
         raise SystemExit(f"phase10-ring-self-test:expected_marker_missing:{expected}")
+    path.writeText = path.write_text
     path.write_text(original, encoding="utf-8")
 
 
@@ -612,6 +659,27 @@ def run_self_test() -> int:
         )
         assert_missing(
             tmp_root,
+            "Documentation/zigux/README.md",
+            "drivers/virtio/virtio_ring_verify.zig",
+            "drivers/virtio/virtio_ring_verify_drift.zig",
+            "docs_readme:drivers/virtio/virtio_ring_verify.zig",
+        )
+        assert_missing(
+            tmp_root,
+            "Documentation/zigux/phase10-closure-evidence.md",
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            "zigux/tests/phase10_virtio_ring_manifest_drift.json",
+            "closure_note:zigux/tests/phase10_virtio_ring_manifest.json",
+        )
+        assert_missing(
+            tmp_root,
+            "zigux/tests/README.md",
+            "phase10_virtio_ring_manifest.json",
+            "phase10_virtio_ring_manifest_drift.json",
+            "tests_readme:phase10_virtio_ring_manifest.json",
+        )
+        assert_missing(
+            tmp_root,
             "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
             "Documentation/zigux/phase10-closure-evidence.md",
             "Documentation/zigux/phase10-closure-drift.md",
@@ -647,7 +715,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=24")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
