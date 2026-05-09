@@ -67,6 +67,7 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
     "scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "scripts/zigux/check-kconfig-bridge.py": 1,
+    "scripts/zigux/check-mk-elfconfig-diff.py --self-test": 1,
     "scripts/zigux/check-mk-elfconfig-diff.py": 1,
     "scripts/zigux/check-genksyms-bridge.py --self-test": 1,
     "scripts/zigux/check-genksyms-bridge.py": 1,
@@ -110,6 +111,7 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
     "python3 scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "python3 scripts/zigux/check-kconfig-bridge.py": 1,
+    "python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test": 1,
     "python3 scripts/zigux/check-mk-elfconfig-diff.py": 1,
     "python3 scripts/zigux/check-genksyms-bridge.py --self-test": 1,
     "python3 scripts/zigux/check-genksyms-bridge.py": 1,
@@ -317,6 +319,7 @@ def make_ok_text() -> str:
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py --self-test",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
@@ -361,6 +364,7 @@ def workflow_ok_text() -> str:
                 "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
                 "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
                 "run: python3 scripts/zigux/check-kconfig-bridge.py",
+                "run: python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test",
                 "run: python3 scripts/zigux/check-mk-elfconfig-diff.py",
                 "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
                 "run: python3 scripts/zigux/check-genksyms-bridge.py",
@@ -524,6 +528,7 @@ def main_validation(root: Path) -> list[str]:
         "python3 scripts/zigux/check-genksyms-crc-diff.py",
         "python3 scripts/zigux/check-kconfig-bridge.py --self-test",
         "python3 scripts/zigux/check-kconfig-bridge.py",
+        "python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test",
         "python3 scripts/zigux/check-mk-elfconfig-diff.py",
         "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
@@ -585,6 +590,7 @@ def main_validation(root: Path) -> list[str]:
         "check-phase2-kconfig-selftest-alignment.py",
         "check-kconfig-bridge.py --self-test",
         "check-kconfig-bridge.py",
+        "check-mk-elfconfig-diff.py --self-test",
         "check-mk-elfconfig-diff.py",
         "check-genksyms-bridge.py --self-test",
         "check-genksyms-bridge.py",
@@ -672,6 +678,7 @@ def run_self_test() -> int:
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-genksyms-crc-diff.py",
+        "scripts/zigux/check-mk-elfconfig-diff.py --self-test",
         "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
     ]
@@ -705,6 +712,7 @@ def run_self_test() -> int:
         "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
         "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "python3 scripts/zigux/check-genksyms-crc-diff.py",
+        "python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test",
         "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     ]
@@ -789,7 +797,7 @@ def main() -> int:
     )
     print(
         "PHASE2_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{51 + len(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + 25 + 6 + 4 + len(PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS) + 29}"
+        f"{51 + len(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS) + len(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS) + 26 + 6 + 4 + len(PHASE2_TOOLCHAIN_NOTES_REQUIRED_MARKERS) + 30}"
     )
     return 0
 
