@@ -13,14 +13,14 @@ It is a coordination artifact, not a closure claim.
 - shared build replay entrypoint: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 - Linux-style replay entrypoint: `make -C zigux phase12`
 - when `zig` is unavailable on `PATH`, keep the shipped Make routes explicit as `make -C zigux phase12-smoke ZIG=<attached-zig-path>` and `make -C zigux phase12 ZIG=<attached-zig-path>` rather than implying a validator-first, helper-local, or libbpf-only replay surface
-- shipped shared coordination surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `zigux/tests/phase12_libbpf_snapshot_determinism.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
+- shipped shared coordination surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `zigux/tests/phase12_libbpf_snapshot_determinism.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/verify.zig`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
 
 ## Why this note exists
 
 The live Phase 12 libbpf survey is already honest about the current helper-first footing and the still-blocked object-model wall.
 
 What it does not do by itself is stop nearby scheduled runs from collapsing four different kinds of work into one vague `libbpf` bucket:
-- shared reviewability upkeep for the shipped Phase 12 packet
+- shared reviewability upkeep for the shipped Phase 12 packet, including the dedicated `zigux_segments/verify.zig` shard beneath the broader survey and replay gates
 - tracked pure-helper upkeep for the five deterministic helper paths already carried by the Phase 12 snapshot fixtures
 - landed bridge-local helper-foundation upkeep inside the existing `zigux_segments/` family
 - deferred or blocked object-model, loader, bridge, and relocation work
@@ -41,12 +41,13 @@ Current shared packet:
 - `zigux/tests/phase12_libbpf_reviewability.zig`
 - `zigux/tests/phase12_libbpf_snapshot_determinism.zig`
 - `tools/lib/bpf/zigux_segments/manifest.json`
+- `tools/lib/bpf/zigux_segments/verify.zig`
 - `scripts/zigux/check-build-only-phase12-surface.py`
 - `.github/workflows/zigux-bootstrap.yml`
 - `zigux/tests/phase12_build.zig`
 - `zigux/Makefile`
 
-The direct PMO drift-control reruns inside that shared packet are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` before or beside the workflow-backed replay.
+The direct PMO drift-control reruns inside that shared packet are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` before or beside the workflow-backed replay. That same shared packet should also keep `tools/lib/bpf/zigux_segments/verify.zig` explicit as the focused compile-and-entrypoint shard beneath the broader reviewability and build replays.
 
 Do not reopen this lane for:
 - direct helper behavior changes inside `tools/lib/bpf/zigux_segments/*.zig`
@@ -163,7 +164,7 @@ Shared-summary wording must keep `Documentation/zigux/freeze-map.md` visible whe
 ## Current anti-overlap correction
 
 Today the strongest Phase 12 libbpf sequencing correction is simple:
-- shared reviewability owns the survey, manifest, deterministic snapshot fixture, deterministic snapshot-digest evidence fixture, snapshot determinism replay, reviewability gate, the paired build-only checker reruns, and shared build alignment for the current libbpf packet, with the workflow-backed replay kept explicit inside that same reviewability bundle
+- shared reviewability owns the survey, manifest, deterministic snapshot fixture, deterministic snapshot-digest evidence fixture, snapshot determinism replay, reviewability gate, the dedicated `tools/lib/bpf/zigux_segments/verify.zig` shard, the paired build-only checker reruns, and shared build alignment for the current libbpf packet, with the workflow-backed replay kept explicit inside that same reviewability bundle
 - the tracked pure-helper lane keeps the five deterministic helper paths explicit as a smaller packet than the bridge-local helper foundations
 - the two landed bridge-local helper foundations stay explicit as smaller evidence than the deferred bridge and queue-routing bucket
 - the deferred bridge and queue-routing bucket stays smaller than the blocked object-model, loader, and relocation wall
