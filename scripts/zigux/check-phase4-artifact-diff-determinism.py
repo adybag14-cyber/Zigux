@@ -29,6 +29,10 @@ EXPECTED_HELPER_SELF_TEST_CASES = [
     "sha256_missing_expected",
     "sha256_missing_actual",
     "sha256_missing_both",
+    "cli_help_output",
+    "cli_missing_required_args",
+    "cli_missing_actual_operand",
+    "cli_invalid_mode",
     "invalid_mode_rejected",
 ]
 
@@ -294,7 +298,7 @@ def run_self_test() -> None:
             lambda: assert_helper_self_test_lines(
                 [
                     "ARTIFACT_DIFF_SELF_TEST=pass",
-                    "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=19",
+                    "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23",
                     "ARTIFACT_DIFF_SELF_TEST_CASES="
                     + ",".join(["text_mismatch", "text_pass", *EXPECTED_HELPER_SELF_TEST_CASES[2:]]),
                 ]
