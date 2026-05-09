@@ -21,7 +21,7 @@ The live Phase 12 libbpf survey is already honest about the current helper-first
 
 What it does not do by itself is stop nearby scheduled runs from collapsing three different kinds of work into one vague `libbpf` bucket:
 - shared reviewability upkeep for the shipped Phase 12 packet
-- small helper follow-through inside the existing `zigux_segments/` family
+- landed helper-foundation upkeep inside the existing `zigux_segments/` family
 - deferred or blocked object-model, loader, bridge, and relocation work
 
 This note turns that risk split into one bounded lane map so future Phase 12 libbpf runs stay inside the smallest real packet that moved.
@@ -52,13 +52,15 @@ Do not reopen this lane for:
 - object-model or loader scaffolding
 - `virtio_net`, `virtio_scsi`, or `nvme` follow-through that merely shares the Phase 12 build
 
-### 2. Ready-next helper lane: bounded helper-first follow-through only
-Use this lane only for the two helper-sized follow-ups that the current Phase 12 survey already marks as `ready_next`.
+### 2. Landed helper-foundation lane: keep the smaller bridge-local footholds explicit
+Use this lane only when shared wording needs to keep the already-landed bridge-local helper foundations distinct from the heavier deferred bridge and queue-routing buckets.
 
-Current ready-next packet:
-- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` for fdinfo map-info parsing
-- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` for reused-map compatibility checks
-- the paired survey and manifest wording that records those two helper-sized promotions truthfully
+Current landed helper-foundation packet:
+- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` for helper-only fdinfo map-info parsing
+- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` for helper-only reused-map compatibility checks
+- the paired survey and manifest wording that records those two helper-sized foundations truthfully
+
+These two bridge-local helper slices are already landed on current `master`; they no longer count as pending `ready_next` promotions.
 
 Do not widen this lane into:
 - direct procfs reads
@@ -67,7 +69,7 @@ Do not widen this lane into:
 - close-on-replacement side effects
 - object-model or relocation work
 
-The next honest reopen here is one of those two helper packets becoming landed evidence, not a broad bridge rewrite.
+The next honest reopen here is drift control around those landed bridge-local foundations or a genuinely new helper-sized promotion becoming real, not pretending these already-landed packets are still the next unshipped helpers.
 
 ### 3. Deferred bridge and queue-routing lane: keep parked until repo reality changes
 Use this lane only if the heavier shared bridge or perf-buffer queue-routing packet itself becomes the explicitly assigned target.
@@ -83,7 +85,7 @@ Keep this lane separate because it crosses riskier behavior that the current hel
 - `perf_event_open` setup
 - per-CPU routing and queueing pressure
 
-Do not smuggle this work through the shared reviewability lane or the ready-next helper lane.
+Do not smuggle this work through the shared reviewability lane or the landed helper-foundation lane.
 
 ### 4. Object-model wall lane: blocked until the missing model surfaces exist
 Use this lane only if the assigned task is explicitly about the blocked post-helper wall.
@@ -125,8 +127,8 @@ Shared-summary wording must keep `Documentation/zigux/freeze-map.md` visible whe
 ## Sequencing rule
 1. Re-read the shared Phase 12 libbpf survey and reviewability packet first.
 2. If the drift is only wording or ownership scope, stay in the shared reviewability or shared summary lane.
-3. If the next real code move is one of the two recorded `ready_next` helpers, keep it helper-sized.
-4. Keep the deferred bridge and queue-routing packet separate from those helper-sized promotions.
+3. If a new helper-sized follow-through becomes real, keep it smaller than the deferred bridge and queue-routing bucket; the two older bridge-local helper promotions are already landed foundations on current `master`.
+4. Keep the deferred bridge and queue-routing packet separate from those landed bridge-local foundations.
 5. Keep the object-model wall separate from every smaller bridge or reviewability step.
 6. Do not use this libbpf lane to absorb unrelated Phase 12 driver follow-through just because the shared build is already wired.
 
@@ -134,7 +136,7 @@ Shared-summary wording must keep `Documentation/zigux/freeze-map.md` visible whe
 
 Today the strongest Phase 12 libbpf sequencing correction is simple:
 - shared reviewability owns the survey, manifest, deterministic snapshot fixture, deterministic snapshot-digest evidence fixture, snapshot determinism replay, reviewability gate, the paired build-only checker reruns, and shared build alignment for the current libbpf packet, with the workflow-backed replay kept explicit inside that same reviewability bundle
-- the two helper-sized `ready_next` promotions stay smaller than the deferred bridge and queue-routing bucket
+- the two landed bridge-local helper foundations stay explicit as smaller evidence than the deferred bridge and queue-routing bucket
 - the deferred bridge and queue-routing bucket stays smaller than the blocked object-model, loader, and relocation wall
 - wording-only shared-summary repairs stay separate from helper logic and from the other Phase 12 driver lanes
 - PMO release coordination surfaces should keep the release-order note, closure companion, adjacent release-readiness note, compact release-coordination matrix, shared fallback overview, the direct `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` preflight, the attached-toolchain Make override, the freeze-map boundary, and the libbpf reviewability packet aligned without turning this heavy-consumer lane into a driver-owner map or a closure claim
@@ -145,7 +147,7 @@ That split matches the live survey packet and keeps future scheduled runs from t
 
 Leave this note parked unless one of three things happens:
 - a shared Phase 12 summary drifts away from this ownership split
-- one of the two `ready_next` helper packets becomes the next explicit libbpf task
+- shared wording starts treating the two landed bridge-local helper foundations as pending `ready_next` work again
 - the repo lands a real object-model foothold that changes the blocked wall itself
 
 Until then, the safest same-family follow-through is drift control inside the shipped Phase 12 libbpf reviewability packet, not another broad survey rewrite or a speculative bridge expansion.
