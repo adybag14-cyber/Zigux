@@ -85,11 +85,18 @@ test "virtio input wrapper-facing probe preflight stops before registration life
     try std.testing.expect(summary.blocker == null);
 
     const registration = device.registrationPreflightSummary();
+    try std.testing.expect(registration.identity_ready);
     try std.testing.expectEqualStrings("device_not_ready", @tagName(registration.blocker.?));
     try std.testing.expect(!registration.ready_for_registration);
 }
 
 test "virtio input registration preflight keeps wrapper prerequisites ahead of registration claims" {
+    var missing_identity_device = try virtio_input.VirtioInputLab.init("", "verify-registration-empty", 30, null);
+    var summary = missing_identity_device.registrationPreflightSummary();
+    try std.testing.expect(!summary.identity_ready);
+    try std.testing.expectEqualStrings("identity_incomplete", @tagName(summary.blocker.?));
+    try std.testing.expect(!summary.ready_for_registration);
+
     var device = try virtio_input.VirtioInputLab.init("verify-touch", "verify-registration", 32, null);
 
     try device.configureEventQueue(8);
@@ -97,7 +104,8 @@ test "virtio input registration preflight keeps wrapper prerequisites ahead of r
     _ = try device.fillEventBuffers();
     try device.markReady();
 
-    var summary = device.registrationPreflightSummary();
+    summary = device.registrationPreflightSummary();
+    try std.testing.expect(summary.identity_ready);
     try std.testing.expectEqualStrings("capability_setup_incomplete", @tagName(summary.blocker.?));
     try std.testing.expect(summary.queue_plan_ready);
     try std.testing.expect(summary.device_ready);
@@ -112,6 +120,7 @@ test "virtio input registration preflight keeps wrapper prerequisites ahead of r
     });
 
     summary = device.registrationPreflightSummary();
+    try std.testing.expect(summary.identity_ready);
     try std.testing.expect(summary.capability_setup_ready);
     try std.testing.expectEqualStrings("multitouch_slots_unplanned", @tagName(summary.blocker.?));
     try std.testing.expect(!summary.multitouch_slots_ready);
@@ -120,6 +129,7 @@ test "virtio input registration preflight keeps wrapper prerequisites ahead of r
     try std.testing.expectEqual(@as(u16, 6), slot_summary.planned_slot_count);
 
     summary = device.registrationPreflightSummary();
+    try std.testing.expect(summary.identity_ready);
     try std.testing.expect(summary.multitouch_slots_ready);
     try std.testing.expect(summary.ready_for_registration);
     try std.testing.expect(summary.blocker == null);
@@ -142,6 +152,7 @@ test "virtio input registration preflight does not demand multitouch slots when 
     });
 
     const summary = device.registrationPreflightSummary();
+    try std.testing.expect(summary.identity_ready);
     try std.testing.expect(summary.queue_plan_ready);
     try std.testing.expect(summary.device_ready);
     try std.testing.expect(summary.capability_setup_ready);
@@ -170,6 +181,7 @@ test "virtio input wrapper-facing reset returns preflight blockers to earliest b
     try std.testing.expect(queue_preflight.blocker == null);
 
     var registration_preflight = device.registrationPreflightSummary();
+    try std.testing.expect(registration_preflight.identity_ready);
     try std.testing.expect(registration_preflight.ready_for_registration);
     try std.testing.expect(registration_preflight.blocker == null);
 
@@ -194,6 +206,7 @@ test "virtio input wrapper-facing reset returns preflight blockers to earliest b
     try std.testing.expectEqual(@as(u16, 0), queue_preflight.queued_event_buffer_count);
 
     registration_preflight = device.registrationPreflightSummary();
+    try std.testing.expect(registration_preflight.identity_ready);
     try std.testing.expectEqualStrings("event_queue_unconfigured", @tagName(registration_preflight.blocker.?));
     try std.testing.expect(!registration_preflight.queue_plan_ready);
     try std.testing.expect(!registration_preflight.device_ready);
