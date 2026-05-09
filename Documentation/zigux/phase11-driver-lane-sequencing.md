@@ -83,7 +83,7 @@ This lane may mention shared replay drift and keep the dedicated bcm2835 packet 
 
 This lane may cite shared watchdog replay coverage and keep the focused platform-drvdata replay explicit beside the shared packet, but it does not own bcm2835 poweroff wording, DesignWare timeout-table follow-through, or HVC teardown evidence. Its next bounded work stays inside GPIO descriptor preflight, registration-facing handoff truthfulness, focused platform-drvdata ordering truthfulness, teardown-parity truthfulness, or another comparably small GPIO-local note. It should stay parked on truthfulness or ordering repairs until the lane can carry an explicit registration scaffold instead of borrowing the DesignWare lane's more advanced platform-shape wording.
 
-`P11-L05` owns the DesignWare watchdog lane. This is the only current Phase 11 driver lane whose manifest still carries an explicit `ready_next` handoff, namely `phase11-dw-wdt-live-platform-pm`. It owns the `dw_wdt` platform-facing starter, its dedicated packet checker, its registration-scaffold replay, and its teardown ownership note:
+`P11-L12` owns the DesignWare watchdog lane. This is the only current Phase 11 driver lane whose manifest still carries an explicit `ready_next` handoff, namely `phase11-dw-wdt-live-platform-pm`. It owns the `dw_wdt` platform-facing starter, its dedicated packet checker, its registration-scaffold replay, and its teardown ownership note:
 
 - `Documentation/zigux/phase11-dw-wdt-slice.md`
 - `Documentation/zigux/phase11-dw-wdt-survey.md`
@@ -126,7 +126,7 @@ This lane may rely on the shared replay contract and may keep the bounded `hvc_c
 
 ## Current sequencing decision
 
-- `P11-L05` DesignWare is the only Phase 11 driver lane allowed to claim the next broader execution-facing follow-up today, because `zigux/tests/phase11_dw_wdt_manifest.json` is the only current driver manifest that still records a `ready_next` marker.
+- `P11-L12` DesignWare is the only Phase 11 driver lane allowed to claim the next broader execution-facing follow-up today, because `zigux/tests/phase11_dw_wdt_manifest.json` is the only current driver manifest that still records a `ready_next` marker.
 - `P11-L04` GPIO and `P11-L10` or `P11-L08` bcm2835 both remain blocked on driver scaffold for any live platform-registration widening, so nearby runs should keep them to truthfulness, ordering, teardown-note, validation-matrix, or checker-backed packet repairs.
 - `P11-L16` HVC remains starter-landed and anti-drift only, so nearby runs should keep it to notifier, sysrq, khvcd, hangup, teardown-note, survey-note, validation-matrix, or archival-checker truthfulness rather than treating it as the next broad Phase 11 execution lane.
 - `P11-Y06` should therefore stay parked after recording this owner map unless repo drift blurs these boundaries again.
