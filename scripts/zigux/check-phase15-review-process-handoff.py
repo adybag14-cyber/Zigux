@@ -26,11 +26,25 @@ LEGACY_VERIFIED_HEAD = "4fc891b380cdd2991dff7676ade7f844df1b55fd"
 PRODUCT_BOUNDARY_MARKER = "product boundary:"
 REQUIRED_PRODUCT_BOUNDARY_MARKERS = (
     "  - `Documentation/zigux/freeze-map.md`",
+    "  - `Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "  - `Documentation/zigux/phase15-readiness-gate-survey.md`",
+    "  - `Documentation/zigux/phase15-parity-scorecard.md`",
+    "  - `Documentation/zigux/phase15-indefinite-c-policy.md`",
     "  - `Documentation/zigux/phase15-governance-lane-sequencing.md`",
     "  - `Documentation/zigux/review-checklist.md`",
+    "  - `scripts/zigux/README.md`",
+    "  - `zigux/tests/README.md`",
+    "  - `zigux/Makefile`",
+    "  - `scripts/zigux/check-phase15-scripts-readme-alignment.py`",
     "  - `scripts/zigux/check-phase15-review-process-handoff.py`",
     "  - `.github/workflows/zigux-bootstrap.yml`",
+    "  - `zigux/tests/phase15_architecture_council_review_process.zig`",
+    "  - `zigux/tests/phase15_handoff_next_steps_manifest.json`",
+    "  - `zigux/tests/phase15_handoff_next_steps.zig`",
+    "  - `zigux/tests/phase15_indefinite_c_policy.json`",
+    "  - `zigux/tests/phase15_indefinite_c_policy.zig`",
+    "  - `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`",
+    "  - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
     "  - `zigux/tests/phase15_governance_lane_sequencing.zig`",
     "  - `zigux/tests/phase15_readiness_gate_manifest.json`",
     "  - `zigux/tests/phase15_readiness_gate.zig`",
@@ -362,6 +376,7 @@ def write_fixture_tree(root: Path) -> None:
     (root / ".github/workflows").mkdir(parents=True, exist_ok=True)
 
     (root / DOCS_README_PATH).write_text("\n".join(("# docs", *REQUIRED_DOCS_README_MARKERS, "")), encoding="utf-8")
+    (root / REVIEW_CHECKLIST_PATH).writeText = None
     (root / REVIEW_CHECKLIST_PATH).write_text("\n".join(("# checklist", *REQUIRED_REVIEW_CHECKLIST_MARKERS, "")), encoding="utf-8")
     (root / SCRIPT_README_PATH).write_text("\n".join(("# scripts", *REQUIRED_SCRIPT_README_MARKERS, "")), encoding="utf-8")
     (root / TESTS_README_PATH).write_text("\n".join(("# tests", *REQUIRED_TESTS_README_MARKERS, "")), encoding="utf-8")
@@ -468,6 +483,42 @@ def run_self_test() -> int:
         manifest_path.write_text(json.dumps(bad, indent=2) + "\n", encoding="utf-8")
         expect_only(root, ["manifest_handoff_replay:make -C zigux phase15-test"], "missing_handoff_replay")
         manifest_path.write_text(json.dumps(original_manifest, indent=2) + "\n", encoding="utf-8")
+        case_count += 1
+
+        note_path.write_text(
+            original_note.replace("  - `Documentation/zigux/phase15-handoff-next-steps-survey.md`\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["note_boundary:  - `Documentation/zigux/phase15-handoff-next-steps-survey.md`"],
+            "missing_product_boundary_handoff_note",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
+        note_path.write_text(
+            original_note.replace("  - `scripts/zigux/check-phase15-scripts-readme-alignment.py`\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["note_boundary:  - `scripts/zigux/check-phase15-scripts-readme-alignment.py`"],
+            "missing_product_boundary_scripts_alignment_checker",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+        case_count += 1
+
+        note_path.write_text(
+            original_note.replace("  - `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_only(
+            root,
+            ["note_boundary:  - `zigux/tests/phase15_indefinite_c_blocker_evidence.zig`"],
+            "missing_product_boundary_blocker_evidence",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
         case_count += 1
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
