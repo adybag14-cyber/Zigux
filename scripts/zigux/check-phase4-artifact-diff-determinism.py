@@ -119,6 +119,7 @@ EXPECTED_CONTRACT_SELF_TEST_CASES = [
 
 EXPECTED_SELF_TEST_CASES = [
     "phase4_use_marker_missing",
+    "phase4_use_marker_duplicate",
     "review_note_marker_missing",
     "review_note_marker_duplicate",
     "helper_case_order_drift",
@@ -412,6 +413,15 @@ def run_self_test() -> None:
             lambda: assert_phase4_use_markers("Current Phase 4 use\n"),
         )
         covered_cases.append("phase4_use_marker_missing")
+        expect_assertion(
+            "phase4_use_marker_duplicate",
+            lambda: assert_phase4_use_markers(
+                "\n".join(
+                    ["Current Phase 4 use", *EXPECTED_PHASE4_USE_MARKERS, EXPECTED_PHASE4_USE_MARKERS[0]]
+                )
+            ),
+        )
+        covered_cases.append("phase4_use_marker_duplicate")
         expect_assertion(
             "review_note_marker_missing",
             lambda: assert_review_note_markers("\n".join(EXPECTED_REVIEW_NOTE_MARKERS[:-1])),
