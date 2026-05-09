@@ -11,6 +11,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DIFF_NOTE = ROOT / "Documentation" / "zigux" / "artifact-diff.md"
 
+EXPECTED_PHASE4_USE_MARKERS = [
+    "- `scripts/zigux/check-phase4-artifact-diff-determinism.py` rechecks the helper and contract summary catalogs together so case-count, case-order, and repeat-case drift fail closed before the shared Phase 4 validator and Zig gates run.",
+]
+
 EXPECTED_REVIEW_NOTE_MARKERS = [
     "- owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`",
     "- rollback owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`",
@@ -114,6 +118,7 @@ EXPECTED_CONTRACT_SELF_TEST_CASES = [
 ]
 
 EXPECTED_SELF_TEST_CASES = [
+    "phase4_use_marker_missing",
     "review_note_marker_missing",
     "review_note_marker_duplicate",
     "helper_case_order_drift",
@@ -150,6 +155,30 @@ def _parse_case_list(lines: list[str], count_prefix: str, list_prefix: str) -> l
     if len(set(cases)) != len(cases):
         raise AssertionError(f"duplicate cases in {list_prefix!r}: {cases}")
     return cases
+
+
+def assert_phase4_use_markers(note_text: str) -> None:
+    missing_markers: list[str] = []
+    duplicate_markers: list[str] = []
+    for marker in EXPECTED_PHASE4_USE_MARKERS:
+        count = note_text.count(marker)
+        if count == 0:
+            missing_markers.append(marker)
+        elif count != 1:
+            duplicate_markers.append(f"{marker}:{count}")
+    if missing_markers or duplicate_markers:
+        problems: list[str] = []
+        if missing_markers:
+            problems.append(
+                "artifact-diff Current Phase 4 use section missing required markers: "
+                f"{missing_markers}"
+            )
+        if duplicate_markers:
+            problems.append(
+                "artifact-diff Current Phase 4 use section duplicated required markers: "
+                f"{duplicate_markers}"
+            )
+        raise AssertionError("; ".join(problems))
 
 
 def assert_review_note_markers(note_text: str) -> None:
@@ -268,6 +297,7 @@ def run_live_check(root: Path) -> None:
     helper_script = root / "scripts/zigux/artifact_diff.py"
     contract_script = root / "scripts/zigux/check-artifact-diff-contract.py"
     note_text = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
+    assert_phase4_use_markers(note_text)
     assert_review_note_markers(note_text)
     assert_helper_self_test_lines(_run_script(helper_script, "--self-test"))
     assert_contract_self_test_lines(_run_script(contract_script, "--self-test"))
@@ -340,6 +370,9 @@ def build_fixture_tree(root: Path) -> None:
             [
                 "# Artifact Diff Policy",
                 "",
+                "Current Phase 4 use",
+                *EXPECTED_PHASE4_USE_MARKERS,
+                "",
                 "## Phase 4 Tooling Review Note",
                 "",
                 *EXPECTED_REVIEW_NOTE_MARKERS,
@@ -374,6 +407,11 @@ def run_self_test() -> None:
         build_fixture_tree(root)
         run_live_check(root)
 
+        expect_assertion(
+            "phase4_use_marker_missing",
+            lambda: assert_phase4_use_markers("Current Phase 4 use\n"),
+        )
+        covered_cases.append("phase4_use_marker_missing")
         expect_assertion(
             "review_note_marker_missing",
             lambda: assert_review_note_markers("\n".join(EXPECTED_REVIEW_NOTE_MARKERS[:-1])),
