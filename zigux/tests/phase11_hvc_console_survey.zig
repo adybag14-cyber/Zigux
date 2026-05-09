@@ -204,7 +204,10 @@ test "phase11 hvc console survey note records the bounded layout checkpoints" {
     try expectContains(note, "callback-table");
     try expectContains(note, "size `72`");
     try expectContains(note, "Documentation/zigux/phase11-hvc-console-teardown-note.md");
-    try expectContains(note, "close, cleanup, remove, and hangup-disconnect ownership split");
+    try expectContains(note, "close, cleanup, remove, write-to-hangup, and hangup-disconnect ownership split");
+    try expectContains(note, "retry-after-`-EAGAIN`");
+    try expectContains(note, "partial-write carryover");
+    try expectContains(note, "stale-hangup buffered-byte preservation");
     try expectContains(note, "resize-work cancellation");
     try expectContains(note, "stale-count short-circuiting");
     try expectContains(note, "notifier-hangup ownership");
@@ -229,10 +232,15 @@ test "phase11 hvc console teardown note keeps the bounded ownership split explic
     try expectContains(teardown_note, "summarizeCloseBoundary()");
     try expectContains(teardown_note, "summarizeCleanupHandoff()");
     try expectContains(teardown_note, "summarizeRemoveHandoff()");
+    try expectContains(teardown_note, "summarizeWriteTeardownHandoff()");
     try expectContains(teardown_note, "summarizeHangupDisconnect()");
     try expectContains(teardown_note, "tty_port_put()");
     try expectContains(teardown_note, "tty_vhangup()");
     try expectContains(teardown_note, "tty_kref_put()");
+    try expectContains(teardown_note, "retry-after-`-EAGAIN`");
+    try expectContains(teardown_note, "fatal-drop with no invented buffered bytes");
+    try expectContains(teardown_note, "partial-write carryover");
+    try expectContains(teardown_note, "stale-hangup buffered-byte preservation");
     try expectContains(teardown_note, "resize-work cancellation");
     try expectContains(teardown_note, "stale-count short-circuiting");
     try expectContains(teardown_note, "tty detachment");
