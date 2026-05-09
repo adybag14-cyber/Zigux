@@ -310,6 +310,7 @@ EXACT_COUNT_FILE_MARKERS = {
     TESTS_README_PATH: {
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`": 1,
         "`make -C zigux phase12-smoke`": 1,
+        "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`": 1,
         "`make -C zigux phase12`": 1,
     },
     PHASE12_RAW_GITHUB_COVERAGE_PATH: {
