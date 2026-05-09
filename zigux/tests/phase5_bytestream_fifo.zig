@@ -274,3 +274,39 @@ test "phase 5 bytestream fifo sample makes preview truncation and lifetime bound
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runPreviewBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 }
+
+test "phase 5 bytestream fifo sample keeps wrapped preview truncation explicit" {
+    var module = sample.BytestreamFifoSample{};
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runWrappedPreviewReplay());
+    try module.init();
+
+    const wrapped_preview = try module.runWrappedPreviewReplay();
+    try std.testing.expectEqual(sample.SampleStage.initialized, wrapped_preview.stage_before_replay);
+    try std.testing.expectEqual(sample.SampleStage.initialized, wrapped_preview.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 4), wrapped_preview.drained_count);
+    try std.testing.expectEqualSlices(u8, "hell", wrapped_preview.drained_prefix[0..]);
+    try std.testing.expectEqual(@as(usize, 4), wrapped_preview.refill_count);
+    try std.testing.expectEqualSlices(u8, &.{ 200, 201, 202, 203 }, wrapped_preview.refill_values[0..]);
+    try std.testing.expectEqual(@as(usize, 12), wrapped_preview.snapshot_len);
+    try std.testing.expectEqualSlices(u8, &.{ 'o', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, wrapped_preview.snapshot_prefix[0..]);
+    try std.testing.expectEqual(@as(usize, 8), wrapped_preview.preview_len);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), wrapped_preview.preview_total_visible);
+    try std.testing.expect(wrapped_preview.preview_truncated);
+    try std.testing.expectEqualSlices(u8, &.{ 'o', 0, 1, 2, 3, 4, 5, 6 }, wrapped_preview.preview_prefix[0..]);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), wrapped_preview.queue_len_after_preview);
+    try std.testing.expectEqual(@as(usize, 0), wrapped_preview.available_after_preview);
+    try std.testing.expect(wrapped_preview.wrapped_window_after_preview);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 4), wrapped_preview.visible_spans_after_preview.first_span_len);
+    try std.testing.expectEqual(@as(usize, 4), wrapped_preview.visible_spans_after_preview.second_span_len);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), wrapped_preview.visible_spans_after_preview.total_visible);
+    try std.testing.expect(wrapped_preview.visible_spans_after_preview.wrapped);
+    try std.testing.expectEqual(@as(usize, 4), wrapped_preview.checked_focus.len);
+    try std.testing.expectEqual(sample.SampleFocus.wraparound_requeue, wrapped_preview.checked_focus[0]);
+    try std.testing.expectEqual(sample.SampleFocus.non_destructive_snapshot, wrapped_preview.checked_focus[1]);
+    try std.testing.expectEqual(sample.SampleFocus.preview_truncation, wrapped_preview.checked_focus[2]);
+    try std.testing.expectEqual(sample.SampleFocus.queue_shape_boundaries, wrapped_preview.checked_focus[3]);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.count());
+    try std.testing.expectEqual(@as(usize, 0), module.available());
+    try std.testing.expect(module.usesWrappedStorageWindow());
+}
