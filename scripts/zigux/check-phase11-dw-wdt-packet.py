@@ -22,7 +22,7 @@ BUILD_PATH = "zigux/tests/phase11_build.zig"
 SCRIPT_PATH = "scripts/zigux/check-phase11-dw-wdt-packet.py"
 
 REQUIRED_SURVEY_NOTE_MARKERS = [
-    "lane identity `P11-L05`",
+    "lane identity `P11-L12`",
     "platform-resource preflight",
     "`zigux/tests/phase11_dw_wdt_manifest.json`",
     "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
@@ -61,7 +61,7 @@ REQUIRED_TEARDOWN_NOTE_MARKERS = [
 ]
 
 REQUIRED_MANIFEST_MARKERS = [
-    '"lane_key": "P11-L05"',
+    '"lane_key": "P11-L12"',
     '"id": "phase11-dw-wdt-survey-gate"',
     '"id": "phase11-dw-wdt-platform-resource-preflight"',
     '"id": "phase11-dw-wdt-registration-order-scaffold"',
@@ -136,7 +136,7 @@ def write_fixture_tree(root: Path) -> None:
         root / SURVEY_NOTE_PATH,
         """# Phase 11 DesignWare Watchdog Survey
 
-This survey note keeps lane identity `P11-L05` explicit beside the current review packet.
+This survey note keeps lane identity `P11-L12` explicit beside the current review packet.
 
 - platform-resource preflight
 - `zigux/tests/phase11_dw_wdt_manifest.json`
@@ -187,7 +187,7 @@ This survey note keeps lane identity `P11-L05` explicit beside the current revie
     write_text(
         root / MANIFEST_PATH,
         """{
-  "lane_key": "P11-L05",
+  "lane_key": "P11-L12",
   "gaps": [
     {"id": "phase11-dw-wdt-survey-gate"},
     {"id": "phase11-dw-wdt-platform-resource-preflight"},
