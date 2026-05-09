@@ -53,9 +53,10 @@ Use `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` before reopening
 - focused replay: `zigux/tests/phase6_bsearch.zig`
 - roadmap-facing parity surface: raw `bsearch` and `bsearchMutable` replay kept explicit inside `zigux/tests/phase6_bsearch.zig`
 - focused lower- and upper-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
+- focused direct C ABI equality-budget replay: `zigux/tests/phase6_bsearch_c_abi_budget.zig`
 - shared build route: `zigux/tests/phase6_build.zig`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
-- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated bounds-focused C ABI companion that keeps the typed and raw lower- and upper-bound comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today
+- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated bounds-focused C ABI companion and the dedicated direct C ABI equality-budget replay that keep the typed and raw lower-bound, upper-bound, and equality comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today
 
 ### checksum
 
