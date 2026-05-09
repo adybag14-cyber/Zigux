@@ -356,6 +356,11 @@ test "phase14 skbuff bridge notes and code agree the live ownership blocker is n
     try std.testing.expect(std.mem.indexOf(
         u8,
         survey_note,
+        "PHASE14_STATUS=freeze_in_c",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
         "PHASE14_SURVEYED_COMMIT=4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7",
     ) != null);
     try std.testing.expect(std.mem.indexOf(
