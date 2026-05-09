@@ -126,7 +126,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_verify_present);
-    try std.testing.expect(manifest.gaps.len >= 17);
+    try std.testing.expect(manifest.gaps.len >= 18);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_STATUS=aligned") != null);
@@ -213,6 +213,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     var saw_mmio_config_write_disposition = false;
     var saw_mmio_probe_preflight = false;
     var saw_mmio_selected_queue_readiness = false;
+    var saw_mmio_configured_queue_coverage = false;
     var saw_mmio_lifecycle_blocker = false;
     var saw_ring_helper = false;
 
@@ -338,6 +339,14 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without widening into queue discovery") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-configured-queue-coverage-helper")) {
+            saw_mmio_configured_queue_coverage = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "configured, programmed, ready, and handoff-ready queue counts") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without widening into queue discovery") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
             saw_mmio_lifecycle_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
@@ -351,7 +360,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 17);
+    try std.testing.expect(starter_landed_count >= 18);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_ring_helper);
     try std.testing.expect(saw_mmio_survey_gate);
@@ -367,5 +376,6 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(saw_mmio_config_write_disposition);
     try std.testing.expect(saw_mmio_probe_preflight);
     try std.testing.expect(saw_mmio_selected_queue_readiness);
+    try std.testing.expect(saw_mmio_configured_queue_coverage);
     try std.testing.expect(saw_mmio_lifecycle_blocker);
 }
