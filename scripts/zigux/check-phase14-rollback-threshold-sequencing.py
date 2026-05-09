@@ -46,6 +46,8 @@ REQUIRED_FILE_MARKERS = {
         "- `make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig`",
         "- `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`",
         "- `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
+        "- if the attached Zig archive has already been unpacked under the repo-local `.zig-toolchain/` tree, leave `ZIG` unset and let `zigux/Makefile` reuse that local binary for `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `make -C zigux phase14-test`, and `make -C zigux phase14`",
+        "Otherwise use `ZIG=/absolute/path/to/attached-zig/zig` for the `make -C zigux phase14-validate`, `phase14-smoke`, `phase14-test`, and `phase14` wrapper routes, and call `/absolute/path/to/attached-zig/zig` directly for the two `zig build ...` replay commands.",
         "This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.",
         "Fallback path:",
         "Keep `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` as the source of truth and keep the shared smoke packet limited to survey-backed reviewability evidence.",
@@ -388,6 +390,25 @@ def run_self_test() -> int:
             print("self-test expected duplicate none-recorded ready-next failure", file=sys.stderr)
             return 1
         write_text(broken_traceability_path, required_text(root, TRACEABILITY_PATH))
+
+        broken_smoke_survey_path = root / SMOKE_SURVEY_PATH
+        broken_smoke_survey_path.write_text(
+            broken_smoke_survey_path.read_text(encoding="utf-8").replace(
+                "- if the attached Zig archive has already been unpacked under the repo-local `.zig-toolchain/` tree, leave `ZIG` unset and let `zigux/Makefile` reuse that local binary for `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `make -C zigux phase14-test`, and `make -C zigux phase14`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - if the attached Zig archive has already been unpacked under the repo-local `.zig-toolchain/` tree, leave `ZIG` unset and let `zigux/Makefile` reuse that local binary for `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `make -C zigux phase14-test`, and `make -C zigux phase14`"
+            in error
+            for error in errors
+        ):
+            print("self-test expected missing repo-local toolchain fallback guidance failure", file=sys.stderr)
+            return 1
+        write_text(broken_smoke_survey_path, required_text(root, SMOKE_SURVEY_PATH))
 
         current_checker_path.write_text(
             original_checker_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
