@@ -29,6 +29,7 @@ EXPECTED_SURVEY_SUMMARY = {
     "watchdog_info_layout_assert_present": True,
     "winsize_layout_assert_present": True,
     "hvc_hv_ops_layout_assert_present": True,
+    "hvc_hv_ops_header_declarations_checked": True,
     "hvc_header_constants_checked": True,
     "hvc_export_surface_checked": True,
 }
@@ -73,6 +74,15 @@ REQUIRED_GAP_SPECS = {
             "callback-table offsets 0 through 64",
         ],
     },
+    "phase11-hvc-console-hv-ops-header-declaration-assert": {
+        "status": "starter_landed",
+        "kind": "header_layout",
+        "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+        "why_now_contains": [
+            "struct hv_ops",
+            "callback member declarations",
+        ],
+    },
     "phase11-hvc-console-header-constant-assert": {
         "status": "starter_landed",
         "kind": "header_constants",
@@ -94,11 +104,13 @@ REQUIRED_NOTE_MARKERS = [
     "phase11-dw-wdt-watchdog-info-layout-assert",
     "phase11-hvc-console-winsize-layout-assert",
     "phase11-hvc-console-hv-ops-layout-assert",
+    "phase11-hvc-console-hv-ops-header-declaration-assert",
     "phase11-hvc-console-header-constant-assert",
     "phase11-hvc-console-export-signature-assert",
     "phase11-uapi-header-parity-surface",
     "struct hv_ops",
     "callback-table",
+    "callback member declarations",
     "MAX_NR_HVC_CONSOLES",
     "HVC_ALLOC_TTY_ADAPTERS",
     "notifier_hangup_irq",
@@ -118,6 +130,7 @@ REQUIRED_SURVEY_MARKERS = [
     "phase11 shared header parity survey keeps the note pinned to the manifest provenance",
     "phase11 shared header parity survey keeps shared replay markers explicit without a missing inventory fixture",
     "phase11 shared header parity survey keeps the hvc header constants explicit",
+    "phase11 shared header parity survey keeps the hv_ops header callback declarations explicit",
     "phase11 shared header parity survey keeps the exported hvc header declarations explicit",
     "layout_assert.assertSize(WatchdogInfo, 40);",
     "layout_assert.assertAlign(WatchdogInfo, 4);",
@@ -157,6 +170,11 @@ REQUIRED_SURVEY_MARKERS = [
     'layout_assert.assertOffset(HvOps, "tiocmget", 48);',
     'layout_assert.assertOffset(HvOps, "tiocmset", 56);',
     'layout_assert.assertOffset(HvOps, "dtr_rts", 64);',
+    'try std.testing.expect(manifest.survey_summary.hvc_hv_ops_header_declarations_checked);',
+    'try expectContains(note, "phase11-hvc-console-hv-ops-header-declaration-assert");',
+    'try expectContains(note, "callback member declarations");',
+    'try expectContains(hvc_header, "\tssize_t (*get_chars)(uint32_t vtermno, u8 *buf, size_t count);");',
+    'try expectContains(hvc_header, "\tint (*tiocmset)(struct hvc_struct *hp, unsigned int set, unsigned int clear);");',
     'try expectContains(hvc_header, "#define MAX_NR_HVC_CONSOLES\\t16");',
     'try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS\\t8");',
     '        "extern int hvc_instantiate(uint32_t vtermno, int index,\\n\\t\\t\\t   const struct hv_ops *ops);",',
@@ -175,9 +193,6 @@ REQUIRED_BUILD_MARKERS = [
     'layout_assert_module.addImport("abi_bindings", abi_bindings_module);',
     "phase11_uapi_header_parity_survey.zig",
     "phase11-uapi-header-parity-survey-tests",
-    "phase11-hvc-console-tests",
-    "phase11-hvc-console-verify-tests",
-    "phase11-hvc-cleanup-tests",
     "phase11-hvc-console-survey-tests",
     "test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);",
     "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
@@ -188,7 +203,6 @@ REQUIRED_CONTRACT_MARKERS = [
     "PHASE11_SHARED_REPLAY_STATUS=starter_packet_reviewable",
     "zigux/tests/phase11_build.zig",
     "zigux/tests/phase11_uapi_header_parity_survey.zig",
-    "zigux/tests/phase11_hvc_cleanup.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`",
     "there is no broader multi-checker Phase 11 validator stack on `master`",
@@ -203,6 +217,15 @@ REQUIRED_SCRIPTS_README_MARKERS = [
 REQUIRED_HVC_HEADER_MARKERS = [
     "#define MAX_NR_HVC_CONSOLES\t16",
     "#define HVC_ALLOC_TTY_ADAPTERS\t8",
+    "\tssize_t (*get_chars)(uint32_t vtermno, u8 *buf, size_t count);",
+    "\tssize_t (*put_chars)(uint32_t vtermno, const u8 *buf, size_t count);",
+    "\tint (*flush)(uint32_t vtermno, bool wait);",
+    "\tint (*notifier_add)(struct hvc_struct *hp, int irq);",
+    "\tvoid (*notifier_del)(struct hvc_struct *hp, int irq);",
+    "\tvoid (*notifier_hangup)(struct hvc_struct *hp, int irq);",
+    "\tint (*tiocmget)(struct hvc_struct *hp);",
+    "\tint (*tiocmset)(struct hvc_struct *hp, unsigned int set, unsigned int clear);",
+    "\tvoid (*dtr_rts)(struct hvc_struct *hp, bool active);",
     "extern int hvc_instantiate(uint32_t vtermno, int index,",
     "extern struct hvc_struct * hvc_alloc(uint32_t vtermno, int data,",
     "extern void hvc_remove(struct hvc_struct *hp);",
@@ -398,6 +421,12 @@ def run_self_test() -> int:
         )
         run_case(
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+            "phase11-hvc-console-hv-ops-header-declaration-assert",
+            "phase11-hvc-console-hv-ops-header-proof",
+            "note missing markers",
+        )
+        run_case(
+            "Documentation/zigux/phase11-uapi-header-parity-survey.md",
             "rather than the shared `test` step",
             "through the shared test step",
             "note missing markers",
@@ -406,12 +435,6 @@ def run_self_test() -> int:
             "Documentation/zigux/phase11-shared-replay-contract.md",
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
             "zigux/tests/phase11_header_packet_absent.zig",
-            "contract missing markers",
-        )
-        run_case(
-            "Documentation/zigux/phase11-shared-replay-contract.md",
-            "zigux/tests/phase11_hvc_cleanup.zig",
-            "zigux/tests/phase11_hvc_cleanup_absent.zig",
             "contract missing markers",
         )
         run_case(
@@ -434,8 +457,8 @@ def run_self_test() -> int:
         )
         run_case(
             "drivers/tty/hvc/hvc_console.h",
-            "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);",
-            "extern void notifier_hangup_irq(struct hvc_struct *hp, unsigned long data);",
+            "\tvoid (*notifier_hangup)(struct hvc_struct *hp, int irq);",
+            "\tvoid (*notifier_hangup)(struct hvc_struct *hp, unsigned long irq);",
             "hvc_header missing markers",
         )
         run_case(
@@ -446,9 +469,21 @@ def run_self_test() -> int:
         )
         run_case(
             "zigux/tests/phase11_uapi_header_parity_manifest.json",
+            '"hvc_hv_ops_header_declarations_checked": true',
+            '"hvc_hv_ops_header_declarations_checked": false',
+            "manifest survey_summary mismatch",
+        )
+        run_case(
+            "zigux/tests/phase11_uapi_header_parity_manifest.json",
             "callback-table offsets 0 through 64",
             "callback-table offsets 0 through 56",
             "phase11-hvc-console-hv-ops-layout-assert why_now mismatch",
+        )
+        run_case(
+            "zigux/tests/phase11_uapi_header_parity_manifest.json",
+            "callback member declarations",
+            "callback declarations",
+            "phase11-hvc-console-hv-ops-header-declaration-assert why_now mismatch",
         )
         run_case(
             "zigux/tests/phase11_uapi_header_parity_manifest.json",
@@ -460,18 +495,6 @@ def run_self_test() -> int:
             "zigux/tests/phase11_build.zig",
             'layout_assert_module.addImport("abi_bindings", abi_bindings_module);',
             'layout_assert_module.addImport("abi_bindings", layout_assert_module);',
-            "build missing markers",
-        )
-        run_case(
-            "zigux/tests/phase11_build.zig",
-            "phase11-hvc-console-verify-tests",
-            "phase11-hvc-console-verify-pending",
-            "build missing markers",
-        )
-        run_case(
-            "zigux/tests/phase11_build.zig",
-            "phase11-hvc-cleanup-tests",
-            "phase11-hvc-cleanup-pending",
             "build missing markers",
         )
         run_case(
@@ -502,6 +525,12 @@ def run_self_test() -> int:
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
             'layout_assert.assertOffset(HvOps, "dtr_rts", 64);',
             'layout_assert.assertOffset(HvOps, "dtr_rts", 56);',
+            "survey missing markers",
+        )
+        run_case(
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            'try expectContains(hvc_header, "\tint (*tiocmset)(struct hvc_struct *hp, unsigned int set, unsigned int clear);");',
+            'try expectContains(hvc_header, "\tint (*tiocmset)(struct hvc_struct *hp, int set, int clear);");',
             "survey missing markers",
         )
         run_case(
