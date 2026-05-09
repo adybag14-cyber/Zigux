@@ -1,9 +1,9 @@
 {
   "lane_key": "P15-L06",
   "phase": "Phase 15",
-  "surveyed_commit": "4fc891b380cdd2991dff7676ade7f844df1b55fd",
-  "surveyed_commit_mode": "verified_master_head",
-  "surveyed_commit_mode_reason": "This review-process packet now records the exact verified master-head SHA instead of a dated readback marker.",
+  "surveyed_commit": "current-master-readback-2026-05-09",
+  "surveyed_commit_mode": "dated_master_readback",
+  "surveyed_commit_mode_reason": "Live compare-against-master showed the previously recorded verified head 4fc891b380cdd2991dff7676ade7f844df1b55fd now sits 2591 commits behind current master, so this parked review-process packet uses an explicit dated readback marker instead of stale exact-head parity.",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -73,7 +73,7 @@
       "make -C zigux phase15"
     ],
     "blocker_posture_requirement": "deep_core_blocker_posture_change",
-    "next_step": "wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice"
+    "next_step": "wait for one of the named reopen triggers, the deep-core blocker posture to change, or another same-packet truthfulness drift before opening another Phase 15 slice"
   },
   "handoff_evidence": {
     "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, Documentation/zigux/phase15-readiness-gate-survey.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-governance-lane-sequencing.md, Documentation/zigux/review-checklist.md, scripts/zigux/README.md, zigux/tests/README.md, zigux/Makefile, .github/workflows/zigux-bootstrap.yml, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, zigux/tests/phase15_parity_scorecard.zig, zigux/tests/phase15_architecture_council_review_process.zig, zigux/tests/phase15_handoff_next_steps_manifest.json, zigux/tests/phase15_handoff_next_steps.zig, zigux/tests/phase15_indefinite_c_policy.json, zigux/tests/phase15_indefinite_c_policy.zig, zigux/tests/phase15_indefinite_c_blocker_evidence.zig, zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, zigux/tests/phase15_governance_lane_sequencing.zig, zigux/tests/phase15_readiness_gate_manifest.json, zigux/tests/phase15_readiness_gate.zig, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
