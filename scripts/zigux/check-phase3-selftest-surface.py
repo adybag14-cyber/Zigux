@@ -298,7 +298,34 @@ def validate_root(root: Path) -> list[str]:
         )
     )
     issues.extend(collect_marker_count_issues(abi_slice, ABI_SLICE_MARKERS, prefix="abi_slice"))
-    issues.extend(collect_marker_count_issues(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme", substring=True))
+    scripts_readme_inline_markers = [
+        marker
+        for marker in SCRIPTS_README_MARKERS
+        if marker
+        != "The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`"
+        and marker != "manual or targeted safety check instead of duplicating the default validation route"
+    ]
+    scripts_readme_phrase_markers = [
+        marker for marker in SCRIPTS_README_MARKERS if marker not in scripts_readme_inline_markers
+    ]
+    issues.extend(
+        collect_marker_count_issues(
+            scripts_readme,
+            scripts_readme_inline_markers,
+            prefix="scripts_readme",
+            substring=False,
+            normalized=False,
+            backticked=True,
+        )
+    )
+    issues.extend(
+        collect_marker_count_issues(
+            scripts_readme,
+            scripts_readme_phrase_markers,
+            prefix="scripts_readme",
+            substring=True,
+        )
+    )
     tests_readme_inline_markers = [
         marker
         for marker in TESTS_README_MARKERS
@@ -652,6 +679,25 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert "duplicate_scripts_readme_marker:2:validate_phase3_selftest.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/README.md",
+            "The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-abi-dump-gate.py`, `check-phase3-catalog-selftest.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-byte-guards.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`.\n"
+            "Use `validate_phase3_selftest.py` for the isolated validator replay.\n"
+            "`phase3_catalog.py --self-test`, `phase3_catalog.py --audit-doc-sync`, and `make -C zigux phase3-selftest` remain a manual or targeted safety check instead of duplicating the default validation route, while `python3 scripts/zigux/run-phase3-checks.py --slug abi` keeps the shared ABI interop route explicit.\n",
+        )
+        assert validate_root(root) == []
+
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/README.md",
+            "The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-abi-dump-gate.py`, `check-phase3-catalog-selftest.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-byte-guards.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and the shared route only appears as `python3 scripts/zigux/run-phase3-checks.py --slug abi`.\n"
+            "Use `validate_phase3_selftest.py` for the isolated validator replay.\n"
+            "`phase3_catalog.py --self-test`, `phase3_catalog.py --audit-doc-sync`, and `make -C zigux phase3-selftest` remain a manual or targeted safety check instead of duplicating the default validation route.\n",
+        )
+        issues = validate_root(root)
+        assert "scripts_readme:run-phase3-checks.py" in issues
 
         build_self_test_root(root)
         write_text(
