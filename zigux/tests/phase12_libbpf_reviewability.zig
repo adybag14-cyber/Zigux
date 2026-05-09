@@ -71,7 +71,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     try std.testing.expectEqualStrings("P12-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("c0ae127363e3d4e5feeb36efb665a12ece3392c7", manifest.surveyed_commit);
-    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
@@ -82,6 +82,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     var saw_landed_perf_buffer_poll = false;
     var saw_landed_logging = false;
     var saw_landed_pin_path = false;
+    var saw_landed_segments_verify = false;
     var saw_file_path_handle_foundation = false;
     var saw_map_reuse_foundation = false;
     var saw_file_path_handle_bridge = false;
@@ -141,6 +142,10 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             saw_landed_pin_path = true;
             try std.testing.expect(exists);
         }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-segments-verify-foundation")) {
+            saw_landed_segments_verify = true;
+            try std.testing.expect(exists);
+        }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-handle-helper-foundation")) {
             saw_file_path_handle_foundation = true;
             try std.testing.expect(exists);
@@ -170,7 +175,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             try std.testing.expect(!exists);
         }
     }
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expectEqual(@as(usize, 4), deferred_count);
@@ -180,6 +185,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     try std.testing.expect(saw_landed_perf_buffer_poll);
     try std.testing.expect(saw_landed_logging);
     try std.testing.expect(saw_landed_pin_path);
+    try std.testing.expect(saw_landed_segments_verify);
     try std.testing.expect(saw_file_path_handle_foundation);
     try std.testing.expect(saw_map_reuse_foundation);
     try std.testing.expect(saw_file_path_handle_bridge);
@@ -204,6 +210,7 @@ test "phase12 libbpf reviewability gate exact-checks the shared bridge and heavy
     });
     defer parsed.deinit();
 
+    var saw_segments_verify = false;
     var saw_file_path_handle_foundation = false;
     var saw_map_reuse_foundation = false;
     var saw_file_path_handle_bridge = false;
@@ -213,6 +220,11 @@ test "phase12 libbpf reviewability gate exact-checks the shared bridge and heavy
     var saw_btf_relocation = false;
 
     for (parsed.value.gaps) |gap| {
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-segments-verify-foundation")) {
+            saw_segments_verify = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
+        }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-handle-helper-foundation")) {
             saw_file_path_handle_foundation = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -250,6 +262,7 @@ test "phase12 libbpf reviewability gate exact-checks the shared bridge and heavy
         }
     }
 
+    try std.testing.expect(saw_segments_verify);
     try std.testing.expect(saw_file_path_handle_foundation);
     try std.testing.expect(saw_map_reuse_foundation);
     try std.testing.expect(saw_file_path_handle_bridge);
