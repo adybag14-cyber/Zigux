@@ -482,6 +482,24 @@ test "phase 9 runtime loader allocator/init-flow replay rejects direct approved-
     try std.testing.expectError(error.InvalidPilotFamilyContract, runtime_loader.prepareRequest(drifted_exit_symbol));
 }
 
+test "phase 9 runtime loader allocator/init-flow replay rejects loader-not-required handoffs directly" {
+    var no_loader_needed_plan = makePlan(
+        "runtime_trace_events",
+        "samples/trace_events/trace-events-sample.c",
+        "zigux_runtime_trace_events_init",
+        "zigux_runtime_trace_events_exit",
+        .caller_provided,
+        .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    );
+    no_loader_needed_plan.requires_runtime_substrate = false;
+    try std.testing.expectError(error.LoaderNotRequired, runtime_loader.prepareRequest(no_loader_needed_plan));
+}
+
 test "phase 9 runtime loader allocator/init-flow replay rejects selftest-hook evidence drift" {
     var missing_hook_after_selftest = makePlan("runtime_trace_events", "samples/trace_events/trace-events-sample.c", "zigux_runtime_trace_events_init", "zigux_runtime_trace_events_exit", .caller_provided, .{ .handoff_stage = .selftest_complete, .init_runs = 1, .selftest_runs = 1, .exit_runs = 0 });
     missing_hook_after_selftest.provides_selftest_hook = false;
