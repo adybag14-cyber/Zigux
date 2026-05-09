@@ -119,6 +119,8 @@ REQUIRED_FILE_MARKERS = {
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
         "`Documentation/zigux/phase12-release-coordination-matrix.md`",
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` keeps the shared libbpf reviewability lane",
+        "`Documentation/zigux/phase12-libbpf-segment-survey.md` and `tools/lib/bpf/zigux_segments/manifest.json` remain real Phase 12 evidence",
+        "they belong to the non-driver helper packet and should not be absorbed into this driver-only map.",
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "That rollback drill is storage-lane-local evidence, not a shared Phase 12 recovery claim.",
@@ -129,7 +131,7 @@ REQUIRED_FILE_MARKERS = {
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
         "shared reviewability surfaces that describe or gate the live Phase 12 libbpf packet",
-        "shared reviewability owns the survey, manifest, deterministic snapshot fixture, snapshot determinism replay, reviewability gate, and shared build alignment",
+        "shared reviewability owns the survey, manifest, deterministic snapshot fixture, snapshot determinism replay, and shared build alignment",
     ],
     PHASE12_RAW_GITHUB_COVERAGE_PATH: [
         "commit-pinned fallback artifacts:",
