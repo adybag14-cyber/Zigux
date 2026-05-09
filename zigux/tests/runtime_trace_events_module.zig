@@ -412,3 +412,57 @@ test "runtime trace-events sample keeps outstanding-registration selftest rollba
     try std.testing.expectEqual(@as(usize, 4), summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 16), summary.total_events);
 }
+
+test "runtime trace-events sample keeps selftest-complete summary explicit across clean exit" {
+    var module = sample.RuntimeTraceEventsSample{};
+    try module.init();
+    const selftest_summary = try module.runSelftest();
+
+    const before_exit = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 8), before_exit.total_events);
+    try std.testing.expectEqual(@as(i32, 0), before_exit.last_main_count);
+    try std.testing.expectEqual(@as(i32, 1), before_exit.last_fn_count);
+    try std.testing.expectEqual(@as(usize, 6), before_exit.last_main_emitted_events);
+    try std.testing.expectEqual(@as(usize, 2), before_exit.last_fn_emitted_events);
+    try std.testing.expect(before_exit.saw_vararg_payload);
+    try std.testing.expect(before_exit.saw_rel_loc_payload);
+    try std.testing.expect(before_exit.saw_conditional_path);
+    const before_main_payload = before_exit.last_main_payload orelse return error.ExpectedMainPayload;
+    try std.testing.expectEqualStrings("hello", before_main_payload.foo_bar_message);
+    try std.testing.expectEqualStrings("iter=%d", before_main_payload.format_template);
+    const before_function_payload = before_exit.last_function_payload orelse return error.ExpectedFunctionPayload;
+    try std.testing.expectEqualStrings("Look at me", before_function_payload.foo_bar_message);
+    try std.testing.expectEqualStrings("Look at me too", before_function_payload.template_message);
+    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", selftest_summary.anchor);
+    try std.testing.expectEqual(@as(usize, 5), selftest_summary.event_families.len);
+
+    try module.exit();
+
+    const after_exit = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), after_exit.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expectEqual(before_exit.main_iterations, after_exit.main_iterations);
+    try std.testing.expectEqual(before_exit.fn_iterations, after_exit.fn_iterations);
+    try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);
+    try std.testing.expectEqual(before_exit.last_main_count, after_exit.last_main_count);
+    try std.testing.expectEqual(before_exit.last_fn_count, after_exit.last_fn_count);
+    try std.testing.expectEqual(before_exit.last_main_emitted_events, after_exit.last_main_emitted_events);
+    try std.testing.expectEqual(before_exit.last_fn_emitted_events, after_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(before_exit.saw_vararg_payload, after_exit.saw_vararg_payload);
+    try std.testing.expectEqual(before_exit.saw_rel_loc_payload, after_exit.saw_rel_loc_payload);
+    try std.testing.expectEqual(before_exit.saw_conditional_path, after_exit.saw_conditional_path);
+    const after_main_payload = after_exit.last_main_payload orelse return error.ExpectedMainPayload;
+    try std.testing.expectEqualStrings("hello", after_main_payload.foo_bar_message);
+    try std.testing.expectEqualStrings("iter=%d", after_main_payload.format_template);
+    const after_function_payload = after_exit.last_function_payload orelse return error.ExpectedFunctionPayload;
+    try std.testing.expectEqualStrings("Look at me", after_function_payload.foo_bar_message);
+    try std.testing.expectEqualStrings("Look at me too", after_function_payload.template_message);
+}
