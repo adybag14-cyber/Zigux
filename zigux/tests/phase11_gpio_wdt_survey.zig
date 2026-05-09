@@ -116,6 +116,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-survey.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "drvdata checkpoint") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "failure-mode checkpoint") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device request surface") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hardware-backed validation") != null);
         }
@@ -134,6 +135,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expectEqualStrings("zigux/tests/phase11_gpio_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "drvdata checkpoint ordering") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "failure-mode checkpoint outcomes") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device request bookkeeping") != null);
         }
 
@@ -142,6 +144,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-module-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "drvdata checkpoint") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "failure-mode checkpoint") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device call summary") != null);
         }
 
@@ -160,6 +163,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 replay path") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact focused survey replay") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "drvdata") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "failure-mode") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device request evidence") != null);
         }
 
@@ -292,6 +296,9 @@ test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "timeoutPropertyCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "platformDrvdataCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drvdataCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rebootGlueCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "failureModeCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "teardownSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "registerDeviceCallSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_set_drvdata()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`watchdog_set_drvdata()` execution") != null);
@@ -302,9 +309,14 @@ test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "## Shared Replay Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "descriptorPreflightSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "timeoutPropertyCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "platformDrvdataCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "drvdataCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "rebootGlueCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "failureModeCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "teardownSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "registerDeviceCallSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11_gpio_wdt.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11_gpio_wdt_platform_drvdata.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "scripts/zigux/check-phase11-shared-replay-contract.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "Documentation/zigux/phase11-gpio-wdt-teardown-note.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "watchdog_set_drvdata()") != null);
@@ -315,6 +327,7 @@ test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "make -C zigux phase11") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zig test zigux/tests/phase11_gpio_wdt_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "zig test zigux/tests/phase11_gpio_wdt_platform_drvdata.zig") != null);
 }
 
 test "phase11 gpio_wdt module-slice note stays wired into the review packet" {
