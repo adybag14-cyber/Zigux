@@ -254,7 +254,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "make -C zigux phase5",
         "zigux/tests/phase5_kretprobe_example.zig",
         "temporary out-of-tree scratch build file",
-        "imported the live sample and paired boundary test modules",
+        "imported the recorded sample and paired boundary test modules",
         "runtime_kretprobe",
         "## Latest verification snapshot",
         "zig fmt --check",
