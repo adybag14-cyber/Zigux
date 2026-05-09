@@ -137,6 +137,7 @@ Anchor packets in the current smoke bundle:
 - status bucket: `study_only`
 - validation gate: `make -C zigux phase14-validate && make -C zigux phase14-smoke && make -C zigux phase14-test && make -C zigux phase14`
 - rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`
+- transfer rationale: `transfer ZAR runtime research into explicit reviewability evidence instead of widening Phase 14 into a deep-core port`
 - review blocker status: `blocked_on_stay_in_c_evidence`
 
 Roadmap risk bundle:
