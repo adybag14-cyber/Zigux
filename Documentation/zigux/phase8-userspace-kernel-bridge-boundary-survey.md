@@ -33,6 +33,8 @@ It does not own the separate command-side tooling packet around `tools/lib/subcm
 
 Inside this lane, the relevant boundary is the point where helper-first libbpf review would widen into procfs reads, bpffs opens, perf-event setup, token creation, or descriptor-ownership side effects.
 
+The first concrete syscall-facing edges beyond this parked helper packet remain `bpf_obj_get()` on the reuse side and `perf_event_open()` plus `PERF_EVENT_IOC_ENABLE` on the perf-buffer side, so this survey keeps those calls explicitly outside the current bridge review surface alongside the separate command packet.
+
 ## Current landed packet
 
 The currently landed bridge-side helper remains intentionally small:
