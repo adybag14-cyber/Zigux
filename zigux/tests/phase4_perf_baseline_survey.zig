@@ -75,6 +75,9 @@ const Manifest = struct {
     phase: []const u8,
     owner: []const u8,
     rollback_owner: []const u8,
+    shared_promotion_decision_owner: []const u8,
+    shared_promotion_coordination_owners: []const []const u8,
+    shared_promotion_scope: []const u8,
     surveyed_gates: []const SurveyedGate,
     survey_summary: SurveySummary,
     command_evidence: CommandEvidence,
@@ -101,6 +104,14 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.owner);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
+    try std.testing.expectEqualStrings("Validation and Perf Team", manifest.shared_promotion_decision_owner);
+    try std.testing.expectEqual(@as(usize, 2), manifest.shared_promotion_coordination_owners.len);
+    try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.shared_promotion_coordination_owners[0]);
+    try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.shared_promotion_coordination_owners[1]);
+    try std.testing.expectEqualStrings(
+        "approved_local_only_limits_vs_shared_ci_perf_coverage",
+        manifest.shared_promotion_scope,
+    );
     try std.testing.expectEqual(@as(usize, 2), manifest.surveyed_gates.len);
     try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
