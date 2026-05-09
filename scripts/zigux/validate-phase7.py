@@ -53,6 +53,7 @@ REQUIRED_FILES = [
 
 REQUIRED_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": [
+        "samples/zigux/**",
         "Validate Phase 7 runtime helper gates",
         "make -C zigux phase7-validate",
         "Run Phase 7 runtime helper tests",
@@ -351,6 +352,7 @@ REQUIRED_MARKERS = {
 
 EXACT_COUNT_MARKERS = {
     ".github/workflows/zigux-bootstrap.yml": [
+        ("samples/zigux/**", 2),
         ("Validate Phase 7 runtime helper gates", 1),
         ("make -C zigux phase7-validate", 1),
         ("Run Phase 7 runtime helper tests", 1),
@@ -582,6 +584,12 @@ FORBIDDEN_MARKERS = {
 
 FIXTURE_OVERRIDES = {
     "scripts/zigux/validate-phase7.py": "# fixture\n",
+    "samples/zigux/README.md": "\n".join(
+        marker
+        for marker in REQUIRED_MARKERS["samples/zigux/README.md"]
+        if marker != "scripts/zigux/check-phase7-build-wiring.py"
+    )
+    + "\n",
     "zigux/tests/phase7_string_helpers.zig": "// fixture\n",
     "zigux/tests/phase7_string_helpers_survey.zig": "\n".join(
         REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_survey.zig"]
@@ -664,14 +672,8 @@ def write_fixture_root(tmp_root: Path) -> None:
     fixture_text.update(FIXTURE_OVERRIDES)
     for rel, marker_counts in EXACT_COUNT_MARKERS.items():
         text = fixture_text.get(rel, "")
-        for marker, _expected_count in marker_counts:
-            if marker not in text:
-                if marker.startswith("`") and marker.endswith("`"):
-                    raw_marker = marker[1:-1]
-                    raw_line = raw_marker + "\n"
-                    if raw_line in text:
-                        text = text.replace(raw_line, marker + "\n", 1)
-                        continue
+        for marker, expected_count in marker_counts:
+            while text.count(marker) < expected_count:
                 text += marker + "\n"
         fixture_text[rel] = text
     for rel in REQUIRED_FILES:
