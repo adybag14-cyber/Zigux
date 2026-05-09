@@ -66,3 +66,31 @@ test "phase11 dw_wdt platform resource preflight keeps shared fallback and block
     try std.testing.expect(blocked.blocked_on_missing_timer_clock);
     try std.testing.expect(blocked.keeps_platform_registration_blocked);
 }
+
+test "phase11 dw_wdt keeps irq-mode non-stoppable stop parity explicit in the shared packet" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    _ = try watchdog.setResponseMode(.irq);
+    _ = try watchdog.setTimeout(9);
+    _ = try watchdog.start();
+    _ = watchdog.setCurrentCount(3 * 65_536);
+    _ = watchdog.setInterruptPending(true);
+
+    const after_stop = watchdog.stop();
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", after_stop.anchor);
+    try std.testing.expect(after_stop.running);
+    try std.testing.expect(after_stop.hardware_running);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.irq, after_stop.response_mode);
+    try std.testing.expectEqual(@as(u32, 16), after_stop.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 8), after_stop.pretimeout_sec);
+    try std.testing.expect(after_stop.interrupt_pending);
+    try std.testing.expectEqual(@as(u32, 3), after_stop.time_left_sec);
+    try std.testing.expectEqual(@as(u32, 3 * 65_536), after_stop.registers.current_count);
+
+    const after_ping = try watchdog.ping();
+    try std.testing.expect(after_ping.running);
+    try std.testing.expect(after_ping.hardware_running);
+    try std.testing.expect(after_ping.interrupt_pending);
+    try std.testing.expectEqual(@as(u32, 3), after_ping.time_left_sec);
+    try std.testing.expectEqual(@as(u32, 3 * 65_536), after_ping.registers.current_count);
+    try std.testing.expectEqual(dw_wdt.counter_restart_kick_value, after_ping.registers.restart);
+}
