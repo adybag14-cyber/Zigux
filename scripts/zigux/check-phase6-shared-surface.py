@@ -67,6 +67,22 @@ REQUIRED_SNIPPETS = {
         "- runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses",
         "The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable, and the same focused replay now carries the bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route.",
     ],
+    "Documentation/zigux/phase6-checksum-slice.md": [
+        "- `PHASE6_STATUS=parked`",
+        "- `PHASE6_SLICE=checksum-leaf-helper`",
+        "- fixture-backed carry-discipline and imported KUnit random-prefix replays for all-ones prefixes and no-spurious-carry seeded cases",
+        "- IPv4 and IPv6 pseudo-header accumulation parity between the dedicated helper paths and manual `partial` plus `blockAdd` composition",
+        "- incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement",
+        "- `make -C zigux phase6-checksum-perf`",
+    ],
+    "Documentation/zigux/phase6-hexdump-slice.md": [
+        "- `PHASE6_STATUS=parked`",
+        "- `PHASE6_SLICE=hexdump-leaf-helper`",
+        "- the non-truncating helper path now uses a direct full-buffer formatter so the grouped ASCII perf replays do not pay the truncating writer's per-byte bounds checks",
+        "- a dedicated hexdump-only build step now reruns the focused helper replay without dragging the full shared Phase 6 helper packet along",
+        "- `make -C zigux phase6-hexdump-test`",
+        "- `make -C zigux phase6-hexdump-perf`",
+    ],
     "Documentation/zigux/phase6-perf-gate-survey.md": [
         "- `PHASE6_PERF_SURVEY_STATUS=active`",
         "- `PHASE6_PERF_PACKET=base64-bsearch-checksum-hexdump`",
@@ -483,6 +499,18 @@ def run_self_test() -> None:
             "Documentation/zigux/phase6-base64-slice.md",
             "- a direct 24-case C-vs-Zig spot check covering representative std, URL-safe, and IMAP encode parity, decoded-byte parity, returned encoded-size parity through `chars`, returned decoded-size parity through `bytes`, and malformed-tail rejection through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
             "- a direct 15-case C-vs-Zig spot check through an older helper-local parity packet",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-checksum-slice.md",
+            "- IPv4 and IPv6 pseudo-header accumulation parity between the dedicated helper paths and manual `partial` plus `blockAdd` composition",
+            "- IPv4 pseudo-header parity only through an older helper-local replay",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-hexdump-slice.md",
+            "- the non-truncating helper path now uses a direct full-buffer formatter so the grouped ASCII perf replays do not pay the truncating writer's per-byte bounds checks",
+            "- the grouped ASCII perf packet still relies on the truncating writer path only",
         )
         assert_failure(
             root,
