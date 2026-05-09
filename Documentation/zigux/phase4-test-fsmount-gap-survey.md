@@ -5,7 +5,7 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs
 ## Status
 
 - `PHASE4_TEST_FSMOUNT_STATUS=parked_gap_survey`
-- `PHASE4_LANE_KEY=validation-perf`
+- `PHASE4_LANE_KEY=P4-L24`
 - `PHASE4_ANCHOR_PATH=samples/vfs/test-fsmount.c`
 - `PHASE4_ANCHOR_BLOB_SHA=50f47b72e85fbc8dd52dedad96ee96e6379da5b8`
 - `PHASE4_SAMPLE_PATH=samples/zigux/test_fsmount.zig`
