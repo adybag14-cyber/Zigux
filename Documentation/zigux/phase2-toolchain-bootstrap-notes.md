@@ -36,6 +36,7 @@ This note records the bounded Phase 2 x86_64-linux bootstrap archive-pin contrac
 - docs-root summary: `Documentation/zigux/README.md`
 - shared review checklist: `Documentation/zigux/review-checklist.md`
 - workflow install path: `python3 scripts/zigux/install-zig.py --dest .zig-toolchain`
+- when `ZIG` is unset, `zigux/Makefile` reuses that repo-local `.zig-toolchain` install for `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` instead of depending on ambient `PATH`
 - workflow verification path: `python3 scripts/zigux/check-zig-toolchain.py`
 - current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`
 - current minimum Zig version: `0.17.0-dev.87+9b177a7d2`
