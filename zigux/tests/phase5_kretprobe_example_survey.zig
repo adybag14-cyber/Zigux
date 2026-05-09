@@ -324,8 +324,8 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
     const docs_root_markers = [_][]const u8{
         "Documentation/zigux/phase5-kretprobe-sample-survey.md",
         "samples/zigux/kretprobe_example.zig",
-        "symbol-selection, skip, private-data-shape, return-value, duration, fixed `maxactiveBudget()` cue, `ownershipSummary()` lifecycle snapshots, and teardown-boundary replay checks",
-        "descriptor, manifest, `ownershipSummary()`, lifecycle-guard, and shared `phase5_build.zig` entrypoint prompts",
+        "symbol-selection, skip, private-data-shape, return-value, duration, fixed `maxactiveBudget()` cue, `ownershipSummary()` plus sample-owned `runOwnershipReplay()` lifecycle snapshots, and teardown-boundary replay checks",
+        "descriptor, manifest, `ownershipSummary()`, sample-owned `runOwnershipReplay()`, lifecycle-guard, and shared `phase5_build.zig` entrypoint prompts",
         "separate Phase 9 runtime starter",
         "current `master` still ships no standalone `samples/zigux/*bitmap*` Phase 5 reference sample",
         "Documentation/zigux/phase4-validation-matrix.md",
