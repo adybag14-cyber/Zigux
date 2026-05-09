@@ -326,6 +326,210 @@ PHASE4_BITMAP_SURVEY_MARKERS = [
     "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
 ]
 
+PHASE4_PERF_BASELINE_EXPECTED_STRINGS = {
+    "lane_key": "P4-L20",
+    "phase": "Phase 4",
+    "owner": "Validation and Perf Team",
+    "rollback_owner": "Validation and Perf Team",
+}
+
+PHASE4_PERF_BASELINE_SURVEYED_GATES = [
+    {
+        "surface": "zigux/tests/atomic64_diff.zig",
+        "gate_owner": "ABI and Runtime Team",
+        "gate_rollback_owner": "ABI and Runtime Team",
+        "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
+    },
+    {
+        "surface": "zigux/tests/bitmap_diff.zig",
+        "gate_owner": "Shared Subsystems Pod",
+        "gate_rollback_owner": "Shared Subsystems Pod",
+        "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+    },
+]
+
+PHASE4_PERF_BASELINE_SUMMARY_FIELDS = {
+    "phase4_build_step_present": True,
+    "phase4_validation_matrix_present": True,
+    "shared_phase4_test_step_includes_survey": False,
+    "benchmark_command_unapproved": False,
+    "acceptable_limit_unapproved": False,
+    "atomic64_benchmark_command_approved": True,
+    "atomic64_acceptable_limit_approved": True,
+    "bitmap_benchmark_command_approved": True,
+    "bitmap_acceptable_limit_approved": True,
+}
+
+PHASE4_PERF_BASELINE_COMMAND_EVIDENCE = {
+    "atomic64": {
+        "evidence_status": "benchmark_command_approved",
+        "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+        "acceptable_limit_status": "approved_local_only",
+        "acceptable_limit_metric": "median_elapsed_ns",
+        "acceptable_limit_iterations": 4,
+        "acceptable_limit_sample_count": 7,
+        "acceptable_limit_max_elapsed_ns": 8192,
+        "deterministic_replays": [
+            {
+                "iterations": 1,
+                "checksum": 3626254113632800175,
+                "final_counter": 130322557735600377,
+            },
+            {
+                "iterations": 4,
+                "checksum": 9210681150676220922,
+                "final_counter": 130322557735600376,
+            },
+        ],
+    },
+    "bitmap": {
+        "evidence_status": "benchmark_command_approved",
+        "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+        "acceptable_limit_status": "approved_local_only",
+        "acceptable_limit_metric": "median_elapsed_ns",
+        "acceptable_limit_iterations": 4,
+        "acceptable_limit_sample_count": 7,
+        "acceptable_limit_max_elapsed_ns": 131072,
+        "deterministic_replays": [
+            {
+                "iterations": 1,
+                "checksum": 5216946504564592253,
+                "final_first_set": 0,
+                "final_first_zero": 109,
+                "final_weight": 1005,
+                "final_nth_seven": 123,
+            },
+            {
+                "iterations": 4,
+                "checksum": 7942141539243507472,
+                "final_first_set": 0,
+                "final_first_zero": 109,
+                "final_weight": 1005,
+                "final_nth_seven": 123,
+            },
+        ],
+    },
+}
+
+PHASE4_PERF_BASELINE_REQUIRED_GAPS = {
+    "phase4-perf-baseline-survey-manifest": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase4_perf_baseline_manifest.json",
+        "why_markers": [
+            "manifest-backed survey packet",
+            "acceptable limits for both landed rollback gates",
+        ],
+    },
+    "phase4-perf-baseline-survey-gate": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase4_perf_baseline_survey.zig",
+        "why_markers": [
+            "correctness-only posture",
+            "bitmap acceptable-limit edge",
+        ],
+    },
+    "phase4-perf-baseline-atomic64-command-evidence": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase4_perf_baseline_manifest.json",
+        "why_markers": [
+            "exact-pins",
+            "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+            "runThresholdReplay(1)",
+            "3626254113632800175",
+            "130322557735600377",
+            "runThresholdReplay(4)",
+            "9210681150676220922",
+            "130322557735600376",
+        ],
+    },
+    "phase4-perf-baseline-atomic64-command": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/atomic64_diff.zig",
+        "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+        "why_markers": [
+            "approved for local Phase 4 perf review",
+            "shared CI perf approval",
+        ],
+    },
+    "phase4-perf-baseline-atomic64-acceptable-limit": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/atomic64_diff.zig",
+        "why_markers": [
+            "8192",
+            "seven monotonic samples",
+            "attached Zig toolchain",
+        ],
+    },
+    "phase4-perf-baseline-bitmap-command-evidence": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase4_perf_baseline_manifest.json",
+        "why_markers": [
+            "exact-pins",
+            "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+            "runThresholdReplay(1)",
+            "5216946504564592253",
+            "final first-set `0`",
+            "final first-zero `109`",
+            "final weight `1005`",
+            "final nth-seven `123`",
+            "runThresholdReplay(4)",
+            "7942141539243507472",
+        ],
+    },
+    "phase4-perf-baseline-bitmap-command": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/bitmap_diff.zig",
+        "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+        "why_markers": [
+            "approved for local Phase 4 perf review",
+            "acceptable limit now stays explicitly local-only",
+        ],
+    },
+    "phase4-perf-baseline-bitmap-acceptable-limit": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/bitmap_diff.zig",
+        "why_markers": [
+            "131072",
+            "79135",
+            "121289",
+            "shared CI perf coverage",
+        ],
+    },
+    "phase4-perf-baseline-shared-promotion-decision": {
+        "status": "ready_next",
+        "zigux_destination": "Documentation/zigux/phase4-validation-matrix.md",
+        "why_markers": [
+            "approved local benchmark commands",
+            "approved local-only acceptable limits",
+            "keep those limits local-only or intentionally promote a broader shared CI perf-coverage claim",
+            "without widening the current validator-first packet by accident",
+        ],
+    },
+}
+
+PHASE4_PERF_BASELINE_SURVEY_MARKERS = [
+    'test "phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit"',
+    "P4-L20",
+    "Validation and Perf Team",
+    "phase4-perf-baseline-survey-manifest",
+    "phase4-perf-baseline-survey-gate",
+    "phase4-perf-baseline-atomic64-command-evidence",
+    "phase4-perf-baseline-atomic64-command",
+    "phase4-perf-baseline-atomic64-acceptable-limit",
+    "phase4-perf-baseline-bitmap-command-evidence",
+    "phase4-perf-baseline-bitmap-command",
+    "phase4-perf-baseline-bitmap-acceptable-limit",
+    "phase4-perf-baseline-shared-promotion-decision",
+    "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+    "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+    "approved_local_only",
+    "8192",
+    "131072",
+    "79135",
+    "121289",
+    "shared CI perf coverage",
+]
+
 EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_LINES = [
     "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass",
     "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=17",
@@ -607,6 +811,120 @@ def run_phase4_bitmap_packet_check(root: Path) -> list[str]:
     return problems
 
 
+def run_phase4_perf_baseline_packet_check(root: Path) -> list[str]:
+    manifest = json.loads(
+        (root / "zigux/tests/phase4_perf_baseline_manifest.json").read_text(encoding="utf-8")
+    )
+    survey = (root / "zigux/tests/phase4_perf_baseline_survey.zig").read_text(encoding="utf-8")
+    problems: list[str] = []
+
+    for field, expected in PHASE4_PERF_BASELINE_EXPECTED_STRINGS.items():
+        if manifest.get(field) != expected:
+            problems.append(f"perf_baseline_manifest:{field}:{manifest.get(field)}:{expected}")
+
+    surveyed_gates = manifest.get("surveyed_gates")
+    if not isinstance(surveyed_gates, list):
+        problems.append(f"perf_baseline_manifest:surveyed_gates:{type(surveyed_gates).__name__}:list")
+    elif len(surveyed_gates) != len(PHASE4_PERF_BASELINE_SURVEYED_GATES):
+        problems.append(
+            f"perf_baseline_manifest:surveyed_gates:length:{len(surveyed_gates)}:{len(PHASE4_PERF_BASELINE_SURVEYED_GATES)}"
+        )
+    else:
+        for index, expected_gate in enumerate(PHASE4_PERF_BASELINE_SURVEYED_GATES):
+            gate = surveyed_gates[index]
+            if not isinstance(gate, dict):
+                problems.append(
+                    f"perf_baseline_manifest:surveyed_gates:{index}:{type(gate).__name__}:dict"
+                )
+                continue
+            for field, expected in expected_gate.items():
+                actual = gate.get(field)
+                if actual != expected:
+                    problems.append(
+                        f"perf_baseline_manifest_surveyed_gate:{index}:{field}:{actual}:{expected}"
+                    )
+
+    summary = manifest.get("survey_summary")
+    if not isinstance(summary, dict):
+        problems.append(f"perf_baseline_manifest:survey_summary:{type(summary).__name__}:dict")
+    else:
+        for field, expected in PHASE4_PERF_BASELINE_SUMMARY_FIELDS.items():
+            actual = summary.get(field)
+            if actual != expected:
+                problems.append(f"perf_baseline_manifest_summary:{field}:{actual}:{expected}")
+
+    command_evidence = manifest.get("command_evidence")
+    if not isinstance(command_evidence, dict):
+        problems.append(f"perf_baseline_manifest:command_evidence:{type(command_evidence).__name__}:dict")
+    else:
+        for family, expected_fields in PHASE4_PERF_BASELINE_COMMAND_EVIDENCE.items():
+            actual_fields = command_evidence.get(family)
+            if not isinstance(actual_fields, dict):
+                problems.append(
+                    f"perf_baseline_manifest_command:{family}:{type(actual_fields).__name__}:dict"
+                )
+                continue
+            for field, expected in expected_fields.items():
+                actual = actual_fields.get(field)
+                if actual != expected:
+                    problems.append(
+                        f"perf_baseline_manifest_command:{family}:{field}:{actual}:{expected}"
+                    )
+
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list):
+        problems.append(f"perf_baseline_manifest:gaps:{type(gaps).__name__}:list")
+    else:
+        if len(gaps) != len(PHASE4_PERF_BASELINE_REQUIRED_GAPS):
+            problems.append(
+                f"perf_baseline_manifest:gaps:length:{len(gaps)}:{len(PHASE4_PERF_BASELINE_REQUIRED_GAPS)}"
+            )
+        starter_landed_count = sum(1 for gap in gaps if isinstance(gap, dict) and gap.get("status") == "starter_landed")
+        ready_next_count = sum(1 for gap in gaps if isinstance(gap, dict) and gap.get("status") == "ready_next")
+        if starter_landed_count != 8:
+            problems.append(f"perf_baseline_manifest:gaps:starter_landed:{starter_landed_count}:8")
+        if ready_next_count != 1:
+            problems.append(f"perf_baseline_manifest:gaps:ready_next:{ready_next_count}:1")
+        gaps_by_id = {
+            gap.get("id"): gap
+            for gap in gaps
+            if isinstance(gap, dict) and isinstance(gap.get("id"), str)
+        }
+        for gap_id, expected in PHASE4_PERF_BASELINE_REQUIRED_GAPS.items():
+            gap = gaps_by_id.get(gap_id)
+            if gap is None:
+                problems.append(f"perf_baseline_gap:id:missing:{gap_id}")
+                continue
+            if gap.get("status") != expected["status"]:
+                problems.append(
+                    f"perf_baseline_gap:{gap_id}:status:{gap.get('status')}:{expected['status']}"
+                )
+            if gap.get("zigux_destination") != expected["zigux_destination"]:
+                problems.append(
+                    "perf_baseline_gap:"
+                    f"{gap_id}:zigux_destination:{gap.get('zigux_destination')}:{expected['zigux_destination']}"
+                )
+            expected_command = expected.get("benchmark_command")
+            actual_command = gap.get("benchmark_command")
+            if actual_command != expected_command:
+                problems.append(
+                    f"perf_baseline_gap:{gap_id}:benchmark_command:{actual_command}:{expected_command}"
+                )
+            why_now = gap.get("why_now")
+            if not isinstance(why_now, str):
+                problems.append(f"perf_baseline_gap:{gap_id}:why_now:{type(why_now).__name__}:str")
+                continue
+            for marker in expected["why_markers"]:
+                if marker not in why_now:
+                    problems.append(f"perf_baseline_gap_marker:{gap_id}:{marker}")
+
+    for marker in PHASE4_PERF_BASELINE_SURVEY_MARKERS:
+        if marker not in survey:
+            problems.append(f"perf_baseline_survey:{marker}")
+
+    return problems
+
+
 def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8", newline="\n")
@@ -723,11 +1041,39 @@ def build_fixture_tree(root: Path) -> None:
     _write(root / "zigux/tests/runtime_atomic64_diff.zig", "// runtime atomic64 diff\n")
     _write(root / "zigux/tests/bitmap_diff.zig", "// bitmap diff\n")
     _write(root / "zigux/tests/phase4_bitmap_live_helper_replay.zig", "// helper replay\n")
-    _write(root / "zigux/tests/phase4_perf_baseline_manifest.json", "{}\n")
-    _write(root / "zigux/tests/phase4_perf_baseline_survey.zig", "// perf baseline survey\n")
     _write(root / "Documentation/zigux/phase4-gate-evidence.md", "phase4 gate evidence fixture\n")
     _write(root / "zigux/tests/phase4_build.zig", "\n".join(REQUIRED_PHASE4_BUILD_MARKERS + [""]))
     _write(root / "zigux/tests/phase9_build.zig", "// phase9 build\n")
+
+    phase4_perf_baseline_manifest = {
+        **PHASE4_PERF_BASELINE_EXPECTED_STRINGS,
+        "surveyed_gates": PHASE4_PERF_BASELINE_SURVEYED_GATES,
+        "survey_summary": PHASE4_PERF_BASELINE_SUMMARY_FIELDS,
+        "command_evidence": PHASE4_PERF_BASELINE_COMMAND_EVIDENCE,
+        "gaps": [
+            {
+                "id": gap_id,
+                "status": expected["status"],
+                "kind": "perf_policy" if gap_id == "phase4-perf-baseline-shared-promotion-decision" else "survey_manifest",
+                "zigux_destination": expected["zigux_destination"],
+                **(
+                    {"benchmark_command": expected["benchmark_command"]}
+                    if "benchmark_command" in expected
+                    else {}
+                ),
+                "why_now": " ".join(expected["why_markers"]),
+            }
+            for gap_id, expected in PHASE4_PERF_BASELINE_REQUIRED_GAPS.items()
+        ],
+    }
+    _write(
+        root / "zigux/tests/phase4_perf_baseline_manifest.json",
+        json.dumps(phase4_perf_baseline_manifest, indent=2) + "\n",
+    )
+    _write(
+        root / "zigux/tests/phase4_perf_baseline_survey.zig",
+        "\n".join(PHASE4_PERF_BASELINE_SURVEY_MARKERS + [""]),
+    )
 
     runtime_manifest = dict(PHASE4_RUNTIME_ATOMIC64_EXPECTED_STRINGS)
     runtime_manifest.update({field: True for field in PHASE4_RUNTIME_ATOMIC64_EXPECTED_TRUE_FIELDS})
@@ -803,6 +1149,7 @@ def run_self_test() -> int:
         assert run_phase4_gate_evidence_self_test_check(root) == []
         assert run_phase4_runtime_atomic64_packet_check(root) == []
         assert run_phase4_bitmap_packet_check(root) == []
+        assert run_phase4_perf_baseline_packet_check(root) == []
 
         bad_root = Path(tmp_dir) / "bad"
         build_fixture_tree(bad_root)
@@ -823,6 +1170,16 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         assert validate_root(bad_root2) == ["make:phase4-perf-baseline-survey:"]
+
+        bad_root3 = Path(tmp_dir) / "bad3"
+        build_fixture_tree(bad_root3)
+        perf_manifest_path = bad_root3 / "zigux/tests/phase4_perf_baseline_manifest.json"
+        perf_manifest = json.loads(perf_manifest_path.read_text(encoding="utf-8"))
+        perf_manifest["survey_summary"]["bitmap_acceptable_limit_approved"] = False
+        perf_manifest_path.write_text(json.dumps(perf_manifest, indent=2) + "\n", encoding="utf-8")
+        assert run_phase4_perf_baseline_packet_check(bad_root3) == [
+            "perf_baseline_manifest_summary:bitmap_acceptable_limit_approved:False:True"
+        ]
 
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
@@ -866,6 +1223,7 @@ def main() -> int:
         ("PHASE4_GATE_EVIDENCE_SELF_TEST_CHECK", run_phase4_gate_evidence_self_test_check(ROOT)),
         ("PHASE4_RUNTIME_ATOMIC64_PACKET_CHECK", run_phase4_runtime_atomic64_packet_check(ROOT)),
         ("PHASE4_BITMAP_PACKET_CHECK", run_phase4_bitmap_packet_check(ROOT)),
+        ("PHASE4_PERF_BASELINE_PACKET_CHECK", run_phase4_perf_baseline_packet_check(ROOT)),
     ]:
         if failures:
             print("PHASE4_VALIDATION=fail")
