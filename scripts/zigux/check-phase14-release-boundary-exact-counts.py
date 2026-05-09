@@ -25,10 +25,10 @@ REQUIRED_COUNTS = {
     "PHASE14_ACTIVE_DELIVERY_GATE_COUNT": 0,
 }
 EXPECTED_SURFACE_COUNTS = {
-    "PHASE14_SHARED_SURFACE_COUNT": 28,
+    "PHASE14_SHARED_SURFACE_COUNT": 29,
     "PHASE14_DOC_SURFACE_COUNT": 6,
     "PHASE14_SCRIPT_SURFACE_COUNT": 5,
-    "PHASE14_TEST_SURFACE_COUNT": 12,
+    "PHASE14_TEST_SURFACE_COUNT": 13,
     "PHASE14_BRIDGE_ROOT_SURFACE_COUNT": 3,
     "PHASE14_WORKFLOW_SURFACE_COUNT": 1,
     "PHASE14_MAKEFILE_SURFACE_COUNT": 1,
@@ -276,10 +276,10 @@ def run_self_test() -> int:
             [
                 "# Phase 14 End-to-End Smoke Survey",
                 "- `PHASE14_ANCHOR_PACKET_COUNT=4`",
-                "- `PHASE14_SHARED_SURFACE_COUNT=28`",
+                "- `PHASE14_SHARED_SURFACE_COUNT=29`",
                 "- `PHASE14_DOC_SURFACE_COUNT=6`",
                 "- `PHASE14_SCRIPT_SURFACE_COUNT=5`",
-                "- `PHASE14_TEST_SURFACE_COUNT=12`",
+                "- `PHASE14_TEST_SURFACE_COUNT=13`",
                 "- `PHASE14_BRIDGE_ROOT_SURFACE_COUNT=3`",
                 "- `PHASE14_WORKFLOW_SURFACE_COUNT=1`",
                 "- `PHASE14_MAKEFILE_SURFACE_COUNT=1`",
@@ -350,6 +350,7 @@ def run_self_test() -> int:
                 {"path": "zigux/tests/phase14_build.zig", "required_marker": "phase14-smoke"},
                 {"path": "zigux/Makefile", "required_marker": "phase14: phase14-validate phase14-smoke phase14-test"},
                 {"path": "zigux/tests/phase14_workqueue_bridge.zig", "required_marker": "phase14 workqueue bridge manifest records the boundary-map foothold and remaining gap"},
+                {"path": "zigux/tests/phase14_workqueue_reviewability.zig", "required_marker": "phase14 workqueue reviewability guard keeps the shared reviewer surface aligned"},
                 {"path": "zigux/tests/phase14_skbuff_bridge.zig", "required_marker": "phase14 skbuff bridge manifest records the boundary-map foothold and frozen ownership gap"},
                 {"path": "zigux/tests/phase14_workqueue_bridge_manifest.json", "required_marker": "phase14-workqueue-live-execution-blocker"},
                 {"path": "zigux/tests/phase14_skbuff_bridge_manifest.json", "required_marker": "phase14-skbuff-live-ownership-blocker"},
@@ -438,14 +439,14 @@ def run_self_test() -> int:
         write_text(
             smoke_path,
             read_text(smoke_path).replace(
-                "- `PHASE14_SHARED_SURFACE_COUNT=28`\n",
-                "- `PHASE14_SHARED_SURFACE_COUNT=28`\n- `PHASE14_SHARED_SURFACE_COUNT=28`\n",
+                "- `PHASE14_SHARED_SURFACE_COUNT=29`\n",
+                "- `PHASE14_SHARED_SURFACE_COUNT=29`\n- `PHASE14_SHARED_SURFACE_COUNT=29`\n",
                 1,
             ),
         )
         errors = check(root)
         if not any(
-            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_SHARED_SURFACE_COUNT=28 (expected 1, found 2)"
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_SHARED_SURFACE_COUNT=29 (expected 1, found 2)"
             in error
             for error in errors
         ):
@@ -712,7 +713,7 @@ def run_self_test() -> int:
         manifest_data["surfaces"] = manifest_data["surfaces"][:-1]
         write_text(manifest_path, json.dumps(manifest_data, indent=2) + "\n")
         errors = check(root)
-        if not any("phase14 manifest PHASE14_SHARED_SURFACE_COUNT drifted from the expected 28 surface count (found 27)" in error for error in errors):
+        if not any("phase14 manifest PHASE14_SHARED_SURFACE_COUNT drifted from the expected 29 surface count (found 28)" in error for error in errors):
             print("self-test expected shared surface count drift failure", file=sys.stderr)
             return 1
         if not any("phase14 manifest PHASE14_BRIDGE_ROOT_SURFACE_COUNT drifted from the expected 3 surface count (found 2)" in error for error in errors):
