@@ -122,6 +122,14 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     );
     defer std.testing.allocator.free(sample_source);
 
+    const sample_root_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(sample_root_readme);
+
     const helper_source = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "lib/string_helpers.zig",
@@ -270,6 +278,21 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try expectExactCount(sample_source, "test \"string helper sample replay keeps the existing helper surface reviewable\"", 1);
     try expectExactCount(sample_source, "test \"string helper sample enforces simple lifecycle boundaries\"", 1);
     try std.testing.expectEqual(@as(usize, 2), countOccurrences(sample_source, "test \"string helper sample"));
+
+    const expected_sample_root_markers = [_][]const u8{
+        "Separate helper-backed sample packet",
+        "`samples/zigux/string_helpers_sample.zig` is a bounded Phase 7 string-helper replay, not a fifth Phase 5 reference anchor",
+        "review that packet through `Documentation/zigux/phase7-string-helpers-slice.md`, `zigux/tests/phase7_string_helpers_sample_manifest.json`, `zigux/tests/phase7_string_helpers_sample_survey.zig`, and `zigux/tests/phase7_build.zig`",
+        "keep the sample tied to the shared Phase 7 helper lane instead of treating it as a new standalone sample family",
+    };
+    for (expected_sample_root_markers) |marker| {
+        try expectContains(sample_root_readme, marker);
+    }
+    try expectExactCount(sample_root_readme, "Separate helper-backed sample packet", 1);
+    try expectExactCount(sample_root_readme, "`samples/zigux/string_helpers_sample.zig` is a bounded Phase 7 string-helper replay, not a fifth Phase 5 reference anchor", 1);
+    try expectExactCount(sample_root_readme, "review that packet through `Documentation/zigux/phase7-string-helpers-slice.md`, `zigux/tests/phase7_string_helpers_sample_manifest.json`, `zigux/tests/phase7_string_helpers_sample_survey.zig`, and `zigux/tests/phase7_build.zig`", 1);
+    try expectExactCount(sample_root_readme, "keep the sample tied to the shared Phase 7 helper lane instead of treating it as a new standalone sample family", 1);
+    try expectExactCount(sample_root_readme, "`samples/zigux/string_helpers_sample.zig`", 1);
 
     const expected_helper_markers = [_][]const u8{
         "pub fn sysfsStreq",
