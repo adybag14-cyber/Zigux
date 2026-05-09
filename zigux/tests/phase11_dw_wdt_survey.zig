@@ -218,13 +218,14 @@ test "phase11 dw_wdt survey note, slice note, validation matrix, and teardown no
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "teardown and failure-mode parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "platform-registration scaffold") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "module_platform_driver") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dw_wdt_drv_shutdown") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_register_device") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-registration-scaffold-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11_dw_wdt_registration_scaffold.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "register-device request ordering") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-verify-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/watchdog/dw_wdt_verify.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "stop or remove ownership split") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "stop, remove, and shutdown ownership split") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L05`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L12`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L10`") == null);
@@ -254,4 +255,7 @@ test "phase11 dw_wdt survey note, slice note, validation matrix, and teardown no
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "reset-backed quiesce") == null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "removeSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, teardown_note, "teardownSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "platformRegistrationScaffoldSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "dw_wdt_drv_shutdown") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "phase11_dw_wdt_registration_scaffold.zig") != null);
 }
