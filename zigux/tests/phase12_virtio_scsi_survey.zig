@@ -78,7 +78,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter, queu
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_scsi_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_slice_note_present);
-    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -97,6 +97,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter, queu
     var saw_host_shape = false;
     var saw_restore_queue_rebind = false;
     var saw_request_queue_restart = false;
+    var saw_request_queue_ownership = false;
     var saw_event_rearm = false;
     var saw_event_buffer_ownership = false;
     var saw_recovery_rollback = false;
@@ -158,6 +159,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter, queu
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-window summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-shape summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "request-queue restart summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "request-queue ownership summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recovery event-rearm summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "event-buffer ownership summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fallback path") != null);
@@ -182,6 +184,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter, queu
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-window ownership boundaries") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-config snapshot") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-shape summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "request-queue ownership summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-slice-note")) {
@@ -190,6 +193,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter, queu
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-window summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-shape summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "request-queue ownership summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-queue-window-summary-starter")) {
@@ -239,6 +243,16 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter, queu
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host scan replay") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-recovery-request-queue-ownership-summary-starter")) {
+            saw_request_queue_ownership = true;
+            try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "request-queue access blocked until restore") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fresh replanning after restore") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "default-versus-poll partition") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "event rearm complete before request-queue reuse") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-recovery-event-rearm-summary-starter")) {
             saw_event_rearm = true;
             try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
@@ -280,7 +294,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter, queu
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 17), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 18), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -297,6 +311,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter, queu
     try std.testing.expect(saw_host_shape);
     try std.testing.expect(saw_restore_queue_rebind);
     try std.testing.expect(saw_request_queue_restart);
+    try std.testing.expect(saw_request_queue_ownership);
     try std.testing.expect(saw_event_rearm);
     try std.testing.expect(saw_event_buffer_ownership);
     try std.testing.expect(saw_recovery_rollback);
@@ -323,6 +338,7 @@ test "phase12 virtio_scsi survey note keeps the active lane identity and fallbac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "host-shape summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "restore queue rebind summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "request-queue restart summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "request-queue ownership summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recovery event-rearm summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "event-buffer ownership summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback summary") != null);
@@ -357,11 +373,12 @@ test "phase12 virtio_scsi slice note keeps the rollback drill explicit" {
         "clears the old queue snapshot so the next step must replan",
         "derives one bounded restore-sequencing summary from the frozen queue layout",
         "records one bounded request-queue restart summary from the frozen queue layout",
+        "records one bounded request-queue ownership summary from the frozen queue layout",
         "`virtscsi_restore()` calling `find_vqs`, `virtio_device_ready()`, and event rearm",
         "find_vqs()`, `virtio_device_ready()`, event rearm, and fresh queue replanning",
         "records one bounded recovery event-rearm summary from the frozen queue layout",
         "device-ready-before-rearm rule",
-        "without pretending to re-run `scsi_scan_host()`",
+        "without pretending to re-run `scsi_scan_host()` or resume live command submission",
     };
 
     for (expected_fragments) |fragment| {
