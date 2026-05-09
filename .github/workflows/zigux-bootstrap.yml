@@ -336,6 +336,9 @@ jobs:
       - name: Run focused Phase 8 kallsyms tests
         run: make -C zigux phase8-kallsyms-test
 
+      - name: Run focused Phase 8 cpu-mask tests
+        run: make -C zigux phase8-cpu-mask-test
+
       - name: Run focused Phase 8 help and kallsyms tests
         run: make -C zigux phase8-help-kallsyms-test
 
