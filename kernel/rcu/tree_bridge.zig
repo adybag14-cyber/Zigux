@@ -84,6 +84,16 @@ pub const CriticalFreezeEvidenceBinding = struct {
     replay_focus: []const u8,
 };
 
+pub const ArchitectureCouncilReopenPacket = struct {
+    record_id: []const u8,
+    owner: []const u8,
+    rollback_owner: []const u8,
+    required_evidence: []const []const u8,
+    automatic_return_triggers: []const []const u8,
+    freeze_bindings: []const CriticalFreezeEvidenceBinding,
+    next_step: []const u8,
+};
+
 const boundary_areas = [_]BoundaryArea{
     .{
         .id = "grace-period-sequence-publication",
@@ -303,6 +313,9 @@ const governance_blocker_reason =
 const governance_next_step =
     "Keep kernel/rcu/tree_bridge.zig review-only until the same review packet carries a real Architecture Council reopen record, parity scorecard evidence, benchmark notes, and replay command for the memory-ordering, public wait, and CPU-hotplug freeze checkpoints.";
 
+const architecture_council_reopen_record_id =
+    "phase15-rcu-tree-architecture-council-reopen";
+
 pub const RcuTreeBridgeLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -351,6 +364,31 @@ pub const RcuTreeBridgeLab = struct {
             .governed_blocked_behaviors = governance_governed_blocked_behaviors,
             .next_step = governance_next_step,
         };
+    }
+
+    pub fn architectureCouncilReopenPacket() ArchitectureCouncilReopenPacket {
+        const governance = bridgeGovernance();
+        return .{
+            .record_id = architecture_council_reopen_record_id,
+            .owner = governance.owner,
+            .rollback_owner = governance.rollback_owner,
+            .required_evidence = governance.required_evidence,
+            .automatic_return_triggers = governance.automatic_return_triggers,
+            .freeze_bindings = critical_freeze_evidence_bindings[0..],
+            .next_step = governance.next_step,
+        };
+    }
+
+    pub fn architectureCouncilReopenBindingCount() usize {
+        return critical_freeze_evidence_bindings.len;
+    }
+
+    pub fn architectureCouncilReopenPacketCoversCheckpoint(id: []const u8) bool {
+        return criticalFreezeEvidenceBindingByCheckpointId(id) != null;
+    }
+
+    pub fn architectureCouncilReopenPacketCoversBlockedBehavior(behavior: []const u8) bool {
+        return criticalFreezeEvidenceBindingByBlockedBehavior(behavior) != null;
     }
 
     pub fn boundaryAreaCount() usize {
@@ -711,4 +749,29 @@ test "rcu tree bridge governance keeps the blocker and rollback packet queryable
     try std.testing.expect(!RcuTreeBridgeLab.blockedBehaviorRequiresGovernanceEvidence("grace-period sequence publication and rcu_node propagation", governance_required_evidence[0]));
     try std.testing.expect(!RcuTreeBridgeLab.listsRequiredEvidence("placeholder bridge wrapper"));
     try std.testing.expect(!RcuTreeBridgeLab.listsAutomaticReturnTrigger("nonexistent trigger"));
+}
+
+test "rcu tree bridge Architecture Council reopen packet stays aligned with critical freeze evidence" {
+    const governance = RcuTreeBridgeLab.bridgeGovernance();
+    const packet = RcuTreeBridgeLab.architectureCouncilReopenPacket();
+
+    try std.testing.expectEqualStrings("phase15-rcu-tree-architecture-council-reopen", packet.record_id);
+    try std.testing.expectEqualStrings(governance.owner, packet.owner);
+    try std.testing.expectEqualStrings(governance.rollback_owner, packet.rollback_owner);
+    try std.testing.expectEqual(governance.required_evidence.len, packet.required_evidence.len);
+    try std.testing.expectEqual(governance.automatic_return_triggers.len, packet.automatic_return_triggers.len);
+    try std.testing.expectEqual(@as(usize, 3), packet.freeze_bindings.len);
+    try std.testing.expectEqual(@as(usize, 3), RcuTreeBridgeLab.architectureCouncilReopenBindingCount());
+    try std.testing.expect(std.mem.indexOf(u8, packet.next_step, "Architecture Council reopen record") != null);
+
+    for (packet.freeze_bindings, 0..) |binding, index| {
+        try std.testing.expectEqualStrings(RcuTreeBridgeLab.criticalFreezeCheckpointIds()[index], binding.checkpoint_id);
+        try std.testing.expectEqualStrings(RcuTreeBridgeLab.criticalFreezeBlockedBehaviors()[index], binding.blocked_behavior);
+        try std.testing.expect(RcuTreeBridgeLab.architectureCouncilReopenPacketCoversCheckpoint(binding.checkpoint_id));
+        try std.testing.expect(RcuTreeBridgeLab.architectureCouncilReopenPacketCoversBlockedBehavior(binding.blocked_behavior));
+        try std.testing.expect(std.mem.indexOf(u8, binding.replay_focus, "Architecture Council reopen record") != null);
+    }
+
+    try std.testing.expect(!RcuTreeBridgeLab.architectureCouncilReopenPacketCoversCheckpoint("grace-period-sequence-publication"));
+    try std.testing.expect(!RcuTreeBridgeLab.architectureCouncilReopenPacketCoversBlockedBehavior("grace-period sequence publication and rcu_node propagation"));
 }
