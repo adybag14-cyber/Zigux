@@ -237,6 +237,8 @@ def required_text(root: Path, rel_path: str) -> str:
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
+        current_checker_path = Path(__file__)
+        original_checker_source = current_checker_path.read_text(encoding="utf-8")
         for rel_path in [MANIFEST_PATH, WORKQUEUE_MANIFEST_PATH, RING_BUFFER_MANIFEST_PATH, SKBUFF_MANIFEST_PATH, RCU_MANIFEST_PATH]:
             write_text(root / rel_path, required_text(root, rel_path))
         for rel_path in [SMOKE_SURVEY_PATH, RELEASE_BOUNDARY_PATH, REVIEW_CHECKLIST_PATH, SCRIPTS_README_PATH, TRACEABILITY_PATH]:
@@ -459,6 +461,18 @@ def run_self_test() -> int:
         ):
             print("self-test expected scripts README rollback-summary failure", file=sys.stderr)
             return 1
+        write_text(broken_scripts_readme_path, required_text(root, SCRIPTS_README_PATH))
+
+        current_checker_path.write_text(
+            original_checker_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any("checker marker missing from checker source" in error for error in errors):
+            print("self-test expected checker-marker failure", file=sys.stderr)
+            current_checker_path.write_text(original_checker_source, encoding="utf-8")
+            return 1
+        current_checker_path.write_text(original_checker_source, encoding="utf-8")
 
         return 0
 
