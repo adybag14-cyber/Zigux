@@ -17,6 +17,8 @@ test "phase12 virtio scsi syntax lab keeps bounded queue-lab exports reachable" 
     _ = virtio_scsi.RecoverySummary;
     _ = virtio_scsi.RecoveryRestoreSummary;
     _ = virtio_scsi.RecoveryRestoreQueueRebindSummary;
+    _ = virtio_scsi.RecoveryRequestQueueRestartSummary;
+    _ = virtio_scsi.RecoveryRequestQueueOwnershipSummary;
     _ = virtio_scsi.RecoveryEventBufferOwnershipSummary;
     _ = virtio_scsi.RecoveryEventRearmSummary;
     _ = virtio_scsi.RecoveryRollbackSummary;
@@ -110,6 +112,7 @@ test "phase12 virtio scsi syntax lab keeps recovery summaries reachable through 
     const frozen = try lab.freezeForTransportReset();
     const restore_summary = try lab.recoveryRestoreSummary();
     const rebind_summary = try lab.recoveryRestoreQueueRebindSummary();
+    const request_queue_ownership_summary = try lab.recoveryRequestQueueOwnershipSummary();
     const ownership_summary = try lab.recoveryEventBufferOwnershipSummary();
     const rearm_summary = try lab.recoveryEventRearmSummary();
     const rollback_summary = try lab.recoveryRollbackSummary();
@@ -123,6 +126,10 @@ test "phase12 virtio scsi syntax lab keeps recovery summaries reachable through 
     try std.testing.expect(rebind_summary.recreates_control_and_event_queues);
     try std.testing.expect(rebind_summary.recreates_request_queues_before_device_ready);
     try std.testing.expect(rebind_summary.defers_event_buffers_until_after_device_ready);
+    try std.testing.expect(request_queue_ownership_summary.request_queue_access_stays_blocked_until_restore);
+    try std.testing.expect(request_queue_ownership_summary.request_queue_access_requires_replan_after_restore);
+    try std.testing.expect(request_queue_ownership_summary.poll_queues_resume_only_after_default_queues);
+    try std.testing.expect(request_queue_ownership_summary.event_rearm_completes_before_request_queue_reuse);
     try std.testing.expect(ownership_summary.event_queue_reserved_during_freeze);
     try std.testing.expect(ownership_summary.event_buffers_stay_on_event_queue);
     try std.testing.expect(ownership_summary.request_queues_cannot_borrow_event_buffers);
