@@ -41,6 +41,10 @@ pub fn alloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
     return try allocator.alloc(Word, nwords);
 }
 
+pub fn bitmapAlloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
+    return alloc(allocator, nbits);
+}
+
 pub fn bitmap_alloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
     return alloc(allocator, nbits);
 }
@@ -56,6 +60,10 @@ pub fn zalloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
     return bitmap;
 }
 
+pub fn bitmapZalloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
+    return zalloc(allocator, nbits);
+}
+
 pub fn bitmap_zalloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
     return zalloc(allocator, nbits);
 }
@@ -65,6 +73,10 @@ pub fn free(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
         allocator.free(slice);
     }
     bitmap.* = null;
+}
+
+pub fn bitmapFree(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
+    free(allocator, bitmap);
 }
 
 pub fn bitmap_free(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
