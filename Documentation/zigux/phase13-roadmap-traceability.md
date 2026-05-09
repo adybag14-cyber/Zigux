@@ -62,6 +62,8 @@ Inside that packet, the active shared replay now keeps `zigux/tests/phase13_devr
 
 That packet is truthful to the roadmap because it exposes only reviewable helper planning and explicit blocker posture. It does not overclaim live MMIO mappings, live device-tree walking, DMA-backed helpers, scatterlist ownership, or live arch memtype mutation.
 
+There is still no shipped `zigux/tests/phase13_devres_scatterlist.zig` direct-evidence shard on current `master`, so scatterlist remains blocker wording only rather than a replay surface.
+
 ## Landlock ruleset lane traceability
 
 The Phase 13 `landlock ruleset` lane remains a helper-first security packet anchored to `security/landlock/ruleset.c`.
