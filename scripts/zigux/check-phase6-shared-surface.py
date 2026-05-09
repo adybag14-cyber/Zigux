@@ -338,17 +338,33 @@ def scaffold_repo(root: Path) -> None:
                 "tranche": "leaf-helper-parity",
                 "surveyed_commit": "911470d",
                 "helpers": [
-                    {"id": "base64"},
+                    {
+                        "id": "base64",
+                        "tests": [
+                            "zigux/tests/phase6_base64.zig",
+                            "zigux/tests/phase6_base64_c_parity.zig",
+                            "zigux/tests/phase6_base64_perf.zig",
+                        ],
+                        "fixtures": [
+                            "zigux/tests/fixtures/phase6_base64_vectors.zig",
+                            "zigux/tests/fixtures/phase6_base64_c_harness.c",
+                        ],
+                        "external_parity": "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+                    },
                     {"id": "bsearch"},
                     {"id": "checksum"},
                     {"id": "hexdump"},
                 ],
-                "review_surface": [
-                    "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+                "shared_gates": [
                     "Documentation/zigux/phase6-helper-parity-catalog.md",
                     "Documentation/zigux/phase6-perf-gate-survey.md",
                     "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md",
                     "scripts/zigux/check-phase6-shared-surface.py",
+                ],
+                "review_surface": [
+                    "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+                ],
+                "exact_checks": [
                     "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
                     "python3 scripts/zigux/check-phase6-base64-c-parity.py",
                     "make -C zigux phase6-validate",
@@ -358,7 +374,6 @@ def scaffold_repo(root: Path) -> None:
                     "make -C zigux phase6-base64-perf",
                     "make -C zigux phase6-checksum-perf",
                     "make -C zigux phase6-hexdump-perf",
-                    "self-test-sentinel",
                 ],
                 "determinism_evidence": {
                     "base64": {
