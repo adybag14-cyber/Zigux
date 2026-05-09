@@ -1,6 +1,15 @@
 const std = @import("std");
 const sample = @import("kobject_example_sample");
 
+test "phase 5 kobject sample keeps the descriptor contract explicit through the focused test surface too" {
+    const descriptor = sample.KobjectExampleSample.descriptor();
+
+    try std.testing.expectEqualStrings("kobject_example", descriptor.name);
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", descriptor.anchor);
+    try std.testing.expect(!descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selfcheck);
+}
+
 test "phase 5 kobject sample keeps the anchor replay explicit through the focused test surface too" {
     var module = sample.KobjectExampleSample{};
     try module.init();
