@@ -21,6 +21,7 @@ pub const SampleFocus = enum {
     preview_truncation,
     remaining_capacity,
     queue_shape_boundaries,
+    helper_boundaries,
     reset_and_replay,
     ownership_and_lifetime,
 };
@@ -33,6 +34,7 @@ const sample_review_focus = [_]SampleFocus{
     .preview_truncation,
     .remaining_capacity,
     .queue_shape_boundaries,
+    .helper_boundaries,
     .reset_and_replay,
     .ownership_and_lifetime,
 };
@@ -40,6 +42,10 @@ const sample_review_focus = [_]SampleFocus{
 const preview_boundary_focus = [_]SampleFocus{
     .non_destructive_snapshot,
     .preview_truncation,
+};
+
+const helper_boundary_focus = [_]SampleFocus{
+    .helper_boundaries,
 };
 
 pub const sample_review_non_goals = [_][]const u8{
@@ -128,6 +134,7 @@ pub const HelperBoundarySummary = struct {
     count_after_skip: usize,
     count_after_reset: usize,
     pop_after_reset: ?u8,
+    checked_focus: []const SampleFocus,
 };
 
 pub const QueueShapeCheckpoint = struct {
@@ -167,6 +174,7 @@ pub const ShortDrainSummary = struct {
     remaining_drain: [2]u8,
     remaining_drain_count: usize,
     empty_follow_up_drain_count: usize,
+    checked_focus: []const SampleFocus,
 };
 
 pub const LifecycleSummary = struct {
@@ -377,6 +385,7 @@ pub const BytestreamFifoSample = struct {
             .count_after_skip = count_after_skip,
             .count_after_reset = count_after_reset,
             .pop_after_reset = pop_after_reset,
+            .checked_focus = &helper_boundary_focus,
         };
     }
 
@@ -458,6 +467,7 @@ pub const BytestreamFifoSample = struct {
             .remaining_drain = remaining_drain,
             .remaining_drain_count = remaining_drain_count,
             .empty_follow_up_drain_count = empty_follow_up_drain_count,
+            .checked_focus = &helper_boundary_focus,
         };
     }
 
@@ -721,6 +731,8 @@ test "bytestream fifo sample keeps bounded helper behavior without runtime claim
     try std.testing.expectEqual(@as(usize, fifo_capacity - 1), helper_replay.count_after_skip);
     try std.testing.expectEqual(@as(usize, 0), helper_replay.count_after_reset);
     try std.testing.expectEqual(@as(?u8, null), helper_replay.pop_after_reset);
+    try std.testing.expectEqual(@as(usize, 1), helper_replay.checked_focus.len);
+    try std.testing.expectEqual(SampleFocus.helper_boundaries, helper_replay.checked_focus[0]);
 
     const short_drain = sample.runShortDrainReplay();
     try std.testing.expectEqual(@as(usize, 5), short_drain.initial_copy_count);
@@ -731,6 +743,8 @@ test "bytestream fifo sample keeps bounded helper behavior without runtime claim
     try std.testing.expectEqual(@as(usize, 2), short_drain.remaining_drain_count);
     try std.testing.expectEqualSlices(u8, "lo", short_drain.remaining_drain[0..]);
     try std.testing.expectEqual(@as(usize, 0), short_drain.empty_follow_up_drain_count);
+    try std.testing.expectEqual(@as(usize, 1), short_drain.checked_focus.len);
+    try std.testing.expectEqual(SampleFocus.helper_boundaries, short_drain.checked_focus[0]);
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(SampleStage.cold, sample.stage());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
