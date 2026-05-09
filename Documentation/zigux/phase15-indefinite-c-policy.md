@@ -5,7 +5,7 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 ## Status
 
 - `PHASE15_STATUS=indefinite_c_policy_survey_landed`
-- `PHASE15_LANE_KEY=P15-Y04`
+- `PHASE15_LANE_KEY=P15-L16`
 - `PHASE15_SLICE=indefinite-c-policy-current-readback-provenance-sync`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one dedicated indefinite-C policy note, one manifest, one Zig test, the focused blocker-evidence and lane-owner-alignment replays already shipped in the shared Phase 15 build, and one dated master-readback provenance sync that keeps the stay-in-C packet honest without reopening the parity scorecard, readiness note, handoff packet, or Architecture Council review-process packet
