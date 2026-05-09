@@ -28,6 +28,28 @@ EXPECTED_HELPERS = [
     "tools/lib/zalloc.zig",
 ]
 
+EXPECTED_LANE_SEQUENCING = {
+    "shared_replay_parked_helpers": [
+        "tools/lib/argv_split.zig",
+        "tools/lib/cmdline.zig",
+        "tools/lib/ctype.zig",
+        "tools/lib/hweight.zig",
+        "tools/lib/list_sort.zig",
+        "tools/lib/slab.zig",
+        "tools/lib/str_error_r.zig",
+        "tools/lib/vsprintf.zig",
+        "tools/lib/zalloc.zig",
+    ],
+    "direct_anchor_followup_helpers": [
+        "tools/lib/bitmap.zig",
+        "tools/lib/find_bit.zig",
+        "tools/lib/rbtree.zig",
+        "tools/lib/string.zig",
+    ],
+    "rule_summary": "Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local follow-up anchors on current master.",
+    "anti_overlap_rule": "Do not reopen Phase 1 by batching helpers across those two sets in one lane; shared-replay parked helpers reopen only for packet drift, while direct-anchor helpers reopen only for their existing helper-local anchors or already-committed shared fixture keys.",
+}
+
 EXPECTED_REVIEW_ANCHORS = {
     "tools/lib/bitmap.zig": {
         "helper_test_anchors": [
@@ -377,6 +399,7 @@ CLOSURE_MARKERS = [
     "PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig",
     "PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py",
     "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
+    "PHASE1_LANE_SEQUENCING_RULE=shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string reopen only for their current helper-local anchors or already-committed shared fixture keys",
     "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior",
     "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start",
     "PHASE1_FIND_BIT_ZERO_WINDOW_REVIEW=helper-local zero-bit-window proof stays explicit through the direct find_bit test anchor so first-scan entrypoints return the empty-window boundary without reading bitmap words",
@@ -463,6 +486,8 @@ def collect_manifest_markers(manifest: object) -> list[str]:
         missing.append(f"manifest:helper_count={len(EXPECTED_HELPERS)}")
     if manifest.get("helpers") != EXPECTED_HELPERS:
         missing.append("manifest:helpers")
+    if manifest.get("lane_sequencing") != EXPECTED_LANE_SEQUENCING:
+        missing.append("manifest:lane_sequencing")
     if manifest.get("review_anchors") != EXPECTED_REVIEW_ANCHORS:
         missing.append("manifest:review_anchors")
     return missing
@@ -564,6 +589,7 @@ def make_fixture_root(root: Path) -> None:
                 "status": "closed",
                 "helper_count": len(EXPECTED_HELPERS),
                 "helpers": EXPECTED_HELPERS,
+                "lane_sequencing": EXPECTED_LANE_SEQUENCING,
                 "review_anchors": EXPECTED_REVIEW_ANCHORS,
             },
             indent=2,
@@ -631,6 +657,13 @@ def run_self_test() -> None:
 
         assert_missing_closure_marker(
             root,
+            "PHASE1_LANE_SEQUENCING_RULE=shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string reopen only for their current helper-local anchors or already-committed shared fixture keys",
+        )
+        cases += 1
+        make_fixture_root(root)
+
+        assert_missing_closure_marker(
+            root,
             "PHASE1_FIND_BIT_ZERO_SIZED_REVIEW=helper-local zero-sized short-circuit proof stays explicit through the direct find_bit test anchor so zero-sized windows ignore populated backing words and return the caller-visible boundary without dereferencing live data",
         )
         cases += 1
@@ -690,6 +723,14 @@ def run_self_test() -> None:
         manifest["helpers"] = manifest["helpers"][:-1]
         path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "manifest:helpers" in collect_missing_markers(root)
+        cases += 1
+        make_fixture_root(root)
+
+        path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        manifest["lane_sequencing"]["direct_anchor_followup_helpers"] = manifest["lane_sequencing"]["direct_anchor_followup_helpers"][:-1]
+        path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "manifest:lane_sequencing" in collect_missing_markers(root)
         cases += 1
         make_fixture_root(root)
 
@@ -834,7 +875,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + 5 + 3 + len(EXPECTED_BENCH_EXACT_CHECKSUMS) + len(REQUIRED_FIND_BIT_BENCH_ITERATIONS) + len(REQUIRED_FIND_BIT_BENCH_EXACT_CHECKSUMS)}"
+        f"{len(CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + 6 + 3 + len(EXPECTED_BENCH_EXACT_CHECKSUMS) + len(REQUIRED_FIND_BIT_BENCH_ITERATIONS) + len(REQUIRED_FIND_BIT_BENCH_EXACT_CHECKSUMS)}"
     )
     return 0
 
