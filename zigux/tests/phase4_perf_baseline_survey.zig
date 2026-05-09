@@ -393,3 +393,31 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
     try std.testing.expect(saw_bitmap_acceptable_limit_gap);
     try std.testing.expect(saw_shared_promotion_decision_gap);
 }
+
+test "phase4 perf baseline survey keeps the shared matrix on the current local-only perf posture" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const phase4_matrix = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase4-validation-matrix.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(phase4_matrix);
+
+    const required_matrix_markers = [_][]const u8{
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+        "zigux/tests/phase4_perf_baseline_survey.zig",
+        "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+        "local_only_commands_and_limits_approved_shared_ci_perf_promotion_pending",
+        "The dedicated perf-baseline survey stays outside the shared `phase4-test` entrypoint",
+        "the approved local benchmark commands and the approved local-only acceptable limits for both rollback gates explicit until a later Phase 4 lane intentionally decides whether any broader shared perf promotion belongs in the shipped packet.",
+        "the dedicated perf-baseline survey may keep the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked",
+        "keep the current local-only acceptable limits survey-only until a later bounded lane intentionally decides whether the existing bounds should stay local-only or support a broader shared CI perf-coverage claim",
+    };
+
+    for (required_matrix_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, marker) != null);
+    }
+}
