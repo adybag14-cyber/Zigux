@@ -18,16 +18,16 @@ This document records the shared Phase 14 smoke lane that keeps the current stud
 - `PHASE14_SMOKE_BUILD_ENTRYPOINT=zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
 - `PHASE14_COMBINED_ENTRYPOINT=make -C zigux phase14`
 - `PHASE14_ANCHOR_PACKET_COUNT=4`
-- `PHASE14_SHARED_SURFACE_COUNT=28`
+- `PHASE14_SHARED_SURFACE_COUNT=29`
 - `PHASE14_DOC_SURFACE_COUNT=6`
 - `PHASE14_SCRIPT_SURFACE_COUNT=5`
-- `PHASE14_TEST_SURFACE_COUNT=12`
+- `PHASE14_TEST_SURFACE_COUNT=13`
 - `PHASE14_BRIDGE_ROOT_SURFACE_COUNT=3`
 - `PHASE14_WORKFLOW_SURFACE_COUNT=1`
 - `PHASE14_MAKEFILE_SURFACE_COUNT=1`
-- `PHASE14_COMPILE_ARTIFACT_COUNT=5`
+- `PHASE14_COMPILE_ARTIFACT_COUNT=6`
 - `PHASE14_FOCUSED_SHARD_COUNT=1`
-- `PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4`
+- `PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=5`
 - `PHASE14_STAY_IN_C_BOUNDARY=explicit`
 - `PHASE14_REVIEW_BLOCKER_STATUS=blocked_on_stay_in_c_evidence`
 - `PHASE14_STATUS_CHANGE_CLAIM=no`
@@ -50,6 +50,7 @@ Shared smoke boundary:
 - `zigux/tests/README.md`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_workqueue_bridge.zig`
+- `zigux/tests/phase14_workqueue_reviewability.zig`
 - `zigux/tests/phase14_workqueue_bridge_manifest.json`
 - `zigux/tests/phase14_skbuff_bridge.zig`
 - `zigux/tests/phase14_skbuff_bridge_manifest.json`
@@ -98,7 +99,7 @@ Shared surface breakdown:
 
 - docs surfaces: `6`
 - script surfaces: `5`
-- test surfaces: `12`
+- test surfaces: `13`
 - bridge-root surfaces: `3`
 - workflow surfaces: `1`
 - Makefile wrapper surfaces: `1`
@@ -106,6 +107,7 @@ Shared surface breakdown:
 Compile coverage matrix:
 
 - `phase14-workqueue-bridge-tests`: root `phase14_workqueue_bridge.zig`, coverage `full_bundle_only`
+- `phase14-workqueue-reviewability-tests`: root `phase14_workqueue_reviewability.zig`, coverage `full_bundle_only`
 - `phase14-skbuff-bridge-tests`: root `phase14_skbuff_bridge.zig`, coverage `full_bundle_only`
 - `phase14-ring-buffer-survey-tests`: root `phase14_ring_buffer_survey.zig`, coverage `full_bundle_only`
 - `phase14-rcu-tree-survey-tests`: root `phase14_rcu_tree_survey.zig`, coverage `full_bundle_only`
@@ -125,8 +127,9 @@ Anchor packets in the current smoke bundle:
 - The docs-root smoke-summary checker now also keeps this shared smoke note and the manifest-backed packet inventory tied to the shipped `phase14-validate` route instead of leaving that check implicit in `zigux/Makefile` alone.
 - `Documentation/zigux/phase14-core-boundary-traceability.md` keeps the current ring-buffer, skbuff, and RCU lane keys, surveyed commits, ready-next posture, blocked gaps, and stay-in-C decisions visible in one cross-anchor note instead of leaving that boundary evidence to separate lane notes or run memory alone.
 - The shared smoke packet now names the full review-only bridge root set beside the ring-buffer survey root: `kernel/workqueue_bridge.zig`, `net/core/skbuff_bridge.zig`, `kernel/rcu/tree_bridge.zig`, and `phase14_ring_buffer_survey.zig`.
-- The shared smoke packet now records the exact live surface split in one place: 28 total surfaces made up of 6 docs, 5 scripts, 12 tests, 3 bridge roots, 1 workflow route, and 1 Makefile wrapper.
-- `zigux/tests/phase14_build.zig` keeps one dedicated smoke shard for `phase14-end-to-end-smoke-tests`, while the four anchor-local artifacts remain `full_bundle_only` under the broader Phase 14 test replay.
+- The shared smoke packet now records the exact live surface split in one place: 29 total surfaces made up of 6 docs, 5 scripts, 13 tests, 3 bridge roots, 1 workflow route, and 1 Makefile wrapper.
+- `zigux/tests/phase14_build.zig` keeps one dedicated smoke shard for `phase14-end-to-end-smoke-tests`, while the four anchor-local artifacts plus the workqueue reviewability guard remain `full_bundle_only` under the broader Phase 14 test replay.
+- `zigux/tests/phase14_workqueue_reviewability.zig` is part of that full-bundle matrix and now appears explicitly in the shared compile-shard packet instead of staying implicit inside `zigux/tests/phase14_build.zig` alone.
 - `Documentation/zigux/freeze-map.md` still names the same four anchors, so the packet stays grounded in stay-in-C and blocked-evidence posture instead of drifting toward an implementation claim.
 - `Documentation/zigux/phase14-ring-buffer-survey.md` and `zigux/tests/phase14_ring_buffer_manifest.json` agree on lane `P14-L08` at surveyed commit `946d5c73fdb763ba860a20879b05da54e1896e8c`, keeping the ring-buffer anchor study-only while carrying the landed exported-page copy-path audit instead of any `kernel/trace/ring_buffer.zig` claim.
 - This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.
