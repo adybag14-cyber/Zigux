@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
-- `PHASE9_SURVEYED_COMMIT=5a88aec1d9c12e11745cb125b7c7fa56fd5e85f2`
+- `PHASE9_SURVEYED_COMMIT=677b836ed1fb334493e877a77fa89a2ea5572b9b`
 - `PHASE9_LANE_KEY=P9-L13`
 - scope: survey manifest, starter sample, dedicated module, survey, and diff gates, the bounded loader-handoff scaffold, the focused `phase9-runtime-kretprobe-tests` build step, and explicit adjacency to the separate shared runtime-loader lane that owns the facade, contract, allocator/init-flow replay, focused shared runtime-loader shard, and the workflow-backed `make -C zigux phase9` route
 - product boundary:
@@ -36,6 +36,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - the bounded runtime kretprobe sample and diff gate also keep overlapping entry stamps distinct under concurrent load, so the pilot records per-instance return timing instead of collapsing nested returns into one shared timestamp path.
 - the loader handoff also keeps the loader-owned prepared handoff snapshot explicit: once `prepare()` or `prepareSharedRequest()` captures an idle registration snapshot, later sample mutation or late selftest activity can be inspected separately but must not rewrite that parked handoff plan before runtime-substrate review.
 - the same loader-owned snapshot remains the post-release review surface after `releaseWithoutSubstrate()` or `releaseSharedWithoutSubstrate()` closes the waiting state without a real runtime substrate, so the pilot still records one consistent owner for the parked registration metadata instead of switching to a second release-only note path.
+- the shared runtime-loader contract now also keeps release-side prepared-plan drift explicit: after a prepared request reaches `waiting_on_runtime_substrate`, `releaseWithoutSubstrate()` still rejects mutated init-flow or exit-symbol plans and preserves the original prepared snapshot instead of silently advancing teardown.
 - the loader handoff now also fail-closes prepared shared-request selftest-hook drift plus direct initialized-stage and selftest-complete shared-plan selftest-hook drift before any live registration claim, and it keeps loader-versus-shared-request release state synchronized when `releaseSharedWithoutSubstrate()` is attempted before the shared request reaches `waiting_on_runtime_substrate`.
 - the live repo also carries `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and the focused `phase9-runtime-loader-shared-tests` build step, so allocator handoff, init-flow counts, release-without-substrate behavior, and shared-request drift stay reviewable beside the kretprobe starter packet instead of hiding only inside the shared build.
 - the newer `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` now keeps those shared `runtime_loader`, `runtime_loader_contract`, `runtime_loader_allocator_init_flow`, and `phase9-runtime-loader-shared-tests` surfaces under the separate shared loader lane rather than inside the kretprobe pilot lane.
