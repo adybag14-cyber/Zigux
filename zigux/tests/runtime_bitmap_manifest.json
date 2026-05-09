@@ -14,6 +14,13 @@
     "preexisting_phase9_build_present": true,
     "preexisting_runtime_bitmap_doc_present": true
   },
+  "roadmap_gap_summary": {
+    "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
+    "landed_pilot_state": "starter_landed_without_loadable_runtime_substrate",
+    "missing_capability": "shared runtime substrate that can turn the bounded init, selftest, and exit handoff plan into a real loadable module path",
+    "blocked_deliverable": "loadable Phase 9 runtime bitmap pilot module parity",
+    "next_gate": "keep the sample, survey, module slice, top-bit companion, and shared loader-contract handoff packet explicit until the shared runtime loader can consume the prepared bitmap plan"
+  },
   "gaps": [
     {
       "id": "phase9-build-gate",
