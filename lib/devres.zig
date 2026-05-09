@@ -688,3 +688,60 @@ test "managed ioport unmap release misses are warnable" {
     try std.testing.expect(!plan.release_matches);
     try std.testing.expect(plan.warns_on_release_miss);
 }
+
+test "managed ioremap resource malformed ranges stay in invalid-resource shaping" {
+    const outcome = try DevresHelperLab.planManagedIoremapResource(std.testing.allocator, .{
+        .device_name = "uart-bad-range",
+        .resource = .{
+            .start = 0x6100,
+            .end = 0x60ff,
+            .is_memory = true,
+            .nonposted = true,
+            .name = "regs",
+        },
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqualStrings("lib/devres.c", failure.anchor);
+            try std.testing.expectEqual(ErrorStage.invalid_resource, failure.stage);
+            try std.testing.expectEqual(ErrorCode.invalid, failure.error_code);
+            try std.testing.expectEqual(IoremapType.np, failure.effective_type);
+            try std.testing.expect(!failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+        },
+    }
+}
+
+test "device-tree ioremap malformed ranges stay in address-translation shaping" {
+    const resources = [_]Resource{.{
+        .start = 0xc100,
+        .end = 0xc0ff,
+        .is_memory = true,
+        .nonposted = true,
+        .name = "broken",
+    }};
+
+    const outcome = try DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
+        .device_name = "spi-bad-range",
+        .index = 0,
+        .resources = &resources,
+        .report_size = true,
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqualStrings("lib/devres.c", failure.anchor);
+            try std.testing.expectEqual(DeviceTreeIomapStage.address_translation, failure.stage);
+            try std.testing.expectEqual(ErrorCode.invalid, failure.error_code);
+            try std.testing.expectEqual(@as(usize, 0), failure.index);
+            try std.testing.expectEqual(@as(?u64, null), failure.reported_size);
+            try std.testing.expectEqual(IoremapType.np, failure.effective_type);
+            try std.testing.expect(!failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+            try std.testing.expectEqual(@as(?ErrorStage, null), failure.resource_stage);
+        },
+    }
+}
