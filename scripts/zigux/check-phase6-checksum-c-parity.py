@@ -29,7 +29,9 @@ EXPECTED_SORTED_LINES = sorted(
         "compose\teven split\t0x00000e7b",
         "compose\todd split\t0x00000e7b",
         "tcpudp-nofold\tudp pseudo header\t0x000085e4",
+        "tcpudp-magic\tudp pseudo header\t0x7a1b",
         "tcpudp-v6-nofold\tudp pseudo header v6\t0x0000c388",
+        "tcpudp-v6-magic\tudp pseudo header v6\t0x3c77",
         "negate\tzero stays zero\t0x00000000",
         "negate\tone negates to all ones\t0xffffffff",
         "negate\tall ones negates to one\t0x00000001",
@@ -90,36 +92,36 @@ def run_checked(cmd: list[str]) -> subprocess.CompletedProcess[str]:
 def build_zig_build_text() -> str:
     return textwrap.dedent(
         f"""
-        const std = @import(\"std\");
+        const std = @import("std");
 
         pub fn build(b: *std.Build) void {{
             const target = b.standardTargetOptions(.{{}});
             const optimize = b.standardOptimizeOption(.{{}});
 
             const checksum_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{HELPER_SOURCE}\" }},
+                .root_source_file = .{{ .cwd_relative = "{HELPER_SOURCE}" }},
                 .target = target,
                 .optimize = optimize,
             }});
             const fixtures_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{FIXTURE_SOURCE}\" }},
+                .root_source_file = .{{ .cwd_relative = "{FIXTURE_SOURCE}" }},
                 .target = target,
                 .optimize = optimize,
             }});
             const root_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{ZIG_RUNNER}\" }},
+                .root_source_file = .{{ .cwd_relative = "{ZIG_RUNNER}" }},
                 .target = target,
                 .optimize = optimize,
             }});
-            root_module.addImport(\"checksum\", checksum_module);
-            root_module.addImport(\"phase6_checksum_vectors\", fixtures_module);
+            root_module.addImport("checksum", checksum_module);
+            root_module.addImport("phase6_checksum_vectors", fixtures_module);
 
             const exe = b.addExecutable(.{{
-                .name = \"phase6-checksum-c-parity\",
+                .name = "phase6-checksum-c-parity",
                 .root_module = root_module,
             }});
             const run = b.addRunArtifact(exe);
-            const step = b.step(\"run\", \"Run Phase 6 checksum C parity spot check\");
+            const step = b.step("run", "Run Phase 6 checksum C parity spot check");
             step.dependOn(&run.step);
         }}
         """
@@ -196,7 +198,7 @@ def run_self_test() -> int:
         and str(ZIG_RUNNER) in build_text,
         True,
     )
-    assert_equal("expected_surface_case_count", len(EXPECTED_SORTED_LINES), 39)
+    assert_equal("expected_surface_case_count", len(EXPECTED_SORTED_LINES), 41)
     assert_equal(
         "sorted_lines",
         sorted_lines("partial\tseeded\t0x00000001\ncompute\tempty\t0xffff\n"),
