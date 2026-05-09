@@ -14,6 +14,7 @@ This matrix keeps the active Phase 12 release-facing packet explicit beside the 
 - shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - driver-only anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
 - shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
+- shared scripts-root and tests-root packet reminders: `scripts/zigux/README.md` and `zigux/tests/README.md`
 - freeze-boundary authority: `Documentation/zigux/freeze-map.md`
 - the `libbpf` survey remains parked shared-helper evidence inside this active release packet, so PMO notes must keep both the survey and the heavy-consumer anti-overlap companion explicit without implying a reopened helper-implementation lane
 - deterministic libbpf artifact companions: `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, and `zigux/tests/phase12_libbpf_snapshot_determinism.zig` keep the tracked-helper snapshot bytes plus committed digest fixture and replay explicit inside that same parked shared-helper evidence
