@@ -194,6 +194,12 @@ def run_self_test() -> int:
         fake_make_path = fake_make_dir / "make"
         fake_make_env = os.environ.copy()
         fake_make_env["PATH"] = f"{fake_make_dir}:{fake_make_env['PATH']}"
+        case_count = 0
+
+        def expect_failure_case(label: str, expected_message: str) -> None:
+            nonlocal case_count
+            expect_failure(label, tmp_root, fake_make_env, expected_message)
+            case_count += 1
 
         make_fake_make(fake_make_path, EXPECTED_MAKE_EXPANSIONS)
         failures = collect_failures(tmp_root, env=fake_make_env)
@@ -213,10 +219,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "missing_make_wrapper_selftest",
-            tmp_root,
-            fake_make_env,
             "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
         )
 
@@ -230,10 +234,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "duplicate_make_wrapper_selftest",
-            tmp_root,
-            fake_make_env,
             "phase7-validate: expected wrapper expansion count drift: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test (2 != 1)",
         )
 
@@ -249,10 +251,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "missing_make_wrapper_alignment_selftest",
-            tmp_root,
-            fake_make_env,
             "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
         )
 
@@ -266,10 +266,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "duplicate_make_wrapper_alignment_selftest",
-            tmp_root,
-            fake_make_env,
             "phase7-validate: expected wrapper expansion count drift: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test (2 != 1)",
         )
 
@@ -285,10 +283,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "missing_make_wrapper_alignment_live",
-            tmp_root,
-            fake_make_env,
             "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         )
 
@@ -302,10 +298,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "duplicate_make_wrapper_alignment_live",
-            tmp_root,
-            fake_make_env,
             "phase7-validate: expected wrapper expansion count drift: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py (2 != 1)",
         )
 
@@ -320,10 +314,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "missing_build_wiring_selftest",
-            tmp_root,
-            fake_make_env,
             "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
         )
 
@@ -337,10 +329,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "duplicate_build_wiring_selftest",
-            tmp_root,
-            fake_make_env,
             "phase7-validate: expected wrapper expansion count drift: python3 scripts/zigux/check-phase7-build-wiring.py --self-test (2 != 1)",
         )
 
@@ -354,10 +344,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "duplicate_phase7_test_wrapper_line",
-            tmp_root,
-            fake_make_env,
             "phase7-test: expected wrapper expansion count drift: zig build test --build-file zigux/tests/phase7_build.zig --summary all (2 != 1)",
         )
 
@@ -370,10 +358,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "stale_unsummarized_phase7_test",
-            tmp_root,
-            fake_make_env,
             "phase7-test: missing expected wrapper expansion: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
         )
 
@@ -387,10 +373,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "stale_validator_in_phase7_test",
-            tmp_root,
-            fake_make_env,
             "phase7-test: unexpected wrapper expansion: python3 scripts/zigux/validate-phase7.py",
         )
 
@@ -404,10 +388,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "stale_alignment_checker_in_phase7_test",
-            tmp_root,
-            fake_make_env,
             "phase7-test: unexpected wrapper expansion: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
         )
 
@@ -421,10 +403,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "stale_build_wiring_in_phase7_test",
-            tmp_root,
-            fake_make_env,
             "phase7-test: unexpected wrapper expansion: python3 scripts/zigux/check-phase7-build-wiring.py",
         )
 
@@ -438,10 +418,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "stale_inventory_checker_in_phase7_validate",
-            tmp_root,
-            fake_make_env,
             "phase7-validate: unexpected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
         )
 
@@ -456,10 +434,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "stale_inventory_checker_in_phase7_bundle",
-            tmp_root,
-            fake_make_env,
             "phase7: unexpected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py",
         )
 
@@ -473,10 +449,8 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "stale_shared_build_in_phase7_bundle",
-            tmp_root,
-            fake_make_env,
             "phase7: unexpected wrapper expansion: zig build test --build-file zigux/tests/build.zig",
         )
 
@@ -491,15 +465,13 @@ def run_self_test() -> int:
                 ],
             },
         )
-        expect_failure(
+        expect_failure_case(
             "phase7_order_drift",
-            tmp_root,
-            fake_make_env,
             "phase7: wrapper expansion order drift: expected 'python3 scripts/zigux/validate-phase7.py --self-test' before 'python3 scripts/zigux/validate-phase7.py'",
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=17")
+    print(f"PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
