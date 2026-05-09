@@ -190,6 +190,10 @@ pub fn memchrInv(buf: []const u8, value: u8) ?usize {
     return null;
 }
 
+pub fn memchr_inv(buf: []const u8, value: u8) ?usize {
+    return memchrInv(buf, value);
+}
+
 fn cStringLen(buf: []const u8) usize {
     for (buf, 0..) |ch, idx| {
         if (ch == 0) {
@@ -550,6 +554,16 @@ test "memdup and memchrInv preserve byte content" {
     try std.testing.expectEqualStrings("zigux", duplicated);
     try std.testing.expectEqual(@as(?usize, 4), memchrInv("aaaaXaaa", 'a'));
     try std.testing.expectEqual(@as(?usize, null), memchrInv("bbbb", 'b'));
+}
+
+test "memchr_inv mirrors memchrInv byte-search semantics" {
+    try std.testing.expectEqual(memchrInv("aaaaXaaa", 'a'), memchr_inv("aaaaXaaa", 'a'));
+    try std.testing.expectEqual(memchrInv("bbbb", 'b'), memchr_inv("bbbb", 'b'));
+
+    var zero_dirty = [_]u8{0} ** 24;
+    zero_dirty[8] = 1;
+    zero_dirty[15] = 2;
+    try std.testing.expectEqual(memchrInv(&zero_dirty, 0), memchr_inv(&zero_dirty, 0));
 }
 
 test "memchrInv keeps long-buffer first-dirty-byte results stable" {
