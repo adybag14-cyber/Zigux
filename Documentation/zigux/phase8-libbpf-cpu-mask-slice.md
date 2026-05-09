@@ -55,6 +55,7 @@ The current starter slice covers:
 - an injected chunk-reader interface that can assemble buffered sysfs-style input without touching real file descriptors
 - dense `[]bool` mask materialization for future tooling callers
 - counted possible-CPU reporting over the parsed mask
+- counted possible-CPU reporting stays bounded to parsed `/sys/devices/system/cpu/possible`-style text and does not yet claim deferred perf-buffer auto-CPU sizing, auto-budget clamp behavior, or cached `libbpf_num_possible_cpus()` state
 
 The current tests check:
 
@@ -73,8 +74,10 @@ This slice does not yet claim:
 - direct `parse_cpu_mask_file()` parity
 - real file-descriptor I/O
 - `libbpf_num_possible_cpus()` caching or `READ_ONCE`/`WRITE_ONCE` behavior
+- pure online-CPU eligibility filtering from `/sys/devices/system/cpu/online`
+- deferred `perf-buffer-online-cpu-routing` auto-CPU sizing or auto-budget clamp behavior
 - perf-buffer or feature-probe integration
 
 ## Next bounded step
 
-Park `tools/lib/bpf/zigux_segments/cpu_mask.zig` unless fresh repo review finds another tiny same-surface truthfulness or parity gap; otherwise keep later libbpf follow-up in sibling helper-only segments, keep the shared `make -C zigux phase8-validate` route aligned with this parked cpu-mask packet, and do not reopen file I/O, caching, perf-buffer, or feature-probe behavior from this note.
+Park `tools/lib/bpf/zigux_segments/cpu_mask.zig` unless fresh repo review finds another tiny same-surface truthfulness or parity gap; otherwise keep later libbpf follow-up in sibling helper-only segments, keep the shared `make -C zigux phase8-validate` route aligned with this parked cpu-mask packet plus the explicit deferred routing boundary, and do not reopen file I/O, caching, pure online-CPU eligibility, perf-buffer auto-routing, or feature-probe behavior from this note.
