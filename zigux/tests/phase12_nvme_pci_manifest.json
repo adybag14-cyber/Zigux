@@ -134,6 +134,13 @@
       "why_now": "The landed recovery rebuild-progress helper now exposes the initial, retired, and remaining dropped I/O queue counts plus the admin replay gate that still blocks backlog retirement, so the packet can report recovery pressure directly before it claims any queue-creation or transport parity."
     },
     {
+      "id": "phase12-nvme-pci-recovery-backlog-retirement-helper",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/nvme/host/pci.zig",
+      "why_now": "The landed bounded backlog-retirement helper can retire a rebuilt subset of the dropped-I/O queue backlog after reset once the admin queue has been replayed and replacement queue plans exist, while keeping that progress as recovery bookkeeping rather than claiming live queue creation, timeout recovery, or transport-backed completion."
+    },
+    {
       "id": "phase12-nvme-pci-recovery-replay-helper",
       "status": "starter_landed",
       "kind": "complex_driver_starter",
