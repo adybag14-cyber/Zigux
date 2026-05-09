@@ -255,6 +255,8 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         "samples/kfifo/bytestream-example.c",
         "phase5_bytestream_fifo_manifest.json",
         "phase5_build.zig",
+        "`StorageBacking.embedded_fixed_buffer`",
+        "bounded fixed-buffer ring",
         "runtime_atomic64.zig",
         "runtime_atomic64_loader.zig",
         "runtime_bitmap.zig",
