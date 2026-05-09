@@ -14,7 +14,7 @@ The current helper lab stays intentionally narrow:
 - adds one matched-rule replacement planner for the merged-layer branch so the `create_rule()` plus `rb_replace_node()` handoff is reviewable as a pure in-memory rule-shape and rule-count update before any old-rule cleanup or live object ownership is claimed
 - makes the lane's fail-closed policy explicit by rejecting empty-access level-zero extensions, retained root-search state, and attachment plans with no recorded descent before any tree-link handoff is treated as reviewable
 
-The dedicated ownership note in `Documentation/zigux/phase13-landlock-ruleset-ownership.md` keeps the helper boundary explicit and requires the slice note, survey note, manifest, and test gate to move together whenever this helper packet changes.
+The dedicated ownership note in `Documentation/zigux/phase13-landlock-ruleset-ownership.md` keeps the helper boundary explicit and requires the ownership note, slice note, survey note, manifest, dedicated test gate, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py` to move together whenever this helper packet changes.
 
 This slice does not claim rb-tree mutation, object references, rule insertion, hierarchy allocation, merge or inherit behavior, workqueue-backed deferred frees, or any live Landlock hook integration.
 
