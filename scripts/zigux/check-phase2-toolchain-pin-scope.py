@@ -146,6 +146,15 @@ TOOLCHAIN_TARGET_REQUIRED_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
 ]
+REPO_LOCAL_ZIG_FALLBACK_REQUIRED_LINES = [
+    "REPO_LOCAL_ZIG := $(lastword $(sort $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig $(ZIGUX_ROOT)/.zig-toolchain/*/zig.exe $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig.exe)))",
+    "ifeq ($(origin ZIG), undefined)",
+    "ifneq ($(REPO_LOCAL_ZIG),)",
+    "export PATH := $(dir $(REPO_LOCAL_ZIG)):$(PATH)",
+    "endif",
+    "endif",
+    "ZIG ?= $(if $(REPO_LOCAL_ZIG),$(REPO_LOCAL_ZIG),zig)",
+]
 
 EXACT_SURFACE_COUNTS = {
     "scripts_readme": {
@@ -379,6 +388,25 @@ def validate_toolchain_target_scope(text: str) -> list[str]:
     return issues
 
 
+def validate_repo_local_zig_fallback(text: str) -> list[str]:
+    issues: list[str] = []
+    lines = text.splitlines()
+    anchor = REPO_LOCAL_ZIG_FALLBACK_REQUIRED_LINES[0]
+    anchors = [index for index, line in enumerate(lines) if line == anchor]
+    if len(anchors) != 1:
+        issues.append(f"makefile_repo_local_zig_anchor_count:count={len(anchors)}:expected=1")
+        return issues
+
+    start = anchors[0]
+    actual = lines[start : start + len(REPO_LOCAL_ZIG_FALLBACK_REQUIRED_LINES)]
+    if actual != REPO_LOCAL_ZIG_FALLBACK_REQUIRED_LINES:
+        issues.append(
+            "makefile_repo_local_zig_block:"
+            f"actual={actual!r}:expected={REPO_LOCAL_ZIG_FALLBACK_REQUIRED_LINES!r}"
+        )
+    return issues
+
+
 def run_self_test() -> int:
     valid_policy = {
         "phase": "Phase 2",
@@ -496,6 +524,7 @@ def run_self_test() -> int:
 
     valid_makefile = "\n".join(
         [
+            *REPO_LOCAL_ZIG_FALLBACK_REQUIRED_LINES,
             "phase2-toolchain:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -507,6 +536,11 @@ def run_self_test() -> int:
     assert validate_required_markers(valid_makefile, label="phase2_makefile", markers=MAKEFILE_MARKERS) == []
     assert validate_exact_makefile_runs(valid_makefile) == []
     assert validate_toolchain_target_scope(valid_makefile) == []
+    assert validate_repo_local_zig_fallback(valid_makefile) == []
+    missing_repo_local_fallback = validate_repo_local_zig_fallback(
+        valid_makefile.replace("export PATH := $(dir $(REPO_LOCAL_ZIG)):$(PATH)\n", "", 1)
+    )
+    assert any(issue.startswith("makefile_repo_local_zig_block:") for issue in missing_repo_local_fallback)
 
     workflow_text = "\n".join(
         [
@@ -545,6 +579,7 @@ def run_self_test() -> int:
     )
     leaked_scope = "\n".join(
         [
+            *REPO_LOCAL_ZIG_FALLBACK_REQUIRED_LINES,
             "phase2-toolchain:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
             "phase2-validate: phase2-toolchain",
@@ -577,7 +612,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
@@ -654,6 +689,7 @@ def main() -> int:
     issues.extend(validate_required_markers(makefile_text, label="phase2_makefile", markers=MAKEFILE_MARKERS))
     issues.extend(validate_exact_makefile_runs(makefile_text))
     issues.extend(validate_toolchain_target_scope(makefile_text))
+    issues.extend(validate_repo_local_zig_fallback(makefile_text))
 
     issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8"), payload=policy_payload))
 
