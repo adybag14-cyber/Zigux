@@ -17,7 +17,7 @@ test "phase 8 kallsyms slice note keeps the current nullable parser contract exp
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "weak-object `V` and `v` classes still follow the current C header contract"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "preserving raw carriage returns before newline"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "caller-owned file-handle boundary explicit"));
-    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "make -C zigux phase8-help-kallsyms-test"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "make -C zigux phase8-kallsyms-test"));
 }
 
 test "phase 8 kallsyms direct parser stays nullable while truncating oversized names" {
