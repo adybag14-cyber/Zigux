@@ -43,7 +43,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase13 notifier/list survey records the landed adjacent notifier header surface" {
+test "phase13 notifier/list survey records the landed hvc interop anchor" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
@@ -56,6 +56,7 @@ test "phase13 notifier/list survey records the landed adjacent notifier header s
     const packet_checker_text = try readRepoFile(allocator, "scripts/zigux/check-phase13-notifier-packet.py");
     const exported_abi_text = try readRepoFile(allocator, "include/zigux/abi.h");
     const exported_notifier_abi_text = try readRepoFile(allocator, "include/zigux/notifier_abi.h");
+    const hvc_interop_text = try readRepoFile(allocator, "drivers/tty/hvc/hvc_console.h");
     const phase13_build_text = try readRepoFile(allocator, "zigux/tests/phase13_build.zig");
     const survey_note = try readRepoFile(allocator, "Documentation/zigux/phase13-notifier-list-survey.md");
 
@@ -68,10 +69,11 @@ test "phase13 notifier/list survey records the landed adjacent notifier header s
     try std.testing.expectEqualStrings("P13-L18", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("23d15e44622d2cedd7691c88f78709db6bf1eb7e", manifest.surveyed_commit);
-    try std.testing.expectEqual(@as(usize, 3), manifest.anchors.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqualStrings("include/linux/list.h", manifest.anchors[0]);
     try std.testing.expectEqualStrings("include/linux/notifier.h", manifest.anchors[1]);
     try std.testing.expectEqualStrings("include/zigux/abi.h", manifest.anchors[2]);
+    try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.h", manifest.anchors[3]);
 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_notifier_binding_present);
@@ -101,10 +103,18 @@ test "phase13 notifier/list survey records the landed adjacent notifier header s
     try expectContains(exported_notifier_abi_text, "zigux_notifier");
     try expectContains(exported_notifier_abi_text, "zigux_notifier_chain_empty");
     try expectContains(exported_notifier_abi_text, "ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING");
+    try expectContains(hvc_interop_text, "struct list_head next;");
+    try expectContains(hvc_interop_text, "int (*notifier_add)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_interop_text, "void (*notifier_del)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_interop_text, "void (*notifier_hangup)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_interop_text, "extern int notifier_add_irq(struct hvc_struct *hp, int data);");
+    try expectContains(hvc_interop_text, "extern void notifier_del_irq(struct hvc_struct *hp, int data);");
+    try expectContains(hvc_interop_text, "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);");
     try std.testing.expect(std.mem.indexOf(u8, phase13_build_text, "phase13_notifier") == null);
     try expectContains(survey_note, "lane key: `P13-L18`");
     try expectContains(survey_note, "surveyed commit: `23d15e44622d2cedd7691c88f78709db6bf1eb7e`");
     try expectContains(survey_note, "`include/zigux/notifier_abi.h` is now shipped as adjacent notifier interop evidence");
+    try expectContains(survey_note, "`drivers/tty/hvc/hvc_console.h` still shows the concrete interop anchor");
     try expectContains(survey_note, "`zigux/helpers/notifier_chain_view.zig` now provides the matching read-only notifier-chain summary helpers");
     try expectContains(survey_note, "`scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet");
     try expectContains(survey_note, "shared Phase 13 build intentionally omits this packet");
