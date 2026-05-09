@@ -72,6 +72,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.",
     "`zigux/unsafe/narrow.zig` now also mirrors the panic and allocator helper style with typed `InteropPolicy` entry points through `scopeFromInteropPolicy`, `recognizesInteropPolicy`, `permitsNoUnsafeInteropPolicy`, `permitsVolatileMmioInteropPolicy`, and `permitsRawPointerBridgeInteropPolicy` so shared callers do not have to split unsafe-scope bytes out by hand before checking the bounded unsafe contract.",
     "`zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, `write32()`, `read64()`, and `write64()` rather than widening into a larger policy substrate.",
+    "`zigux/helpers/mmio.zig` now also mirrors the Phase 3 policy helpers with explicit `InteropPolicy`-gated `range`, `read*`, and `write*` entry points instead of forcing volatile MMIO callers to re-check unsafe-scope bytes outside the helper before using the bounded pointer bridge.",
     "`scripts/zigux/check-phase3-policy-byte-guards.py` now gives the shared policy-and-unsafe survey validator a dedicated reserved-byte and typed-wrapper guard across the policy helpers, this survey note, and the explicit shared dump gate, so the existing `phase3-validate` path fails closed on policy-byte drift instead of leaving that contract implicit.",
 )
 
@@ -361,14 +362,24 @@ def run_self_test() -> int:
         assert "missing_marker:PHASE3_POLICY_BYTE_GUARD=python3 scripts/zigux/check-phase3-policy-byte-guards.py" in issues
 
         build_valid_workspace(root)
-        missing_guard_wording = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+        missing_mmio_policy_wording = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
             REQUIRED_SURVEY_SNIPPETS[6] + "\n",
+            "",
+            1,
+        )
+        write_file(root / SURVEY_REL, missing_mmio_policy_wording)
+        issues = validate(root)
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[6]}" in issues
+
+        build_valid_workspace(root)
+        missing_guard_wording = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            REQUIRED_SURVEY_SNIPPETS[7] + "\n",
             "",
             1,
         )
         write_file(root / SURVEY_REL, missing_guard_wording)
         issues = validate(root)
-        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[6]}" in issues
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[7]}" in issues
 
         build_valid_workspace(root)
         missing_survey_snippet = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
@@ -456,7 +467,7 @@ def run_self_test() -> int:
         assert "policy_byte_guard_exit:1" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=15")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
