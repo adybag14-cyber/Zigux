@@ -3,7 +3,7 @@
 
 Fail-closed checker for the shared Phase 14 release-boundary exact counts.
 This packet keeps the shared smoke release note aligned with the roadmap, freeze map,
-and manifest anchor-governance split.
+manifest surface accounting, and manifest anchor-governance split.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ import argparse
 import json
 import sys
 import tempfile
+from collections import Counter
 from pathlib import Path
 
 MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
@@ -22,6 +23,15 @@ REQUIRED_COUNTS = {
     "PHASE14_FREEZE_IN_C_GOVERNED_COUNT": 2,
     "PHASE14_SHARED_SMOKE_GATE_COUNT": 1,
     "PHASE14_ACTIVE_DELIVERY_GATE_COUNT": 0,
+}
+EXPECTED_SURFACE_COUNTS = {
+    "PHASE14_SHARED_SURFACE_COUNT": 28,
+    "PHASE14_DOC_SURFACE_COUNT": 6,
+    "PHASE14_SCRIPT_SURFACE_COUNT": 5,
+    "PHASE14_TEST_SURFACE_COUNT": 12,
+    "PHASE14_BRIDGE_ROOT_SURFACE_COUNT": 3,
+    "PHASE14_WORKFLOW_SURFACE_COUNT": 1,
+    "PHASE14_MAKEFILE_SURFACE_COUNT": 1,
 }
 ROADMAP_PHASE14_ANCHORS = [
     "kernel/workqueue.c",
@@ -53,6 +63,11 @@ MANIFEST_BLOCKED_ANCHORS = [
     "kernel/rcu/tree.c",
     "net/core/skbuff.c",
 ]
+SURFACE_CATEGORY_KEYS = {
+    "Documentation/zigux/": "PHASE14_DOC_SURFACE_COUNT",
+    "scripts/zigux/": "PHASE14_SCRIPT_SURFACE_COUNT",
+    "zigux/tests/": "PHASE14_TEST_SURFACE_COUNT",
+}
 
 
 def repo_root() -> Path:
@@ -105,6 +120,44 @@ def require_exact_line_count(errors: list[str], rel_path: str, text: str, line: 
         errors.append(f"marker count drift in {rel_path}: {label} (expected 1, found {actual_count})")
 
 
+def classify_surface_path(path: str) -> str | None:
+    if path == ".github/workflows/zigux-bootstrap.yml":
+        return "PHASE14_WORKFLOW_SURFACE_COUNT"
+    if path == "zigux/Makefile":
+        return "PHASE14_MAKEFILE_SURFACE_COUNT"
+    if path.startswith("kernel/") or path.startswith("net/core/"):
+        return "PHASE14_BRIDGE_ROOT_SURFACE_COUNT"
+    for prefix, category in SURFACE_CATEGORY_KEYS.items():
+        if path.startswith(prefix):
+            return category
+    return None
+
+
+def collect_surface_counts(manifest: dict) -> tuple[Counter[str], list[str]]:
+    errors: list[str] = []
+    counts: Counter[str] = Counter()
+    raw_surfaces = manifest.get("surfaces")
+    if not isinstance(raw_surfaces, list):
+        return counts, ["phase14 shared smoke manifest surfaces payload is not a list"]
+    for surface in raw_surfaces:
+        if not isinstance(surface, dict):
+            errors.append("phase14 shared smoke manifest surface entry is not an object")
+            continue
+        path = surface.get("path")
+        if not isinstance(path, str):
+            errors.append("phase14 shared smoke manifest surface entry is missing a string path")
+            continue
+        category = classify_surface_path(path)
+        if category is None:
+            errors.append(f"phase14 shared smoke manifest surface escaped the expected categories: {path}")
+            continue
+        counts[category] += 1
+    counts["PHASE14_SHARED_SURFACE_COUNT"] = sum(
+        counts[key] for key in EXPECTED_SURFACE_COUNTS if key != "PHASE14_SHARED_SURFACE_COUNT"
+    )
+    return counts, errors
+
+
 def check(root: Path) -> list[str]:
     errors: list[str] = []
 
@@ -150,6 +203,15 @@ def check(root: Path) -> list[str]:
         "- `PHASE14_ANCHOR_PACKET_COUNT=4`",
         "PHASE14_ANCHOR_PACKET_COUNT=4",
     )
+    for marker, expected in EXPECTED_SURFACE_COUNTS.items():
+        line = f"- `{marker}={expected}`"
+        require_exact_line_count(
+            errors,
+            smoke_path.relative_to(root).as_posix(),
+            smoke_text,
+            line,
+            f"{marker}={expected}",
+        )
 
     phase14_section = extract_section(roadmap_text, PHASE14_SECTION_HEADING)
     if phase14_section is None:
@@ -175,6 +237,13 @@ def check(root: Path) -> list[str]:
 
     if manifest.get("blocked_anchors") != MANIFEST_BLOCKED_ANCHORS:
         errors.append("phase14 manifest blocked_anchors drifted from the combined study-only plus freeze-governed set")
+
+    surface_counts, surface_errors = collect_surface_counts(manifest)
+    errors.extend(surface_errors)
+    for marker, expected in EXPECTED_SURFACE_COUNTS.items():
+        actual = surface_counts.get(marker, 0)
+        if actual != expected:
+            errors.append(f"phase14 manifest {marker} drifted from the expected {expected} surface count (found {actual})")
 
     return errors
 
@@ -203,7 +272,20 @@ def run_self_test() -> int:
                 "",
             ]
         )
-        expected_smoke_text = "# Phase 14 End-to-End Smoke Survey\n- `PHASE14_ANCHOR_PACKET_COUNT=4`\n"
+        expected_smoke_text = "\n".join(
+            [
+                "# Phase 14 End-to-End Smoke Survey",
+                "- `PHASE14_ANCHOR_PACKET_COUNT=4`",
+                "- `PHASE14_SHARED_SURFACE_COUNT=28`",
+                "- `PHASE14_DOC_SURFACE_COUNT=6`",
+                "- `PHASE14_SCRIPT_SURFACE_COUNT=5`",
+                "- `PHASE14_TEST_SURFACE_COUNT=12`",
+                "- `PHASE14_BRIDGE_ROOT_SURFACE_COUNT=3`",
+                "- `PHASE14_WORKFLOW_SURFACE_COUNT=1`",
+                "- `PHASE14_MAKEFILE_SURFACE_COUNT=1`",
+                "",
+            ]
+        )
         expected_freeze_map_text = "\n".join(
             [
                 "# Freeze Map",
@@ -251,6 +333,36 @@ def run_self_test() -> int:
                 "kernel/trace/ring_buffer.c",
                 "kernel/rcu/tree.c",
                 "net/core/skbuff.c",
+            ],
+            "surfaces": [
+                {"path": "Documentation/zigux/README.md", "required_marker": "Phase 14 notes"},
+                {"path": "Documentation/zigux/phase14-release-boundary-survey.md", "required_marker": "PHASE14_RELEASE_BOUNDARY=present"},
+                {"path": "Documentation/zigux/phase14-end-to-end-smoke-survey.md", "required_marker": "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate"},
+                {"path": "Documentation/zigux/phase14-core-boundary-traceability.md", "required_marker": "# Phase 14 Core Boundary Traceability"},
+                {"path": "Documentation/zigux/freeze-map.md", "required_marker": "kernel/workqueue.c"},
+                {"path": "Documentation/zigux/review-checklist.md", "required_marker": "shared Phase 14 smoke packet"},
+                {"path": "scripts/zigux/README.md", "required_marker": "Phase 14 flow"},
+                {"path": "scripts/zigux/validate-phase14.py", "required_marker": "PHASE14_VALIDATE_PACKET=shared_smoke"},
+                {"path": "scripts/zigux/check-phase14-docs-root-smoke-summary.py", "required_marker": "PHASE14_CHECK_PACKET=docs_root_smoke_summary"},
+                {"path": "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", "required_marker": "PHASE14_CHECK_PACKET=rollback_threshold_sequencing"},
+                {"path": "scripts/zigux/check-phase14-release-boundary-exact-counts.py", "required_marker": "PHASE14_CHECK_PACKET=release_boundary_exact_counts"},
+                {"path": "zigux/tests/README.md", "required_marker": "keep the current Phase 14 smoke packet reviewable"},
+                {"path": "zigux/tests/phase14_build.zig", "required_marker": "phase14-smoke"},
+                {"path": "zigux/Makefile", "required_marker": "phase14: phase14-validate phase14-smoke phase14-test"},
+                {"path": "zigux/tests/phase14_workqueue_bridge.zig", "required_marker": "phase14 workqueue bridge manifest records the boundary-map foothold and remaining gap"},
+                {"path": "zigux/tests/phase14_skbuff_bridge.zig", "required_marker": "phase14 skbuff bridge manifest records the boundary-map foothold and frozen ownership gap"},
+                {"path": "zigux/tests/phase14_workqueue_bridge_manifest.json", "required_marker": "phase14-workqueue-live-execution-blocker"},
+                {"path": "zigux/tests/phase14_skbuff_bridge_manifest.json", "required_marker": "phase14-skbuff-live-ownership-blocker"},
+                {"path": "zigux/tests/phase14_end_to_end_smoke_survey.zig", "required_marker": "phase14 shared smoke survey confirms the current packet surfaces"},
+                {"path": "zigux/tests/phase14_end_to_end_smoke_manifest.json", "required_marker": "phase14_shared_smoke_packet"},
+                {"path": "zigux/tests/phase14_ring_buffer_manifest.json", "required_marker": "phase14-ring-buffer-zig-port-blocker"},
+                {"path": "zigux/tests/phase14_ring_buffer_survey.zig", "required_marker": "phase 14 ring-buffer survey manifest records the study-only gap without inventing a port"},
+                {"path": "zigux/tests/phase14_rcu_tree_manifest.json", "required_marker": "phase14-rcu-tree-bridge-blocker"},
+                {"path": "zigux/tests/phase14_rcu_tree_survey.zig", "required_marker": "phase 14 rcu tree survey manifest records the freeze-boundary gap without inventing a bridge"},
+                {"path": ".github/workflows/zigux-bootstrap.yml", "required_marker": "Run focused Phase 14 smoke shard"},
+                {"path": "kernel/workqueue_bridge.zig", "required_marker": "pub const WorkqueueBridgeLab"},
+                {"path": "net/core/skbuff_bridge.zig", "required_marker": "pub const SkbuffBridgeLab"},
+                {"path": "kernel/rcu/tree_bridge.zig", "required_marker": "pub const RcuTreeBridgeLab"},
             ],
         }
         write_text(root / "Documentation/zigux/phase14-release-boundary-survey.md", expected_release_text)
@@ -323,6 +435,24 @@ def run_self_test() -> int:
             return 1
         write_text(smoke_path, expected_smoke_text)
 
+        write_text(
+            smoke_path,
+            read_text(smoke_path).replace(
+                "- `PHASE14_SHARED_SURFACE_COUNT=28`\n",
+                "- `PHASE14_SHARED_SURFACE_COUNT=28`\n- `PHASE14_SHARED_SURFACE_COUNT=28`\n",
+                1,
+            ),
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_SHARED_SURFACE_COUNT=28 (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate shared-surface-count failure", file=sys.stderr)
+            return 1
+        write_text(smoke_path, expected_smoke_text)
+
         def expect_release_count_failure(old_line: str, new_line: str, expected_error: str, label: str) -> int:
             write_text(
                 release_path,
@@ -381,6 +511,19 @@ def run_self_test() -> int:
         errors = check(root)
         if not any("marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_ANCHOR_PACKET_COUNT=4 (expected 1, found 0)" in error for error in errors):
             print("self-test expected failure when shared smoke anchor count drifted", file=sys.stderr)
+            return 1
+        write_text(smoke_path, expected_smoke_text)
+
+        write_text(
+            smoke_path,
+            read_text(smoke_path).replace(
+                "- `PHASE14_DOC_SURFACE_COUNT=6`",
+                "- `PHASE14_DOC_SURFACE_COUNT=5`",
+            ),
+        )
+        errors = check(root)
+        if not any("marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_DOC_SURFACE_COUNT=6 (expected 1, found 0)" in error for error in errors):
+            print("self-test expected failure when shared smoke docs surface count drifted", file=sys.stderr)
             return 1
         write_text(smoke_path, expected_smoke_text)
 
@@ -535,6 +678,45 @@ def run_self_test() -> int:
         errors = check(root)
         if not any("phase14 manifest blocked_anchors drifted from the combined study-only plus freeze-governed set" in error for error in errors):
             print("self-test expected failure when manifest blocked anchors drifted", file=sys.stderr)
+            return 1
+        write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
+
+        manifest_data = json.loads(read_text(manifest_path))
+        manifest_data["surfaces"] = "not-a-list"
+        write_text(manifest_path, json.dumps(manifest_data, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 shared smoke manifest surfaces payload is not a list" not in errors:
+            print("self-test expected non-list shared smoke manifest surfaces failure", file=sys.stderr)
+            return 1
+        write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
+
+        manifest_data = json.loads(read_text(manifest_path))
+        manifest_data["surfaces"] = [17]
+        write_text(manifest_path, json.dumps(manifest_data, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 shared smoke manifest surface entry is not an object" not in errors:
+            print("self-test expected non-object shared smoke manifest surface failure", file=sys.stderr)
+            return 1
+        write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
+
+        manifest_data = json.loads(read_text(manifest_path))
+        manifest_data["surfaces"] = [{"required_marker": "Phase 14 notes"}]
+        write_text(manifest_path, json.dumps(manifest_data, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 shared smoke manifest surface entry is missing a string path" not in errors:
+            print("self-test expected missing-path shared smoke manifest surface failure", file=sys.stderr)
+            return 1
+        write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
+
+        manifest_data = json.loads(read_text(manifest_path))
+        manifest_data["surfaces"] = manifest_data["surfaces"][:-1]
+        write_text(manifest_path, json.dumps(manifest_data, indent=2) + "\n")
+        errors = check(root)
+        if not any("phase14 manifest PHASE14_SHARED_SURFACE_COUNT drifted from the expected 28 surface count (found 27)" in error for error in errors):
+            print("self-test expected shared surface count drift failure", file=sys.stderr)
+            return 1
+        if not any("phase14 manifest PHASE14_BRIDGE_ROOT_SURFACE_COUNT drifted from the expected 3 surface count (found 2)" in error for error in errors):
+            print("self-test expected bridge-root surface count drift failure", file=sys.stderr)
             return 1
         write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
 
