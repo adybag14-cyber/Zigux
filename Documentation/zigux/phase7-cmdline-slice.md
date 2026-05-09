@@ -8,7 +8,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_SLICE=cmdline-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-Y06`
 - scope: first low-risk parsing helpers only
-- lane state: helper, fixture, dedicated survey, dedicated manifest, shared build-wiring checker, and parked make-wrapper slice landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, fixture, dedicated survey, dedicated manifest, shared build-wiring checker, or make-wrapper packet
+- lane state: helper, fixture, dedicated survey, dedicated manifest, shared validator, shared build-wiring checker, and parked make-wrapper slice landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, fixture, dedicated survey, dedicated manifest, shared validator, shared build-wiring checker, or make-wrapper packet
 - product boundary:
   - `lib/cmdline.zig`
   - `samples/zigux/README.md`
