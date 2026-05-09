@@ -104,6 +104,13 @@ Current parked review packet:
 - `tools/lib/bpf/zigux_segments/verify.zig`
 - `tools/lib/bpf/zigux_segments/manifest.json`
 
+Keep the parked libbpf packet reviewable through its focused shard routes plus the shared replay route:
+- `make -C zigux phase8-cpu-mask-test`
+- `make -C zigux phase8-file-path-handle-bridge-test`
+- `make -C zigux phase8-libbpf-segments-test`
+- `make -C zigux phase8-perf-buffer-poll-test`
+- `make -C zigux phase8`
+
 Keep this lane helper-first.
 Do not widen it into:
 - direct procfs or bpffs ownership closure
@@ -123,7 +130,7 @@ Allowed surfaces:
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 
-When this wording lane reopens, treat `scripts/zigux/README.md` and `zigux/tests/README.md` as first-pass truth surfaces alongside `Documentation/zigux/README.md`, not as later summaries. On current `master` the scripts-root Phase 8 flow keeps the compact shared packet inventory visible through `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_cpu_mask_only_build.zig`, `zigux/tests/phase8_logging.zig`, `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_bpf_type_names.zig`, and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, while the docs-root and tests-root reminders keep `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, and the parked command plus shared symbol replay surfaces explicit through `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_help_kallsyms_only_build.zig`, `make -C zigux phase8-help-test`, and `make -C zigux phase8-help-kallsyms-test` alongside the focused `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, and `make -C zigux phase8-perf-buffer-poll-test` shard routes beside the parked libbpf packet. The same tests-root reminder must also keep `zigux/tests/phase8_pin_path.zig` and `zigux/tests/phase8_bpf_type_names.zig` visible inside that parked libbpf packet summary so the shared helper inventory does not collapse back to the older starter-only shorthand.
+When this wording lane reopens, treat `scripts/zigux/README.md` and `zigux/tests/README.md` as first-pass truth surfaces alongside `Documentation/zigux/README.md`, not as later summaries. On current `master` the scripts-root Phase 8 flow keeps the compact shared packet inventory visible through `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_cpu_mask_only_build.zig`, `zigux/tests/phase8_logging.zig`, `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_bpf_type_names.zig`, and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, while the docs-root and tests-root reminders keep `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, and the parked command plus shared symbol replay surfaces explicit through `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_help_kallsyms_only_build.zig`, `make -C zigux phase8-help-test`, and `make -C zigux phase8-help-kallsyms-test` alongside the focused `make -C zigux phase8-cpu-mask-test`, `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, and `make -C zigux phase8-perf-buffer-poll-test` shard routes beside the parked libbpf packet. The same tests-root reminder must also keep `zigux/tests/phase8_pin_path.zig` and `zigux/tests/phase8_bpf_type_names.zig` visible inside that parked libbpf packet summary so the shared helper inventory does not collapse back to the older starter-only shorthand.
 
 The first wording-only reopen target here used to be the docs-root and scripts-root summary pair plus the validator reminder. That docs-root and scripts-root owner-map wording is now landed on current `master`, and the paired shared-validator reminder in `scripts/zigux/validate-phase8.py` is also now landed, so this wording lane should stay parked unless another shared reminder drifts.
 
@@ -157,6 +164,6 @@ The older validator-only reminder is now closed on current `master`: `scripts/zi
 
 The older scripts-root shared libbpf shard reminder is now also closed on current `master`: `scripts/zigux/README.md` already keeps `zigux/tests/phase8_libbpf_segments.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, and `make -C zigux phase8-libbpf-segments-test` explicit beside the parked file-path bridge and perf-buffer-poll routes, so this sequencing note should not steer follow-up back into that already-landed scripts-root wording repair.
 
-If another wording-only drift appears first after those closed shared reminders, start by rereading `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` together so the parked libbpf shard markers, the survey-local `zigux/tests/phase8_cpu_mask_only_build.zig` shard, the focused help-plus-kallsyms shard reminders, the pin-path and type-name helper inventory, and the focused make routes stay aligned before reopening any helper-local Phase 8 follow-up.
+If another wording-only drift appears first after those closed shared reminders, start by rereading `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md` together so the parked libbpf shard markers, the survey-local `zigux/tests/phase8_cpu_mask_only_build.zig` shard, the focused help-plus-kallsyms shard reminders, the pin-path and type-name helper inventory, and the focused `make -C zigux phase8-cpu-mask-test`, `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, and `make -C zigux phase8-perf-buffer-poll-test` shard routes stay aligned before reopening any helper-local Phase 8 follow-up.
 
 The honest default is to leave this lane parked unless another one-file same-lane helper-local, validator, checker, survey, README, or wording drift appears inside the shared libbpf packet.
