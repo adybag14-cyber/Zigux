@@ -213,7 +213,7 @@ PHASE4_VALIDATE_ROUTE_SNIPPET = (
 )
 
 REQUIRED_README_SNIPPETS = (
-    "- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `check-phase3-abi-dump-gate.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-byte-guards.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
+    "- The live support packet inside that same validator-first route is `check-phase3-selftest-surface.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `check-phase3-abi-dump-gate.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-byte-guards.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
     PHASE4_VALIDATE_ROUTE_SNIPPET,
     "- there is no separate shared `validate-phase6.py` or broader external portability checker packet beyond `check-phase6-shared-surface.py` on `master`; the shipped dedicated perf replays are `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`, while `make -C zigux phase6-perf` remains the narrow aggregate route for the checksum and hexdump perf packet rather than a bundle-wide Phase 6 perf closure",
     "- the current shared Phase 7 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `samples/zigux/README.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_build.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
@@ -262,15 +262,12 @@ TESTS_README_PHASE8_MARKERS = (
     "make -C zigux phase8-perf-buffer-poll-test",
 )
 
-
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
 
-
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
 
 def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
     found = False
@@ -294,7 +291,6 @@ def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
         issues.append("missing_readme_helper_entries")
     return entries, issues
 
-
 def _is_makefile_target_header(raw: str) -> bool:
     if raw.startswith((" ", "\t")):
         return False
@@ -304,7 +300,6 @@ def _is_makefile_target_header(raw: str) -> bool:
     if ":=" in stripped or "?=" in stripped or "+=" in stripped or "!=" in stripped:
         return False
     return ":" in stripped
-
 
 def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | None:
     in_target = False
@@ -321,7 +316,6 @@ def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | No
         lines.append(raw)
     return lines if in_target else None
 
-
 def _collect_target_helpers(makefile: str, target: str) -> list[str]:
     lines = _collect_makefile_target_lines(makefile, target)
     if lines is None:
@@ -335,7 +329,6 @@ def _collect_target_helpers(makefile: str, target: str) -> list[str]:
         if rel.endswith(".py"):
             helpers.append(Path(rel).name)
     return helpers
-
 
 def _validate_target_helpers(issues: list[str], makefile: str, target: str, required_helpers: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
@@ -354,7 +347,6 @@ def _validate_target_helpers(issues: list[str], makefile: str, target: str, requ
             issues.append(f"unexpected_makefile_helper:{target}:{helper}")
     if [helper for helper in helpers if helper in required_helpers] != list(required_helpers):
         issues.append(f"makefile_helper_order_drift:{target}")
-
 
 def _validate_target_commands(issues: list[str], makefile: str, target: str, required_commands: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
@@ -375,7 +367,6 @@ def _validate_target_commands(issues: list[str], makefile: str, target: str, req
     if [command for command in commands if command in required_commands] != expected:
         issues.append(f"makefile_command_order_drift:{target}")
 
-
 def _validate_tests_readme_phase3_markers(issues: list[str], text: str) -> None:
     for marker in TESTS_README_PHASE3_MARKERS:
         if marker.startswith("opt-in safety check"):
@@ -388,7 +379,6 @@ def _validate_tests_readme_phase3_markers(issues: list[str], text: str) -> None:
         elif count != 1:
             issues.append(f"unexpected_tests_readme_phase3_marker_count:{count}:{marker}")
 
-
 def _validate_tests_readme_phase8_markers(issues: list[str], text: str) -> None:
     for marker in TESTS_README_PHASE8_MARKERS:
         count = text.count(f"`{marker}`")
@@ -397,7 +387,6 @@ def _validate_tests_readme_phase8_markers(issues: list[str], text: str) -> None:
             issues.append(f"missing_tests_readme_phase8_marker:{marker}")
         elif count != 1:
             issues.append(f"unexpected_tests_readme_phase8_marker_count:{count}:{marker}")
-
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
@@ -461,15 +450,12 @@ def validate(root: Path) -> list[str]:
     _validate_tests_readme_phase8_markers(issues, tests_readme)
     return issues
 
-
 def _baseline_readme() -> str:
     helper_lines = "\n".join(f"- `{helper}`" for helper in REQUIRED_HELPERS)
     return "\n".join(["# scripts/zigux", "", README_HELPER_SECTION, helper_lines, "", *REQUIRED_README_SNIPPETS, ""])
 
-
 def _baseline_tests_readme() -> str:
     return "\n".join(["# zigux/tests", "", *TESTS_README_PHASE3_MARKERS, *TESTS_README_PHASE8_MARKERS, ""])
-
 
 def _baseline_makefile() -> str:
     return "\n".join((
@@ -511,7 +497,6 @@ def _baseline_makefile() -> str:
         "",
     ))
 
-
 def _populate_repo(root: Path) -> None:
     _write(root / README_REL, _baseline_readme())
     _write(root / TESTS_README_REL, _baseline_tests_readme())
@@ -519,13 +504,18 @@ def _populate_repo(root: Path) -> None:
     for helper in REQUIRED_HELPERS:
         _write(root / "scripts" / "zigux" / helper, "# stub\n")
 
-
 def run_self_test() -> int:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_readme_tooling_inventory_") as tmp_dir:
         root = Path(tmp_dir) / "repo"
         _populate_repo(root)
         assert validate(root) == []
+        case_count += 1
+
+        readme = _baseline_readme().replace("`check-phase3-selftest-surface.py`, ", "", 1)
+        _write(root / README_REL, readme)
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[0]}"]
+        _write(root / README_REL, _baseline_readme())
         case_count += 1
 
         tests = _baseline_tests_readme().replace("scripts/zigux/check-phase3-selftest-surface.py\n", "", 1)
@@ -768,13 +758,13 @@ def run_self_test() -> int:
             1,
         )
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[2]}]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[2]}"]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
         readme = _baseline_readme().replace("`zigux/tests/phase8_help_kallsyms_only_build.zig`, ", "", 1)
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[5]}]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[5]}"]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
@@ -784,25 +774,24 @@ def run_self_test() -> int:
             1,
         )
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[6]}]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[6]}"]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
         readme = _baseline_readme().replace(REQUIRED_README_SNIPPETS[8], "", 1)
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[8]}]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[8]}"]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
         readme = _baseline_readme().replace(REQUIRED_README_SNIPPETS[-1], "", 1)
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[-1]}]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[-1]}"]
         case_count += 1
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
     print(f"PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT={case_count}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Keep the scripts/zigux README tooling inventory aligned with the shipped repo-tooling packet.")
@@ -821,7 +810,6 @@ def main() -> int:
     print("PHASE3_README_TOOLING_INVENTORY=pass")
     print(f"PHASE3_README_TOOLING_INVENTORY_HELPER_COUNT={len(REQUIRED_HELPERS)}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
