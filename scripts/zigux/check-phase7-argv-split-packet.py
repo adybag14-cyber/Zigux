@@ -117,8 +117,8 @@ REQUIRED_MARKERS = {
 
 EXACT_COUNT_MARKERS = {
     "zigux/tests/phase7_argv_split_manifest.json": [
-        ('\"id\": \"phase7-argv-split-packet-checker\"', 1),
-        ('\"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\"', 1),
+        ('"id": "phase7-argv-split-packet-checker"', 1),
+        ('"zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py"', 1),
     ],
 }
 
@@ -705,7 +705,7 @@ def run_self_test() -> None:
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
-            duplicate_first_marker(original_manifest, '\"id\": \"phase7-argv-split-packet-checker\"'),
+            duplicate_first_marker(original_manifest, '"id": "phase7-argv-split-packet-checker"'),
             encoding="utf-8",
         )
         expect_missing_marker(
@@ -719,7 +719,7 @@ def run_self_test() -> None:
         manifest_path.write_text(
             duplicate_first_marker(
                 original_manifest,
-                '\"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\"',
+                '"zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py"',
             ),
             encoding="utf-8",
         )
