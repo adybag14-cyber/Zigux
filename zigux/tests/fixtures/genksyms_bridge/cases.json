@@ -24,7 +24,6 @@
       "name": "ambiguous_long_option",
       "argv": ["--du"],
       "mode": "process_json",
-      "normalize_stderr": true,
       "expected": "ambiguous_long_option_expected.json"
     },
     {
