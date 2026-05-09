@@ -32,6 +32,9 @@ MMIO_POINTER_AT_CALL_COUNT = 8
 MMIO_FORBIDDEN_RAW_POINTER_TOKENS = (
     "@ptrFromInt",
 )
+DOC_MMIO_SCOPE = "range-read8-write8-read16-write16-read32-write32-read64-write64"
+DOC_LOW_LEVEL_TEST_SCOPE = "focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay"
+DOC_BOUNDARY_GAP = "focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-byte-16-bit-32-bit-and-64-bit-mmio-range-and-barrier-locality-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof"
 
 ABI_MANIFEST_REQUIRED_FILES = (
     "include/zigux/abi.h",
@@ -100,16 +103,16 @@ REQUIRED_DOC_MARKERS = (
     "PHASE3_ATOMIC_STATUS=bounded-helper-surface-landed",
     "PHASE3_BARRIER_SCOPE=acquire-release-full-acquire-release-pair",
     "PHASE3_BARRIER_STATUS=local-caller-state-and-handoff-probes-landed",
-    "PHASE3_MMIO_SCOPE=range-range-interop-policy-byte-read8-write8-read16-write16-read32-write32-read64-write64",
+    f"PHASE3_MMIO_SCOPE={DOC_MMIO_SCOPE}",
     "PHASE3_MMIO_STATUS=byte-16-bit-32-bit-and-64-bit-mmio-through-narrow-pointer-bridge",
     "PHASE3_NARROW_UNSAFE_SCOPE=address-byte-offset-align1-pointer-slice-const-pointer-write-and-interop-policy-unsafe-scope-byte-decoders",
     "PHASE3_NARROW_UNSAFE_STATUS=align1-raw-pointer-bridge-plus-explicit-unsafe-scope-byte-policy",
-    "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-byte-scoped-mmio-range-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay",
+    f"PHASE3_LOW_LEVEL_TEST_SCOPE={DOC_LOW_LEVEL_TEST_SCOPE}",
     "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
     "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
-    "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-byte-16-bit-32-bit-and-64-bit-mmio-range-and-barrier-locality-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof",
+    f"PHASE3_BOUNDARY_GAP={DOC_BOUNDARY_GAP}",
     "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves",
 )
 
@@ -426,20 +429,20 @@ def build_self_test_doc(root: Path) -> str:
         "PHASE3_BARRIER_SCOPE=acquire-release-full-acquire-release-pair",
         "PHASE3_BARRIER_STATUS=local-caller-state-and-handoff-probes-landed",
         f"PHASE3_MMIO_PATH={MMIO_REL}",
-        "PHASE3_MMIO_SCOPE=range-range-interop-policy-byte-read8-write8-read16-write16-read32-write32-read64-write64",
+        f"PHASE3_MMIO_SCOPE={DOC_MMIO_SCOPE}",
         "PHASE3_MMIO_STATUS=byte-16-bit-32-bit-and-64-bit-mmio-through-narrow-pointer-bridge",
         f"PHASE3_NARROW_UNSAFE_PATH={NARROW_REL}",
         "PHASE3_NARROW_UNSAFE_SCOPE=address-byte-offset-align1-pointer-slice-const-pointer-write-and-interop-policy-unsafe-scope-byte-decoders",
         "PHASE3_NARROW_UNSAFE_STATUS=align1-raw-pointer-bridge-plus-explicit-unsafe-scope-byte-policy",
         f"PHASE3_LOW_LEVEL_TEST_PATH={LOW_LEVEL_TEST_REL}",
-        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-non-seq-cst-ordering-byte-scoped-mmio-range-and-byte-16-bit-32-bit-and-64-bit-mmio-range-replay",
+        f"PHASE3_LOW_LEVEL_TEST_SCOPE={DOC_LOW_LEVEL_TEST_SCOPE}",
         "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
         f"PHASE3_ABI_TEST_PATH={ABI_TEST_REL}",
         f"PHASE3_ABI_DUMP_PATH={ABI_DUMP_REL}",
         "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
         "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
-        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-byte-16-bit-32-bit-and-64-bit-mmio-range-and-barrier-locality-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof",
+        f"PHASE3_BOUNDARY_GAP={DOC_BOUNDARY_GAP}",
         "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves",
     ]
     for key, rel in BLOB_MARKERS:
