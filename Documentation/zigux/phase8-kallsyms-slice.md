@@ -87,4 +87,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Park the `kallsyms` lane unless a fresh parity gap appears, and prefer the next Phase 8 helper-first follow-up from `tools/lib/subcmd/help.zig` or the next `tools/lib/bpf/zigux_segments/` slice.
+Park the `kallsyms` lane unless a fresh parity or output-stability gap appears inside the existing `tools/lib/symbol/kallsyms.zig` packet. If it reopens, keep the next bounded step inside that same packet's helper, focused tests, or slice-note surfaces instead of pointing at other Phase 8 families.
