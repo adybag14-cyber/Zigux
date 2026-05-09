@@ -113,3 +113,34 @@ test "phase3 export shim keeps compatibility status relays explicit" {
     try std.testing.expectEqual(@as(i32, -71), mismatch_status.code);
     try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), mismatch_status.flags);
 }
+
+test "phase3 export shim evaluation mirrors the uapi boundary classification" {
+    const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 24, 0x77);
+    const version_mismatch = export_shim.versionedHeader(
+        export_shim.header_size,
+        export_shim.abi_version + 1,
+        0x77,
+    );
+
+    const export_future = export_shim.evaluateHeader(future_compatible, -75, .helpers);
+    const uapi_future = uapi_version.evaluateHeader(future_compatible);
+
+    try std.testing.expect(export_future.isAccepted());
+    try std.testing.expect(uapi_future.isAccepted());
+    try std.testing.expectEqual(uapi_future.compatibility().?, export_future.compatibility().?);
+    try std.testing.expectEqual(uapi_future.canonical().?, export_future.canonical().?);
+    try std.testing.expectEqual(uapi_future.sizeDelta(), export_future.sizeDelta());
+    try std.testing.expect(export_shim.isOk(export_future.status));
+
+    const export_mismatch = export_shim.evaluateHeader(version_mismatch, -71, .kernel);
+    const uapi_mismatch = uapi_version.evaluateHeader(version_mismatch);
+
+    try std.testing.expect(!export_mismatch.isAccepted());
+    try std.testing.expect(!uapi_mismatch.isAccepted());
+    try std.testing.expect(export_mismatch.compatibility() == null);
+    try std.testing.expect(uapi_mismatch.compatibility() == null);
+    try std.testing.expect(export_mismatch.canonical() == null);
+    try std.testing.expect(uapi_mismatch.canonical() == null);
+    try std.testing.expectEqual(uapi_mismatch.sizeDelta(), export_mismatch.sizeDelta());
+    try std.testing.expect(!export_shim.isOk(export_mismatch.status));
+}
