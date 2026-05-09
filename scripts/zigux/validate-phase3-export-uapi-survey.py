@@ -9,6 +9,7 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
 SURVEY_REL = "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
 DOCS_ROOT_REL = "Documentation/zigux/README.md"
@@ -20,12 +21,14 @@ LINUX_HEADER_REL = "include/linux/zigux.h"
 ABI_HEADER_REL = "include/zigux/abi.h"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 BUILD_FILE_REL = "zigux/tests/build.zig"
+EXPORT_UAPI_TEST_REL = "zigux/tests/phase3_export_uapi.zig"
 EXPORT_UAPI_BUILD_REL = "zigux/tests/phase3_export_uapi_build.zig"
 EXPORT_UAPI_LAYOUT_REL = "zigux/tests/phase3_export_uapi_layout.zig"
 EXPORT_UAPI_LAYOUT_BUILD_REL = "zigux/tests/phase3_export_uapi_layout_build.zig"
 LINUX_HEADER_GOVERNANCE_REL = "Documentation/zigux/phase3-linux-zigux-header-governance.md"
 VALIDATOR_REL = "scripts/zigux/validate-phase3-export-uapi-survey.py"
-SELF_TEST_CASE_COUNT = 14
+
+SELF_TEST_CASE_COUNT = 4
 
 REQUIRED_FILES = (
     SURVEY_REL,
@@ -38,6 +41,7 @@ REQUIRED_FILES = (
     ABI_HEADER_REL,
     ABI_MANIFEST_REL,
     BUILD_FILE_REL,
+    EXPORT_UAPI_TEST_REL,
     EXPORT_UAPI_BUILD_REL,
     EXPORT_UAPI_LAYOUT_REL,
     EXPORT_UAPI_LAYOUT_BUILD_REL,
@@ -54,6 +58,7 @@ MANIFEST_REQUIRED_FILES = (
     LINUX_HEADER_REL,
     ABI_HEADER_REL,
     BUILD_FILE_REL,
+    EXPORT_UAPI_TEST_REL,
     EXPORT_UAPI_BUILD_REL,
     EXPORT_UAPI_LAYOUT_REL,
     EXPORT_UAPI_LAYOUT_BUILD_REL,
@@ -104,67 +109,62 @@ HEADER_GOVERNANCE_MARKERS = (
 
 REQUIRED_MARKERS = {
     EXPORT_SHIM_REL: (
-        "pub const Header = uapi_version.Header;",
-        "pub const abi_version: u16 = uapi_version.abi_version;",
-        "pub const header_size: u32 = uapi_version.header_size;",
-        "pub const HeaderCompatibility = uapi_version.Compatibility;",
-        "pub const HeaderAcceptance = uapi_version.AcceptedHeader;",
-        "pub const HeaderEvaluation = uapi_version.HeaderEvaluation;",
-        "pub const CompatibilityDecision = struct {",
-        "pub fn boundaryHeader(flags: u16) Header {",
-        "return uapi_version.boundaryHeader(flags);",
-        "pub fn evaluateHeader(",
-        "const evaluation = uapi_version.evaluateHeader(header_value);",
-        ".status = if (evaluation.isAccepted()) ok(facility) else errno(incompatible_code, facility),",
-        "pub fn compatibilityStatus(",
-        "return evaluateHeader(header_value, incompatible_code, facility).status;",
-        "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {",
-        "flags = if (status.code < 0) abi.STATUS_FLAG_ERROR else 0,",
+        'pub const Header = uapi_version.Header;',
+        'pub const abi_version: u16 = uapi_version.abi_version;',
+        'pub const header_size: u32 = uapi_version.header_size;',
+        'pub const HeaderCompatibility = uapi_version.Compatibility;',
+        'pub const HeaderAcceptance = uapi_version.AcceptedHeader;',
+        'pub const HeaderEvaluation = uapi_version.HeaderEvaluation;',
+        'pub const CompatibilityDecision = struct {',
+        'pub fn boundaryHeader(flags: u16) Header {',
+        'return uapi_version.boundaryHeader(flags);',
+        'pub fn evaluateHeader(',
+        'const evaluation = uapi_version.evaluateHeader(header_value);',
+        '.status = if (evaluation.isAccepted()) ok(facility) else errno(incompatible_code, facility),',
+        'pub fn compatibilityStatus(',
+        'return evaluateHeader(header_value, incompatible_code, facility).status;',
+        'pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {',
+        'flags = if (status.code < 0) abi.STATUS_FLAG_ERROR else 0,',
         'test "phase3 export shim reuses the shared boundary-header compatibility rules" {',
         'test "phase3 export shim relays compatibility through explicit status packets" {',
         'test "phase3 export shim evaluation keeps compatibility evidence and status together" {',
     ),
     UAPI_VERSION_REL: (
-        "pub const Compatibility = enum {",
-        "future_compatible,",
-        "pub const AcceptedHeader = struct {",
-        "pub const HeaderEvaluation = struct {",
-        "pub fn boundaryHeader(flags: u16) Header {",
-        "pub fn compatibleHeader(size: u32, flags: u16) Header {",
-        "pub fn compatibility(header: Header) ?Compatibility {",
-        "pub fn acceptHeader(header: Header) ?AcceptedHeader {",
-        "pub fn canonicalizeHeader(header: Header) ?Header {",
-        "pub fn evaluateHeader(header: Header) HeaderEvaluation {",
+        'pub const Compatibility = enum {',
+        'future_compatible,',
+        'pub const AcceptedHeader = struct {',
+        'pub const HeaderEvaluation = struct {',
+        'pub fn boundaryHeader(flags: u16) Header {',
+        'pub fn compatibleHeader(size: u32, flags: u16) Header {',
+        'pub fn compatibility(header: Header) ?Compatibility {',
+        'pub fn acceptHeader(header: Header) ?AcceptedHeader {',
+        'pub fn canonicalizeHeader(header: Header) ?Header {',
+        'pub fn evaluateHeader(header: Header) HeaderEvaluation {',
         'test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes" {',
         'test "phase3 uapi canonicalizes compatible headers without widening the boundary" {',
         'test "phase3 uapi evaluation keeps requested boundary shape explicit" {',
     ),
     LINUX_HEADER_REL: (
-        "#include <zigux/abi.h>",
-        "static inline struct zigux_export_status zigux_status_ok(",
-        "static inline struct zigux_export_status zigux_status_err(",
+        '#include <zigux/abi.h>',
+        'static inline struct zigux_export_status zigux_status_ok(',
+        'static inline struct zigux_export_status zigux_status_err(',
     ),
     ABI_HEADER_REL: (
-        "#define ZIGUX_ABI_VERSION 1U",
-        "#define ZIGUX_STATUS_FLAG_ERROR 1U",
-        "struct zigux_boundary_header {",
-        "struct zigux_export_status {",
+        '#define ZIGUX_ABI_VERSION 1U',
+        '#define ZIGUX_STATUS_FLAG_ERROR 1U',
+        'struct zigux_boundary_header {',
+        'struct zigux_export_status {',
     ),
-    EXPORT_UAPI_LAYOUT_REL: (
+    EXPORT_UAPI_TEST_REL: (
         'const export_shim = @import("export_shim");',
         'const uapi_version = @import("uapi_version");',
-        'test "phase3 export shim and uapi keep canonical boundary layout" {',
-        "const accepted_future = export_shim.acceptHeader(future_compatible).?;",
-        "const uapi_accepted_future = uapi_version.acceptHeader(future_compatible).?;",
-        "try std.testing.expectEqual(header, export_shim.canonicalizeHeader(future_compatible).?);",
-        "try std.testing.expectEqual(uapi_header, uapi_version.canonicalizeHeader(future_compatible).?);",
-        'test "phase3 export shim keeps compatibility status relays explicit" {',
-        "const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);",
-        'test "phase3 export shim evaluation mirrors the uapi boundary classification" {',
-        "const export_future = export_shim.evaluateHeader(future_compatible, -75, .helpers);",
-        "const uapi_future = uapi_version.evaluateHeader(future_compatible);",
-        "const export_mismatch = export_shim.evaluateHeader(version_mismatch, -71, .kernel);",
-        "const uapi_mismatch = uapi_version.evaluateHeader(version_mismatch);",
+        'test "phase3 export shim and uapi share the bounded boundary-header contract" {',
+        'const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 16, 0x44);',
+        'try std.testing.expectEqual(canonical, export_shim.canonicalizeHeader(future_compatible).?);',
+        'try std.testing.expectEqual(canonical, uapi_version.canonicalizeHeader(future_compatible).?);',
+        'test "phase3 export shim keeps compatibility-status relays explicit" {',
+        'const future_status = export_shim.compatibilityStatus(future_compatible, -75, .helpers);',
+        'try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), mismatch_status.flags);',
     ),
     EXPORT_UAPI_BUILD_REL: (
         '.root_source_file = b.path("../bindings/abi.zig"),',
@@ -177,6 +177,22 @@ REQUIRED_MARKERS = {
         'root_module.addImport("export_shim", export_shim_module);',
         'root_module.addImport("uapi_version", uapi_version_module);',
         'const test_step = b.step("test", "Run Phase 3 export/UAPI behavior tests");',
+    ),
+    EXPORT_UAPI_LAYOUT_REL: (
+        'const export_shim = @import("export_shim");',
+        'const uapi_version = @import("uapi_version");',
+        'test "phase3 export shim and uapi keep canonical boundary layout" {',
+        'const accepted_future = export_shim.acceptHeader(future_compatible).?;',
+        'const uapi_accepted_future = uapi_version.acceptHeader(future_compatible).?;',
+        'try std.testing.expectEqual(header, export_shim.canonicalizeHeader(future_compatible).?);',
+        'try std.testing.expectEqual(uapi_header, uapi_version.canonicalizeHeader(future_compatible).?);',
+        'test "phase3 export shim keeps compatibility status relays explicit" {',
+        'const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);',
+        'test "phase3 export shim evaluation mirrors the uapi boundary classification" {',
+        'const export_future = export_shim.evaluateHeader(future_compatible, -75, .helpers);',
+        'const uapi_future = uapi_version.evaluateHeader(future_compatible);',
+        'const export_mismatch = export_shim.evaluateHeader(version_mismatch, -71, .kernel);',
+        'const uapi_mismatch = uapi_version.evaluateHeader(version_mismatch);',
     ),
     EXPORT_UAPI_LAYOUT_BUILD_REL: (
         '.root_source_file = b.path("../bindings/abi.zig"),',
@@ -193,16 +209,16 @@ REQUIRED_MARKERS = {
 }
 
 DOCS_ROOT_MARKERS = (
-    "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
-    "`Documentation/zigux/phase3-linux-zigux-header-governance.md`",
-    "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
-    "`zig build phase3-test --build-file zigux/tests/build.zig`",
-    "`make -C zigux phase3`",
+    '`Documentation/zigux/phase3-export-uapi-boundary-survey.md`',
+    '`Documentation/zigux/phase3-linux-zigux-header-governance.md`',
+    '`scripts/zigux/validate-phase3-export-uapi-survey.py`',
+    '`zig build phase3-test --build-file zigux/tests/build.zig`',
+    '`make -C zigux phase3`',
 )
 
 SCRIPTS_README_MARKERS = (
-    "`validate-phase3-export-uapi-survey.py`",
-    "`validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `include/linux/zigux.h`, `include/zigux/abi.h`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and the workflow hooks that rerun that same survey surface.",
+    '`validate-phase3-export-uapi-survey.py`',
+    '`validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `include/linux/zigux.h`, `include/zigux/abi.h`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and the workflow hooks that rerun that same survey surface.`',
 )
 
 WORKFLOW_MARKERS = (
@@ -219,13 +235,15 @@ def _write(path: Path, text: str) -> None:
 
 
 def normalized_lines(text: str) -> list[str]:
-    out: list[str] = []
+    lines: list[str] = []
     for raw in text.splitlines():
         line = raw.strip()
         if line.startswith("- "):
             line = line[2:].strip()
-        out.append(line)
-    return out
+        if line.startswith("* "):
+            line = line[2:].strip()
+        lines.append(line)
+    return lines
 
 
 def require_exact_line_count(issues: list[str], text: str, prefix: str, line: str) -> None:
@@ -240,12 +258,12 @@ def require_exact_line_count(issues: list[str], text: str, prefix: str, line: st
 
 def require_one_of_exact_lines(issues: list[str], text: str, prefix: str, lines: tuple[str, ...]) -> None:
     normalized = normalized_lines(text)
-    matching = [(line, normalized.count(line)) for line in lines if normalized.count(line) > 0]
-    if not matching:
-        issues.append(f"missing_{prefix}:{'|'.join(lines)}")
+    total = sum(normalized.count(line) for line in lines)
+    if total == 1:
         return
-    total = sum(count for _, count in matching)
-    if total != 1:
+    if total == 0:
+        issues.append(f"missing_{prefix}:{'|'.join(lines)}")
+    else:
         issues.append(f"duplicate_{prefix}:{total}:{'|'.join(lines)}")
 
 
@@ -370,56 +388,56 @@ def validate(root: Path) -> list[str]:
 def minimal_export_shim_text() -> str:
     return "\n".join(
         (
-            "const abi = @import(\"abi_bindings\");",
-            "const uapi_version = @import(\"uapi_version\");",
-            "pub const Header = uapi_version.Header;",
-            "pub const abi_version: u16 = uapi_version.abi_version;",
-            "pub const header_size: u32 = uapi_version.header_size;",
-            "pub const HeaderCompatibility = uapi_version.Compatibility;",
-            "pub const HeaderAcceptance = uapi_version.AcceptedHeader;",
-            "pub const HeaderEvaluation = uapi_version.HeaderEvaluation;",
-            "pub const CompatibilityDecision = struct {",
-            "    evaluation: HeaderEvaluation,",
-            "    status: abi.ExportStatus,",
-            "};",
-            "pub fn boundaryHeader(flags: u16) Header {",
-            "    return uapi_version.boundaryHeader(flags);",
-            "}",
-            "pub fn evaluateHeader(",
-            "    header_value: Header,",
-            "    incompatible_code: i32,",
-            "    facility: abi.Facility,",
-            ") CompatibilityDecision {",
-            "    const evaluation = uapi_version.evaluateHeader(header_value);",
-            "    return .{",
-            "        .evaluation = evaluation,",
-            "        .status = if (evaluation.isAccepted()) ok(facility) else errno(incompatible_code, facility),",
-            "    };",
-            "}",
-            "pub fn compatibilityStatus(",
-            "    header_value: Header,",
-            "    incompatible_code: i32,",
-            "    facility: abi.Facility,",
-            ") abi.ExportStatus {",
-            "    return evaluateHeader(header_value, incompatible_code, facility).status;",
-            "}",
-            "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {",
-            "    return .{",
-            "        .code = status.code,",
-            "        .facility = status.facility,\n        ",
-            "        .flags = if (status.code < 0) abi.STATUS_FLAG_ERROR else 0,",
-            "    };",
-            "}",
+            'const abi = @import("abi_bindings");',
+            'const uapi_version = @import("uapi_version");',
+            'pub const Header = uapi_version.Header;',
+            'pub const abi_version: u16 = uapi_version.abi_version;',
+            'pub const header_size: u32 = uapi_version.header_size;',
+            'pub const HeaderCompatibility = uapi_version.Compatibility;',
+            'pub const HeaderAcceptance = uapi_version.AcceptedHeader;',
+            'pub const HeaderEvaluation = uapi_version.HeaderEvaluation;',
+            'pub const CompatibilityDecision = struct {',
+            '    evaluation: HeaderEvaluation,',
+            '    status: abi.ExportStatus,',
+            '};',
+            'pub fn boundaryHeader(flags: u16) Header {',
+            '    return uapi_version.boundaryHeader(flags);',
+            '}',
+            'pub fn evaluateHeader(',
+            '    header_value: Header,',
+            '    incompatible_code: i32,',
+            '    facility: abi.Facility,',
+            ') CompatibilityDecision {',
+            '    const evaluation = uapi_version.evaluateHeader(header_value);',
+            '    return .{',
+            '        .evaluation = evaluation,',
+            '        .status = if (evaluation.isAccepted()) ok(facility) else errno(incompatible_code, facility),',
+            '    };',
+            '}',
+            'pub fn compatibilityStatus(',
+            '    header_value: Header,',
+            '    incompatible_code: i32,',
+            '    facility: abi.Facility,',
+            ') abi.ExportStatus {',
+            '    return evaluateHeader(header_value, incompatible_code, facility).status;',
+            '}',
+            'pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {',
+            '    return .{',
+            '        .code = status.code,',
+            '        .facility = status.facility,',
+            '        .flags = if (status.code < 0) abi.STATUS_FLAG_ERROR else 0,',
+            '    };',
+            '}',
             'test "phase3 export shim reuses the shared boundary-header compatibility rules" {',
-            "    _ = .{};",
-            "}",
+            '    _ = .{};',
+            '}',
             'test "phase3 export shim relays compatibility through explicit status packets" {',
-            "    _ = .{};",
-            "}",
+            '    _ = .{};',
+            '}',
             'test "phase3 export shim evaluation keeps compatibility evidence and status together" {',
-            "    _ = .{};",
-            "}",
-            "",
+            '    _ = .{};',
+            '}',
+            '',
         )
     )
 
@@ -427,54 +445,67 @@ def minimal_export_shim_text() -> str:
 def minimal_uapi_text() -> str:
     return "\n".join(
         (
-            "pub const Header = extern struct {};",
-            "pub const Compatibility = enum {",
-            "    canonical,",
-            "    future_compatible,",
-            "};",
-            "pub const AcceptedHeader = struct {",
-            "    compatibility: Compatibility,",
-            "    canonical: Header,",
-            "};",
-            "pub const HeaderEvaluation = struct {",
-            "    requested: Header,",
-            "    acceptance: ?AcceptedHeader,",
-            "};",
-            "pub fn boundaryHeader(flags: u16) Header {",
-            "    _ = flags;",
-            "    return undefined;",
-            "}",
-            "pub fn compatibleHeader(size: u32, flags: u16) Header {",
-            "    _ = size;",
-            "    _ = flags;",
-            "    return undefined;",
-            "}",
-            "pub fn compatibility(header: Header) ?Compatibility {",
-            "    _ = header;",
-            "    return null;",
-            "}",
-            "pub fn acceptHeader(header: Header) ?AcceptedHeader {",
-            "    _ = header;",
-            "    return null;",
-            "}",
-            "pub fn canonicalizeHeader(header: Header) ?Header {",
-            "    _ = header;",
-            "    return null;",
-            "}",
-            "pub fn evaluateHeader(header: Header) HeaderEvaluation {",
-            "    _ = header;",
-            "    return undefined;",
-            "}",
-            'test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes" {',
-            "    _ = .{};",
-            "}",
-            'test "phase3 uapi canonicalizes compatible headers without widening the boundary" {',
-            "    _ = .{};",
-            "}",
-            'test "phase3 uapi evaluation keeps requested boundary shape explicit" {',
-            "    _ = .{};",
-            "}",
-            "",
+            'pub const Header = extern struct {};',
+            'pub const Compatibility = enum {',
+            '    canonical,',
+            '    future_compatible,',
+            '};',
+            'pub const AcceptedHeader = struct {',
+            '    compatibility: Compatibility,',
+            '    canonical: Header,',
+            '};',
+            'pub const HeaderEvaluation = struct {',
+            '    requested: Header,',
+            '    acceptance: ?AcceptedHeader,',
+            '};',
+            'pub fn boundaryHeader(flags: u16) Header { _ = flags; return undefined; }',
+            'pub fn compatibleHeader(size: u32, flags: u16) Header { _ = size; _ = flags; return undefined; }',
+            'pub fn compatibility(header: Header) ?Compatibility { _ = header; return null; }',
+            'pub fn acceptHeader(header: Header) ?AcceptedHeader { _ = header; return null; }',
+            'pub fn canonicalizeHeader(header: Header) ?Header { _ = header; return null; }',
+            'pub fn evaluateHeader(header: Header) HeaderEvaluation { _ = header; return undefined; }',
+            'test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes" { _ = .{}; }',
+            'test "phase3 uapi canonicalizes compatible headers without widening the boundary" { _ = .{}; }',
+            'test "phase3 uapi evaluation keeps requested boundary shape explicit" { _ = .{}; }',
+            '',
+        )
+    )
+
+
+def minimal_export_uapi_test_text() -> str:
+    return "\n".join(
+        (
+            'const abi = @import("abi_bindings");',
+            'const export_shim = @import("export_shim");',
+            'const uapi_version = @import("uapi_version");',
+            'test "phase3 export shim and uapi share the bounded boundary-header contract" {',
+            '    const future_compatible = export_shim.compatibleHeader(export_shim.header_size + 16, 0x44);',
+            '    try std.testing.expectEqual(canonical, export_shim.canonicalizeHeader(future_compatible).?);',
+            '    try std.testing.expectEqual(canonical, uapi_version.canonicalizeHeader(future_compatible).?);',
+            '}',
+            'test "phase3 export shim keeps compatibility-status relays explicit" {',
+            '    const future_status = export_shim.compatibilityStatus(future_compatible, -75, .helpers);',
+            '    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), mismatch_status.flags);',
+            '}',
+            '',
+        )
+    )
+
+
+def minimal_export_uapi_build_text() -> str:
+    return "\n".join(
+        (
+            '.root_source_file = b.path("../bindings/abi.zig"),',
+            '.root_source_file = b.path("../uapi/version.zig"),',
+            'uapi_version_module.addImport("abi_bindings", abi_bindings_module);',
+            '.root_source_file = b.path("../kernel/export_shim.zig"),',
+            'export_shim_module.addImport("abi_bindings", abi_bindings_module);',
+            'export_shim_module.addImport("uapi_version", uapi_version_module);',
+            '.root_source_file = b.path("phase3_export_uapi.zig"),',
+            'root_module.addImport("export_shim", export_shim_module);',
+            'root_module.addImport("uapi_version", uapi_version_module);',
+            'const test_step = b.step("test", "Run Phase 3 export/UAPI behavior tests");',
+            '',
         )
     )
 
@@ -485,84 +516,156 @@ def minimal_layout_text() -> str:
             'const export_shim = @import("export_shim");',
             'const uapi_version = @import("uapi_version");',
             'test "phase3 export shim and uapi keep canonical boundary layout" {',
-            "    const accepted_future = export_shim.acceptHeader(future_compatible).?;",
-            "    const uapi_accepted_future = uapi_version.acceptHeader(future_compatible).?;",
-            "    try std.testing.expectEqual(header, export_shim.canonicalizeHeader(future_compatible).?);",
-            "    try std.testing.expectEqual(uapi_header, uapi_version.canonicalizeHeader(future_compatible).?);",
-            "}",
+            '    const accepted_future = export_shim.acceptHeader(future_compatible).?;',
+            '    const uapi_accepted_future = uapi_version.acceptHeader(future_compatible).?;',
+            '    try std.testing.expectEqual(header, export_shim.canonicalizeHeader(future_compatible).?);',
+            '    try std.testing.expectEqual(uapi_header, uapi_version.canonicalizeHeader(future_compatible).?);',
+            '}',
             'test "phase3 export shim keeps compatibility status relays explicit" {',
-            "    const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);",
-            "    _ = canonical_status;",
-            "}",
+            '    const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);',
+            '}',
             'test "phase3 export shim evaluation mirrors the uapi boundary classification" {',
-            "    const export_future = export_shim.evaluateHeader(future_compatible, -75, .helpers);",
-            "    const uapi_future = uapi_version.evaluateHeader(future_compatible);",
-            "    const export_mismatch = export_shim.evaluateHeader(version_mismatch, -71, .kernel);",
-            "    const uapi_mismatch = uapi_version.evaluateHeader(version_mismatch);",
-            "    _ = export_future;",
-            "    _ = uapi_future;",
-            "    _ = export_mismatch;",
-            "    _ = uapi_mismatch;",
-            "}",
-            "",
+            '    const export_future = export_shim.evaluateHeader(future_compatible, -75, .helpers);',
+            '    const uapi_future = uapi_version.evaluateHeader(future_compatible);',
+            '    const export_mismatch = export_shim.evaluateHeader(version_mismatch, -71, .kernel);',
+            '    const uapi_mismatch = uapi_version.evaluateHeader(version_mismatch);',
+            '}',
+            '',
         )
     )
 
 
-def minimal_export_uapi_build_text() -> str:
-    return "\n".join(("placeholder",))
-
-
 def minimal_export_uapi_layout_build_text() -> str:
-    return "\n".join(("placeholder",))
-
-
-def minimal_abi_slice_text() -> str:
     return "\n".join(
         (
-            "# Phase 3 ABI Substrate Slice",
-            "",
-            "## Status",
-            "",
-            "- `PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof`",
-            "- current boundary evidence therefore lives in this shared ABI slice plus the packet-local export/UAPI survey note, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, the focused `phase3_export_uapi_layout` replay, `include/linux/zigux.h`, `zigux/kernel/export_shim.zig`, and `zigux/uapi/version.zig`",
-            "- the current shared ABI packet also keeps the focused export/UAPI boundary replay explicit across `zigux/tests/phase3_export_uapi_layout.zig`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, and `Documentation/zigux/phase3-linux-zigux-header-governance.md` so the manifest-backed replay surface matches the shipped packet-local starter proof, including accepted-header canonicalization, requested-header evaluation, and compatibility-status relays",
-            "",
+            '.root_source_file = b.path("../bindings/abi.zig"),',
+            '.root_source_file = b.path("../uapi/version.zig"),',
+            'uapi_version_module.addImport("abi_bindings", abi_bindings_module);',
+            '.root_source_file = b.path("../kernel/export_shim.zig"),',
+            'export_shim_module.addImport("abi_bindings", abi_bindings_module);',
+            'export_shim_module.addImport("uapi_version", uapi_version_module);',
+            '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
+            'root_module.addImport("export_shim", export_shim_module);',
+            'root_module.addImport("uapi_version", uapi_version_module);',
+            'const test_step = b.step("test", "Run Phase 3 export/UAPI layout tests");',
+            '',
         )
     )
 
 
 def baseline_survey(root: Path) -> str:
-    return "\n".join(("placeholder",))
+    export_sha = blob_sha(root / EXPORT_SHIM_REL)
+    uapi_sha = blob_sha(root / UAPI_VERSION_REL)
+    linux_sha = blob_sha(root / LINUX_HEADER_REL)
+    abi_sha = blob_sha(root / ABI_HEADER_REL)
+    layout_sha = blob_sha(root / EXPORT_UAPI_LAYOUT_REL)
+    validator_sha = blob_sha(root / VALIDATOR_REL)
+    return "\n".join(
+        (
+            "# Phase 3 Export Shim and UAPI Boundary Survey",
+            "",
+            "## Status",
+            "",
+            SURVEY_PROVENANCE_MARKERS[0],
+            SURVEY_EXACT_MARKERS[0],
+            SURVEY_EXACT_MARKERS[1],
+            SURVEY_EXACT_MARKERS[2],
+            SURVEY_EXACT_MARKERS[3],
+            SURVEY_EXACT_MARKERS[4],
+            f"`PHASE3_EXPORT_SHIM_BLOB_SHA={export_sha}`",
+            SURVEY_EXACT_MARKERS[5],
+            f"`PHASE3_UAPI_VERSION_BLOB_SHA={uapi_sha}`",
+            SURVEY_EXACT_MARKERS[6],
+            f"`PHASE3_LINUX_HEADER_BLOB_SHA={linux_sha}`",
+            SURVEY_EXACT_MARKERS[7],
+            f"`PHASE3_ABI_HEADER_BLOB_SHA={abi_sha}`",
+            SURVEY_EXACT_MARKERS[8],
+            f"`PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA={layout_sha}`",
+            SURVEY_EXACT_MARKERS[9],
+            f"`PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA={validator_sha}`",
+            "",
+        )
+    )
 
 
 def build_valid_workspace(root: Path) -> None:
     _write(root / EXPORT_SHIM_REL, minimal_export_shim_text())
     _write(root / UAPI_VERSION_REL, minimal_uapi_text())
+    _write(root / EXPORT_UAPI_TEST_REL, minimal_export_uapi_test_text())
     _write(root / EXPORT_UAPI_BUILD_REL, minimal_export_uapi_build_text())
     _write(root / EXPORT_UAPI_LAYOUT_REL, minimal_layout_text())
     _write(root / EXPORT_UAPI_LAYOUT_BUILD_REL, minimal_export_uapi_layout_build_text())
-    _write(root / ABI_SLICE_REL, minimal_abi_slice_text())
-    _write(root / LINUX_HEADER_REL, "#include <zigux/abi.h>\nstatic inline struct zigux_export_status zigux_status_ok(\n    zigux_u16 facility)\n{}\nstatic inline struct zigux_export_status zigux_status_err(\n    zigux_s32 code, zigux_u16 facility)\n{}\n")
+    _write(root / ABI_SLICE_REL, "# Phase 3 ABI Substrate Slice\n\n- " + ABI_SLICE_MARKERS[0] + "\n- " + ABI_SLICE_MARKERS[1] + "\n- " + ABI_SLICE_MARKERS[2] + "\n")
+    _write(root / LINUX_HEADER_REL, "#include <zigux/abi.h>\nstatic inline struct zigux_export_status zigux_status_ok(\n    zigux_u16 facility) {}\nstatic inline struct zigux_export_status zigux_status_err(\n    zigux_s32 code, zigux_u16 facility) {}\n")
     _write(root / ABI_HEADER_REL, "#define ZIGUX_ABI_VERSION 1U\n#define ZIGUX_STATUS_FLAG_ERROR 1U\nstruct zigux_boundary_header {\n};\nstruct zigux_export_status {\n};\n")
     _write(root / BUILD_FILE_REL, "// build placeholder\n")
-    _write(root / LINUX_HEADER_GOVERNANCE_REL, "# Phase 3 Linux `zigux.h` Header Governance\n- `PHASE3_ZIGUX_H_PATH=include/linux/zigux.h`\n- `PHASE3_ZIGUX_H_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`\n- `PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`\n- `PHASE3_ZIGUX_H_GROWTH_RULE=new top-level helper families may land in include/linux/zigux.h, and already-landed top-level review surfaces may be rehomed there, only when the same bounded change also lands packet-local proof and updates this note.`\n- export/UAPI starter work may reference this header, but the dedicated export/UAPI survey still owns the narrower starter-boundary claims it proves directly\n")
-    _write(root / VALIDATOR_REL, "# validator placeholder\n")
-    _write(root / SURVEY_REL, baseline_survey(root))
-    _write(root / DOCS_ROOT_REL, "# docs root\n- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`\n- `Documentation/zigux/phase3-linux-zigux-header-governance.md`\n- `scripts/zigux/validate-phase3-export-uapi-survey.py`\n- `zig build phase3-test --build-file zigux/tests/build.zig`\n- `make -C zigux phase3`\n")
-    _write(root / SCRIPTS_README_REL, "# scripts\n- `validate-phase3-export-uapi-survey.py`\n- `validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `include/linux/zigux.h`, `include/zigux/abi.h`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and the workflow hooks that rerun that same survey surface.\n")
+    _write(root / LINUX_HEADER_GOVERNANCE_REL, "# Phase 3 Linux zigux.h Header Governance\n- " + HEADER_GOVERNANCE_MARKERS[0] + "\n- " + HEADER_GOVERNANCE_MARKERS[1] + "\n- " + HEADER_GOVERNANCE_MARKERS[2] + "\n- " + HEADER_GOVERNANCE_MARKERS[3] + "\n- " + HEADER_GOVERNANCE_MARKERS[4] + "\n")
+    _write(root / VALIDATOR_REL, Path(__file__).read_text(encoding="utf-8"))
+    _write(root / DOCS_ROOT_REL, "# docs root\n- " + DOCS_ROOT_MARKERS[0] + "\n- " + DOCS_ROOT_MARKERS[1] + "\n- " + DOCS_ROOT_MARKERS[2] + "\n- " + DOCS_ROOT_MARKERS[3] + "\n- " + DOCS_ROOT_MARKERS[4] + "\n")
+    _write(root / SCRIPTS_README_REL, "# scripts\n- " + SCRIPTS_README_MARKERS[0] + "\n- " + SCRIPTS_README_MARKERS[1] + "\n")
     _write(root / WORKFLOW_REL, "- name: Validate Phase 3 export/UAPI survey\n  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py\n- name: Self-test Phase 3 export/UAPI survey\n  run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n")
-    _write(root / ABI_MANIFEST_REL, json.dumps({"phase": "Phase 3", "status": "active", "slice": "abi-substrate-skeleton", "file_count": len(MANIFEST_REQUIRED_FILES), "files": list(MANIFEST_REQUIRED_FILES)}, indent=2) + "\n")
+    manifest_files = list(MANIFEST_REQUIRED_FILES)
+    _write(
+        root / ABI_MANIFEST_REL,
+        json.dumps(
+            {
+                "phase": "Phase 3",
+                "status": "active",
+                "slice": "abi-substrate-skeleton",
+                "file_count": len(manifest_files),
+                "files": manifest_files,
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    _write(root / SURVEY_REL, baseline_survey(root))
 
 
 def run_self_test() -> int:
+    case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_export_uapi_") as tmp_dir:
         root = Path(tmp_dir)
         build_valid_workspace(root)
-        assert validate(root) == [], validate(root)
-        print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-        print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
-        return 0
+
+        assert validate(root) == []
+        case_count += 1
+
+        manifest = json.loads((root / ABI_MANIFEST_REL).read_text(encoding="utf-8"))
+        manifest["files"].remove(EXPORT_UAPI_TEST_REL)
+        manifest["file_count"] = len(manifest["files"])
+        _write(root / ABI_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        issues = validate(root)
+        assert f"manifest_missing_required_file:{EXPORT_UAPI_TEST_REL}" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        test_path = root / EXPORT_UAPI_TEST_REL
+        test_text = test_path.read_text(encoding="utf-8").replace(
+            'const future_status = export_shim.compatibilityStatus(future_compatible, -75, .helpers);',
+            'const stripped = true;',
+        )
+        _write(test_path, test_text)
+        issues = validate(root)
+        assert (
+            f'missing_marker:{EXPORT_UAPI_TEST_REL}:const future_status = export_shim.compatibilityStatus(future_compatible, -75, .helpers);'
+            in issues
+        ), issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        survey_text = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            SURVEY_EXACT_MARKERS[8],
+            "",
+        )
+        _write(root / SURVEY_REL, survey_text)
+        issues = validate(root)
+        assert f"missing_survey_marker:{SURVEY_EXACT_MARKERS[8]}" in issues, issues
+        case_count += 1
+
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
+    print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT={case_count}")
+    return 0
 
 
 def main() -> int:
