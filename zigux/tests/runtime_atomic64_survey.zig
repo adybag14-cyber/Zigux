@@ -190,6 +190,7 @@ test "phase 9 runtime atomic64 survey note keeps exact selftest and loader snaps
     try std.testing.expect(std.mem.indexOf(u8, note, "shared request failure-mode proof: the initialized-stage shared request still keeps `handoff_stage=initialized` and `selftest_runs=0` after later selftest activity, the shared loader replay now also keeps selftest-complete prepared snapshots pinned even if later live state would look exited, prepared selftest-hook drift and shared-plan drift still fail closed before any live atomic64 claim, and out-of-order release attempts still keep the loader and shared request synchronized until both finally reach `released_without_substrate`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_atomic64_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/kernel/runtime_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "make -C zigux phase9-runtime-loader-shared-tests") != null);
 }
 
 test "phase 9 runtime atomic64 module slice keeps the loader-backed survey packet explicit" {
@@ -223,6 +224,7 @@ test "phase 9 runtime atomic64 module slice keeps the loader-backed survey packe
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/runtime_atomic64_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/runtime_atomic64_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/Makefile") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "make -C zigux phase9-runtime-loader-shared-tests") != null);
 }
 
 test "phase 9 runtime atomic64 survey source-checks the direct sample evidence packet" {
