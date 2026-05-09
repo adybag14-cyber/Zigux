@@ -467,7 +467,6 @@ def run_self_test() -> int:
         note_path.write_text(baseline_note, encoding="utf-8")
         case_count += 1
 
-        note_path.writeText = None
         note_path.write_text(
             baseline_note.replace("make -C zigux phase15-test", "make -C zigux phase15-check", 1),
             encoding="utf-8",
