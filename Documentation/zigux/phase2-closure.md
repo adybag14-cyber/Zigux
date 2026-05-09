@@ -205,11 +205,17 @@ The bounded Phase 2 bootstrap archive pin stays separate from the cross-target c
 
 ## Linux-Style Entry Point
 
-The bounded Phase 2 entry point is:
+The bounded Phase 2 entry points are:
 
 - `zigux/Makefile`
+- `make -C zigux phase2-toolchain`
+- `make -C zigux phase2-validate`
+- `make -C zigux phase2-tools`
+- `make -C zigux phase2-kconfig`
+- `make -C zigux phase2-cross`
+- `make -C zigux phase2`
 
-This exists to keep the tranche callable in a Linux-style workflow without pretending that Zigux already replaces the native Kbuild flow.
+These keep the closed toolchain-pin, validator, tool, kconfig, cross-target, and aggregate replays callable in a Linux-style workflow without pretending that Zigux already replaces the native Kbuild flow.
 
 ## Rollback
 
