@@ -75,6 +75,7 @@ REQUIRED_MARKERS = {
         '@import("fixtures/phase7_argv_split_vectors.zig")',
         "split.cArgv()",
         "phase 7 argvSplit token buffer does not alias the source text",
+        "phase 7 argvSplit leaves the caller buffer bytes untouched while returning owned tokens",
         "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy",
         "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
         "phase 7 argvSplit keeps the exported C argv vector sized to argc plus one sentinel",
@@ -115,10 +116,13 @@ REQUIRED_MARKERS = {
         "pub fn argvSplitWithArgc",
         "pub fn argvFree",
         "pub fn cArgv",
+        'test "argvSplitOwnedStorage reuses the caller-owned storage copy"',
+        'test "argvSplitOwnedStorage frees blank caller-owned storage and reuses exported sentinels"',
         'test "argvSplit sizes argc and tokens from the owned copy prefix when copied storage contains an early NUL"',
         'test "argvSplit zeroes copied whitespace separators across the tokenized buffer"',
         'test "ArgvSplitResult deinit is idempotent after the exported views are cleared"',
         'test "argvSplit frees intermediate allocations when allocator failure interrupts setup"',
+        'test "argvSplitOwnedStorage frees intermediate allocations when allocator failure interrupts setup"',
         'test "argvSplit reports overflow before sizing the null-terminated argv vector"',
     ],
 }
@@ -516,6 +520,38 @@ def run_self_test() -> None:
 
         tests_path.write_text(
             original_tests.replace(
+                "phase 7 argvSplit token buffer does not alias the source text",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_source_alias_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit token buffer does not alias the source text",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
+                "phase 7 argvSplit leaves the caller buffer bytes untouched while returning owned tokens",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_source_preservation_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit leaves the caller buffer bytes untouched while returning owned tokens",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
                 "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy",
                 "",
                 1,
@@ -744,6 +780,38 @@ def run_self_test() -> None:
 
         helper_path.write_text(
             original_helper.replace(
+                'test "argvSplitOwnedStorage reuses the caller-owned storage copy"',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_helper_owned_storage_reuse_marker",
+            tmp_root,
+            'lib/argv_split.zig: test "argvSplitOwnedStorage reuses the caller-owned storage copy"',
+        )
+        case_count += 1
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                'test "argvSplitOwnedStorage frees blank caller-owned storage and reuses exported sentinels"',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_helper_blank_owned_storage_marker",
+            tmp_root,
+            'lib/argv_split.zig: test "argvSplitOwnedStorage frees blank caller-owned storage and reuses exported sentinels"',
+        )
+        case_count += 1
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
                 'test "argvSplit sizes argc and tokens from the owned copy prefix when copied storage contains an early NUL"',
                 "",
                 1,
@@ -802,6 +870,22 @@ def run_self_test() -> None:
             "argv_split_helper_overflow_marker",
             tmp_root,
             'lib/argv_split.zig: test "argvSplit reports overflow before sizing the null-terminated argv vector"',
+        )
+        case_count += 1
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                'test "argvSplitOwnedStorage frees intermediate allocations when allocator failure interrupts setup"',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_helper_owned_storage_allocation_failure_marker",
+            tmp_root,
+            'lib/argv_split.zig: test "argvSplitOwnedStorage frees intermediate allocations when allocator failure interrupts setup"',
         )
         case_count += 1
         helper_path.write_text(original_helper, encoding="utf-8")
