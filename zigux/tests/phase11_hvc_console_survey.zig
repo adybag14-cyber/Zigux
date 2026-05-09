@@ -268,6 +268,7 @@ test "phase11 hvc_console survey gate proves validation matrix coverage directly
     try std.testing.expect(std.mem.indexOf(u8, matrix, "notifier prerequisite, never-registered, targetless, and targetless-sysrq failure-mode replays in `drivers/tty/hvc/hvc_console_verify.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "khvcd polling contract boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "notifier-driven versus polling-driven wakeups") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "worker-entry sleep, kick, poll-mask, timeout-backoff, and invalid-open-count replays in `drivers/tty/hvc/hvc_console_verify.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "`hvc_hangup()` disconnect boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "stale-count short-circuiting") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "preserving buffered-write state when the stale port-count guard wins") != null);
