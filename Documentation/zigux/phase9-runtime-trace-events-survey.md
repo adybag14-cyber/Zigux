@@ -98,6 +98,7 @@ This survey slice still does not claim:
 - generated tracepoint macro parity for `trace-events-sample.h`
 - full ftrace selftest execution inside Zigux
 - runtime task ownership or event-loop substrate parity
+- scheduler-facing runtime execution parity or timeout behavior
 - polling-backed wake or dispatch behavior
 
 ## Next bounded step
