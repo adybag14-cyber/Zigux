@@ -117,7 +117,7 @@ Current Phase 3 use
 Current Phase 4 use
 - `scripts/zigux/artifact_diff.py` stays the shared host-side comparison helper behind the committed artifact-check packets.
 - `scripts/zigux/check-artifact-diff-contract.py` reruns the bounded helper self-test, CLI help output, missing-required-args, missing-actual-operand, and invalid-mode parser coverage plus the text, JSON, SHA-256, missing-path, malformed-input, and repeat-run cases so the helper's outward contract stays deterministic before the broader Phase 4 validator and Zig gates run.
-- `scripts/zigux/check-phase4-artifact-diff-determinism.py` rechecks the helper and contract summary catalogs together so case-count, case-order, and repeat-case drift fail closed before the shared Phase 4 validator and Zig gates run.
+- `scripts/zigux/check-phase4-artifact-diff-determinism.py` rechecks the published helper self-test and contract-summary catalogs together so case-count, case-order, and repeat-case drift fail closed before the broader Phase 4 validator and Zig gates run.
 - `scripts/zigux/check-phase4-gate-evidence.py` together with `Documentation/zigux/phase4-gate-evidence.md` keeps the dedicated exact-readback companion packet explicit beside the broader validator-backed rollback surface without turning this note into the full ownership record.
 - `zigux/tests/atomic64_diff.zig` keeps the roadmap-named Phase 4 atomic64 entrypoint explicit as the thin wrapper over the shared runtime-backed replay.
 - `zigux/tests/runtime_atomic64_diff.zig` currently carries the single live bounded atomic64 rollback-readiness replay body that the Phase 4 wrapper and the Phase 9 starter both reuse.
@@ -126,7 +126,7 @@ Current Phase 4 use
 - `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` keeps the manifest-backed runtime atomic64 wrapper handoff reviewable beside the live wrapper gate without widening the shipped rollback contract.
 - `zigux/tests/phase4_bitmap_diff_survey.zig` keeps the manifest-backed bitmap rollback survey reviewable beside the live bitmap gate and helper-backed replay without widening the shipped rollback contract.
 - `zigux/tests/phase4_build.zig` keeps the five currently shared Phase 4 rollback-readiness replays on one shared `zig build test --build-file zigux/tests/phase4_build.zig` entrypoint.
-- `scripts/zigux/validate-phase4.py` keeps the shared Phase 4 build entrypoint, workflow wiring, and Phase 4 documentation markers aligned before the Zig tests run.
+- `scripts/zigux/validate-phase4.py` keeps the shared Phase 4 validator packet, workflow wiring, the artifact-diff contract checker, the artifact-diff determinism checker, and the Phase 4 documentation markers aligned before the Zig tests run.
 - `Documentation/zigux/phase4-validation-matrix.md` records the current rollback owners, threshold posture, and lab/CI replay matrix for the shipped Phase 4 gates.
 
 ## Phase 4 Tooling Review Note
@@ -135,6 +135,7 @@ Current Phase 4 use
 - rollback owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`
 - fallback rule: if `scripts/zigux/artifact_diff.py` regresses, keep the committed expected artifact plus the current authoritative C or documented replay command as the source of truth until the helper contract is repaired
 - deterministic replay entrypoint: `python3 scripts/zigux/check-artifact-diff-contract.py` is the reviewable contract rerun for the shared host-side helper and should stay aligned with the outward line rules below
+- deterministic survey entrypoint: `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py` must keep the helper self-test catalog, the contract summary catalog, and the repeat-case packet aligned with this note and the shared validator packet
 - review rule: any change to the helper's emitted `ARTIFACT_DIFF=*`, `MODE=*`, `EXPECTED=*`, `ACTUAL=*`, `SHA256=*`, `EXPECTED_EXISTS=*`, `ACTUAL_EXISTS=*`, `EXPECTED_JSON_ERROR=*`, or `ACTUAL_JSON_ERROR=*` lines must update this note in the same change so the published host-side artifact packet stays reviewable
 - boundary: keep this note scoped to the shared host-side diff helper; Phase 4 gate ownership for `zigux/tests/*.zig` still belongs in `Documentation/zigux/phase4-validation-matrix.md`
 - deterministic helper contract: `ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS|EXPECTED_JSON_ERROR|ACTUAL_JSON_ERROR]`
