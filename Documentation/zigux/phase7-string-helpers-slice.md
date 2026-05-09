@@ -1,6 +1,6 @@
 # Phase 7 String Helpers Slice
 
-This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
+This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux around `lib/string_helpers.c`.
 
 ## Status
 
@@ -8,6 +8,7 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-L03`
 - scope: first low-risk runtime-safe string helper batch only
+- lane state: helper, dedicated survey, dedicated no-string-sample boundary replay, dedicated manifest packet, shared build-wiring checker, shared validator, make-wrapper alignment note, and make-wrapper slice landed; parked unless a new `lib/string_helpers.c` parity issue or renewed Phase 5-versus-Phase 7 boundary drift appears
 - product boundary:
   - `lib/string_helpers.zig`
   - `samples/zigux/README.md`
