@@ -97,6 +97,37 @@ test "virtio mmio wrapper-facing feature negotiation stays word-local and preser
     try std.testing.expect(!summary.ready_for_feature_handoff);
 }
 
+test "virtio mmio wrapper-facing queue coverage review stays within configured queues" {
+    var device = try virtio_mmio.VirtioMmioLab.init(85, &[_]u16{ 8, 16, 32 });
+
+    _ = try device.writeRegister(.queue_num, 8);
+    _ = try device.writeRegister(.queue_ready, 1);
+    _ = try device.writeRegister(.queue_sel, 1);
+    _ = try device.writeRegister(.queue_num, 16);
+    _ = try device.writeRegister(.queue_sel, 2);
+
+    var summary = device.configuredQueueCoverageSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(@as(usize, 3), summary.configured_queue_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.programmed_queue_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.ready_queue_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.handoff_ready_queue_count);
+    try std.testing.expect(!summary.all_configured_queues_programmed);
+    try std.testing.expect(!summary.all_configured_queues_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_num, 32);
+    _ = try device.writeRegister(.queue_ready, 1);
+    _ = try device.writeRegister(.queue_sel, 1);
+    _ = try device.writeRegister(.queue_ready, 1);
+
+    summary = device.configuredQueueCoverageSummary();
+    try std.testing.expectEqual(@as(usize, 3), summary.programmed_queue_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.ready_queue_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.handoff_ready_queue_count);
+    try std.testing.expect(summary.all_configured_queues_programmed);
+    try std.testing.expect(summary.all_configured_queues_ready_for_handoff);
+}
+
 test "virtio mmio wrapper-facing queue handoff review stays selected-queue local" {
     var device = try virtio_mmio.VirtioMmioLab.init(83, &[_]u16{ 8, 16 });
 
