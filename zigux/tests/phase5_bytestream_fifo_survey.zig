@@ -577,6 +577,12 @@ test "phase 5 bytestream fifo survey note records the queue-shape boundary contr
         "`1` immediately after skip-at-capacity",
         "`usesWrappedStorageWindow()` stays `false` at cold, initialized, reset, preview-boundary, replay-complete, and full-capacity states",
         "flips `true` only after the skip-at-capacity plus refill rollover cue",
+        "`visibleSpanSummary()` keeps the same bounded split cues reviewers expect from the ring window",
+        "`{ first_span_len = 0, second_span_len = 0 }` at cold, initialized, replay-complete, reset, and exited boundaries",
+        "`{ 5, 0 }` after enqueueing `\"hello\"`",
+        "`{ 32, 0 }` at full capacity",
+        "`{ 31, 0 }` immediately after skip-at-capacity",
+        "`{ 31, 1 }` once refill makes the bounded window wrap",
         "the queue-shape replay also held",
         "`usesWrappedStorageWindow()` stayed `false` until the refill-after-skip rollover flipped it `true`",
     };
@@ -621,6 +627,11 @@ test "phase 5 bytestream fifo survey note records the latest verification snapsh
         "skip-at-capacity returned `0`",
         "pop-after-reset returned `null`",
         "cold -> initialized -> replay_complete -> exited",
+        "`visibleSpanSummary()` stayed `{ 0, 0 }` at cold, initialized, replay-complete, reset, and exited boundaries",
+        "moved to `{ 5, 0 }` after `\"hello\"`",
+        "`{ 32, 0 }` at full capacity",
+        "`{ 31, 0 }` after skip-at-capacity",
+        "`{ 31, 1 }` after the refill rollover",
         "`usesWrappedStorageWindow()` stayed `false` until the refill-after-skip rollover flipped it `true`",
     };
 
