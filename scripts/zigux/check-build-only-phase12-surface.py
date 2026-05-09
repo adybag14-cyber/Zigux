@@ -216,6 +216,20 @@ REQUIRED_FILE_MARKERS = {
         "`Documentation/zigux/phase12-release-coordination-matrix.md` should stay visible beside this fallback catalog, the PMO closure companion, and the longer sequencing note so the lane-owner split, two-artifact-plus-two-anchor fallback split, and smoke-set summary remain reviewable together without turning this fallback catalog into a second sequencing document.",
         "The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
+        "## Current Verification Evidence",
+        "latest visible public `master` head checked before this catalog refresh:",
+        "`PHASE12_TREE_VIEW_COUNT=18`",
+        "`PHASE12_RAW_VIEW_COUNT=18`",
+        "`PHASE12_VERIFIED_FILE_COUNT=18`",
+        "public GitHub commits-page readback for the visible `master` head",
+        "public GitHub raw fallback readback for the bounded packet",
+        "authenticated blob-identity readback for every covered file listed below",
+        "- current blob identities for the covered packet:",
+        "- `drivers/scsi/virtio_scsi.zig`: `3c26a8159be399aac0f044d6305f3e5f4a0be244`",
+        "- `Documentation/zigux/phase12-virtio-scsi-survey.md`: `a9baf66c80753959b0a98b5500066a619b36f338`",
+        "- `zigux/tests/phase12_virtio_scsi_manifest.json`: `f0f911857bd56d7dbf206c3ccd2357ea5059a14f`",
+        "- `zigux/Makefile`: `cfb5a1ebd283c5f86ccc264ceccaf704fd8c47b5`",
+        "- bounded coverage result: the current public tree and raw fallback packet still resolves cleanly for all 18 listed surfaces",
     ],
     VIRTIO_NET_SURVEY_PATH: [
         "public fallback posture: shared-tree-only anchor",
@@ -348,6 +362,16 @@ EXACT_COUNT_FILE_MARKERS = {
     },
     PHASE12_COORDINATION_MATRIX_PATH: {
         "PHASE12_RELEASE_CLOSED=no": 1,
+    },
+    VIRTIO_SCSI_FALLBACK_PATH: {
+        "## Current Verification Evidence": 1,
+        "`PHASE12_TREE_VIEW_COUNT=18`": 1,
+        "`PHASE12_RAW_VIEW_COUNT=18`": 1,
+        "`PHASE12_VERIFIED_FILE_COUNT=18`": 1,
+        "- `drivers/scsi/virtio_scsi.zig`: `3c26a8159be399aac0f044d6305f3e5f4a0be244`": 1,
+        "- `Documentation/zigux/phase12-virtio-scsi-survey.md`: `a9baf66c80753959b0a98b5500066a619b36f338`": 1,
+        "- `zigux/tests/phase12_virtio_scsi_manifest.json`: `f0f911857bd56d7dbf206c3ccd2357ea5059a14f`": 1,
+        "- `zigux/Makefile`: `cfb5a1ebd283c5f86ccc264ceccaf704fd8c47b5`": 1,
     },
 }
 
