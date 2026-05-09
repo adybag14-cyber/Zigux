@@ -292,4 +292,10 @@ test "phase 7 skipSpaces and strim honor C-string whitespace bounds" {
     try std.testing.expectEqualStrings("ok", trimmed);
     try std.testing.expectEqual(@as(u8, 0), padded[4]);
     try std.testing.expectEqual(@as(u8, 'x'), padded[7]);
+
+    var spaces_only = [_]u8{ ' ', '\t', '\n', 0, 'x' };
+    const empty = string_helpers.strim(&spaces_only);
+    try std.testing.expectEqual(@as(usize, 0), empty.len);
+    try std.testing.expectEqual(@as(u8, 0), spaces_only[0]);
+    try std.testing.expectEqual(@as(u8, 'x'), spaces_only[4]);
 }
