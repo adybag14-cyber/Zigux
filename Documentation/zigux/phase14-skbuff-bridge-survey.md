@@ -51,6 +51,7 @@ The current lane state is:
 - landed `phase14-skbuff-test-gate`
 - landed `phase14-skbuff-slice-note`
 - landed `phase14-skbuff-survey-note`
+- landed `phase14-skbuff-boundary-decision-checklist`
 - landed `phase14-skbuff-concurrency-audit-outline`
 - landed `phase14-skbuff-checksum-state-audit`
 - landed `phase14-skbuff-segmentation-followup`
@@ -59,7 +60,7 @@ The current lane state is:
 - landed `phase14-skbuff-segs-prev-tail-publication-followup`
 - blocked `phase14-skbuff-live-ownership-blocker`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a machine-checkable roadmap-alignment helper surface for that map, a lifetime-audit foothold, an explicit concurrency-sensitive checkpoint catalog for the qdisc-facing tail-publication boundary, an explicit checksum-state audit, the orphan-frag and zerocopy handoff study, the checksum-metadata handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, and the exported tail-publication audit, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, qdisc-facing publication ownership, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
+This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a machine-checkable roadmap-alignment helper surface for that map, an explicit stay-in-C decision checklist for the dataref, teardown, and qdisc-facing publication packet, a lifetime-audit foothold, an explicit concurrency-sensitive checkpoint catalog for the qdisc-facing tail-publication boundary, an explicit checksum-state audit, the orphan-frag and zerocopy handoff study, the checksum-metadata handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, and the exported tail-publication audit, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, qdisc-facing publication ownership, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
 
 ## Freeze-in-C guardrails
 
