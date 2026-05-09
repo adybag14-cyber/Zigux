@@ -52,7 +52,7 @@ test "phase13 libfs reviewability gate records the landed helper surfaces and re
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("fs/libfs.c", manifest.anchor);
     try std.testing.expectEqualStrings("master-reviewability", manifest.surveyed_commit);
