@@ -334,6 +334,25 @@ def run_self_test() -> int:
 
         broken_smoke_note_path.write_text(
             broken_smoke_note_path.read_text(encoding="utf-8").replace(
+                "- `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`\n",
+                "- `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`\n"
+                "- `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all` (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate direct smoke fallback example failure", file=sys.stderr)
+            return 1
+        write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
+
+        broken_smoke_note_path.write_text(
+            broken_smoke_note_path.read_text(encoding="utf-8").replace(
                 "- `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`\n",
                 "",
                 1,
@@ -347,6 +366,25 @@ def run_self_test() -> int:
             for error in errors
         ):
             print("self-test expected missing direct full-test fallback example failure", file=sys.stderr)
+            return 1
+        write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
+
+        broken_smoke_note_path.write_text(
+            broken_smoke_note_path.read_text(encoding="utf-8").replace(
+                "- `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`\n",
+                "- `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`\n"
+                "- `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all` (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate direct full-test fallback example failure", file=sys.stderr)
             return 1
         write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
 
