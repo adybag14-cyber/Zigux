@@ -83,6 +83,10 @@ pub fn findFirstBit(addr: []const Word, nbits: usize) usize {
     return nbits;
 }
 
+pub fn find_first_bit(addr: []const Word, nbits: usize) usize {
+    return findFirstBit(addr, nbits);
+}
+
 pub fn _find_first_bit(addr: []const Word, nbits: usize) usize {
     return findFirstBit(addr, nbits);
 }
@@ -107,6 +111,10 @@ pub fn findFirstAndBit(addr1: []const Word, addr2: []const Word, nbits: usize) u
     }
 
     return nbits;
+}
+
+pub fn find_first_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {
+    return findFirstAndBit(addr1, addr2, nbits);
 }
 
 pub fn _find_first_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {
@@ -160,6 +168,10 @@ pub fn findFirstZeroBit(addr: []const Word, nbits: usize) usize {
     return nbits;
 }
 
+pub fn find_first_zero_bit(addr: []const Word, nbits: usize) usize {
+    return findFirstZeroBit(addr, nbits);
+}
+
 pub fn _find_first_zero_bit(addr: []const Word, nbits: usize) usize {
     return findFirstZeroBit(addr, nbits);
 }
@@ -186,6 +198,10 @@ pub fn findNextBit(addr: []const Word, nbits: usize, start: usize) usize {
     }
 
     return bitIndex(idx, value, nbits);
+}
+
+pub fn find_next_bit(addr: []const Word, nbits: usize, start: usize) usize {
+    return findNextBit(addr, nbits, start);
 }
 
 pub fn _find_next_bit(addr: []const Word, nbits: usize, start: usize) usize {
@@ -215,6 +231,10 @@ pub fn findNextAndBit(addr1: []const Word, addr2: []const Word, nbits: usize, st
     }
 
     return bitIndex(idx, value, nbits);
+}
+
+pub fn find_next_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {
+    return findNextAndBit(addr1, addr2, nbits, start);
 }
 
 pub fn _find_next_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {
@@ -272,6 +292,10 @@ pub fn findNextZeroBit(addr: []const Word, nbits: usize, start: usize) usize {
     }
 
     return bitIndex(idx, value, nbits);
+}
+
+pub fn find_next_zero_bit(addr: []const Word, nbits: usize, start: usize) usize {
+    return findNextZeroBit(addr, nbits, start);
 }
 
 pub fn _find_next_zero_bit(addr: []const Word, nbits: usize, start: usize) usize {
@@ -584,6 +608,13 @@ test "low-level underscore aliases mirror the primary find helpers" {
     const and_rhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
     const andnot_lhs = [_]Word{ (@as(Word, 1) << 5), (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
     const andnot_rhs = [_]Word{ 0, @as(Word, 1) << 9 };
+
+    try std.testing.expectEqual(findFirstBit(&bitmap, nbits), find_first_bit(&bitmap, nbits));
+    try std.testing.expectEqual(findFirstAndBit(&and_lhs, &and_rhs, nbits), find_first_and_bit(&and_lhs, &and_rhs, nbits));
+    try std.testing.expectEqual(findFirstZeroBit(&zero_map, nbits), find_first_zero_bit(&zero_map, nbits));
+    try std.testing.expectEqual(findNextBit(&bitmap, nbits, 8), find_next_bit(&bitmap, nbits, 8));
+    try std.testing.expectEqual(findNextAndBit(&and_lhs, &and_rhs, nbits, bits_per_long), find_next_and_bit(&and_lhs, &and_rhs, nbits, bits_per_long));
+    try std.testing.expectEqual(findNextZeroBit(&zero_map, nbits, 5), find_next_zero_bit(&zero_map, nbits, 5));
 
     try std.testing.expectEqual(findFirstBit(&bitmap, nbits), _find_first_bit(&bitmap, nbits));
     try std.testing.expectEqual(findFirstAndBit(&and_lhs, &and_rhs, nbits), _find_first_and_bit(&and_lhs, &and_rhs, nbits));
