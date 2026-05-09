@@ -6,6 +6,11 @@ const ParsedPrefix = struct {
     len: usize,
 };
 
+const ParsedI32Prefix = struct {
+    value: i32,
+    len: usize,
+};
+
 pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
     const current = str.*;
     if (current.len == 0) {
@@ -228,10 +233,10 @@ fn getRange(str: *[]const u8, lower: i32, out: []i32) ?usize {
     }
 
     str.* = str.*[1..];
-    const parsed = parseSignedPrefix(str.*) orelse return null;
+    const parsed = parseWrappedI32Prefix(str.*) orelse return null;
 
     const upper = parsed.value;
-    const delta = upper - @as(i64, lower);
+    const delta = @as(i64, upper) - @as(i64, lower);
     if (delta < 0) {
         return null;
     }
@@ -309,6 +314,26 @@ fn parseMemparseZeroPrefix(s: []const u8) ?ParsedPrefix {
     }
 
     return null;
+}
+
+fn parseWrappedI32Prefix(s: []const u8) ?ParsedI32Prefix {
+    if (s.len == 0) {
+        return null;
+    }
+
+    if (s[0] == '-') {
+        const parsed = parseUnsignedPrefix(s[1..]) orelse return null;
+        return .{
+            .value = truncateU64ToI32(0 -% parsed.value),
+            .len = 1 + parsed.len,
+        };
+    }
+
+    const parsed = parseUnsignedPrefix(s) orelse return null;
+    return .{
+        .value = truncateU64ToI32(parsed.value),
+        .len = parsed.len,
+    };
 }
 
 fn parseSignedPrefix(s: []const u8) ?struct { value: i64, len: usize } {
@@ -465,6 +490,18 @@ test "getOptions keeps incomplete hex prefixes as zero-valued leaves" {
     const validate_rest = getOptions("+0x,7", 0, &validate);
     try std.testing.expectEqualStrings("x,7", validate_rest);
     try std.testing.expectEqual(@as(i32, 1), validate[0]);
+}
+
+test "getOptions preserves oversized range endpoints without trapping and wraps them like Linux ints" {
+    var values = [_]i32{ 0, 0, 0, 0 };
+    const rest = getOptions("2147483648-2147483650", values.len, &values);
+    try std.testing.expectEqualStrings("", rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, -2147483648, -2147483647, -2147483646 }, &values);
+
+    var validate = [_]i32{0};
+    const validate_rest = getOptions("2147483648-2147483650", 0, &validate);
+    try std.testing.expectEqualStrings("", validate_rest);
+    try std.testing.expectEqual(@as(i32, 3), validate[0]);
 }
 
 test "getOptions stops on descending ranges and unparseable suffixes" {
