@@ -5,7 +5,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-segment-survey`
 - surveyed commit: `17fd5f8e2b234738428770e192346d040aff13ce`
-- scope: segment manifest plus six landed bounded slices across four helper-first starters, one shared file-path bridge helper packet, one perf-buffer poll adjunct, and one compile-together verifier for the landed helper bundle, with the heavier file-path-and-handle resource boundary still parked behind the current bridge packet
+- scope: segment manifest plus six landed bounded slices across four helper-first starters, one dedicated logging review note, one shared file-path bridge helper packet, one perf-buffer poll adjunct, and one compile-together verifier for the landed helper bundle, with the heavier file-path-and-handle resource boundary still parked behind the current bridge packet
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
@@ -16,6 +16,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `tools/lib/bpf/zigux_segments/verify.zig`
   - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
+  - `Documentation/zigux/phase8-libbpf-logging-slice.md`
   - `Documentation/zigux/phase8-bpf-type-names-slice.md`
   - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
   - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
@@ -76,6 +77,7 @@ The current starter implementation stays deliberately bounded:
 - `logging.zig` ports libbpf's bounded print-level parsing, verbosity gating, major or minor version reporting, and the libbpf-specific strerror table without claiming environment reads, stderr output, or full errno-name coverage
 - the logging helper keeps invalid `LIBBPF_LOG_LEVEL`-style values explicit for callers instead of printing directly
 - custom libbpf error text is exposed through a compact helper and unknown or unmapped codes fall back to a stable `"Unknown libbpf error N"` formatter
+- `Documentation/zigux/phase8-libbpf-logging-slice.md` now keeps that helper-only logging packet reviewable as its own parked note without widening into loader, callback, or object-model work
 - `pin_path.zig` ports the pure pathname join and bpffs dot-sanitization helpers behind explicit buffer-based APIs that mirror `pathname_concat()`, `build_map_pin_path()`, and `sanitize_pin_path()`
 - the pin-path helper defaults to `/sys/fs/bpf` when callers leave the root unset, but still keeps actual map pinning, directory creation, and filesystem validation outside the Zig slice
 - pin-path overflows stay explicit as bounded helper errors instead of silently truncating output or widening into direct `PATH_MAX`, `mkdir()`, `statfs()`, or `unlink()` parity
@@ -149,6 +151,6 @@ This survey slice does not yet claim:
 - object-model parity for `bpf_object`, `bpf_map`, or `bpf_program`
 
 ## Next bounded step
-Treat the current starter packet as substantively landed for now: keep the shared `make -C zigux phase8-validate` gate honest, leave the bounded fdinfo-plus-reuse-planning bridge helper and its adjacent boundary survey parked as reviewable landed surface, and reopen first for the next smaller same-lane validator, checker, survey, README, or wording drift that appears inside the parked libbpf packet.
+Treat the current starter packet as substantively landed for now: keep the shared `make -C zigux phase8-validate` gate honest, leave the bounded fdinfo-plus-reuse-planning bridge helper and its adjacent boundary survey parked as reviewable landed surface, keep the dedicated logging slice note aligned with the helper-only packet it documents, and reopen first for the next smaller same-lane validator, checker, survey, README, or wording drift that appears inside the parked libbpf packet.
 
 If no smaller review-surface drift is visible, the next helper-local reopen should still be the deferred `file-path-and-handle-bridge` resource boundary around direct procfs-read, bpffs-open, token-creation, reopen-flow, and fd-ownership semantics, reviewed as one tighter packet ahead of the still-blocked object-model and loader-facing work.
