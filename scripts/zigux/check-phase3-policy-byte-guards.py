@@ -11,6 +11,7 @@ SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
 PANIC_POLICY_REL = "zigux/helpers/panic_policy.zig"
 ALLOCATOR_POLICY_REL = "zigux/helpers/allocator_policy.zig"
 UNSAFE_NARROW_REL = "zigux/unsafe/narrow.zig"
+LOW_LEVEL_WRAPPER_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
 
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
@@ -87,6 +88,21 @@ REQUIRED_UNSAFE_SNIPPETS = (
     "try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(reserved_policy));",
 )
 
+REQUIRED_LOW_LEVEL_WRAPPER_SNIPPETS = (
+    "try std.testing.expect(narrow.permitsRawPointerBridgeInteropPolicy(raw_policy));",
+    "try std.testing.expect(!narrow.permitsRawPointerBridgeInteropPolicy(mmio_policy));",
+    "const third_addr = narrow.byteOffset(base, @sizeOf(u32) * 2);",
+    "const scoped_ptr = try narrow.pointerAtInteropPolicy(u32, base, @sizeOf(u32), raw_policy);",
+    "const scoped_slice = try narrow.constSliceAtInteropPolicy(u32, base, values.len, raw_policy);",
+    "const scoped_const_ptr = try narrow.constPointerAtInteropPolicyBytes(u32, third_addr, 2, 0);",
+    "try narrow.writeValueAtInteropPolicy(u32, base, 55, raw_policy);",
+    "try narrow.writeValueAtInteropPolicyBytes(u32, third_addr, 66, 2, 0);",
+    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.pointerAtInteropPolicy(u32, base, 0, mmio_policy));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAtInteropPolicy(u32, base, values.len, no_unsafe_policy));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAtInteropPolicyBytes(u32, third_addr, 2, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.writeValueAtInteropPolicy(u32, base, 77, reserved_policy));",
+)
+
 
 def require_snippets(issues: list[str], text: str, prefix: str, snippets: tuple[str, ...]) -> None:
     for snippet in snippets:
@@ -131,6 +147,7 @@ def validate(root: Path) -> list[str]:
     panic = (root / PANIC_POLICY_REL).read_text(encoding="utf-8")
     allocator = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8")
     unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8")
+    low_level_wrapper = (root / LOW_LEVEL_WRAPPER_TEST_REL).read_text(encoding="utf-8")
 
     for marker in REQUIRED_SURVEY_MARKERS:
         require_exact_line_count(issues, survey, "survey_marker", marker, normalized=True)
@@ -140,6 +157,7 @@ def validate(root: Path) -> list[str]:
     require_snippets(issues, panic, "panic", REQUIRED_PANIC_SNIPPETS)
     require_snippets(issues, allocator, "allocator", REQUIRED_ALLOCATOR_SNIPPETS)
     require_snippets(issues, unsafe, "unsafe", REQUIRED_UNSAFE_SNIPPETS)
+    require_snippets(issues, low_level_wrapper, "low_level_wrapper", REQUIRED_LOW_LEVEL_WRAPPER_SNIPPETS)
     return issues
 
 
@@ -157,6 +175,7 @@ def build_valid_workspace(root: Path) -> None:
     write(root / PANIC_POLICY_REL, "\n".join([*REQUIRED_PANIC_SNIPPETS, ""]))
     write(root / ALLOCATOR_POLICY_REL, "\n".join([*REQUIRED_ALLOCATOR_SNIPPETS, ""]))
     write(root / UNSAFE_NARROW_REL, "\n".join([*REQUIRED_UNSAFE_SNIPPETS, ""]))
+    write(root / LOW_LEVEL_WRAPPER_TEST_REL, "\n".join([*REQUIRED_LOW_LEVEL_WRAPPER_SNIPPETS, ""]))
 
 
 def run_self_test() -> int:
@@ -296,8 +315,21 @@ def run_self_test() -> int:
         issues = validate(root)
         assert "missing_unsafe_snippet:pub fn recognizesByte(unsafe_scope: u8) bool {" in issues
 
+        build_valid_workspace(root)
+        broken_low_level_wrapper = (root / LOW_LEVEL_WRAPPER_TEST_REL).read_text(encoding="utf-8").replace(
+            "const scoped_slice = try narrow.constSliceAtInteropPolicy(u32, base, values.len, raw_policy);\n",
+            "",
+            1,
+        )
+        write(root / LOW_LEVEL_WRAPPER_TEST_REL, broken_low_level_wrapper)
+        issues = validate(root)
+        assert (
+            "missing_low_level_wrapper_snippet:const scoped_slice = try narrow.constSliceAtInteropPolicy(u32, base, values.len, raw_policy);"
+            in issues
+        )
+
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=12")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
