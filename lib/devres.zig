@@ -9,6 +9,7 @@ pub const ModuleDescriptor = struct {
     provides_ioremap_wc_wrapper_planning: bool,
     provides_release_pointer_match: bool,
     provides_iounmap_call_planning: bool,
+    provides_ioport_lifetime_planning: bool,
     provides_ioport_unmap_call_planning: bool,
     provides_ioremap_resource_planning: bool,
     provides_ioremap_resource_plain_wrapper_planning: bool,
@@ -60,6 +61,24 @@ const ReleaseCallPlan = struct {
 
 pub const ManagedIounmapPlan = ReleaseCallPlan;
 pub const ManagedIoportUnmapPlan = ReleaseCallPlan;
+
+pub const ManagedIoportMapInput = struct {
+    port: usize,
+    count: u32,
+    release_record_allocated: bool,
+    mapped_address: ?usize,
+};
+
+pub const ManagedIoportMapResult = struct {
+    anchor: []const u8,
+    port: usize,
+    count: u32,
+    mapped_address: ?usize,
+    added_to_devres: bool,
+    release_record_retained: bool,
+    release_record_freed: bool,
+    should_unmap_on_detach: bool,
+};
 
 pub const IoremapType = enum {
     normal,
@@ -273,6 +292,7 @@ pub const DevresHelperLab = struct {
             .provides_ioremap_wc_wrapper_planning = true,
             .provides_release_pointer_match = true,
             .provides_iounmap_call_planning = true,
+            .provides_ioport_lifetime_planning = true,
             .provides_ioport_unmap_call_planning = true,
             .provides_ioremap_resource_planning = true,
             .provides_ioremap_resource_plain_wrapper_planning = true,
@@ -351,6 +371,22 @@ pub const DevresHelperLab = struct {
 
     pub fn planManagedIounmap(tracked_address: usize, candidate_address: usize) ManagedIounmapPlan {
         return planReleaseCall(tracked_address, candidate_address);
+    }
+
+    pub fn planManagedIoportMap(input: ManagedIoportMapInput) !ManagedIoportMapResult {
+        try requireReleaseRecordAllocated(input.release_record_allocated);
+
+        const release_record_plan = ReleaseRecordLifetimePlan.forResult(input.mapped_address != null);
+        return .{
+            .anchor = descriptor().anchor,
+            .port = input.port,
+            .count = input.count,
+            .mapped_address = input.mapped_address,
+            .added_to_devres = release_record_plan.added_to_devres,
+            .release_record_retained = release_record_plan.release_record_retained,
+            .release_record_freed = release_record_plan.release_record_freed,
+            .should_unmap_on_detach = release_record_plan.added_to_devres,
+        };
     }
 
     pub fn ioportReleaseMatches(tracked_address: usize, candidate_address: usize) bool {
@@ -653,7 +689,52 @@ test "devres descriptor keeps ioport unmap planning explicit" {
     try std.testing.expectEqualStrings("devres_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_iounmap_call_planning);
+    try std.testing.expect(descriptor.provides_ioport_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioport_unmap_call_planning);
+}
+
+test "managed ioport map retains the release record when mapping succeeds" {
+    const plan = try DevresHelperLab.planManagedIoportMap(.{
+        .port = 0x3f8,
+        .count = 8,
+        .release_record_allocated = true,
+        .mapped_address = 0xf000,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+    try std.testing.expectEqual(@as(usize, 0x3f8), plan.port);
+    try std.testing.expectEqual(@as(u32, 8), plan.count);
+    try std.testing.expectEqual(@as(?usize, 0xf000), plan.mapped_address);
+    try std.testing.expect(plan.added_to_devres);
+    try std.testing.expect(plan.release_record_retained);
+    try std.testing.expect(!plan.release_record_freed);
+    try std.testing.expect(plan.should_unmap_on_detach);
+}
+
+test "managed ioport map frees the release record when mapping fails" {
+    const plan = try DevresHelperLab.planManagedIoportMap(.{
+        .port = 0x2f8,
+        .count = 4,
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(@as(usize, 0x2f8), plan.port);
+    try std.testing.expectEqual(@as(u32, 4), plan.count);
+    try std.testing.expectEqual(@as(?usize, null), plan.mapped_address);
+    try std.testing.expect(!plan.added_to_devres);
+    try std.testing.expect(!plan.release_record_retained);
+    try std.testing.expect(plan.release_record_freed);
+    try std.testing.expect(!plan.should_unmap_on_detach);
+}
+
+test "managed ioport map rejects missing release records" {
+    try std.testing.expectError(error.OutOfMemory, DevresHelperLab.planManagedIoportMap(.{
+        .port = 0x3e8,
+        .count = 2,
+        .release_record_allocated = false,
+        .mapped_address = 0xe000,
+    }));
 }
 
 test "managed ioport unmap success is not warnable" {
