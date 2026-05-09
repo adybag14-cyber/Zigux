@@ -323,6 +323,18 @@ REQUIRED_REVIEW_MARKERS = [
     "make -C zigux phase2",
 ]
 
+CHECK_ZIG_TOOLCHAIN_SELF_TEST_MARKERS = [
+    "ZIG_TOOLCHAIN_SELF_TEST=pass",
+    "ZIG_TOOLCHAIN_SELF_TEST_CASE_COUNT=",
+]
+
+CHECK_ZIG_TOOLCHAIN_LIVE_MARKERS = [
+    "ZIG_TOOLCHAIN_STATUS=present",
+    "ZIG_TOOLCHAIN_PATH=",
+    "ZIG_TOOLCHAIN_VERSION=",
+    "ZIG_TOOLCHAIN_MIN_SUPPORTED=",
+]
+
 PHASE2_REVIEW_PACKET_LEAD = "if the change touches the shared Phase 2 toolchain packet"
 
 
@@ -421,6 +433,20 @@ def validate_root(root: Path) -> list[str]:
         return issues
 
     guard_issues: list[str] = []
+    guard_issues.extend(
+        run_guard(
+            root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-zig-toolchain.py"), "--self-test"],
+            CHECK_ZIG_TOOLCHAIN_SELF_TEST_MARKERS,
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-zig-toolchain.py")],
+            CHECK_ZIG_TOOLCHAIN_LIVE_MARKERS,
+        )
+    )
     guard_issues.extend(
         run_guard(
             root,
@@ -663,6 +689,16 @@ def run_self_test() -> int:
     )
     issues = validate_exact_review_markers(review_line)
     assert issues == []
+    assert CHECK_ZIG_TOOLCHAIN_SELF_TEST_MARKERS == [
+        "ZIG_TOOLCHAIN_SELF_TEST=pass",
+        "ZIG_TOOLCHAIN_SELF_TEST_CASE_COUNT=",
+    ]
+    assert CHECK_ZIG_TOOLCHAIN_LIVE_MARKERS == [
+        "ZIG_TOOLCHAIN_STATUS=present",
+        "ZIG_TOOLCHAIN_PATH=",
+        "ZIG_TOOLCHAIN_VERSION=",
+        "ZIG_TOOLCHAIN_MIN_SUPPORTED=",
+    ]
     with tempfile.TemporaryDirectory(prefix="phase2_validate_root_") as tmp_dir:
         temp_root = Path(tmp_dir)
         (temp_root / "zigux" / "tests" / "fixtures" / "genksyms_bridge").mkdir(parents=True)
