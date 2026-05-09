@@ -65,6 +65,13 @@ pub const ConcurrencyAudit = struct {
     next_step: []const u8,
 };
 
+pub const RescuerGovernance = struct {
+    boundary: BoundaryArea,
+    checkpoint_ids: []const []const u8,
+    blocked_behaviors: []const []const u8,
+    next_step: []const u8,
+};
+
 const boundary_areas = [_]BoundaryArea{
     .{
         .id = "submission-routing",
@@ -286,6 +293,16 @@ const blocked_live_behaviors = [_][]const u8{
     "hotplug-driven worker migration",
 };
 
+const rescuer_checkpoint_ids = [_][]const u8{
+    "scheduler-running-hooks",
+    "rescuer-mayday-handoff",
+};
+
+const rescuer_blocked_behaviors = [_][]const u8{
+    "scheduler callback parity",
+    "rescuer execution ownership",
+};
+
 pub const WorkqueueBridgeLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -325,6 +342,22 @@ pub const WorkqueueBridgeLab = struct {
 
     pub fn boundaryMapOnlyAreaIds() []const []const u8 {
         return boundary_map_only_area_ids[0..];
+    }
+
+    pub fn rescuerGovernance() RescuerGovernance {
+        return .{
+            .boundary = boundaryAreaById("rescuer-and-scheduler-hooks").?,
+            .checkpoint_ids = rescuer_checkpoint_ids[0..],
+            .blocked_behaviors = rescuer_blocked_behaviors[0..],
+            .next_step = "If this lane reopens, keep the next study step limited to rescuer_thread() or mayday ownership notes instead of live execution claims.",
+        };
+    }
+
+    pub fn rescuerGovernanceTracksCheckpoint(id: []const u8) bool {
+        for (rescuer_checkpoint_ids) |checkpoint_id| {
+            if (std.mem.eql(u8, checkpoint_id, id)) return true;
+        }
+        return false;
     }
 
     pub fn stayInCAreaIds() []const []const u8 {
@@ -444,4 +477,25 @@ test "workqueue bridge boundary areas keep core stay-in-c seams explicit" {
     try std.testing.expect(WorkqueueBridgeLab.blocksLiveBehavior("rescuer execution ownership"));
     try std.testing.expect(WorkqueueBridgeLab.blocksLiveBehavior("hotplug-driven worker migration"));
     try std.testing.expect(!WorkqueueBridgeLab.blocksLiveBehavior("synthetic behavior"));
+}
+
+test "workqueue bridge rescuer governance stays review-only" {
+    const governance = WorkqueueBridgeLab.rescuerGovernance();
+
+    try std.testing.expectEqualStrings("rescuer-and-scheduler-hooks", governance.boundary.id);
+    try std.testing.expect(governance.boundary.ownership == .stay_in_c);
+    try std.testing.expectEqualStrings("rescuer_thread", governance.boundary.anchor_symbols[0]);
+    try std.testing.expectEqualStrings("wq_worker_running", governance.boundary.anchor_symbols[1]);
+    try std.testing.expectEqualStrings("wq_worker_sleeping", governance.boundary.anchor_symbols[2]);
+    try std.testing.expectEqual(@as(usize, 2), governance.checkpoint_ids.len);
+    try std.testing.expectEqualStrings("scheduler-running-hooks", governance.checkpoint_ids[0]);
+    try std.testing.expectEqualStrings("rescuer-mayday-handoff", governance.checkpoint_ids[1]);
+    try std.testing.expectEqual(@as(usize, 2), governance.blocked_behaviors.len);
+    try std.testing.expectEqualStrings("scheduler callback parity", governance.blocked_behaviors[0]);
+    try std.testing.expectEqualStrings("rescuer execution ownership", governance.blocked_behaviors[1]);
+    try std.testing.expect(std.mem.indexOf(u8, governance.next_step, "rescuer_thread()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance.next_step, "mayday ownership notes") != null);
+    try std.testing.expect(WorkqueueBridgeLab.rescuerGovernanceTracksCheckpoint("scheduler-running-hooks"));
+    try std.testing.expect(WorkqueueBridgeLab.rescuerGovernanceTracksCheckpoint("rescuer-mayday-handoff"));
+    try std.testing.expect(!WorkqueueBridgeLab.rescuerGovernanceTracksCheckpoint("flush-drain-color-ownership"));
 }
