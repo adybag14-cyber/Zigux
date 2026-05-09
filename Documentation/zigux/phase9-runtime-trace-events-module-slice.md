@@ -4,7 +4,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 
 ## Status
 
-- `PHASE9_STATUS=active`
+- `PHASE9_STATUS=parked`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
 - `PHASE9_LANE_KEY=P9-L10`
 - `PHASE9_SURVEYED_COMMIT=ccd5361c3b193d26587c6396f029fc335c783c6e`
@@ -94,4 +94,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until a shared runtime loader substrate can consume the bounded loader-handoff plan for module entry, registration, and release.
+Leave the Phase 9 runtime trace-events lane parked unless fresh inspection finds another equally small pilot-local lifecycle-state, invalid-transition, or request-shape truthfulness gap before widening back out toward the shared runtime-loader substrate.
