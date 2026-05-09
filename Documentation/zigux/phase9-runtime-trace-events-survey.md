@@ -35,7 +35,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - `samples/trace_events/trace-events-sample.h` is present on `master` at 640 lines.
 - the Linux ftrace selftests already reference `trace-events-sample` as a modprobe and event-enabling target in at least two places.
 - the repo had zero `zigux/tests/runtime_trace_events*` files before this survey landed.
-- the repo now carries `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_loader.zig`, `zigux/tests/runtime_trace_events_module.zig`, the survey manifest and gate, and shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane.
+- the repo now carries `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_loader.zig`, `zigux/tests/runtime_trace_events_module.zig`, the survey manifest and gate, the focused `phase9-runtime-trace-events-tests` build step in `zigux/tests/phase9_build.zig`, and the paired `make -C zigux phase9-runtime-trace-events-test` convenience route for the trace-events starter lane.
 - the current bounded starter now exports a stable `RuntimeTraceEventsSummary`, and the focused diff gate uses that summary to keep the concrete main-thread payload literals, function-callback payload labels, and selftest totals machine-checkable without reaching back into raw payload-only state.
 - the starter now also carries direct sample-local lifecycle proofs for post-selftest replay-summary continuity, initialized-stage failed-exit rollback before selftest, and selftest-ready failed-exit rollback until registration is balanced, so rollback evidence stays reviewable where the runtime sample lives instead of only through the dedicated module test file.
 - the current bounded starter still advertises `requires_runtime_substrate=true` and `provides_selftest_hook=true`, so the roadmap's selftest-hook requirement stays explicit in the sample descriptor while the pilot remains an in-memory starter.
@@ -83,10 +83,16 @@ This keeps the survey useful after the first starter slice lands without pretend
 2. run the focused shared runtime-loader convenience target
 - `make -C zigux phase9-runtime-loader-shared-tests`
 
-3. run the dedicated Phase 9 survey and starter gates
+3. run the focused trace-events lane step
+- `zig build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig`
+
+4. run the focused trace-events lane convenience target
+- `make -C zigux phase9-runtime-trace-events-test`
+
+5. run the dedicated Phase 9 survey and starter gates
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-4. run the convenience target
+6. run the convenience target
 - `make -C zigux phase9`
 
 ## Non-goals
