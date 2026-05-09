@@ -49,11 +49,12 @@ README_MARKERS = (
 
 READINESS_NOTE_MARKERS = (
     "PHASE15_LANE_KEY=P15-L01",
-    "shared replay surface is green on current `master`",
+    "shared replay surface is still bounded on current `master`",
     CHECKER_ONE,
     CHECKER_TWO,
     ".github/workflows/zigux-bootstrap.yml",
     "phase15-deep-core-status-change-blocker",
+    "phase15-tests-root-dedicated-make-route-undercount",
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
     "zig build test --build-file zigux/tests/phase15_build.zig",
@@ -166,6 +167,7 @@ def validate(root: Path) -> list[str]:
             "phase15_build_present",
             "phase15_make_target_present",
             "phase15_validate_target_present",
+            "phase15_test_target_present",
             "phase15_scripts_alignment_checker_present",
             "phase15_review_process_handoff_checker_present",
             "shared_ci_phase15_present",
@@ -176,18 +178,39 @@ def validate(root: Path) -> list[str]:
             failures.append("manifest:repo_evidence:deep_core_status_change_ready")
 
     remaining_gaps = manifest.get("remaining_gaps")
-    if not isinstance(remaining_gaps, list) or len(remaining_gaps) != 1:
+    if not isinstance(remaining_gaps, list) or len(remaining_gaps) != 2:
         failures.append("manifest:remaining_gaps")
     else:
-        gap = remaining_gaps[0]
-        if gap.get("id") != "phase15-deep-core-status-change-blocker":
-            failures.append(f"manifest:remaining_gap_id:{gap.get('id')}")
+        saw_status_change_blocker = False
+        saw_tests_root_undercount = False
+        for gap in remaining_gaps:
+            gap_id = gap.get("id")
+            if gap_id == "phase15-deep-core-status-change-blocker":
+                saw_status_change_blocker = True
+                if gap.get("status") != "blocked_on_stay_in_c_evidence":
+                    failures.append(f"manifest:remaining_gap_status:{gap.get('status')}")
+                if gap.get("zigux_destination") != "Documentation/zigux/phase15-parity-scorecard.md":
+                    failures.append(f"manifest:remaining_gap_destination:{gap.get('zigux_destination')}")
+            elif gap_id == "phase15-tests-root-dedicated-make-route-undercount":
+                saw_tests_root_undercount = True
+                if gap.get("status") != "blocked_on_tests_root_phase15_summary_sync":
+                    failures.append(f"manifest:remaining_gap_status:{gap.get('status')}")
+                if gap.get("zigux_destination") != "zigux/tests/README.md":
+                    failures.append(f"manifest:remaining_gap_destination:{gap.get('zigux_destination')}")
+            else:
+                failures.append(f"manifest:remaining_gap_id:{gap_id}")
+        if not saw_status_change_blocker:
+            failures.append("manifest:missing:phase15-deep-core-status-change-blocker")
+        if not saw_tests_root_undercount:
+            failures.append("manifest:missing:phase15-tests-root-dedicated-make-route-undercount")
 
     next_step = manifest.get("next_step", "")
     for marker in (
         "maintenance mode",
         "shared Phase 15 replay drifts again",
         "two dedicated `phase15-validate` checker routes",
+        "make -C zigux phase15-test",
+        "zigux/tests/README.md",
     ):
         if marker not in next_step:
             failures.append(f"manifest:next_step:missing:{marker}")
@@ -199,6 +222,7 @@ def validate(root: Path) -> list[str]:
         "phase15-validate",
         "phase15_build.zig",
         "phase15-deep-core-status-change-blocker",
+        "phase15-tests-root-dedicated-make-route-undercount",
     ):
         if marker not in readiness_test:
             failures.append(f"readiness_test:missing:{marker}")
@@ -288,7 +312,20 @@ def seed_fixture_tree(root: Path) -> None:
     write_text(root / README_PATH, "\n".join(README_MARKERS) + "\n")
     write_text(root / REVIEW_CHECKLIST_PATH, "# fixture\n")
     write_text(root / READINESS_NOTE_PATH, "\n".join(READINESS_NOTE_MARKERS) + "\n")
-    write_text(root / READINESS_TEST_PATH, "\n".join((CHECKER_ONE, CHECKER_TWO, "phase15-validate", "phase15_build.zig", "phase15-deep-core-status-change-blocker")) + "\n")
+    write_text(
+        root / READINESS_TEST_PATH,
+        "\n".join(
+            (
+                CHECKER_ONE,
+                CHECKER_TWO,
+                "phase15-validate",
+                "phase15_build.zig",
+                "phase15-deep-core-status-change-blocker",
+                "phase15-tests-root-dedicated-make-route-undercount",
+            )
+        )
+        + "\n",
+    )
     write_text(root / SCORECARD_NOTE_PATH, "\n".join(SCORECARD_NOTE_MARKERS) + "\n")
     write_text(
         root / SCORECARD_TEST_PATH,
@@ -323,6 +360,7 @@ def seed_fixture_tree(root: Path) -> None:
                     "phase15_build_present": True,
                     "phase15_make_target_present": True,
                     "phase15_validate_target_present": True,
+                    "phase15_test_target_present": True,
                     "phase15_scripts_alignment_checker_present": True,
                     "phase15_review_process_handoff_checker_present": True,
                     "shared_ci_phase15_present": True,
@@ -331,9 +369,16 @@ def seed_fixture_tree(root: Path) -> None:
                 "remaining_gaps": [
                     {
                         "id": "phase15-deep-core-status-change-blocker",
-                    }
+                        "status": "blocked_on_stay_in_c_evidence",
+                        "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+                    },
+                    {
+                        "id": "phase15-tests-root-dedicated-make-route-undercount",
+                        "status": "blocked_on_tests_root_phase15_summary_sync",
+                        "zigux_destination": "zigux/tests/README.md",
+                    },
                 ],
-                "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again or one of the two dedicated `phase15-validate` checker routes disappears.",
+                "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, one of the two dedicated `phase15-validate` checker routes disappears, `make -C zigux phase15-test` disappears, or `zigux/tests/README.md` stops describing the current shared-summary follow-through.",
             },
             indent=2,
         )
@@ -422,6 +467,7 @@ def run_self_test() -> int:
         note_path.write_text(baseline_note, encoding="utf-8")
         case_count += 1
 
+        note_path.writeText = None
         note_path.write_text(
             baseline_note.replace("make -C zigux phase15-test", "make -C zigux phase15-check", 1),
             encoding="utf-8",
@@ -446,6 +492,20 @@ def run_self_test() -> int:
         manifest["repo_evidence"]["phase15_validate_target_present"] = False
         write_text(manifest_path, json.dumps(manifest, indent=2) + "\n")
         assert_only(validate(root), ["manifest:repo_evidence:phase15_validate_target_present"], "missing_manifest_validate_target")
+        seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(read_text(root, MANIFEST_PATH))
+        manifest["repo_evidence"]["phase15_test_target_present"] = False
+        write_text(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert_only(validate(root), ["manifest:repo_evidence:phase15_test_target_present"], "missing_manifest_test_target")
+        seed_fixture_tree(root)
+        case_count += 1
+
+        manifest = json.loads(read_text(root, MANIFEST_PATH))
+        manifest["remaining_gaps"] = manifest["remaining_gaps"][:1]
+        write_text(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert_only(validate(root), ["manifest:remaining_gaps"], "missing_manifest_tests_root_gap")
         seed_fixture_tree(root)
         case_count += 1
 
