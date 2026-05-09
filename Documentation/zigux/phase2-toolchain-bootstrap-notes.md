@@ -40,7 +40,7 @@ This note records the bounded Phase 2 x86_64-linux bootstrap archive-pin contrac
 - current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`
 - current minimum Zig version: `0.17.0-dev.87+9b177a7d2`
 - current pinned bootstrap archive target: `x86_64-linux`
-- current pinned bootstrap archive sha256 (`x86_64-linux`): `a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858`
+- current pinned bootstrap archive sha256 (`x86_64-linux`): `313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`
 - `scripts/zigux/zig-toolchain-policy.json` now also keeps the Phase 2 pin-change approval rule machine-checkable.
 - pinned toolchain changes require explicit shared Phase 2 checklist acknowledgement and fresh bootstrap-runner evidence before merge.
 - widening the bootstrap archive beyond `x86_64-linux` still needs separate approval instead of piggybacking on the three-target compile matrix.
