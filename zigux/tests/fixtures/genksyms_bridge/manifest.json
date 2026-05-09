@@ -78,6 +78,36 @@
     "missing_long_dump_types_argument_expected.json",
     "too_many_reference_files_expected.json"
   ],
+  "expected_output_governance": {
+    "stdout_json_fields": [
+      "tool",
+      "stdin",
+      "stdout",
+      "argv",
+      "options"
+    ],
+    "process_json_fields": [
+      "stdout",
+      "stderr",
+      "exit_code"
+    ],
+    "normalized_stderr_cases": [
+      "ambiguous_long_option",
+      "unexpected_help_argument",
+      "invalid_option",
+      "missing_reference_argument",
+      "unsupported_long_option",
+      "missing_long_reference_argument",
+      "missing_long_dump_types_argument",
+      "too_many_reference_files"
+    ],
+    "version_stderr_cases": [
+      "version",
+      "abbreviated_version",
+      "version_then_short_help",
+      "version_then_long_help"
+    ]
+  },
   "action_abbrev_cases": [
     "abbreviated_help",
     "abbreviated_version"
