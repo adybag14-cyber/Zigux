@@ -88,6 +88,7 @@ REQUIRED_SCRIPTS_README_LINES = [
 REQUIRED_TESTS_README_MARKERS = [
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
 ]
 REQUIRED_VALIDATE_PHASE2_MARKERS = [
     'root / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",',
