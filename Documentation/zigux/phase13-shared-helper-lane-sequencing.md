@@ -97,6 +97,8 @@ This lane should stay inside bounded syscall-helper delivery or packet-local tru
 
 Until `master` ships a dedicated `landlock syscalls` packet checker, treat `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` as the helper-local truthfulness trio that must move together whenever syscall-owned contributor wording, live-state limits, or owned-surface claims change.
 
+When shared scripts-root or tests-root reminder text is refreshed, use that syscall-owned truthfulness trio as the shorthand for this lane rather than borrowing `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, which remains ruleset-lane evidence on `master`.
+
 ### Adjacent notifier release-surface evidence
 
 These surfaces remain adjacent release evidence:
