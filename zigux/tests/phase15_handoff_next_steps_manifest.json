@@ -2,10 +2,10 @@
   "lane_key": "P15-L08",
   "phase": "Phase 15",
   "surveyed_commit": "current-master-readback-2026-05-09",
-  "cross_packet_truthfulness_mode": "dated_master_readback_blocker_posture_alignment",
+  "cross_packet_truthfulness_mode": "dated_master_readback_same_marker_alignment",
   "paired_parity_scorecard_exact_head_matches": false,
-  "paired_parity_scorecard_provenance_marker": "current-master-readback-2026-05-08",
-  "paired_parity_scorecard_exact_head_fallback_reason": "This handoff packet was refreshed against current-master-readback-2026-05-09 while the paired parity scorecard still records the earlier dated master readback marker current-master-readback-2026-05-08, so the parked governance packet now keeps blocker-posture alignment explicit instead of overstating same-marker packet parity.",
+  "paired_parity_scorecard_provenance_marker": "current-master-readback-2026-05-09",
+  "paired_parity_scorecard_exact_head_fallback_reason": "This handoff packet was refreshed against current-master-readback-2026-05-09 and the paired parity scorecard now records the same dated master readback marker current-master-readback-2026-05-09, so the parked governance packet keeps same-marker dated-readback truthfulness explicit without implying exact-head parity.",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
