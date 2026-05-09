@@ -76,6 +76,7 @@ pub const Request = struct {
     kconfig: []const u8,
     config: []const u8,
     arch: []const u8,
+    silent: bool = false,
     mode_arg: ?[]const u8 = null,
     allconfig: ?[]const u8 = null,
     seed: ?[]const u8 = null,
@@ -84,6 +85,7 @@ pub const Request = struct {
 };
 
 const BridgeOptions = struct {
+    silent: bool = false,
     allconfig: ?[]const u8 = null,
     seed: ?[]const u8 = null,
     probability: ?[]const u8 = null,
@@ -91,6 +93,7 @@ const BridgeOptions = struct {
 };
 
 const ParseBridgeOptionsError = error{
+    DuplicateSilent,
     DuplicateAllConfig,
     DuplicateSeed,
     DuplicateProbability,
@@ -152,12 +155,19 @@ fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
 
 fn parseBridgeOptions(mode: Mode, args: []const []const u8) ParseBridgeOptionsError!BridgeOptions {
     var options = BridgeOptions{};
+    var saw_silent = false;
     var saw_allconfig = false;
     var saw_seed = false;
     var saw_probability = false;
     var saw_nosilentupdate = false;
 
     for (args) |arg| {
+        if (std.mem.eql(u8, arg, "silent")) {
+            if (saw_silent) return error.DuplicateSilent;
+            saw_silent = true;
+            options.silent = true;
+            continue;
+        }
         if (std.mem.startsWith(u8, arg, "allconfig=")) {
             if (!modeAcceptsAllConfigOverride(mode)) return error.UnexpectedArgument;
             if (saw_allconfig) return error.DuplicateAllConfig;
@@ -197,7 +207,11 @@ fn parseBridgeOptions(mode: Mode, args: []const []const u8) ParseBridgeOptionsEr
 pub fn runConfBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"");
     try writer.writeAll(request.mode.text());
-    try writer.writeAll("\",\"argv\":[\"scripts/kconfig/conf\",\"");
+    try writer.writeAll("\",\"argv\":[\"scripts/kconfig/conf\"");
+    if (request.silent) {
+        try writer.writeAll(",\"--silent\"");
+    }
+    try writer.writeAll(",\"");
     try writer.writeAll(request.mode.flag());
     try writer.writeAll("\"");
     if (request.mode_arg) |mode_arg| {
@@ -247,10 +261,10 @@ pub fn main(init: std.process.Init) !void {
     const io = init.io;
     const args = try init.minimal.args.toSlice(arena);
 
-    if (args.len < 5 or args.len > 8) {
-        var stderr_buffer: [200]u8 = undefined;
+    if (args.len < 5 or args.len > 9) {
+        var stderr_buffer: [220]u8 = undefined;
         var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg] [allconfig=<value>] [seed=<value>] [probability=<value>] [nosilentupdate=<value>]\n");
+        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg] [silent] [allconfig=<value>] [seed=<value>] [probability=<value>] [nosilentupdate=<value>]\n");
         try stderr_writer.interface.flush();
         std.process.exit(1);
     }
@@ -282,6 +296,7 @@ pub fn main(init: std.process.Init) !void {
         var stderr_buffer: [192]u8 = undefined;
         var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
         const message = switch (err) {
+            error.DuplicateSilent => "Error: duplicate silent option\n",
             error.DuplicateAllConfig => "Error: duplicate allconfig override option\n",
             error.DuplicateSeed => "Error: duplicate randconfig seed option\n",
             error.DuplicateProbability => "Error: duplicate randconfig probability option\n",
@@ -300,6 +315,7 @@ pub fn main(init: std.process.Init) !void {
         .kconfig = args[2],
         .config = args[3],
         .arch = args[4],
+        .silent = options.silent,
         .mode_arg = mode_arg,
         .allconfig = options.allconfig,
         .seed = options.seed,
@@ -308,6 +324,30 @@ pub fn main(init: std.process.Init) !void {
     });
     try stdout_writer.interface.flush();
 }
+
+const TestCapture = struct {
+    allocator: std.mem.Allocator,
+    list: std.ArrayList(u8),
+
+    fn init(allocator: std.mem.Allocator, capacity: usize) !TestCapture {
+        return .{
+            .allocator = allocator,
+            .list = try std.ArrayList(u8).initCapacity(allocator, capacity),
+        };
+    }
+
+    fn deinit(self: *TestCapture) void {
+        self.list.deinit(self.allocator);
+    }
+
+    fn writeAll(self: *TestCapture, bytes: []const u8) !void {
+        try self.list.appendSlice(self.allocator, bytes);
+    }
+
+    fn writeByte(self: *TestCapture, byte: u8) !void {
+        try self.list.append(self.allocator, byte);
+    }
+};
 
 test "conf bridge mode surface stays aligned with conf.c long options" {
     const expected = [_]struct { mode: Mode, text: []const u8, flag: []const u8 }{
@@ -341,8 +381,7 @@ test "conf bridge mode surface stays aligned with conf.c long options" {
 }
 
 test "conf bridge emits olddefconfig argv and env" {
-    const Capture = TestCapture;
-    var capture = try Capture.init(std.testing.allocator, 128);
+    var capture = try TestCapture.init(std.testing.allocator, 128);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -358,8 +397,7 @@ test "conf bridge emits olddefconfig argv and env" {
 }
 
 test "conf bridge emits syncconfig auto files" {
-    const Capture = TestCapture;
-    var capture = try Capture.init(std.testing.allocator, 192);
+    var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -375,8 +413,7 @@ test "conf bridge emits syncconfig auto files" {
 }
 
 test "conf bridge emits syncconfig nosilentupdate when present" {
-    const Capture = TestCapture;
-    var capture = try Capture.init(std.testing.allocator, 224);
+    var capture = try TestCapture.init(std.testing.allocator, 224);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -390,9 +427,23 @@ test "conf bridge emits syncconfig nosilentupdate when present" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_NOSILENTUPDATE\":\"1\"") != null);
 }
 
+test "conf bridge emits silent flag before mode flag" {
+    var capture = try TestCapture.init(std.testing.allocator, 192);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .listnewconfig,
+        .kconfig = "Kconfig",
+        .config = "out/.config",
+        .arch = "x86_64",
+        .silent = true,
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--listnewconfig\",\"Kconfig\"]") != null);
+}
+
 test "conf bridge emits alldefconfig argv and env" {
-    const Capture = TestCapture;
-    var capture = try Capture.init(std.testing.allocator, 160);
+    var capture = try TestCapture.init(std.testing.allocator, 160);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -410,8 +461,7 @@ test "conf bridge emits alldefconfig argv and env" {
 }
 
 test "conf bridge emits explicit empty allconfig override for allmodconfig" {
-    const Capture = TestCapture;
-    var capture = try Capture.init(std.testing.allocator, 160);
+    var capture = try TestCapture.init(std.testing.allocator, 160);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -427,8 +477,7 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
 }
 
 test "conf bridge emits randconfig tunables when present" {
-    const Capture = TestCapture;
-    var capture = try Capture.init(std.testing.allocator, 192);
+    var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -446,8 +495,7 @@ test "conf bridge emits randconfig tunables when present" {
 }
 
 test "conf bridge emits explicit randconfig allconfig override when present" {
-    const Capture = TestCapture;
-    var capture = try Capture.init(std.testing.allocator, 224);
+    var capture = try TestCapture.init(std.testing.allocator, 224);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -464,8 +512,7 @@ test "conf bridge emits explicit randconfig allconfig override when present" {
 }
 
 test "conf bridge emits yes2modconfig argv and env" {
-    const Capture = TestCapture;
-    var capture = try Capture.init(std.testing.allocator, 144);
+    var capture = try TestCapture.init(std.testing.allocator, 144);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -482,8 +529,7 @@ test "conf bridge emits yes2modconfig argv and env" {
 }
 
 test "conf bridge emits defconfig mode argument before kconfig" {
-    const Capture = TestCapture;
-    var capture = try Capture.init(std.testing.allocator, 192);
+    var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -500,8 +546,7 @@ test "conf bridge emits defconfig mode argument before kconfig" {
 }
 
 test "conf bridge emits savedefconfig mode argument before kconfig" {
-    const Capture = TestCapture;
-    var capture = try Capture.init(std.testing.allocator, 192);
+    var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
 
     try runConfBridge(&capture, .{
@@ -518,8 +563,7 @@ test "conf bridge emits savedefconfig mode argument before kconfig" {
 }
 
 test "conf bridge escapes low control bytes in JSON strings" {
-    const Capture = TestCapture;
-    var capture = try Capture.init(std.testing.allocator, 32);
+    var capture = try TestCapture.init(std.testing.allocator, 32);
     defer capture.deinit();
 
     try writeJsonEscaped(&capture, "\x01\x08\x0c");
@@ -528,6 +572,7 @@ test "conf bridge escapes low control bytes in JSON strings" {
 
 test "bridge options parser accepts explicit allconfig override for allmodconfig" {
     const options = try parseBridgeOptions(.allmodconfig, &.{"allconfig="});
+    try std.testing.expect(options.silent == false);
     try std.testing.expect(options.allconfig != null);
     try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
     try std.testing.expect(options.seed == null);
@@ -536,4 +581,37 @@ test "bridge options parser accepts explicit allconfig override for allmodconfig
 }
 
 test "bridge options parser accepts syncconfig nosilentupdate" {
-    const options = try parseBridgeOptions(.syncconfig, &.{
+    const options = try parseBridgeOptions(.syncconfig, &.{"nosilentupdate=1"});
+    try std.testing.expectEqualStrings("1", options.nosilentupdate.?);
+    try std.testing.expect(options.silent == false);
+}
+
+test "bridge options parser accepts generic silent flag" {
+    const options = try parseBridgeOptions(.helpnewconfig, &.{"silent"});
+    try std.testing.expect(options.silent);
+    try std.testing.expect(options.allconfig == null);
+}
+
+test "bridge options parser accepts silent alongside randconfig options" {
+    const options = try parseBridgeOptions(.randconfig, &.{ "silent", "allconfig=allrandom.config", "seed=0xC0FFEE", "probability=10:20" });
+    try std.testing.expect(options.silent);
+    try std.testing.expectEqualStrings("allrandom.config", options.allconfig.?);
+    try std.testing.expectEqualStrings("0xC0FFEE", options.seed.?);
+    try std.testing.expectEqualStrings("10:20", options.probability.?);
+}
+
+test "bridge options parser rejects duplicate silent flag" {
+    try std.testing.expectError(error.DuplicateSilent, parseBridgeOptions(.oldconfig, &.{ "silent", "silent" }));
+}
+
+test "bridge options parser rejects unexpected options for mode" {
+    try std.testing.expectError(error.UnexpectedArgument, parseBridgeOptions(.oldconfig, &.{"nosilentupdate=1"}));
+    try std.testing.expectError(error.UnexpectedArgument, parseBridgeOptions(.syncconfig, &.{"seed=0xC0FFEE"}));
+}
+
+test "bridge options parser rejects duplicate mode specific options" {
+    try std.testing.expectError(error.DuplicateAllConfig, parseBridgeOptions(.randconfig, &.{ "allconfig=one", "allconfig=two" }));
+    try std.testing.expectError(error.DuplicateSeed, parseBridgeOptions(.randconfig, &.{ "seed=1", "seed=2" }));
+    try std.testing.expectError(error.DuplicateProbability, parseBridgeOptions(.randconfig, &.{ "probability=1:2", "probability=3:4" }));
+    try std.testing.expectError(error.DuplicateNoSilentUpdate, parseBridgeOptions(.syncconfig, &.{ "nosilentupdate=1", "nosilentupdate=0" }));
+}
