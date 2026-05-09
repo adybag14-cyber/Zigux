@@ -66,11 +66,13 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     var saw_exit_prompt = false;
     var saw_group_boundary_prompt = false;
     var saw_directory = false;
+    var saw_registration_step = false;
     var saw_pre_registration = false;
     var saw_registered_boundary = false;
     var saw_ownership_summary = false;
     var saw_ownership_counters = false;
     var saw_initialized_exit = false;
+    var saw_foo_roundtrip = false;
     var saw_dispatch = false;
     var saw_parse_failure = false;
     var saw_exit = false;
@@ -130,6 +132,12 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             saw_directory = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "kobject_example") != null);
         }
+        if (std.mem.eql(u8, check.id, "registration-step")) {
+            saw_registration_step = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runAnchorReplay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "registers exactly three attributes") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidLifecycleTransition") != null);
+        }
         if (std.mem.eql(u8, check.id, "pre-registration-boundary")) {
             saw_pre_registration = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "runPreRegistrationBoundaryReplay()") != null);
@@ -159,6 +167,11 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "initialized-exit-disposition")) {
             saw_initialized_exit = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "abandoned_before_registration") != null);
+        }
+        if (std.mem.eql(u8, check.id, "foo-roundtrip")) {
+            saw_foo_roundtrip = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "42") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "newline") != null);
         }
         if (std.mem.eql(u8, check.id, "shared-b-dispatch")) {
             saw_dispatch = true;
@@ -194,11 +207,13 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_exit_prompt);
     try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_directory);
+    try std.testing.expect(saw_registration_step);
     try std.testing.expect(saw_pre_registration);
     try std.testing.expect(saw_registered_boundary);
     try std.testing.expect(saw_ownership_summary);
     try std.testing.expect(saw_ownership_counters);
     try std.testing.expect(saw_initialized_exit);
+    try std.testing.expect(saw_foo_roundtrip);
     try std.testing.expect(saw_dispatch);
     try std.testing.expect(saw_parse_failure);
     try std.testing.expect(saw_exit);
