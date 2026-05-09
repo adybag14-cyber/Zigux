@@ -90,7 +90,7 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_argv_split_survey.zig": [
         "Documentation/zigux/phase7-argv-split-slice.md",
         "zigux/tests/phase7_argv_split_manifest.json",
-        "PHASE7_LANE_KEY=",
+        "PHASE7_LANE_KEY=P7-Y07",
     ],
     "zigux/tests/phase7_argv_split_manifest.json": [
         "\"id\": \"phase7-argv-split-packet-checker\"",
@@ -440,13 +440,13 @@ def run_self_test() -> None:
         survey_path.write_text(original_survey, encoding="utf-8")
 
         survey_path.write_text(
-            remove_first_marker(original_survey, "PHASE7_LANE_KEY="),
+            remove_first_marker(original_survey, "PHASE7_LANE_KEY=P7-Y07"),
             encoding="utf-8",
         )
         expect_missing_marker(
             "argv_split_survey_lane_key_marker",
             tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig: PHASE7_LANE_KEY=",
+            "zigux/tests/phase7_argv_split_survey.zig: PHASE7_LANE_KEY=P7-Y07",
         )
         case_count += 1
         survey_path.write_text(original_survey, encoding="utf-8")
