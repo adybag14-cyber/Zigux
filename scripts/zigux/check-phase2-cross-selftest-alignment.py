@@ -66,6 +66,8 @@ CLOSURE_MARKERS = [
 
 REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+    "make -C zigux phase2-cross",
 ]
 
 SCRIPT_README_MARKERS = [
@@ -401,6 +403,16 @@ def run_self_test() -> int:
         assert "validate_phase2:check-phase2-cross-selftest-alignment.py" in issues
 
         build_self_test_root(root)
+        write_text(abspath(root, REVIEW_CHECKLIST), "scripts/zigux/check-phase2-cross-selftest-alignment.py\nmake -C zigux phase2-cross\n")
+        issues = validate_root(root)
+        assert "review_checklist:zigux/tests/fixtures/phase2_cross_targets.json" in issues
+
+        build_self_test_root(root)
+        write_text(abspath(root, REVIEW_CHECKLIST), "scripts/zigux/check-phase2-cross-selftest-alignment.py\nzigux/tests/fixtures/phase2_cross_targets.json\n")
+        issues = validate_root(root)
+        assert "review_checklist:make -C zigux phase2-cross" in issues
+
+        build_self_test_root(root)
         changed_markers = [
             marker
             for index, marker in enumerate(VALIDATE_PHASE2_CLOSURE_MARKERS)
@@ -493,7 +505,7 @@ def run_self_test() -> int:
         assert "missing_file:Documentation/zigux/review-checklist.md" in issues
 
     print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=21")
+    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
