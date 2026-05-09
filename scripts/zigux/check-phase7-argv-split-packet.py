@@ -27,9 +27,12 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "null-terminated pointer-vector access through `cArgv()`",
         "exported C-argv vector sizing to `argc + 1` so the trailing null sentinel stays aligned with `argvSplitWithArgc()` and `cArgv()`",
+        "copied-buffer ownership so later source mutation does not affect split results",
+        "copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated",
         "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`",
         "tearing down one non-blank result does not disturb another caller's owned storage or exported C-argv view",
         "blank-input teardown on one caller keeps the shared empty storage and exported argv sentinels stable for another caller",
+        "exported storage and argv views resetting back to the canonical empty sentinels after teardown",
         "allocator-failure cleanup when intermediate setup work is interrupted",
         "overflow rejection before sizing the exported null-terminated argv vector",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
@@ -110,15 +113,18 @@ REQUIRED_MARKERS = {
         "pub fn argvSplitWithArgc",
         "pub fn argvFree",
         "pub fn cArgv",
-        "test \"argvSplit frees intermediate allocations when allocator failure interrupts setup\"",
-        "test \"argvSplit reports overflow before sizing the null-terminated argv vector\"",
+        'test "argvSplit sizes argc and tokens from the owned copy prefix when copied storage contains an early NUL"',
+        'test "argvSplit zeroes copied whitespace separators across the tokenized buffer"',
+        'test "ArgvSplitResult deinit is idempotent after the exported views are cleared"',
+        'test "argvSplit frees intermediate allocations when allocator failure interrupts setup"',
+        'test "argvSplit reports overflow before sizing the null-terminated argv vector"',
     ],
 }
 
 EXACT_COUNT_MARKERS = {
     "zigux/tests/phase7_argv_split_manifest.json": [
-        ('"id": "phase7-argv-split-packet-checker"', 1),
-        ('"zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py"', 1),
+        ('\"id\": \"phase7-argv-split-packet-checker\"', 1),
+        ('\"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\"', 1),
     ],
 }
 
@@ -309,6 +315,50 @@ def run_self_test() -> None:
             "argv_split_slice_shared_note_marker",
             tmp_root,
             "Documentation/zigux/phase7-argv-split-slice.md: Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        )
+        case_count += 1
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
+            original_slice.replace("copied-buffer ownership so later source mutation does not affect split results", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_slice_source_copy_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: copied-buffer ownership so later source mutation does not affect split results",
+        )
+        case_count += 1
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
+            original_slice.replace(
+                "copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_slice_zeroed_whitespace_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated",
+        )
+        case_count += 1
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
+            original_slice.replace(
+                "exported storage and argv views resetting back to the canonical empty sentinels after teardown",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_slice_post_teardown_reset_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: exported storage and argv views resetting back to the canonical empty sentinels after teardown",
         )
         case_count += 1
         slice_path.write_text(original_slice, encoding="utf-8")
@@ -660,7 +710,55 @@ def run_self_test() -> None:
 
         helper_path.write_text(
             original_helper.replace(
-                "test \"argvSplit reports overflow before sizing the null-terminated argv vector\"",
+                'test "argvSplit sizes argc and tokens from the owned copy prefix when copied storage contains an early NUL"',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_helper_early_nul_marker",
+            tmp_root,
+            'lib/argv_split.zig: test "argvSplit sizes argc and tokens from the owned copy prefix when copied storage contains an early NUL"',
+        )
+        case_count += 1
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                'test "argvSplit zeroes copied whitespace separators across the tokenized buffer"',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_helper_zeroed_whitespace_marker",
+            tmp_root,
+            'lib/argv_split.zig: test "argvSplit zeroes copied whitespace separators across the tokenized buffer"',
+        )
+        case_count += 1
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                'test "ArgvSplitResult deinit is idempotent after the exported views are cleared"',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_helper_deinit_idempotent_marker",
+            tmp_root,
+            'lib/argv_split.zig: test "ArgvSplitResult deinit is idempotent after the exported views are cleared"',
+        )
+        case_count += 1
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                'test "argvSplit reports overflow before sizing the null-terminated argv vector"',
                 "",
                 1,
             ),
@@ -669,7 +767,7 @@ def run_self_test() -> None:
         expect_missing_marker(
             "argv_split_helper_overflow_marker",
             tmp_root,
-            "lib/argv_split.zig: test \"argvSplit reports overflow before sizing the null-terminated argv vector\"",
+            'lib/argv_split.zig: test "argvSplit reports overflow before sizing the null-terminated argv vector"',
         )
         case_count += 1
         helper_path.write_text(original_helper, encoding="utf-8")
@@ -683,7 +781,7 @@ def run_self_test() -> None:
         expect_missing_marker(
             "argv_split_manifest_checker_id_marker",
             tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json: \"id\": \"phase7-argv-split-packet-checker\"",
+            'zigux/tests/phase7_argv_split_manifest.json: "id": "phase7-argv-split-packet-checker"',
         )
         case_count += 1
         manifest_path.write_text(original_manifest, encoding="utf-8")
@@ -699,7 +797,7 @@ def run_self_test() -> None:
         expect_missing_marker(
             "argv_split_manifest_checker_destination_marker",
             tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json: \"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\"",
+            'zigux/tests/phase7_argv_split_manifest.json: "zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py"',
         )
         case_count += 1
         manifest_path.write_text(original_manifest, encoding="utf-8")
@@ -711,7 +809,7 @@ def run_self_test() -> None:
         expect_missing_marker(
             "argv_split_manifest_checker_id_duplicate_marker",
             tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json: \"id\": \"phase7-argv-split-packet-checker\":expected=1:actual=2",
+            'zigux/tests/phase7_argv_split_manifest.json: "id": "phase7-argv-split-packet-checker":expected=1:actual=2',
         )
         case_count += 1
         manifest_path.write_text(original_manifest, encoding="utf-8")
@@ -726,7 +824,7 @@ def run_self_test() -> None:
         expect_missing_marker(
             "argv_split_manifest_checker_destination_duplicate_marker",
             tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json: \"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\":expected=1:actual=2",
+            'zigux/tests/phase7_argv_split_manifest.json: "zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py":expected=1:actual=2',
         )
         case_count += 1
 
