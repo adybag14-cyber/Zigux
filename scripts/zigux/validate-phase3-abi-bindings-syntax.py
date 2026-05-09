@@ -17,6 +17,12 @@ DEFAULT_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi_manifest.
 DEFAULT_DOC = ROOT / "Documentation" / "zigux" / "phase3-abi-slice.md"
 BINDINGS_FUSED_PATTERN = re.compile(r";\s*pub const ")
 BINDINGS_FUSED_LABEL = "; pub const"
+ABI_REVIEWABILITY_MARKER_PAIRS = (
+    (
+        "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
+        "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED",
+    ),
+)
 HEADER_FUSED_PATTERNS = (
     (re.compile(r"};\s*#define\b"), "}; #define"),
     (re.compile(r"};\s*struct\b"), "}; struct"),
@@ -94,6 +100,14 @@ def find_fused_pub_const_lines(source: str) -> list[tuple[int, str]]:
     for index, line in enumerate(source.splitlines(), start=1):
         if BINDINGS_FUSED_PATTERN.search(line):
             issues.append((index, BINDINGS_FUSED_LABEL))
+            for first, second in ABI_REVIEWABILITY_MARKER_PAIRS:
+                if first in line and second in line:
+                    issues.append(
+                        (
+                            index,
+                            f"fused_required_marker_pair:{first}:{second}",
+                        )
+                    )
     return issues
 
 
@@ -324,7 +338,14 @@ def run_self_test() -> int:
             newline="\n",
         )
         fused_abi_issues = validate_bindings(abi_bindings)
-        assert fused_abi_issues == [f"{abi_bindings}:1:{BINDINGS_FUSED_LABEL}"]
+        assert fused_abi_issues == [
+            f"{abi_bindings}:1:{BINDINGS_FUSED_LABEL}",
+            (
+                f"{abi_bindings}:1:fused_required_marker_pair:"
+                "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED:"
+                "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED"
+            ),
+        ]
         case_count += 1
 
         abi_bindings.write_text(
