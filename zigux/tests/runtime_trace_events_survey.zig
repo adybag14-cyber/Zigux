@@ -401,6 +401,14 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     );
     defer std.testing.allocator.free(phase9_build);
 
+    const allocator_init_flow = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_loader_allocator_init_flow.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(allocator_init_flow);
+
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, survey_note, surveyed_commit_marker));
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the current loader scaffold now records explicit `tracepoint_probe_register` and `tracepoint_probe_unregister` metadata-only labels") != null);
@@ -495,4 +503,12 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_loader_contract_tests.step") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_loader_facade_tests.step") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_loader_allocator_init_flow_tests.step") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, allocator_init_flow, "test \"phase 9 runtime loader allocator/init-flow replay keeps prepared requests pinned when requestRuntimeLoad sees plan drift\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, allocator_init_flow, "const stable_plan = makePlan(\n        \"runtime_trace_events\",") != null);
+    try std.testing.expect(std.mem.indexOf(u8, allocator_init_flow, "request.plan.requires_runtime_substrate = false;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, allocator_init_flow, "request.plan.anchor = \"samples/trace_events/trace-events-sample-drift.c\";") != null);
+    try std.testing.expect(std.mem.indexOf(u8, allocator_init_flow, "request.plan.entry_symbol = \"zigux_runtime_trace_events_init_drift\";") != null);
+    try std.testing.expect(std.mem.indexOf(u8, allocator_init_flow, "request.plan.exit_symbol = \"zigux_runtime_trace_events_exit_drift\";") != null);
+    try std.testing.expect(std.mem.indexOf(u8, allocator_init_flow, "try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());") != null);
 }
