@@ -10,7 +10,7 @@ This document records the current shared measurement posture for the bounded Pha
 - shared replay note: the shared `make -C zigux phase6` route still stops at `phase6-validate` plus `phase6-test`; dedicated perf replays remain helper-local through `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`
 - aggregated route note: `make -C zigux phase6-perf` now exists as a narrow convenience wrapper for `phase6-checksum-perf` plus `phase6-hexdump-perf`; it still excludes base64 even though `.github/workflows/zigux-bootstrap.yml` reruns `phase6-base64-perf` directly in CI
 - owner-map note: `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` now separates packet-wide route truthfulness from helper-local threshold or replay-row edits inside this survey
-- evidence note: the exact thresholds below were re-read from current `master` on `2026-05-08` by direct file inspection because this environment still cannot perform a safe local checkout or attached-toolchain replay
+- evidence note: the exact thresholds below were re-read from current `master` on `2026-05-09` by direct file inspection because this environment still cannot perform a safe local checkout or attached-toolchain replay
 
 ## Current Measurement Posture
 
@@ -22,7 +22,7 @@ This document records the current shared measurement posture for the bounded Pha
 - checksum shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
 - checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` still pins two perf cases, `64B` at `iterations = 200_000` and `1501B` at `iterations = 12_000`, with `max_slowdown_pct = 150` for both cases
 - hexdump shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
-- hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`
+- hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 150`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 225`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 250`
 
 ## Roadmap Gap Summary
 
