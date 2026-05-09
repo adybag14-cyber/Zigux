@@ -33,7 +33,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - are runtime-adjacent without entering allocator-heavy or device-heavy paths
 - benefit from explicit pointer and termination handling
 - started as a small runtime-safe leaf batch and now keeps its landed formatting, escaping, and allocator-backed helpers reviewable through the same bounded Zig gates instead of widening into broader ownership families
-- keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, Linux-style size rendering cues, one count-prefixed integer-array starter, one copied-user-buffer integer-array wrapper, one duplicated-replacement helper, and one quotable-log duplication helper
+- keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, Linux-style size rendering cues, first-NUL-bounded ASCII case-copy behavior that leaves trailing destination bytes untouched, one count-prefixed integer-array starter, one copied-user-buffer integer-array wrapper, one duplicated-replacement helper, and one quotable-log duplication helper
 - keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the dedicated `zigux/tests/phase7_string_helpers_survey.zig` survey gate, `zigux/tests/phase7_string_helpers_manifest.json`, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
@@ -103,7 +103,7 @@ The current tests check:
 - one allocator-backed quotable duplication proof that hex-escapes control bytes, quotes, and backslashes for log-safe callers while preserving null-input, first-NUL bounds, and allocation-failure cleanup
 - truncation, exact-fit, and padding behavior for fixed-size destinations
 - bounded termination checks that only scan the requested byte window
-- bounded ASCII case conversion that stops at the first NUL
+- bounded ASCII case conversion that stops at the first NUL and leaves destination bytes beyond the copied prefix untouched
 - Linux-style three-significant-figure size rendering for decimal and binary units, including no-space and no-bytes modifiers plus zero-block and truncated-buffer behavior
 - mixed-base, negative-number, first-NUL-bounded, and empty-input integer-array parsing through the count-prefixed `parse_int_array()` starter
 - copied-user-buffer, first-NUL-bounded, truncated-count, and short-buffer-fault behavior through `parse_int_array_user()`
