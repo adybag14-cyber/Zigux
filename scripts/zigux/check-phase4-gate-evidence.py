@@ -64,6 +64,8 @@ SELF_TEST_CASES = [
     "kprobe_gap_packet_presence_drift",
     "perf_baseline_packet_presence_drift",
     "perf_baseline_note_split_marker_drift",
+    "perf_baseline_owner_drift",
+    "perf_baseline_shared_promotion_status_drift",
     "test_fsmount_gap_packet_presence_drift",
     "missing_note_file",
 ]
@@ -77,6 +79,80 @@ PERF_BASELINE_SUMMARY = {
     "atomic64_acceptable_limit_approved": True,
     "bitmap_benchmark_command_approved": True,
     "bitmap_acceptable_limit_approved": True,
+}
+PERF_BASELINE_EXPECTED_FIELDS = {
+    "lane_key": "P4-L20",
+    "phase": "Phase 4",
+    "owner": "Validation and Perf Team",
+    "rollback_owner": "Validation and Perf Team",
+}
+PERF_BASELINE_SURVEYED_GATES = [
+    {
+        "surface": "zigux/tests/atomic64_diff.zig",
+        "gate_owner": "ABI and Runtime Team",
+        "gate_rollback_owner": "ABI and Runtime Team",
+        "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
+    },
+    {
+        "surface": "zigux/tests/bitmap_diff.zig",
+        "gate_owner": "Shared Subsystems Pod",
+        "gate_rollback_owner": "Shared Subsystems Pod",
+        "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+    },
+]
+PERF_BASELINE_COMMAND_FIELDS = {
+    "atomic64": {
+        "evidence_status": "benchmark_command_approved",
+        "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+        "acceptable_limit_status": "approved_local_only",
+        "acceptable_limit_max_elapsed_ns": 8192,
+    },
+    "bitmap": {
+        "evidence_status": "benchmark_command_approved",
+        "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+        "acceptable_limit_status": "approved_local_only",
+        "acceptable_limit_max_elapsed_ns": 131072,
+    },
+}
+PERF_BASELINE_REQUIRED_GAPS = {
+    "phase4-perf-baseline-survey-manifest": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase4_perf_baseline_manifest.json",
+    },
+    "phase4-perf-baseline-survey-gate": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase4_perf_baseline_survey.zig",
+    },
+    "phase4-perf-baseline-atomic64-command-evidence": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase4_perf_baseline_manifest.json",
+    },
+    "phase4-perf-baseline-atomic64-command": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/atomic64_diff.zig",
+        "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+    },
+    "phase4-perf-baseline-atomic64-acceptable-limit": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/atomic64_diff.zig",
+    },
+    "phase4-perf-baseline-bitmap-command-evidence": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase4_perf_baseline_manifest.json",
+    },
+    "phase4-perf-baseline-bitmap-command": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/bitmap_diff.zig",
+        "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+    },
+    "phase4-perf-baseline-bitmap-acceptable-limit": {
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/bitmap_diff.zig",
+    },
+    "phase4-perf-baseline-shared-promotion-decision": {
+        "status": "ready_next",
+        "zigux_destination": "Documentation/zigux/phase4-validation-matrix.md",
+    },
 }
 
 
@@ -135,12 +211,95 @@ def validate_perf_baseline_packet(root: Path) -> list[str]:
     manifest = json.loads(read_text(root, PERF_BASELINE_MANIFEST_PATH))
     survey_text = read_text(root, PERF_BASELINE_SURVEY_PATH)
     missing: list[str] = []
+
+    for field, expected in PERF_BASELINE_EXPECTED_FIELDS.items():
+        actual = manifest.get(field)
+        if actual != expected:
+            missing.append(f"perf_baseline_manifest:{field}:{actual}:{expected}")
+
+    surveyed_gates = manifest.get("surveyed_gates")
+    if not isinstance(surveyed_gates, list):
+        missing.append(f"perf_baseline_manifest:surveyed_gates:{type(surveyed_gates).__name__}:list")
+    elif len(surveyed_gates) != len(PERF_BASELINE_SURVEYED_GATES):
+        missing.append(
+            f"perf_baseline_manifest:surveyed_gates:length:{len(surveyed_gates)}:{len(PERF_BASELINE_SURVEYED_GATES)}"
+        )
+    else:
+        for index, expected_gate in enumerate(PERF_BASELINE_SURVEYED_GATES):
+            gate = surveyed_gates[index]
+            if not isinstance(gate, dict):
+                missing.append(f"perf_baseline_manifest:surveyed_gates:{index}:{type(gate).__name__}:dict")
+                continue
+            for field, expected in expected_gate.items():
+                actual = gate.get(field)
+                if actual != expected:
+                    missing.append(f"perf_baseline_manifest_surveyed_gate:{index}:{field}:{actual}:{expected}")
+
     for field, expected in PERF_BASELINE_SUMMARY.items():
         actual = manifest.get("survey_summary", {}).get(field)
         if actual != expected:
             missing.append(f"perf_baseline_summary:{field}:{actual}:{expected}")
+
+    command_evidence = manifest.get("command_evidence")
+    if not isinstance(command_evidence, dict):
+        missing.append(f"perf_baseline_manifest:command_evidence:{type(command_evidence).__name__}:dict")
+    else:
+        for family, expected_fields in PERF_BASELINE_COMMAND_FIELDS.items():
+            family_fields = command_evidence.get(family)
+            if not isinstance(family_fields, dict):
+                missing.append(f"perf_baseline_manifest:command_evidence:{family}:{type(family_fields).__name__}:dict")
+                continue
+            for field, expected in expected_fields.items():
+                actual = family_fields.get(field)
+                if actual != expected:
+                    missing.append(f"perf_baseline_manifest_command:{family}:{field}:{actual}:{expected}")
+
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list):
+        missing.append(f"perf_baseline_manifest:gaps:{type(gaps).__name__}:list")
+    else:
+        if len(gaps) != len(PERF_BASELINE_REQUIRED_GAPS):
+            missing.append(
+                f"perf_baseline_manifest:gaps:length:{len(gaps)}:{len(PERF_BASELINE_REQUIRED_GAPS)}"
+            )
+        starter_landed_count = sum(
+            1 for gap in gaps if isinstance(gap, dict) and gap.get("status") == "starter_landed"
+        )
+        ready_next_count = sum(
+            1 for gap in gaps if isinstance(gap, dict) and gap.get("status") == "ready_next"
+        )
+        if starter_landed_count != 8:
+            missing.append(f"perf_baseline_manifest:gaps:starter_landed:{starter_landed_count}:8")
+        if ready_next_count != 1:
+            missing.append(f"perf_baseline_manifest:gaps:ready_next:{ready_next_count}:1")
+        gaps_by_id = {
+            gap.get("id"): gap
+            for gap in gaps
+            if isinstance(gap, dict) and isinstance(gap.get("id"), str)
+        }
+        for gap_id, expected_gap in PERF_BASELINE_REQUIRED_GAPS.items():
+            gap = gaps_by_id.get(gap_id)
+            if gap is None:
+                missing.append(f"perf_baseline_gap:id:missing:{gap_id}")
+                continue
+            actual_status = gap.get("status")
+            if actual_status != expected_gap["status"]:
+                missing.append(f"perf_baseline_gap:{gap_id}:status:{actual_status}:{expected_gap['status']}")
+            actual_destination = gap.get("zigux_destination")
+            if actual_destination != expected_gap["zigux_destination"]:
+                missing.append(
+                    f"perf_baseline_gap:{gap_id}:zigux_destination:{actual_destination}:{expected_gap['zigux_destination']}"
+                )
+            expected_command = expected_gap.get("benchmark_command")
+            actual_command = gap.get("benchmark_command")
+            if actual_command != expected_command:
+                missing.append(
+                    f"perf_baseline_gap:{gap_id}:benchmark_command:{actual_command}:{expected_command}"
+                )
+
     for marker in [
         "phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit",
+        "Validation and Perf Team",
         "approved_local_only",
         "shared CI perf coverage",
         "131072",
@@ -252,13 +411,50 @@ def build_fixture_tree(root: Path) -> None:
         str(KPROBE_SURVEY_PATH): "kprobe survey fixture\n",
         str(TEST_FSMOUNT_NOTE_PATH): "test_fsmount note fixture\n",
         str(TEST_FSMOUNT_SURVEY_PATH): "test_fsmount survey fixture\n",
-        str(PERF_BASELINE_SURVEY_PATH): "phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit\napproved_local_only\nshared CI perf coverage\n131072\n8192\n",
+        str(PERF_BASELINE_SURVEY_PATH): (
+            "phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit\n"
+            "Validation and Perf Team\n"
+            "approved_local_only\n"
+            "shared CI perf coverage\n"
+            "131072\n"
+            "8192\n"
+        ),
     }
     for rel, content in fixture_files.items():
         _write(root / rel, content)
     _write(root / KPROBE_MANIFEST_PATH, json.dumps({"shared_gate_evidence_packet_present": True}) + "\n")
     _write(root / TEST_FSMOUNT_MANIFEST_PATH, json.dumps({"shared_gate_evidence_packet_present": False}) + "\n")
-    _write(root / PERF_BASELINE_MANIFEST_PATH, json.dumps({"survey_summary": PERF_BASELINE_SUMMARY}) + "\n")
+    perf_baseline_manifest = {
+        **PERF_BASELINE_EXPECTED_FIELDS,
+        "surveyed_gates": PERF_BASELINE_SURVEYED_GATES,
+        "survey_summary": PERF_BASELINE_SUMMARY,
+        "command_evidence": {
+            family: {
+                **expected_fields,
+                "acceptable_limit_metric": "median_elapsed_ns",
+                "acceptable_limit_iterations": 4,
+                "acceptable_limit_sample_count": 7,
+                "deterministic_replays": [],
+            }
+            for family, expected_fields in PERF_BASELINE_COMMAND_FIELDS.items()
+        },
+        "gaps": [
+            {
+                "id": gap_id,
+                "status": expected_gap["status"],
+                "kind": "perf_policy" if gap_id == "phase4-perf-baseline-shared-promotion-decision" else "survey_manifest",
+                "zigux_destination": expected_gap["zigux_destination"],
+                **(
+                    {"benchmark_command": expected_gap["benchmark_command"]}
+                    if "benchmark_command" in expected_gap
+                    else {}
+                ),
+                "why_now": gap_id,
+            }
+            for gap_id, expected_gap in PERF_BASELINE_REQUIRED_GAPS.items()
+        ],
+    }
+    _write(root / PERF_BASELINE_MANIFEST_PATH, json.dumps(perf_baseline_manifest) + "\n")
     rt_manifest = {
         "lane_key": "P4-L02",
         "phase": "Phase 4",
@@ -294,6 +490,7 @@ def run_self_test() -> int:
         root = Path(tmp_dir)
         build_fixture_tree(root)
         assert validate_root(root) == []
+
         bad = Path(tmp_dir) / "bad"
         build_fixture_tree(bad)
         (bad / NOTE_PATH).unlink()
@@ -313,6 +510,32 @@ def run_self_test() -> int:
         assert validate_root(bad2) == [
             "note_marker:exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope"
         ]
+
+        bad3 = Path(tmp_dir) / "bad3"
+        build_fixture_tree(bad3)
+        perf_manifest_path = bad3 / PERF_BASELINE_MANIFEST_PATH
+        perf_manifest = json.loads(perf_manifest_path.read_text(encoding="utf-8"))
+        perf_manifest["owner"] = "ABI and Runtime Team"
+        perf_manifest_path.write_text(json.dumps(perf_manifest) + "\n", encoding="utf-8")
+        assert validate_root(bad3) == [
+            "perf_baseline_manifest:owner:ABI and Runtime Team:Validation and Perf Team"
+        ]
+
+        bad4 = Path(tmp_dir) / "bad4"
+        build_fixture_tree(bad4)
+        perf_manifest_path = bad4 / PERF_BASELINE_MANIFEST_PATH
+        perf_manifest = json.loads(perf_manifest_path.read_text(encoding="utf-8"))
+        for gap in perf_manifest["gaps"]:
+            if gap["id"] == "phase4-perf-baseline-shared-promotion-decision":
+                gap["status"] = "starter_landed"
+                break
+        perf_manifest_path.write_text(json.dumps(perf_manifest) + "\n", encoding="utf-8")
+        assert validate_root(bad4) == [
+            "perf_baseline_manifest:gaps:starter_landed:9:8",
+            "perf_baseline_manifest:gaps:ready_next:0:1",
+            "perf_baseline_gap:phase4-perf-baseline-shared-promotion-decision:status:starter_landed:ready_next",
+        ]
+
     print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
     print(f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")
     print("PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES))
