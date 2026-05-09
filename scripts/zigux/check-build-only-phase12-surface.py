@@ -48,9 +48,11 @@ REQUIRED_FILE_MARKERS = {
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
         "`drivers/nvme/host/pci_verify.zig`",
+        "`zigux/tests/phase12_virtio_net_manifest.json`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zigux/tests/phase12_virtio_scsi_manifest.json`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
+        "`zigux/tests/phase12_libbpf_manifest.json`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
@@ -70,8 +72,11 @@ REQUIRED_FILE_MARKERS = {
         "`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`",
         "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
         "`drivers/nvme/host/pci_verify.zig`",
+        "`zigux/tests/phase12_virtio_net_manifest.json`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
+        "`zigux/tests/phase12_virtio_scsi_manifest.json`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
+        "`zigux/tests/phase12_libbpf_manifest.json`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
@@ -335,6 +340,8 @@ REQUIRED_FILE_MARKERS = {
 
 EXACT_COUNT_FILE_MARKERS = {
     DOCS_README_PATH: {
+        "`zigux/tests/phase12_virtio_net_manifest.json`": 1,
+        "`zigux/tests/phase12_libbpf_manifest.json`": 1,
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`": 1,
         "`zigux/tests/phase12_virtio_scsi_manifest.json`": 1,
     },
@@ -353,6 +360,8 @@ EXACT_COUNT_FILE_MARKERS = {
         "`make -C zigux phase12`": 1,
     },
     REVIEW_CHECKLIST_PATH: {
+        "`zigux/tests/phase12_virtio_net_manifest.json`": 1,
+        "`zigux/tests/phase12_libbpf_manifest.json`": 1,
         "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`": 1,
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`": 1,
         "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`": 1,
