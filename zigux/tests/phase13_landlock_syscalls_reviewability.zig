@@ -87,6 +87,9 @@ test "phase13 landlock syscalls reviewability shard records the shipped direct e
     try expectContains(governance_note, "`ruleset_fops` planning");
     try expectContains(governance_note, "live syscall enforcement");
     try expectContains(governance_note, "Keep this packet parked unless a future lane can add another equally bounded planner");
+    try expectContains(governance_note, "`zigux/tests/phase13_landlock_syscalls_manifest.json`");
+    try expectContains(governance_note, "source of truth for packet metadata");
+    try expectContains(governance_note, "update the survey note and `zigux/tests/phase13_landlock_syscalls_reviewability.zig` in the same patch");
 
     try std.testing.expect(std.mem.indexOf(u8, phase13_build, "phase13_landlock_syscalls_reviewability") == null);
 
