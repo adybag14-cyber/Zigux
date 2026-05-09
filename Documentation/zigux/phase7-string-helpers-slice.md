@@ -6,15 +6,13 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
+- `PHASE7_LANE_KEY=P7-L03`
 - scope: first low-risk runtime-safe string helper batch only
 - lane state: helper slice plus shared deterministic escape fixtures, bounded sample replay, and manifest-backed survey evidence landed; parked unless a new `string_helpers.c` parity issue appears
 - product boundary:
   - `lib/string_helpers.zig`
   - `zigux/tests/phase7_string_helpers.zig`
   - `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig`
-  - `samples/zigux/string_helpers_sample.zig`
-  - `zigux/tests/phase7_string_helpers_sample_manifest.json`
-  - `zigux/tests/phase7_string_helpers_sample_survey.zig`
   - `zigux/tests/phase7_build.zig`
   - `zigux/Makefile`
 
@@ -27,6 +25,10 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - are runtime-adjacent without entering allocator-heavy or device-heavy paths
 - benefit from explicit pointer and termination handling
 - can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
+
+This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
+
+The four approved Phase 5 anchors remain the bounded bytestream FIFO, kobject, kretprobe, and trace-events sample packets. The bounded sample replay added on this draft branch exists only to keep the landed helper contract reviewable through the shared Phase 7 lane, without recasting string helpers as a fifth Phase 5 sample family.
 
 ## Gates
 
@@ -72,6 +74,7 @@ The current tests check:
 - truncation accounting that returns the full would-be escaped length without promising an appended terminator through one dedicated gate assertion
 - the bounded `samples/zigux/string_helpers_sample.zig` replay for descriptor ownership, lifecycle transitions, newline-tolerant matching, binary size rendering, compact no-space-no-bytes formatting, one exact-fit unescape destination proof, deterministic only-selected newline escaping, and append-selected newline hex escaping through the shared Phase 7 build
 - the manifest-backed `zigux/tests/phase7_string_helpers_sample_survey.zig` gate so the helper, shared fixtures, sample replay, and slice note stay aligned in one reviewable packet after the added compact-format, exact-fit unescape boundary, only-selected newline escaping, and append-selected escape proofs
+- the sample-facing note packet keeps the review route explicit for the draft branch while preserving the current `master` rule that string helpers still are not part of the frozen Phase 5 reference-sample set
 
 ## Non-goals
 
@@ -80,6 +83,7 @@ This slice does not yet claim:
 - parity for `parse_int_array()`
 - integer parsing beyond the current formatter and escape surface
 - allocation-backed duplication helpers
+- a new Phase 5 string-helper reference anchor
 
 ## Next bounded step
 
