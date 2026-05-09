@@ -8,6 +8,7 @@ const SurveySummary = struct {
     watchdog_info_layout_assert_present: bool,
     winsize_layout_assert_present: bool,
     hvc_hv_ops_layout_assert_present: bool,
+    hvc_hv_ops_header_declarations_checked: bool,
     hvc_header_constants_checked: bool,
     hvc_export_surface_checked: bool,
 };
@@ -100,6 +101,7 @@ test "phase11 shared header parity survey manifest records the maintained packet
     try std.testing.expect(manifest.survey_summary.watchdog_info_layout_assert_present);
     try std.testing.expect(manifest.survey_summary.winsize_layout_assert_present);
     try std.testing.expect(manifest.survey_summary.hvc_hv_ops_layout_assert_present);
+    try std.testing.expect(manifest.survey_summary.hvc_hv_ops_header_declarations_checked);
     try std.testing.expect(manifest.survey_summary.hvc_header_constants_checked);
     try std.testing.expect(manifest.survey_summary.hvc_export_surface_checked);
 
@@ -107,6 +109,7 @@ test "phase11 shared header parity survey manifest records the maintained packet
     var saw_watchdog_layout = false;
     var saw_winsize_layout = false;
     var saw_hv_ops_layout = false;
+    var saw_hv_ops_header_declarations = false;
     var saw_header_constants = false;
     var saw_export_surface = false;
 
@@ -133,6 +136,11 @@ test "phase11 shared header parity survey manifest records the maintained packet
             try expectContains(gap.why_now, "callback table");
             try expectContains(gap.why_now, "offsets 0 through 64");
         }
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-hv-ops-header-declaration-assert")) {
+            saw_hv_ops_header_declarations = true;
+            try expectContains(gap.why_now, "struct hv_ops");
+            try expectContains(gap.why_now, "callback member declarations");
+        }
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-header-constant-assert")) {
             saw_header_constants = true;
             try expectContains(gap.why_now, "MAX_NR_HVC_CONSOLES");
@@ -148,6 +156,7 @@ test "phase11 shared header parity survey manifest records the maintained packet
     try std.testing.expect(saw_watchdog_layout);
     try std.testing.expect(saw_winsize_layout);
     try std.testing.expect(saw_hv_ops_layout);
+    try std.testing.expect(saw_hv_ops_header_declarations);
     try std.testing.expect(saw_header_constants);
     try std.testing.expect(saw_export_surface);
 }
@@ -220,11 +229,13 @@ test "phase11 shared header parity survey keeps the note pinned to the manifest 
     try expectContains(note, "phase11-dw-wdt-watchdog-info-layout-assert");
     try expectContains(note, "phase11-hvc-console-winsize-layout-assert");
     try expectContains(note, "phase11-hvc-console-hv-ops-layout-assert");
+    try expectContains(note, "phase11-hvc-console-hv-ops-header-declaration-assert");
     try expectContains(note, "phase11-hvc-console-header-constant-assert");
     try expectContains(note, "phase11-hvc-console-export-signature-assert");
     try expectContains(note, "phase11-uapi-header-parity-surface");
     try expectContains(note, "struct hv_ops");
     try expectContains(note, "callback-table");
+    try expectContains(note, "callback member declarations");
     try expectContains(note, "MAX_NR_HVC_CONSOLES");
     try expectContains(note, "HVC_ALLOC_TTY_ADAPTERS");
     try expectContains(note, "notifier_hangup_irq");
@@ -262,6 +273,21 @@ test "phase11 shared header parity survey keeps the hvc header constants explici
 
     try expectContains(hvc_header, "#define MAX_NR_HVC_CONSOLES\t16");
     try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS\t8");
+}
+
+test "phase11 shared header parity survey keeps the hv_ops header callback declarations explicit" {
+    const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 64 * 1024);
+    defer std.testing.allocator.free(hvc_header);
+
+    try expectContains(hvc_header, "\tssize_t (*get_chars)(uint32_t vtermno, u8 *buf, size_t count);");
+    try expectContains(hvc_header, "\tssize_t (*put_chars)(uint32_t vtermno, const u8 *buf, size_t count);");
+    try expectContains(hvc_header, "\tint (*flush)(uint32_t vtermno, bool wait);");
+    try expectContains(hvc_header, "\tint (*notifier_add)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "\tvoid (*notifier_del)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "\tvoid (*notifier_hangup)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "\tint (*tiocmget)(struct hvc_struct *hp);");
+    try expectContains(hvc_header, "\tint (*tiocmset)(struct hvc_struct *hp, unsigned int set, unsigned int clear);");
+    try expectContains(hvc_header, "\tvoid (*dtr_rts)(struct hvc_struct *hp, bool active);");
 }
 
 test "phase11 shared header parity survey keeps the exported hvc header declarations explicit" {
