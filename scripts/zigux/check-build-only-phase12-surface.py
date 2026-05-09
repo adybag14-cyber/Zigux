@@ -352,6 +352,18 @@ FORBIDDEN_TEXT_MARKERS = {
     DOCS_README_PATH: [
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
     ],
+    PHASE12_CLOSURE_CHECKLIST_PATH: [
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
+    ],
+    PHASE12_RELEASE_READINESS_SURVEY_PATH: [
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
+    ],
+    PHASE12_RAW_GITHUB_COVERAGE_PATH: [
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
+    ],
+    PHASE12_COORDINATION_MATRIX_PATH: [
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
+    ],
     SCRIPTS_README_PATH: [
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
     ],
@@ -492,6 +504,7 @@ def run_self_test() -> int:
             path = root / rel_path
             original = path.read_text(encoding="utf-8")
             for marker in markers:
+                path.writeText = None
                 path.write_text(original + f"- stale {marker}\n", encoding="utf-8")
                 failures = validate(root)
                 expected = f"{rel_path}:forbidden_marker:{marker}"
