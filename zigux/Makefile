@@ -372,4 +372,4 @@ phase15-validate:
 phase15-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase15_build.zig
 
-phase15: phase15-validate phase15-test phase15
+phase15: phase15-validate phase15-test
