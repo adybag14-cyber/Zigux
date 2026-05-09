@@ -17,6 +17,9 @@ const Manifest = struct {
     phase: []const u8,
     surveyed_ref: []const u8,
     inspected_via: []const u8,
+    public_tree_base_url: []const u8,
+    public_raw_base_url: []const u8,
+    shared_public_read_paths: []const []const u8,
     shared_release_paths: []const []const u8,
     smoke_surface_paths: []const []const u8,
     commit_pinned_artifacts: []const CommitPinnedArtifact,
@@ -33,6 +36,24 @@ fn pathExists(io: std.Io, path: []const u8) !bool {
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn expectPublicUrlCoverage(
+    allocator: std.mem.Allocator,
+    note: []const u8,
+    tree_base_url: []const u8,
+    raw_base_url: []const u8,
+    paths: []const []const u8,
+) !void {
+    for (paths) |path| {
+        const tree_url = try std.fmt.allocPrint(allocator, "{s}{s}", .{ tree_base_url, path });
+        defer allocator.free(tree_url);
+        const raw_url = try std.fmt.allocPrint(allocator, "{s}{s}", .{ raw_base_url, path });
+        defer allocator.free(raw_url);
+
+        try expectContains(note, tree_url);
+        try expectContains(note, raw_url);
+    }
 }
 
 test "phase12 raw GitHub coverage manifest keeps the shared fallback split reviewable" {
@@ -94,11 +115,28 @@ test "phase12 raw GitHub coverage manifest keeps the shared fallback split revie
     try std.testing.expectEqualStrings("P12-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("master", manifest.surveyed_ref);
-    try std.testing.expectEqualStrings("GitHub connector read on 2026-05-07", manifest.inspected_via);
+    try std.testing.expectEqualStrings("GitHub connector read on 2026-05-09", manifest.inspected_via);
+    try std.testing.expectEqualStrings("https://github.com/adybag14-cyber/Zigux/blob/master/", manifest.public_tree_base_url);
+    try std.testing.expectEqualStrings("https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/", manifest.public_raw_base_url);
+    try std.testing.expectEqual(@as(usize, 12), manifest.shared_public_read_paths.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.shared_release_paths.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.smoke_surface_paths.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.commit_pinned_artifacts.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_only_anchors.len);
+
+    for (manifest.shared_public_read_paths, 0..) |path, i| {
+        try std.testing.expect(try pathExists(io_instance.io(), path));
+        for (manifest.shared_public_read_paths[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, path, other));
+        }
+    }
+    try expectPublicUrlCoverage(
+        std.testing.allocator,
+        raw_coverage_note,
+        manifest.public_tree_base_url,
+        manifest.public_raw_base_url,
+        manifest.shared_public_read_paths,
+    );
 
     for (manifest.shared_release_paths, 0..) |path, i| {
         try std.testing.expect(try pathExists(io_instance.io(), path));
