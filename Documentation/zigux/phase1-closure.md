@@ -104,6 +104,7 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 - `scripts/zigux/validate-phase1.py`
 - `scripts/zigux/validate-phase1-closure.py`
 - `scripts/zigux/check-phase1-parity.py`
+- `scripts/zigux/artifact_diff.py`
 - `scripts/zigux/check-phase1-bench.py`
 - `zigux/tests/README.md`
 - `zigux/tests/build.zig`
@@ -123,7 +124,7 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 - `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`
 - `python3 scripts/zigux/validate-phase1-closure.py`
 
-Reviewers should treat drift across those packet summaries, the committed helper and benchmark fixtures, the shared tests-root entrypoints, the bootstrap workflow replay, and the validator-first plus Linux-style replay routes as a closure regression even when the helper code itself is unchanged.
+Reviewers should treat drift across those packet summaries, the artifact-diff-backed parity replay, the committed helper and benchmark fixtures, the shared tests-root entrypoints, the bootstrap workflow replay, and the validator-first plus Linux-style replay routes as a closure regression even when the helper code itself is unchanged.
 
 ## Lane Sequencing Rule
 
