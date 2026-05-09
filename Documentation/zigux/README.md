@@ -145,6 +145,7 @@ Phase 8 notes
 - `Documentation/zigux/phase8-kallsyms-slice.md`
 - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
 - `Documentation/zigux/phase8-bpf-type-names-slice.md`
+- `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
 - `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
 - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
 - `Documentation/zigux/phase8-libbpf-segment-survey.md`
