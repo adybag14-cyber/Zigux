@@ -342,8 +342,8 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
     while (index < args.len) : (index += 1) {
         const arg = args[index];
         if (std.mem.eql(u8, arg, "--")) {
-            try rendered_args.appendSlice(allocator, positional_args.items);
             try rendered_args.append(allocator, arg);
+            try rendered_args.appendSlice(allocator, positional_args.items);
             if (index + 1 < args.len) {
                 try rendered_args.appendSlice(allocator, args[index + 1 ..]);
             }
