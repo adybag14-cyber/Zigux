@@ -141,10 +141,31 @@ WORKFLOW_FORBIDDEN_FRAGMENTS = [
 
 TOOLCHAIN_TARGET_NAME = "phase2-toolchain"
 PHASE2_VALIDATE_TARGET_NAME = "phase2-validate"
+PHASE2_TOOLS_TARGET_NAME = "phase2-tools"
+PHASE2_KCONFIG_TARGET_NAME = "phase2-kconfig"
 TOOLCHAIN_TARGET_REQUIRED_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+]
+PHASE2_TOOLS_TARGET_REQUIRED_LINES = [
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms_crc.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig",
+]
+PHASE2_KCONFIG_TARGET_REQUIRED_LINES = [
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 REPO_LOCAL_ZIG_FALLBACK_REQUIRED_LINES = [
     "REPO_LOCAL_ZIG := $(lastword $(sort $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig $(ZIGUX_ROOT)/.zig-toolchain/*/zig.exe $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig.exe)))",
@@ -407,6 +428,24 @@ def validate_repo_local_zig_fallback(text: str) -> list[str]:
     return issues
 
 
+def validate_repo_local_zig_make_routes(text: str) -> list[str]:
+    issues: list[str] = []
+    for target_name, expected_lines in (
+        (PHASE2_TOOLS_TARGET_NAME, PHASE2_TOOLS_TARGET_REQUIRED_LINES),
+        (PHASE2_KCONFIG_TARGET_NAME, PHASE2_KCONFIG_TARGET_REQUIRED_LINES),
+    ):
+        target_lines = extract_makefile_target_lines(text, target_name)
+        if target_lines is None:
+            issues.append(f"makefile_target_missing:{target_name}")
+            continue
+        if target_lines != expected_lines:
+            issues.append(
+                "makefile_target_scope:"
+                f"{target_name}:actual={target_lines!r}:expected={expected_lines!r}"
+            )
+    return issues
+
+
 def run_self_test() -> int:
     valid_policy = {
         "phase": "Phase 2",
@@ -530,6 +569,23 @@ def run_self_test() -> int:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "phase2-validate: phase2-toolchain",
+            "phase2-tools:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms_crc.zig",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig",
+            "phase2-kconfig:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
             "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
         ]
     )
@@ -537,10 +593,19 @@ def run_self_test() -> int:
     assert validate_exact_makefile_runs(valid_makefile) == []
     assert validate_toolchain_target_scope(valid_makefile) == []
     assert validate_repo_local_zig_fallback(valid_makefile) == []
+    assert validate_repo_local_zig_make_routes(valid_makefile) == []
     missing_repo_local_fallback = validate_repo_local_zig_fallback(
         valid_makefile.replace("export PATH := $(dir $(REPO_LOCAL_ZIG)):$(PATH)\n", "", 1)
     )
     assert any(issue.startswith("makefile_repo_local_zig_block:") for issue in missing_repo_local_fallback)
+    leaked_phase2_tools_route = validate_repo_local_zig_make_routes(
+        valid_makefile.replace("\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig", "\tcd $(ZIGUX_ROOT) && zig test scripts/zigux/genksyms.zig", 1)
+    )
+    assert any(issue.startswith("makefile_target_scope:phase2-tools:") for issue in leaked_phase2_tools_route)
+    leaked_phase2_kconfig_route = validate_repo_local_zig_make_routes(
+        valid_makefile.replace("\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig\n", "", 1)
+    )
+    assert any(issue.startswith("makefile_target_scope:phase2-kconfig:") for issue in leaked_phase2_kconfig_route)
 
     workflow_text = "\n".join(
         [
@@ -612,7 +677,7 @@ def run_self_test() -> int:
         assert load_json_object(manifest_path, label="policy")["archive_sha256"] == valid_policy["archive_sha256"]
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=34")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
@@ -690,6 +755,7 @@ def main() -> int:
     issues.extend(validate_exact_makefile_runs(makefile_text))
     issues.extend(validate_toolchain_target_scope(makefile_text))
     issues.extend(validate_repo_local_zig_fallback(makefile_text))
+    issues.extend(validate_repo_local_zig_make_routes(makefile_text))
 
     issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8"), payload=policy_payload))
 
