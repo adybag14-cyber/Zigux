@@ -114,6 +114,11 @@ pub fn read8InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPo
     return read8(base_addr, offset);
 }
 
+pub fn read8InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) PolicyError!u8 {
+    try requireInteropPolicyBytes(unsafe_scope, 0);
+    return read8(base_addr, offset);
+}
+
 pub fn write8InteropPolicyBytes(
     base_addr: usize,
     offset: usize,
@@ -135,6 +140,11 @@ pub fn write8InteropPolicy(
     write8(base_addr, offset, value);
 }
 
+pub fn write8InteropPolicyByte(base_addr: usize, offset: usize, value: u8, unsafe_scope: u8) PolicyError!void {
+    try requireInteropPolicyBytes(unsafe_scope, 0);
+    write8(base_addr, offset, value);
+}
+
 pub fn read16InteropPolicyBytes(
     base_addr: usize,
     offset: usize,
@@ -147,6 +157,11 @@ pub fn read16InteropPolicyBytes(
 
 pub fn read16InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropPolicy) PolicyError!u16 {
     try requireInteropPolicy(policy);
+    return read16(base_addr, offset);
+}
+
+pub fn read16InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) PolicyError!u16 {
+    try requireInteropPolicyBytes(unsafe_scope, 0);
     return read16(base_addr, offset);
 }
 
@@ -168,6 +183,11 @@ pub fn write16InteropPolicy(
     policy: abi.InteropPolicy,
 ) PolicyError!void {
     try requireInteropPolicy(policy);
+    write16(base_addr, offset, value);
+}
+
+pub fn write16InteropPolicyByte(base_addr: usize, offset: usize, value: u16, unsafe_scope: u8) PolicyError!void {
+    try requireInteropPolicyBytes(unsafe_scope, 0);
     write16(base_addr, offset, value);
 }
 
@@ -241,6 +261,11 @@ pub fn read64InteropPolicy(base_addr: usize, offset: usize, policy: abi.InteropP
     return read64(base_addr, offset);
 }
 
+pub fn read64InteropPolicyByte(base_addr: usize, offset: usize, unsafe_scope: u8) PolicyError!u64 {
+    try requireInteropPolicyBytes(unsafe_scope, 0);
+    return read64(base_addr, offset);
+}
+
 pub fn write64InteropPolicyBytes(
     base_addr: usize,
     offset: usize,
@@ -259,6 +284,11 @@ pub fn write64InteropPolicy(
     policy: abi.InteropPolicy,
 ) PolicyError!void {
     try requireInteropPolicy(policy);
+    write64(base_addr, offset, value);
+}
+
+pub fn write64InteropPolicyByte(base_addr: usize, offset: usize, value: u64, unsafe_scope: u8) PolicyError!void {
+    try requireInteropPolicyBytes(unsafe_scope, 0);
     write64(base_addr, offset, value);
 }
 
@@ -339,6 +369,7 @@ test "phase3 mmio interop policy gates stay explicit" {
         .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
         .reserved = 1,
     };
+    const volatile_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio);
 
     try std.testing.expect(allowsInteropPolicy(mmio_policy));
     try std.testing.expect(allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0));
@@ -363,23 +394,25 @@ test "phase3 mmio interop policy gates stay explicit" {
 
     try write8InteropPolicy(base, 0, 0x33, mmio_policy);
     try std.testing.expectEqual(@as(u8, 0x33), try read8InteropPolicy(base, 0, mmio_policy));
+    try write8InteropPolicyByte(base, 1, 0x44, volatile_scope);
+    try std.testing.expectEqual(@as(u8, 0x44), try read8InteropPolicyByte(base, 1, volatile_scope));
     try write16InteropPolicy(base, 2, 0x1234, mmio_policy);
     try std.testing.expectEqual(@as(u16, 0x1234), try read16InteropPolicy(base, 2, mmio_policy));
+    try write16InteropPolicyByte(base, 4, 0x5678, volatile_scope);
+    try std.testing.expectEqual(@as(u16, 0x5678), try read16InteropPolicyByte(base, 4, volatile_scope));
     try write32InteropPolicy(base, 4, 0xfeed_beef, mmio_policy);
     try std.testing.expectEqual(@as(u32, 0xfeed_beef), try read32InteropPolicy(base, 4, mmio_policy));
+    try write32InteropPolicyByte(base, 6, 0x89ab_cdef, volatile_scope);
+    try std.testing.expectEqual(@as(u32, 0x89ab_cdef), try read32InteropPolicyByte(base, 6, volatile_scope));
     try write64InteropPolicy(base, 8, 0x0123_4567_89ab_cdef, mmio_policy);
     try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), try read64InteropPolicy(base, 8, mmio_policy));
+    try write64InteropPolicyByte(base, 8, 0xfedc_ba98_7654_3210, volatile_scope);
+    try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), try read64InteropPolicyByte(base, 8, volatile_scope));
 
     try write8InteropPolicyBytes(base, 1, 0x44, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0);
     try std.testing.expectEqual(
         @as(u8, 0x44),
         try read8InteropPolicyBytes(base, 1, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0),
-    );
-
-    try write32InteropPolicyByte(base, 4, 0xc001_d00d, @intFromEnum(abi.UnsafeScope.volatile_mmio));
-    try std.testing.expectEqual(
-        @as(u32, 0xc001_d00d),
-        try read32InteropPolicyByte(base, 4, @intFromEnum(abi.UnsafeScope.volatile_mmio)),
     );
 
     try std.testing.expectError(error.UnsafeScopeDenied, requireInteropPolicy(no_unsafe_policy));
@@ -390,11 +423,15 @@ test "phase3 mmio interop policy gates stay explicit" {
     try std.testing.expectError(error.UnsafeScopeDenied, read8InteropPolicyBytes(base, 1, 1, 1));
     try std.testing.expectError(
         error.UnsafeScopeDenied,
-        read32InteropPolicyByte(base, 4, @intFromEnum(abi.UnsafeScope.none)),
+        read16InteropPolicyByte(base, 4, @intFromEnum(abi.UnsafeScope.none)),
     );
     try std.testing.expectError(
         error.UnsafeScopeDenied,
-        write32InteropPolicyByte(base, 4, 0, @intFromEnum(abi.UnsafeScope.raw_pointer_bridge)),
+        write32InteropPolicyByte(base, 6, 0, @intFromEnum(abi.UnsafeScope.raw_pointer_bridge)),
+    );
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        read64InteropPolicyByte(base, 8, @intFromEnum(abi.UnsafeScope.none)),
     );
     try std.testing.expectError(error.UnsafeScopeDenied, write64InteropPolicyBytes(base, 8, 0, 0, 0));
 }
