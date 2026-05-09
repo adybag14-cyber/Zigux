@@ -55,6 +55,10 @@ PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER = (
     "- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet"
 )
 
+PHASE9_LANE_SEQUENCING_REVIEW_CHECKLIST_COUPLING_MARKER = (
+    "- treat that review-checklist prompt and `scripts/zigux/check-phase9-build-only-surface.py` as one coupled release-discipline packet: a checklist-side Phase 9 reminder refresh is incomplete unless the shared checker keeps this sequencing note, the shipped self-test-hook ownership bullet, and the older freeze-map follow-through coupled instead of only trusting the surrounding reminder surfaces"
+)
+
 PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER = (
     "- `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` "
     "remain Phase 2 config-surface bridge references"
@@ -67,6 +71,7 @@ PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER = (
 REQUIRED_PHASE9_LANE_SEQUENCING_MARKERS = [
     PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER,
     PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER,
+    PHASE9_LANE_SEQUENCING_REVIEW_CHECKLIST_COUPLING_MARKER,
     PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER,
     PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER,
 ]
@@ -74,6 +79,7 @@ REQUIRED_PHASE9_LANE_SEQUENCING_MARKERS = [
 REQUIRED_PHASE9_LANE_SEQUENCING_EXACT_COUNTS = {
     PHASE9_LANE_SEQUENCING_SELF_TEST_HOOK_MARKER: 1,
     PHASE9_LANE_SEQUENCING_CHECKLIST_SELF_TEST_PACKET_MARKER: 1,
+    PHASE9_LANE_SEQUENCING_REVIEW_CHECKLIST_COUPLING_MARKER: 1,
     PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER: 1,
     PHASE9_LANE_SEQUENCING_PHASE3_EXPORT_BOUNDARY_MARKER: 1,
 }
@@ -731,6 +737,28 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
         lane_sequencing_path.write_text(
+            lane_sequencing.replace(PHASE9_LANE_SEQUENCING_REVIEW_CHECKLIST_COUPLING_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing:{PHASE9_LANE_SEQUENCING_REVIEW_CHECKLIST_COUPLING_MARKER}",
+        )
+
+        write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
+            lane_sequencing + PHASE9_LANE_SEQUENCING_REVIEW_CHECKLIST_COUPLING_MARKER + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            f"phase9_lane_sequencing_exact_count:{PHASE9_LANE_SEQUENCING_REVIEW_CHECKLIST_COUPLING_MARKER}:expected=1:actual=2",
+        )
+
+        write_fixture_tree(base)
+        lane_sequencing = lane_sequencing_path.read_text(encoding="utf-8")
+        lane_sequencing_path.write_text(
             lane_sequencing.replace(PHASE9_LANE_SEQUENCING_PHASE2_CONFIG_BOUNDARY_MARKER, "", 1),
             encoding="utf-8",
         )
@@ -846,7 +874,7 @@ def run_self_test() -> int:
         expect_failure(base, "makefile_forbidden:phase9-validate:")
 
         print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=22")
+        print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=24")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
