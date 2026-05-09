@@ -240,6 +240,10 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(loader_source, "runtime kretprobe loader keeps the prepared snapshot stable across later sample mutation");
     try expectContains(loader_source, "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity");
     try expectContains(loader_source, "runtime kretprobe loader keeps selftest-complete shared-request snapshots stable across later exit activity");
+    try expectContains(loader_source, "runtime kretprobe loader rejects prepared shared runtime-substrate drift before any local runtime handoff");
+    try expectContains(loader_source, "runtime kretprobe loader rejects prepared shared selftest-hook drift before any local runtime handoff");
+    try expectContains(loader_source, "runtime kretprobe loader rejects shared selftest-hook drift before any live registration claim");
+    try expectContains(loader_source, "runtime kretprobe loader keeps shared release failures from desynchronizing loader state");
     try expectContains(loader_source, "runtime kretprobe loader recovers from initialized-stage failed exit into the same bounded handoff plan");
 
     try expectContains(diff_source, "runtime kretprobe diff gate keeps overlapping entry stamps distinct under concurrent load");
@@ -306,6 +310,8 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
             try expectContains(gap.why_now, "idle registration snapshot");
             try expectContains(gap.why_now, "prepared-snapshot ownership");
             try expectContains(gap.why_now, "failed-exit state retention");
+            try expectContains(gap.why_now, "runtime-substrate drift checks");
+            try expectContains(gap.why_now, "shared release-failure guards");
         }
         if (std.mem.eql(u8, gap.id, "runtime-kretprobe-substrate-handoff")) {
             saw_substrate_handoff = true;
