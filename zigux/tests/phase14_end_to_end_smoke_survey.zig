@@ -51,7 +51,7 @@ const expected_traceability_markers = [_]TraceabilityExpectation{
     .{
         .section_heading = "### Ring buffer",
         .survey_note_path = "Documentation/zigux/phase14-ring-buffer-survey.md",
-        .lane_key_marker = "- lane key: `P14-L05`",
+        .lane_key_marker = "- lane key: `P14-L08`",
         .ready_next_gap_marker = "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`",
         .retained_boundary_marker = "exported-page forced-copy decisions",
         .blocked_gap_marker = "`phase14-ring-buffer-zig-port-blocker`",
@@ -215,7 +215,7 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4"));
     try std.testing.expect(containsMarker(smoke_note_text, "kernel/rcu/tree_bridge.zig"));
     try std.testing.expect(containsMarker(smoke_note_text, "This wrapper first runs `python3 scripts/zigux/validate-phase14.py --self-test` and then the shared packet validator."));
-    try std.testing.expect(containsMarker(smoke_note_text, "`Documentation/zigux/phase14-ring-buffer-survey.md` and `zigux/tests/phase14_ring_buffer_manifest.json` agree on lane `P14-L05`"));
+    try std.testing.expect(containsMarker(smoke_note_text, "`Documentation/zigux/phase14-ring-buffer-survey.md` and `zigux/tests/phase14_ring_buffer_manifest.json` agree on lane `P14-L08`"));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, smoke_note_text, "coverage `focused_and_full_bundle`"));
     try std.testing.expectEqual(@as(usize, 4), std.mem.count(u8, smoke_note_text, "coverage `full_bundle_only`"));
 
