@@ -28,6 +28,10 @@ fn assertBitmapLen(bitmap: []const Word, nbits: usize) void {
     std.debug.assert(bitmap.len >= bitsToWords(nbits));
 }
 
+fn singleBitMask(start: usize) Word {
+    return @as(Word, 1) << @intCast(start & (bits_per_long - 1));
+}
+
 pub fn alloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
     const nwords = bitsToWords(nbits);
     if (nwords == 0) {
@@ -321,6 +325,11 @@ pub fn setRange(map: []Word, start: usize, len: usize) void {
     }
 
     assertBitmapLen(map, start + len);
+    if (len == 1) {
+        map[start / bits_per_long] |= singleBitMask(start);
+        return;
+    }
+
     var ptr = start / bits_per_long;
     const size = start + len;
     var remaining = len;
@@ -351,6 +360,11 @@ pub fn clearRange(map: []Word, start: usize, len: usize) void {
     }
 
     assertBitmapLen(map, start + len);
+    if (len == 1) {
+        map[start / bits_per_long] &= ~singleBitMask(start);
+        return;
+    }
+
     var ptr = start / bits_per_long;
     const size = start + len;
     var remaining = len;
@@ -571,6 +585,16 @@ test "bitmap range helpers honor exact first-word boundaries" {
     clearRange(&map, start, 3);
     try std.testing.expectEqual(@as(Word, 0), map[0]);
     try std.testing.expectEqual(~@as(Word, 0), map[1]);
+
+    var single_bit_set = [_]Word{ 0, ~@as(Word, 0) };
+    setRange(&single_bit_set, bits_per_long - 1, 1);
+    try std.testing.expectEqual(@as(Word, 1) << @intCast(bits_per_long - 1), single_bit_set[0]);
+    try std.testing.expectEqual(~@as(Word, 0), single_bit_set[1]);
+
+    var single_bit_clear = [_]Word{ ~(@as(Word, 1) << @intCast(bits_per_long - 1)), ~@as(Word, 0) };
+    clearRange(&single_bit_clear, bits_per_long - 1, 1);
+    try std.testing.expectEqual(@as(Word, 0), single_bit_clear[0]);
+    try std.testing.expectEqual(~@as(Word, 0), single_bit_clear[1]);
 }
 
 test "bitmap range helpers clamp the final partial word" {
@@ -586,6 +610,16 @@ test "bitmap range helpers clamp the final partial word" {
     clearRange(&clear_map, start, len);
     try std.testing.expectEqual(~@as(Word, 0), clear_map[0]);
     try std.testing.expectEqual(~@as(Word, 0b1_1100), clear_map[1]);
+
+    var single_bit_set = [_]Word{ 0, 0 };
+    setRange(&single_bit_set, start, 1);
+    try std.testing.expectEqual(@as(Word, 0), single_bit_set[0]);
+    try std.testing.expectEqual(@as(Word, 1) << 2, single_bit_set[1]);
+
+    var single_bit_clear = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
+    clearRange(&single_bit_clear, start, 1);
+    try std.testing.expectEqual(~@as(Word, 0), single_bit_clear[0]);
+    try std.testing.expectEqual(~(@as(Word, 1) << 2), single_bit_clear[1]);
 }
 
 test "bitmap fill clamps tail bits in partial words" {
