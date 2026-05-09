@@ -192,6 +192,10 @@ pub fn insertColorCached(node: *Node, root: *RootCached, leftmost: bool) void {
     insertColor(node, &root.root);
 }
 
+pub fn rb_insert_color_cached(node: *Node, root: *RootCached, leftmost: bool) void {
+    insertColorCached(node, root, leftmost);
+}
+
 pub fn add(node: *Node, root: *Root, less: LessFn) void {
     var link = &root.node;
     var parent: ?*Node = null;
@@ -227,6 +231,10 @@ pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
     linkNode(node, parent, link);
     insertColorCached(node, root, leftmost);
     return if (leftmost) node else null;
+}
+
+pub fn rb_add_cached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
+    return addCached(node, root, less);
 }
 
 pub fn findAddCached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {
@@ -499,6 +507,10 @@ pub fn eraseCached(node: *Node, root: *RootCached) ?*Node {
     return null;
 }
 
+pub fn rb_erase_cached(node: *Node, root: *RootCached) ?*Node {
+    return eraseCached(node, root);
+}
+
 pub fn eraseInit(node: *Node, root: *Root) void {
     erase(node, root);
     clearNode(node);
@@ -520,6 +532,10 @@ pub fn rb_first(root: *const Root) ?*Node {
 
 pub fn firstCached(root: *const RootCached) ?*Node {
     return root.leftmost;
+}
+
+pub fn rb_first_cached(root: *const RootCached) ?*Node {
+    return firstCached(root);
 }
 
 pub fn last(root: *const Root) ?*Node {
@@ -609,6 +625,10 @@ pub fn replaceNodeCached(victim: *Node, new: *Node, root: *RootCached) void {
         root.leftmost = new;
     }
     replaceNode(victim, new, &root.root);
+}
+
+pub fn rb_replace_node_cached(victim: *Node, new: *Node, root: *RootCached) void {
+    replaceNodeCached(victim, new, root);
 }
 
 fn leftDeepestNode(node: *const Node) *Node {
@@ -1146,6 +1166,64 @@ test "rbtree cached root keeps the leftmost pointer in sync" {
     _ = addCached(&new_leftmost.node, &root, less);
     try std.testing.expectEqual(@as(*Node, &new_leftmost.node), firstCached(&root).?);
     try std.testing.expectEqual(first(&root.root), firstCached(&root));
+}
+
+test "rbtree cached-root Linux-style aliases mirror the primary helpers" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var alias_insert_root = RootCached.init();
+    var alias_insert_entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 12 },
+    };
+
+    linkNode(&alias_insert_entries[0].node, null, &alias_insert_root.root.node);
+    rb_insert_color_cached(&alias_insert_entries[0].node, &alias_insert_root, true);
+    try std.testing.expectEqual(@as(?*Node, &alias_insert_entries[0].node), rb_first_cached(&alias_insert_root));
+
+    linkNode(&alias_insert_entries[1].node, &alias_insert_entries[0].node, &alias_insert_entries[0].node.left);
+    rb_insert_color_cached(&alias_insert_entries[1].node, &alias_insert_root, true);
+    try std.testing.expectEqual(@as(?*Node, &alias_insert_entries[1].node), rb_first_cached(&alias_insert_root));
+
+    linkNode(&alias_insert_entries[2].node, &alias_insert_entries[0].node, &alias_insert_entries[0].node.right);
+    rb_insert_color_cached(&alias_insert_entries[2].node, &alias_insert_root, false);
+    try std.testing.expectEqual(@as(?*Node, &alias_insert_entries[1].node), rb_first_cached(&alias_insert_root));
+    try std.testing.expectEqual(first(&alias_insert_root.root), rb_first_cached(&alias_insert_root));
+
+    var alias_root = RootCached.init();
+    var alias_entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 20 },
+    };
+    var replacement = Entry{ .key = 10 };
+
+    try std.testing.expectEqual(@as(?*Node, &alias_entries[0].node), rb_add_cached(&alias_entries[0].node, &alias_root, less));
+    try std.testing.expectEqual(@as(?*Node, null), rb_add_cached(&alias_entries[2].node, &alias_root, less));
+    try std.testing.expectEqual(@as(?*Node, &alias_entries[1].node), rb_add_cached(&alias_entries[1].node, &alias_root, less));
+    try std.testing.expectEqual(@as(?*Node, &alias_entries[1].node), rb_first_cached(&alias_root));
+    try std.testing.expectEqual(first(&alias_root.root), rb_first_cached(&alias_root));
+
+    const promoted_leftmost = rb_erase_cached(&alias_entries[1].node, &alias_root) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*Node, &alias_entries[0].node), promoted_leftmost);
+    try std.testing.expectEqual(@as(?*Node, &alias_entries[0].node), rb_first_cached(&alias_root));
+    try std.testing.expectEqual(first(&alias_root.root), rb_first_cached(&alias_root));
+
+    rb_replace_node_cached(&alias_entries[0].node, &replacement.node, &alias_root);
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), rb_first_cached(&alias_root));
+    try std.testing.expectEqual(first(&alias_root.root), rb_first_cached(&alias_root));
 }
 
 test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged" {
