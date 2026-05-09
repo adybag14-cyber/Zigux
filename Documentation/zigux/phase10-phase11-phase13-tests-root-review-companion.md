@@ -36,6 +36,7 @@ Keep the shared build-backed virtio packet explicit:
   * `zigux/tests/phase10_virtio_core_reset_queue.zig`
   * `zigux/tests/phase10_virtio_driver_id.zig`
   * `drivers/virtio/virtio_driver_id.zig`
+  * `drivers/virtio/virtio_driver_id.zig`
   * `zigux/tests/phase10_virtio_core_manifest.json`
   * `zigux/tests/phase10_virtio_core_survey.zig`
   * `zigux/tests/phase10_virtio_ring.zig`
