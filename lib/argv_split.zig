@@ -36,16 +36,13 @@ const ArgSpan = struct {
     end: usize,
 };
 
+const ArgScan = struct {
+    prefix_len: usize,
+    argc: usize,
+};
+
 pub fn countArgc(text: []const u8) usize {
-    const current = cStringPrefix(text);
-    var count: usize = 0;
-    var cursor: usize = 0;
-
-    while (nextArgSpan(current, &cursor)) |_| {
-        count += 1;
-    }
-
-    return count;
+    return scanArgc(text).argc;
 }
 
 pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResult {
@@ -57,8 +54,8 @@ pub fn argvSplitWithArgc(
     text: []const u8,
     argcp: ?*usize,
 ) !ArgvSplitResult {
-    const current = cStringPrefix(text);
-    if (countArgc(current) == 0) {
+    const scan = scanArgc(text);
+    if (scan.argc == 0) {
         if (argcp) |count_out| {
             count_out.* = 0;
         }
@@ -69,8 +66,8 @@ pub fn argvSplitWithArgc(
         };
     }
 
-    const storage = try allocator.dupeZ(u8, current);
-    return initSplitResultFromOwnedStorage(allocator, storage, argcp);
+    const storage = try allocator.dupeZ(u8, text[0..scan.prefix_len]);
+    return initSplitResultFromOwnedStorage(allocator, storage, scan, argcp);
 }
 
 pub fn argvSplitOwnedStorage(
@@ -78,31 +75,47 @@ pub fn argvSplitOwnedStorage(
     storage: [:0]u8,
     argcp: ?*usize,
 ) !ArgvSplitResult {
-    return initSplitResultFromOwnedStorage(allocator, storage, argcp);
+    return initSplitResultFromOwnedStorage(allocator, storage, null, argcp);
 }
 
 pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {
     result.deinit(allocator);
 }
 
-fn cStringPrefix(text: []const u8) []const u8 {
-    return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
-}
+fn scanArgc(text: []const u8) ArgScan {
+    var count: usize = 0;
+    var index: usize = 0;
+    var was_space = true;
 
-fn ownedStoragePrefix(storage: [:0]u8) []u8 {
-    const prefix_len = cStringPrefix(storage[0..storage.len]).len;
-    return storage[0..prefix_len];
+    while (index < text.len) : (index += 1) {
+        const byte = text[index];
+        if (byte == 0) {
+            break;
+        }
+        if (std.ascii.isWhitespace(byte)) {
+            was_space = true;
+        } else if (was_space) {
+            was_space = false;
+            count += 1;
+        }
+    }
+
+    return .{
+        .prefix_len = index,
+        .argc = count,
+    };
 }
 
 fn initSplitResultFromOwnedStorage(
     allocator: std.mem.Allocator,
     storage: [:0]u8,
+    initial_scan: ?ArgScan,
     argcp: ?*usize,
 ) !ArgvSplitResult {
     errdefer allocator.free(storage);
 
-    const mutable_storage = ownedStoragePrefix(storage);
-    const argc = countArgc(mutable_storage);
+    const scan = initial_scan orelse scanArgc(storage[0..storage.len]);
+    const argc = scan.argc;
     if (argc == 0) {
         allocator.free(storage);
         if (argcp) |count_out| {
@@ -115,6 +128,7 @@ fn initSplitResultFromOwnedStorage(
         };
     }
 
+    const mutable_storage = storage[0..scan.prefix_len];
     var argv = try allocator.alloc([:0]u8, argc);
     errdefer allocator.free(argv);
 
@@ -245,6 +259,10 @@ fn runArgvSplitWithFailingAllocator(allocator: std.mem.Allocator, text: []const 
     defer split.deinit(allocator);
 }
 
+fn cStringPrefix(text: []const u8) []const u8 {
+    return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
+}
+
 fn runArgvSplitOwnedStorageWithFailingAllocator(
     allocator: std.mem.Allocator,
     text: []const u8,
@@ -326,7 +344,7 @@ test "argvSplitOwnedStorage frees blank caller-owned storage and reuses exported
 test "argvSplit sizes argc and tokens from the owned copy prefix when copied storage contains an early NUL" {
     var owned_storage = try std.testing.allocator.dupeZ(u8, "alpha\x00beta gamma");
     var argc: usize = std.math.maxInt(usize);
-    var split = try initSplitResultFromOwnedStorage(std.testing.allocator, owned_storage, &argc);
+    var split = try initSplitResultFromOwnedStorage(std.testing.allocator, owned_storage, null, &argc);
     owned_storage = empty_storage_view;
     defer split.deinit(std.testing.allocator);
 
