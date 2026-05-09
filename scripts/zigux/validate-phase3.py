@@ -49,6 +49,7 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
+    "zigux/tests/build.zig",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
@@ -72,6 +73,8 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "scripts/zigux/generate-phase3-check-wrappers.py",
     "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/run-phase3-checks.py",
+    "scripts/zigux/README.md",
+    ".github/workflows/zigux-bootstrap.yml",
 )
 PHASE3_CHECK_SUPPORT_SCRIPTS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
