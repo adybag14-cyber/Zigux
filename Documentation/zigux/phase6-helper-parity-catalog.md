@@ -78,7 +78,7 @@ Use `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` before reopening
 - committed fixture surface: `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
 - current review posture: helper parity is now individually rerunnable through `make -C zigux phase6-hexdump-test`, alongside the shipped formatter-sensitive slowdown gate exposed through `make -C zigux phase6-hexdump-perf`
-- exact slowdown thresholds: `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`
+- exact slowdown thresholds: `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 150`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 225`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 250`
 
 ## Shared Replay Reminders
 
