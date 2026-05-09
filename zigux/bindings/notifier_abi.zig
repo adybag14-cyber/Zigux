@@ -29,8 +29,17 @@ pub const NotifierChainSummary = extern struct {
     flags: u32,
 };
 
+pub const SummarizeError = error{InvalidView};
+
 pub fn chainViewValid(view: *const NotifierChainView) bool {
     return view.head != null and view.max_nodes != 0 and view.reserved == 0;
+}
+
+pub fn trySummarizeChain(view: *const NotifierChainView) SummarizeError!NotifierChainSummary {
+    if (!chainViewValid(view)) {
+        return error.InvalidView;
+    }
+    return summarizeChain(view);
 }
 
 pub fn summarizeChain(view: *const NotifierChainView) NotifierChainSummary {
@@ -108,6 +117,52 @@ test "notifier summary reports an empty terminated chain" {
         @as(u32, NOTIFIER_CHAIN_FLAG_EMPTY | NOTIFIER_CHAIN_FLAG_TERMINATED),
         summary.flags,
     );
+}
+
+test "trySummarizeChain rejects invalid notifier views explicitly" {
+    const dummy_head = RawNotifierHeadRef{ .head = null };
+    const invalid_headless = NotifierChainView{
+        .head = null,
+        .max_nodes = 4,
+    };
+    const invalid_zero_nodes = NotifierChainView{
+        .head = &dummy_head,
+        .max_nodes = 0,
+    };
+    const invalid_reserved = NotifierChainView{
+        .head = &dummy_head,
+        .max_nodes = 4,
+        .reserved = 1,
+    };
+
+    try std.testing.expectError(error.InvalidView, trySummarizeChain(&invalid_headless));
+    try std.testing.expectError(error.InvalidView, trySummarizeChain(&invalid_zero_nodes));
+    try std.testing.expectError(error.InvalidView, trySummarizeChain(&invalid_reserved));
+}
+
+test "trySummarizeChain matches summarizeChain for a valid notifier view" {
+    const tail = NotifierBlockRef{
+        .notifier_call = null,
+        .next = null,
+        .priority = 5,
+    };
+    const head_node = NotifierBlockRef{
+        .notifier_call = null,
+        .next = &tail,
+        .priority = 9,
+    };
+    const head = RawNotifierHeadRef{ .head = &head_node };
+    const view = NotifierChainView{
+        .head = &head,
+        .max_nodes = 4,
+    };
+
+    const summary = summarizeChain(&view);
+    const explicit_summary = try trySummarizeChain(&view);
+    try std.testing.expectEqual(summary.length, explicit_summary.length);
+    try std.testing.expectEqual(summary.highest_priority, explicit_summary.highest_priority);
+    try std.testing.expectEqual(summary.lowest_priority, explicit_summary.lowest_priority);
+    try std.testing.expectEqual(summary.flags, explicit_summary.flags);
 }
 
 test "notifier summary keeps terminated nonincreasing priorities reviewable" {
