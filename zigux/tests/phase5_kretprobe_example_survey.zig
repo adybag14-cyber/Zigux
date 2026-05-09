@@ -324,7 +324,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
     const docs_root_markers = [_][]const u8{
         "Documentation/zigux/phase5-kretprobe-sample-survey.md",
         "samples/zigux/kretprobe_example.zig",
-        "skip, private-data-shape, return-value, duration, fixed `maxactiveBudget()` cue, `ownershipSummary()` lifecycle snapshots, and teardown-boundary replay checks",
+        "symbol-selection, skip, private-data-shape, return-value, duration, fixed `maxactiveBudget()` cue, `ownershipSummary()` lifecycle snapshots, and teardown-boundary replay checks",
         "descriptor, manifest, `ownershipSummary()`, lifecycle-guard, and shared `phase5_build.zig` entrypoint prompts",
         "separate Phase 9 runtime starter",
         "current `master` still ships no standalone `samples/zigux/*bitmap*` Phase 5 reference sample",
@@ -352,10 +352,10 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "fixed `maxactiveBudget()` cue",
         "timestamp-order rejection and recovery",
         "post-exit handler rejection",
-        "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*bitmap*` reference sample",
+        "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*bitmap*` Phase 5 reference sample",
         "Documentation/zigux/phase4-validation-matrix.md",
         "samples/zigux/runtime_bitmap.zig",
-        "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*rbtree*` reference sample",
+        "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample",
         "Documentation/zigux/phase7-rbtree-slice.md",
         "zigux/tests/phase7_rbtree.zig",
     };
