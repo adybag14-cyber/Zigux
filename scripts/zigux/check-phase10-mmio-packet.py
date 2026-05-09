@@ -91,6 +91,7 @@ MARKERS = {
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_status_drain.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig") != null);',
         'try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig") != null);',
@@ -116,6 +117,7 @@ MARKERS = {
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "zigux/tests/phase10_virtio_input_registration_preflight.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+        "zigux/tests/phase10_virtio_input_status_drain.zig",
         "zig test zigux/tests/phase10_virtio_mmio.zig",
         "zig test zigux/tests/phase10_virtio_mmio_survey.zig",
     ],
@@ -133,6 +135,7 @@ MARKERS = {
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "zigux/tests/phase10_virtio_input_registration_preflight.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+        "zigux/tests/phase10_virtio_input_status_drain.zig",
         "transport-identity summary",
         "consumes that identity snapshot",
         "selected-queue readiness summary",
@@ -321,6 +324,12 @@ def run_self_test() -> int:
                 '"phase10-virtio-mmio-verify-drift"',
                 'phase10_build.zig:"phase10-virtio-mmio-verify-tests"',
             ),
+            (
+                "Documentation/zigux/phase10-virtio-mmio-survey.md",
+                "zigux/tests/phase10_virtio_input_status_drain.zig",
+                "zigux/tests/phase10_virtio_input_status_only_drain.zig",
+                "phase10-virtio-mmio-survey.md:zigux/tests/phase10_virtio_input_status_drain.zig",
+            ),
         ]
 
         for rel_path, old, new, expected in drift_cases:
@@ -344,7 +353,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
