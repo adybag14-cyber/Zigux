@@ -38,10 +38,12 @@ Use `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` before reopening
 - roadmap anchor: `lib/base64.c`
 - Zig helper: `lib/base64.zig`
 - focused replay: `zigux/tests/phase6_base64.zig`
+- direct C parity replay: `zigux/tests/phase6_base64_c_parity.zig`
 - dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`
-- committed fixture surface: `zigux/tests/fixtures/phase6_base64_vectors.zig`
+- committed fixture surfaces: `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`
+- dedicated external parity checker: `scripts/zigux/check-phase6-base64-c-parity.py`
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
-- current review posture: functional parity plus a dedicated helper-local encode and decode slowdown gate; the replay remains individually runnable through `make -C zigux phase6-base64-perf` rather than bundled into the shared `phase6` route
+- current review posture: functional parity plus the shipped direct 15-case C-vs-Zig spot check through the dedicated parity replay, C harness, and checker script, alongside the dedicated helper-local encode and decode slowdown gate exposed through `make -C zigux phase6-base64-perf`
 
 ### bsearch
 
