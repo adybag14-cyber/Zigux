@@ -612,6 +612,10 @@ pub const HvcConsoleLab = struct {
 
         const sleeps_without_timeout = !request.hvc_kicked_after_poll and poll_mask == 0;
         const sleeps_with_timeout = !request.hvc_kicked_after_poll and poll_mask != 0;
+        const timeout_ms_before_sleep = if (sleeps_with_timeout)
+            normalizeWorkerTimeoutMs(request.timeout_ms)
+        else
+            request.timeout_ms;
 
         return .{
             .anchor = descriptor().anchor,
@@ -630,8 +634,8 @@ pub const HvcConsoleLab = struct {
             .wakeup_short_circuited_by_kick = request.hvc_kicked_after_poll,
             .sleeps_without_timeout = sleeps_without_timeout,
             .sleeps_with_timeout = sleeps_with_timeout,
-            .timeout_ms_before_sleep = request.timeout_ms,
-            .timeout_ms_after_backoff = if (sleeps_with_timeout) nextWorkerTimeoutMs(request.timeout_ms) else request.timeout_ms,
+            .timeout_ms_before_sleep = timeout_ms_before_sleep,
+            .timeout_ms_after_backoff = if (sleeps_with_timeout) nextWorkerTimeoutMs(timeout_ms_before_sleep) else request.timeout_ms,
             .backend_handoff_pending = polling.teardown_host_io_pending or poll_mask != 0,
         };
     }
@@ -772,6 +776,10 @@ fn summarizeFlushProgress(
     };
 }
 
+fn normalizeWorkerTimeoutMs(timeout_ms: u32) u32 {
+    return std.math.clamp(timeout_ms, min_timeout_ms, max_timeout_ms);
+}
+
 fn nextWorkerTimeoutMs(timeout_ms: u32) u32 {
     if (timeout_ms >= max_timeout_ms) return max_timeout_ms;
 
@@ -880,4 +888,48 @@ test "write teardown handoff preserves buffered bytes when hangup is skipped" {
     try std.testing.expectEqual(@as(usize, 2), summary.buffered_write_len_after_hangup);
     try std.testing.expect(!summary.notifier_hangup_pending);
     try std.testing.expect(summary.keeps_console_binding);
+}
+
+test "khvcd worker-entry floors timed sleeps to the documented minimum timeout" {
+    var lab = try HvcConsoleLab.init(5);
+    _ = lab.instantiate(0x205);
+
+    const summary = try lab.summarizeKhvcdWorkerEntry(.{
+        .polling = .{
+            .close = .{
+                .port_initialized = false,
+                .open_count_before_close = 2,
+            },
+            .read_poll_pending = true,
+        },
+        .timeout_ms = 0,
+    });
+
+    try std.testing.expect(summary.sleeps_with_timeout);
+    try std.testing.expect(!summary.sleeps_without_timeout);
+    try std.testing.expectEqual(hvc_poll_read, summary.poll_mask);
+    try std.testing.expectEqual(min_timeout_ms, summary.timeout_ms_before_sleep);
+    try std.testing.expectEqual(@as(u32, 11), summary.timeout_ms_after_backoff);
+}
+
+test "khvcd worker-entry clamps timed sleeps at the documented maximum timeout" {
+    var lab = try HvcConsoleLab.init(6);
+    _ = lab.instantiate(0x206);
+
+    const summary = try lab.summarizeKhvcdWorkerEntry(.{
+        .polling = .{
+            .close = .{
+                .port_initialized = false,
+                .open_count_before_close = 2,
+            },
+            .write_poll_pending = true,
+        },
+        .timeout_ms = max_timeout_ms + 77,
+    });
+
+    try std.testing.expect(summary.sleeps_with_timeout);
+    try std.testing.expect(!summary.sleeps_without_timeout);
+    try std.testing.expectEqual(hvc_poll_write, summary.poll_mask);
+    try std.testing.expectEqual(max_timeout_ms, summary.timeout_ms_before_sleep);
+    try std.testing.expectEqual(max_timeout_ms, summary.timeout_ms_after_backoff);
 }
