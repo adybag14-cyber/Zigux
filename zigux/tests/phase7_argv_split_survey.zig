@@ -143,6 +143,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(build_file, "\"phase7-argv-split-survey-tests\"");
     try expectContains(build_file, "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));");
 
+    try expectContains(helper_impl, "const empty_argv_null_terminated: []const ?[*:0]const u8 = &.{null};");
+    try expectContains(helper_impl, "        self.* = .{\n            .storage = empty_storage_view,\n            .argv = &.{},\n            .argv_null_terminated = empty_argv_null_terminated,\n        };");
     try expectContains(helper_impl, "pub fn countArgc");
     try expectContains(helper_impl, "pub fn argvSplit");
     try expectContains(helper_impl, "pub fn argvSplitWithArgc");
