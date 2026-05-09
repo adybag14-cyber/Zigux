@@ -35,7 +35,7 @@ REQUIRED_COMMANDS = [
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
-    "make -C zigux phase14"
+    "make -C zigux phase14",
 ]
 COMPILE_MATRIX_ROWS = [
     ("phase14-workqueue-bridge-tests", "phase14_workqueue_bridge.zig", "full_bundle_only"),
@@ -474,8 +474,7 @@ def run_self_test() -> int:
         for label, root_source, _coverage in COMPILE_MATRIX_ROWS:
             build_lines.append("b.addTest(.")
             build_lines.append("b.addRunArtifact(")
-            buildLinesAppendLabel = label
-            build_lines.append(buildLinesAppendLabel)
+            build_lines.append(label)
             build_lines.append(root_source)
         write_text(root / "zigux/tests/phase14_build.zig", "\n".join(build_lines) + "\n")
         errors = check(root)
@@ -512,10 +511,12 @@ def run_self_test() -> int:
             return 1
         write_text(root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py", f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
         broken_manifest = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
-        broken_manifest["surfaces"].append({
-            "path": "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
-            "required_marker": DOCS_ROOT_CHECKER_MARKER,
-        })
+        broken_manifest["surfaces"].append(
+            {
+                "path": "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+                "required_marker": DOCS_ROOT_CHECKER_MARKER,
+            }
+        )
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken_manifest, indent=2) + "\n")
         errors = check(root)
         if not any(
@@ -676,6 +677,21 @@ def run_self_test() -> int:
         errors = check(root)
         if "phase14 workflow smoke wrapper count drifted from the current one-step packet" not in errors:
             print("self-test expected duplicate smoke-wrapper workflow failure", file=sys.stderr)
+            return 1
+        write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_FILE_MARKERS[WORKFLOW_PATH]) + "\n")
+
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "run: make -C zigux phase14-validate\n",
+                "run: make -C zigux phase14-validate\n"
+                "run: make -C zigux phase14-validate\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if "phase14 workflow validate wrapper count drifted from the current one-step packet" not in errors:
+            print("self-test expected duplicate validate-wrapper workflow failure", file=sys.stderr)
             return 1
         write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_FILE_MARKERS[WORKFLOW_PATH]) + "\n")
 
