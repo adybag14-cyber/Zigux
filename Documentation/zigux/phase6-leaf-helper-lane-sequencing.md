@@ -51,10 +51,11 @@ Keep helper-local work under:
 - `lib/bsearch.zig`
 - `zigux/tests/phase6_bsearch.zig`
 - `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
+- `zigux/tests/phase6_bsearch_c_abi_budget.zig`
 - `Documentation/zigux/phase6-bsearch-slice.md`
 - the `bsearch` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
 
-Treat `P6-L09` as a closed legacy verification label only. New bsearch lower-bound, upper-bound, comparison-budget, or slice-note follow-ups stay bsearch-owned in Memory and should not reuse `P6-L09` as the packet-wide routing label.
+Treat `P6-L09` as a closed legacy verification label only. New bsearch lower-bound, upper-bound, direct C ABI equality-budget, comparison-budget, or slice-note follow-ups stay bsearch-owned in Memory and should not reuse `P6-L09` as the packet-wide routing label.
 
 ### checksum packet
 
