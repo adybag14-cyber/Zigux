@@ -71,6 +71,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expect(manifest.surveyed_commit.len > 0);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-09", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expectEqualStrings("freeze map", manifest.roadmap_requirements[0]);
@@ -186,6 +187,8 @@ test "phase 15 readiness note keeps the roadmap, ledger, and current blocker inv
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Full-Parity Blockers and Long-Term Governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "PHASE15_LANE_KEY=P15-L01") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "PHASE15_PROVENANCE_MODE=dated_master_readback") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "current-master-readback-2026-05-09") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "shared replay surface is green on current `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-validate` checker stack") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15-test") != null);
