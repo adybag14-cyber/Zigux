@@ -67,7 +67,7 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
 - `kernel/sched/core.c`: roadmap basis `Phase 15 freeze-in-C anchor that cannot leave the deep-core freeze set until a narrower scheduler seam earns Architecture Council review.` Current repo reality: `Current master still carries only the freeze map and parity-scorecard placeholder packet for scheduler core, with no carried-forward Phase 14 blocker survey and no bounded scheduler seam.` Current blocker: `blocked_no_bounded_scheduler_seam`
 - `mm/page_alloc.c`: roadmap basis `Phase 15 freeze-in-C anchor that cannot leave the deep-core freeze set until a narrower allocator seam earns Architecture Council review.` Current repo reality: `Current master still carries only the freeze map and parity-scorecard placeholder packet for page allocator core, with no carried-forward Phase 14 blocker survey and no bounded allocator seam.` Current blocker: `blocked_no_bounded_allocator_seam`
 - `kernel/rcu/tree.c`: roadmap basis `Phase 15 keeps Tree RCU frozen unless a narrower-than-freeze follow-up answers the current blocker with Architecture Council reviewable evidence.` Current repo reality: `Current master already carries Documentation/zigux/phase14-rcu-tree-survey.md, where lane P14-L13 still records blocked phase14-rcu-tree-bridge-blocker and keeps the packet parked until reopen evidence, parity scorecard evidence, benchmark notes, and replay commands travel together.` Current blocker: `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
-- `net/core/skbuff.c`: roadmap basis `Phase 15 keeps skbuff frozen unless a narrower-than-lifetime follow-up answers the current blocker with Architecture Council reviewable evidence.` Current repo reality: `Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where lane P14-L11 still records blocked phase14-skbuff-live-ownership-blocker and says no smaller review-only skbuff follow-up remains before the live ownership blocker.` Current blocker: `blocked_packet_lifetime_boundary_still_too_wide`
+- `net/core/skbuff.c`: roadmap basis `Phase 15 keeps skbuff frozen unless a narrower-than-lifetime follow-up answers the current blocker with Architecture Council reviewable evidence.` Current repo reality: `Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where lane P14-L10 still records blocked phase14-skbuff-live-ownership-blocker and says no smaller review-only skbuff follow-up remains before the live ownership blocker.` Current blocker: `blocked_packet_lifetime_boundary_still_too_wide`
 
 ## Recorded gaps
 
@@ -78,6 +78,7 @@ The current lane state is:
 - landed `phase15-build-gate`
 - landed `phase15-make-target`
 - landed `phase15-stay-in-c-closeout-sync`
+- landed `phase15-review-process-required-field-sync`
 - landed `phase15-governance-family-alignment`
 - landed `phase15-blocker-ownership-sync`
 - landed `phase15-anchor-reporting-field-sync`
