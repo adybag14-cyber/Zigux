@@ -53,7 +53,7 @@ The current starter slice covers:
 - `uniq()` behavior for adjacent duplicates after sorting
 - `exclude_cmds()` behavior for sorted exclusion lists
 - `is_in_cmdlist()` membership checks
-- injected command-entry filtering that strips the `perf-` prefix and optional `.exe` suffix before storage
+- injected command-entry filtering that strips the `perf-` prefix and optional `.exe` suffix before storage, including zero-length suffix cases like `perf-` and `perf-.exe`
 - injected command-source loading that models `load_command_list()` exec-path priority, PATH de-duplication, and cross-list exclusion without direct `readdir()` or `stat()` calls
 - raw `PATH` string splitting that preserves empty colon-delimited segments before injected directory population, matching the current `help.c` control flow
 - injected `get_term_dimensions()`-adjacent resolution that prefers explicit `LINES` and `COLUMNS` values before fallback terminal dimensions or the default `25x80`
@@ -65,14 +65,14 @@ The current tests check:
 - copied command names do not alias mutable caller buffers
 - sorted duplicate removal keeps one stable owned copy
 - sorted exclusions remove matching entries without disturbing survivors
-- executable-entry filtering ignores non-prefixed, non-executable, and prefix-only candidates while stripping `.exe` suffixes
+- executable-entry filtering ignores non-prefixed and non-executable candidates while preserving prefix-only empty command names and stripping `.exe` suffixes
 - command-source loading keeps the exec-path list stable, skips the exec-path directory when it also appears on PATH, removes commands already present in the exec-path list, and preserves the `perf-` default prefix behavior
 - raw `PATH` splitting keeps leading, repeated, and trailing empty segments explicit so later injected population can follow the same branch shape as `help.c`
 - terminal-dimensions resolution only accepts non-zero `LINES` plus `COLUMNS` pairs, otherwise falls back to injected terminal sizes or the `25x80` default
 - membership and longest-name tracking stay aligned with stored entries
 - the focused `phase8_help_only_build.zig` shard keeps the parked command-source and stable-output packet reviewable without rerunning the whole Phase 8 bundle
 - the focused `phase8_help_kallsyms_only_build.zig` shard and `make -C zigux phase8-help-kallsyms-test` route keep the parked help-and-kallsyms packet reviewable without widening into unrelated Phase 8 tooling slices
-- layout planning preserves the same column math used before printing, including the single-column fallback for narrow terminals, the empty-list row contract, and environment-driven column selection through the injected terminal helper
+- layout planning preserves the same column math used before printing, including the single-column fallback for narrow terminals, the empty-list row contract, environment-driven column selection through the injected terminal helper, and stable blank-cell rendering when a discovered command name is empty
 - pretty-print output stays testable without `printf()` by reusing the injected terminal-dimensions path and emitting the same row text the C helper would print
 
 ## Non-goals
