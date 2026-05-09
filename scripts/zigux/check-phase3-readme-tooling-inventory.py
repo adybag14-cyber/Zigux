@@ -58,6 +58,7 @@ REQUIRED_HELPERS = (
     "check-phase10-mmio-freeze-boundary.py",
     "check-phase11-shared-replay-contract.py",
     "check-phase11-bcm2835-wdt-packet.py",
+    "check-phase11-dw-wdt-packet.py",
     "check-phase11-header-boundary-packet.py",
     "check-phase11-hvc-survey-packet.py",
     "check-build-only-phase12-surface.py",
