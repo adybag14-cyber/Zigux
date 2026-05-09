@@ -261,6 +261,23 @@ test "phase 9 runtime bitmap survey cross-checks the shared sample-root boundary
     try std.testing.expect(std.mem.indexOf(u8, sample_root, "samples/zigux/runtime_bitmap_top_bit_contract.zig") != null);
 }
 
+test "phase 9 runtime bitmap survey cross-checks the shared review checklist boundary" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(checklist);
+
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*bitmap*` reference sample") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "direct bitmap helper reviewability remains under `tools/lib/bitmap.zig`, `Documentation/zigux/phase1-closure.md`, and `Documentation/zigux/phase4-validation-matrix.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "while the separate runtime bitmap family stays under `samples/zigux/README.md`, `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/kernel/runtime_loader.zig`, and `zigux/tests/phase9_build.zig` rather than the four shipped Phase 5 samples?") != null);
+}
+
 test "phase 9 runtime bitmap module slice keeps the loader-backed survey packet explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
