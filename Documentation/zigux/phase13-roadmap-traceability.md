@@ -110,6 +110,7 @@ Keep this packet parked unless a future same-lane step can add another equally b
 
 The broader shipped Phase 13 release surface also includes adjacent evidence that stays outside the shared replay count:
 
+  * `Documentation/zigux/README.md`
   * `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
   * `Documentation/zigux/phase13-contributor-workflow-guide.md`
   * `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
@@ -118,8 +119,10 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `Documentation/zigux/phase13-release-notes-survey.md`
   * `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
   * `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+  * `zigux/tests/README.md`
   * `zigux/tests/phase13_libfs_addressability.zig`
   * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+  * `scripts/zigux/README.md`
   * `scripts/zigux/validate-phase13-release.py`
   * `scripts/zigux/check-phase13-devres-packet.py`
   * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
@@ -139,7 +142,7 @@ The direct `zigux/tests/phase13_libfs_addressability.zig` and `zigux/tests/phase
 
 `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` stays in that same adjacent evidence set as the owner-map note for the active `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` helper families. It keeps the shared validator-first route and adjacent notifier evidence from collapsing into one ownerless packet, but it does not add a ninth replay step or change which helper lane owns which backlog.
 
-The contributor workflow guide, contributor-surface sync note, compact tests-root companion, and shared review checklist stay in that same adjacent evidence set too. They keep the broader contributor-facing Phase 13 packet honest beside the validator-first route, but they do not promote those reminder surfaces into extra replay steps or move ownership away from the helper-family lanes.
+The docs-root summary plus the scripts-root and tests-root reminder surfaces stay in that same adjacent evidence set too. Together with the contributor workflow guide, contributor-surface sync note, compact tests-root companion, and shared review checklist, they keep the broader contributor-facing Phase 13 packet honest beside the validator-first route without promoting those reminder surfaces into extra replay steps or moving ownership away from the helper-family lanes.
 
 The shipped validator-first route also stays in that adjacent evidence set: `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, and `zigux/Makefile` keep the four-anchor traceability packet, the dedicated `devres` and `landlock/ruleset` checker proofs, and the adjacent notifier evidence fail-closed on current `master` without promoting those validation surfaces into a ninth shared replay step.
 
