@@ -124,7 +124,15 @@
       "typed_lookup_budget": 4,
       "raw_lookup_budget": 4,
       "representative_typed_cases": 5,
-      "representative_raw_cases": 5
+      "representative_raw_cases": 5,
+      "lower_bound_c_abi_replay": "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+      "lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
+      "lower_bound_budget_surfaces": [
+        "typed ascending and descending insertion-point ranges",
+        "raw ascending and descending insertion-point ranges",
+        "packed-record member_size insertion-point ranges",
+        "alias-comparator empty and singleton insertion edges"
+      ]
     },
     "checksum": {
       "replay": "zigux/tests/phase6_checksum_perf.zig",
