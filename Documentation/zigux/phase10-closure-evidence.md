@@ -130,4 +130,6 @@ Reviewers should treat any future claim that the active Phase 10 tranche already
 
 ## Next bounded step
 
-Keep the shared Phase 10 tranche parked against helper growth, manifest churn, and transport widening, but treat one shared backlog item as still open on current `master`: `scripts/zigux/README.md` still summarizes the shipped Phase 10 packet through the docs-root, checklist-facing, tests-root, checker, build, make, and focused replay surfaces without explicitly naming the direct lane-owned `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and `drivers/virtio/virtio_mmio.zig` helper surfaces that this closure note, the shared driver-lane sequencing note, and the compact tests-root review companion already treat as part of the bounded packet. The next safe shared-tranche correction is to realign that scripts-root Phase 10 summary only, without reopening helper behavior, survey gates, manifests, or risky-transport claims.
+Keep the shared Phase 10 tranche parked unless the closure packet itself moves again.
+
+If `Documentation/zigux/phase10-closure-evidence.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_build.zig`, or one of the core, ring, input, or MMIO survey manifests changes, reread the shared closure packet first and reopen only for the smallest shared scoreboard note or evidence repair that current `master` still understates.
