@@ -54,6 +54,8 @@ test "phase13 notifier/list survey records the landed hvc interop anchor" {
     const hlist_view_text = try readRepoFile(allocator, "zigux/helpers/hlist_view.zig");
     const notifier_helper_text = try readRepoFile(allocator, "zigux/helpers/notifier_chain_view.zig");
     const packet_checker_text = try readRepoFile(allocator, "scripts/zigux/check-phase13-notifier-packet.py");
+    const release_validator_text = try readRepoFile(allocator, "scripts/zigux/validate-phase13-release.py");
+    const makefile_text = try readRepoFile(allocator, "zigux/Makefile");
     const exported_abi_text = try readRepoFile(allocator, "include/zigux/abi.h");
     const exported_notifier_abi_text = try readRepoFile(allocator, "include/zigux/notifier_abi.h");
     const hvc_interop_text = try readRepoFile(allocator, "drivers/tty/hvc/hvc_console.h");
@@ -98,6 +100,15 @@ test "phase13 notifier/list survey records the landed hvc interop anchor" {
     try expectContains(notifier_helper_text, "summarize clears the priority-order flag when priorities rise");
     try expectContains(packet_checker_text, "PHASE13_NOTIFIER_PACKET=pass");
     try expectContains(packet_checker_text, "\"phase13-notifier-focused-packet-checker\"");
+    try expectContains(release_validator_text, "Documentation/zigux/phase13-notifier-list-survey.md");
+    try expectContains(release_validator_text, "zigux/tests/phase13_notifier_list_manifest.json");
+    try expectContains(release_validator_text, "zigux/tests/phase13_notifier_list_reviewability.zig");
+    try expectContains(release_validator_text, "scripts/zigux/check-phase13-notifier-packet.py");
+    try expectContains(release_validator_text, "include/zigux/notifier_abi.h");
+    try expectContains(release_validator_text, "zigux/helpers/notifier_chain_view.zig");
+    try expectContains(release_validator_text, "adjacent release-surface evidence rather than extra shared replay steps");
+    try expectContains(makefile_text, "phase13-validate:");
+    try expectContains(makefile_text, "scripts/zigux/check-phase13-notifier-packet.py");
     try expectContains(exported_abi_text, "struct zigux_list_view");
     try expectContains(exported_abi_text, "struct zigux_hlist_view");
     try expectContains(exported_notifier_abi_text, "zigux_notifier");
