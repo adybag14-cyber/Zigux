@@ -125,6 +125,7 @@ Phase 7 notes
 - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
 - `zigux/tests/phase7_cmdline.zig`
 - `zigux/tests/phase7_cmdline_survey.zig`
+- `zigux/tests/phase7_cmdline_manifest.json`
 - `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
 - `zigux/tests/phase7_argv_split.zig`
 - `zigux/tests/phase7_argv_split_survey.zig`
@@ -137,7 +138,7 @@ Phase 7 notes
 - `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
 - `.github/workflows/zigux-bootstrap.yml`
 - `zigux/Makefile`
-- `make -C zigux phase7-validate` and `make -C zigux phase7` now gate the current string-helpers, cmdline, argv-split, and rbtree helper bundle together through the shipped validator-first packet, the scripts-root index, the dedicated make-wrapper self-test alignment checker, the dedicated argvSplit packet checker, the dedicated rbtree parity checker, the dedicated build-wiring checker, the explicit Phase 5-versus-Phase 7 no-sample boundary note in `samples/zigux/README.md`, the dedicated string-helper survey gate, the dedicated string-helper manifest packet, the dedicated string-helper boundary replay, the dedicated cmdline survey gate, the dedicated argvSplit survey gate and packet checker, and the dedicated rbtree survey gate plus committed parity packet, the bootstrap workflow replay, the shared build replay, and the Linux-style make route, so Phase 7 helper work should stay reviewable through that shared lane instead of adding ad hoc per-slice CI steps.
+- `make -C zigux phase7-validate` and `make -C zigux phase7` now gate the current string-helpers, cmdline, argv-split, and rbtree helper bundle together through the shipped validator-first packet, the scripts-root index, the dedicated make-wrapper self-test alignment checker, the dedicated argvSplit packet checker, the dedicated rbtree parity checker, the dedicated build-wiring checker, the explicit Phase 5-versus-Phase 7 no-sample boundary note in `samples/zigux/README.md`, the dedicated string-helper survey gate, the dedicated string-helper manifest packet, the dedicated string-helper boundary replay, the dedicated cmdline survey gate, the committed cmdline manifest packet, the dedicated argvSplit survey gate and packet checker, and the dedicated rbtree survey gate plus committed parity packet, the bootstrap workflow replay, the shared build replay, and the Linux-style make route, so Phase 7 helper work should stay reviewable through that shared lane instead of adding ad hoc per-slice CI steps.
 - the Phase 7 helper bundle is now parked end-to-end: cmdline, argv-split, rbtree, and the bounded string-helpers slice all carry their current dedicated proofs through the shared `phase7_build.zig` gate, so future work here should reopen only for a concrete newly observed parity gap rather than for more speculative fixture expansion.
 Phase 8 notes
 - `Documentation/zigux/phase8-exec-cmd-slice.md`
