@@ -11,6 +11,9 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 CHECKER = Path("scripts/zigux/check-phase7-make-wrapper.py")
 MAKEFILE = Path("zigux/Makefile")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
+NOTE = Path("Documentation/zigux/phase7-make-wrapper-selftest-alignment.md")
+VALIDATOR = Path("scripts/zigux/validate-phase7.py")
+SAMPLES_README = Path("samples/zigux/README.md")
 
 REQUIRED_CHECKER_MARKERS = (
     "EXPECTED_MAKE_EXPANSIONS = {",
@@ -45,6 +48,25 @@ REQUIRED_WORKFLOW_LINES = (
     "run: make -C zigux phase7-validate",
     "run: make -C zigux phase7-test",
 )
+REQUIRED_NOTE_MARKERS = (
+    "PHASE7_LANE_KEY=P7-Y05",
+    "sample-root no-sample reminder drifts away from the same self-test packet",
+    "`scripts/zigux/validate-phase7.py`",
+    "the no-sample reminder in `samples/zigux/README.md` aligned around that centralized self-test path",
+)
+REQUIRED_VALIDATOR_MARKERS = (
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+    "samples/zigux/README.md",
+    "scripts/zigux/check-phase7-make-wrapper.py",
+    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+)
+REQUIRED_SAMPLES_MARKERS = (
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+    "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/check-phase7-make-wrapper.py",
+    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+    "zigux/Makefile",
+)
 FORBIDDEN_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
     "run: python3 scripts/zigux/check-phase7-make-wrapper.py",
@@ -57,7 +79,7 @@ FORBIDDEN_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
     "run: python3 scripts/zigux/check-phase7-build-wiring.py",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 22
+EXPECTED_SELF_TEST_CASE_COUNT = 25
 
 
 def read_text(path: Path) -> str:
@@ -76,6 +98,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     checker_text = read_text(root / CHECKER)
     makefile_text = read_text(root / MAKEFILE)
     workflow_text = read_text(root / WORKFLOW)
+    note_text = read_text(root / NOTE)
+    validator_text = read_text(root / VALIDATOR)
+    samples_text = read_text(root / SAMPLES_README)
 
     for marker in REQUIRED_CHECKER_MARKERS:
         if marker not in checker_text:
@@ -104,6 +129,18 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_HOOKS", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
+
+    for marker in REQUIRED_NOTE_MARKERS:
+        if marker not in note_text:
+            issues.append(("MISSING_NOTE_MARKERS", marker))
+
+    for marker in REQUIRED_VALIDATOR_MARKERS:
+        if marker not in validator_text:
+            issues.append(("MISSING_VALIDATOR_MARKERS", marker))
+
+    for marker in REQUIRED_SAMPLES_MARKERS:
+        if marker not in samples_text:
+            issues.append(("MISSING_SAMPLES_MARKERS", marker))
 
     for marker in FORBIDDEN_WORKFLOW_LINES:
         if count_exact_lines(workflow_text, marker):
@@ -196,6 +233,9 @@ def build_self_test_root(root: Path) -> None:
             )
         ),
     )
+    write_text(root / NOTE, "\n".join(REQUIRED_NOTE_MARKERS) + "\n")
+    write_text(root / VALIDATOR, "\n".join(REQUIRED_VALIDATOR_MARKERS) + "\n")
+    write_text(root / SAMPLES_README, "\n".join(REQUIRED_SAMPLES_MARKERS) + "\n")
 
 
 def run_self_test() -> int:
@@ -319,6 +359,36 @@ def run_self_test() -> int:
             assert ("MISSING_CHECKER_MARKERS", marker) in issues
             cases += 1
 
+        build_self_test_root(root)
+        path = root / NOTE
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(REQUIRED_NOTE_MARKERS[3], "", 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_NOTE_MARKERS", REQUIRED_NOTE_MARKERS[3]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[1], "", 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[1]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / SAMPLES_README
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(REQUIRED_SAMPLES_MARKERS[3], "", 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_SAMPLES_MARKERS", REQUIRED_SAMPLES_MARKERS[3]) in issues
+        cases += 1
+
     assert cases == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT={cases}")
@@ -344,6 +414,9 @@ def main() -> int:
     print(f"PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_MARKER_COUNT={len(REQUIRED_CHECKER_MARKERS)}")
     print(f"PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     print(f"PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
+    print(f"PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_NOTE_MARKER_COUNT={len(REQUIRED_NOTE_MARKERS)}")
+    print(f"PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_VALIDATOR_MARKER_COUNT={len(REQUIRED_VALIDATOR_MARKERS)}")
+    print(f"PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_SAMPLES_MARKER_COUNT={len(REQUIRED_SAMPLES_MARKERS)}")
     return 0
 
 
