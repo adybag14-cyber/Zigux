@@ -28,7 +28,7 @@ Use this sequencing lane only for packet-wide routing, ownership, or anti-overla
 
 ## Helper-Owned Lanes
 
-### `P6-L04` base64 packet
+### base64 packet
 
 Keep helper-local work under:
 
@@ -38,6 +38,8 @@ Keep helper-local work under:
 - `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - `Documentation/zigux/phase6-base64-slice.md`
 - the `base64` rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`
+
+Treat base64 perf-threshold, fixture, or review-gate follow-ups as base64-owned work in Memory rather than reusing stale hard-coded lane labels in this shared note.
 
 ### `P6-L09` bsearch packet
 
