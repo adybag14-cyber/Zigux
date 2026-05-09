@@ -234,3 +234,25 @@ test "phase4 test_fsmount survey keeps matrix and exact-readback checker anchors
         try std.testing.expect(std.mem.indexOf(u8, gate_evidence_checker, marker) != null);
     }
 }
+
+test "phase4 test_fsmount survey keeps the dedicated Makefile replay route explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
+    const required_makefile_markers = [_][]const u8{
+        "phase4-test-fsmount-survey",
+        "phase4-test-fsmount-survey:",
+        "$(ZIG) build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    };
+    for (required_makefile_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, makefile, marker) != null);
+    }
+}
