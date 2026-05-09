@@ -176,12 +176,26 @@ test "phase3 low-level wrappers keep mmio interop policy gates reviewable" {
         try mmio.read8InteropPolicyBytes(base, 1, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0),
     );
 
+    try mmio.write32InteropPolicyByte(base, 4, 0xc001_d00d, @intFromEnum(abi.UnsafeScope.volatile_mmio));
+    try std.testing.expectEqual(
+        @as(u32, 0xc001_d00d),
+        try mmio.read32InteropPolicyByte(base, 4, @intFromEnum(abi.UnsafeScope.volatile_mmio)),
+    );
+
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.requireInteropPolicy(no_unsafe_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.requireInteropPolicy(raw_pointer_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.requireInteropPolicy(reserved_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32InteropPolicy(base, 4, no_unsafe_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16InteropPolicy(base, 2, 0x7777, raw_pointer_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8InteropPolicyBytes(base, 1, 1, 1));
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        mmio.read32InteropPolicyByte(base, 4, @intFromEnum(abi.UnsafeScope.none)),
+    );
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        mmio.write32InteropPolicyByte(base, 4, 0, @intFromEnum(abi.UnsafeScope.raw_pointer_bridge)),
+    );
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64InteropPolicyBytes(base, 8, 0, 0, 0));
 }
 
