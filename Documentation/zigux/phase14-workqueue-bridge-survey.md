@@ -5,7 +5,7 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 ## Status
 
 - `PHASE14_STATUS=blocked_maintenance`
-- `PHASE14_LANE_KEY=P14-L02`
+- `PHASE14_LANE_KEY=P14-L04`
 - `PHASE14_SURVEYED_COMMIT=9b98d3b9c812840bf279508030be0b8de093736c`
 - `PHASE14_SLICE=workqueue-scheduler-visible-worker-state-refinement`
 - scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline, the delayed timer-expiry handoff audit, the delayed-work requeue stay-in-C decision, the explicit runtime `max_active` retuning boundary, the explicit flush-drain governance note, the explicit hotplug-topology rebinding note, the explicit scheduler-visible worker-state note, the explicit rescuer or mayday stay-in-C note, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
