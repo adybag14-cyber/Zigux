@@ -52,7 +52,7 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
-      "why_now": "The bounded starter now covers watchdog metadata, timeout tick encoding, running-bit detection, start and stop register transitions, restart intent, halt-partition bookkeeping, a tiny probe summary, a registration-facing handoff or poweroff ownership summary, a platform-registration and PM-base handoff summary, a poweroff-path summary, an ownership-matrix summary, and a remove-time teardown summary without claiming platform-backed behavior."
+      "why_now": "The bounded starter now covers watchdog metadata, timeout tick encoding, running-bit detection, start and stop register transitions, restart intent, halt-partition bookkeeping, a tiny probe summary, a registration-facing handoff or poweroff ownership summary, a platform-handoff and PM-base readiness summary, a poweroff-path summary, an ownership-matrix summary, and a remove-time teardown summary without claiming platform-backed behavior."
     },
     {
       "id": "phase11-bcm2835-wdt-watchdog-metadata",
@@ -104,11 +104,11 @@
       "why_now": "The lane now also records registration-facing handoff and poweroff ownership outcomes so an already-running watchdog, watchdog registration intent, and poweroff claim-vs-conflict behavior remain reviewable before any live PM base wiring or watchdog-core registration."
     },
     {
-      "id": "phase11-bcm2835-wdt-platform-registration",
+      "id": "phase11-bcm2835-wdt-platform-handoff",
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
-      "why_now": "The lane now lands a tiny platform-registration and PM-base handoff summary that keeps parent attachment, PM-base readiness, and register-device intent reviewable before any live platform registration, MMIO, or shared poweroff-handler behavior lands."
+      "why_now": "The lane now lands a tiny platform-handoff and PM-base readiness summary that keeps parent attachment, PM-base readiness, and register-device intent reviewable before any live platform registration, MMIO, or shared poweroff-handler behavior lands."
     },
     {
       "id": "phase11-bcm2835-wdt-poweroff-summary",
