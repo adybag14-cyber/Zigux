@@ -82,7 +82,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
     try std.testing.expect(manifest.survey_summary.nvme_pci_slice_note_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -102,6 +102,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
     var saw_prp_shape_helper = false;
     var saw_prp_metadata_helper = false;
     var saw_recovery_rebuild_progress_helper = false;
+    var saw_recovery_backlog_retirement_helper = false;
     var saw_recovery_replay_helper = false;
     var saw_dma_transport_gap = false;
     var saw_throughput_recovery_gap = false;
@@ -251,6 +252,16 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recovery pressure directly") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-recovery-backlog-retirement-helper")) {
+            saw_recovery_backlog_retirement_helper = true;
+            try std.testing.expectEqualStrings("drivers/nvme/host/pci.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "backlog-retirement helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rebuilt subset") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "replacement queue plans") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recovery bookkeeping") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-recovery-replay-helper")) {
             saw_recovery_replay_helper = true;
             try std.testing.expectEqualStrings("drivers/nvme/host/pci.zig", gap.zigux_destination);
@@ -286,7 +297,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 17), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 2), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -304,6 +315,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
     try std.testing.expect(saw_prp_shape_helper);
     try std.testing.expect(saw_prp_metadata_helper);
     try std.testing.expect(saw_recovery_rebuild_progress_helper);
+    try std.testing.expect(saw_recovery_backlog_retirement_helper);
     try std.testing.expect(saw_recovery_replay_helper);
     try std.testing.expect(saw_dma_transport_gap);
     try std.testing.expect(saw_throughput_recovery_gap);
