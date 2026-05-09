@@ -53,7 +53,7 @@ DOCS_ROOT_MARKERS = [
     "python3 scripts/zigux/validate-phase3.py --slug abi",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
-    "phase3_catalog.py --self-test",
+    "python3 scripts/zigux/phase3_catalog.py --self-test",
     "make -C zigux phase3-validate",
     "make -C zigux phase3",
     "without duplicating the default `phase3-validate` route",
@@ -381,7 +381,7 @@ def run_self_test() -> int:
         assert "docs_root:python3 scripts/zigux/validate-phase3.py --slug abi" in issues
         assert "docs_root:python3 scripts/zigux/phase3_catalog.py --audit-doc-sync" in issues
         assert "docs_root:python3 scripts/zigux/run-phase3-checks.py --slug abi" in issues
-        assert "docs_root:phase3_catalog.py --self-test" in issues
+        assert "docs_root:python3 scripts/zigux/phase3_catalog.py --self-test" in issues
         assert "docs_root:make -C zigux phase3-validate" in issues
         assert "docs_root:make -C zigux phase3" in issues
         assert "docs_root:without duplicating the default `phase3-validate` route" in issues
