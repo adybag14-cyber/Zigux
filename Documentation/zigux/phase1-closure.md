@@ -254,6 +254,15 @@ That means `test "bitmap range helpers clamp the final partial word"` stays pres
 
 - `PHASE1_BITMAP_FINAL_PARTIAL_WORD_REVIEW=helper-local bitmap final partial-word proof stays explicit through the direct bitmap test anchor so setRange and clearRange clamp trailing partial-word masks to the requested tail window instead of spilling work beyond it`
 
+The helper-local `bitmap.scnprintf()` cross-word range-collapse proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+
+That means `test "bitmap scnprintf collapses contiguous ranges across word boundaries"` stays present and review-visible whenever `bitmap.scnprintf()` changes. This helper-local test is the bounded proof that one contiguous run still renders as one collapsed range even when it crosses a machine-word boundary, and the Phase 1 helper manifest keeps that direct anchor explicit so the parked direct review packet does not silently drop that word-boundary rendering proof.
+
+- `PHASE1_BITMAP_SCNPRINTF_CROSS_WORD_REVIEW=helper-local bitmap.scnprintf cross-word range-collapse proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so contiguous runs crossing a machine-word boundary still render as one collapsed range instead of splitting at the word edge`
+
 The helper-local `bitmap.scnprintf()` truncation proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
