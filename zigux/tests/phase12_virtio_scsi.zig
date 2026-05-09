@@ -194,10 +194,41 @@ test "phase12 virtio scsi freeze and restore summaries keep recovery-state trans
     try std.testing.expectError(error.QueueLayoutUnavailable, lab.queueWindowSummary());
 }
 
+test "phase12 virtio scsi freeze queue quiesce summary keeps freeze-time queue ordering explicit" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    _ = try lab.planQueueLayout(7, 3);
+    _ = try lab.freezeForTransportReset();
+
+    const summary = try lab.recoveryFreezeQueueQuiesceSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 7), summary.request_queues);
+    try std.testing.expectEqual(@as(u16, 4), summary.default_queues);
+    try std.testing.expectEqual(@as(u16, 3), summary.poll_queues);
+    try std.testing.expectEqual(@as(u16, 9), summary.total_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.control_queue_index), summary.control_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), summary.event_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.request_queue_base), summary.first_request_queue_index);
+    try std.testing.expectEqual(@as(?u16, 6), summary.first_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), summary.event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.recovery_generation);
+    try std.testing.expect(summary.blocks_request_queue_use_during_freeze);
+    try std.testing.expect(summary.quiesces_default_queues_before_poll_queues);
+    try std.testing.expect(summary.keeps_event_queue_reserved_until_restore);
+    try std.testing.expect(summary.requires_restore_before_replan);
+}
+
 test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery boundary" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
     _ = try lab.planQueueLayout(6, 2);
     _ = try lab.freezeForTransportReset();
+
+    const first_quiesce = try lab.recoveryFreezeQueueQuiesceSummary();
+    try std.testing.expectEqual(@as(u16, 6), first_quiesce.request_queues);
+    try std.testing.expectEqual(@as(u16, 4), first_quiesce.default_queues);
+    try std.testing.expectEqual(@as(u16, 2), first_quiesce.poll_queues);
+    try std.testing.expectEqual(@as(?u16, 6), first_quiesce.first_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, 0), first_quiesce.recovery_generation);
+    try std.testing.expect(first_quiesce.quiesces_default_queues_before_poll_queues);
 
     const first_plan = try lab.recoveryRestoreSummary();
     try std.testing.expectEqual(@as(u16, 6), first_plan.request_queues);
@@ -214,6 +245,7 @@ test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery 
     try std.testing.expectEqual(@as(u16, 1), first_restore.recovery_generation);
     try std.testing.expectEqual(@as(u16, 6), first_restore.remembered_request_queues);
     try std.testing.expectEqual(@as(u16, 2), first_restore.remembered_poll_queues);
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryFreezeQueueQuiesceSummary());
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRestoreSummary());
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRestoreQueueRebindSummary());
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRequestQueueRestartSummary());
@@ -228,6 +260,13 @@ test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery 
     try std.testing.expectEqual(@as(u16, 1), second_freeze.recovery_generation);
     try std.testing.expectEqual(@as(u16, 4), second_freeze.remembered_request_queues);
     try std.testing.expectEqual(@as(u16, 1), second_freeze.remembered_poll_queues);
+
+    const second_quiesce = try lab.recoveryFreezeQueueQuiesceSummary();
+    try std.testing.expectEqual(@as(u16, 1), second_quiesce.recovery_generation);
+    try std.testing.expectEqual(@as(u16, 4), second_quiesce.request_queues);
+    try std.testing.expectEqual(@as(u16, 3), second_quiesce.default_queues);
+    try std.testing.expectEqual(@as(u16, 1), second_quiesce.poll_queues);
+    try std.testing.expectEqual(@as(?u16, 5), second_quiesce.first_poll_queue_index);
 
     const second_plan = try lab.recoveryRestoreSummary();
     try std.testing.expectEqual(@as(u16, 4), second_plan.request_queues);
@@ -397,6 +436,11 @@ test "phase12 virtio scsi recovery event rearm summary stays tied to the frozen 
     try std.testing.expect(summary.requires_device_ready_before_rearm);
     try std.testing.expect(summary.rearms_event_queue_before_event_recycling);
     try std.testing.expect(summary.rearms_event_queue_before_request_queue_reuse);
+}
+
+test "phase12 virtio scsi freeze queue quiesce summary requires a frozen transport" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryFreezeQueueQuiesceSummary());
 }
 
 test "phase12 virtio scsi recovery event rearm summary requires a frozen transport" {
