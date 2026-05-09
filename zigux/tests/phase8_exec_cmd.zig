@@ -159,6 +159,8 @@ test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary e
     try std.testing.expect(std.mem.indexOf(u8, slice, "focused Phase 8 replay stays on the integrated deferred-exec packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "live C helper anchors, checklist hook, and validator route") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "without widening into process-launch side effects") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "avoids scheduler-facing transport or queue claims") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "deferred queue ownership or scheduler-facing transport") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "stops before any ownership of `execl_cmd()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "direct varargs launch path") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "`kernel/workqueue.c` in the later Phase 14 boundary-study tranche") != null);
