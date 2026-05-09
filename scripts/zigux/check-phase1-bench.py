@@ -20,6 +20,9 @@ EXPECTED_ITERATIONS = {
     "PHASE1_BENCH_LIST_SORT_ITERATIONS": 1000,
     "PHASE1_BENCH_RBTREE_ITERATIONS": 4000,
 }
+RBTREE_REQUIRED_ITERATIONS = {
+    "PHASE1_BENCH_RBTREE_ITERATIONS",
+}
 EXPECTED_CHECKSUMS = [
     "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
     "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM",
@@ -111,6 +114,9 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
         return ("expectations_duplicate_exact_checksum_keys", exact_checksums.duplicate_keys)
 
     iteration_keys = set(iterations)
+    missing_rbtree_iterations = sorted(RBTREE_REQUIRED_ITERATIONS - iteration_keys)
+    if missing_rbtree_iterations:
+        return ("expectations_missing_rbtree_iterations", missing_rbtree_iterations)
     if iteration_keys != set(EXPECTED_ITERATIONS):
         missing = sorted(set(EXPECTED_ITERATIONS) - iteration_keys)
         unexpected = sorted(iteration_keys - set(EXPECTED_ITERATIONS))
@@ -122,6 +128,8 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
         if not isinstance(value, int):
             return ("expectations_iteration_value_type", (key, type(value).__name__))
         if value != expected:
+            if key in RBTREE_REQUIRED_ITERATIONS:
+                return ("expectations_rbtree_iteration_value", (key, expected, value))
             return ("expectations_iteration_value", (key, expected, value))
 
     seen: set[str] = set()
@@ -186,9 +194,12 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
         return ("status", (expectations["status"], parsed.get("PHASE1_BENCH")))
 
     missing: list[str] = []
+    rbtree_iteration_keys = set(RBTREE_REQUIRED_ITERATIONS)
     for key, expected in expectations["iterations"].items():
         actual = parsed.get(key)
         if actual is None:
+            if key in rbtree_iteration_keys:
+                return ("missing_rbtree_iterations", [key])
             missing.append(key)
             continue
         try:
@@ -196,6 +207,8 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
         except ValueError:
             return ("iteration_value_type", (key, actual))
         if value != expected:
+            if key in rbtree_iteration_keys:
+                return ("rbtree_iteration_mismatch", (key, expected, actual))
             return ("iteration_mismatch", (key, expected, actual))
 
     for key in expectations["checksums"]:
@@ -276,6 +289,14 @@ def run_self_test() -> None:
     )
     kind, _ = validate_output(expectations, ok_output)
     assert kind == "pass"
+
+    rbtree_iteration_mismatch_output = ok_output.replace(
+        "PHASE1_BENCH_RBTREE_ITERATIONS=4000",
+        "PHASE1_BENCH_RBTREE_ITERATIONS=4",
+    )
+    kind, payload = validate_output(expectations, rbtree_iteration_mismatch_output)
+    assert kind == "rbtree_iteration_mismatch"
+    assert payload == ("PHASE1_BENCH_RBTREE_ITERATIONS", 4000, "4")
 
     mismatch_output = ok_output.replace(
         "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=8",
@@ -370,6 +391,29 @@ def run_self_test() -> None:
     assert kind == "expectations_missing_exact_checksums"
     assert payload == ["PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM"]
 
+    missing_rbtree_iterations = {
+        "status": "pass",
+        "iterations": {
+            key: value
+            for key, value in EXPECTED_ITERATIONS.items()
+            if key != "PHASE1_BENCH_RBTREE_ITERATIONS"
+        },
+        "checksums": list(EXPECTED_CHECKSUMS),
+        "exact_checksums": {
+            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
+            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
+            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
+            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+            "PHASE1_BENCH_STRING_CHECKSUM": 5,
+            "PHASE1_BENCH_RBTREE_CHECKSUM": 6,
+            "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM": 7,
+            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 8,
+        },
+    }
+    kind, payload = validate_expectations(missing_rbtree_iterations)
+    assert kind == "expectations_missing_rbtree_iterations"
+    assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]
+
     reordered_checksums = {
         "status": "pass",
         "iterations": dict(EXPECTED_ITERATIONS),
@@ -399,7 +443,7 @@ def run_self_test() -> None:
     assert payload == reordered_checksums["checksums"]
 
     print("PHASE1_BENCH_CHECK_SELF_TEST=pass")
-    print("PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=9")
+    print("PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=11")
 
 
 def main() -> int:
