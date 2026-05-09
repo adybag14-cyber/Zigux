@@ -97,10 +97,12 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", manifest.anchor);
     try std.testing.expect(isLowerHexGitCommit(manifest.surveyed_commit));
+    try std.testing.expectEqualStrings("aab20011833191e49e31bcdf2a0fcfcd4c0451d0", manifest.surveyed_commit);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_LANE_KEY=P10-L13") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_SURVEYED_COMMIT=") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey provenance refreshed against current `master` head `aab20011833191e49e31bcdf2a0fcfcd4c0451d0` on 2026-05-09") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_input_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper-facing verify replay") != null);
