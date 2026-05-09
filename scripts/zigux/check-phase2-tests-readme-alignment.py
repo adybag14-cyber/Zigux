@@ -191,9 +191,9 @@ EXACT_COUNT_CHECKS = {
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": {
         "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
         "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
-        "python3 scripts/zigux/check-phase2-fixdep-gate.py": 1,
+        "python3 scripts/zigux/check-phase2-fixdep-gate.py": 2,
         "python3 scripts/zigux/check-fixdep-diff.py --self-test": 1,
-        "python3 scripts/zigux/check-fixdep-diff.py": 1,
+        "python3 scripts/zigux/check-fixdep-diff.py": 2,
         "python3 scripts/zigux/check-genksyms-crc-diff.py": 1,
         "- shared mk_elfconfig parity self-test: `python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test`": 1,
         "- shared mk_elfconfig parity gate: `python3 scripts/zigux/check-mk-elfconfig-diff.py`": 1,
