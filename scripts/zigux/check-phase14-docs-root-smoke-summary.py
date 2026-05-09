@@ -34,6 +34,8 @@ COMPILE_SHARD_SMOKE_MARKERS = [
     "- `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle`",
 ]
 
+COMPILE_SHARD_ROW_SMOKE_MARKERS = COMPILE_SHARD_SMOKE_MARKERS[3:]
+
 SURFACE_COUNT_SMOKE_MARKERS = [
     "PHASE14_SHARED_SURFACE_COUNT=29",
     "PHASE14_DOC_SURFACE_COUNT=6",
@@ -84,6 +86,8 @@ SMOKE_SURVEY_REQUIRED_MARKERS = [
     "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig",
+    "/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+    "/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all",
     *COMPILE_SHARD_SMOKE_MARKERS,
     *SURFACE_COUNT_SMOKE_MARKERS,
 ]
@@ -95,9 +99,12 @@ SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig",
+    "/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+    "/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all",
     "PHASE14_COMPILE_ARTIFACT_COUNT=6",
     "PHASE14_FOCUSED_SHARD_COUNT=1",
     "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=5",
+    *COMPILE_SHARD_ROW_SMOKE_MARKERS,
     *SURFACE_COUNT_SMOKE_MARKERS,
 ]
 
@@ -290,6 +297,42 @@ def run_self_test() -> int:
             for error in errors
         ):
             print("self-test expected duplicate shared-surface-count failure", file=sys.stderr)
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke)
+
+        write_text(
+            root / SMOKE_SURVEY_PATH,
+            good_smoke.replace(
+                "/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all\n",
+                "/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all\n/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all\n",
+                1,
+            ),
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: /absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate direct attached-zig smoke replay failure", file=sys.stderr)
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke)
+
+        write_text(
+            root / SMOKE_SURVEY_PATH,
+            good_smoke.replace(
+                "- `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle`\n",
+                "- `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle`\n- `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle`\n",
+                1,
+            ),
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle` (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate compile-matrix row failure", file=sys.stderr)
             return 1
         write_text(root / SMOKE_SURVEY_PATH, good_smoke)
 
