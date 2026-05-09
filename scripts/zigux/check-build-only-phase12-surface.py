@@ -113,6 +113,7 @@ REQUIRED_FILE_MARKERS = {
         "This is an environment override for the existing replay packet, not a validator-first or `phase12-validate` route.",
         "There is no shipped shared `scripts/zigux/validate-phase12.py`, no dedicated `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`, so this release-facing note should not imply validator-first, dedicated PMO checker, focused libbpf-only replay, raw-coverage checker, or cross-build routes as part of the active shared release path.",
         "The public fallback split must stay explicit: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are the only commit-pinned fallback artifacts, while `virtio_net` and `libbpf` remain shared-tree-only anchors.",
+        "The bounded `virtio_scsi` rollback drill remains storage-lane-local release evidence, not a tranche-wide recovery claim.",
     ],
     PHASE12_COMPLEX_DRIVER_LANE_PATH: [
         "complex-driver scope in this note: `virtio_net`, `nvme_pci`, and `virtio_scsi`",
