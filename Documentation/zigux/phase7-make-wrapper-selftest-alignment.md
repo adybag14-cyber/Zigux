@@ -8,7 +8,7 @@ This document records the bounded shared Phase 7 integration-governance surface 
 - `PHASE7_SLICE=phase7-make-wrapper-selftest-alignment`
 - `PHASE7_LANE_KEY=P7-Y05`
 - scope: shared validator and make-wrapper self-test alignment only
-- lane state: dedicated alignment checker and shared validator route landed; parked unless the shared Phase 7 validator, Makefile, bootstrap workflow, or sample-root no-sample reminder drifts away from the same self-test packet
+- lane state: dedicated alignment checker, shared validator route, and reviewer-facing summary reminders landed; parked unless the shared Phase 7 validator, Makefile, bootstrap workflow, docs-root, review-checklist, scripts-root, tests-root, or sample-root summaries drift away from the same self-test packet
 - product boundary:
   - `scripts/zigux/check-phase7-make-wrapper.py`
   - `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
