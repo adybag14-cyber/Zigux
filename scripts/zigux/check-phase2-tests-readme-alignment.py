@@ -287,15 +287,12 @@ MISSING_FILE_CASES = [
     "scripts/zigux/mk_elfconfig.zig",
 ]
 
-
 def count_occurrences(text: str, marker: str) -> int:
     pattern = rf"(?<![A-Za-z0-9_.-]){re.escape(marker)}(?![A-Za-z0-9_.-])"
     return len(re.findall(pattern, text))
 
-
 def collect_missing_markers(text: str, markers: list[str], *, prefix: str) -> list[str]:
     return [f"{prefix}:{marker}" for marker in markers if marker not in text]
-
 
 def collect_exact_count_issues(text: str, checks: dict[str, int], *, prefix: str) -> list[str]:
     issues: list[str] = []
@@ -304,7 +301,6 @@ def collect_exact_count_issues(text: str, checks: dict[str, int], *, prefix: str
         if count != expected_count:
             issues.append(f"{prefix}:exact_count:{marker}:count={count}:expected={expected_count}")
     return issues
-
 
 def validate_root(root: Path) -> list[str]:
     issues: list[str] = []
@@ -322,11 +318,9 @@ def validate_root(root: Path) -> list[str]:
             issues.extend(collect_exact_count_issues(text, exact_checks, prefix=rel_path))
     return issues
 
-
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def render_docs_root_text(markers: list[str]) -> str:
     rendered: list[str] = []
@@ -337,7 +331,6 @@ def render_docs_root_text(markers: list[str]) -> str:
     for marker in markers:
         rendered.append(f"`{marker}`" if marker in quoted else marker)
     return "\n".join(rendered) + "\n"
-
 
 def render_marker_text_for_self_test(rel_path: str, markers: list[str]) -> str:
     if rel_path == "Documentation/zigux/README.md":
@@ -351,13 +344,11 @@ def render_marker_text_for_self_test(rel_path: str, markers: list[str]) -> str:
             rendered.extend([marker] * (expected_count - current_count))
     return "\n".join(rendered) + "\n"
 
-
 def build_self_test_root(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         write_text(root / rel_path, "")
     for rel_path, markers in FILE_MARKERS.items():
         write_text(root / rel_path, render_marker_text_for_self_test(rel_path, markers))
-
 
 def remove_marker_once(text: str, marker: str) -> str:
     needle = marker + "\n"
@@ -365,10 +356,8 @@ def remove_marker_once(text: str, marker: str) -> str:
         return text.replace(needle, "", 1)
     return text.replace(marker, "", 1)
 
-
 def duplicate_marker(text: str, marker: str) -> str:
     return text + marker + "\n"
-
 
 def run_self_test() -> int:
     case_count = 0
@@ -404,11 +393,11 @@ def run_self_test() -> int:
             assert f"missing_file:{rel_path}" in issues
             case_count += 1
 
-    assert case_count == 140
+    expected_case_count = 1 + 2 * sum(len(checks) for checks in EXACT_COUNT_CHECKS.values()) + len(MISSING_FILE_CASES)
+    assert case_count == expected_case_count
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check Phase 2 shared docs, review, and Makefile alignment.")
