@@ -7,12 +7,15 @@ This document records a bounded Phase 6 leaf-helper validation slice for Zigux.
 - `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=base64-leaf-helper`
 - scope: first low-risk base64 helper coverage only
-- lane state: helper, fixture, and dedicated perf slice landed; parked unless a new helper-local parity or slowdown issue appears
+- lane state: helper, fixture, dedicated perf, and direct C parity spot-check slices landed; parked unless a new helper-local parity or slowdown issue appears
 - product boundary:
   - `lib/base64.zig`
   - `zigux/tests/phase6_base64.zig`
+  - `zigux/tests/phase6_base64_c_parity.zig`
   - `zigux/tests/phase6_base64_perf.zig`
   - `zigux/tests/fixtures/phase6_base64_vectors.zig`
+  - `zigux/tests/fixtures/phase6_base64_c_harness.c`
+  - `scripts/zigux/check-phase6-base64-c-parity.py`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
 
@@ -32,10 +35,14 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - `zig build test --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6`
 
-2. keep the shared Phase 6 surface checker aligned with this slice
+2. run the dedicated base64 C parity replay when portability-sensitive behavior moves
+- `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test`
+- `ZIG=zig python3 scripts/zigux/check-phase6-base64-c-parity.py`
+
+3. keep the shared Phase 6 surface checker aligned with this slice
 - `make -C zigux phase6-validate`
 
-3. keep the dedicated base64 perf sanity replay green
+4. keep the dedicated base64 perf sanity replay green
 - `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-base64-perf`
 
@@ -72,6 +79,9 @@ The current landed helper and replay tests check:
 - exhaustive canonical tail acceptance for padded and unpadded std, URL-safe, and IMAP decode paths
 - exhaustive one-byte and two-byte roundtrip coverage across std, URL-safe, and IMAP variants with and without padding
 - dedicated encode and decode perf sanity across std and URL-safe paths with and without padding through `zigux/tests/phase6_base64_perf.zig`
+- a direct 15-case C-vs-Zig spot check covering representative std, URL-safe, and IMAP encode parity, decode parity, and malformed-tail rejection through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+
+The fixture layer stays intentionally small. It keeps the Phase 6 base64 parity matrix reviewable in one place and now pairs that shared fixture corpus with a direct external C replay so portability-sensitive behavior does not stop at Zig-only expectations.
 
 ## Non-goals
 
@@ -79,8 +89,8 @@ This slice does not yet claim:
 
 - KUnit integration
 - committed generated fixture artifacts on `master`
-- broader runtime-core or driver-facing expansion beyond the shipped helper, fixture, and dedicated perf packet
+- broader runtime-core or driver-facing expansion beyond the shipped helper, fixture, direct parity, and dedicated perf packet
 
 ## Next bounded step
 
-Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig`, `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6`, `make -C zigux phase6-base64-perf`, and `make -C zigux phase6-validate`. Reopen this slice only if fresh repo inspection finds a concrete new helper-local parity or slowdown gap inside `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, or the committed fixture corpus.
+Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig`, `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6`, `make -C zigux phase6-base64-perf`, and `make -C zigux phase6-validate`. Reopen this slice only if fresh repo inspection finds a concrete new helper-local parity or slowdown gap inside `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_perf.zig`, `scripts/zigux/check-phase6-base64-c-parity.py`, or the committed fixture corpus.
