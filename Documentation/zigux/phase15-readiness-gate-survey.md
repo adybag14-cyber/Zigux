@@ -7,7 +7,9 @@ This document records the bounded Phase 15 governance lane for checking whether 
 - `PHASE15_STATUS=maintenance_mode_ready`
 - `PHASE15_LANE_KEY=P15-L01`
 - `PHASE15_SLICE=phase15-readiness-gate-current-blocker-inventory`
-- survey provenance refreshed against current `master` readback on 2026-05-08 after the shared Phase 15 review checklist picked up the explicit workflow-backed and direct shared build replay markers
+- `PHASE15_PROVENANCE_MODE=dated_master_readback`
+- survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 after a live current-`master` reread confirmed the parked readiness packet still carries the same workflow-backed, validator-first, and make-backed replay surfaces explicit on current `master`
+- exact branch-head parity is not recorded for this packet; the parked readiness note now uses an explicit dated readback marker instead of looser fresh-readback wording while the shared replay contract stays unchanged
 - the shared replay surface is green on current `master` once this dedicated readiness note, its manifest, the focused `zigux/tests/phase15_readiness_gate.zig` guard, the dedicated `make -C zigux phase15-test` replay, and the shipped `phase15-validate` checker stack are present together beside that now-explicit checklist replay contract
 
 ## Roadmap Versus Ledger
