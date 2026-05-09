@@ -447,7 +447,7 @@ def run_self_test() -> int:
                 print(exc, file=sys.stderr)
                 return 1
         for rel_path, marker in FORBIDDEN_SELF_TEST_CASES:
-            write_fixtureTree(root)
+            write_fixture_tree(root)
             try:
                 expect_forbidden_failure(root, rel_path, marker)
             except AssertionError as exc:
