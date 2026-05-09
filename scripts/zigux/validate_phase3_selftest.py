@@ -276,6 +276,12 @@ def run_self_test() -> int:
         )
         case_count += 1
         _require_target(
+            "scripts/zigux/phase3_catalog.py",
+            "PHASE3_CATALOG_SELF_TEST=pass",
+            extra_markers=("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=",),
+        )
+        case_count += 1
+        _require_target(
             "scripts/zigux/phase3_check_lib.py",
             "PHASE3_CHECK_LIB_SELF_TEST=pass",
             extra_markers=("PHASE3_CHECK_LIB_SELF_TEST_CASE_COUNT=",),
