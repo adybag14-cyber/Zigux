@@ -55,6 +55,7 @@ DOCS_ROOT_MARKERS = [
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "pinned Zig toolchain",
+    "make -C zigux phase2-toolchain",
     "make -C zigux phase2-validate",
     "make -C zigux phase2-tools",
     "make -C zigux phase2-kconfig",
@@ -201,6 +202,7 @@ EXACT_SURFACE_COUNTS = {
     "docs_root_readme": {
         "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
         "pinned Zig toolchain": 1,
+        "make -C zigux phase2-toolchain": 1,
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2-tools": 1,
         "make -C zigux phase2-kconfig": 1,
@@ -506,11 +508,11 @@ def run_self_test() -> int:
     valid_docs_root = "\n".join(DOCS_ROOT_MARKERS)
     assert validate_required_markers(valid_docs_root, label="docs_root_readme", markers=DOCS_ROOT_MARKERS) == []
     missing_docs_root = validate_required_markers(
-        valid_docs_root.replace("make -C zigux phase2-cross", "", 1),
+        valid_docs_root.replace("make -C zigux phase2-toolchain", "", 1),
         label="docs_root_readme",
         markers=DOCS_ROOT_MARKERS,
     )
-    assert "docs_root_readme:missing_marker:make -C zigux phase2-cross" in missing_docs_root
+    assert "docs_root_readme:missing_marker:make -C zigux phase2-toolchain" in missing_docs_root
 
     valid_tests_readme = "\n".join(TESTS_README_MARKERS)
     assert validate_required_markers(valid_tests_readme, label="tests_readme", markers=TESTS_README_MARKERS) == []
