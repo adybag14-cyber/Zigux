@@ -141,12 +141,22 @@ required_workflow_markers = [
     'make -C zigux phase10-test',
     'Run Phase 11 watchdog and console tests',
     'zigux/tests/phase11_build.zig',
-    'Run Phase 12 complex driver tests',
     'zigux/tests/phase12_build.zig',
     'Run Phase 13 shared helper tests',
     'make -C zigux phase13-test',
 ]
+required_workflow_marker_aliases = [
+    (
+        'Run Phase 12 complex driver tests',
+        'Run Phase 12 complex driver and libbpf tests',
+    ),
+]
 missing_workflow_markers = [marker for marker in required_workflow_markers if marker not in workflow]
+for alias_group in required_workflow_marker_aliases:
+    if not any(marker in workflow for marker in alias_group):
+        missing_workflow_markers.append(
+            'workflow_any_of:' + '||'.join(alias_group)
+        )
 missing_workflow_markers.extend(validate_exact_workflow_runs(workflow))
 if missing_workflow_markers:
     print('BOOTSTRAP_VALIDATION=fail')
@@ -160,5 +170,5 @@ print('BOOTSTRAP_VALIDATION=pass')
 print(f'BOOTSTRAP_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'BOOTSTRAP_REQUIRED_MARKER_COUNT='
-    f'{len(required_markers) + len(required_workflow_markers) + len(WORKFLOW_EXACT_RUN_COUNTS)}'
+    f'{len(required_markers) + len(required_workflow_markers) + len(required_workflow_marker_aliases) + len(WORKFLOW_EXACT_RUN_COUNTS)}'
 )
