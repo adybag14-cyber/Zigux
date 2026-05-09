@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L10",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-08",
+  "surveyed_commit": "current-master-readback-2026-05-09",
   "review_process": {
     "decision_record_required": true,
     "required_record_field_count": 20,
