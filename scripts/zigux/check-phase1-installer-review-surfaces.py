@@ -299,6 +299,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/phase1-closure.md",
+            "\n".join(CLOSURE_MARKERS) + "\n",
+        )
+        issues = validate_root(root)
+        assert "phase1_closure_installer_checker_anchor:expected=1:actual=0" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase1-closure.md",
             "\n".join([marker for _, marker, _ in CLOSURE_EXACT_MARKERS] + CLOSURE_MARKERS)
             + "\n"
             + CLOSURE_EXACT_MARKERS[0][1]
@@ -363,7 +371,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/check-phase1-installer-review-surfaces.py" in issues
 
     print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass")
-    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=18")
+    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
