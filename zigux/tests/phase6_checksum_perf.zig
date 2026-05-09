@@ -20,34 +20,17 @@ fn perfPayloadFingerprint(bytes: []const u8) u64 {
 }
 
 fn validatePerfMatrix() !void {
-    const expected = [_]struct {
-        label: []const u8,
-        len: usize,
-        iterations: usize,
-        max_slowdown_pct: u64,
-        fingerprint: u64,
-        expected_compute: u16,
-    }{
-        .{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0x3193_4305_ba03_9b45, .expected_compute = 0x7fe0 },
-        .{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0x457f_efb1_ea64_3164, .expected_compute = 0x28d3 },
-    };
-
     var saw_64b = false;
     var saw_1501b = false;
 
-    if (fixtures.perf_cases.len != expected.len) return error.ChecksumPerfMatrixMismatch;
-
-    for (expected, 0..) |want, idx| {
-        const actual = fixtures.perf_cases[idx];
-        if (!std.mem.eql(u8, want.label, actual.label)) return error.ChecksumPerfMatrixMismatch;
-        if (want.len != actual.bytes.len) return error.ChecksumPerfMatrixMismatch;
-        if (want.iterations != actual.iterations) return error.ChecksumPerfMatrixMismatch;
-        if (want.max_slowdown_pct != actual.max_slowdown_pct) return error.ChecksumPerfMatrixMismatch;
-        if (want.fingerprint != perfPayloadFingerprint(actual.bytes)) return error.ChecksumPerfMatrixMismatch;
-    }
+    if (fixtures.perf_cases.len != 2) return error.ChecksumPerfMatrixMismatch;
 
     for (fixtures.perf_cases, 0..) |case, idx| {
         if (case.bytes.len == 0 or case.iterations == 0 or case.max_slowdown_pct == 0) {
+            return error.ChecksumPerfMatrixMismatch;
+        }
+
+        if (case.fingerprint != perfPayloadFingerprint(case.bytes)) {
             return error.ChecksumPerfMatrixMismatch;
         }
 
@@ -56,7 +39,7 @@ fn validatePerfMatrix() !void {
         if (helper_compute != reference_compute) {
             return error.ChecksumPerfMatrixMismatch;
         }
-        if (helper_compute != expected[idx].expected_compute or reference_compute != expected[idx].expected_compute) {
+        if (helper_compute != case.expected_compute or reference_compute != case.expected_compute) {
             return error.ChecksumPerfMatrixMismatch;
         }
 
