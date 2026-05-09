@@ -98,6 +98,7 @@ REVIEW_GATE_SPECS = [
         "depend_marker": "test_step.dependOn(&run_string_helpers_survey_tests.step);",
         "cwd_marker": 'run_string_helpers_survey_tests.setCwd(b.path("../.."));',
         "step_name_marker": '"phase7-string-helpers-survey",',
+        "step_description_marker": '"Run the dedicated Phase 7 string_helpers survey gate",',
         "step_depend_marker": "string_helpers_survey_step.dependOn(&run_string_helpers_survey_tests.step);",
     },
     {
@@ -112,6 +113,7 @@ REVIEW_GATE_SPECS = [
         "depend_marker": "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step);",
         "cwd_marker": 'run_string_helpers_sample_boundary_tests.setCwd(b.path("../.."));',
         "step_name_marker": '"phase7-string-helpers-sample-boundary",',
+        "step_description_marker": '"Run the dedicated Phase 7 string_helpers sample-boundary gate",',
         "step_depend_marker": "string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step);",
     },
     {
@@ -126,6 +128,7 @@ REVIEW_GATE_SPECS = [
         "depend_marker": "test_step.dependOn(&run_cmdline_survey_tests.step);",
         "cwd_marker": 'run_cmdline_survey_tests.setCwd(b.path("../.."));',
         "step_name_marker": '"phase7-cmdline-survey",',
+        "step_description_marker": '"Run the dedicated Phase 7 cmdline survey gate",',
         "step_depend_marker": "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step);",
     },
     {
@@ -140,6 +143,7 @@ REVIEW_GATE_SPECS = [
         "depend_marker": "test_step.dependOn(&run_argv_split_survey_tests.step);",
         "cwd_marker": 'run_argv_split_survey_tests.setCwd(b.path("../.."));',
         "step_name_marker": '"phase7-argv-split-survey",',
+        "step_description_marker": '"Run the dedicated Phase 7 argv_split survey gate",',
         "step_depend_marker": "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step);",
     },
     {
@@ -154,6 +158,7 @@ REVIEW_GATE_SPECS = [
         "depend_marker": "test_step.dependOn(&run_rbtree_survey_tests.step);",
         "cwd_marker": 'run_rbtree_survey_tests.setCwd(b.path("../.."));',
         "step_name_marker": '"phase7-rbtree-survey",',
+        "step_description_marker": '"Run the dedicated Phase 7 rbtree survey gate",',
         "step_depend_marker": "rbtree_survey_step.dependOn(&run_rbtree_survey_tests.step);",
     },
 ]
@@ -177,6 +182,7 @@ REQUIRED_MARKERS = [
         spec["depend_marker"],
         spec["cwd_marker"],
         spec["step_name_marker"],
+        spec["step_description_marker"],
         spec["step_depend_marker"],
     )
 ]
@@ -234,7 +240,7 @@ def run_self_test() -> None:
                 (
                     f"{spec['key']}_import_alias_drift",
                     spec["import_marker"],
-                    spec["import_marker"].replace(f'"{spec["key"]}"', f'"{spec["key"]}_drift"'),
+                    spec["import_marker"].replace(f'\"{spec["key"]}\"', f'\"{spec["key"]}_drift\"'),
                     spec["import_marker"],
                 ),
                 (
@@ -310,6 +316,12 @@ def run_self_test() -> None:
                     spec["step_name_marker"],
                 ),
                 (
+                    f"{spec['key']}_step_description_drift",
+                    spec["step_description_marker"],
+                    spec["step_description_marker"].replace("dedicated ", "review-only "),
+                    spec["step_description_marker"],
+                ),
+                (
                     f"{spec['key']}_step_depend_drift",
                     spec["step_depend_marker"],
                     spec["step_depend_marker"].replace(".step);", "_drift.step);"),
@@ -343,6 +355,11 @@ def run_self_test() -> None:
                     f"{spec['key']}_step_name_exact_count",
                     spec["step_name_marker"],
                     f"{spec['step_name_marker']}:expected=1:actual=2",
+                ),
+                (
+                    f"{spec['key']}_step_description_exact_count",
+                    spec["step_description_marker"],
+                    f"{spec['step_description_marker']}:expected=1:actual=2",
                 ),
                 (
                     f"{spec['key']}_step_depend_exact_count",
