@@ -179,6 +179,7 @@ REQUIRED_FILE_MARKERS = {
         "build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml`",
         "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
         "`python3 scripts/zigux/check-build-only-phase12-surface.py`",
+        "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` remain part of the shipped build-only contract packet beside the workflow-backed replay and must not be rounded up into a validator-first, focused libbpf-only, raw-coverage, or `phase12-validate` route",
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "the landed `virtio_net` segmented-rollout boundary remains lane-local review evidence inside this active packet",
