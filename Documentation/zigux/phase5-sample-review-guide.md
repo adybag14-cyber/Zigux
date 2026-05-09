@@ -47,6 +47,7 @@ Keep explicit
 - the non-destructive `snapshotInto()` cue
 - the short-drain `"hel"` plus queued `"lo"` helper boundary
 - the `init()` -> `runAnchorReplay()` -> `exit()` ownership path
+- the explicit `StorageBacking.embedded_fixed_buffer` cue so the approved idiom stays reviewable as a bounded fixed-buffer ring instead of reading like an allocation-backed or runtime-substrate queue
 - the bounded preview and rollover cues around `previewInto()`, `available()`, and `usesWrappedStorageWindow()`, plus the `visibleSpanSummary()` split cue that keeps the fixed-buffer ring shape reviewable instead of implicit
 
 Keep out of scope
