@@ -42,6 +42,7 @@ OPTIONAL_ARTIFACT_PACKET_TOOLS = [
     "scripts/zigux/genksyms_crc.zig",
     "scripts/zigux/mk_elfconfig.zig",
 ]
+OPTIONAL_ARTIFACT_PACKET_TOOL_COUNT = len(OPTIONAL_ARTIFACT_PACKET_TOOLS)
 OPTIONAL_ARTIFACT_PACKET_INPUTS = [
     "zigux/tests/fixtures/genksyms_crc/inputs.txt",
     "zigux/tests/fixtures/mk_elfconfig/cases.json",
@@ -230,6 +231,10 @@ def validate_root(root: Path) -> list[str]:
                     issues.append(
                         f"optional_packet_status:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('status')!r}:expected={EXPECTED_PACKET_STATUS!r}"
                     )
+                if artifact_manifest.get("tool_count") != OPTIONAL_ARTIFACT_PACKET_TOOL_COUNT:
+                    issues.append(
+                        f"optional_packet_tool_count:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('tool_count')!r}:expected={OPTIONAL_ARTIFACT_PACKET_TOOL_COUNT}"
+                    )
                 if artifact_manifest.get("tools") != OPTIONAL_ARTIFACT_PACKET_TOOLS:
                     issues.append(
                         f"optional_packet_tools:{OPTIONAL_ARTIFACT_PACKET_FIELD}:value={artifact_manifest.get('tools')!r}:expected={OPTIONAL_ARTIFACT_PACKET_TOOLS!r}"
@@ -376,6 +381,7 @@ def build_self_test_root(root: Path) -> None:
         {
             "phase": EXPECTED_MANIFEST_PHASE,
             "status": EXPECTED_PACKET_STATUS,
+            "tool_count": OPTIONAL_ARTIFACT_PACKET_TOOL_COUNT,
             "tools": OPTIONAL_ARTIFACT_PACKET_TOOLS,
             "fixture_inputs": OPTIONAL_ARTIFACT_PACKET_INPUTS,
             "expected_packets": OPTIONAL_ARTIFACT_PACKET_EXPECTED,
@@ -469,6 +475,14 @@ def run_self_test() -> int:
         write_json(manifest_path, manifest)
         issues = validate_root(root)
         assert "optional_manifest_field:artifact_tools_packet:value='zigux/tests/fixtures/phase2_artifact_manifest.json':expected='zigux/tests/fixtures/phase2_artifact_tools_manifest.json'" in issues
+
+        build_self_test_root(root)
+        artifact_manifest_path = root / OPTIONAL_ARTIFACT_PACKET_PATH
+        artifact_manifest = load_json_object(artifact_manifest_path, label=OPTIONAL_ARTIFACT_PACKET_FIELD)
+        artifact_manifest["tool_count"] = OPTIONAL_ARTIFACT_PACKET_TOOL_COUNT - 1
+        write_json(artifact_manifest_path, artifact_manifest)
+        issues = validate_root(root)
+        assert "optional_packet_tool_count:artifact_tools_packet:value=1:expected=2" in issues
 
         build_self_test_root(root)
         artifact_manifest_path = root / OPTIONAL_ARTIFACT_PACKET_PATH
