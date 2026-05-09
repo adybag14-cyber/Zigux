@@ -34,6 +34,7 @@ It does not claim that all of Phase 11 is complete. It closes only the shared re
   - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
   - `scripts/zigux/check-phase11-shared-replay-contract.py`
   - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
+  - `scripts/zigux/check-phase11-dw-wdt-packet.py`
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
   - `scripts/zigux/check-phase11-hvc-survey-packet.py`
   - `zigux/tests/phase11_build.zig`
@@ -57,7 +58,7 @@ The current shared packet is already reviewable through one bounded route:
 
 - `drivers/watchdog/gpio_wdt.zig` plus `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`, its paired survey, and validation-matrix packet
 - `drivers/watchdog/bcm2835_wdt.zig` plus `drivers/watchdog/bcm2835_wdt_verify.zig`, its manifest-backed survey, its validation matrix, and its dedicated archival checker route in `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
-- `drivers/watchdog/dw_wdt.zig` plus `drivers/watchdog/dw_wdt_verify.zig`, its manifest-backed survey, its registration-scaffold replay, its teardown note, and its validation matrix
+- `drivers/watchdog/dw_wdt.zig` plus `drivers/watchdog/dw_wdt_verify.zig`, its manifest-backed survey, its dedicated packet checker route in `scripts/zigux/check-phase11-dw-wdt-packet.py`, its registration-scaffold replay, its teardown note, and its validation matrix
 - `drivers/tty/hvc/hvc_console.zig` plus `drivers/tty/hvc/hvc_console_verify.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `Documentation/zigux/phase11-hvc-console-survey.md`, `zigux/tests/phase11_hvc_console_manifest.json`, its dedicated archival checker route in `scripts/zigux/check-phase11-hvc-survey-packet.py`, its checker-backed `make -C zigux phase11-hvc-survey` replay, its teardown note, and its validation matrix
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md` plus `zigux/tests/phase11_uapi_header_parity_manifest.json`, the focused `scripts/zigux/check-phase11-header-boundary-packet.py`, and the manifest-backed survey replay
 - the shared contract and lane-sequencing notes that keep the shared-versus-driver-local split explicit
@@ -68,7 +69,7 @@ This closure note does not claim:
 
 - a shipped `validate-phase11.py`
 - a shipped `make -C zigux phase11-validate` route
-- a broader multi-checker validator stack beyond the current shared contract checker, dedicated bcm2835 packet checker, header-boundary checker, and HVC survey checker
+- a broader multi-checker validator stack beyond the current shared contract checker, dedicated bcm2835 packet checker, dedicated DesignWare packet checker, header-boundary checker, and HVC survey checker
 - live tty teardown execution, notifier execution, or host-backed HVC cleanup
 - platform-driver registration, PM base plumbing, clock or reset acquisition, live IRQ registration, or live MMIO validation for the watchdog starters
 - any broader hardware-backed validation beyond the landed driver-local matrices and verify-backed replays
