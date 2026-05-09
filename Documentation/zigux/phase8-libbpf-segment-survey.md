@@ -118,6 +118,7 @@ The current tests check:
 1. run the shared Phase 8 validator route first
    - `make -C zigux phase8-validate`
 2. run the focused cpu-mask build shard
+   - `make -C zigux phase8-cpu-mask-test`
    - `zig build test --build-file zigux/tests/phase8_cpu_mask_only_build.zig --summary all`
 3. run the focused libbpf survey wrapper
    - `make -C zigux phase8-libbpf-segments-test`
