@@ -436,11 +436,11 @@ def main_validation(root: Path) -> list[str]:
         if not abs_path.exists():
             return [f"missing_file:{abs_path.relative_to(root)}"]
 
-    closure = (root / "Documentation/zigux/phase2-closure.md").read_text(encoding="utf-8")
+    closure = (root / "Documentation" / "zigux" / "phase2-closure.md").read_text(encoding="utf-8")
     workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
-    ledger = (root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
+    ledger = (root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts" / "zigux/README.md").read_text(encoding="utf-8")
-    artifact_doc = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
+    artifact_doc = (root / "Documentation" / "zigux/artifact-diff.md").read_text(encoding="utf-8")
     toolchain_notes = TOOLCHAIN_NOTES.read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     tool_manifest = json.loads(
@@ -503,9 +503,9 @@ def main_validation(root: Path) -> list[str]:
         "confdata bridge keeps explicit n assignments as tristate values",
         "confdata bridge recognizes uppercase tristate assignments",
         "confdata bridge ignores non-CONFIG lines like upstream confdata",
-        "PHASE2_FIXDEP_CASE_COUNT=6",
-        "PHASE2_FIXDEP_CASES=sample,sample_escaped_space,sample_multi_target,sample_comment_only,sample_missing_dep,sample_escaped_hash_comment_chain",
-        "PHASE2_FIXDEP_STDOUT_PACKET=sample_expected.txt,sample_escaped_space_expected.txt,sample_multi_target_expected.txt,sample_comment_only_expected.txt,sample_missing_dep_expected.txt,sample_escaped_hash_comment_chain_expected.txt",
+        "PHASE2_FIXDEP_CASE_COUNT=7",
+        "PHASE2_FIXDEP_CASES=sample,sample_escaped_space,sample_escaped_colon,sample_multi_target,sample_comment_only,sample_missing_dep,sample_escaped_hash_comment_chain",
+        "PHASE2_FIXDEP_STDOUT_PACKET=sample_expected.txt,sample_escaped_space_expected.txt,sample_escaped_colon_expected.txt,sample_multi_target_expected.txt,sample_comment_only_expected.txt,sample_missing_dep_expected.txt,sample_escaped_hash_comment_chain_expected.txt",
     ]
     required_closure_markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
     required_closure_markers.extend(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
