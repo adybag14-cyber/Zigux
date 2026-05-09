@@ -70,7 +70,7 @@ pub fn argvSplitWithArgc(
     return initSplitResultFromOwnedStorage(allocator, storage, scan, argcp);
 }
 
-pub fn argvSplitOwnedStorage(
+fn argvSplitOwnedStorage(
     allocator: std.mem.Allocator,
     storage: [:0]u8,
     argcp: ?*usize,
