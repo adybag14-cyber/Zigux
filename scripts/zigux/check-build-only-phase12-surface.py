@@ -50,6 +50,9 @@ REQUIRED_FILE_MARKERS = {
         "`drivers/nvme/host/pci_verify.zig`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
+        "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`",
         "`make -C zigux phase12-smoke`",
         "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
         "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
@@ -265,19 +268,19 @@ REQUIRED_FILE_MARKERS = {
         "`make -C zigux phase12`",
     ],
     PHASE12_VIRTIO_NET_MANIFEST_PATH: [
-        "\"lane_key\": \"P12-L04\"",
-        "\"phase\": \"Phase 12\"",
-        "\"anchor\": \"drivers/net/virtio_net.c\"",
-        "\"id\": \"phase12-virtio-net-syntax-lab-gate\"",
-        "\"id\": \"phase12-virtio-net-segmented-rollout-boundary\"",
+        '"lane_key": "P12-L04"',
+        '"phase": "Phase 12"',
+        '"anchor": "drivers/net/virtio_net.c"',
+        '"id": "phase12-virtio-net-syntax-lab-gate"',
+        '"id": "phase12-virtio-net-segmented-rollout-boundary"',
     ],
     PHASE12_VIRTIO_NET_SURVEY_TEST_PATH: [
-        "try std.testing.expectEqualStrings(\"P12-L04\", manifest.lane_key);",
-        "try std.testing.expectEqualStrings(\"Phase 12\", manifest.phase);",
-        "try std.testing.expectEqualStrings(\"drivers/net/virtio_net.c\", manifest.anchor);",
-        "if (std.mem.eql(u8, gap.id, \"phase12-virtio-net-syntax-lab-gate\")) {",
-        "try std.testing.expectEqualStrings(\"zigux/tests/phase12_virtio_net_syntax_lab.zig\", gap.zigux_destination);",
-        "if (std.mem.eql(u8, gap.id, \"phase12-virtio-net-segmented-rollout-boundary\")) {",
+        'try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);',
+        'try std.testing.expectEqualStrings("Phase 12", manifest.phase);',
+        'try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);',
+        'if (std.mem.eql(u8, gap.id, "phase12-virtio-net-syntax-lab-gate")) {',
+        'try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_syntax_lab.zig", gap.zigux_destination);',
+        'if (std.mem.eql(u8, gap.id, "phase12-virtio-net-segmented-rollout-boundary")) {',
     ],
     PHASE12_BUILD_PATH: [
         'const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");',
@@ -311,6 +314,9 @@ REQUIRED_FILE_MARKERS = {
 }
 
 EXACT_COUNT_FILE_MARKERS = {
+    DOCS_README_PATH: {
+        "`zigux/tests/phase12_libbpf_snapshot_determinism.zig`": 1,
+    },
     SCRIPTS_README_PATH: {
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`": 1,
         "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`": 1,
@@ -343,6 +349,9 @@ EXACT_COUNT_FILE_MARKERS = {
 }
 
 FORBIDDEN_TEXT_MARKERS = {
+    DOCS_README_PATH: [
+        "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
+    ],
     SCRIPTS_README_PATH: [
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
     ],
