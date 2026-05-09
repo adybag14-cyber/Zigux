@@ -2,10 +2,11 @@
   "tool": "scripts/zigux/fixdep.zig",
   "status": "closed",
   "fixture_root": "zigux/tests/fixtures/fixdep",
-  "case_count": 6,
+  "case_count": 7,
   "cases": [
     "sample",
     "sample_escaped_space",
+    "sample_escaped_colon",
     "sample_multi_target",
     "sample_comment_only",
     "sample_missing_dep",
@@ -14,6 +15,7 @@
   "stdout_packet": [
     "sample_expected.txt",
     "sample_escaped_space_expected.txt",
+    "sample_escaped_colon_expected.txt",
     "sample_multi_target_expected.txt",
     "sample_comment_only_expected.txt",
     "sample_missing_dep_expected.txt",
