@@ -138,6 +138,8 @@ REQUIRED_SURVEY_MARKERS = [
 ]
 
 REQUIRED_BUILD_MARKERS = [
+    "const abi_bindings_module = b.createModule(.{",
+    'layout_assert_module.addImport("abi_bindings", abi_bindings_module);',
     "phase11_uapi_header_parity_survey.zig",
     "phase11-uapi-header-parity-survey-tests",
     "phase11-hvc-console-survey-tests",
@@ -322,14 +324,14 @@ def run_self_test() -> int:
         run_case(
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
             "phase11-uapi-header-parity-surface",
-            "phase11-uapi-header-parity-surface\ndrivers/tty/hvc/hvc_console.zig",
-            "note contains stale markers",
+            "phase11-uapi-header-packet-absent",
+            "note missing markers",
         )
         run_case(
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
             "phase11-uapi-header-parity-surface",
-            "phase11-uapi-header-packet-absent",
-            "note missing markers",
+            "phase11-uapi-header-parity-surface\ndrivers/tty/hvc/hvc_console.zig",
+            "note contains stale markers",
         )
         run_case(
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
@@ -372,6 +374,12 @@ def run_self_test() -> int:
             '"zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig"',
             '"zigux_destination": "zigux/tests/phase11_uapi_header_packet_survey.zig"',
             "zigux_destination mismatch",
+        )
+        run_case(
+            "zigux/tests/phase11_build.zig",
+            'layout_assert_module.addImport("abi_bindings", abi_bindings_module);',
+            'layout_assert_module.addImport("abi_bindings", layout_assert_module);',
+            "build missing markers",
         )
         run_case(
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
