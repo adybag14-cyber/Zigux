@@ -28,8 +28,8 @@ REQUIRED_SNIPPETS = {
         "- `PHASE6_PACKET=base64-bsearch-checksum-hexdump`",
         "- surveyed head: `911470d`",
         "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
-        "- focused lower-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
-        "- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated lower-bound C ABI companion that keeps the typed and raw lower-bound comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today",
+        "- focused lower- and upper-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
+        "- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated bounds-focused C ABI companion that keeps the typed and raw lower- and upper-bound comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today",
         "- `make -C zigux phase6-hexdump-test`",
         "- `make -C zigux phase6-validate`",
         "- `make -C zigux phase6`",
@@ -57,14 +57,14 @@ REQUIRED_SNIPPETS = {
     "Documentation/zigux/phase6-bsearch-slice.md": [
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_SLICE=bsearch-leaf-helper`",
-        "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower-bound companion, or packet-alignment drift appears",
+        "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, lower- or upper-bound companion, or packet-alignment drift appears",
         "- `searchIndex`",
         "- `search`",
         "- `searchMutable`",
         "- `bsearchIndex`",
         "- `bsearch`",
         "- `bsearchMutable`",
-        "- focused typed and raw lower-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
+        "- focused typed and raw lower- and upper-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses",
         "The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable, and the same focused replay now carries the bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route.",
     ],
@@ -464,7 +464,7 @@ def scaffold_repo(root: Path) -> None:
                         "c_parity_cases": 24,
                     },
                     "checksum": {
-                        "c_parity_cases": 39,
+                        "c_parity_cases": 41,
                     },
                     "generated_fixture_artifacts_committed": False,
                 },
@@ -495,7 +495,7 @@ def scaffold_repo(root: Path) -> None:
                     [
                         "EXPECTED_SORTED_LINES = sorted(",
                         "    [",
-                        *[f'        \"case-{index:02d}\",' for index in range(1, 40)],
+                        *[f'        \"case-{index:02d}\",' for index in range(1, 42)],
                         "    ]",
                         ")",
                         'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")',
@@ -604,7 +604,7 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "scripts/zigux/check-phase6-checksum-c-parity.py",
-            '        "case-39",\n',
+            '        "case-41",\n',
             "",
         )
         assert_failure(
@@ -634,7 +634,7 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "Documentation/zigux/phase6-bsearch-slice.md",
-            "focused typed and raw lower-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
+            "focused typed and raw lower- and upper-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
             "focused typed and raw lower-bound C ABI parity through `zigux/tests/phase6_bsearch_lower_bound.zig`",
         )
         assert_failure(
