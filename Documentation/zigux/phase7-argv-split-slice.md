@@ -37,6 +37,7 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 - an explicit result object that owns the copied token buffer
 - deterministic Zig-only validation without quote or shell expansion behavior
 - stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path
+- helper-local owned-storage handoff reviewability through the internal `argvSplitOwnedStorage()` path, including blank owned-storage fallback to the canonical empty storage and exported argv sentinels
 - integration with the parked shared Phase 7 validator-first, review-checklist, and make-wrapper control packet through `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
@@ -88,6 +89,7 @@ The current tests check:
 - exported C-argv vector sizing to `argc + 1` so the trailing null sentinel stays aligned with `argvSplitWithArgc()` and `cArgv()`
 - copied-buffer ownership so later source mutation does not affect split results
 - copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated
+- caller-owned owned-storage reuse keeps token pointers inside the supplied storage copy, and blank owned-storage input falls back to the shared empty storage and exported argv sentinels without inventing extra allocator-backed state
 - separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results
 - tearing down one non-blank result does not disturb another caller's owned storage or exported C-argv view, whether teardown happens through `argvFree()` or `deinit()`
 - blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`
