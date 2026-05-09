@@ -640,8 +640,8 @@ def run_self_test() -> int:
 
         write_text(root / "zigux/tests/phase14_build.zig", placeholder_text["zigux/tests/phase14_build.zig"])
         rcu_survey_path = root / RCU_SURVEY_PATH
-        rcu_survey_path.writeText(
-            rcu_survey_path.readText(encoding="utf-8").replace(
+        rcu_survey_path.write_text(
+            rcu_survey_path.read_text(encoding="utf-8").replace(
                 "- rollback owner: `Repo Tooling Pod`\n",
                 "",
                 1,
