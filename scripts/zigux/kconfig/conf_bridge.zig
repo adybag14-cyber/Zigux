@@ -380,6 +380,45 @@ test "conf bridge mode surface stays aligned with conf.c long options" {
     }
 }
 
+test "conf bridge mode contract helpers stay aligned with supported modes" {
+    const expected = [_]struct {
+        mode: Mode,
+        requires_argument: bool,
+        missing_argument_message: ?[]const u8,
+        uses_allconfig_sentinel: bool,
+        accepts_allconfig_override: bool,
+    }{
+        .{ .mode = .oldaskconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
+        .{ .mode = .syncconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
+        .{ .mode = .oldconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
+        .{ .mode = .allnoconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = true, .accepts_allconfig_override = true },
+        .{ .mode = .allyesconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = true, .accepts_allconfig_override = true },
+        .{ .mode = .allmodconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = true, .accepts_allconfig_override = true },
+        .{ .mode = .alldefconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = true, .accepts_allconfig_override = true },
+        .{ .mode = .randconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = true },
+        .{ .mode = .defconfig, .requires_argument = true, .missing_argument_message = "Error: defconfig mode requires <defconfig>\n", .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
+        .{ .mode = .savedefconfig, .requires_argument = true, .missing_argument_message = "Error: savedefconfig mode requires <path>\n", .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
+        .{ .mode = .listnewconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
+        .{ .mode = .helpnewconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
+        .{ .mode = .olddefconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
+        .{ .mode = .yes2modconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
+        .{ .mode = .mod2yesconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
+        .{ .mode = .mod2noconfig, .requires_argument = false, .missing_argument_message = null, .uses_allconfig_sentinel = false, .accepts_allconfig_override = false },
+    };
+
+    try std.testing.expectEqual(std.meta.fields(Mode).len, expected.len);
+
+    inline for (expected) |entry| {
+        try std.testing.expectEqual(entry.requires_argument, modeRequiresArgument(entry.mode));
+        try std.testing.expectEqual(entry.uses_allconfig_sentinel, modeUsesAllConfigSentinel(entry.mode));
+        try std.testing.expectEqual(entry.accepts_allconfig_override, modeAcceptsAllConfigOverride(entry.mode));
+
+        if (entry.missing_argument_message) |message| {
+            try std.testing.expectEqualStrings(message, missingModeArgumentMessage(entry.mode));
+        }
+    }
+}
+
 test "conf bridge emits olddefconfig argv and env" {
     var capture = try TestCapture.init(std.testing.allocator, 128);
     defer capture.deinit();
