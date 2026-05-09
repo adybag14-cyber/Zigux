@@ -73,6 +73,12 @@ pub const NoOpCopyBoundaryReplay = struct {
     rejected_inactive_sources: u8,
 };
 
+pub const TailOverflowMutationReplay = struct {
+    summary_before: RuntimeBitmapSummary,
+    summary_after: RuntimeBitmapSummary,
+    rejected_overflow_mutations: u8,
+};
+
 pub const RuntimeBitmapSample = struct {
     const Self = @This();
 
@@ -239,6 +245,34 @@ pub const RuntimeBitmapSample = struct {
             .summary_before = summary_before,
             .summary_after = self.summary(),
             .rejected_inactive_sources = rejected_inactive_sources,
+        };
+    }
+
+    pub fn runTailOverflowMutationReplay(self: *Self) !TailOverflowMutationReplay {
+        try self.ensureMutable();
+
+        const summary_before = self.summary();
+        const top_bit = bitmap_nbits - 1;
+        var rejected_overflow_mutations: u8 = 0;
+
+        _ = self.setRange(top_bit, 2) catch |err| switch (err) {
+            error.BitRangeOutOfBounds => {
+                rejected_overflow_mutations += 1;
+            },
+            else => return err,
+        };
+
+        _ = self.clearRange(top_bit, 2) catch |err| switch (err) {
+            error.BitRangeOutOfBounds => {
+                rejected_overflow_mutations += 1;
+            },
+            else => return err,
+        };
+
+        return .{
+            .summary_before = summary_before,
+            .summary_after = self.summary(),
+            .rejected_overflow_mutations = rejected_overflow_mutations,
         };
     }
 
@@ -432,6 +466,26 @@ test "runtime bitmap sample keeps no-op mutations and copy boundaries explicit" 
     try std.testing.expectEqual(@as(u8, 2), replay.rejected_inactive_sources);
     try std.testing.expect(module.isSet(2));
     try std.testing.expect(module.isSet(7));
+}
+
+test "runtime bitmap sample keeps tail-overflow mutation replay local to the sample" {
+    var module = RuntimeBitmapSample{};
+    const top_bit = RuntimeBitmapSample.bitmap_nbits - 1;
+
+    try module.initWithSetBits(&.{ 1, top_bit });
+    _ = try module.runSelftest();
+
+    const replay = try module.runTailOverflowMutationReplay();
+
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(replay.summary_before.first_set, replay.summary_after.first_set);
+    try std.testing.expectEqual(replay.summary_before.first_zero, replay.summary_after.first_zero);
+    try std.testing.expectEqual(replay.summary_before.weight, replay.summary_after.weight);
+    try std.testing.expectEqual(replay.summary_before.nbits, replay.summary_after.nbits);
+    try std.testing.expectEqual(@as(u8, 2), replay.rejected_overflow_mutations);
+    try std.testing.expect(module.isSet(1));
+    try std.testing.expect(module.isSet(top_bit));
+    try std.testing.expect(!module.isSet(top_bit - 1));
 }
 
 test "runtime bitmap sample keeps the highest valid bit explicit" {
