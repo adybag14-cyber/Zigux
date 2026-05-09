@@ -205,6 +205,11 @@ test "phase11 hvc console survey note records the bounded layout checkpoints" {
     try expectContains(note, "size `72`");
     try expectContains(note, "Documentation/zigux/phase11-hvc-console-teardown-note.md");
     try expectContains(note, "close, cleanup, remove, and hangup-disconnect ownership split");
+    try expectContains(note, "resize-work cancellation");
+    try expectContains(note, "stale-count short-circuiting");
+    try expectContains(note, "notifier-hangup ownership");
+    try expectContains(note, "buffered-write clearing");
+    try expectContains(note, "kept console binding");
     try expectContains(note, "current driver, verifier, tests, archival manifest, validation matrix, and shared replay contract");
     try expectContains(note, "khvcd polling-contract follow-through");
     try expectContains(note, "`hvc_hangup()` disconnect boundary");
