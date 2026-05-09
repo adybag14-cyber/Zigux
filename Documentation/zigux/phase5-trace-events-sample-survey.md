@@ -63,6 +63,7 @@ The exact checks now exercised through `zigux/tests/phase5_build.zig` and the di
 - `runAnchorReplay()` formats `iter=7` and selects `Gandalf` from the Linux `random_strings` table for `len = 2`
 - the replay keeps the `1,2` payload prefix plus a zero sentinel so the Linux array idiom remains reviewable in memory
 - `runPayloadBoundaryReplay()` keeps the count-4 `1,2,3,4` payload prefix, zero sentinel, `iter=4` message, `One ring to rule them all` selection, and the initialized-stage boundary reviewable through a public helper instead of private sample state
+- `runConditionalBoundaryReplay()` keeps the count-0 `Mother Goose` branch, the count-5 wraparound back to `Mother Goose`, the `iter=%d` message, the `0xdeadbeef` bitmask cue, and the six main-thread family counts reviewable through a public helper instead of private sample-state reads
 - the replay records the `0xdeadbeef` bitmask word and marks the relative-location payload path as checked in the replay summary
 - the replay marks the vararg payload path as checked so the `fmt` plus `va_list` `trace_foo_bar` idiom stays explicit in the public replay summary
 - the replay records six main-thread event calls and two function-callback event calls for a total of eight bounded tracepoint-family calls
@@ -105,7 +106,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 
 The current gap is no longer "Zigux has no trace-events sample guidance." The more precise state is:
 
-- the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, formatted messages, bounded family counts, vararg-payload coverage, relative-location coverage, callback-path coverage, the public payload and callback boundary helpers, the sample-owned `runOwnershipReplay()` helper, and teardown-owned ownership-lifetime boundaries
+- the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, formatted messages, bounded family counts, vararg-payload coverage, relative-location coverage, callback-path coverage, the public payload and conditional boundary helpers, the public callback boundary helper, the sample-owned `runOwnershipReplay()` helper, and teardown-owned ownership-lifetime boundaries
 - the repo still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample, so reviewers should keep treating the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` as the approved formatting idiom cue while standalone formatting-helper evidence stays under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet
 - the shared docs-root, sample-root, scripts-root, tests-root, and Phase 5 guide packet should stay explicit here too, so this survey note does not understate the already-shipped review surface for the landed sample
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
