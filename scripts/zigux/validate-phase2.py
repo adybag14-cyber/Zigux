@@ -161,6 +161,7 @@ REQUIRED_LEDGER_MARKERS = [
 REQUIRED_WORKFLOW_MARKERS = [
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
+    "python3 scripts/zigux/check-zig-toolchain.py",
     "python3 scripts/zigux/validate-phase2.py",
     "python3 scripts/zigux/validate-phase2-closure.py",
     "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
@@ -195,6 +196,8 @@ REQUIRED_WORKFLOW_MARKERS = [
 ]
 
 REQUIRED_EXACT_WORKFLOW_RUN_COUNTS = {
+    "python3 scripts/zigux/check-zig-toolchain.py --self-test": 1,
+    "python3 scripts/zigux/check-zig-toolchain.py": 1,
     "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-fixdep-gate.py": 1,
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test": 1,
@@ -589,6 +592,8 @@ def run_self_test() -> int:
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-phase2-cross.py --self-test"] == 1
     assert "python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test" in REQUIRED_WORKFLOW_MARKERS
     assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test"] == 1
+    assert "python3 scripts/zigux/check-zig-toolchain.py" in REQUIRED_WORKFLOW_MARKERS
+    assert REQUIRED_EXACT_WORKFLOW_RUN_COUNTS["python3 scripts/zigux/check-zig-toolchain.py"] == 1
     assert "python3 scripts/zigux/check-zig-toolchain.py --self-test" in REQUIRED_REVIEW_MARKERS
     assert "scripts/zigux/check-genksyms-bridge.py" in REQUIRED_REVIEW_MARKERS
     assert "scripts/zigux/check-genksyms-crc-diff.py" in REQUIRED_REVIEW_MARKERS
@@ -648,7 +653,7 @@ def run_self_test() -> int:
     assert missing
     assert missing[0] == "missing_file:scripts/zigux/fixdep.zig"
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=8")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
