@@ -41,6 +41,8 @@ test "helper-first tools/lib/bpf Zigux segments keep the landed bounded entrypoi
     try expectHasDecl(file_path_handle_bridge, "summarizeMapReuseCompatibility");
     try expectHasDecl(file_path_handle_bridge, "resolveReusePinnedMapAttempt");
     try expectHasDecl(file_path_handle_bridge, "planTokenPreparation");
+    try expectHasDecl(file_path_handle_bridge, "planTokenBridgePath");
+    try expectHasDecl(file_path_handle_bridge, "resolveTokenBridgeAttempt");
 
     try expectHasDecl(perf_buffer_poll, "summarizePollExecution");
     try expectHasDecl(perf_buffer_poll, "resolvePollExecutionResult");
