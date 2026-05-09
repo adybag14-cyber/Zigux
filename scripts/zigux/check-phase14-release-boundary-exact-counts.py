@@ -256,6 +256,24 @@ def run_self_test() -> int:
             return 1
         write_text(release_path, expected_release_text)
 
+        write_text(
+            release_path,
+            read_text(release_path).replace(
+                "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`\n",
+                "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`\n- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`\n",
+                1,
+            ),
+        )
+        errors = check(root)
+        if not any(
+            "marker count drift in Documentation/zigux/phase14-release-boundary-survey.md: PHASE14_SHARED_SMOKE_GATE_COUNT=1 (expected 1, found 2)"
+            in error
+            for error in errors
+        ):
+            print("self-test expected duplicate shared-smoke gate count failure", file=sys.stderr)
+            return 1
+        write_text(release_path, expected_release_text)
+
         smoke_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
         write_text(
             smoke_path,
