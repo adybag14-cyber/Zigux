@@ -306,7 +306,13 @@ test "phase 5 bytestream fifo sample keeps wrapped preview truncation explicit" 
     try std.testing.expectEqual(sample.SampleFocus.non_destructive_snapshot, wrapped_preview.checked_focus[1]);
     try std.testing.expectEqual(sample.SampleFocus.preview_truncation, wrapped_preview.checked_focus[2]);
     try std.testing.expectEqual(sample.SampleFocus.queue_shape_boundaries, wrapped_preview.checked_focus[3]);
+    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.count());
     try std.testing.expectEqual(@as(usize, 0), module.available());
     try std.testing.expect(module.usesWrappedStorageWindow());
+    const wrapped_spans = module.visibleSpanSummary();
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 4), wrapped_spans.first_span_len);
+    try std.testing.expectEqual(@as(usize, 4), wrapped_spans.second_span_len);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), wrapped_spans.total_visible);
+    try std.testing.expect(wrapped_spans.wrapped);
 }
