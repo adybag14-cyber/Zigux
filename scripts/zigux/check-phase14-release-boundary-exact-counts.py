@@ -15,6 +15,7 @@ import tempfile
 from pathlib import Path
 
 MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
+PHASE14_SECTION_HEADING = "## Phase 14: Core-Adjacent Bounded Internals"
 REQUIRED_COUNTS = {
     "PHASE14_ROADMAP_ANCHOR_COUNT": 4,
     "PHASE14_STUDY_ONLY_ANCHOR_COUNT": 2,
@@ -80,6 +81,24 @@ def extract_bullets(text: str, heading: str) -> list[str]:
     return items
 
 
+def extract_section(text: str, heading: str) -> str | None:
+    lines = text.splitlines()
+    in_section = False
+    collected: list[str] = []
+    for line in lines:
+        if line.strip() == heading:
+            in_section = True
+            collected.append(line)
+            continue
+        if in_section and line.startswith("## "):
+            break
+        if in_section:
+            collected.append(line)
+    if not collected:
+        return None
+    return "\n".join(collected) + "\n"
+
+
 def require_exact_line_count(errors: list[str], rel_path: str, text: str, line: str, label: str) -> None:
     actual_count = text.count(line)
     if actual_count != 1:
@@ -132,9 +151,13 @@ def check(root: Path) -> list[str]:
         "PHASE14_ANCHOR_PACKET_COUNT=4",
     )
 
-    roadmap_anchors = extract_bullets(roadmap_text, "Primary Linux anchors:")
-    if roadmap_anchors != ROADMAP_PHASE14_ANCHORS:
-        errors.append("roadmap Phase 14 anchor list drifted from the four-anchor shared smoke packet")
+    phase14_section = extract_section(roadmap_text, PHASE14_SECTION_HEADING)
+    if phase14_section is None:
+        errors.append("missing Phase 14 roadmap section in zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md")
+    else:
+        roadmap_anchors = extract_bullets(phase14_section, "Primary Linux anchors:")
+        if roadmap_anchors != ROADMAP_PHASE14_ANCHORS:
+            errors.append("roadmap Phase 14 anchor list drifted from the four-anchor shared smoke packet")
 
     freeze_in_c = extract_bullets(freeze_map_text, "Active freeze-in-C targets for the current product plan:")
     if freeze_in_c != FREEZE_IN_C_ANCHORS:
@@ -198,7 +221,14 @@ def run_self_test() -> int:
         )
         expected_roadmap_text = "\n".join(
             [
-                "## Phase 14: Core-Adjacent Bounded Internals",
+                "## Phase 3: ABI and Interop Substrate",
+                "Primary Linux anchors:",
+                "- rust/exports.c",
+                "- lib/bitmap.c",
+                "- lib/rbtree.c",
+                "- lib/cpumask.c",
+                "",
+                PHASE14_SECTION_HEADING,
                 "Primary Linux anchors:",
                 "- kernel/workqueue.c",
                 "- kernel/trace/ring_buffer.c",
@@ -359,7 +389,34 @@ def run_self_test() -> int:
             roadmap_path,
             "\n".join(
                 [
-                    "## Phase 14: Core-Adjacent Bounded Internals",
+                    "## Phase 3: ABI and Interop Substrate",
+                    "Primary Linux anchors:",
+                    "- rust/exports.c",
+                    "- lib/bitmap.c",
+                    "- lib/rbtree.c",
+                    "- lib/cpumask.c",
+                    "",
+                ]
+            ),
+        )
+        errors = check(root)
+        if not any("missing Phase 14 roadmap section in zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md" in error for error in errors):
+            print("self-test expected failure when the Phase 14 roadmap section was missing", file=sys.stderr)
+            return 1
+        write_text(roadmap_path, expected_roadmap_text)
+
+        write_text(
+            roadmap_path,
+            "\n".join(
+                [
+                    "## Phase 3: ABI and Interop Substrate",
+                    "Primary Linux anchors:",
+                    "- rust/exports.c",
+                    "- lib/bitmap.c",
+                    "- lib/rbtree.c",
+                    "- lib/cpumask.c",
+                    "",
+                    PHASE14_SECTION_HEADING,
                     "Primary Linux anchors:",
                     "- kernel/workqueue.c",
                     "- kernel/trace/ring_buffer.c",
