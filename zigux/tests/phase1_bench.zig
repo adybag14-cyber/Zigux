@@ -120,6 +120,7 @@ fn findBitEdgeBench() struct { checksum: u64 } {
     const past_nbits = 7;
     const boundary_set = [_]find_bit.Word{(@as(find_bit.Word, 1) << @intCast(boundary)), 0};
     const boundary_zero = [_]find_bit.Word{~(@as(find_bit.Word, 1) << @intCast(boundary)), ~@as(find_bit.Word, 0)};
+    const empty_mask = [_]find_bit.Word{ 0, 0 };
     const tail_set = [_]find_bit.Word{0, @as(find_bit.Word, 1) << 3};
     const tail_full = [_]find_bit.Word{~@as(find_bit.Word, 0), find_bit.lastWordMask(tail_nbits)};
     const empty = [_]find_bit.Word{};
@@ -129,9 +130,11 @@ fn findBitEdgeBench() struct { checksum: u64 } {
     while (idx < iterations_find_bit_edge) : (idx += 1) {
         checksum +%= @intCast(find_bit.findNextBit(&boundary_set, head_nbits, boundary));
         checksum +%= @intCast(find_bit.findNextAndBit(&boundary_set, &boundary_set, head_nbits, boundary));
+        checksum +%= @intCast(find_bit.findNextAndNotBit(&boundary_set, &empty_mask, head_nbits, boundary));
         checksum +%= @intCast(find_bit.findNextZeroBit(&boundary_zero, head_nbits, boundary));
         checksum +%= @intCast(find_bit._find_next_bit(&boundary_set, head_nbits, boundary));
         checksum +%= @intCast(find_bit._find_next_and_bit(&boundary_set, &boundary_set, head_nbits, boundary));
+        checksum +%= @intCast(find_bit._find_next_andnot_bit(&boundary_set, &empty_mask, head_nbits, boundary));
         checksum +%= @intCast(find_bit._find_next_zero_bit(&boundary_zero, head_nbits, boundary));
         checksum +%= @intCast(find_bit.findFirstBit(&tail_set, tail_nbits));
         checksum +%= @intCast(find_bit._find_first_bit(&tail_set, tail_nbits));
@@ -141,7 +144,11 @@ fn findBitEdgeBench() struct { checksum: u64 } {
         checksum +%= @intCast(find_bit.findNextZeroBit(&tail_full, tail_nbits, find_bit.bits_per_long));
         checksum +%= @intCast(find_bit.findFirstAndBit(&tail_set, &tail_set, tail_nbits));
         checksum +%= @intCast(find_bit._find_first_and_bit(&tail_set, &tail_set, tail_nbits));
+        checksum +%= @intCast(find_bit.findFirstAndNotBit(&tail_set, &empty_mask, tail_nbits));
+        checksum +%= @intCast(find_bit._find_first_andnot_bit(&tail_set, &empty_mask, tail_nbits));
         checksum +%= @intCast(find_bit.findNextAndBit(&tail_set, &tail_set, tail_nbits, find_bit.bits_per_long + 4));
+        checksum +%= @intCast(find_bit.findNextAndNotBit(&tail_set, &empty_mask, tail_nbits, find_bit.bits_per_long + 4));
+        checksum +%= @intCast(find_bit._find_next_andnot_bit(&tail_set, &empty_mask, tail_nbits, find_bit.bits_per_long + 4));
         checksum +%= @intCast(find_bit.findLastBit(&tail_set, tail_nbits));
         checksum +%= @intCast(find_bit._find_last_bit(&tail_set, tail_nbits));
         checksum +%= @intCast(find_bit.findNextBit(&empty, past_nbits, past_nbits));
