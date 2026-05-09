@@ -450,6 +450,8 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".unregister_api = \"tracepoint_probe_unregister\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .waiting_on_runtime_substrate;") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .released_without_substrate;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader emits the shared runtime-loader contract plan\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader keeps initialized-stage shared contract plans explicit\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader keeps the prepared snapshot stable across later sample mutation\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader keeps initialized shared-request snapshots stable across later selftest activity\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader bridges the shared request lifecycle without widening registration claims\"") != null);
