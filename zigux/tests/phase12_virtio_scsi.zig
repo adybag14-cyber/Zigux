@@ -217,6 +217,7 @@ test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery 
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRestoreSummary());
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRestoreQueueRebindSummary());
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRequestQueueRestartSummary());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRequestQueueOwnershipSummary());
 
     const replanned = try lab.planQueueLayout(4, 1);
     try std.testing.expectEqual(@as(u16, 3), replanned.default_queues);
@@ -268,6 +269,21 @@ test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery 
     try std.testing.expect(second_restart.requires_replan_before_restart);
     try std.testing.expect(second_restart.preserves_default_before_poll_partition);
 
+    const second_request_queue_ownership = try lab.recoveryRequestQueueOwnershipSummary();
+    try std.testing.expectEqual(@as(u16, 4), second_request_queue_ownership.request_queues);
+    try std.testing.expectEqual(@as(u16, 3), second_request_queue_ownership.default_queues);
+    try std.testing.expectEqual(@as(u16, 1), second_request_queue_ownership.poll_queues);
+    try std.testing.expectEqual(@as(u16, 6), second_request_queue_ownership.total_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), second_request_queue_ownership.event_queue_index);
+    try std.testing.expectEqual(@as(u16, 2), second_request_queue_ownership.first_request_queue_index);
+    try std.testing.expectEqual(@as(?u16, 5), second_request_queue_ownership.first_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), second_request_queue_ownership.event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 1), second_request_queue_ownership.recovery_generation);
+    try std.testing.expect(second_request_queue_ownership.request_queue_access_stays_blocked_until_restore);
+    try std.testing.expect(second_request_queue_ownership.request_queue_access_requires_replan_after_restore);
+    try std.testing.expect(second_request_queue_ownership.poll_queues_resume_only_after_default_queues);
+    try std.testing.expect(second_request_queue_ownership.event_rearm_completes_before_request_queue_reuse);
+
     const second_ownership = try lab.recoveryEventBufferOwnershipSummary();
     try std.testing.expectEqual(@as(u16, 4), second_ownership.request_queues);
     try std.testing.expectEqual(@as(u16, 3), second_ownership.default_queues);
@@ -317,6 +333,22 @@ test "phase12 virtio scsi recovery event ownership and rollback keep the frozen 
 
     _ = try lab.freezeForTransportReset();
     try std.testing.expectError(error.TransportFrozen, lab.requestQueue(0));
+
+    const request_queue_ownership = try lab.recoveryRequestQueueOwnershipSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", request_queue_ownership.anchor);
+    try std.testing.expectEqual(@as(u16, 7), request_queue_ownership.request_queues);
+    try std.testing.expectEqual(@as(u16, 4), request_queue_ownership.default_queues);
+    try std.testing.expectEqual(@as(u16, 3), request_queue_ownership.poll_queues);
+    try std.testing.expectEqual(@as(u16, 9), request_queue_ownership.total_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), request_queue_ownership.event_queue_index);
+    try std.testing.expectEqual(@as(u16, 2), request_queue_ownership.first_request_queue_index);
+    try std.testing.expectEqual(@as(?u16, 6), request_queue_ownership.first_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), request_queue_ownership.event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 0), request_queue_ownership.recovery_generation);
+    try std.testing.expect(request_queue_ownership.request_queue_access_stays_blocked_until_restore);
+    try std.testing.expect(request_queue_ownership.request_queue_access_requires_replan_after_restore);
+    try std.testing.expect(request_queue_ownership.poll_queues_resume_only_after_default_queues);
+    try std.testing.expect(request_queue_ownership.event_rearm_completes_before_request_queue_reuse);
 
     const ownership = try lab.recoveryEventBufferOwnershipSummary();
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", ownership.anchor);
@@ -370,6 +402,11 @@ test "phase12 virtio scsi recovery event rearm summary stays tied to the frozen 
 test "phase12 virtio scsi recovery event rearm summary requires a frozen transport" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventRearmSummary());
+}
+
+test "phase12 virtio scsi request queue ownership summary requires a frozen transport" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRequestQueueOwnershipSummary());
 }
 
 test "phase12 virtio scsi request queue restart summary requires a frozen transport" {
