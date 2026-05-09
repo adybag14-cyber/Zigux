@@ -347,8 +347,16 @@ def build_self_test_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
+    case_count = 0
+    root_validator = globals()["validate_root"]
     with tempfile.TemporaryDirectory(prefix="phase3_selftest_surface_") as tmp_dir:
         root = Path(tmp_dir)
+
+        def validate_root(root_path: Path) -> list[str]:
+            nonlocal case_count
+            case_count += 1
+            return root_validator(root_path)
+
         build_self_test_root(root)
 
         assert validate_root(root) == []
@@ -813,7 +821,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=40")
+    print(f"PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
