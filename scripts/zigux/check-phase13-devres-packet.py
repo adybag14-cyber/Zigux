@@ -39,6 +39,7 @@ SURVEY_MARKERS = [
     "helper-only DMA/scatterlist boundary",
     "keeps `devm_iounmap()` pointer matching exact",
     "devm_ioremap_uc()",
+    "devm_ioremap_wc()",
     "devm_ioremap_resource_wc()",
     "zigux/tests/phase13_devres_boundary_evidence.zig",
 ]
@@ -103,6 +104,8 @@ DEVRES_HELPER_MARKERS = [
 
 DEVRES_TEST_MARKERS = [
     'test "phase13 devres uncached ioremap wrapper preserves the managed lifetime path" {',
+    'test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
+    'test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
     'test "phase13 devres release matching stays pointer-exact" {',
     "try std.testing.expect(devres.DevresHelperLab.ioremapReleaseMatches(0x4000, 0x4000));",
     'test "phase13 devres WC resource wrapper preserves the requested WC mapping type" {',
@@ -272,6 +275,7 @@ def run_self_test() -> int:
                 "phase13-devres-survey:helper-only DMA/scatterlist boundary",
                 "phase13-devres-survey:keeps `devm_iounmap()` pointer matching exact",
                 "phase13-devres-survey:devm_ioremap_uc()",
+                "phase13-devres-survey:devm_ioremap_wc()",
                 "phase13-devres-survey:devm_ioremap_resource_wc()",
                 "phase13-devres-survey:zigux/tests/phase13_devres_boundary_evidence.zig",
             ],
@@ -324,6 +328,8 @@ def run_self_test() -> int:
             validate(root),
             [
                 'phase13-devres-test:test "phase13 devres uncached ioremap wrapper preserves the managed lifetime path" {',
+                'phase13-devres-test:test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {',
+                'phase13-devres-test:test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {',
                 'phase13-devres-test:test "phase13 devres release matching stays pointer-exact" {',
                 "phase13-devres-test:try std.testing.expect(devres.DevresHelperLab.ioremapReleaseMatches(0x4000, 0x4000));",
                 'phase13-devres-test:test "phase13 devres WC resource wrapper preserves the requested WC mapping type" {',
