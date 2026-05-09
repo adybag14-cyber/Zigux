@@ -112,4 +112,11 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_value = null,
         .expected_rest = "next",
     },
+    .{
+        .name = "empty input keeps borrowed empty sentinel slices",
+        .input = "",
+        .expected_param = "",
+        .expected_value = null,
+        .expected_rest = "",
+    },
 };
