@@ -133,6 +133,8 @@ Reviewers should treat any future claim that the active Phase 10 tranche already
 
 Keep the shared Phase 10 tranche parked unless the closure packet itself moves again or one remaining shared-summary undercount is still visible.
 
-If `Documentation/zigux/README.md` still names the focused verify replays and manifests without also naming the landed direct `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and `drivers/virtio/virtio_mmio.zig` files, repair that one docs-root summary first.
+Fresh shared-surface readback now shows `Documentation/zigux/README.md` and `scripts/zigux/README.md` already keep the landed direct `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_mmio.zig`, and `zigux/tests/phase10_virtio_input_probe_preflight.zig` replay explicit beside the focused verify, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain reminders.
 
-If `Documentation/zigux/phase10-closure-evidence.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_build.zig`, or one of the core, ring, input, or MMIO survey manifests changes, reread the shared closure packet first and reopen only for the smallest shared scoreboard note or evidence repair that current `master` still understates.
+The next same-lane follow-through is now one tests-root truthfulness repair in `zigux/tests/README.md`: keep the tests-root Phase 10 summary explicit about the landed `zigux/tests/phase10_virtio_input_probe_preflight.zig` replay beside the already-named direct driver files, focused verify replays, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain reminders.
+
+After that one tests-root repair lands, reread the shared closure packet again and reopen only for the next smallest shared scoreboard note or evidence repair that current `master` still understates.
