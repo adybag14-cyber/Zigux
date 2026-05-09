@@ -570,6 +570,15 @@ test "nextArg keeps unquoted values and empty quoted values bounded to the curre
     try std.testing.expectEqualStrings("quiet", cStringPrefix(parsed_empty.rest));
 }
 
+test "nextArg keeps the first equals inside an unquoted value" {
+    var buffer = [_]u8{ 'k', 'e', 'y', '=', 'a', 'l', 'p', 'h', 'a', '=', 'b', 'e', 't', 'a', ' ', 't', 'a', 'i', 'l', 0 };
+    const parsed = nextArg(&buffer);
+
+    try std.testing.expectEqualStrings("key", parsed.param);
+    try std.testing.expectEqualStrings("alpha=beta", parsed.value.?);
+    try std.testing.expectEqualStrings("tail", cStringPrefix(parsed.rest));
+}
+
 test "nextArg keeps empty whitespace-separated values and unterminated quoted values bounded to the current token" {
     var whitespace_value = [_]u8{ 'f', 'o', 'o', '=', ' ', 'b', 'a', 'r', 0 };
     const parsed_whitespace_value = nextArg(&whitespace_value);
