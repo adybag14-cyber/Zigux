@@ -6,7 +6,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-dated-readback-truthfulness-refresh`
-- `PHASE15_LANE_KEY=P15-L06`
+- `PHASE15_LANE_KEY=P15-L07`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one review-process note, one dedicated manifest and Zig test, the focused lane-owner vocabulary alignment replay already shipped in the shared Phase 15 build, the focused indefinite-C blocker-evidence replay already shipped in the shared Phase 15 build, the shared governance-lane sequencing replay already shipped in the shared Phase 15 build, the shared Phase 15 build wiring, and one bounded truthfulness refresh that retires a stale exact-head claim without reopening policy or freeze-map status discussion
 - survey provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 after live compare-against-master confirmed the previously recorded verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` is no longer current `master`
