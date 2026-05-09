@@ -5,7 +5,7 @@
   "doc_count": 12,
   "manifest_count": 4,
   "driver_count": 5,
-  "test_count": 14,
+  "test_count": 15,
   "has_virtio_mmio_zig": true,
   "freeze_map": "Documentation/zigux/freeze-map.md",
   "freeze_boundary_status": "aligned",
@@ -62,6 +62,7 @@
         "drivers/virtio/virtio_verify.zig",
         "drivers/virtio/virtio_ring_verify.zig",
         "drivers/virtio/virtio_input_verify.zig",
+        "zigux/tests/phase10_virtio_input_probe_preflight.zig",
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "zigux/tests/phase10_virtio_input_registration_preflight.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
@@ -199,6 +200,9 @@
     "drivers/virtio/virtio_input_verify.zig": [
       "phase10 input verify replay"
     ],
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig": [
+      "phase10 input probe-preflight replay"
+    ],
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
       "phase10 input queue-callback-preflight replay"
     ],
@@ -283,6 +287,7 @@
     "zigux/tests/phase10_virtio_ring.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_input.zig",
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
