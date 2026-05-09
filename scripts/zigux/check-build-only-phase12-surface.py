@@ -97,6 +97,7 @@ REQUIRED_FILE_MARKERS = {
         "This is an environment override for the existing replay packet, not a validator-first or `phase12-validate` route.",
         "the checker-local closure-companion update is landed",
         "the next bounded same-lane follow-through is drift control",
+        "the bounded `virtio_scsi` rollback drill plus the repeated transport-reset generation, restore queue rebind, request-queue restart, event rearm, event-buffer ownership, and rollback summaries are reviewable release evidence",
     ],
     PHASE12_CLOSURE_CHECKLIST_PATH: [
         "Phase 12 Release Closure Checklist",
@@ -134,6 +135,7 @@ REQUIRED_FILE_MARKERS = {
         "There is no shipped shared `scripts/zigux/validate-phase12.py`, no dedicated `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`, so this release-facing note should not imply validator-first, dedicated PMO checker, focused libbpf-only replay, raw-coverage checker, or cross-build routes as part of the active shared release path.",
         "The public fallback split must stay explicit: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are the only commit-pinned fallback artifacts, while `virtio_net` and `libbpf` remain shared-tree-only anchors.",
         "The bounded `virtio_scsi` rollback drill remains storage-lane-local release evidence, not a tranche-wide recovery claim.",
+        "That bounded storage packet now covers repeated transport-reset generation plus restore queue rebind, request-queue restart, event rearm, event-buffer ownership, and rollback summaries as lab-only reversible-delivery scaffolding, not as closure-ready runtime recovery.",
         "The landed `virtio_net` segmented-rollout boundary remains lane-local review evidence, not DMA-safe transport readiness, runtime recovery proof, or live runtime-data-path progress.",
         "Queueing, throughput, rollback, and recovery wording in this release-facing note must stay below active delivery claims against frozen `net/core/skbuff.c` and below boundary-study-only `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c` until a broader Phase 12 packet actually lands.",
     ],
@@ -210,6 +212,7 @@ REQUIRED_FILE_MARKERS = {
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "the landed `virtio_net` segmented-rollout boundary remains lane-local review evidence inside this active packet",
         "the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback drill remains lab-only reversible-delivery evidence inside this active packet",
+        "that bounded storage packet specifically keeps repeated transport-reset generation plus restore queue rebind, request-queue restart, event rearm, event-buffer ownership, and rollback summaries reviewable as lab-only reversible-delivery scaffolding inside the active Phase 12 PMO packet",
         "there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` packet, no focused libbpf-only replay route, no raw-coverage packet guard, no cross-build replay packet, and no `make -C zigux phase12-validate` target on `master`",
     ],
     NVME_FALLBACK_MAP_PATH: [
