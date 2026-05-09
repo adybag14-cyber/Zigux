@@ -131,21 +131,94 @@ def validate_matching_surface(c_lines: list[str], zig_lines: list[str], label: s
         )
 
 
+def assert_equal(label: str, actual, expected) -> None:
+    if actual != expected:
+        raise SystemExit(f"phase6-base64-c-parity:self-test:{label}:expected={expected!r}:actual={actual!r}")
+
+
+def expect_system_exit(label: str, callback, expected_message: str) -> None:
+    try:
+        callback()
+    except SystemExit as exc:
+        actual_message = str(exc)
+        if actual_message != expected_message:
+            raise SystemExit(
+                f"phase6-base64-c-parity:self-test:{label}:expected={expected_message!r}:actual={actual_message!r}"
+            ) from exc
+        return
+    raise SystemExit(
+        f"phase6-base64-c-parity:self-test:{label}:missing_system_exit:{expected_message!r}"
+    )
+
+
 def run_self_test() -> int:
     os.environ["PHASE6_SELFTEST_TOOL"] = "/tmp/zig-self-test"
-    if require_tool("zig", "PHASE6_SELFTEST_TOOL") != "/tmp/zig-self-test":
-        raise SystemExit("phase6-base64-c-parity:self-test:require_tool_failed")
+    assert_equal("require_tool_env", require_tool("zig", "PHASE6_SELFTEST_TOOL"), "/tmp/zig-self-test")
+    expect_system_exit(
+        "missing_harness",
+        lambda: validate_required_path(Path("/tmp/phase6-missing-harness.c"), "harness"),
+        "missing harness: /tmp/phase6-missing-harness.c",
+    )
+    expect_system_exit(
+        "missing_helper_source",
+        lambda: validate_required_path(Path("/tmp/phase6-missing-helper.zig"), "helper source"),
+        "missing helper source: /tmp/phase6-missing-helper.zig",
+    )
+    expect_system_exit(
+        "missing_fixture_source",
+        lambda: validate_required_path(Path("/tmp/phase6-missing-fixture.zig"), "fixture source"),
+        "missing fixture source: /tmp/phase6-missing-fixture.zig",
+    )
+    expect_system_exit(
+        "missing_runner",
+        lambda: validate_required_path(Path("/tmp/phase6-missing-runner.zig"), "runner"),
+        "missing runner: /tmp/phase6-missing-runner.zig",
+    )
+    build_text = build_zig_build_text()
+    assert_equal(
+        "build_text_imports_and_paths",
+        'root_module.addImport("base64", helper_module);' in build_text
+        and 'root_module.addImport("phase6_base64_vectors", fixture_module);' in build_text
+        and str(HELPER_SOURCE) in build_text
+        and str(FIXTURE_SOURCE) in build_text
+        and str(ZIG_RUNNER) in build_text,
+        True,
+    )
+    assert_equal("expected_surface_case_count", len(EXPECTED_SORTED_LINES), 24)
+    assert_equal(
+        "sorted_lines",
+        sorted_lines("chars\tstd-pad-f\t4\nencode\tstd-pad-f\tZg==\n"),
+        ["chars\tstd-pad-f\t4", "encode\tstd-pad-f\tZg=="],
+    )
     validate_expected_surface(EXPECTED_SORTED_LINES, "self-test-positive")
-    try:
-        validate_expected_surface(EXPECTED_SORTED_LINES[:-1], "self-test-missing-case")
-    except SystemExit as exc:
-        if "unexpected_output" not in str(exc):
-            raise
-    else:
-        raise SystemExit("phase6-base64-c-parity:self-test:missing_failure")
+    missing_case_lines = EXPECTED_SORTED_LINES[:-1]
+    expect_system_exit(
+        "missing_case",
+        lambda: validate_expected_surface(missing_case_lines, "self-test-missing-case"),
+        "phase6-base64-c-parity:self-test-missing-case:unexpected_output:"
+        f"expected={EXPECTED_SORTED_LINES!r}:actual={missing_case_lines!r}",
+    )
+    unexpected_lines = EXPECTED_SORTED_LINES + ["unexpected-extra\tbogus\treject"]
+    expect_system_exit(
+        "unexpected_case",
+        lambda: validate_expected_surface(unexpected_lines, "self-test-unexpected-case"),
+        "phase6-base64-c-parity:self-test-unexpected-case:unexpected_output:"
+        f"expected={EXPECTED_SORTED_LINES!r}:actual={unexpected_lines!r}",
+    )
+    expect_system_exit(
+        "mismatch_surface",
+        lambda: validate_matching_surface(
+            ["chars\tstd-pad-f\t4", "encode\tstd-pad-f\tZg=="],
+            ["chars\tstd-pad-f\t4", "encode\tstd-pad-f\tZm8="],
+            "self-test-mismatch",
+        ),
+        "phase6-base64-c-parity:self-test-mismatch:c_output_mismatch:"
+        "expected=['chars\\tstd-pad-f\\t4', 'encode\\tstd-pad-f\\tZg==']:"
+        "actual=['chars\\tstd-pad-f\\t4', 'encode\\tstd-pad-f\\tZm8=']",
+    )
 
     print("PHASE6_BASE64_C_PARITY_SELF_TEST=pass")
-    print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=3")
+    print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
