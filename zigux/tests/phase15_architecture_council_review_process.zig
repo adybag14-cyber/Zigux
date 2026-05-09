@@ -72,7 +72,7 @@ test "phase 15 architecture council review-process packet stays aligned on parke
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P15-L06", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
@@ -133,7 +133,7 @@ test "phase 15 architecture council review-process packet stays aligned on parke
     try expectContains(survey_doc, "## Reopen Trigger Catalog");
     try expectContains(survey_doc, "## Current Approval Posture");
     try expectContains(survey_doc, "## Maintenance-Mode Handoff");
-    try expectContains(survey_doc, "`PHASE15_LANE_KEY=P15-L06`");
+    try expectContains(survey_doc, "`PHASE15_LANE_KEY=P15-L07`");
     try expectContains(survey_doc, "workflow-backed replay anchor `.github/workflows/zigux-bootstrap.yml`");
     try expectContains(survey_doc, "dedicated `make -C zigux phase15-test` route");
     try expectContains(survey_doc, "current lane posture: `maintenance_mode`");
@@ -158,7 +158,7 @@ test "phase 15 architecture council review-process packet stays aligned on parke
     try expectContains(makefile, "scripts/zigux/check-phase15-review-process-handoff.py --self-test");
     try expectContains(makefile, "scripts/zigux/check-phase15-review-process-handoff.py");
 
-    try expectContains(manifest_json, "\"lane_key\": \"P15-L06\"");
+    try expectContains(manifest_json, "\"lane_key\": \"P15-L07\"");
     try expectContains(manifest_json, "\"handoff\"");
     try expectContains(manifest_json, "make -C zigux phase15-validate");
     try expectContains(manifest_json, ".github/workflows/zigux-bootstrap.yml");
