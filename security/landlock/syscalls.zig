@@ -100,6 +100,16 @@ pub const CreateRulesetSyscallRequest = struct {
     install_errno: ?i32 = null,
 };
 
+pub const CreateRulesetSyscallPlan = struct {
+    anchor: []const u8,
+    checks_initialization_gate: bool,
+    reuses_create_ruleset_validation: bool,
+    attempts_ruleset_fd_install: bool,
+    releases_ruleset_on_install_failure: bool,
+    dispatched_create: CreateRulesetPlan,
+    installed_fd: ?RulesetFdInstallPlan = null,
+};
+
 pub const RestrictSelfPlan = struct {
     anchor: []const u8,
     requires_ruleset: bool,
@@ -274,15 +284,26 @@ pub const RulesetFdInstallPlan = struct {
     failure_errno: ?i32 = null,
 };
 
-pub const CreateRulesetSyscallPlan = struct {
-    anchor: []const u8,
-    checks_initialization_gate: bool,
-    reuses_create_ruleset_validation: bool,
-    attempts_ruleset_fd_install: bool,
-    releases_ruleset_on_install_failure: bool,
-    dispatched_create: CreateRulesetPlan,
-    installed_fd: ?RulesetFdInstallPlan = null,
-};
+fn isMuteSubdomainsOnlyWithoutRuleset(flags: u32) bool {
+    return (flags & ~restrict_self_tsync) == restrict_self_log_subdomains_off;
+}
+
+fn planRestrictSelfRulesetGate(ruleset_fd: i32, flags: u32) !bool {
+    const allowed_flags = restrict_self_log_same_exec_off |
+        restrict_self_log_new_exec_on |
+        restrict_self_log_subdomains_off |
+        restrict_self_tsync;
+    if ((flags | allowed_flags) != allowed_flags) {
+        return error.InvalidFlags;
+    }
+
+    const mute_subdomains_only = ruleset_fd == -1 and isMuteSubdomainsOnlyWithoutRuleset(flags);
+    if (ruleset_fd == -1 and !mute_subdomains_only) {
+        return error.MissingRuleset;
+    }
+
+    return !mute_subdomains_only;
+}
 
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
@@ -387,24 +408,36 @@ pub const SyscallsHelperLab = struct {
         };
     }
 
-    pub fn planRestrictSelf(ruleset_fd: i32, flags: u32) !RestrictSelfPlan {
-        const allowed_flags = restrict_self_log_same_exec_off |
-            restrict_self_log_new_exec_on |
-            restrict_self_log_subdomains_off |
-            restrict_self_tsync;
-        if ((flags | allowed_flags) != allowed_flags) {
-            return error.InvalidFlags;
+    pub fn planLandlockCreateRuleset(request: CreateRulesetSyscallRequest) !CreateRulesetSyscallPlan {
+        if (!request.initialized) {
+            return error.BootDisabled;
         }
 
-        const mute_subdomains_only = ruleset_fd == -1 and
-            (flags & ~restrict_self_tsync) == restrict_self_log_subdomains_off;
-        if (ruleset_fd == -1 and !mute_subdomains_only) {
-            return error.MissingRuleset;
-        }
+        const dispatched_create = try planCreateRuleset(request.create_ruleset);
+        const installed_fd = switch (dispatched_create.action) {
+            .create => try planInstallRulesetFd(.{
+                .install_errno = request.install_errno,
+            }),
+            .abi_version_query, .errata_query => null,
+        };
 
         return .{
             .anchor = descriptor().anchor,
-            .requires_ruleset = !mute_subdomains_only,
+            .checks_initialization_gate = true,
+            .reuses_create_ruleset_validation = true,
+            .attempts_ruleset_fd_install = installed_fd != null,
+            .releases_ruleset_on_install_failure = if (installed_fd) |fd_plan| fd_plan.releases_ruleset_on_failure else false,
+            .dispatched_create = dispatched_create,
+            .installed_fd = installed_fd,
+        };
+    }
+
+    pub fn planRestrictSelf(ruleset_fd: i32, flags: u32) !RestrictSelfPlan {
+        const requires_readable_ruleset_fd = try planRestrictSelfRulesetGate(ruleset_fd, flags);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .requires_ruleset = requires_readable_ruleset_fd,
             .log_same_exec = (flags & restrict_self_log_same_exec_off) == 0,
             .log_new_exec = (flags & restrict_self_log_new_exec_on) != 0,
             .log_subdomains = (flags & restrict_self_log_subdomains_off) == 0,
@@ -418,10 +451,12 @@ pub const SyscallsHelperLab = struct {
         }
 
         const no_ruleset = !request.ruleset_fd.fd_present;
-        const mute_subdomains_only = no_ruleset and
-            (request.flags & ~restrict_self_tsync) == restrict_self_log_subdomains_off;
+        const requires_readable_ruleset_fd = try planRestrictSelfRulesetGate(
+            if (no_ruleset) -1 else 0,
+            request.flags,
+        );
 
-        if (!mute_subdomains_only) {
+        if (requires_readable_ruleset_fd) {
             _ = try planGetRulesetFromFd(.{
                 .fd_present = request.ruleset_fd.fd_present,
                 .file_kind = request.ruleset_fd.file_kind,
@@ -440,7 +475,7 @@ pub const SyscallsHelperLab = struct {
             .anchor = descriptor().anchor,
             .checks_initialization_gate = true,
             .allows_log_subdomains_toggle_without_ruleset = true,
-            .acquires_ruleset_with_read_access = !mute_subdomains_only,
+            .acquires_ruleset_with_read_access = requires_readable_ruleset_fd,
             .reuses_flag_planning = true,
             .dispatched_restriction = dispatched_restriction,
         };
@@ -609,7 +644,7 @@ pub const SyscallsHelperLab = struct {
             .parent_fd = add_rule_plan.parent_fd,
             .reuses_add_rule_validation = true,
             .reuses_path_fd_validation = true,
-            .acquires_parent_path_reference = path_plan.acquires_path_reference,
+            .acquires_parentPathReference = path_plan.acquires_path_reference,
             .releases_parent_path_reference = true,
         };
     }
@@ -652,30 +687,6 @@ pub const SyscallsHelperLab = struct {
             .returns_installed_fd = request.install_errno == null,
             .releases_ruleset_on_failure = request.install_errno != null,
             .failure_errno = request.install_errno,
-        };
-    }
-
-    pub fn planLandlockCreateRuleset(request: CreateRulesetSyscallRequest) !CreateRulesetSyscallPlan {
-        if (!request.initialized) {
-            return error.BootDisabled;
-        }
-
-        const dispatched_create = try planCreateRuleset(request.create_ruleset);
-        const installed_fd = switch (dispatched_create.action) {
-            .create => try planInstallRulesetFd(.{
-                .install_errno = request.install_errno,
-            }),
-            .abi_version_query, .errata_query => null,
-        };
-
-        return .{
-            .anchor = descriptor().anchor,
-            .checks_initialization_gate = true,
-            .reuses_create_ruleset_validation = true,
-            .attempts_ruleset_fd_install = installed_fd != null,
-            .releases_ruleset_on_install_failure = if (installed_fd) |fd_plan| fd_plan.releases_ruleset_on_failure else false,
-            .dispatched_create = dispatched_create,
-            .installed_fd = installed_fd,
         };
     }
 
@@ -818,6 +829,43 @@ test "landlock restrict self syscall planning allows subdomain log toggles witho
     try std.testing.expect(!plan.dispatched_restriction.requires_ruleset);
     try std.testing.expect(!plan.dispatched_restriction.log_subdomains);
     try std.testing.expect(plan.dispatched_restriction.propagates_to_siblings);
+}
+
+test "landlock restrict self syscall planning rejects missing rulesets before fd lookup" {
+    try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planRestrictSelf(-1, 0));
+    try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planLandlockRestrictSelf(.{
+        .ruleset_fd = .{
+            .fd_present = false,
+            .required_mode = fmode_can_read,
+        },
+        .flags = 0,
+    }));
+}
+
+test "landlock restrict self syscall planning rejects invalid flags before fd lookup" {
+    try std.testing.expectError(error.InvalidFlags, SyscallsHelperLab.planRestrictSelf(-1, 1 << 31));
+    try std.testing.expectError(error.InvalidFlags, SyscallsHelperLab.planLandlockRestrictSelf(.{
+        .ruleset_fd = .{
+            .fd_present = false,
+            .required_mode = fmode_can_read,
+        },
+        .flags = 1 << 31,
+    }));
+}
+
+test "landlock restrict self syscall planning keeps readable ruleset lookup for present fds" {
+    const plan = try SyscallsHelperLab.planLandlockRestrictSelf(.{
+        .ruleset_fd = .{
+            .fd_present = true,
+            .file_mode = fmode_can_read,
+            .required_mode = fmode_can_read,
+        },
+        .flags = restrict_self_log_subdomains_off,
+    });
+
+    try std.testing.expect(plan.acquires_ruleset_with_read_access);
+    try std.testing.expect(plan.dispatched_restriction.requires_ruleset);
+    try std.testing.expect(!plan.dispatched_restriction.log_subdomains);
 }
 
 test "landlock add-rule syscall planning keeps write-fd dispatch explicit" {
