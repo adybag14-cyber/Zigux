@@ -119,6 +119,12 @@ static uint32_t csum_tcpudp_nofold(uint32_t saddr, uint32_t daddr,
 	return partial_bytes((const unsigned char *)"", 0, acc);
 }
 
+static uint16_t csum_tcpudp_magic(uint32_t saddr, uint32_t daddr,
+				  uint32_t len, uint8_t proto, uint32_t sum)
+{
+	return csum_fold(csum_tcpudp_nofold(saddr, daddr, len, proto, sum));
+}
+
 static uint32_t read_be32(const unsigned char bytes[4])
 {
 	return ((uint32_t)bytes[0] << 24) | ((uint32_t)bytes[1] << 16) |
@@ -140,6 +146,12 @@ static uint32_t csum_tcpudp_v6_nofold(const unsigned char saddr[16], const unsig
 	acc = csum_add(acc, len & 0xffffU);
 	acc = csum_add(acc, proto);
 	return partial_bytes((const unsigned char *)"", 0, acc);
+}
+
+static uint16_t csum_tcpudp_v6_magic(const unsigned char saddr[16], const unsigned char daddr[16],
+				     uint32_t len, uint8_t proto, uint32_t sum)
+{
+	return csum_fold(csum_tcpudp_v6_nofold(saddr, daddr, len, proto, sum));
 }
 
 static void print_u16_case(const char *kind, const char *name, uint16_t value)
@@ -235,9 +247,15 @@ int main(void)
 	print_u32_case("tcpudp-nofold", "udp pseudo header",
 		       csum_tcpudp_nofold(udp_saddr, udp_daddr, sizeof(udp_payload) - 1, udp_proto,
 					  partial_bytes(udp_payload, sizeof(udp_payload) - 1, 0)));
+	print_u16_case("tcpudp-magic", "udp pseudo header",
+		       csum_tcpudp_magic(udp_saddr, udp_daddr, sizeof(udp_payload) - 1, udp_proto,
+					 partial_bytes(udp_payload, sizeof(udp_payload) - 1, 0)));
 	print_u32_case("tcpudp-v6-nofold", "udp pseudo header v6",
 		       csum_tcpudp_v6_nofold(udp_v6_saddr, udp_v6_daddr, sizeof(udp_v6_payload), udp_proto,
 					     partial_bytes(udp_v6_payload, sizeof(udp_v6_payload), 0)));
+	print_u16_case("tcpudp-v6-magic", "udp pseudo header v6",
+		       csum_tcpudp_v6_magic(udp_v6_saddr, udp_v6_daddr, sizeof(udp_v6_payload), udp_proto,
+					    partial_bytes(udp_v6_payload, sizeof(udp_v6_payload), 0)));
 
 	print_u32_case("negate", "zero stays zero", 0U - 0x00000000U);
 	print_u32_case("negate", "one negates to all ones", 0U - 0x00000001U);
