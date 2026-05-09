@@ -27,6 +27,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_abi_shape_reporting: bool,
     provides_create_ruleset_query_planning: bool,
+    provides_create_ruleset_syscall_planning: bool,
     provides_restrict_self_flag_planning: bool,
     provides_restrict_self_syscall_planning: bool,
     provides_add_rule_planning: bool,
@@ -91,6 +92,12 @@ pub const CreateRulesetPlan = struct {
     handled_access_fs: u64 = 0,
     handled_access_net: u64 = 0,
     scoped: u64 = 0,
+};
+
+pub const CreateRulesetSyscallRequest = struct {
+    initialized: bool = true,
+    create_ruleset: CreateRulesetRequest,
+    install_errno: ?i32 = null,
 };
 
 pub const RestrictSelfPlan = struct {
@@ -267,6 +274,16 @@ pub const RulesetFdInstallPlan = struct {
     failure_errno: ?i32 = null,
 };
 
+pub const CreateRulesetSyscallPlan = struct {
+    anchor: []const u8,
+    checks_initialization_gate: bool,
+    reuses_create_ruleset_validation: bool,
+    attempts_ruleset_fd_install: bool,
+    releases_ruleset_on_install_failure: bool,
+    dispatched_create: CreateRulesetPlan,
+    installed_fd: ?RulesetFdInstallPlan = null,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -274,6 +291,7 @@ pub const SyscallsHelperLab = struct {
             .anchor = "security/landlock/syscalls.c",
             .provides_abi_shape_reporting = true,
             .provides_create_ruleset_query_planning = true,
+            .provides_create_ruleset_syscall_planning = true,
             .provides_restrict_self_flag_planning = true,
             .provides_restrict_self_syscall_planning = true,
             .provides_add_rule_planning = true,
@@ -637,6 +655,30 @@ pub const SyscallsHelperLab = struct {
         };
     }
 
+    pub fn planLandlockCreateRuleset(request: CreateRulesetSyscallRequest) !CreateRulesetSyscallPlan {
+        if (!request.initialized) {
+            return error.BootDisabled;
+        }
+
+        const dispatched_create = try planCreateRuleset(request.create_ruleset);
+        const installed_fd = switch (dispatched_create.action) {
+            .create => try planInstallRulesetFd(.{
+                .install_errno = request.install_errno,
+            }),
+            .abi_version_query, .errata_query => null,
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .checks_initialization_gate = true,
+            .reuses_create_ruleset_validation = true,
+            .attempts_ruleset_fd_install = installed_fd != null,
+            .releases_ruleset_on_install_failure = if (installed_fd) |fd_plan| fd_plan.releases_ruleset_on_failure else false,
+            .dispatched_create = dispatched_create,
+            .installed_fd = installed_fd,
+        };
+    }
+
     pub fn planRulesetFops(operation: RulesetFopsOperation) RulesetFopsPlan {
         return switch (operation) {
             .release => .{
@@ -661,6 +703,87 @@ pub const SyscallsHelperLab = struct {
         };
     }
 };
+
+test "landlock create-ruleset syscall planning distinguishes query and install paths" {
+    const descriptor = SyscallsHelperLab.descriptor();
+    try std.testing.expect(descriptor.provides_create_ruleset_query_planning);
+    try std.testing.expect(descriptor.provides_create_ruleset_syscall_planning);
+
+    const query_plan = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .create_ruleset = .{
+            .attr_present = false,
+            .size = 0,
+            .flags = create_ruleset_version_flag,
+            .allowed_fs_mask = 0,
+            .allowed_net_mask = 0,
+            .allowed_scope_mask = 0,
+        },
+    });
+    try std.testing.expect(query_plan.checks_initialization_gate);
+    try std.testing.expect(query_plan.reuses_create_ruleset_validation);
+    try std.testing.expectEqual(CreateRulesetAction.abi_version_query, query_plan.dispatched_create.action);
+    try std.testing.expect(!query_plan.attempts_ruleset_fd_install);
+    try std.testing.expect(!query_plan.releases_ruleset_on_install_failure);
+    try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), query_plan.installed_fd);
+
+    const create_plan = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .create_ruleset = .{
+            .allowed_fs_mask = 0x7,
+            .allowed_net_mask = 0,
+            .allowed_scope_mask = 0,
+            .attr = .{
+                .handled_access_fs = 0x3,
+            },
+        },
+    });
+    try std.testing.expectEqual(CreateRulesetAction.create, create_plan.dispatched_create.action);
+    try std.testing.expect(create_plan.attempts_ruleset_fd_install);
+    try std.testing.expect(!create_plan.releases_ruleset_on_install_failure);
+    try std.testing.expect(create_plan.installed_fd != null);
+    try std.testing.expect(create_plan.installed_fd.?.returns_installed_fd);
+}
+
+test "landlock create-ruleset syscall planning rejects disabled state and surfaces install failures" {
+    try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .initialized = false,
+        .create_ruleset = .{
+            .allowed_fs_mask = 0x1,
+            .allowed_net_mask = 0,
+            .allowed_scope_mask = 0,
+            .attr = .{
+                .handled_access_fs = 0x1,
+            },
+        },
+    }));
+
+    const failed_install = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .create_ruleset = .{
+            .allowed_fs_mask = 0x1,
+            .allowed_net_mask = 0,
+            .allowed_scope_mask = 0,
+            .attr = .{
+                .handled_access_fs = 0x1,
+            },
+        },
+        .install_errno = -24,
+    });
+    try std.testing.expect(failed_install.attempts_ruleset_fd_install);
+    try std.testing.expect(failed_install.releases_ruleset_on_install_failure);
+    try std.testing.expect(failed_install.installed_fd != null);
+    try std.testing.expectEqual(@as(?i32, -24), failed_install.installed_fd.?.failure_errno);
+
+    try std.testing.expectError(error.InvalidInstallErrno, SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .create_ruleset = .{
+            .allowed_fs_mask = 0x1,
+            .allowed_net_mask = 0,
+            .allowed_scope_mask = 0,
+            .attr = .{
+                .handled_access_fs = 0x1,
+            },
+        },
+        .install_errno = 0,
+    }));
+}
 
 test "landlock restrict self syscall planning requires an initialized readable ruleset" {
     const descriptor = SyscallsHelperLab.descriptor();
