@@ -40,6 +40,9 @@ fn bitmapBench() struct { checksum: u64 } {
 
 fn bitmapWindowBench() struct { checksum: u64 } {
     const nbits = bitmap.bits_per_long + 5;
+    const copy_size = bitmap.bits_per_long * 3;
+    const copy_src = [_]bitmap.Word{ ~@as(bitmap.Word, 0), ~@as(bitmap.Word, 0), ~@as(bitmap.Word, 0) };
+    const aligned_copy_src = [_]bitmap.Word{~@as(bitmap.Word, 0)};
     var lhs = std.mem.zeroes([bitmap.bitsToWords(nbits)]bitmap.Word);
     var rhs = std.mem.zeroes([bitmap.bitsToWords(nbits)]bitmap.Word);
     var dst = std.mem.zeroes([bitmap.bitsToWords(nbits)]bitmap.Word);
@@ -73,6 +76,22 @@ fn bitmapWindowBench() struct { checksum: u64 } {
         checksum +%= @intCast(bitmap.weight(&dst, nbits));
         checksum +%= @as(u64, @intFromBool(bitmap.intersects(&lhs, &rhs, nbits)));
         checksum +%= @as(u64, @intFromBool(bitmap.subset(&rhs, &dst, nbits)));
+
+        var tail_cleared = [_]bitmap.Word{ 0, 0, 0 };
+        bitmap.copyClearTail(&tail_cleared, &copy_src, nbits);
+        checksum +%= @intCast(bitmap.weight(&tail_cleared, nbits));
+
+        var aligned_cleared = [_]bitmap.Word{0};
+        bitmap.bitmap_copy_clear_tail(&aligned_cleared, &aligned_copy_src, bitmap.bits_per_long);
+        checksum +%= @intCast(bitmap.weight(&aligned_cleared, bitmap.bits_per_long));
+
+        var extended = [_]bitmap.Word{ ~@as(bitmap.Word, 0), ~@as(bitmap.Word, 0), ~@as(bitmap.Word, 0) };
+        bitmap.bitmap_copy_and_extend(&extended, &copy_src, nbits, copy_size);
+        checksum +%= @intCast(bitmap.weight(&extended, copy_size));
+
+        var zero_extended = [_]bitmap.Word{ 1, 2, 3 };
+        bitmap.copyAndExtend(&zero_extended, &[_]bitmap.Word{}, 0, copy_size);
+        checksum +%= @as(u64, @intFromBool(bitmap.empty(&zero_extended, copy_size)));
     }
 
     return .{ .checksum = checksum };
