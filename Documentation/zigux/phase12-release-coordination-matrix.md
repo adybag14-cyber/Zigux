@@ -56,6 +56,7 @@ This matrix keeps the active Phase 12 release-facing packet explicit beside the 
    - `make -C zigux phase12 ZIG=<attached-zig-path>`
    - This is an environment override for the existing replay packet, not a validator-first or `phase12-validate` route.
 
+- keep the direct PMO drift-control reruns explicit too: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` remain part of the shipped build-only contract packet beside the workflow-backed replay and must not be rounded up into a validator-first, focused libbpf-only, raw-coverage, or `phase12-validate` route
 - there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` packet, no focused libbpf-only replay route, no raw-coverage packet guard, no cross-build replay packet, and no `make -C zigux phase12-validate` target on `master`
 
 ## PMO Handoff Prompts
