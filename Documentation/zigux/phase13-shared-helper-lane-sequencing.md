@@ -95,6 +95,8 @@ Owns the direct syscall helper and its paired packet surfaces:
 
 This lane should stay inside bounded syscall-helper delivery or packet-local truthfulness. It does not absorb `security/landlock/ruleset.zig` tree-shaping, ownership, or blocker work just because nearby release notes and contributor prompts mention both Landlock anchors together.
 
+Until `master` ships a dedicated `landlock syscalls` packet checker, treat `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` as the helper-local truthfulness trio that must move together whenever syscall-owned contributor wording, live-state limits, or owned-surface claims change.
+
 ### Adjacent notifier release-surface evidence
 
 These surfaces remain adjacent release evidence:
