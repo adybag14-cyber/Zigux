@@ -113,7 +113,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(manifest.architecture_council_reopen_required);
     try std.testing.expect(!manifest.architecture_council_reopen_attached);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
-    try std.testing.expectEqual(@as(usize, 11), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expectEqual(@as(usize, 14), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_core_doc_present);
@@ -160,6 +160,9 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "justified `zigux/kernel/` or `zigux/helpers/` support surfaces") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_core_reset_queue.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_driver_id.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_status_drain.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase10_virtio_mmio_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase10_build.zig") != null);
@@ -184,6 +187,9 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_input_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-word write planning summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "feature-negotiation summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-write disposition summary") != null);
