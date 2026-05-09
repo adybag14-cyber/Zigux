@@ -68,6 +68,18 @@ REQUIRED_VALIDATOR_EXACT_COUNTS = {
     "zig test scripts/zigux/kconfig/conf_bridge.zig": 1,
     "zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
 }
+REQUIRED_VALIDATOR_GUARD_MARKERS = (
+    "KCONFIG_BRIDGE_SELF_TEST=pass",
+    "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=17",
+    "KCONFIG_BRIDGE_DIFF=pass",
+    "FIXTURE_DIR=",
+)
+REQUIRED_VALIDATOR_GUARD_EXACT_COUNTS = {
+    "KCONFIG_BRIDGE_SELF_TEST=pass": 1,
+    "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=17": 1,
+    "KCONFIG_BRIDGE_DIFF=pass": 1,
+    "FIXTURE_DIR=": 1,
+}
 REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
@@ -93,7 +105,7 @@ REQUIRED_CLOSURE_EXACT_COUNTS = {
     f"`PHASE2_KCONFIG_BRIDGE_CONFDATA_PACKET={CONFDATA_PACKET_PATH}`": 1,
     "`kconfig_confdata_bridge_packet`": 1,
 }
-EXPECTED_SELF_TEST_CASE_COUNT = 52
+EXPECTED_SELF_TEST_CASE_COUNT = 60
 
 
 def read_text(path: Path) -> str:
@@ -140,6 +152,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_VALIDATOR_MARKERS", marker))
         elif count != REQUIRED_VALIDATOR_EXACT_COUNTS[marker]:
             issues.append(("DUPLICATE_VALIDATOR_MARKERS", f"{marker}:count={count}:expected={REQUIRED_VALIDATOR_EXACT_COUNTS[marker]}"))
+    for marker in REQUIRED_VALIDATOR_GUARD_MARKERS:
+        count = count_validator_marker_lines(validator_text, marker)
+        if count == 0:
+            issues.append(("MISSING_VALIDATOR_GUARD_MARKERS", marker))
+        elif count != REQUIRED_VALIDATOR_GUARD_EXACT_COUNTS[marker]:
+            issues.append(("DUPLICATE_VALIDATOR_GUARD_MARKERS", f"{marker}:count={count}:expected={REQUIRED_VALIDATOR_GUARD_EXACT_COUNTS[marker]}"))
 
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -254,6 +272,10 @@ def build_self_test_root(root: Path) -> None:
                 "python3 scripts/zigux/check-kconfig-bridge.py",
                 "zig test scripts/zigux/kconfig/conf_bridge.zig",
                 "zig test scripts/zigux/kconfig/confdata_bridge.zig",
+                "KCONFIG_BRIDGE_SELF_TEST=pass",
+                "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=17",
+                "KCONFIG_BRIDGE_DIFF=pass",
+                "FIXTURE_DIR=",
                 "",
             )
         ),
@@ -529,6 +551,62 @@ def run_self_test() -> int:
         cases += 1
 
         build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_GUARD_MARKERS[0] + "\n", "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_GUARD_MARKERS", REQUIRED_VALIDATOR_GUARD_MARKERS[0]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_GUARD_MARKERS[0] + "\n", REQUIRED_VALIDATOR_GUARD_MARKERS[0] + "\n" + REQUIRED_VALIDATOR_GUARD_MARKERS[0] + "\n", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_VALIDATOR_GUARD_MARKERS", f"{REQUIRED_VALIDATOR_GUARD_MARKERS[0]}:count=2:expected=1") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_GUARD_MARKERS[1] + "\n", "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_GUARD_MARKERS", REQUIRED_VALIDATOR_GUARD_MARKERS[1]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_GUARD_MARKERS[1] + "\n", REQUIRED_VALIDATOR_GUARD_MARKERS[1] + "\n" + REQUIRED_VALIDATOR_GUARD_MARKERS[1] + "\n", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_VALIDATOR_GUARD_MARKERS", f"{REQUIRED_VALIDATOR_GUARD_MARKERS[1]}:count=2:expected=1") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_GUARD_MARKERS[2] + "\n", "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_GUARD_MARKERS", REQUIRED_VALIDATOR_GUARD_MARKERS[2]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_GUARD_MARKERS[2] + "\n", REQUIRED_VALIDATOR_GUARD_MARKERS[2] + "\n" + REQUIRED_VALIDATOR_GUARD_MARKERS[2] + "\n", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_VALIDATOR_GUARD_MARKERS", f"{REQUIRED_VALIDATOR_GUARD_MARKERS[2]}:count=2:expected=1") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_GUARD_MARKERS[3] + "\n", "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_GUARD_MARKERS", REQUIRED_VALIDATOR_GUARD_MARKERS[3]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_GUARD_MARKERS[3] + "\n", REQUIRED_VALIDATOR_GUARD_MARKERS[3] + "\n" + REQUIRED_VALIDATOR_GUARD_MARKERS[3] + "\n", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_VALIDATOR_GUARD_MARKERS", f"{REQUIRED_VALIDATOR_GUARD_MARKERS[3]}:count=2:expected=1") in issues
+        cases += 1
+
+        build_self_test_root(root)
         path = root / MAKEFILE
         path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[0], "\ttrue"), encoding="utf-8")
         issues = collect_issues(root)
@@ -759,6 +837,7 @@ def main() -> int:
     print("PHASE2_KCONFIG_ALIGNMENT=pass")
     print(f"PHASE2_KCONFIG_ALIGNMENT_CHECKER_MARKER_COUNT={len(REQUIRED_CHECKER_MARKERS)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_VALIDATOR_MARKER_COUNT={len(REQUIRED_VALIDATOR_MARKERS)}")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_VALIDATOR_GUARD_MARKER_COUNT={len(REQUIRED_VALIDATOR_GUARD_MARKERS)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_CLOSURE_MARKER_COUNT={len(REQUIRED_CLOSURE_MARKERS)}")
