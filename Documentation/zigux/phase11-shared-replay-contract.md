@@ -31,6 +31,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
+- `scripts/zigux/check-phase11-dw-wdt-packet.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `zigux/tests/phase11_build.zig`
@@ -101,6 +102,18 @@ The dedicated archival bcm2835 evidence also stays explicit beside that shared r
 - `python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py --self-test`
 - `python3 scripts/zigux/check-phase11-bcm2835-wdt-packet.py`
 
+The dedicated archival DesignWare evidence also stays explicit beside that shared route:
+
+- `Documentation/zigux/phase11-dw-wdt-survey.md`
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
+- `zigux/tests/phase11_dw_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
+- `zigux/tests/phase11_dw_wdt_survey.zig`
+- `drivers/watchdog/dw_wdt_verify.zig`
+- `python3 scripts/zigux/check-phase11-dw-wdt-packet.py --self-test`
+- `python3 scripts/zigux/check-phase11-dw-wdt-packet.py`
+
 The parked driver-lane ownership map also stays explicit beside that replay route:
 
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
@@ -144,7 +157,7 @@ The focused shared header-boundary evidence also stays explicit beside that shar
 - there is no shared `make -C zigux phase11-validate` target on `master`
 - there is no dedicated shared `validate-phase11.py` on `master`
 - there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`
-- beyond `scripts/zigux/check-phase11-shared-replay-contract.py`, the dedicated `scripts/zigux/check-phase11-bcm2835-wdt-packet.py` route, the focused `scripts/zigux/check-phase11-header-boundary-packet.py` route, and the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` route, there is no broader multi-checker Phase 11 validator stack on `master`
+- beyond `scripts/zigux/check-phase11-shared-replay-contract.py`, the dedicated `scripts/zigux/check-phase11-bcm2835-wdt-packet.py` route, the dedicated `scripts/zigux/check-phase11-dw-wdt-packet.py` route, the focused `scripts/zigux/check-phase11-header-boundary-packet.py` route, and the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` route, there is no broader multi-checker Phase 11 validator stack on `master`
 - this contract does not claim tty registration, notifier execution, khvcd execution, sysrq dispatch, platform registration, PM base plumbing, poweroff-handler coordination, or host-backed teardown validation
 
 ## Follow-Through Rule
