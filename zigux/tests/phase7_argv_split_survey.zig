@@ -163,6 +163,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(helper_tests, "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");");
     try expectContains(helper_tests, "phase 7 argvSplit matches focused parity fixtures");
     try expectContains(helper_tests, "phase 7 argvSplit token buffer does not alias the source text");
+    try expectContains(helper_tests, "phase 7 argvSplit leaves the caller buffer bytes untouched while returning owned tokens");
+    try expectContains(helper_tests, "try std.testing.expectEqualSlices(u8, &original, &source);");
     try expectContains(helper_tests, "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy");
     try expectContains(helper_tests, "phase 7 argvSplitWithArgc reports the split length through the optional out parameter");
     try expectContains(helper_tests, "phase 7 argvSplit keeps the exported C argv vector sized to argc plus one sentinel");
@@ -197,7 +199,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(scripts_root, "scripts/zigux/check-phase7-argv-split-packet.py");
     try expectContains(scripts_root, "scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(scripts_root, "make -C zigux phase7-validate");
-    try expectContains(scripts_root, "make -C zigux phase7");
+    try expectContains(scripts_root, "`make -C zigux phase7`");
 
     try expectContains(tests_root, "`scripts/zigux/check-phase7-argv-split-packet.py`");
     try expectContains(tests_root, "`scripts/zigux/check-phase7-build-wiring.py`");
@@ -221,8 +223,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(review_checklist, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
     try expectContains(review_checklist, "scripts/zigux/check-phase7-argv-split-packet.py");
     try expectContains(review_checklist, "scripts/zigux/check-phase7-build-wiring.py");
-    try expectContains(review_checklist, "make -C zigux phase7-validate");
-    try expectContains(review_checklist, "make -C zigux phase7");
+    try expectContains(review_checklist, "`make -C zigux phase7-validate`");
+    try expectContains(review_checklist, "`make -C zigux phase7`");
 
     try expectContains(samples_root, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;");
     try expectContains(samples_root, "Documentation/zigux/phase7-argv-split-slice.md");
