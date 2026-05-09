@@ -291,6 +291,7 @@ REQUIRED_REVIEW_MARKERS = [
     "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
@@ -625,6 +626,7 @@ def run_self_test() -> int:
     assert "scripts/zigux/check-mk-elfconfig-diff.py" in REQUIRED_REVIEW_MARKERS
     assert "scripts/zigux/fixdep.zig" in REQUIRED_REVIEW_MARKERS
     assert "scripts/zigux/kconfig/confdata_bridge.zig" in REQUIRED_REVIEW_MARKERS
+    assert "zigux/tests/fixtures/phase2_artifact_tools_manifest.json" in REQUIRED_REVIEW_MARKERS
     with tempfile.TemporaryDirectory(prefix="phase2_required_files_root_") as tmp_dir:
         temp_root = Path(tmp_dir)
         (temp_root / "zigux" / "tests" / "fixtures" / "genksyms_bridge").mkdir(parents=True)
@@ -644,7 +646,7 @@ def run_self_test() -> int:
         "  * if the change touches the shared Phase 2 toolchain packet, do "
         "`Documentation/zigux/README.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, "
         "`Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_cross_targets.json`, "
-        "`zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/README.md`, "
+        "`zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `scripts/zigux/README.md`, "
         "`scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/check-phase2-tool-manifest-packets.py`, "
         "`scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`, "
         "`scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross.py`, "
