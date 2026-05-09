@@ -104,6 +104,11 @@
       "Architecture Council review request"
     ]
   },
+  "reopen_trigger_catalog": [
+    "narrower_followup_answers_blocker",
+    "evidence_packet_stale_or_contradictory",
+    "ownership_or_validation_changed"
+  ],
   "gaps": [
     {
       "id": "phase15-indefinite-c-policy-note",
