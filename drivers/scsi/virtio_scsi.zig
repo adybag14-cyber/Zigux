@@ -185,6 +185,23 @@ pub const RecoveryRequestQueueRestartSummary = struct {
     preserves_default_before_poll_partition: bool,
 };
 
+pub const RecoveryRequestQueueOwnershipSummary = struct {
+    anchor: []const u8,
+    request_queues: u16,
+    default_queues: u16,
+    poll_queues: u16,
+    total_queues: u16,
+    event_queue_index: u16,
+    first_request_queue_index: u16,
+    first_poll_queue_index: ?u16,
+    event_buffer_count: u16,
+    recovery_generation: u16,
+    request_queue_access_stays_blocked_until_restore: bool,
+    request_queue_access_requires_replan_after_restore: bool,
+    poll_queues_resume_only_after_default_queues: bool,
+    event_rearm_completes_before_request_queue_reuse: bool,
+};
+
 pub const RecoveryEventBufferOwnershipSummary = struct {
     anchor: []const u8,
     event_queue_index: u16,
@@ -517,6 +534,35 @@ pub const VirtioScsiQueueLab = struct {
             .requires_event_rearm_before_restart = true,
             .requires_replan_before_restart = true,
             .preserves_default_before_poll_partition = preserves_default_before_poll_partition,
+        };
+    }
+
+    pub fn recoveryRequestQueueOwnershipSummary(self: *const Self) !RecoveryRequestQueueOwnershipSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        const poll_queues_resume_only_after_default_queues = if (layout.first_poll_queue_index) |first_poll_queue_index|
+            try checkedAddU16(layout.first_request_queue_index, layout.default_queues - 1) < first_poll_queue_index
+        else
+            true;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .request_queues = layout.request_queues,
+            .default_queues = layout.default_queues,
+            .poll_queues = layout.poll_queues,
+            .total_queues = layout.total_queues,
+            .event_queue_index = layout.event_queue_index,
+            .first_request_queue_index = layout.first_request_queue_index,
+            .first_poll_queue_index = layout.first_poll_queue_index,
+            .event_buffer_count = layout.event_buffer_count,
+            .recovery_generation = self.recovery_generation,
+            .request_queue_access_stays_blocked_until_restore = true,
+            .request_queue_access_requires_replan_after_restore = true,
+            .poll_queues_resume_only_after_default_queues = poll_queues_resume_only_after_default_queues,
+            .event_rearm_completes_before_request_queue_reuse = true,
         };
     }
 
