@@ -34,7 +34,6 @@ const TraceabilityExpectation = struct {
 
 const expected_compile_artifacts = [_]CompileArtifact{
     .{ .label = "phase14-workqueue-bridge-tests", .root_source = "phase14_workqueue_bridge.zig", .coverage = "full_bundle_only" },
-    .{ .label = "phase14-workqueue-reviewability-tests", .root_source = "phase14_workqueue_reviewability.zig", .coverage = "full_bundle_only" },
     .{ .label = "phase14-skbuff-bridge-tests", .root_source = "phase14_skbuff_bridge.zig", .coverage = "full_bundle_only" },
     .{ .label = "phase14-ring-buffer-survey-tests", .root_source = "phase14_ring_buffer_survey.zig", .coverage = "full_bundle_only" },
     .{ .label = "phase14-rcu-tree-survey-tests", .root_source = "phase14_rcu_tree_survey.zig", .coverage = "full_bundle_only" },
@@ -42,10 +41,38 @@ const expected_compile_artifacts = [_]CompileArtifact{
 };
 
 const expected_traceability_markers = [_]TraceabilityExpectation{
-    .{ .section_heading = "### Workqueue", .survey_note_path = "Documentation/zigux/phase14-workqueue-bridge-survey.md", .lane_key_marker = "- lane key: `P14-L02`", .ready_next_gap_marker = "- ready-next gap: none currently recorded", .retained_boundary_marker = "live worker-pool execution", .blocked_gap_marker = "`phase14-workqueue-live-execution-blocker`" },
-    .{ .section_heading = "### Ring buffer", .survey_note_path = "Documentation/zigux/phase14-ring-buffer-survey.md", .lane_key_marker = "- lane key: `P14-L08`", .ready_next_gap_marker = "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`", .retained_boundary_marker = "exported-page forced-copy decisions", .blocked_gap_marker = "`phase14-ring-buffer-zig-port-blocker`" },
-    .{ .section_heading = "### Skbuff", .survey_note_path = "Documentation/zigux/phase14-skbuff-bridge-survey.md", .lane_key_marker = "- lane key: `P14-L10`", .ready_next_gap_marker = "- ready-next gap: none currently recorded", .retained_boundary_marker = "live skb lifetime", .blocked_gap_marker = "`phase14-skbuff-live-ownership-blocker`" },
-    .{ .section_heading = "### RCU tree", .survey_note_path = "Documentation/zigux/phase14-rcu-tree-survey.md", .lane_key_marker = "- lane key: `P14-L13`", .ready_next_gap_marker = "- ready-next gap: none currently recorded", .retained_boundary_marker = "grace-period sequence publication", .blocked_gap_marker = "`phase14-rcu-tree-bridge-blocker`" },
+    .{
+        .section_heading = "### Workqueue",
+        .survey_note_path = "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+        .lane_key_marker = "- lane key: `P14-L04`",
+        .ready_next_gap_marker = "- ready-next gap: none currently recorded",
+        .retained_boundary_marker = "live worker-pool execution",
+        .blocked_gap_marker = "`phase14-workqueue-live-execution-blocker`",
+    },
+    .{
+        .section_heading = "### Ring buffer",
+        .survey_note_path = "Documentation/zigux/phase14-ring-buffer-survey.md",
+        .lane_key_marker = "- lane key: `P14-L08`",
+        .ready_next_gap_marker = "- ready-next gap: none currently recorded",
+        .retained_boundary_marker = "exported-page forced-copy decisions",
+        .blocked_gap_marker = "`phase14-ring-buffer-zig-port-blocker`",
+    },
+    .{
+        .section_heading = "### Skbuff",
+        .survey_note_path = "Documentation/zigux/phase14-skbuff-bridge-survey.md",
+        .lane_key_marker = "- lane key: `P14-L10`",
+        .ready_next_gap_marker = "- ready-next gap: none currently recorded",
+        .retained_boundary_marker = "live skb lifetime",
+        .blocked_gap_marker = "`phase14-skbuff-live-ownership-blocker`",
+    },
+    .{
+        .section_heading = "### RCU tree",
+        .survey_note_path = "Documentation/zigux/phase14-rcu-tree-survey.md",
+        .lane_key_marker = "- lane key: `P14-L13`",
+        .ready_next_gap_marker = "- ready-next gap: none currently recorded",
+        .retained_boundary_marker = "grace-period sequence publication",
+        .blocked_gap_marker = "`phase14-rcu-tree-bridge-blocker`",
+    },
 };
 
 fn containsMarker(haystack: []const u8, needle: []const u8) bool {
@@ -102,11 +129,11 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expectEqualStrings("phase14_shared_smoke_packet", manifest.packet_name);
     try std.testing.expectEqualStrings("study_only_shared_smoke_packet", manifest.focus);
     try std.testing.expectEqual(@as(usize, 6), manifest.commands.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.compile_shards.len);
-    try std.testing.expectEqual(@as(usize, 29), manifest.surfaces.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.compile_shards.len);
+    try std.testing.expectEqual(@as(usize, 28), manifest.surfaces.len);
     try std.testing.expectEqual(@as(usize, 6), countSurfacesWithPrefix(manifest.surfaces, "Documentation/zigux/"));
     try std.testing.expectEqual(@as(usize, 5), countSurfacesWithPrefix(manifest.surfaces, "scripts/zigux/"));
-    try std.testing.expectEqual(@as(usize, 13), countSurfacesWithPrefix(manifest.surfaces, "zigux/tests/"));
+    try std.testing.expectEqual(@as(usize, 12), countSurfacesWithPrefix(manifest.surfaces, "zigux/tests/"));
     try std.testing.expectEqual(@as(usize, 3), countBridgeRootSurfaces(manifest.surfaces));
     try std.testing.expectEqual(@as(usize, 1), countExactSurfacePath(manifest.surfaces, "zigux/Makefile"));
     try std.testing.expectEqual(@as(usize, 1), countSurfacesWithPrefix(manifest.surfaces, ".github/workflows/"));
@@ -114,7 +141,14 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expectEqualStrings("make -C zigux phase14-validate", manifest.commands[0]);
     try std.testing.expectEqualStrings("make -C zigux phase14-smoke", manifest.commands[1]);
     try std.testing.expectEqualStrings("make -C zigux phase14-test", manifest.commands[3]);
-    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_workqueue_reviewability.zig"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/phase14-core-boundary-traceability.md"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/phase14-end-to-end-smoke-survey.md"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/phase14-release-boundary-survey.md"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_workqueue_bridge.zig"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_skbuff_bridge.zig"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_ring_buffer_survey.zig"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_rcu_tree_survey.zig"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_end_to_end_smoke_survey.zig"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, ".github/workflows/zigux-bootstrap.yml"));
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.blocked_anchors[0]);
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.blocked_anchors[3]);
@@ -163,19 +197,21 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     defer std.testing.allocator.free(smoke_note_text);
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_VALIDATE_SELF_TEST=python3 scripts/zigux/validate-phase14.py --self-test"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all"));
-    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_SHARED_SURFACE_COUNT=29"));
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_SHARED_SURFACE_COUNT=28"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_DOC_SURFACE_COUNT=6"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_SCRIPT_SURFACE_COUNT=5"));
-    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_TEST_SURFACE_COUNT=13"));
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_TEST_SURFACE_COUNT=12"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_BRIDGE_ROOT_SURFACE_COUNT=3"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_WORKFLOW_SURFACE_COUNT=1"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_MAKEFILE_SURFACE_COUNT=1"));
-    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_COMPILE_ARTIFACT_COUNT=6"));
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_COMPILE_ARTIFACT_COUNT=5"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FOCUSED_SHARD_COUNT=1"));
-    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=5"));
-    try std.testing.expect(containsMarker(smoke_note_text, "zigux/tests/phase14_workqueue_reviewability.zig"));
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4"));
+    try std.testing.expect(containsMarker(smoke_note_text, "kernel/rcu/tree_bridge.zig"));
+    try std.testing.expect(containsMarker(smoke_note_text, "This wrapper first runs `python3 scripts/zigux/validate-phase14.py --self-test` and then the shared packet validator."));
+    try std.testing.expect(containsMarker(smoke_note_text, "`Documentation/zigux/phase14-ring-buffer-survey.md` and `zigux/tests/phase14_ring_buffer_manifest.json` agree on lane `P14-L08`"));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, smoke_note_text, "coverage `focused_and_full_bundle`"));
-    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, smoke_note_text, "coverage `full_bundle_only`"));
+    try std.testing.expectEqual(@as(usize, 4), std.mem.count(u8, smoke_note_text, "coverage `full_bundle_only`"));
 
     const build_text = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -184,11 +220,14 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(build_text);
-    try std.testing.expectEqual(@as(usize, 6), std.mem.count(u8, build_text, "b.addTest(.{"));
-    try std.testing.expectEqual(@as(usize, 6), std.mem.count(u8, build_text, "b.addRunArtifact("));
+    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_text, "b.addTest(.{"));
+    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_text, "b.addRunArtifact("));
     try std.testing.expect(containsMarker(build_text, "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);"));
     try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);"));
-    try std.testing.expect(containsMarker(build_text, "test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);"));
+    try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);"));
+    try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_skbuff_bridge_tests.step);"));
+    try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);"));
+    try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);"));
 
     const workflow_text = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -220,9 +259,9 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
         .limited(256 * 1024),
     );
     defer std.testing.allocator.free(validator_text);
-    try std.testing.expect(containsMarker(validator_text, "phase14-workqueue-reviewability-tests"));
-    try std.testing.expect(containsMarker(validator_text, "zigux/tests/phase14_workqueue_reviewability.zig"));
-    try std.testing.expect(containsMarker(validator_text, "phase14 smoke note full-bundle-only compile count drifted from the current five-artifact packet"));
+    try std.testing.expect(containsMarker(validator_text, "parser.add_argument(\"--self-test\""));
+    try std.testing.expect(containsMarker(validator_text, "if args.self_test:"));
+    try std.testing.expect(containsMarker(validator_text, "return run_self_test()"));
 
     const traceability_text = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -239,4 +278,6 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
         try std.testing.expect(containsMarker(traceability_text, expected.retained_boundary_marker));
         try std.testing.expect(containsMarker(traceability_text, expected.blocked_gap_marker));
     }
+    try std.testing.expectEqual(@as(usize, 4), std.mem.count(u8, traceability_text, "- ready-next gap: none currently recorded"));
+    try std.testing.expectEqual(@as(usize, 0), std.mem.count(u8, traceability_text, "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`"));
 }
