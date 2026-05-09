@@ -85,6 +85,9 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
     defer allocator.free(docs_root);
 
+    const review_checklist = try readRepoFile(allocator, "Documentation/zigux/review-checklist.md");
+    defer allocator.free(review_checklist);
+
     const samples_root = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(samples_root);
 
@@ -208,6 +211,16 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(docs_root, "scripts/zigux/check-phase7-argv-split-packet.py");
     try expectContains(docs_root, "scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(docs_root, "zigux/tests/phase7_build.zig");
+
+    try expectContains(review_checklist, "shared Phase 7 leaf-helper packet");
+    try expectContains(review_checklist, "Documentation/zigux/phase7-argv-split-slice.md");
+    try expectContains(review_checklist, "zigux/tests/phase7_argv_split.zig");
+    try expectContains(review_checklist, "zigux/tests/phase7_argv_split_survey.zig");
+    try expectContains(review_checklist, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
+    try expectContains(review_checklist, "scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(review_checklist, "scripts/zigux/check-phase7-build-wiring.py");
+    try expectContains(review_checklist, "make -C zigux phase7-validate");
+    try expectContains(review_checklist, "make -C zigux phase7");
 
     try expectContains(samples_root, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;");
     try expectContains(samples_root, "Documentation/zigux/phase7-argv-split-slice.md");
