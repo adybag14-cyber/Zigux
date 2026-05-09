@@ -259,6 +259,27 @@ def run_self_test() -> int:
             return 1
         write_text(root / DOCS_ROOT_PATH, good_text)
 
+        broken_path.write_text(
+            good_text.replace(
+                f"{CHECKER_PATH}\n",
+                f"{CHECKER_PATH}\n{CHECKER_PATH}\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "marker count drift in Documentation/zigux/README.md: "
+            f"{CHECKER_PATH} (expected 1, found 2)" in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when the docs-root summary duplicated the docs-root checker path",
+                file=sys.stderr,
+            )
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_text)
+
         broken_docs_root_path = root / DOCS_ROOT_PATH
         broken_docs_root_path.unlink()
         errors = check(root)
