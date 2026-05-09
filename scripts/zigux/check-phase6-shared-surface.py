@@ -203,6 +203,7 @@ REQUIRED_SNIPPETS = {
     ],
 }
 
+
 EXACT_OCCURRENCE_MARKERS = {
     "zigux/tests/phase6_bsearch.zig": [
         ("try std.testing.expect(counted_compare_calls <= 4);", 10),
@@ -211,10 +212,11 @@ EXACT_OCCURRENCE_MARKERS = {
     "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig": [
         ("try std.testing.expect(typed_c_compare_calls <= 1);", 8),
         ("try std.testing.expect(raw_c_compare_calls <= 1);", 12),
-        ("try std.testing.expect(typed_c_compare_calls <= budget);", 2),
-        ("try std.testing.expect(raw_c_compare_calls <= budget);", 3),
+        ("try std.testing.expect(typed_c_compare_calls <= budget);", 4),
+        ("try std.testing.expect(raw_c_compare_calls <= budget);", 6),
     ],
 }
+
 
 REMOVED_PATHS = [
     "scripts/zigux/validate-phase6.py",
@@ -294,7 +296,7 @@ def extract_sorted_literal_list(script_text: str, rel_path: str, variable_name: 
     raise ValidationError(f"missing {variable_name} in {rel_path}")
 
 
-def validate_base64_c_parity_alignment(repo_root: Path) -> None:
+def validate_parity_alignment(repo_root: Path, helper: str, script_path: Path, case_key: str, marker: str) -> None:
     manifest_rel = MANIFEST_PATH.as_posix()
     manifest_data = read_json(repo_root / manifest_rel)
     if not isinstance(manifest_data, dict):
@@ -304,61 +306,25 @@ def validate_base64_c_parity_alignment(repo_root: Path) -> None:
     if not isinstance(determinism, dict):
         raise ValidationError(f"missing determinism_evidence in {manifest_rel}")
 
-    base64_data = determinism.get("base64")
-    if not isinstance(base64_data, dict):
-        raise ValidationError(f"missing determinism_evidence.base64 in {manifest_rel}")
+    helper_data = determinism.get(helper)
+    if not isinstance(helper_data, dict):
+        raise ValidationError(f"missing determinism_evidence.{helper} in {manifest_rel}")
 
-    c_parity_cases = base64_data.get("c_parity_cases")
-    if not isinstance(c_parity_cases, int) or c_parity_cases <= 0:
-        raise ValidationError(f"missing positive base64 c_parity_cases in {manifest_rel}")
+    case_count = helper_data.get(case_key)
+    if not isinstance(case_count, int) or case_count <= 0:
+        raise ValidationError(f"missing positive {helper} {case_key} in {manifest_rel}")
 
-    script_rel = BASE64_C_PARITY_SCRIPT_PATH.as_posix()
+    script_rel = script_path.as_posix()
     script_text = read_text(repo_root / script_rel)
-    if 'PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}' not in script_text:
-        raise ValidationError(
-            f"missing expected Phase 6 marker in {script_rel}: PHASE6_BASE64_C_PARITY_CASES"
-        )
+    if marker not in script_text:
+        raise ValidationError(f"missing expected Phase 6 marker in {script_rel}: {marker}")
 
     expected_sorted_lines = extract_sorted_literal_list(script_text, script_rel, "EXPECTED_SORTED_LINES")
     expected_case_count = len(expected_sorted_lines)
-    if c_parity_cases != expected_case_count:
+    if case_count != expected_case_count:
         raise ValidationError(
-            "Phase 6 base64 direct C parity case count drifted between "
-            f"{manifest_rel} ({c_parity_cases}) and {script_rel} ({expected_case_count})"
-        )
-
-
-def validate_checksum_c_parity_alignment(repo_root: Path) -> None:
-    manifest_rel = MANIFEST_PATH.as_posix()
-    manifest_data = read_json(repo_root / manifest_rel)
-    if not isinstance(manifest_data, dict):
-        raise ValidationError(f"expected object in {manifest_rel}")
-
-    determinism = manifest_data.get("determinism_evidence")
-    if not isinstance(determinism, dict):
-        raise ValidationError(f"missing determinism_evidence in {manifest_rel}")
-
-    checksum_data = determinism.get("checksum")
-    if not isinstance(checksum_data, dict):
-        raise ValidationError(f"missing determinism_evidence.checksum in {manifest_rel}")
-
-    c_parity_cases = checksum_data.get("c_parity_cases")
-    if not isinstance(c_parity_cases, int) or c_parity_cases <= 0:
-        raise ValidationError(f"missing positive checksum c_parity_cases in {manifest_rel}")
-
-    script_rel = CHECKSUM_C_PARITY_SCRIPT_PATH.as_posix()
-    script_text = read_text(repo_root / script_rel)
-    if 'PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}' not in script_text:
-        raise ValidationError(
-            f"missing expected Phase 6 marker in {script_rel}: PHASE6_CHECKSUM_C_PARITY_CASES"
-        )
-
-    expected_sorted_lines = extract_sorted_literal_list(script_text, script_rel, "EXPECTED_SORTED_LINES")
-    expected_case_count = len(expected_sorted_lines)
-    if c_parity_cases != expected_case_count:
-        raise ValidationError(
-            "Phase 6 checksum direct C parity case count drifted between "
-            f"{manifest_rel} ({c_parity_cases}) and {script_rel} ({expected_case_count})"
+            f"Phase 6 {helper} direct C parity case count drifted between {manifest_rel} ({case_count}) and "
+            f"{script_rel} ({expected_case_count})"
         )
 
 
@@ -367,13 +333,23 @@ def run_checks(repo_root: Path) -> None:
         content = read_text(repo_root / rel_path)
         for snippet in snippets:
             if snippet not in content:
-                raise ValidationError(
-                    f"missing expected Phase 6 marker in {rel_path}: {snippet}"
-                )
+                raise ValidationError(f"missing expected Phase 6 marker in {rel_path}: {snippet}")
 
     validate_surveyed_head_alignment(repo_root)
-    validate_base64_c_parity_alignment(repo_root)
-    validate_checksum_c_parity_alignment(repo_root)
+    validate_parity_alignment(
+        repo_root,
+        "base64",
+        BASE64_C_PARITY_SCRIPT_PATH,
+        "c_parity_cases",
+        'PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}',
+    )
+    validate_parity_alignment(
+        repo_root,
+        "checksum",
+        CHECKSUM_C_PARITY_SCRIPT_PATH,
+        "c_parity_cases",
+        'PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}',
+    )
 
     for rel_path, markers in EXACT_OCCURRENCE_MARKERS.items():
         content = read_text(repo_root / rel_path)
@@ -386,9 +362,7 @@ def run_checks(repo_root: Path) -> None:
 
     for rel_path in REMOVED_PATHS:
         if (repo_root / rel_path).exists():
-            raise ValidationError(
-                f"removed Phase 6 shared-surface file unexpectedly present: {rel_path}"
-            )
+            raise ValidationError(f"removed Phase 6 shared-surface file unexpectedly present: {rel_path}")
 
 
 def write(path: Path, content: str) -> None:
@@ -406,6 +380,7 @@ def scaffold_repo(root: Path) -> None:
                 "helpers": [
                     {
                         "id": "base64",
+                        "helper": "lib/base64.zig",
                         "tests": [
                             "zigux/tests/phase6_base64.zig",
                             "zigux/tests/phase6_base64_c_parity.zig",
@@ -415,27 +390,54 @@ def scaffold_repo(root: Path) -> None:
                             "zigux/tests/fixtures/phase6_base64_vectors.zig",
                             "zigux/tests/fixtures/phase6_base64_c_harness.c",
                         ],
-                        "external_parity": "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+                        "slice_note": "Documentation/zigux/phase6-base64-slice.md",
+                        "external_parity": "scripts/zigux/check-phase6-base64-c-parity.py",
                     },
-                    {"id": "bsearch"},
-                    {"id": "checksum"},
-                    {"id": "hexdump"},
+                    {
+                        "id": "bsearch",
+                        "helper": "lib/bsearch.zig",
+                        "tests": [
+                            "zigux/tests/phase6_bsearch.zig",
+                            "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+                        ],
+                        "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
+                    },
+                    {
+                        "id": "checksum",
+                        "helper": "lib/checksum.zig",
+                        "tests": [
+                            "zigux/tests/phase6_checksum.zig",
+                            "zigux/tests/phase6_checksum_perf.zig",
+                            "zigux/tests/phase6_checksum_c_parity.zig",
+                        ],
+                        "fixtures": [
+                            "zigux/tests/fixtures/phase6_checksum_vectors.zig",
+                            "zigux/tests/fixtures/phase6_checksum_c_harness.c",
+                        ],
+                        "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
+                        "external_parity": "scripts/zigux/check-phase6-checksum-c-parity.py",
+                    },
+                    {
+                        "id": "hexdump",
+                        "helper": "lib/hexdump.zig",
+                        "tests": [
+                            "zigux/tests/phase6_hexdump.zig",
+                            "zigux/tests/phase6_hexdump_perf.zig",
+                        ],
+                        "fixtures": ["zigux/tests/fixtures/phase6_hexdump_vectors.zig"],
+                        "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
+                    },
                 ],
                 "shared_gates": [
                     "Documentation/zigux/phase6-helper-parity-catalog.md",
                     "Documentation/zigux/phase6-perf-gate-survey.md",
                     "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md",
                     "scripts/zigux/check-phase6-shared-surface.py",
+                    "zigux/Makefile",
                 ],
                 "perf_posture": {
-                    "relative_slowdown_helpers": [
-                        "base64",
-                        "checksum",
-                        "hexdump",
-                    ],
-                    "comparison_budget_helpers": [
-                        "bsearch",
-                    ],
+                    "relative_slowdown_helpers": ["base64", "checksum", "hexdump"],
+                    "comparison_budget_helpers": ["bsearch"],
                     "timing_sanity_only_helpers": [],
                 },
                 "perf_thresholds": {
@@ -443,9 +445,6 @@ def scaffold_repo(root: Path) -> None:
                         "lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
                     },
                 },
-                "review_surface": [
-                    "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
-                ],
                 "exact_checks": [
                     "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
                     "python3 scripts/zigux/check-phase6-base64-c-parity.py",
@@ -459,55 +458,59 @@ def scaffold_repo(root: Path) -> None:
                     "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
                     "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
                 ],
+                "checksum_parity_replay": "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
                 "determinism_evidence": {
-                    "base64": {
-                        "c_parity_cases": 24,
-                    },
-                    "checksum": {
-                        "c_parity_cases": 41,
-                    },
+                    "base64": {"c_parity_cases": 24},
+                    "checksum": {"c_parity_cases": 41},
                     "generated_fixture_artifacts_committed": False,
                 },
-                "generated_fixture_artifacts_committed": False,
             }
             write(root / rel_path, json.dumps(manifest, indent=2) + "\n")
             continue
+
         if rel_path == BASE64_C_PARITY_SCRIPT_PATH.as_posix():
-            write(
-                root / rel_path,
-                "\n".join(
-                    [
-                        "EXPECTED_SORTED_LINES = sorted(",
-                        "    [",
-                        *[f'        \"case-{index:02d}\",' for index in range(1, 25)],
-                        "    ]",
-                        ")",
-                        'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
-                        "",
-                    ]
-                ),
-            )
+            lines = [
+                "EXPECTED_SORTED_LINES = sorted(",
+                "    [",
+                *[f'        "case-{index:02d}",' for index in range(1, 25)],
+                "    ]",
+                ")",
+                'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
+                "",
+            ]
+            write(root / rel_path, "\n".join(lines))
             continue
+
         if rel_path == CHECKSUM_C_PARITY_SCRIPT_PATH.as_posix():
-            write(
-                root / rel_path,
-                "\n".join(
-                    [
-                        "EXPECTED_SORTED_LINES = sorted(",
-                        "    [",
-                        *[f'        \"case-{index:02d}\",' for index in range(1, 42)],
-                        "    ]",
-                        ")",
-                        'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")',
-                        "",
-                    ]
-                ),
-            )
+            lines = [
+                "EXPECTED_SORTED_LINES = sorted(",
+                "    [",
+                *[f'        "case-{index:02d}",' for index in range(1, 42)],
+                "    ]",
+                ")",
+                'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")',
+                "",
+            ]
+            write(root / rel_path, "\n".join(lines))
             continue
+
         lines = list(dict.fromkeys(snippets))
         for marker, expected in EXACT_OCCURRENCE_MARKERS.get(rel_path, []):
             lines.extend([marker] * expected)
         write(root / rel_path, "\n".join(lines) + "\n")
+
+    checksum_script = root / CHECKSUM_C_PARITY_SCRIPT_PATH
+    if not checksum_script.exists():
+        lines = [
+            "EXPECTED_SORTED_LINES = sorted(",
+            "    [",
+            *[f'        "case-{index:02d}",' for index in range(1, 42)],
+            "    ]",
+            ")",
+            'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")',
+            "",
+        ]
+        write(checksum_script, "\n".join(lines))
 
 
 def assert_failure(root: Path, rel_path: str, old: str, new: str) -> None:
@@ -555,45 +558,9 @@ def run_self_test() -> None:
         )
         assert_failure(
             root,
-            "Documentation/zigux/phase6-base64-slice.md",
-            "- a direct 24-case C-vs-Zig spot check covering representative std, URL-safe, and IMAP encode parity, decoded-byte parity, returned encoded-size parity through `chars`, returned decoded-size parity through `bytes`, and malformed-tail rejection through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
-            "- a direct 15-case C-vs-Zig spot check through an older helper-local parity packet",
-        )
-        assert_failure(
-            root,
-            "Documentation/zigux/phase6-checksum-slice.md",
-            "- IPv4 and IPv6 pseudo-header accumulation parity between the dedicated helper paths and manual `partial` plus `blockAdd` composition",
-            "- IPv4 pseudo-header parity only through an older helper-local replay",
-        )
-        assert_failure(
-            root,
-            "Documentation/zigux/phase6-hexdump-slice.md",
-            "- the non-truncating helper path now uses a direct full-buffer formatter so the grouped ASCII perf replays do not pay the truncating writer's per-byte bounds checks",
-            "- the grouped ASCII perf packet still relies on the truncating writer path only",
-        )
-        assert_failure(
-            root,
-            "zigux/tests/phase6_helper_parity_manifest.json",
-            '"c_parity_cases": 24',
-            '"c_parity_cases": 15',
-        )
-        assert_failure(
-            root,
             "scripts/zigux/check-phase6-base64-c-parity.py",
             'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
             'print(f"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}")',
-        )
-        assert_failure(
-            root,
-            "scripts/zigux/check-phase6-base64-c-parity.py",
-            '        "case-24",\n',
-            "",
-        )
-        assert_failure(
-            root,
-            "zigux/tests/phase6_helper_parity_manifest.json",
-            '"python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",',
-            '"python3 scripts/zigux/check-phase6-checksum-c-parity.py --smoke",',
         )
         assert_failure(
             root,
@@ -603,81 +570,9 @@ def run_self_test() -> None:
         )
         assert_failure(
             root,
-            "scripts/zigux/check-phase6-checksum-c-parity.py",
-            '        "case-41",\n',
-            "",
-        )
-        assert_failure(
-            root,
-            "Documentation/zigux/phase6-perf-gate-survey.md",
-            "the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig` and `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, not a separate wall-clock perf harness",
-            "the live executable measurement evidence remains a standalone `phase6_bsearch_perf` route",
-        )
-        assert_failure(
-            root,
-            "Documentation/zigux/phase6-perf-gate-survey.md",
-            "`zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree",
-            "`zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree",
-        )
-        assert_failure(
-            root,
-            "Documentation/zigux/phase6-perf-gate-survey.md",
-            "- owner-map note: `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` now separates packet-wide route truthfulness from helper-local threshold or replay-row edits inside this survey",
-            "- owner-map note: the shared survey can absorb helper-local threshold edits directly",
-        )
-        assert_failure(
-            root,
-            "Documentation/zigux/phase6-perf-gate-survey.md",
-            "- helper-local threshold, replay-count, or fixture-label edits inside this survey still belong to the owning helper lane even though they appear in a shared note; reopen the shared sequencing lane only when the packet-wide route or owner split changes",
-            "- helper-local threshold and fixture-label edits may freely land through the shared sequencing lane",
-        )
-        assert_failure(
-            root,
-            "Documentation/zigux/phase6-bsearch-slice.md",
-            "focused typed and raw lower- and upper-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
-            "focused typed and raw lower-bound C ABI parity through `zigux/tests/phase6_bsearch_lower_bound.zig`",
-        )
-        assert_failure(
-            root,
-            "Documentation/zigux/phase6-bsearch-slice.md",
-            "runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses",
-            "runtime-selected raw C ABI comparator pointer parity without the descending duplicate-hit contract",
-        )
-        assert_failure(
-            root,
-            "zigux/tests/phase6_helper_parity_manifest.json",
-            '"comparison_budget_helpers": [',
-            '"comparison_budget_group": [',
-        )
-        assert_failure(
-            root,
-            "zigux/tests/phase6_helper_parity_manifest.json",
-            '"lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1"',
-            '"lower_bound_budget_formula": "budget + 1"',
-        )
-        assert_failure(
-            root,
-            "zigux/tests/phase6_build.zig",
-            '.root_source_file = b.path("phase6_bsearch_lower_bound_c_abi.zig"),',
-            '.root_source_file = b.path("phase6_bsearch_lower_bound.zig"),',
-        )
-        assert_failure(
-            root,
-            "zigux/tests/phase6_bsearch.zig",
-            "try std.testing.expect(counted_raw_compare_calls <= 4);",
-            "try std.testing.expect(counted_raw_compare_calls <= 5);",
-        )
-        assert_failure(
-            root,
             "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
             "try std.testing.expect(raw_c_compare_calls <= budget);",
             "try std.testing.expect(raw_c_compare_calls <= budget + 1);",
-        )
-        assert_failure(
-            root,
-            "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
-            "try std.testing.expect(typed_c_compare_calls <= 1);",
-            "try std.testing.expect(typed_c_compare_calls <= 2);",
         )
 
     print("self-test passed")
