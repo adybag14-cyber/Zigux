@@ -10,6 +10,26 @@ pub const AcceptedHeader = struct {
     compatibility: Compatibility,
     canonical: Header,
 };
+pub const HeaderEvaluation = struct {
+    requested: Header,
+    acceptance: ?AcceptedHeader,
+
+    pub fn isAccepted(self: @This()) bool {
+        return self.acceptance != null;
+    }
+
+    pub fn compatibility(self: @This()) ?Compatibility {
+        return if (self.acceptance) |accepted| accepted.compatibility else null;
+    }
+
+    pub fn canonical(self: @This()) ?Header {
+        return if (self.acceptance) |accepted| accepted.canonical else null;
+    }
+
+    pub fn sizeDelta(self: @This()) i64 {
+        return @as(i64, self.requested.size) - @as(i64, header_size);
+    }
+};
 
 pub const abi_version: u16 = abi.ABI_VERSION;
 pub const header_size: u32 = @sizeOf(Header);
@@ -73,6 +93,13 @@ pub fn canonicalizeHeader(header: Header) ?Header {
     return (acceptHeader(header) orelse return null).canonical;
 }
 
+pub fn evaluateHeader(header: Header) HeaderEvaluation {
+    return .{
+        .requested = header,
+        .acceptance = acceptHeader(header),
+    };
+}
+
 test "phase3 uapi version follows abi version" {
     try std.testing.expectEqual(abi.ABI_VERSION, abi_version);
 }
@@ -120,4 +147,25 @@ test "phase3 uapi canonicalizes compatible headers without widening the boundary
     try std.testing.expectEqual(header_size, canonical.size);
     try std.testing.expectEqual(abi_version, canonical.abi_version);
     try std.testing.expectEqual(@as(u16, 0x44), canonical.flags);
+}
+
+test "phase3 uapi evaluation keeps requested boundary shape explicit" {
+    const canonical = evaluateHeader(boundaryHeader(0x19));
+    const future_compatible = evaluateHeader(compatibleHeader(header_size + 24, 0x19));
+    const undersized = evaluateHeader(compatibleHeader(header_size - 1, 0x19));
+
+    try std.testing.expect(canonical.isAccepted());
+    try std.testing.expectEqual(Compatibility.canonical, canonical.compatibility().?);
+    try std.testing.expectEqual(boundaryHeader(0x19), canonical.canonical().?);
+    try std.testing.expectEqual(@as(i64, 0), canonical.sizeDelta());
+
+    try std.testing.expect(future_compatible.isAccepted());
+    try std.testing.expectEqual(Compatibility.future_compatible, future_compatible.compatibility().?);
+    try std.testing.expectEqual(boundaryHeader(0x19), future_compatible.canonical().?);
+    try std.testing.expectEqual(@as(i64, 24), future_compatible.sizeDelta());
+
+    try std.testing.expect(!undersized.isAccepted());
+    try std.testing.expect(undersized.compatibility() == null);
+    try std.testing.expect(undersized.canonical() == null);
+    try std.testing.expectEqual(@as(i64, -1), undersized.sizeDelta());
 }
