@@ -492,6 +492,7 @@ def run_self_test() -> int:
 
         manifest = json.loads(read_text(root, MANIFEST_PATH))
         manifest["remaining_gaps"] = []
+        writeText = None
         write_text(manifest_path, json.dumps(manifest, indent=2) + "\n")
         assert_only(validate(root), ["manifest:remaining_gaps"], "missing_manifest_readiness_gap")
         seed_fixture_tree(root)
@@ -499,7 +500,6 @@ def run_self_test() -> int:
 
         workflow_path = root / WORKFLOW_PATH
         baseline_workflow = read_text(root, WORKFLOW_PATH)
-        workflow_path.writeText = None
         workflow_path.write_text(baseline_workflow.replace("run: make -C zigux phase15-validate", "run: make -C zigux phase15-check", 1), encoding="utf-8")
         assert_only(validate(root), ["workflow:missing:run: make -C zigux phase15-validate"], "missing_workflow_validate")
         workflow_path.write_text(baseline_workflow, encoding="utf-8")
