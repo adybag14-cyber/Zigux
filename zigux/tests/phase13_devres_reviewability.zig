@@ -169,6 +169,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
         if (std.mem.eql(u8, gap.id, "phase13-devres-helper-starter")) {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_wc()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact `devm_iounmap()` pointer matching") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-test-gate")) {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
