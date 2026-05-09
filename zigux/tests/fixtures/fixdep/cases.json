@@ -16,6 +16,14 @@
     "expected_exit_code": 0
   },
   {
+    "name": "sample_escaped_colon",
+    "depfile": "sample_escaped_colon.d",
+    "target": "sample_escaped_colon.o",
+    "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c -o sample_escaped_colon.o",
+    "expected": "sample_escaped_colon_expected.txt",
+    "expected_exit_code": 0
+  },
+  {
     "name": "sample_multi_target",
     "depfile": "sample_multi_target.d",
     "target": "module/sample2.o",
