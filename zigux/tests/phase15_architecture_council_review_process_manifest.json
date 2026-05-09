@@ -3,7 +3,7 @@
   "phase": "Phase 15",
   "surveyed_commit": "current-master-readback-2026-05-09",
   "surveyed_commit_mode": "dated_master_readback",
-  "surveyed_commit_mode_reason": "Live compare-against-master showed the previously recorded verified head 4fc891b380cdd2991dff7676ade7f844df1b55fd now sits 2591 commits behind current master, so this parked review-process packet uses an explicit dated readback marker instead of stale exact-head parity.",
+  "surveyed_commit_mode_reason": "Live compare-against-master showed the previously recorded verified head 4fc891b380cdd2991dff7676ade7f844df1b55fd is no longer current master, so this parked review-process packet uses an explicit dated readback marker instead of stale exact-head parity.",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
