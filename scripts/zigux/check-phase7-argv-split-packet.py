@@ -10,6 +10,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-argv-split-slice.md",
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
     "samples/zigux/README.md",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "zigux/Makefile",
@@ -23,6 +24,7 @@ REQUIRED_FILES = [
 
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-argv-split-slice.md": [
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
         "null-terminated pointer-vector access through `cArgv()`",
         "exported C-argv vector sizing to `argc + 1` so the trailing null sentinel stays aligned with `argvSplitWithArgc()` and `cArgv()`",
         "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`",
@@ -31,6 +33,16 @@ REQUIRED_MARKERS = {
         "allocator-failure cleanup when intermediate setup work is interrupted",
         "overflow rejection before sizing the exported null-terminated argv vector",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
+    ],
+    "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": [
+        "PHASE7_LANE_KEY=P7-Y05",
+        "`scripts/zigux/check-phase7-make-wrapper.py`",
+        "`scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
+        "`scripts/zigux/validate-phase7.py`",
+        "`zigux/Makefile`",
+        "`.github/workflows/zigux-bootstrap.yml`",
+        "`make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface",
+        "this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`",
     ],
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under",
@@ -105,8 +117,8 @@ REQUIRED_MARKERS = {
 
 EXACT_COUNT_MARKERS = {
     "zigux/tests/phase7_argv_split_manifest.json": [
-        ('"id": "phase7-argv-split-packet-checker"', 1),
-        ('"zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py"', 1),
+        ('\"id\": \"phase7-argv-split-packet-checker\"', 1),
+        ('\"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\"', 1),
     ],
 }
 
@@ -145,6 +157,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 def write_fixture_root(tmp_root: Path) -> None:
     fixture_text = {
         "Documentation/zigux/phase7-argv-split-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-argv-split-slice.md"]) + "\n",
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md": "\n".join(
+            REQUIRED_MARKERS["Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"]
+        )
+        + "\n",
         "samples/zigux/README.md": "\n".join(REQUIRED_MARKERS["samples/zigux/README.md"]) + "\n",
         "scripts/zigux/check-phase7-argv-split-packet.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-argv-split-packet.py"]) + "\n",
         "zigux/Makefile": "\n".join(REQUIRED_MARKERS["zigux/Makefile"]) + "\n",
@@ -243,6 +259,16 @@ def run_self_test() -> None:
         case_count += 1
         write_fixture_root(tmp_root)
 
+        slice_note_path = tmp_root / "Documentation" / "zigux" / "phase7-make-wrapper-selftest-alignment.md"
+        slice_note_path.unlink()
+        expect_missing_file(
+            "missing_phase7_make_wrapper_alignment_note",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        )
+        case_count += 1
+        write_fixture_root(tmp_root)
+
         samples_path = tmp_root / "samples" / "zigux" / "README.md"
         samples_path.unlink()
         expect_missing_file(
@@ -276,6 +302,18 @@ def run_self_test() -> None:
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
         original_slice = slice_path.read_text(encoding="utf-8")
         slice_path.write_text(
+            original_slice.replace("Documentation/zigux/phase7-make-wrapper-selftest-alignment.md", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_slice_shared_note_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        )
+        case_count += 1
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
             original_slice.replace("python3 scripts/zigux/check-phase7-argv-split-packet.py", "", 1),
             encoding="utf-8",
         )
@@ -287,73 +325,47 @@ def run_self_test() -> None:
         case_count += 1
         slice_path.write_text(original_slice, encoding="utf-8")
 
-        slice_path.write_text(
-            original_slice.replace("exported C-argv vector sizing to `argc + 1` so the trailing null sentinel stays aligned with `argvSplitWithArgc()` and `cArgv()`", "", 1),
+        note_path = tmp_root / "Documentation" / "zigux" / "phase7-make-wrapper-selftest-alignment.md"
+        original_note = note_path.read_text(encoding="utf-8")
+        note_path.write_text(
+            original_note.replace("PHASE7_LANE_KEY=P7-Y05", "", 1),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "argv_split_slice_cargv_layout_marker",
+            "argv_split_shared_note_lane_marker",
             tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: exported C-argv vector sizing to `argc + 1` so the trailing null sentinel stays aligned with `argvSplitWithArgc()` and `cArgv()`",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: PHASE7_LANE_KEY=P7-Y05",
         )
         case_count += 1
-        slice_path.write_text(original_slice, encoding="utf-8")
+        note_path.write_text(original_note, encoding="utf-8")
 
-        slice_path.write_text(
-            original_slice.replace(
-                "tearing down one non-blank result does not disturb another caller's owned storage or exported C-argv view",
+        note_path.write_text(
+            original_note.replace("`scripts/zigux/validate-phase7.py`", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_shared_note_validator_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: `scripts/zigux/validate-phase7.py`",
+        )
+        case_count += 1
+        note_path.write_text(original_note, encoding="utf-8")
+
+        note_path.write_text(
+            original_note.replace(
+                "this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "argv_split_slice_distinct_caller_teardown_marker",
+            "argv_split_shared_note_non_goal_marker",
             tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: tearing down one non-blank result does not disturb another caller's owned storage or exported C-argv view",
+            "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md: this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`",
         )
         case_count += 1
-        slice_path.write_text(original_slice, encoding="utf-8")
-
-        slice_path.write_text(
-            original_slice.replace(
-                "blank-input teardown on one caller keeps the shared empty storage and exported argv sentinels stable for another caller",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "argv_split_slice_shared_blank_teardown_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: blank-input teardown on one caller keeps the shared empty storage and exported argv sentinels stable for another caller",
-        )
-        case_count += 1
-        slice_path.write_text(original_slice, encoding="utf-8")
-
-        slice_path.write_text(
-            original_slice.replace("allocator-failure cleanup when intermediate setup work is interrupted", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "argv_split_slice_allocator_failure_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: allocator-failure cleanup when intermediate setup work is interrupted",
-        )
-        case_count += 1
-        slice_path.write_text(original_slice, encoding="utf-8")
-
-        slice_path.write_text(
-            original_slice.replace("overflow rejection before sizing the exported null-terminated argv vector", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "argv_split_slice_overflow_marker",
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: overflow rejection before sizing the exported null-terminated argv vector",
-        )
-        case_count += 1
-        slice_path.write_text(original_slice, encoding="utf-8")
+        note_path.write_text(original_note, encoding="utf-8")
 
         samples_path = tmp_root / "samples" / "zigux" / "README.md"
         original_samples = samples_path.read_text(encoding="utf-8")
@@ -693,7 +705,7 @@ def run_self_test() -> None:
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
-            duplicate_first_marker(original_manifest, '"id": "phase7-argv-split-packet-checker"'),
+            duplicate_first_marker(original_manifest, '\"id\": \"phase7-argv-split-packet-checker\"'),
             encoding="utf-8",
         )
         expect_missing_marker(
@@ -707,7 +719,7 @@ def run_self_test() -> None:
         manifest_path.write_text(
             duplicate_first_marker(
                 original_manifest,
-                '"zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py"',
+                '\"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\"',
             ),
             encoding="utf-8",
         )
