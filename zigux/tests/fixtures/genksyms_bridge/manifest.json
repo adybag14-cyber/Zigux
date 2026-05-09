@@ -69,6 +69,7 @@
     "too_many_reference_files_expected.json"
   ],
   "normalized_stderr_packet": [
+    "ambiguous_long_option_expected.json",
     "unexpected_help_argument_expected.json",
     "invalid_option_expected.json",
     "missing_reference_argument_expected.json",
@@ -91,6 +92,7 @@
       "exit_code"
     ],
     "normalized_stderr_cases": [
+      "ambiguous_long_option",
       "unexpected_help_argument",
       "invalid_option",
       "missing_reference_argument",
