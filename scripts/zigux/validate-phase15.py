@@ -54,7 +54,7 @@ READINESS_NOTE_MARKERS = (
     CHECKER_TWO,
     ".github/workflows/zigux-bootstrap.yml",
     "phase15-deep-core-status-change-blocker",
-    "phase15-tests-root-dedicated-make-route-undercount",
+    "no narrower shared-summary follow-through remains open on current owner mapping",
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
     "zig build test --build-file zigux/tests/phase15_build.zig",
@@ -178,11 +178,10 @@ def validate(root: Path) -> list[str]:
             failures.append("manifest:repo_evidence:deep_core_status_change_ready")
 
     remaining_gaps = manifest.get("remaining_gaps")
-    if not isinstance(remaining_gaps, list) or len(remaining_gaps) != 2:
+    if not isinstance(remaining_gaps, list) or len(remaining_gaps) != 1:
         failures.append("manifest:remaining_gaps")
     else:
         saw_status_change_blocker = False
-        saw_tests_root_undercount = False
         for gap in remaining_gaps:
             gap_id = gap.get("id")
             if gap_id == "phase15-deep-core-status-change-blocker":
@@ -191,18 +190,10 @@ def validate(root: Path) -> list[str]:
                     failures.append(f"manifest:remaining_gap_status:{gap.get('status')}")
                 if gap.get("zigux_destination") != "Documentation/zigux/phase15-parity-scorecard.md":
                     failures.append(f"manifest:remaining_gap_destination:{gap.get('zigux_destination')}")
-            elif gap_id == "phase15-tests-root-dedicated-make-route-undercount":
-                saw_tests_root_undercount = True
-                if gap.get("status") != "blocked_on_tests_root_phase15_summary_sync":
-                    failures.append(f"manifest:remaining_gap_status:{gap.get('status')}")
-                if gap.get("zigux_destination") != "zigux/tests/README.md":
-                    failures.append(f"manifest:remaining_gap_destination:{gap.get('zigux_destination')}")
             else:
                 failures.append(f"manifest:remaining_gap_id:{gap_id}")
         if not saw_status_change_blocker:
             failures.append("manifest:missing:phase15-deep-core-status-change-blocker")
-        if not saw_tests_root_undercount:
-            failures.append("manifest:missing:phase15-tests-root-dedicated-make-route-undercount")
 
     next_step = manifest.get("next_step", "")
     for marker in (
@@ -210,7 +201,8 @@ def validate(root: Path) -> list[str]:
         "shared Phase 15 replay drifts again",
         "two dedicated `phase15-validate` checker routes",
         "make -C zigux phase15-test",
-        "zigux/tests/README.md",
+        "zigux/tests/phase15_handoff_next_steps_manifest.json",
+        "zigux/tests/phase15_readiness_gate_manifest.json",
     ):
         if marker not in next_step:
             failures.append(f"manifest:next_step:missing:{marker}")
@@ -222,7 +214,8 @@ def validate(root: Path) -> list[str]:
         "phase15-validate",
         "phase15_build.zig",
         "phase15-deep-core-status-change-blocker",
-        "phase15-tests-root-dedicated-make-route-undercount",
+        "zigux/tests/phase15_handoff_next_steps_manifest.json",
+        "zigux/tests/phase15_readiness_gate_manifest.json",
     ):
         if marker not in readiness_test:
             failures.append(f"readiness_test:missing:{marker}")
@@ -321,7 +314,8 @@ def seed_fixture_tree(root: Path) -> None:
                 "phase15-validate",
                 "phase15_build.zig",
                 "phase15-deep-core-status-change-blocker",
-                "phase15-tests-root-dedicated-make-route-undercount",
+                "zigux/tests/phase15_handoff_next_steps_manifest.json",
+                "zigux/tests/phase15_readiness_gate_manifest.json",
             )
         )
         + "\n",
@@ -371,14 +365,9 @@ def seed_fixture_tree(root: Path) -> None:
                         "id": "phase15-deep-core-status-change-blocker",
                         "status": "blocked_on_stay_in_c_evidence",
                         "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
-                    },
-                    {
-                        "id": "phase15-tests-root-dedicated-make-route-undercount",
-                        "status": "blocked_on_tests_root_phase15_summary_sync",
-                        "zigux_destination": "zigux/tests/README.md",
-                    },
+                    }
                 ],
-                "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, one of the two dedicated `phase15-validate` checker routes disappears, `make -C zigux phase15-test` disappears, or `zigux/tests/README.md` stops describing the current shared-summary follow-through.",
+                "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, one of the two dedicated `phase15-validate` checker routes disappears, `make -C zigux phase15-test` disappears, or the explicit `zigux/tests/phase15_handoff_next_steps_manifest.json` plus `zigux/tests/phase15_readiness_gate_manifest.json` pair drops out of the parked readiness packet.",
             },
             indent=2,
         )
@@ -502,14 +491,15 @@ def run_self_test() -> int:
         case_count += 1
 
         manifest = json.loads(read_text(root, MANIFEST_PATH))
-        manifest["remaining_gaps"] = manifest["remaining_gaps"][:1]
+        manifest["remaining_gaps"] = []
         write_text(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        assert_only(validate(root), ["manifest:remaining_gaps"], "missing_manifest_tests_root_gap")
+        assert_only(validate(root), ["manifest:remaining_gaps"], "missing_manifest_readiness_gap")
         seed_fixture_tree(root)
         case_count += 1
 
         workflow_path = root / WORKFLOW_PATH
         baseline_workflow = read_text(root, WORKFLOW_PATH)
+        workflow_path.writeText = None
         workflow_path.write_text(baseline_workflow.replace("run: make -C zigux phase15-validate", "run: make -C zigux phase15-check", 1), encoding="utf-8")
         assert_only(validate(root), ["workflow:missing:run: make -C zigux phase15-validate"], "missing_workflow_validate")
         workflow_path.write_text(baseline_workflow, encoding="utf-8")
