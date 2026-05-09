@@ -46,6 +46,7 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
         "PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass",
+        ("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST_CASE_COUNT=",),
     ),
     SelfTestTarget(
         "scripts/zigux/survey-phase3-abi-constant-parity.py",
@@ -217,6 +218,18 @@ def run_self_test() -> int:
         )
         case_count += 1
         _require_target(
+            "scripts/zigux/check-phase3-catalog-selftest.py",
+            "PHASE3_CATALOG_SELF_TEST=pass",
+            extra_markers=("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=",),
+        )
+        case_count += 1
+        _require_target(
+            "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+            "PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass",
+            extra_markers=("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST_CASE_COUNT=",),
+        )
+        case_count += 1
+        _require_target(
             "scripts/zigux/survey-phase3-abi-constant-parity.py",
             "PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass",
             extra_markers=("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT=",),
@@ -376,7 +389,50 @@ def run_self_test() -> int:
             "WRONG_MARKER=pass",
         )
         assert run_targets(wrong_abi_bindings_marker_root) == [
-            "missing_pass_marker:scripts/zigux/validate-phase3-abi-bindings-syntax.py:PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass"
+            "missing_pass_marker:scripts/zigux/validate-phase3-abi-bindings-syntax.py:PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass",
+            "missing_aux_marker:scripts/zigux/validate-phase3-abi-bindings-syntax.py:PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST_CASE_COUNT=",
+        ]
+        case_count += 1
+
+        missing_abi_bindings_aux_root = tmp_root / "missing-abi-bindings-aux"
+        _populate_root(missing_abi_bindings_aux_root)
+        write_script(
+            missing_abi_bindings_aux_root / "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+            "PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass",
+        )
+        assert run_targets(missing_abi_bindings_aux_root) == [
+            "missing_aux_marker:scripts/zigux/validate-phase3-abi-bindings-syntax.py:PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        duplicate_abi_bindings_aux_root = tmp_root / "duplicate-abi-bindings-aux"
+        _populate_root(duplicate_abi_bindings_aux_root)
+        duplicate_abi_bindings_aux_path = (
+            duplicate_abi_bindings_aux_root / "scripts/zigux/validate-phase3-abi-bindings-syntax.py"
+        )
+        duplicate_abi_bindings_aux_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "import sys",
+                    "",
+                    'if "--self-test" in sys.argv:',
+                    '    print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass")',
+                    '    print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST_CASE_COUNT=1")',
+                    '    print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST_CASE_COUNT=2")',
+                    "    raise SystemExit(0)",
+                    "",
+                    'raise SystemExit("expected --self-test")',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert run_targets(duplicate_abi_bindings_aux_root) == [
+            "duplicate_aux_marker:scripts/zigux/validate-phase3-abi-bindings-syntax.py:2:PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST_CASE_COUNT="
         ]
         case_count += 1
 
