@@ -130,6 +130,8 @@ Reviewers should treat any future claim that the active Phase 10 tranche already
 
 ## Next bounded step
 
-Keep the shared Phase 10 tranche parked unless the closure packet itself moves again.
+Keep the shared Phase 10 tranche parked unless the closure packet itself moves again or one remaining shared-summary undercount is still visible.
+
+If `Documentation/zigux/README.md` still names the focused verify replays and manifests without also naming the landed direct `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and `drivers/virtio/virtio_mmio.zig` files, repair that one docs-root summary first.
 
 If `Documentation/zigux/phase10-closure-evidence.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_build.zig`, or one of the core, ring, input, or MMIO survey manifests changes, reread the shared closure packet first and reopen only for the smallest shared scoreboard note or evidence repair that current `master` still understates.
