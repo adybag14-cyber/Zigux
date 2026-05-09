@@ -180,6 +180,7 @@ def required_files_for(root: Path) -> list[Path]:
         root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "savedefconfig_expected.json",
         root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "listnewconfig_expected.json",
         root / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json",
+        root / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json",
         root / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
     ]
 
@@ -450,6 +451,9 @@ def main_validation(root: Path) -> list[str]:
     tool_manifest = json.loads(
         (root / "zigux/tests/fixtures/phase2_tool_manifest.json").read_text(encoding="utf-8")
     )
+    artifact_tools_manifest = json.loads(
+        (root / "zigux/tests/fixtures/phase2_artifact_tools_manifest.json").read_text(encoding="utf-8")
+    )
     targets_manifest = json.loads(
         (root / "zigux/tests/fixtures/phase2_cross_targets.json").read_text(encoding="utf-8")
     )
@@ -629,9 +633,22 @@ def main_validation(root: Path) -> list[str]:
         issues.append("manifest:tool_count=6")
     if len(tool_manifest.get("tools", [])) != 6:
         issues.append(f"manifest:tools_len={len(tool_manifest.get('tools', []))}")
+    if tool_manifest.get("artifact_tools_packet") != "zigux/tests/fixtures/phase2_artifact_tools_manifest.json":
+        issues.append("manifest:artifact_tools_packet=zigux/tests/fixtures/phase2_artifact_tools_manifest.json")
     for rel in tool_manifest.get("tools", []):
         if not (root / rel).exists():
             issues.append(f"manifest_file:{rel}")
+    if artifact_tools_manifest.get("phase") != "Phase 2":
+        issues.append("artifact_tools:phase=Phase 2")
+    if artifact_tools_manifest.get("status") != "closed":
+        issues.append("artifact_tools:status=closed")
+    if artifact_tools_manifest.get("tool_count") != 2:
+        issues.append("artifact_tools:tool_count=2")
+    if len(artifact_tools_manifest.get("tools", [])) != 2:
+        issues.append(f"artifact_tools:tools_len={len(artifact_tools_manifest.get('tools', []))}")
+    for rel in artifact_tools_manifest.get("tools", []):
+        if not (root / rel).exists():
+            issues.append(f"artifact_tools_file:{rel}")
     if targets_manifest.get("phase") != "Phase 2":
         issues.append("targets:phase=Phase 2")
     if targets_manifest.get("status") != "closed":
