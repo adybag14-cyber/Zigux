@@ -3,8 +3,11 @@
   "phase": "Phase 15",
   "surveyed_commit": "current-master-readback-2026-05-09",
   "cross_packet_truthfulness_mode": "dated_master_readback_same_marker_alignment",
+  "paired_lane_identity_alignment": "scorecard_and_readiness_lane_keys_explicit",
   "paired_parity_scorecard_exact_head_matches": false,
   "paired_parity_scorecard_provenance_marker": "current-master-readback-2026-05-09",
+  "paired_parity_scorecard_lane_key": "P15-L12",
+  "paired_readiness_lane_key": "P15-L01",
   "paired_parity_scorecard_exact_head_fallback_reason": "This handoff packet was refreshed against current-master-readback-2026-05-09 and the paired parity scorecard now records the same dated master readback marker current-master-readback-2026-05-09, so the parked governance packet keeps same-marker dated-readback truthfulness explicit without implying exact-head parity.",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
@@ -35,6 +38,8 @@
     "governance_lane_sequencing_replay_present": true,
     "lane_key_matches_phase15_lane_map": true,
     "paired_parity_scorecard_blocker_posture_matches": true,
+    "paired_parity_scorecard_lane_key_explicit": true,
+    "paired_readiness_lane_key_explicit": true,
     "deep_core_status_change_ready": false
   },
   "open_handoff_gaps": [
@@ -53,6 +58,6 @@
   ],
   "pending_next_steps": [
     "Keep this handoff lane parked unless `evidence_packet_stale_or_contradictory` fires for this packet or a nearby Phase 15 governance packet.",
-    "Reopen only if `narrower_followup_answers_blocker` or `ownership_or_validation_changed` changes the shared deep-core blocker posture or the parked governance validation ownership."
+    "Reopen only if `narrower_followup_answers_blocker` or `ownership_or_validation_changed` changes the shared deep-core blocker posture, the current parity-scorecard lane `P15-L12`, the current readiness lane `P15-L01`, or the parked governance validation ownership."
   ]
 }
