@@ -282,6 +282,36 @@ pub const FailureModeCheckpointSummary = struct {
     blocked_on_platform_registration: bool,
 };
 
+pub const HardwareMatrixPath = enum {
+    toggle_stoppable,
+    toggle_nowayout_blocked,
+    level_always_running,
+    level_nowayout_blocked,
+};
+
+pub const HardwareMatrixRow = struct {
+    anchor: []const u8,
+    path: HardwareMatrixPath,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    nowayout: bool,
+    requested_line: ProbeLineRequest,
+    descriptor_flags: DescriptorRequestFlags,
+    start_mode: ProbeStartMode,
+    disposition: StopDisposition,
+    stop_allowed_by_watchdog_core: bool,
+    driver_stop_invoked: bool,
+    running_after_teardown: bool,
+    line_state_after_teardown: bool,
+    line_is_output_after_teardown: bool,
+    disable_count: usize,
+};
+
+pub const HardwareMatrixSummary = struct {
+    anchor: []const u8,
+    rows: [4]HardwareMatrixRow,
+};
+
 pub const GpioWatchdogLab = struct {
     const Self = @This();
 
@@ -689,6 +719,48 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
+    pub fn hardwareMatrixSummary() !HardwareMatrixSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .rows = .{
+                try hardwareMatrixRow(.toggle_stoppable, .toggle, 250, false, false),
+                try hardwareMatrixRow(.toggle_nowayout_blocked, .toggle, 333, false, true),
+                try hardwareMatrixRow(.level_always_running, .level, 640, true, false),
+                try hardwareMatrixRow(.level_nowayout_blocked, .level, 500, true, true),
+            },
+        };
+    }
+
+    fn hardwareMatrixRow(
+        path: HardwareMatrixPath,
+        hw_algo: HardwareAlgorithm,
+        hw_margin_ms: u32,
+        always_running: bool,
+        nowayout: bool,
+    ) !HardwareMatrixRow {
+        var lab = try Self.init(hw_algo, hw_margin_ms, always_running);
+        const teardown = try lab.teardownSummary(nowayout);
+        const probe = lab.probeSummary(nowayout);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .path = path,
+            .hw_algo = hw_algo,
+            .always_running = always_running,
+            .nowayout = nowayout,
+            .requested_line = probe.requested_line,
+            .descriptor_flags = lab.descriptorRequestFlags(),
+            .start_mode = probe.start_mode,
+            .disposition = teardown.disposition,
+            .stop_allowed_by_watchdog_core = teardown.stop_allowed_by_watchdog_core,
+            .driver_stop_invoked = teardown.driver_stop_invoked,
+            .running_after_teardown = teardown.running_after_teardown,
+            .line_state_after_teardown = teardown.line_state_after_teardown,
+            .line_is_output_after_teardown = teardown.line_is_output_after_teardown,
+            .disable_count = teardown.disable_count,
+        };
+    }
+
     fn disable(self: *Self) void {
         self.disable_count += 1;
         self.line_state = true;
@@ -872,4 +944,73 @@ test "toggle stop disables line ownership and clears running state when stop is 
     try std.testing.expect(stop.line_state);
     try std.testing.expect(!stop.line_is_output);
     try std.testing.expectEqual(@as(usize, 1), stop.disable_count);
+}
+
+test "hardware matrix keeps the four bounded gpio watchdog teardown paths reviewable" {
+    const matrix = try GpioWatchdogLab.hardwareMatrixSummary();
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", matrix.anchor);
+
+    const toggle_stoppable = matrix.rows[0];
+    try std.testing.expectEqual(HardwareMatrixPath.toggle_stoppable, toggle_stoppable.path);
+    try std.testing.expectEqual(HardwareAlgorithm.toggle, toggle_stoppable.hw_algo);
+    try std.testing.expect(!toggle_stoppable.always_running);
+    try std.testing.expect(!toggle_stoppable.nowayout);
+    try std.testing.expectEqual(ProbeLineRequest.input, toggle_stoppable.requested_line);
+    try std.testing.expectEqual(DescriptorRequestFlags.in, toggle_stoppable.descriptor_flags);
+    try std.testing.expectEqual(ProbeStartMode.register_only, toggle_stoppable.start_mode);
+    try std.testing.expectEqual(StopDisposition.stopped, toggle_stoppable.disposition);
+    try std.testing.expect(toggle_stoppable.stop_allowed_by_watchdog_core);
+    try std.testing.expect(toggle_stoppable.driver_stop_invoked);
+    try std.testing.expect(!toggle_stoppable.running_after_teardown);
+    try std.testing.expect(toggle_stoppable.line_state_after_teardown);
+    try std.testing.expect(!toggle_stoppable.line_is_output_after_teardown);
+    try std.testing.expectEqual(@as(usize, 1), toggle_stoppable.disable_count);
+
+    const toggle_nowayout = matrix.rows[1];
+    try std.testing.expectEqual(HardwareMatrixPath.toggle_nowayout_blocked, toggle_nowayout.path);
+    try std.testing.expectEqual(HardwareAlgorithm.toggle, toggle_nowayout.hw_algo);
+    try std.testing.expect(!toggle_nowayout.always_running);
+    try std.testing.expect(toggle_nowayout.nowayout);
+    try std.testing.expectEqual(ProbeLineRequest.input, toggle_nowayout.requested_line);
+    try std.testing.expectEqual(DescriptorRequestFlags.in, toggle_nowayout.descriptor_flags);
+    try std.testing.expectEqual(ProbeStartMode.register_only, toggle_nowayout.start_mode);
+    try std.testing.expectEqual(StopDisposition.blocked_by_nowayout, toggle_nowayout.disposition);
+    try std.testing.expect(!toggle_nowayout.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!toggle_nowayout.driver_stop_invoked);
+    try std.testing.expect(toggle_nowayout.running_after_teardown);
+    try std.testing.expect(toggle_nowayout.line_state_after_teardown);
+    try std.testing.expect(toggle_nowayout.line_is_output_after_teardown);
+    try std.testing.expectEqual(@as(usize, 0), toggle_nowayout.disable_count);
+
+    const level_always_running = matrix.rows[2];
+    try std.testing.expectEqual(HardwareMatrixPath.level_always_running, level_always_running.path);
+    try std.testing.expectEqual(HardwareAlgorithm.level, level_always_running.hw_algo);
+    try std.testing.expect(level_always_running.always_running);
+    try std.testing.expect(!level_always_running.nowayout);
+    try std.testing.expectEqual(ProbeLineRequest.output_low, level_always_running.requested_line);
+    try std.testing.expectEqual(DescriptorRequestFlags.out_low, level_always_running.descriptor_flags);
+    try std.testing.expectEqual(ProbeStartMode.start_before_register, level_always_running.start_mode);
+    try std.testing.expectEqual(StopDisposition.kept_running, level_always_running.disposition);
+    try std.testing.expect(level_always_running.stop_allowed_by_watchdog_core);
+    try std.testing.expect(level_always_running.driver_stop_invoked);
+    try std.testing.expect(level_always_running.running_after_teardown);
+    try std.testing.expect(!level_always_running.line_state_after_teardown);
+    try std.testing.expect(level_always_running.line_is_output_after_teardown);
+    try std.testing.expectEqual(@as(usize, 0), level_always_running.disable_count);
+
+    const level_nowayout = matrix.rows[3];
+    try std.testing.expectEqual(HardwareMatrixPath.level_nowayout_blocked, level_nowayout.path);
+    try std.testing.expectEqual(HardwareAlgorithm.level, level_nowayout.hw_algo);
+    try std.testing.expect(level_nowayout.always_running);
+    try std.testing.expect(level_nowayout.nowayout);
+    try std.testing.expectEqual(ProbeLineRequest.output_low, level_nowayout.requested_line);
+    try std.testing.expectEqual(DescriptorRequestFlags.out_low, level_nowayout.descriptor_flags);
+    try std.testing.expectEqual(ProbeStartMode.start_before_register, level_nowayout.start_mode);
+    try std.testing.expectEqual(StopDisposition.blocked_by_nowayout, level_nowayout.disposition);
+    try std.testing.expect(!level_nowayout.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!level_nowayout.driver_stop_invoked);
+    try std.testing.expect(level_nowayout.running_after_teardown);
+    try std.testing.expect(!level_nowayout.line_state_after_teardown);
+    try std.testing.expect(level_nowayout.line_is_output_after_teardown);
+    try std.testing.expectEqual(@as(usize, 0), level_nowayout.disable_count);
 }
