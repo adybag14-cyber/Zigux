@@ -128,6 +128,8 @@ REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS = [
     "`make -C zigux phase11-hvc-survey`",
     "`zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff",
     "`drivers/tty/hvc/hvc_console_verify.zig` keeps compile-local final-close, hung-up or detached teardown, cleanup-prerequisite, notifierless-open, targetless-sysrq, never-registered notifier, targetless notifier, and notifier-prerequisite failure-mode replays beside the shared packet",
+    "no-dispatch sysrq notifier-deferral",
+    "The same verifier also keeps the impossible hangup buffered-write failure-mode replay explicit beside that shared packet.",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md` keeps the close, cleanup, remove, write-to-hangup, and hangup-disconnect ownership split explicit in one driver-local note",
 ]
 
@@ -273,7 +275,7 @@ REQUIRED_EXISTING_PATHS = [
     SCRIPT_PATH,
 ]
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 12
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -399,6 +401,18 @@ def run_self_test() -> int:
                 SHARED_REPLAY_CONTRACT_PATH,
                 "`make -C zigux phase11-hvc-survey`",
                 "shared_replay_contract:`make -C zigux phase11-hvc-survey`",
+            )
+            expect_failure(
+                fixture_root,
+                SHARED_REPLAY_CONTRACT_PATH,
+                "no-dispatch sysrq notifier-deferral",
+                "shared_replay_contract:no-dispatch sysrq notifier-deferral",
+            )
+            expect_failure(
+                fixture_root,
+                SHARED_REPLAY_CONTRACT_PATH,
+                "The same verifier also keeps the impossible hangup buffered-write failure-mode replay explicit beside that shared packet.",
+                "shared_replay_contract:The same verifier also keeps the impossible hangup buffered-write failure-mode replay explicit beside that shared packet.",
             )
             expect_failure(
                 fixture_root,
