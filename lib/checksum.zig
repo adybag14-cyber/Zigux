@@ -59,16 +59,16 @@ pub fn unfold(sum: u16) u32 {
     return sum;
 }
 
-pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
+pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u32, proto: u8) u32 {
     var result: u64 = normalize(sum);
     result += saddr;
     result += daddr;
+    result += (len & 0xffff) + (len >> 16);
     result += proto;
-    result += len;
     return normalize(from64to32(result));
 }
 
-pub fn tcpUdpMagic(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u16 {
+pub fn tcpUdpMagic(sum: u32, saddr: u32, daddr: u32, len: u32, proto: u8) u16 {
     return fold(tcpUdpNofold(sum, saddr, daddr, len, proto));
 }
 
@@ -351,6 +351,23 @@ test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
     manual_v6 = add(manual_v6, v6_proto);
     try std.testing.expectEqual(normalize(manual_v6), v6_result);
     try std.testing.expectEqual(fold(normalize(manual_v6)), tcpUdpV6Magic(payload_seed, &v6_saddr, &v6_daddr, v6_len, v6_proto));
+}
+
+test "ipv4 pseudo-header helper keeps high length bits additive" {
+    const payload_seed = partial("phase6", 0);
+    const v4_len: u32 = 0x0001_2345;
+    const v4_proto: u8 = 58;
+    const v4_result = tcpUdpNofold(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, v4_len, v4_proto);
+    var manual_v4 = normalize(payload_seed);
+    manual_v4 = add(manual_v4, 0xc0a8);
+    manual_v4 = add(manual_v4, 0x0001);
+    manual_v4 = add(manual_v4, 0xc0a8);
+    manual_v4 = add(manual_v4, 0x00c7);
+    manual_v4 = add(manual_v4, v4_len >> 16);
+    manual_v4 = add(manual_v4, v4_len & 0xffff);
+    manual_v4 = add(manual_v4, v4_proto);
+    try std.testing.expectEqual(normalize(manual_v4), v4_result);
+    try std.testing.expectEqual(fold(normalize(manual_v4)), tcpUdpMagic(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, v4_len, v4_proto));
 }
 
 test "pseudo-header helpers keep carry-heavy folding stable" {
