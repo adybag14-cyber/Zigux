@@ -973,6 +973,25 @@ test "runtime loader facade keeps prepared trace-events requests pinned when pre
     try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
 
     request.plan = stable_plan;
+    request.plan.allocator_handoff = .arena;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
+    try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
+
+    request.plan = stable_plan;
+    request.plan.init_flow = .{
+        .handoff_stage = .initialized,
+        .init_runs = 1,
+        .selftest_runs = 0,
+        .exit_runs = 0,
+    };
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(contract.keepsLoadPlanExplicit(request.prepared_plan, stable_plan));
+    try std.testing.expect(!contract.keepsLoadPlanExplicit(request.plan, stable_plan));
+
+    request.plan = stable_plan;
     request.plan.provides_selftest_hook = false;
     try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
     try std.testing.expectEqual(RequestState.prepared, request.state);
