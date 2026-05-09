@@ -188,6 +188,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
 
     try expectContains(scripts_root, "zigux/tests/phase7_argv_split_survey.zig");
     try expectContains(scripts_root, "zigux/tests/phase7_argv_split_manifest.json");
+    try expectContains(scripts_root, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
     try expectContains(scripts_root, "scripts/zigux/check-phase7-argv-split-packet.py");
     try expectContains(scripts_root, "scripts/zigux/check-phase7-build-wiring.py");
     try expectContains(scripts_root, "make -C zigux phase7-validate");
