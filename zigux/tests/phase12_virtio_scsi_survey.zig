@@ -331,6 +331,9 @@ test "phase12 virtio_scsi survey note keeps the active lane identity and fallbac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path:") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reversible-delivery evidence:") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback drill:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build smoke --build-file zigux/tests/phase12_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12-smoke") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared smoke-plus-build replay packet") != null);
 }
 
 test "phase12 virtio_scsi slice note keeps the rollback drill explicit" {
