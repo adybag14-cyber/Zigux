@@ -56,6 +56,35 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 - docs root packet: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/README.md`
 - Linux-style replay wiring: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/Makefile`
 
+## Current Verification Evidence
+
+- checked on: `2026-05-09`
+- latest visible public `master` head on the GitHub commits page: `c11221dc7a68d7511ae1c69d64b3f08528287ed8` (`test(zigux): harden phase2 cross selftest coverage`)
+- `PHASE12_TREE_VIEW_COUNT=18`
+- `PHASE12_RAW_VIEW_COUNT=18`
+- `PHASE12_VERIFIED_FILE_COUNT=18`
+- verification method: public GitHub commits-page readback for the visible `master` head, public GitHub raw fallback readback for the bounded packet, and authenticated blob-identity readback for every covered file listed below
+- current blob identities for the covered packet:
+  - `drivers/scsi/virtio_scsi.zig`: `3c26a8159be399aac0f044d6305f3e5f4a0be244`
+  - `Documentation/zigux/phase12-virtio-scsi-slice.md`: `4cd01f078131bb3d7dd151d4c971d41e81aaa884`
+  - `Documentation/zigux/phase12-virtio-scsi-survey.md`: `a9baf66c80753959b0a98b5500066a619b36f338`
+  - `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`: `355c2a58988f3cd6dcd828668f56ef2945285a7a`
+  - `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`: `ea4eb520446bb321625c30c098e2d465fcac0bb2`
+  - `Documentation/zigux/phase12-raw-github-coverage-survey.md`: `60d70445e81a2bca16efd02bef5eb65acda9c9a3`
+  - `Documentation/zigux/phase12-release-closure-checklist.md`: `bdc7971f80ac4d8d69f339ca348c5fdedf346539`
+  - `Documentation/zigux/phase12-release-readiness-survey.md`: `ffb31ca1a67cee06654eb538353c4c9f8f8e7ef6`
+  - `Documentation/zigux/phase12-release-coordination-matrix.md`: `42c64fa9314b2d655a2deedbeca12056e130fbb2`
+  - `zigux/tests/README.md`: `0753a6777cec92fa5985263a7f64f93820694575`
+  - `zigux/tests/phase12_build.zig`: `be8a03ec689903142e917ba874803520b7bbf056`
+  - `zigux/tests/phase12_virtio_scsi.zig`: `b4fcae1fb70d3aedd6b6599d8211bcf68a66aca4`
+  - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`: `1fdcbe06efff486e7f97fb46064db7a48f4d018e`
+  - `zigux/tests/phase12_virtio_scsi_survey.zig`: `543c6e36c17ffdc5bce9c063f98eada469417b94`
+  - `zigux/tests/phase12_virtio_scsi_manifest.json`: `f0f911857bd56d7dbf206c3ccd2357ea5059a14f`
+  - `scripts/zigux/README.md`: `b1e6311ca8fa810dec67052bdd20155dbfd15b95`
+  - `Documentation/zigux/README.md`: `6fa7fa021eb7997de31f63700b8bca2282fa53c9`
+  - `zigux/Makefile`: `cfb5a1ebd283c5f86ccc264ceccaf704fd8c47b5`
+- bounded coverage result: the current public tree and raw fallback packet still resolves cleanly for all 18 listed surfaces, and the shipped fallback note still matches the live `virtio_scsi` release-adjacent packet on `master`
+
 ## Shared replay reminder
 
 The shipped Phase 12 packet on `master` still keeps the shared smoke-first replay order below.
