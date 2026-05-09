@@ -167,6 +167,29 @@ test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {
     try std.testing.expectEqual(@as(u32, 19), weak_release_value);
 }
 
+test "phase3 atomic wrappers keep weak acq_rel compare-exchange reviewable" {
+    var weak_acq_rel_value: u32 = 29;
+    var attempts: usize = 0;
+    while (true) {
+        attempts += 1;
+        if (compareExchangeWeak(u32, &weak_acq_rel_value, 29, 31, .acq_rel, .acquire) == null) break;
+        try std.testing.expectEqual(@as(u32, 29), weak_acq_rel_value);
+        try std.testing.expect(attempts < 16);
+    }
+    try std.testing.expectEqual(@as(u32, 31), weak_acq_rel_value);
+
+    const weak_acq_rel_mismatch = compareExchangeWeak(
+        u32,
+        &weak_acq_rel_value,
+        29,
+        37,
+        .acq_rel,
+        .acquire,
+    );
+    try std.testing.expectEqual(@as(?u32, 31), weak_acq_rel_mismatch);
+    try std.testing.expectEqual(@as(u32, 31), weak_acq_rel_value);
+}
+
 test "phase3 atomic wrappers keep non-seq-cst fetch orderings reviewable" {
     var signed_value: i32 = -4;
     try std.testing.expectEqual(@as(i32, -4), fetchAdd(i32, &signed_value, 6, .monotonic));
