@@ -23,18 +23,22 @@ MANIFEST_PATH = "zigux/tests/phase14_end_to_end_smoke_manifest.json"
 CHECKER_PATH = "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
 
 COMPILE_SHARD_SMOKE_MARKERS = [
-    "PHASE14_COMPILE_ARTIFACT_COUNT=5",
+    "PHASE14_COMPILE_ARTIFACT_COUNT=6",
     "PHASE14_FOCUSED_SHARD_COUNT=1",
-    "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
-    "- `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle`",
+    "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=5",
+    "- `phase14-workqueue-bridge-tests`: root `phase14_workqueue_bridge.zig`, coverage `full_bundle_only`",
+    "- `phase14-workqueue-reviewability-tests`: root `phase14_workqueue_reviewability.zig`, coverage `full_bundle_only`",
+    "- `phase14-skbuff-bridge-tests`: root `phase14_skbuff_bridge.zig`, coverage `full_bundle_only`",
     "- `phase14-ring-buffer-survey-tests`: root `phase14_ring_buffer_survey.zig`, coverage `full_bundle_only`",
+    "- `phase14-rcu-tree-survey-tests`: root `phase14_rcu_tree_survey.zig`, coverage `full_bundle_only`",
+    "- `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle`",
 ]
 
 SURFACE_COUNT_SMOKE_MARKERS = [
-    "PHASE14_SHARED_SURFACE_COUNT=28",
+    "PHASE14_SHARED_SURFACE_COUNT=29",
     "PHASE14_DOC_SURFACE_COUNT=6",
     "PHASE14_SCRIPT_SURFACE_COUNT=5",
-    "PHASE14_TEST_SURFACE_COUNT=12",
+    "PHASE14_TEST_SURFACE_COUNT=13",
     "PHASE14_BRIDGE_ROOT_SURFACE_COUNT=3",
     "PHASE14_WORKFLOW_SURFACE_COUNT=1",
     "PHASE14_MAKEFILE_SURFACE_COUNT=1",
@@ -91,9 +95,9 @@ SMOKE_SURVEY_EXACT_COUNT_MARKERS = [
     "make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig",
     "make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig",
-    "PHASE14_COMPILE_ARTIFACT_COUNT=5",
+    "PHASE14_COMPILE_ARTIFACT_COUNT=6",
     "PHASE14_FOCUSED_SHARD_COUNT=1",
-    "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
+    "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=5",
     *SURFACE_COUNT_SMOKE_MARKERS,
 ]
 
@@ -274,14 +278,14 @@ def run_self_test() -> int:
         write_text(
             root / SMOKE_SURVEY_PATH,
             good_smoke.replace(
-                "PHASE14_SHARED_SURFACE_COUNT=28\n",
-                "PHASE14_SHARED_SURFACE_COUNT=28\nPHASE14_SHARED_SURFACE_COUNT=28\n",
+                "PHASE14_SHARED_SURFACE_COUNT=29\n",
+                "PHASE14_SHARED_SURFACE_COUNT=29\nPHASE14_SHARED_SURFACE_COUNT=29\n",
                 1,
             ),
         )
         errors = check(root)
         if not any(
-            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_SHARED_SURFACE_COUNT=28 (expected 1, found 2)"
+            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: PHASE14_SHARED_SURFACE_COUNT=29 (expected 1, found 2)"
             in error
             for error in errors
         ):
