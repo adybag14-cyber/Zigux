@@ -99,6 +99,13 @@ PHASE2_TOOLCHAIN_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
 )
+PHASE2_CROSS_TARGET = "phase2-cross"
+PHASE2_CROSS_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
+)
 
 PHASE3_VALIDATE_TARGET = "phase3-validate"
 PHASE3_VALIDATE_COMMANDS = (
@@ -410,6 +417,7 @@ def validate(root: Path) -> list[str]:
             issues.append(f"unexpected_makefile_target:{target}")
 
     _validate_target_commands(issues, makefile, PHASE2_TOOLCHAIN_TARGET, PHASE2_TOOLCHAIN_COMMANDS)
+    _validate_target_commands(issues, makefile, PHASE2_CROSS_TARGET, PHASE2_CROSS_COMMANDS)
     _validate_target_commands(issues, makefile, PHASE3_VALIDATE_TARGET, PHASE3_VALIDATE_COMMANDS)
     _validate_target_commands(issues, makefile, PHASE4_VALIDATE_TARGET, PHASE4_VALIDATE_COMMANDS)
     _validate_target_helpers(issues, makefile, PHASE6_VALIDATE_TARGET, PHASE6_VALIDATE_HELPERS)
@@ -443,6 +451,9 @@ def _baseline_makefile() -> str:
     return "\n".join((
         "phase2-toolchain:",
         *PHASE2_TOOLCHAIN_COMMANDS,
+        "",
+        "phase2-cross:",
+        *PHASE2_CROSS_COMMANDS,
         "",
         "phase3-validate:",
         *PHASE3_VALIDATE_COMMANDS,
@@ -596,6 +607,32 @@ def run_self_test() -> int:
             "unexpected_tests_readme_phase8_marker_count:2:make -C zigux phase8-file-path-handle-bridge-test"
         ]
         _write(root / TESTS_README_REL, _baseline_tests_readme())
+        case_count += 1
+
+        makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test\n",
+            "",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        assert validate(root) == [
+            f"missing_makefile_command:{PHASE2_CROSS_TARGET}:{PHASE2_CROSS_COMMANDS[0]}",
+            f"makefile_command_order_drift:{PHASE2_CROSS_TARGET}",
+        ]
+        _write(root / MAKEFILE_REL, _baseline_makefile())
+        case_count += 1
+
+        makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\n",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\n",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        assert validate(root) == [
+            f"unexpected_makefile_command_count:{PHASE2_CROSS_TARGET}:2:{PHASE2_CROSS_COMMANDS[1]}",
+            f"makefile_command_order_drift:{PHASE2_CROSS_TARGET}",
+        ]
+        _write(root / MAKEFILE_REL, _baseline_makefile())
         case_count += 1
 
         makefile = _baseline_makefile().replace(
