@@ -58,6 +58,45 @@ test "virtio mmio wrapper-facing config review stays scoped to the current gener
     try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
 }
 
+test "virtio mmio wrapper-facing feature negotiation stays word-local and preserves queue selection" {
+    var device = try virtio_mmio.VirtioMmioLab.init(84, &[_]u16{ 8, 16 });
+
+    try device.stageDeviceFeatureWord(0, 0xa5a5_0001);
+    try device.stageDeviceFeatureWord(1, 0x5a5a_0002);
+    _ = try device.writeRegister(.queue_sel, 1);
+
+    var summary = device.featureNegotiationSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, 0), summary.selected_device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0xa5a5_0001), summary.device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0), summary.driver_features);
+    try std.testing.expect(summary.feature_word_selector_in_range);
+    try std.testing.expect(summary.device_feature_window_ready);
+    try std.testing.expect(summary.driver_feature_register_ready);
+    try std.testing.expect(summary.ready_for_feature_handoff);
+
+    _ = try device.writeRegister(.device_features_sel, 1);
+    _ = try device.writeRegister(.driver_features, 0x1122_3344);
+    summary = device.featureNegotiationSummary();
+    try std.testing.expectEqual(@as(u32, 1), summary.selected_device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0x5a5a_0002), summary.device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0x1122_3344), summary.driver_features);
+    try std.testing.expect(summary.ready_for_feature_handoff);
+
+    const queue_summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqual(@as(u16, 1), queue_summary.selected_queue);
+    try std.testing.expectEqual(@as(u16, 16), queue_summary.queue_num_max);
+    try std.testing.expectEqual(@as(u16, 0), queue_summary.queue_num);
+    try std.testing.expect(!queue_summary.queue_ready);
+    try std.testing.expect(!queue_summary.queue_ready_for_handoff);
+
+    device.selected_device_feature_word = virtio_mmio.feature_word_capacity;
+    summary = device.featureNegotiationSummary();
+    try std.testing.expect(!summary.feature_word_selector_in_range);
+    try std.testing.expectEqual(@as(u32, 0), summary.device_feature_word);
+    try std.testing.expect(!summary.ready_for_feature_handoff);
+}
+
 test "virtio mmio wrapper-facing queue handoff review stays selected-queue local" {
     var device = try virtio_mmio.VirtioMmioLab.init(83, &[_]u16{ 8, 16 });
 
