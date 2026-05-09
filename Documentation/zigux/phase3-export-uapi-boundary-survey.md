@@ -17,6 +17,8 @@ This note records the current export-shim and starter UAPI boundary that still s
 - `PHASE3_LINUX_HEADER_BLOB_SHA=c8cfd9590d2d0039ad087bb020a236fdc0a2b4ff`
 - `PHASE3_ABI_HEADER_PATH=include/zigux/abi.h`
 - `PHASE3_ABI_HEADER_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
+- `PHASE3_LINUX_HEADER_GOVERNANCE_PATH=Documentation/zigux/phase3-linux-zigux-header-governance.md`
+- `PHASE3_LINUX_HEADER_GOVERNANCE_BLOB_SHA=e5163cbe1b047b05565e6838ffdae6b1fbaa39b3`
 - `PHASE3_EXPORT_UAPI_LAYOUT_PATH=zigux/tests/phase3_export_uapi_layout.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA=b76e6ae686ea7e8baa600f4f29b5925b3bb64e00`
 - `PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py`
@@ -24,7 +26,7 @@ This note records the current export-shim and starter UAPI boundary that still s
 
 ## Live Boundary
 
-The blob markers above are the authoritative packet-local evidence for the currently shipped export shim, starter UAPI helper, Linux-facing aggregation header, canonical ABI header, focused layout replay, and dedicated export/UAPI survey validator in this current-head public GitHub fallback readback.
+The blob markers above are the authoritative packet-local evidence for the currently shipped export shim, starter UAPI helper, Linux-facing aggregation header, canonical ABI header, dedicated Linux `zigux.h` governance note, focused layout replay, and dedicated export/UAPI survey validator in this current-head public GitHub fallback readback.
 
 - `zigux/kernel/export_shim.zig` keeps the starter export boundary narrow by relaying the shared `Header`, `HeaderCompatibility`, and `HeaderAcceptance` types plus the boundary-header helpers from `zigux/uapi/version.zig`, by exposing an explicit `compatibilityStatus()` relay for status-based callers, and by normalizing explicit success or errno-style export status values.
 - `zigux/uapi/version.zig` keeps the starter UAPI version contract reviewable through canonical versus future-compatible boundary-header helpers plus a compact `acceptHeader()` path that returns compatibility classification beside the canonical header without widening into a broader UAPI packet.
@@ -32,6 +34,7 @@ The blob markers above are the authoritative packet-local evidence for the curre
 - `scripts/zigux/validate-phase3-export-uapi-survey.py` keeps the packet fail-closed by checking that the survey note, the starter boundary code, the Linux-facing header, the focused layout replay, the shared review surfaces, and the workflow hooks still describe the same bounded export/UAPI packet.
 - `include/linux/zigux.h` remains the Linux-facing aggregation header for already-landed Phase 3 boundary helpers, including the explicit `zigux_status_ok()` and `zigux_status_err()` relay surface.
 - `include/zigux/abi.h` remains the canonical ABI layout source of truth for `struct zigux_boundary_header`, `struct zigux_export_status`, and the shared version and status flags those starter helpers depend on.
+- `Documentation/zigux/phase3-linux-zigux-header-governance.md` keeps the shared-versus-packet-local ownership split explicit so `include/linux/zigux.h` growth still requires shared ABI proof instead of collapsing into header-only progress or being miscounted as export/UAPI closure by implication.
 
 ## Review Ownership
 
@@ -49,9 +52,9 @@ The Phase 3 roadmap calls for the first permanent C/Zigux boundary through expli
 
 - `zigux/uapi/` still ships only `version.zig`, so the current UAPI surface remains a starter boundary-header contract rather than a wider exported family.
 - the export shim still operates as a relay plus status-normalization layer; it does not yet claim broader header governance, generated bindings growth, or new Linux-facing entry points beyond the already-landed starter helpers.
-- the next safe packet-local step is one new top-level boundary family under `zigux/uapi/` that lands with a matching focused replay, manifest inclusion, and shared review-surface refresh, rather than more relay-only churn inside `version.zig` or `export_shim.zig` alone.
+- the next safe packet-local step is one new top-level boundary family under `zigux/uapi/` that lands with a matching focused replay, manifest inclusion, a shared review-surface refresh, and the corresponding `Documentation/zigux/phase3-linux-zigux-header-governance.md` refresh, rather than more relay-only churn inside `version.zig` or `export_shim.zig` alone.
 - `include/linux/zigux.h` now aggregates many approved Phase 3 helper families, so any new top-level export/UAPI entry point has to land with a fresh shared-ABI readback and an explicit packet-local resurvey instead of being implied by this packet alone or by broader header growth.
-- the shared review surface for this packet is intentionally narrow, so future growth should refresh the dedicated survey, the focused layout replay, the packet-local validator evidence when that bounded gate changes, and one shared review surface together rather than relying on header growth alone to imply review coverage.
+- the shared review surface for this packet is intentionally narrow, so future growth should refresh the dedicated survey, the focused layout replay, the packet-local validator evidence when that bounded gate changes, the Linux `zigux.h` governance note when aggregation ownership changes, and one shared review surface together rather than relying on header growth alone to imply review coverage.
 
 ## Scope
 
