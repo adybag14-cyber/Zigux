@@ -631,6 +631,46 @@ def run_self_test() -> int:
             return 1
 
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken["surfaces"].append(
+            {
+                "path": "Documentation/zigux/README.md",
+                "required_marker": REQUIRED_SURFACES["Documentation/zigux/README.md"],
+            }
+        )
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 manifest surface count drift for Documentation/zigux/README.md (expected 1, found 2)" not in errors:
+            print("self-test expected duplicate manifest surface failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken["surfaces"].append(
+            {
+                "path": "Documentation/zigux/phase14-extra-note.md",
+                "required_marker": "phase14 extra drift",
+            }
+        )
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
+        errors = check(root)
+        if "unexpected manifest surface in zigux/tests/phase14_end_to_end_smoke_manifest.json: Documentation/zigux/phase14-extra-note.md" not in errors:
+            print("self-test expected unexpected-surface failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        for surface in broken["surfaces"]:
+            if surface.get("path") == "Documentation/zigux/README.md":
+                surface.pop("required_marker", None)
+                break
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 manifest surface missing string required_marker for Documentation/zigux/README.md" not in errors:
+            print("self-test expected missing manifest required-marker failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         build_path = root / "zigux/tests/phase14_build.zig"
         build_path.write_text(build_path.read_text(encoding="utf-8").replace("b.addRunArtifact(\n", "", 1), encoding="utf-8")
         errors = check(root)
