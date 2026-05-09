@@ -287,6 +287,93 @@ test "phase 6 bsearch raw lower-bound replay stays aligned with duplicates and r
     );
 }
 
+test "phase 6 bsearch lower-bound typed and raw empty or singleton paths stay inside a one-compare budget" {
+    const empty = [_]u32{};
+    const singleton = [_]u32{4};
+    const descending_singleton = [_]u32{4};
+    const record_singleton = [_]RawRecord{.{ .key = 4, .tag = 11, .flags = 1, .value = 40 }};
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 4), empty[0..], compareU32Counted));
+    try std.testing.expectEqual(@as(usize, 0), counted_compare_calls);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 4), empty[0..], compareDescendingU32Counted));
+    try std.testing.expectEqual(@as(usize, 0), counted_compare_calls);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 3), singleton[0..], compareU32Counted));
+    try std.testing.expect(counted_compare_calls <= 1);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(usize, 1), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 5), singleton[0..], compareU32Counted));
+    try std.testing.expect(counted_compare_calls <= 1);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(usize, 1), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 3), descending_singleton[0..], compareDescendingU32Counted));
+    try std.testing.expect(counted_compare_calls <= 1);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 5), descending_singleton[0..], compareDescendingU32Counted));
+    try std.testing.expect(counted_compare_calls <= 1);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 4), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compareOpaqueU32Counted),
+    );
+    try std.testing.expectEqual(@as(usize, 0), counted_raw_compare_calls);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 4), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(u32), compareDescendingOpaqueU32Counted),
+    );
+    try std.testing.expectEqual(@as(usize, 0), counted_raw_compare_calls);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 3), @ptrCast(singleton[0..].ptr), singleton.len, @sizeOf(u32), compareOpaqueU32Counted),
+    );
+    try std.testing.expect(counted_raw_compare_calls <= 1);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 5), @ptrCast(singleton[0..].ptr), singleton.len, @sizeOf(u32), compareOpaqueU32Counted),
+    );
+    try std.testing.expect(counted_raw_compare_calls <= 1);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 3), @ptrCast(descending_singleton[0..].ptr), descending_singleton.len, @sizeOf(u32), compareDescendingOpaqueU32Counted),
+    );
+    try std.testing.expect(counted_raw_compare_calls <= 1);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 5), @ptrCast(descending_singleton[0..].ptr), descending_singleton.len, @sizeOf(u32), compareDescendingOpaqueU32Counted),
+    );
+    try std.testing.expect(counted_raw_compare_calls <= 1);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 4), @ptrCast(record_singleton[0..].ptr), record_singleton.len, @sizeOf(RawRecord), compareRawRecordKey),
+    );
+    try std.testing.expect(counted_raw_compare_calls <= 1);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 5), @ptrCast(record_singleton[0..].ptr), record_singleton.len, @sizeOf(RawRecord), compareRawRecordKey),
+    );
+    try std.testing.expect(counted_raw_compare_calls <= 1);
+}
+
 test "phase 6 bsearch typed empty-input lookup returns null without invoking the comparator" {
     const empty = [_]u32{};
     var mutable_empty = [_]u32{};
