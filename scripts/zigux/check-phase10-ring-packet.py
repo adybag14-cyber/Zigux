@@ -550,9 +550,9 @@ def run_self_test() -> int:
             assert_manifest_drift(tmp_root, transform, expected)
             case_count += 1
 
-        def run_missing_case(rel_path: str, old: str, new: str, expected: str) -> None:
+        def run_missing_case(root: Path, rel_path: str, old: str, new: str, expected: str) -> None:
             nonlocal case_count
-            assert_missing(tmp_root, rel_path, old, new, expected)
+            assert_missing(root, rel_path, old, new, expected)
             case_count += 1
 
         run_manifest_case(
