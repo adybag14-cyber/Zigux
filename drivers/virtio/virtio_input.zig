@@ -170,6 +170,7 @@ pub const QueueCallbackPreflightSummary = struct {
 };
 
 pub const RegistrationBlocker = enum {
+    identity_incomplete,
     event_queue_unconfigured,
     status_queue_unconfigured,
     event_buffers_unfilled,
@@ -180,6 +181,7 @@ pub const RegistrationBlocker = enum {
 
 pub const RegistrationPreflightSummary = struct {
     anchor: []const u8,
+    identity_ready: bool,
     queue_plan_ready: bool,
     device_ready: bool,
     capability_setup_ready: bool,
@@ -537,6 +539,7 @@ pub const VirtioInputLab = struct {
     }
 
     pub fn registrationPreflightSummary(self: *const Self) RegistrationPreflightSummary {
+        const identity_ready = self.identityReady();
         const queue_callback_preflight = self.queueCallbackPreflightSummary();
         const queue_plan_ready = queue_callback_preflight.event_queue_configured and
             queue_callback_preflight.status_queue_configured and
@@ -545,7 +548,9 @@ pub const VirtioInputLab = struct {
         const capability_setup_ready = self.capabilitySetupReady();
         const multitouch_slots_ready = !self.multitouchSlotsRequired() or self.planned_multitouch_slots != 0;
 
-        const blocker: ?RegistrationBlocker = if (!queue_callback_preflight.event_queue_configured)
+        const blocker: ?RegistrationBlocker = if (!identity_ready)
+            .identity_incomplete
+        else if (!queue_callback_preflight.event_queue_configured)
             .event_queue_unconfigured
         else if (!queue_callback_preflight.status_queue_configured)
             .status_queue_unconfigured
@@ -562,6 +567,7 @@ pub const VirtioInputLab = struct {
 
         return .{
             .anchor = descriptor().anchor,
+            .identity_ready = identity_ready,
             .queue_plan_ready = queue_plan_ready,
             .device_ready = device_ready,
             .capability_setup_ready = capability_setup_ready,
