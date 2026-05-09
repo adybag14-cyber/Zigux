@@ -70,6 +70,7 @@ TESTS_README_MARKERS = [
     "kbuild-facing replay surface",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
+    "the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
@@ -209,6 +210,7 @@ EXACT_SURFACE_COUNTS = {
         "pinned `x86_64-linux` bootstrap archive note": 1,
         "bounded three-target compile matrix": 1,
         "make -C zigux phase2-validate": 1,
+        "the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset": 1,
     },
     "review_checklist": {
         "if the change touches the shared Phase 2 toolchain packet": 1,
