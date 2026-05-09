@@ -128,6 +128,34 @@ pub fn lowerBoundIndex(
     return base;
 }
 
+pub fn upperBoundIndex(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) usize {
+    comptime validateComparator(Key, T, @TypeOf(compare));
+
+    var base: usize = 0;
+    var num = items.len;
+
+    while (num > 0) {
+        const half = num >> 1;
+        const pivot_index = base + half;
+        const pivot: *const T = &items[pivot_index];
+
+        if (compare(key, pivot) >= 0) {
+            base = pivot_index + 1;
+            num -= half + 1;
+        } else {
+            num = half;
+        }
+    }
+
+    return base;
+}
+
 pub fn bsearchIndex(
     key: *const anyopaque,
     base: [*]const u8,
@@ -205,6 +233,36 @@ pub fn bsearchLowerBoundIndex(
         const pivot: *const anyopaque = @ptrCast(base + (pivot_index * member_size));
 
         if (compare(key, pivot) > 0) {
+            base_index = pivot_index + 1;
+            num -= half + 1;
+        } else {
+            num = half;
+        }
+    }
+
+    return base_index;
+}
+
+pub fn bsearchUpperBoundIndex(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num_members: usize,
+    member_size: usize,
+    compare: anytype,
+) usize {
+    comptime validateRawComparator(@TypeOf(compare));
+
+    std.debug.assert(member_size > 0 or num_members == 0);
+
+    var base_index: usize = 0;
+    var num = num_members;
+
+    while (num > 0) {
+        const half = num >> 1;
+        const pivot_index = base_index + half;
+        const pivot: *const anyopaque = @ptrCast(base + (pivot_index * member_size));
+
+        if (compare(key, pivot) >= 0) {
             base_index = pivot_index + 1;
             num -= half + 1;
         } else {
@@ -390,6 +448,39 @@ fn linearRawLowerBoundIndexI32(
     return num_members;
 }
 
+fn linearUpperBoundIndex(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) usize {
+    for (items, 0..) |_, index| {
+        if (compare(key, &items[index]) < 0) {
+            return index;
+        }
+    }
+
+    return items.len;
+}
+
+fn linearRawUpperBoundIndexI32(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num_members: usize,
+    member_size: usize,
+    compare: anytype,
+) usize {
+    for (0..num_members) |index| {
+        const item: *const anyopaque = @ptrCast(base + (index * member_size));
+        if (compare(key, item) < 0) {
+            return index;
+        }
+    }
+
+    return num_members;
+}
+
 fn compareOpaqueRecordKey(key: *const anyopaque, item: *const anyopaque) i32 {
     const typed_key: *const i32 = @ptrCast(@alignCast(key));
     const typed_item: *const RawRecord = @ptrCast(@alignCast(item));
@@ -459,6 +550,24 @@ test "lowerBoundIndex preserves descending comparator ordering" {
     try std.testing.expectEqual(@as(usize, 4), lowerBoundIndex(i32, i32, &@as(i32, 7), values[0..], compareIntDescending));
     try std.testing.expectEqual(@as(usize, 6), lowerBoundIndex(i32, i32, &@as(i32, 3), values[0..], compareIntDescending));
     try std.testing.expectEqual(@as(usize, values.len), lowerBoundIndex(i32, i32, &@as(i32, 1), values[0..], compareIntDescending));
+}
+
+test "upperBoundIndex returns the duplicate tail and insertion edges" {
+    const values = [_]i32{ 1, 4, 4, 4, 9, 16 };
+
+    try std.testing.expectEqual(@as(usize, 0), upperBoundIndex(i32, i32, &@as(i32, 0), values[0..], compareInt));
+    try std.testing.expectEqual(@as(usize, 4), upperBoundIndex(i32, i32, &@as(i32, 4), values[0..], compareInt));
+    try std.testing.expectEqual(@as(usize, 4), upperBoundIndex(i32, i32, &@as(i32, 5), values[0..], compareInt));
+    try std.testing.expectEqual(@as(usize, values.len), upperBoundIndex(i32, i32, &@as(i32, 20), values[0..], compareInt));
+}
+
+test "upperBoundIndex preserves descending comparator ordering" {
+    const values = [_]i32{ 16, 9, 4, 4, 4, 1 };
+
+    try std.testing.expectEqual(@as(usize, 0), upperBoundIndex(i32, i32, &@as(i32, 20), values[0..], compareIntDescending));
+    try std.testing.expectEqual(@as(usize, 5), upperBoundIndex(i32, i32, &@as(i32, 4), values[0..], compareIntDescending));
+    try std.testing.expectEqual(@as(usize, 5), upperBoundIndex(i32, i32, &@as(i32, 3), values[0..], compareIntDescending));
+    try std.testing.expectEqual(@as(usize, values.len), upperBoundIndex(i32, i32, &@as(i32, 0), values[0..], compareIntDescending));
 }
 
 test "search supports heterogeneous keys through the comparator" {
@@ -609,6 +718,7 @@ test "descending singleton typed and raw lookup paths stay inside a one-compare 
     try std.testing.expectEqual(@as(usize, 1), raw_compare_call_count);
     typed_raw_mutable.* = 12;
     try std.testing.expectEqual(@as(i32, 12), values[0]);
+    typed_raw_mutable.* = 11;
 }
 
 test "searchIndex keeps representative ascending and descending probes inside a binary-search budget" {
@@ -705,6 +815,37 @@ test "lowerBoundIndex matches linear insertion points across bounded ascending a
             compare_call_count = 0;
             const expected_descending = linearLowerBoundIndex(i32, i32, &probe, descending, compareIntDescending);
             try std.testing.expectEqual(expected_descending, lowerBoundIndex(i32, i32, &probe, descending, compareIntDescendingCounted));
+            try std.testing.expect(compare_call_count <= budget);
+        }
+    }
+}
+
+test "upperBoundIndex matches linear insertion points across bounded ascending and descending ranges" {
+    var ascending_storage: [32]i32 = undefined;
+    var descending_storage: [32]i32 = undefined;
+
+    for (0..ascending_storage.len + 1) |len| {
+        for (0..len) |index| {
+            const value = @as(i32, @intCast((index + 1) * 2));
+            ascending_storage[index] = value;
+            descending_storage[len - 1 - index] = value;
+        }
+
+        const ascending = ascending_storage[0..len];
+        const descending = descending_storage[0..len];
+        const budget = binarySearchBudget(len);
+        const max_probe: i32 = if (len == 0) 1 else @as(i32, @intCast((len * 2) + 2));
+
+        var probe: i32 = 0;
+        while (probe <= max_probe) : (probe += 1) {
+            compare_call_count = 0;
+            const expected_ascending = linearUpperBoundIndex(i32, i32, &probe, ascending, compareInt);
+            try std.testing.expectEqual(expected_ascending, upperBoundIndex(i32, i32, &probe, ascending, compareIntCounted));
+            try std.testing.expect(compare_call_count <= budget);
+
+            compare_call_count = 0;
+            const expected_descending = linearUpperBoundIndex(i32, i32, &probe, descending, compareIntDescending);
+            try std.testing.expectEqual(expected_descending, upperBoundIndex(i32, i32, &probe, descending, compareIntDescendingCounted));
             try std.testing.expect(compare_call_count <= budget);
         }
     }
@@ -999,6 +1140,43 @@ test "bsearchLowerBoundIndex matches linear insertion points across bounded asce
     }
 }
 
+test "bsearchUpperBoundIndex matches linear insertion points across bounded ascending and descending ranges" {
+    var ascending_storage: [32]i32 = undefined;
+    var descending_storage: [32]i32 = undefined;
+
+    for (0..ascending_storage.len + 1) |len| {
+        for (0..len) |index| {
+            const value = @as(i32, @intCast((index + 1) * 2));
+            ascending_storage[index] = value;
+            descending_storage[len - 1 - index] = value;
+        }
+
+        const ascending = ascending_storage[0..len];
+        const descending = descending_storage[0..len];
+        const budget = binarySearchBudget(len);
+        const max_probe: i32 = if (len == 0) 1 else @as(i32, @intCast((len * 2) + 2));
+
+        var probe: i32 = 0;
+        while (probe <= max_probe) : (probe += 1) {
+            raw_compare_call_count = 0;
+            const expected_ascending = linearRawUpperBoundIndexI32(&probe, @ptrCast(ascending.ptr), ascending.len, @sizeOf(i32), compareOpaqueInt);
+            try std.testing.expectEqual(
+                expected_ascending,
+                bsearchUpperBoundIndex(&probe, @ptrCast(ascending.ptr), ascending.len, @sizeOf(i32), compareOpaqueIntCounted),
+            );
+            try std.testing.expect(raw_compare_call_count <= budget);
+
+            raw_compare_call_count = 0;
+            const expected_descending = linearRawUpperBoundIndexI32(&probe, @ptrCast(descending.ptr), descending.len, @sizeOf(i32), compareOpaqueIntDescending);
+            try std.testing.expectEqual(
+                expected_descending,
+                bsearchUpperBoundIndex(&probe, @ptrCast(descending.ptr), descending.len, @sizeOf(i32), compareOpaqueIntDescendingCounted),
+            );
+            try std.testing.expect(raw_compare_call_count <= budget);
+        }
+    }
+}
+
 test "bsearchLowerBoundIndex returns the first duplicate and insertion edges" {
     const values = [_]i32{ 1, 4, 4, 4, 9, 16 };
 
@@ -1017,6 +1195,27 @@ test "bsearchLowerBoundIndex returns the first duplicate and insertion edges" {
     try std.testing.expectEqual(
         @as(usize, values.len),
         bsearchLowerBoundIndex(&@as(i32, 20), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt),
+    );
+}
+
+test "bsearchUpperBoundIndex returns the duplicate tail and insertion edges" {
+    const values = [_]i32{ 1, 4, 4, 4, 9, 16 };
+
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        bsearchUpperBoundIndex(&@as(i32, 0), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        bsearchUpperBoundIndex(&@as(i32, 4), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        bsearchUpperBoundIndex(&@as(i32, 5), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt),
+    );
+    try std.testing.expectEqual(
+        @as(usize, values.len),
+        bsearchUpperBoundIndex(&@as(i32, 20), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt),
     );
 }
 
@@ -1050,6 +1249,29 @@ test "bsearchLowerBoundIndex honors member_size across record entries" {
     try std.testing.expectEqual(
         @as(usize, records.len),
         bsearchLowerBoundIndex(&@as(i32, 42), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareOpaqueRecordKey),
+    );
+}
+
+test "bsearchUpperBoundIndex honors member_size across record entries" {
+    const records = [_]RawRecord{
+        .{ .key = 2, .tag = 10, .flags = 0, .value = 20 },
+        .{ .key = 4, .tag = 11, .flags = 1, .value = 40 },
+        .{ .key = 4, .tag = 12, .flags = 0, .value = 41 },
+        .{ .key = 11, .tag = 13, .flags = 2, .value = 110 },
+        .{ .key = 16, .tag = 14, .flags = 0, .value = 160 },
+    };
+
+    try std.testing.expectEqual(
+        @as(usize, 3),
+        bsearchUpperBoundIndex(&@as(i32, 4), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareOpaqueRecordKey),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 3),
+        bsearchUpperBoundIndex(&@as(i32, 10), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareOpaqueRecordKey),
+    );
+    try std.testing.expectEqual(
+        @as(usize, records.len),
+        bsearchUpperBoundIndex(&@as(i32, 42), @ptrCast(records[0..].ptr), records.len, @sizeOf(RawRecord), compareOpaqueRecordKey),
     );
 }
 
