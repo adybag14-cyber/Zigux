@@ -480,6 +480,22 @@ test "phase 9 runtime loader allocator/init-flow replay rejects direct approved-
     drifted_exit_symbol.exit_symbol = "zigux_runtime_trace_events_exit_drift";
     try std.testing.expect(!runtime_loader.keepsApprovedPilotFamilyContract(drifted_exit_symbol));
     try std.testing.expectError(error.InvalidPilotFamilyContract, runtime_loader.prepareRequest(drifted_exit_symbol));
+
+    const unknown_family = makePlan(
+        "runtime_spinlock",
+        "kernel/locking/spinlock.c",
+        "zigux_runtime_spinlock_init",
+        "zigux_runtime_spinlock_exit",
+        .kernel_heap,
+        .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    );
+    try std.testing.expect(!runtime_loader.keepsApprovedPilotFamilyContract(unknown_family));
+    try std.testing.expectError(error.InvalidPilotFamilyContract, runtime_loader.prepareRequest(unknown_family));
 }
 
 test "phase 9 runtime loader allocator/init-flow replay rejects loader-not-required handoffs directly" {
