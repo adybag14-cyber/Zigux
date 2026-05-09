@@ -37,8 +37,18 @@ It does not claim that all of Phase 11 is complete. It closes only the shared re
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
   - `scripts/zigux/check-phase11-hvc-survey-packet.py`
   - `zigux/tests/phase11_build.zig`
+  - `zigux/tests/phase11_gpio_wdt_manifest.json`
+  - `zigux/tests/phase11_gpio_wdt_survey.zig`
+  - `zigux/tests/phase11_bcm2835_wdt_manifest.json`
+  - `zigux/tests/phase11_bcm2835_wdt_survey.zig`
+  - `zigux/tests/phase11_dw_wdt_manifest.json`
+  - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
+  - `zigux/tests/phase11_dw_wdt_survey.zig`
+  - `zigux/tests/phase11_hvc_cleanup.zig`
   - `zigux/tests/phase11_hvc_console_manifest.json`
+  - `zigux/tests/phase11_hvc_console_survey.zig`
   - `zigux/tests/phase11_uapi_header_parity_manifest.json`
+  - `zigux/tests/phase11_uapi_header_parity_survey.zig`
   - `zigux/Makefile`
 
 ## What Is Already Landed
