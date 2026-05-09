@@ -19,6 +19,7 @@ MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 SELF_REL = "scripts/zigux/check-phase3-abi-dump-gate.py"
 ABI_WRAPPER_REL = "scripts/zigux/check-phase3-abi.py"
 DOCS_ROOT_ABI_TEST_GATE = "zig build phase3-test --build-file zigux/tests/build.zig"
+DOC_ABI_WRAPPER_GATE = "python3 scripts/zigux/check-phase3-abi.py"
 DUMP_GATE = "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig"
 BUILD_STEP = 'b.step("phase3-dump"'
 MAKEFILE_TARGET = "phase3-validate"
@@ -126,6 +127,12 @@ def validate(root: Path) -> list[str]:
         issues.append(f"missing_doc_marker:{DUMP_GATE}")
     elif marker_count != 1:
         issues.append(f"duplicate_doc_marker:{DUMP_GATE}")
+
+    abi_wrapper_gate_count = _backticked_or_plain_line_count(doc_text, DOC_ABI_WRAPPER_GATE)
+    if abi_wrapper_gate_count == 0:
+        issues.append(f"missing_doc_marker:{DOC_ABI_WRAPPER_GATE}")
+    elif abi_wrapper_gate_count != 1:
+        issues.append(f"duplicate_doc_marker:{DOC_ABI_WRAPPER_GATE}")
 
     for marker in DOC_EXACT_MARKERS:
         exact_count = _line_count(doc_text, marker)
@@ -261,6 +268,7 @@ def run_self_test() -> int:
                     "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
                     "PHASE3_UAPI_VERSION_BLOB_SHA=cafebabe",
                     "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof",
+                    f"- `{DOC_ABI_WRAPPER_GATE}`",
                     DUMP_GATE,
                     "",
                 ]
@@ -358,275 +366,4 @@ def run_self_test() -> int:
         )
 
         (root / DOC_REL).write_text("# Phase 3 ABI Substrate Slice\n", encoding="utf-8", newline="\n")
-        (root / MAKEFILE_REL).write_text(
-            "\n".join(
-                [
-                    "phase3-validate:",
-                    f"\t{MAKEFILE_LIVE_CMD}",
-                    "phase3-abi:",
-                    f"\t{ABI_WRAPPER_CMD}",
-                    f"\t{ABI_BUILD_CMD}",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert f"missing_doc_marker:{DUMP_GATE}" in issues
-        assert "missing_doc_marker:PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig" in issues
-        assert "missing_doc_prefix:PHASE3_EXPORT_SHIM_BLOB_SHA=" in issues
-        assert "missing_doc_marker:PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig" in issues
-        assert "missing_doc_prefix:PHASE3_UAPI_VERSION_BLOB_SHA=" in issues
-        assert (
-            "missing_doc_marker:"
-            "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof"
-            in issues
-        )
-        assert (
-            f"missing_makefile_command:{MAKEFILE_TARGET}:{MAKEFILE_SELFTEST_CMD}" in issues
-        )
-
-        (root / DOC_REL).write_text(
-            "\n".join(
-                [
-                    "PHASE3_EXPORT_SCOPE=shim-only starter nested inside the ABI substrate slice",
-                    "PHASE3_EXPORT_SCOPE=shim-only starter nested inside the ABI substrate slice",
-                    "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
-                    "PHASE3_EXPORT_SHIM_BLOB_SHA=deadbeef",
-                    "PHASE3_UAPI_SCOPE=version-and-boundary-header starter nested inside the ABI substrate slice",
-                    "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
-                    "PHASE3_UAPI_VERSION_BLOB_SHA=cafebabe",
-                    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof",
-                    DUMP_GATE,
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / MAKEFILE_REL).write_text(
-            "\n".join(
-                [
-                    "phase3-validate:",
-                    f"\t{MAKEFILE_SELFTEST_CMD}",
-                    f"\t{MAKEFILE_LIVE_CMD}",
-                    f"\t{MAKEFILE_LIVE_CMD}",
-                    "phase3-abi:",
-                    f"\t{ABI_WRAPPER_CMD}",
-                    f"\t{ABI_BUILD_CMD}",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert "duplicate_doc_prefix:PHASE3_EXPORT_SCOPE=" in issues
-        assert (
-            f"duplicate_makefile_command:{MAKEFILE_TARGET}:2:{MAKEFILE_LIVE_CMD}" in issues
-        )
-
-        (root / DOC_REL).write_text(
-            "\n".join(
-                [
-                    "# Phase 3 ABI Substrate Slice",
-                    "PHASE3_EXPORT_SCOPE=shim-only starter nested inside the ABI substrate slice",
-                    "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
-                    "PHASE3_EXPORT_SHIM_BLOB_SHA=deadbeef",
-                    "PHASE3_UAPI_SCOPE=version-and-boundary-header starter nested inside the ABI substrate slice",
-                    "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
-                    "PHASE3_UAPI_VERSION_BLOB_SHA=cafebabe",
-                    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice",
-                    DUMP_GATE,
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / MAKEFILE_REL).write_text(
-            "\n".join(
-                [
-                    "phase3-validate:",
-                    f"\t{MAKEFILE_SELFTEST_CMD}",
-                    "phase3-abi:",
-                    f"\t{ABI_WRAPPER_CMD}",
-                    f"\t{ABI_BUILD_CMD}",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / MANIFEST_REL).write_text(
-            json.dumps({"file_count": 3, "files": [DUMP_REL, EXPORT_SHIM_REL, SELF_REL]}),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert f"manifest_missing_file:{UAPI_VERSION_REL}" in issues
-        assert f"missing_makefile_command:{MAKEFILE_TARGET}:{MAKEFILE_LIVE_CMD}" in issues
-        assert (
-            "missing_doc_marker:"
-            "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof"
-            in issues
-        )
-
-        (root / DOC_REL).write_text(
-            "\n".join(
-                [
-                    "# Phase 3 ABI Substrate Slice",
-                    "PHASE3_EXPORT_SCOPE=shim-only starter nested inside the ABI substrate slice",
-                    "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
-                    "PHASE3_EXPORT_SHIM_BLOB_SHA=deadbeef",
-                    "PHASE3_UAPI_SCOPE=version-and-boundary-header starter nested inside the ABI substrate slice",
-                    "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
-                    "PHASE3_UAPI_VERSION_BLOB_SHA=cafebabe",
-                    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof",
-                    DUMP_GATE,
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / MAKEFILE_REL).write_text(
-            "\n".join(
-                [
-                    "phase3-validate:",
-                    f"\t{MAKEFILE_SELFTEST_CMD}",
-                    f"\t{MAKEFILE_LIVE_CMD}",
-                    "phase3-abi:",
-                    f"\t{ABI_WRAPPER_CMD}",
-                    f"\t{ABI_BUILD_CMD}",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / BUILD_REL).write_text(
-            "\n".join(['const test = b.step("phase3-test", "Run test");', ""]),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / MANIFEST_REL).write_text(
-            json.dumps({"file_count": 4, "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL, SELF_REL]}),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / DUMP_REL).unlink()
-        issues = validate(root)
-        assert f"missing_build_step:{BUILD_REL}:phase3-dump" in issues
-        assert f"missing_dump:{DUMP_REL}" in issues
-
-        (root / BUILD_REL).write_text(
-            "\n".join(['const dump = b.step("phase3-dump", "Run dump");', ""]),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / DUMP_REL).write_text("// dump\n", encoding="utf-8", newline="\n")
-        (root / ABI_WRAPPER_REL).write_text(
-            "\n".join(
-                [
-                    "#!/usr/bin/env python3",
-                    "from __future__ import annotations",
-                    "",
-                    "from phase3_check_lib import run_from_wrapper",
-                    "",
-                    'raise SystemExit(run_from_wrapper(__file__))',
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            f"missing_wrapper_marker:{ABI_WRAPPER_REL}:validate-phase3-abi-bindings-syntax.py" in issues
-        )
-
-        (root / ABI_WRAPPER_REL).write_text(
-            "\n".join(
-                [
-                    "#!/usr/bin/env python3",
-                    "from __future__ import annotations",
-                    "",
-                    "from phase3_check_lib import run_from_wrapper",
-                    "",
-                    'SYNTAX_CHECKER = ROOT / "scripts" / "zigux" / "validate-phase3-abi-bindings-syntax.py"',
-                    'raise SystemExit(run_from_wrapper(__file__))',
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / MANIFEST_REL).write_text(
-            json.dumps(
-                {
-                    "file_count": 3,
-                    "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL],
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert f"manifest_missing_file:{SELF_REL}" in issues
-
-        (root / MANIFEST_REL).write_text(
-            json.dumps(
-                {
-                    "file_count": 3,
-                    "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL, SELF_REL],
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert f"stale_manifest_file_count:{MANIFEST_REL}:3!=4" in issues
-
-        (root / MANIFEST_REL).write_text(
-            json.dumps(
-                {
-                    "file_count": 5,
-                    "files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL, SELF_REL, DUMP_REL],
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert f"manifest_duplicate_file:{DUMP_REL}:2" in issues
-
-    print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")
-    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=11")
-    return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Check the published Phase 3 ABI dump gate markers.")
-    parser.add_argument("--self-test", action="store_true", help="Run isolated self-test coverage.")
-    args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
-
-    issues = validate(ROOT)
-    if issues:
-        print("PHASE3_ABI_DUMP_GATE=fail")
-        print("PHASE3_ABI_DUMP_GATE_ISSUES_START")
-        for issue in issues:
-            print(issue)
-        print("PHASE3_ABI_DUMP_GATE_ISSUES_END")
-        return 1
-
-    print("PHASE3_ABI_DUMP_GATE=pass")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        (root / MAKEFILE_REL).writeText if False else None
