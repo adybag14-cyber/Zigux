@@ -9,6 +9,8 @@
     "Shared Subsystems Pod"
   ],
   "shared_promotion_scope": "approved_local_only_limits_vs_shared_ci_perf_coverage",
+  "shared_promotion_matrix_path": "Documentation/zigux/phase4-validation-matrix.md",
+  "shared_promotion_review_checklist_path": "Documentation/zigux/review-checklist.md",
   "surveyed_gates": [
     {
       "surface": "zigux/tests/atomic64_diff.zig",
@@ -148,7 +150,7 @@
       "status": "ready_next",
       "kind": "perf_policy",
       "zigux_destination": "Documentation/zigux/phase4-validation-matrix.md",
-      "why_now": "The dedicated survey packet now ships the approved local benchmark commands and approved local-only acceptable limits for both landed rollback gates, so the remaining bounded Phase 4 perf gap is a policy decision owned by the Validation and Perf Team in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners: keep those limits local-only or intentionally promote a broader shared CI perf-coverage claim in a later lane without widening the current validator-first packet by accident."
+      "why_now": "The dedicated survey packet now ships the approved local benchmark commands and approved local-only acceptable limits for both landed rollback gates, so the remaining bounded Phase 4 perf gap is a policy decision owned by the Validation and Perf Team in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners: keep those limits local-only or intentionally promote a broader shared CI perf-coverage claim in `Documentation/zigux/phase4-validation-matrix.md` and `Documentation/zigux/review-checklist.md` without widening the current validator-first packet by accident."
     }
   ]
 }
