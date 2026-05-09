@@ -44,6 +44,20 @@ pub const LoadPlan = struct {
     init_flow: InitFlow,
 };
 
+pub fn keepsLoadPlanExplicit(plan: LoadPlan, expected_plan: LoadPlan) bool {
+    return std.mem.eql(u8, plan.module_name, expected_plan.module_name) and
+        std.mem.eql(u8, plan.anchor, expected_plan.anchor) and
+        std.mem.eql(u8, plan.entry_symbol, expected_plan.entry_symbol) and
+        std.mem.eql(u8, plan.exit_symbol, expected_plan.exit_symbol) and
+        plan.requires_runtime_substrate == expected_plan.requires_runtime_substrate and
+        plan.provides_selftest_hook == expected_plan.provides_selftest_hook and
+        keepsAllocatorInitFlowConsistent(
+            plan,
+            expected_plan.allocator_handoff,
+            expected_plan.init_flow,
+        );
+}
+
 fn matchesApprovedPilotFamily(
     plan: LoadPlan,
     module_name: []const u8,
@@ -95,9 +109,13 @@ fn validatePreparedPlan(plan: LoadPlan) !void {
 pub const PreparedRequest = struct {
     state: RequestState = .prepared,
     plan: LoadPlan,
+    prepared_plan: LoadPlan,
 
     pub fn requestRuntimeLoad(self: *PreparedRequest) !LoadPlan {
         if (self.state != .prepared) return error.InvalidLoaderState;
+        if (!keepsLoadPlanExplicit(self.plan, self.prepared_plan)) {
+            return error.PreparedPlanDrift;
+        }
         try validatePreparedPlan(self.plan);
 
         self.state = .waiting_on_runtime_substrate;
@@ -106,6 +124,9 @@ pub const PreparedRequest = struct {
 
     pub fn releaseWithoutSubstrate(self: *PreparedRequest) !void {
         if (self.state != .waiting_on_runtime_substrate) return error.InvalidLoaderState;
+        if (!keepsLoadPlanExplicit(self.plan, self.prepared_plan)) {
+            return error.PreparedPlanDrift;
+        }
         self.state = .released_without_substrate;
     }
 };
@@ -113,7 +134,7 @@ pub const PreparedRequest = struct {
 pub fn prepareRequest(plan: LoadPlan) !PreparedRequest {
     try validatePreparedPlan(plan);
 
-    return .{ .plan = plan };
+    return .{ .plan = plan, .prepared_plan = plan };
 }
 
 pub fn keepsAllocatorInitFlowConsistent(
@@ -134,17 +155,8 @@ pub fn keepsRequestStateAndPlanExplicit(
     expected_plan: LoadPlan,
 ) bool {
     return request.state == expected_state and
-        std.mem.eql(u8, request.plan.module_name, expected_plan.module_name) and
-        std.mem.eql(u8, request.plan.anchor, expected_plan.anchor) and
-        std.mem.eql(u8, request.plan.entry_symbol, expected_plan.entry_symbol) and
-        std.mem.eql(u8, request.plan.exit_symbol, expected_plan.exit_symbol) and
-        request.plan.requires_runtime_substrate == expected_plan.requires_runtime_substrate and
-        request.plan.provides_selftest_hook == expected_plan.provides_selftest_hook and
-        keepsAllocatorInitFlowConsistent(
-            request.plan,
-            expected_plan.allocator_handoff,
-            expected_plan.init_flow,
-        );
+        keepsLoadPlanExplicit(request.plan, expected_plan) and
+        keepsLoadPlanExplicit(request.prepared_plan, expected_plan);
 }
 
 pub fn keepsSelftestHookEvidenceConsistent(plan: LoadPlan) bool {
@@ -690,6 +702,23 @@ test "shared runtime loader contract keeps prepared-request drift from advancing
     try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
     try std.testing.expectEqual(RequestState.prepared, request.state);
     try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+
+    request.plan = stable_plan;
+    request.plan.allocator_handoff = .arena;
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, stable_plan));
+
+    request.plan = stable_plan;
+    request.plan.init_flow = .{
+        .handoff_stage = .initialized,
+        .init_runs = 1,
+        .selftest_runs = 0,
+        .exit_runs = 0,
+    };
+    try std.testing.expectError(error.PreparedPlanDrift, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, stable_plan));
 
     request.plan = stable_plan;
     request.plan.provides_selftest_hook = false;
