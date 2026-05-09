@@ -106,6 +106,8 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_input_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper-facing verify replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_probe_preflight.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated probe-preflight replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated queue-callback-preflight replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_status_drain.zig") != null);
@@ -118,6 +120,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-input-probe-preflight-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe-preflight summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-input-probe-preflight-replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-input-queue-callback-preflight-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-callback preflight summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-input-teardown-observation-helper") != null);
@@ -147,7 +150,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(manifest.architecture_council_reopen_required);
     try std.testing.expect(!manifest.architecture_council_reopen_attached);
     try std.testing.expect(manifest.survey_summary.virtio_input_c_lines >= 400);
-    try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
@@ -156,7 +159,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_module_note_present);
-    try std.testing.expect(manifest.gaps.len >= 16);
+    try std.testing.expect(manifest.gaps.len >= 22);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -166,6 +169,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     var saw_helper = false;
     var saw_gate = false;
     var saw_verify_replay = false;
+    var saw_probe_preflight_replay = false;
     var saw_queue_callback_preflight_replay = false;
     var saw_slice_note = false;
     var saw_survey_gate = false;
@@ -230,7 +234,16 @@ test "phase10 virtio input survey manifest records the live starter and remainin
             try std.testing.expectEqualStrings("drivers/virtio/virtio_input_verify.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "wrapper-facing verifier replay") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-preflight") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "status-drain replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "status-drain replays") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-input-probe-preflight-replay")) {
+            saw_probe_preflight_replay = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase10_virtio_input_probe_preflight.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-preflight replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "multitouch-slot blocker ordering") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration-preflight replay") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-replay")) {
@@ -239,7 +252,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
             try std.testing.expectEqualStrings("zigux/tests/phase10_virtio_input_queue_callback_preflight.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-callback-preflight replay") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blocker ordering") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "status-drain replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-preflight replay") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-input-slice-note")) {
@@ -347,7 +360,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 16);
+    try std.testing.expect(starter_landed_count >= 21);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_core_starter);
@@ -355,6 +368,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_gate);
     try std.testing.expect(saw_verify_replay);
+    try std.testing.expect(saw_probe_preflight_replay);
     try std.testing.expect(saw_queue_callback_preflight_replay);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_survey_gate);
