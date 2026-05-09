@@ -144,6 +144,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(helper_impl, "try std.testing.expect(!parseOptionStr(\"debug,\", \"\"));");
     try expectContains(helper_impl, "test \"nextArg keeps embedded equals inside quoted values\"");
     try expectContains(helper_impl, "test \"nextArg keeps param, value, and rest borrowed from the caller buffer\"");
+    try expectContains(helper_impl, "test \"nextArg trims mixed trailing whitespace from rest and leaves whitespace-only tails empty\"");
     try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[0])), @as(usize, @intFromPtr(parsed.param.ptr)));");
     try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[6])), @as(usize, @intFromPtr(parsed.value.?.ptr)));");
     try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(&buffer[17])), @as(usize, @intFromPtr(parsed.rest.ptr)));");
@@ -156,6 +157,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(helper_impl, "try std.testing.expectEqual(@as(usize, @intFromPtr(args.ptr)), @as(usize, @intFromPtr(parsed.rest.ptr)));");
     try expectContains(helper_impl, "test \"nextArg returns an empty sentinel token before leading whitespace and trims the following rest\"");
     try expectCount(helper_impl, "test \"nextArg keeps param, value, and rest borrowed from the caller buffer\"", 1);
+    try expectCount(helper_impl, "test \"nextArg trims mixed trailing whitespace from rest and leaves whitespace-only tails empty\"", 1);
 
     const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
     defer allocator.free(tests_root);
@@ -218,6 +220,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(next_arg_fixture, ".name = \"first equals wins inside the value\",");
     try expectContains(next_arg_fixture, ".name = \"quoted value without trailing token leaves empty rest\",");
     try expectContains(next_arg_fixture, ".name = \"unterminated quoted value stays bounded to the current token\",");
+    try expectContains(next_arg_fixture, ".name = \"mixed trailing whitespace is trimmed from rest\",");
     try expectContains(next_arg_fixture, ".name = \"leading whitespace returns Linux empty sentinel token\",");
     try expectContains(next_arg_fixture, ".name = \"whitespace-only tail trims to empty rest\",");
     try expectContains(next_arg_fixture, ".name = \"leading equals sign stays in the parameter token\",");
@@ -230,6 +233,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(next_arg_fixture, ".expected_rest = \"foo=1\",");
     try expectContains(next_arg_fixture, ".expected_rest = \"\",");
     try expectCount(next_arg_fixture, ".name = \"quoted value without trailing token leaves empty rest\",", 1);
+    try expectCount(next_arg_fixture, ".name = \"mixed trailing whitespace is trimmed from rest\",", 1);
     try expectCount(next_arg_fixture, ".name = \"leading whitespace returns Linux empty sentinel token\",", 1);
     try expectCount(next_arg_fixture, ".name = \"whitespace-only tail trims to empty rest\",", 1);
     try expectCount(next_arg_fixture, ".name = \"leading equals sign stays in the parameter token\",", 1);
