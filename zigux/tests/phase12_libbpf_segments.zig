@@ -248,7 +248,7 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
 
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing-boundary")) {
             saw_perf_buffer_online_cpu_routing = true;
-            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/cpu_mask.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("deferred_high_risk", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "perf_event_open") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queueing-risk bucket") != null);
