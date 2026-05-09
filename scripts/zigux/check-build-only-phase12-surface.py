@@ -19,6 +19,7 @@ PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH = "Documentation/zigux/phase12-libbpf-he
 PHASE12_RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 NVME_FALLBACK_MAP_PATH = "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
 VIRTIO_SCSI_FALLBACK_PATH = "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
+PHASE12_VIRTIO_SCSI_SLICE_PATH = "Documentation/zigux/phase12-virtio-scsi-slice.md"
 VIRTIO_NET_SURVEY_PATH = "Documentation/zigux/phase12-virtio-net-survey.md"
 LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
 PHASE12_COORDINATION_MATRIX_PATH = "Documentation/zigux/phase12-release-coordination-matrix.md"
@@ -243,6 +244,19 @@ REQUIRED_FILE_MARKERS = {
         "- `zigux/Makefile`: `cfb5a1ebd283c5f86ccc264ceccaf704fd8c47b5`",
         "- bounded coverage result: the current public tree and raw fallback packet still resolves cleanly for all 18 listed surfaces",
     ],
+    PHASE12_VIRTIO_SCSI_SLICE_PATH: [
+        "records one bounded restore-time event-buffer ownership summary",
+        "lab-only transport freeze or restore boundary",
+        "records one bounded freeze-time request-queue quiesce summary",
+        "`virtscsi_restore()` calling `find_vqs`, `virtio_device_ready()`, and event rearm",
+        "records one bounded request-queue restart summary",
+        "records one bounded request-queue ownership summary",
+        "records one bounded recovery event-rearm summary",
+        "records one bounded recovery rollback summary",
+        "This slice does not claim DMA mapping",
+        "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-smoke` rerun this bounded `virtio scsi` starter before the broader survey-backed replay",
+        "Keep this slice parked until the roadmap approves queue ownership, SCSI host registration, or DMA-backed queue work",
+    ],
     VIRTIO_NET_SURVEY_PATH: [
         "public fallback posture: shared-tree-only anchor",
         "segmented rollout boundary",
@@ -394,6 +408,13 @@ EXACT_COUNT_FILE_MARKERS = {
         "- `zigux/tests/phase12_virtio_scsi_manifest.json`: `30b6878de70003eb2f893cb3b16b65441017dbc7`": 1,
         "- `zigux/Makefile`: `cfb5a1ebd283c5f86ccc264ceccaf704fd8c47b5`": 1,
     },
+    PHASE12_VIRTIO_SCSI_SLICE_PATH: {
+        "records one bounded request-queue restart summary": 1,
+        "records one bounded request-queue ownership summary": 1,
+        "records one bounded recovery event-rearm summary": 1,
+        "records one bounded recovery rollback summary": 1,
+        "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-smoke` rerun this bounded `virtio scsi` starter before the broader survey-backed replay": 1,
+    },
 }
 
 FORBIDDEN_TEXT_MARKERS = {
@@ -416,6 +437,7 @@ FORBIDDEN_TEXT_MARKERS = {
         "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.zig`",
     ],
 }
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -574,7 +596,14 @@ def run_self_test() -> int:
             for failure in failures:
                 print(failure)
             return 1
-        write(root, PHASE12_CLOSURE_CHECKLIST_PATH, fixture_content(PHASE12_CLOSURE_CHECKLIST_PATH, REQUIRED_FILE_MARKERS[PHASE12_CLOSURE_CHECKLIST_PATH]))
+        write(
+            root,
+            PHASE12_CLOSURE_CHECKLIST_PATH,
+            fixture_content(
+                PHASE12_CLOSURE_CHECKLIST_PATH,
+                REQUIRED_FILE_MARKERS[PHASE12_CLOSURE_CHECKLIST_PATH],
+            ),
+        )
         case_count += 1
 
         forbidden_file = FORBIDDEN_FILES[0]
@@ -626,7 +655,7 @@ def main() -> int:
         print("PHASE12_BUILD_ONLY_SURFACE_FAILURES_END")
         return 1
 
-    print(f"PHASE12_BUILD_ONLY_SURFACE=pass")
+    print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(f"PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT={sum(len(v) for v in REQUIRED_FILE_MARKERS.values())}")
     return 0
 
