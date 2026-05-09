@@ -130,3 +130,5 @@ They stay reviewable beside the Phase 13 helper tranche, but they are not extra 
 ## Next safe follow-up
 
 Reopen this note only if Phase 13 adds a new shared-helper family, promotes adjacent notifier evidence into the shared replay route, blurs the current `libfs` versus `devres` versus `landlock/ruleset` versus `landlock/syscalls` split again, or changes which broad contributor-facing surfaces must stay aligned around that packet.
+
+On current `master`, the next smallest shared-surface follow-through is still a docs-root reminder repair in `Documentation/zigux/README.md`: its broad Phase 13 contributor-workflow summary already names `scripts/zigux/check-phase13-notifier-packet.py`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` in the packet inventory, but the later adjacent-release-surface clause still leaves those four notifier-adjacent evidence surfaces implicit.
