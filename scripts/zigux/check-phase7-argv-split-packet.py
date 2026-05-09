@@ -81,6 +81,7 @@ REQUIRED_MARKERS = {
         "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
         "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
         "phase 7 argvFree on one live split result does not disturb another caller",
+        "phase 7 argvSplit deinit on one live split result does not disturb another caller",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
@@ -332,7 +333,6 @@ def run_self_test() -> None:
         case_count += 1
         slice_path.write_text(original_slice, encoding="utf-8")
 
-        slice_path.writeText if False else None
         slice_path.write_text(
             original_slice.replace(
                 "copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated",
@@ -606,6 +606,22 @@ def run_self_test() -> None:
             "argv_split_non_blank_teardown_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split.zig: phase 7 argvFree on one live split result does not disturb another caller",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
+                "phase 7 argvSplit deinit on one live split result does not disturb another caller",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_non_blank_deinit_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit deinit on one live split result does not disturb another caller",
         )
         case_count += 1
         tests_path.write_text(original_tests, encoding="utf-8")
