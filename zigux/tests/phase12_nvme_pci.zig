@@ -11,6 +11,7 @@ test "phase12 nvme pci descriptor and admin queue plan stay anchored to pci.c" {
     try std.testing.expect(descriptor.provides_prp_metadata_helper);
     try std.testing.expect(descriptor.provides_recovery_replay_helper);
     try std.testing.expect(descriptor.provides_recovery_reservation_helper);
+    try std.testing.expect(descriptor.provides_recovery_backlog_retirement_helper);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_pci_probe);
     try std.testing.expect(!descriptor.touches_irq_recovery);
@@ -38,6 +39,7 @@ test "phase12 nvme pci ownership summary keeps starter and blocked transport wor
     try std.testing.expectEqualStrings("P12-L05", ownership.owner_lane);
     try std.testing.expectEqual(nvme_pci.OwnershipBoundary.starter_packet, ownership.queue_planning_owner);
     try std.testing.expectEqual(nvme_pci.OwnershipBoundary.starter_packet, ownership.prp_shape_owner);
+    try std.testing.expectEqual(nvme_pci.OwnershipBoundary.starter_packet, ownership.recovery_backlog_retirement_owner);
     try std.testing.expectEqual(nvme_pci.OwnershipBoundary.dma_transport_substrate, ownership.live_dma_owner);
     try std.testing.expectEqual(nvme_pci.OwnershipBoundary.dma_transport_substrate, ownership.recovery_transport_owner);
 }
