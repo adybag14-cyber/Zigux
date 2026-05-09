@@ -128,7 +128,7 @@ Anchor packets in the current smoke bundle:
 - The shared smoke packet now records the exact live surface split in one place: 28 total surfaces made up of 6 docs, 5 scripts, 12 tests, 3 bridge roots, 1 workflow route, and 1 Makefile wrapper.
 - `zigux/tests/phase14_build.zig` keeps one dedicated smoke shard for `phase14-end-to-end-smoke-tests`, while the four anchor-local artifacts remain `full_bundle_only` under the broader Phase 14 test replay.
 - `Documentation/zigux/freeze-map.md` still names the same four anchors, so the packet stays grounded in stay-in-C and blocked-evidence posture instead of drifting toward an implementation claim.
-- `Documentation/zigux/phase14-ring-buffer-survey.md` and `zigux/tests/phase14_ring_buffer_manifest.json` agree on lane `P14-L08` at surveyed commit `946d5c73fdb763ba860a20879b05da54e1896e8c`, keeping the ring-buffer anchor study-only while carrying the landed exported-page copy-path audit instead of any `kernel/trace/ring_buffer.zig` claim.
+- `Documentation/zigux/phase14-ring-buffer-survey.md` and `zigux/tests/phase14_ring_buffer_manifest.json` agree on lane `P14-L05` at surveyed commit `946d5c73fdb763ba860a20879b05da54e1896e8c`, keeping the ring-buffer anchor study-only while carrying the landed exported-page copy-path audit instead of any `kernel/trace/ring_buffer.zig` claim.
 - This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.
 
 ## Productization Evidence
