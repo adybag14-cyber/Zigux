@@ -44,12 +44,15 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/helpers/mmio.zig",
     "zigux/unsafe/narrow.zig",
     "zigux/tests/phase3_abi.zig",
+    "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/phase3_export_uapi_build.zig",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/build.zig",
+    "zigux/tests/fixtures/phase3_abi/expected.json",
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
@@ -59,6 +62,7 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate_phase3_selftest.py",
@@ -69,6 +73,7 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/artifact_diff.py",
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
     "scripts/zigux/check-phase3-abi.py",
@@ -241,13 +246,19 @@ def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str
     file_count = data.get("file_count")
     if file_count != len(files):
         issues.append(f"{slug}:manifest_file_count={file_count}")
-    for rel in _required_manifest_files_for_slug(slug):
+    required_files = _required_manifest_files_for_slug(slug)
+    if required_files and file_count != len(required_files):
+        issues.append(f"{slug}:manifest_required_file_count={file_count}!={len(required_files)}")
+    for rel in required_files:
         if rel not in files:
             issues.append(f"{slug}:manifest_missing_required_file={rel}")
     allowed_legacy_wrappers = set(_allowed_generated_legacy_wrapper_manifest_files_for_slug(slug))
+    required_file_set = set(required_files)
     for rel in files:
         if _is_generated_legacy_wrapper_manifest_file(rel) and rel not in allowed_legacy_wrappers:
             issues.append(f"{slug}:manifest_legacy_wrapper_file={rel}")
+        if required_file_set and rel not in required_file_set:
+            issues.append(f"{slug}:manifest_unexpected_file={rel}")
         if not (root / rel).exists():
             issues.append(f"{slug}:manifest_missing_file={rel}")
     return data
@@ -470,8 +481,8 @@ def validate_slices(
 
 def run_self_test() -> int:
     case_count = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_selftest_") as tmp_dir_str:
-        root = Path(tmp_dir_str)
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_selftest_") as tmp_dir:
+        root = Path(tmp_dir)
         scripts_dir = root / "scripts" / "zigux"
         scripts_dir.mkdir(parents=True, exist_ok=True)
 
@@ -585,7 +596,10 @@ def run_self_test() -> int:
         assert abi_issues == []
         case_count += 1
 
-        manifest_payload["files"] = list(ABI_REQUIRED_MANIFEST_FILES[:-1])
+        missing_required = "scripts/zigux/artifact_diff.py"
+        manifest_payload["files"] = [
+            rel for rel in ABI_REQUIRED_MANIFEST_FILES if rel != missing_required
+        ]
         manifest_payload["file_count"] = len(manifest_payload["files"])
         manifest_path.write_text(
             json.dumps(manifest_payload),
@@ -595,7 +609,8 @@ def run_self_test() -> int:
         missing_required_issues: list[str] = []
         validate_manifest(root, manifest_path, "abi", missing_required_issues)
         assert missing_required_issues == [
-            f"abi:manifest_missing_required_file={ABI_REQUIRED_MANIFEST_FILES[-1]}"
+            f"abi:manifest_required_file_count={len(ABI_REQUIRED_MANIFEST_FILES) - 1}!={len(ABI_REQUIRED_MANIFEST_FILES)}",
+            f"abi:manifest_missing_required_file={missing_required}",
         ]
         case_count += 1
 
@@ -629,7 +644,9 @@ def run_self_test() -> int:
         unexpected_wrapper_issues: list[str] = []
         validate_manifest(root, manifest_path, "abi", unexpected_wrapper_issues)
         assert unexpected_wrapper_issues == [
-            "abi:manifest_legacy_wrapper_file=scripts/zigux/check-phase3-bitmap-cpumask.py"
+            f"abi:manifest_required_file_count={len(ABI_REQUIRED_MANIFEST_FILES) + 1}!={len(ABI_REQUIRED_MANIFEST_FILES)}",
+            "abi:manifest_legacy_wrapper_file=scripts/zigux/check-phase3-bitmap-cpumask.py",
+            "abi:manifest_unexpected_file=scripts/zigux/check-phase3-bitmap-cpumask.py",
         ]
         case_count += 1
 
