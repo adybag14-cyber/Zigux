@@ -146,6 +146,11 @@ fn compareRawRecordKey(key: *const anyopaque, item: *const anyopaque) i32 {
     return compareU32(typed_key, &typed_item.key);
 }
 
+fn compareRawRecordKeyCounted(key: *const anyopaque, item: *const anyopaque) i32 {
+    counted_raw_compare_calls += 1;
+    return compareRawRecordKey(key, item);
+}
+
 test "phase 6 bsearch module imports cleanly" {
     _ = bsearch;
 }
@@ -362,14 +367,14 @@ test "phase 6 bsearch lower-bound typed and raw empty or singleton paths stay in
     counted_raw_compare_calls = 0;
     try std.testing.expectEqual(
         @as(usize, 0),
-        bsearch.bsearchLowerBoundIndex(&@as(u32, 4), @ptrCast(record_singleton[0..].ptr), record_singleton.len, @sizeOf(RawRecord), compareRawRecordKey),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 4), @ptrCast(record_singleton[0..].ptr), record_singleton.len, @sizeOf(RawRecord), compareRawRecordKeyCounted),
     );
     try std.testing.expect(counted_raw_compare_calls <= 1);
 
     counted_raw_compare_calls = 0;
     try std.testing.expectEqual(
         @as(usize, 1),
-        bsearch.bsearchLowerBoundIndex(&@as(u32, 5), @ptrCast(record_singleton[0..].ptr), record_singleton.len, @sizeOf(RawRecord), compareRawRecordKey),
+        bsearch.bsearchLowerBoundIndex(&@as(u32, 5), @ptrCast(record_singleton[0..].ptr), record_singleton.len, @sizeOf(RawRecord), compareRawRecordKeyCounted),
     );
     try std.testing.expect(counted_raw_compare_calls <= 1);
 }
