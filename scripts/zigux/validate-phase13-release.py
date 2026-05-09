@@ -138,6 +138,7 @@ CONTRIBUTOR_GUIDE_REQUIRED_MARKERS = [
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
+    "Documentation/zigux/phase13-landlock-syscalls-governance.md",
     "zigux/tests/README.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase13-release.py",
@@ -150,6 +151,7 @@ CONTRIBUTOR_GUIDE_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
+    "zigux/tests/phase13_landlock_syscalls_manifest.json",
     "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
     "include/zigux/notifier_abi.h",
@@ -181,11 +183,13 @@ CONTRIBUTOR_SYNC_REQUIRED_MARKERS = [
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase13-contributor-workflow-guide.md",
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md",
+    "Documentation/zigux/phase13-landlock-syscalls-governance.md",
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "zigux/tests/README.md",
+    "zigux/tests/phase13_landlock_syscalls_manifest.json",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
     "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
@@ -471,18 +475,12 @@ def validate(root: Path) -> list[str]:
     phase13_build = _read(root / "zigux/tests/phase13_build.zig")
 
     issues.extend(_collect_missing_markers(docs_readme, DOC_REQUIRED_MARKERS, "docs-readme"))
-    issues.extend(_collect_missing_markers(review_checklist, REVIEW_REQUIRED_MARKERS, "review-checklist"))
-    issues.extend(_collect_missing_markers(release_notes, RELEASE_NOTES_REQUIRED_MARKERS, "release-notes"))
-    issues.extend(
-        _collect_missing_markers(
-            roadmap_traceability,
-            ROADMAP_TRACEABILITY_REQUIRED_MARKERS,
-            "roadmap-traceability",
-        )
-    )
     issues.extend(_collect_exact_count_issues(docs_readme, DOC_EXACT_COUNTS, "docs-readme-exact"))
+    issues.extend(_collect_missing_markers(review_checklist, REVIEW_REQUIRED_MARKERS, "review-checklist"))
     issues.extend(_collect_exact_count_issues(review_checklist, REVIEW_EXACT_COUNTS, "review-checklist-exact"))
+    issues.extend(_collect_missing_markers(release_notes, RELEASE_NOTES_REQUIRED_MARKERS, "release-notes"))
     issues.extend(_collect_exact_count_issues(release_notes, RELEASE_NOTES_EXACT_COUNTS, "release-notes-exact"))
+    issues.extend(_collect_missing_markers(roadmap_traceability, ROADMAP_TRACEABILITY_REQUIRED_MARKERS, "roadmap-traceability"))
     issues.extend(
         _collect_exact_count_issues(
             roadmap_traceability,
@@ -490,8 +488,8 @@ def validate(root: Path) -> list[str]:
             "roadmap-traceability-exact",
         )
     )
-    issues.extend(_collect_missing_markers(contributor_workflow_guide, CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, "contributor-workflow-guide"))
-    issues.extend(_collect_exact_count_issues(contributor_workflow_guide, CONTRIBUTOR_GUIDE_EXACT_COUNTS, "contributor-workflow-guide-exact"))
+    issues.extend(_collect_missing_markers(contributor_workflow_guide, CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, "contributor-guide"))
+    issues.extend(_collect_exact_count_issues(contributor_workflow_guide, CONTRIBUTOR_GUIDE_EXACT_COUNTS, "contributor-guide-exact"))
     issues.extend(_collect_missing_markers(contributor_surface_sync, CONTRIBUTOR_SYNC_REQUIRED_MARKERS, "contributor-surface-sync"))
     issues.extend(_collect_exact_count_issues(contributor_surface_sync, CONTRIBUTOR_SYNC_EXACT_COUNTS, "contributor-surface-sync-exact"))
     issues.extend(_collect_missing_markers(tests_review_companion, TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, "tests-review-companion"))
@@ -721,6 +719,48 @@ def run_self_test() -> int:
                 ROADMAP_TRACEABILITY_REQUIRED_MARKERS,
                 ROADMAP_TRACEABILITY_EXACT_COUNTS,
             ),
+        )
+        case_count += 1
+
+        contributor_guide_path = root / "Documentation/zigux/phase13-contributor-workflow-guide.md"
+        contributor_guide_path.write_text(
+            "\n".join(
+                marker
+                for marker in CONTRIBUTOR_GUIDE_REQUIRED_MARKERS
+                if marker != "Documentation/zigux/phase13-landlock-syscalls-governance.md"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["contributor-guide:Documentation/zigux/phase13-landlock-syscalls-governance.md"],
+            "missing_contributor_guide_syscalls_governance_marker_failed",
+        )
+        _write(
+            contributor_guide_path,
+            _repeat_markers(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, CONTRIBUTOR_GUIDE_EXACT_COUNTS),
+        )
+        case_count += 1
+
+        contributor_surface_sync_path = root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"
+        contributor_surface_sync_path.write_text(
+            "\n".join(
+                marker
+                for marker in CONTRIBUTOR_SYNC_REQUIRED_MARKERS
+                if marker != "zigux/tests/phase13_landlock_syscalls_manifest.json"
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["contributor-surface-sync:zigux/tests/phase13_landlock_syscalls_manifest.json"],
+            "missing_contributor_surface_sync_syscalls_manifest_marker_failed",
+        )
+        _write(
+            contributor_surface_sync_path,
+            _repeat_markers(CONTRIBUTOR_SYNC_REQUIRED_MARKERS, CONTRIBUTOR_SYNC_EXACT_COUNTS),
         )
         case_count += 1
 
