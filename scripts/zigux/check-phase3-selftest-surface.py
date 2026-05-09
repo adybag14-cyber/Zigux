@@ -49,6 +49,7 @@ DOCS_ROOT_MARKERS = [
     "scripts/zigux/survey-phase3-abi-constant-parity.py",
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
+    "python3 scripts/zigux/validate-phase3.py",
     "python3 scripts/zigux/validate-phase3.py --slug abi",
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "python3 scripts/zigux/run-phase3-checks.py --slug abi",
@@ -367,6 +368,7 @@ def run_self_test() -> int:
         assert "docs_root:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
         assert "docs_root:scripts/zigux/phase3_check_lib.py" in issues
         assert "docs_root:scripts/zigux/generate-phase3-check-wrappers.py" in issues
+        assert "docs_root:python3 scripts/zigux/validate-phase3.py" in issues
         assert "docs_root:python3 scripts/zigux/validate-phase3.py --slug abi" in issues
         assert "docs_root:python3 scripts/zigux/phase3_catalog.py --audit-doc-sync" in issues
         assert "docs_root:python3 scripts/zigux/run-phase3-checks.py --slug abi" in issues
@@ -385,6 +387,14 @@ def run_self_test() -> int:
             "duplicate_docs_root_marker:2:scripts/zigux/check-phase3-selftest-surface.py"
             in issues
         )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/README.md",
+            "\n".join(DOCS_ROOT_MARKERS + ["python3 scripts/zigux/validate-phase3.py"]) + "\n",
+        )
+        issues = validate_root(root)
+        assert "duplicate_docs_root_marker:2:python3 scripts/zigux/validate-phase3.py" in issues
 
         build_self_test_root(root)
         write_text(
@@ -803,7 +813,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=39")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=40")
     return 0
 
 
