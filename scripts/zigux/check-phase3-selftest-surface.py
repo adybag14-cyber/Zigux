@@ -86,6 +86,7 @@ ABI_SLICE_MARKERS = [
     "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
     "python3 scripts/zigux/validate_phase3_selftest.py",
+    "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
     "python3 scripts/zigux/check-phase3-selftest-surface.py",
     "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
     "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py",
@@ -500,6 +501,7 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "abi_slice:python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py" in issues
         assert "abi_slice:python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test" in issues
+        assert "abi_slice:python3 scripts/zigux/check-phase3-selftest-surface.py --self-test" in issues
         assert "abi_slice:python3 scripts/zigux/check-phase3-selftest-surface.py" in issues
         assert "abi_slice:python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test" in issues
         assert "abi_slice:python3 scripts/zigux/check-phase3-readme-tooling-inventory.py" in issues
@@ -530,6 +532,17 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert (
+            "duplicate_abi_slice_marker:2:python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase3-abi-slice.md",
+            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[4]]) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
             "duplicate_abi_slice_marker:2:python3 scripts/zigux/check-phase3-selftest-surface.py"
             in issues
         )
@@ -537,7 +550,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/phase3-abi-slice.md",
-            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[5]]) + "\n",
+            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[6]]) + "\n",
         )
         issues = validate_root(root)
         assert (
@@ -548,7 +561,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/phase3-abi-slice.md",
-            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[7]]) + "\n",
+            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[8]]) + "\n",
         )
         issues = validate_root(root)
         assert (
@@ -559,7 +572,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/phase3-abi-slice.md",
-            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[9]]) + "\n",
+            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[10]]) + "\n",
         )
         issues = validate_root(root)
         assert (
@@ -570,7 +583,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/phase3-abi-slice.md",
-            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[14]]) + "\n",
+            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[15]]) + "\n",
         )
         issues = validate_root(root)
         assert (
@@ -581,7 +594,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/phase3-abi-slice.md",
-            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[16]]) + "\n",
+            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[17]]) + "\n",
         )
         issues = validate_root(root)
         assert (
