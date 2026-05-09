@@ -78,8 +78,6 @@ REQUIRED_BUILD_MARKERS = [
     '.name = "phase11-bcm2835-wdt-survey-tests"',
 ]
 
-SELF_TEST_CASE_COUNT = 16
-
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -257,6 +255,18 @@ def expect_missing_file(root: Path, rel_path: str) -> None:
 
 
 def run_self_test() -> int:
+    case_count = 0
+
+    def run_failure_case(rel_path: str, marker: str, expected: str) -> None:
+        nonlocal case_count
+        expect_failure(root, rel_path, marker, expected)
+        case_count += 1
+
+    def run_missing_file_case(rel_path: str) -> None:
+        nonlocal case_count
+        expect_missing_file(root, rel_path)
+        case_count += 1
+
     with tempfile.TemporaryDirectory(prefix="phase11_bcm2835_packet_") as tmpdir:
         root = Path(tmpdir)
         write_fixture_tree(root)
@@ -282,19 +292,19 @@ def run_self_test() -> int:
         for rel_path, marker, expected in checks:
             write_fixture_tree(root)
             try:
-                expect_failure(root, rel_path, marker, expected)
+                run_failure_case(rel_path, marker, expected)
             except AssertionError as exc:
                 print(str(exc), file=sys.stderr)
                 return 1
         for rel_path in [SLICE_NOTE_PATH, SURVEY_GATE_PATH, VERIFY_REPLAY_PATH, SCRIPT_PATH]:
             write_fixture_tree(root)
             try:
-                expect_missing_file(root, rel_path)
+                run_missing_file_case(rel_path)
             except AssertionError as exc:
                 print(str(exc), file=sys.stderr)
                 return 1
     print("PHASE11_BCM2835_WDT_PACKET_SELFTEST=pass")
-    print(f"PHASE11_BCM2835_WDT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
+    print(f"PHASE11_BCM2835_WDT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
@@ -312,6 +322,7 @@ def main() -> int:
         return 1
     print("PHASE11_BCM2835_WDT_PACKET=pass")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
