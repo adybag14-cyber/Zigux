@@ -47,6 +47,10 @@ These files are shipped adjacent release-surface evidence on `master`, but they 
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
@@ -60,6 +64,8 @@ These files are shipped adjacent release-surface evidence on `master`, but they 
 - `zigux/helpers/notifier_chain_view.zig`
 
 The helper-owned Landlock boundary notes stay in the broader shipped release packet because they record the current ruleset ownership and syscall-governance limits that still block tranche closure, but they do not add extra shared replay steps beyond the eight-test route above.
+
+The contributor workflow guide, shared contributor-surface sync note, compact tests-root review companion, and shared review checklist stay in that same adjacent release packet too. They keep the broader Phase 13 contributor prompts honest beside the validator-first route without promoting those reminder surfaces into extra shared replay steps or shifting ownership away from the helper-family lanes.
 
 ## Current blocker posture
 
