@@ -59,6 +59,16 @@ test "phase 7 getOption and getOptions preserve Linux-style range parsing" {
     const single_validate_rest = cmdline.getOptions("1-1", 0, &single_validate);
     try std.testing.expectEqualStrings("", single_validate_rest);
     try std.testing.expectEqual(@as(i32, 1), single_validate[0]);
+
+    var wrapped_range = [_]i32{ 0, 0, 0, 0 };
+    const wrapped_range_rest = cmdline.getOptions("2147483648-2147483650", wrapped_range.len, &wrapped_range);
+    try std.testing.expectEqualStrings("", wrapped_range_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, -2147483648, -2147483647, -2147483646 }, &wrapped_range);
+
+    var wrapped_validate = [_]i32{0};
+    const wrapped_validate_rest = cmdline.getOptions("2147483648-2147483650", 0, &wrapped_validate);
+    try std.testing.expectEqualStrings("", wrapped_validate_rest);
+    try std.testing.expectEqual(@as(i32, 3), wrapped_validate[0]);
 }
 
 test "phase 7 getOption preserves validator-only numeric acceptance" {
