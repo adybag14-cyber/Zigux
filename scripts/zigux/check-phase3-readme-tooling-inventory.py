@@ -718,13 +718,13 @@ def run_self_test() -> int:
             1,
         )
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[1]}]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[1]}"]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
         readme = _baseline_readme().replace("`zigux/tests/phase8_help_kallsyms_only_build.zig`, ", "", 1)
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[4]}]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[4]}"]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
@@ -734,19 +734,19 @@ def run_self_test() -> int:
             1,
         )
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[5]}]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[5]}"]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
         readme = _baseline_readme().replace(REQUIRED_README_SNIPPETS[7], "", 1)
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[7]}]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[7]}"]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
         readme = _baseline_readme().replace(REQUIRED_README_SNIPPETS[-1], "", 1)
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[-1]}]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[-1]}"]
         case_count += 1
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
