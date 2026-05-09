@@ -6,7 +6,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
 
 - `PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed`
 - current surveyed packet pin: `75f8336c4305beed127d7abfae37d3999b7cc57c`
-- active watchdog continuity for this matrix and its coupled survey packet is `P11-L05`
+- current validation-matrix continuity for this DesignWare packet is `P11-L11`; the older dedicated survey packet and explicit packet pin still reflect archived `P11-L05` provenance until the next full same-packet resurvey
 - scope: keep the current `dw_wdt` starter honest about what is already validated, name the next kernel-facing checkpoints, and avoid overclaiming platform registration, clock or reset wiring, IRQ handling, or live MMIO behavior before those surfaces exist in Zigux
 - current repo reality:
   - `drivers/watchdog/dw_wdt.zig`
@@ -82,6 +82,7 @@ Without this matrix, the slice, survey, manifest, shared review surfaces, dedica
 ## Review Rules
 
 - treat this lane as a bounded driver-starter plus validation-note lane until platform-backed execution actually lands
+- treat this matrix as the current `P11-L11` watchdog-family follow-up until the next full DesignWare same-packet resurvey refreshes the coupled survey note, manifest, survey gate, and packet checker together
 - keep `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_build.zig`, and `scripts/zigux/check-phase11-dw-wdt-packet.py` aligned so the DesignWare-local packet checker stays fail-closed around the current starter without reopening broader shared Phase 11 contract surfaces
 - keep the dedicated teardown companion aligned with the remove-and-teardown matrix row whenever `stop()`, `teardownSummary()`, or `removeSummary()` change
 - keep the platform resource preflight row aligned with `platformResourcePreflightSummary()` whenever timer-clock selection or optional resource-availability proof changes
