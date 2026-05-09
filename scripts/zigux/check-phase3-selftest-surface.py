@@ -142,6 +142,7 @@ TESTS_README_MARKERS = [
     "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
     "scripts/zigux/generate-phase3-check-wrappers.py --check",
     "scripts/zigux/run-phase3-checks.py --self-test",
+    "scripts/zigux/run-phase3-checks.py",
     "make -C zigux phase3-selftest",
     "opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`",
 ]
@@ -192,6 +193,10 @@ def substring_marker_count(text: str, marker: str) -> int:
     return text.count(marker)
 
 
+def backticked_or_line_marker_count(text: str, marker: str) -> int:
+    return text.count(f"`{marker}`") + sum(1 for line in normalized_marker_lines(text) if line == marker)
+
+
 def collect_marker_count_issues(
     text: str,
     markers: list[str],
@@ -199,10 +204,16 @@ def collect_marker_count_issues(
     prefix: str,
     normalized: bool = True,
     substring: bool = False,
+    backticked: bool = False,
 ) -> list[str]:
     issues: list[str] = []
     for marker in markers:
-        count = substring_marker_count(text, marker) if substring else exact_marker_count(text, marker, normalized=normalized)
+        if substring:
+            count = substring_marker_count(text, marker)
+        elif backticked:
+            count = backticked_or_line_marker_count(text, marker)
+        else:
+            count = exact_marker_count(text, marker, normalized=normalized)
         if count == 0:
             issues.append(f"{prefix}:{marker}")
         elif count != 1:
@@ -231,7 +242,32 @@ def validate_root(root: Path) -> list[str]:
     issues.extend(collect_marker_count_issues(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist", substring=True))
     issues.extend(collect_marker_count_issues(abi_slice, ABI_SLICE_MARKERS, prefix="abi_slice"))
     issues.extend(collect_marker_count_issues(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme", substring=True))
-    issues.extend(collect_marker_count_issues(tests_readme, TESTS_README_MARKERS, prefix="tests_readme", substring=True))
+    tests_readme_inline_markers = [
+        marker
+        for marker in TESTS_README_MARKERS
+        if marker.startswith("scripts/") or marker.startswith("python3 ") or marker.startswith("make -C ")
+    ]
+    tests_readme_phrase_markers = [
+        marker for marker in TESTS_README_MARKERS if marker not in tests_readme_inline_markers
+    ]
+    issues.extend(
+        collect_marker_count_issues(
+            tests_readme,
+            tests_readme_inline_markers,
+            prefix="tests_readme",
+            substring=False,
+            normalized=False,
+            backticked=True,
+        )
+    )
+    issues.extend(
+        collect_marker_count_issues(
+            tests_readme,
+            tests_readme_phrase_markers,
+            prefix="tests_readme",
+            substring=True,
+        )
+    )
     issues.extend(collect_marker_count_issues(makefile, MAKEFILE_MARKERS, prefix="makefile", normalized=False))
     return issues
 
@@ -506,6 +542,7 @@ def run_self_test() -> int:
         assert "tests_readme:python3 scripts/zigux/phase3_catalog.py --audit-doc-sync" in issues
         assert "tests_readme:scripts/zigux/generate-phase3-check-wrappers.py --check" in issues
         assert "tests_readme:scripts/zigux/run-phase3-checks.py --self-test" in issues
+        assert "tests_readme:scripts/zigux/run-phase3-checks.py" in issues
         assert "tests_readme:make -C zigux phase3-selftest" in issues
         assert (
             "tests_readme:opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`"
@@ -557,6 +594,25 @@ def run_self_test() -> int:
             "duplicate_tests_readme_marker:2:scripts/zigux/survey-phase3-abi-constant-parity.py"
             in issues
         )
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(TESTS_README_MARKERS + ["scripts/zigux/run-phase3-checks.py"]) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "duplicate_tests_readme_marker:2:scripts/zigux/run-phase3-checks.py"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(marker for marker in TESTS_README_MARKERS if marker != "scripts/zigux/run-phase3-checks.py") + "\n",
+        )
+        issues = validate_root(root)
+        assert "tests_readme:scripts/zigux/run-phase3-checks.py" in issues
 
         build_self_test_root(root)
         write_text(root / "zigux/Makefile", "phase3-selftest:\n")
@@ -640,7 +696,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/survey-phase3-abi-constant-parity.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=34")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=36")
     return 0
 
 
