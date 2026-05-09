@@ -140,7 +140,7 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-08", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-09", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 20), manifest.review_process.required_record_field_count);
     try std.testing.expectEqual(manifest.review_process.required_record_field_count, manifest.review_process.required_record_fields.len);
@@ -485,7 +485,7 @@ test "phase 15 council review gate stays aligned between the scorecard and check
 
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "required review-process review-packet fields tracked in the manifest: `20`") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "required review-process ownership-evidence fields tracked in the manifest: `15`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "current-master-readback-2026-05-08") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "current-master-readback-2026-05-09") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "exact branch-head parity is not recorded for this packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Architecture Council Review Gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reopen Trigger Catalog") != null);
