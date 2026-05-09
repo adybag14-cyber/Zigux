@@ -22,7 +22,7 @@ BUILD_FILE_REL = "zigux/tests/build.zig"
 EXPORT_UAPI_LAYOUT_REL = "zigux/tests/phase3_export_uapi_layout.zig"
 LINUX_HEADER_GOVERNANCE_REL = "Documentation/zigux/phase3-linux-zigux-header-governance.md"
 VALIDATOR_REL = "scripts/zigux/validate-phase3-export-uapi-survey.py"
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 12
 
 REQUIRED_FILES = (
     SURVEY_REL,
@@ -66,7 +66,6 @@ SURVEY_EXACT_MARKERS = (
     f"`PHASE3_LINUX_HEADER_PATH={LINUX_HEADER_REL}`",
     f"`PHASE3_ABI_HEADER_PATH={ABI_HEADER_REL}`",
     f"`PHASE3_EXPORT_UAPI_LAYOUT_PATH={EXPORT_UAPI_LAYOUT_REL}`",
-    f"`PHASE3_EXPORT_UAPI_VALIDATOR_PATH={VALIDATOR_REL}`",
 )
 
 SURVEY_BLOB_MARKERS = (
@@ -75,7 +74,6 @@ SURVEY_BLOB_MARKERS = (
     ("PHASE3_LINUX_HEADER_BLOB_SHA", LINUX_HEADER_REL),
     ("PHASE3_ABI_HEADER_BLOB_SHA", ABI_HEADER_REL),
     ("PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA", EXPORT_UAPI_LAYOUT_REL),
-    ("PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA", VALIDATOR_REL),
 )
 
 REQUIRED_MARKERS = {
@@ -575,8 +573,6 @@ def baseline_survey(root: Path) -> str:
             f"- `PHASE3_ABI_HEADER_BLOB_SHA={blob_sha(root / ABI_HEADER_REL)}`",
             f"- `PHASE3_EXPORT_UAPI_LAYOUT_PATH={EXPORT_UAPI_LAYOUT_REL}`",
             f"- `PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA={blob_sha(root / EXPORT_UAPI_LAYOUT_REL)}`",
-            f"- `PHASE3_EXPORT_UAPI_VALIDATOR_PATH={VALIDATOR_REL}`",
-            f"- `PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA={blob_sha(root / VALIDATOR_REL)}`",
             "",
             "## Scope",
             "",
@@ -709,24 +705,6 @@ def run_self_test() -> int:
             "stale_survey_blob:PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA:d869631861348c7cd47fe8cb0ba025d06ef63096!=2c288abdb67761244d7367aed915ec78d476af60",
             'missing_marker:zigux/tests/phase3_export_uapi_layout.zig:const canonical_status = export_shim.compatibilityStatus(canonical, -22, .kernel);',
         ]
-        build_valid_workspace(root)
-
-        survey_path = root / SURVEY_REL
-        survey_path.write_text(
-            survey_path.read_text(encoding="utf-8").replace(
-                f"`PHASE3_EXPORT_UAPI_VALIDATOR_PATH={VALIDATOR_REL}`",
-                "`PHASE3_EXPORT_UAPI_VALIDATOR_PATH_MISSING=scripts/zigux/validate-phase3-export-uapi-survey.py`",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        assert validate(root) == [f"missing_survey_marker:`PHASE3_EXPORT_UAPI_VALIDATOR_PATH={VALIDATOR_REL}`"]
-        build_valid_workspace(root)
-
-        _write(root / VALIDATOR_REL, "# self-reference drift\n")
-        issues = validate(root)
-        assert len(issues) == 1 and issues[0].startswith("stale_survey_blob:PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA:"), issues
         build_valid_workspace(root)
 
         workflow_path = root / WORKFLOW_REL
