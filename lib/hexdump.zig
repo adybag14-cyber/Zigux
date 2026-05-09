@@ -114,6 +114,7 @@ pub fn hexDumpToBuffer(
     const rowsize = normalizedRowsize(rowsize_input);
     const len = @min(buf.len, rowsize);
     const groupsize = normalizedGroupsize(len, groupsize_input);
+    const reverse_multibyte = shouldReverseMultiByteGroups(groupsize);
     const required = hexDumpLineLength(buf.len, rowsize_input, groupsize_input, ascii);
 
     if (linebuf.len == 0) {
@@ -126,7 +127,7 @@ pub fn hexDumpToBuffer(
     }
 
     if (linebuf.len > required) {
-        return hexDumpToFullBuffer(buf[0..len], rowsize, groupsize, linebuf, ascii);
+        return hexDumpToFullBuffer(buf[0..len], rowsize, groupsize, reverse_multibyte, linebuf, ascii);
     }
 
     var writer = TruncatingWriter.init(linebuf);
@@ -138,7 +139,7 @@ pub fn hexDumpToBuffer(
             var index: usize = 0;
             while (index < ngroups) : (index += 1) {
                 if (index != 0) writer.appendByte(' ');
-                writer.appendGroupHex(buf[index * groupsize ..][0..groupsize]);
+                writer.appendGroupHex(buf[index * groupsize ..][0..groupsize], reverse_multibyte);
             }
         },
         else => {
@@ -170,6 +171,7 @@ fn hexDumpToFullBuffer(
     buf: []const u8,
     rowsize: usize,
     groupsize: usize,
+    reverse_multibyte: bool,
     linebuf: []u8,
     ascii: bool,
 ) usize {
@@ -181,7 +183,7 @@ fn hexDumpToFullBuffer(
             linebuf[pos] = ' ';
             pos += 1;
         }
-        writeGroupHex(linebuf, &pos, buf[group_start .. group_start + groupsize]);
+        writeGroupHex(linebuf, &pos, buf[group_start .. group_start + groupsize], reverse_multibyte);
     }
 
     if (ascii) {
@@ -199,8 +201,8 @@ fn hexDumpToFullBuffer(
     return pos;
 }
 
-fn writeGroupHex(linebuf: []u8, pos: *usize, bytes: []const u8) void {
-    if (builtin.cpu.arch.endian() == .little and bytes.len > 1) {
+fn writeGroupHex(linebuf: []u8, pos: *usize, bytes: []const u8, reverse_multibyte: bool) void {
+    if (reverse_multibyte) {
         var index = bytes.len;
         while (index > 0) {
             index -= 1;
@@ -239,6 +241,10 @@ fn normalizedGroupsize(len: usize, groupsize_input: usize) usize {
     return groupsize;
 }
 
+fn shouldReverseMultiByteGroups(groupsize: usize) bool {
+    return builtin.cpu.arch.endian() == .little and groupsize > 1;
+}
+
 fn decodeRange(ch: u8, first: u8, last: u8, bias: i8) i8 {
     const ch_i: i32 = ch;
     const first_i: i32 = first;
@@ -264,8 +270,8 @@ const TruncatingWriter = struct {
         self.required += 1;
     }
 
-    fn appendGroupHex(self: *TruncatingWriter, bytes: []const u8) void {
-        if (builtin.cpu.arch.endian() == .little and bytes.len > 1) {
+    fn appendGroupHex(self: *TruncatingWriter, bytes: []const u8, reverse_multibyte: bool) void {
+        if (reverse_multibyte) {
             var index = bytes.len;
             while (index > 0) {
                 index -= 1;
