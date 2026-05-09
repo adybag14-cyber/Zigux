@@ -355,6 +355,27 @@ test "phase 8 perf-buffer poll helper rejects processing beyond counted ready bu
     );
 }
 
+test "phase 8 perf-buffer poll helper rejects successful ready waits that process fewer buffers than the observed wait result" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.SuccessfulReadyWaitProcessedFewerBuffersThanObservedEvents,
+        perf_buffer_poll.summarizePollExecution(5, .{ .ready_events = 2 }, &.{
+            .{ .ready = true },
+            .{ .ready = true },
+        }, &.{
+            .{ .records_processed = 1 },
+        }),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.SuccessfulReadyWaitProcessedFewerBuffersThanObservedEvents,
+        perf_buffer_poll.summarizePollExecutionFromWaitResult(5, 2, &.{
+            .{ .ready = true },
+            .{ .ready = true },
+        }, &.{
+            .{ .records_processed = 1 },
+        }),
+    );
+}
+
 test "phase 8 perf-buffer poll helper rejects impossible post-wait record processing" {
     try std.testing.expectError(
         perf_buffer_poll.PollError.NonReadyWaitHasProcessedRecords,
