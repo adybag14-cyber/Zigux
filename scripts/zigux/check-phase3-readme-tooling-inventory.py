@@ -99,6 +99,15 @@ PHASE2_TOOLCHAIN_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
 )
+PHASE2_KCONFIG_TARGET = "phase2-kconfig"
+PHASE2_KCONFIG_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
+)
 PHASE2_CROSS_TARGET = "phase2-cross"
 PHASE2_CROSS_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
@@ -417,6 +426,7 @@ def validate(root: Path) -> list[str]:
             issues.append(f"unexpected_makefile_target:{target}")
 
     _validate_target_commands(issues, makefile, PHASE2_TOOLCHAIN_TARGET, PHASE2_TOOLCHAIN_COMMANDS)
+    _validate_target_commands(issues, makefile, PHASE2_KCONFIG_TARGET, PHASE2_KCONFIG_COMMANDS)
     _validate_target_commands(issues, makefile, PHASE2_CROSS_TARGET, PHASE2_CROSS_COMMANDS)
     _validate_target_commands(issues, makefile, PHASE3_VALIDATE_TARGET, PHASE3_VALIDATE_COMMANDS)
     _validate_target_commands(issues, makefile, PHASE4_VALIDATE_TARGET, PHASE4_VALIDATE_COMMANDS)
@@ -451,6 +461,9 @@ def _baseline_makefile() -> str:
     return "\n".join((
         "phase2-toolchain:",
         *PHASE2_TOOLCHAIN_COMMANDS,
+        "",
+        "phase2-kconfig:",
+        *PHASE2_KCONFIG_COMMANDS,
         "",
         "phase2-cross:",
         *PHASE2_CROSS_COMMANDS,
@@ -610,6 +623,32 @@ def run_self_test() -> int:
         case_count += 1
 
         makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n",
+            "",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        assert validate(root) == [
+            f"missing_makefile_command:{PHASE2_KCONFIG_TARGET}:{PHASE2_KCONFIG_COMMANDS[0]}",
+            f"makefile_command_order_drift:{PHASE2_KCONFIG_TARGET}",
+        ]
+        _write(root / MAKEFILE_REL, _baseline_makefile())
+        case_count += 1
+
+        makefile = _baseline_makefile().replace(
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test\n",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test\n",
+            1,
+        )
+        _write(root / MAKEFILE_REL, makefile)
+        assert validate(root) == [
+            f"unexpected_makefile_command_count:{PHASE2_KCONFIG_TARGET}:2:{PHASE2_KCONFIG_COMMANDS[2]}",
+            f"makefile_command_order_drift:{PHASE2_KCONFIG_TARGET}",
+        ]
+        _write(root / MAKEFILE_REL, _baseline_makefile())
+        case_count += 1
+
+        makefile = _baseline_makefile().replace(
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test\n",
             "",
             1,
@@ -679,13 +718,13 @@ def run_self_test() -> int:
             1,
         )
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[1]}"]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[1]}]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
         readme = _baseline_readme().replace("`zigux/tests/phase8_help_kallsyms_only_build.zig`, ", "", 1)
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[4]}"]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[4]}]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
@@ -695,19 +734,19 @@ def run_self_test() -> int:
             1,
         )
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[5]}"]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[5]}]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
         readme = _baseline_readme().replace(REQUIRED_README_SNIPPETS[7], "", 1)
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[7]}"]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[7]}]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
         readme = _baseline_readme().replace(REQUIRED_README_SNIPPETS[-1], "", 1)
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[-1]}"]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[-1]}]
         case_count += 1
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
