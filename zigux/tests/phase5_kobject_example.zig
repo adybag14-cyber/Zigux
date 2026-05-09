@@ -1,6 +1,44 @@
 const std = @import("std");
 const sample = @import("kobject_example_sample");
 
+test "phase 5 kobject sample keeps the anchor replay explicit through the focused test surface too" {
+    var module = sample.KobjectExampleSample{};
+    try module.init();
+    const replay = try module.runAnchorReplay();
+
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqualStrings("kobject_example", replay.directory_name);
+    try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_before_replay);
+    try std.testing.expectEqual(sample.SampleStage.registered, replay.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 3), replay.attr_count);
+    try std.testing.expect(!replay.group_is_named);
+    try std.testing.expect(replay.uses_shared_b_handlers);
+    try std.testing.expectEqualStrings("foo", replay.attribute_specs[0].name);
+    try std.testing.expectEqualStrings("baz", replay.attribute_specs[1].name);
+    try std.testing.expectEqualStrings("bar", replay.attribute_specs[2].name);
+    try std.testing.expectEqual(@as(u16, 0o664), replay.attribute_specs[0].mode);
+    try std.testing.expect(replay.attribute_specs[1].uses_shared_b_handlers);
+    try std.testing.expect(replay.attribute_specs[2].uses_shared_b_handlers);
+    try std.testing.expectEqualStrings("42\n", replay.foo_value.text[0..replay.foo_value.len]);
+    try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
+    try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
+    try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
+    try std.testing.expectEqual(sample.SampleStage.registered, module.stage());
+}
+
+test "phase 5 kobject sample keeps the pre-registration boundary explicit through the focused test surface too" {
+    var module = sample.KobjectExampleSample{};
+    const replay = try module.runPreRegistrationBoundaryReplay();
+
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_before_boundary_checks);
+    try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_after_boundary_checks);
+    try std.testing.expectEqual(@as(usize, 0), replay.active_attr_count);
+    try std.testing.expect(replay.rejected_show);
+    try std.testing.expect(replay.rejected_store);
+    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
+}
+
 test "phase 5 kobject sample keeps shared attribute dispatch and parse failures explicit through a sample-owned replay" {
     var module = sample.KobjectExampleSample{};
     const replay = try module.runInputValidationReplay();
