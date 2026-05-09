@@ -128,6 +128,7 @@ Current Phase 4 use
 - `zigux/tests/phase4_build.zig` keeps the five currently shared Phase 4 rollback-readiness replays on one shared `zig build test --build-file zigux/tests/phase4_build.zig` entrypoint.
 - `scripts/zigux/validate-phase4.py` keeps the shared Phase 4 validator packet, workflow wiring, the artifact-diff contract checker, the artifact-diff determinism checker, and the Phase 4 documentation markers aligned before the Zig tests run.
 - `Documentation/zigux/phase4-validation-matrix.md` records the current rollback owners, threshold posture, and lab/CI replay matrix for the shipped Phase 4 gates.
+- `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig` keep the still-absent roadmap `samples/zigux/test_fsmount.zig` starter measurable through the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` route while that parked packet stays adjacent to the shared rollback-readiness entrypoint rather than part of the shared `phase4-test` replay.
 
 ## Phase 4 Tooling Review Note
 
