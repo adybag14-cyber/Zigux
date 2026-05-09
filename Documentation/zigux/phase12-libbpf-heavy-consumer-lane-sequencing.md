@@ -8,7 +8,7 @@ It is a coordination artifact, not a closure claim.
 - `PHASE12_STATUS=active`
 - `PHASE12_SEQUENCE=libbpf-heavy-consumer-anti-overlap`
 - direct smoke preflight entrypoint: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
-- shared build-only checker entrypoint: `python3 scripts/zigux/check-build-only-phase12-surface.py`
+- shared build-only checker entrypoints: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py`
 - focused smoke preflight entrypoint: `make -C zigux phase12-smoke`
 - shared build replay entrypoint: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 - Linux-style replay entrypoint: `make -C zigux phase12`
@@ -44,6 +44,8 @@ Current shared packet:
 - `.github/workflows/zigux-bootstrap.yml`
 - `zigux/tests/phase12_build.zig`
 - `zigux/Makefile`
+
+The direct PMO drift-control reruns inside that shared packet are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and `python3 scripts/zigux/check-build-only-phase12-surface.py` before or beside the workflow-backed replay.
 
 Do not reopen this lane for:
 - direct helper behavior changes inside `tools/lib/bpf/zigux_segments/*.zig`
@@ -131,7 +133,7 @@ Shared-summary wording must keep `Documentation/zigux/freeze-map.md` visible whe
 ## Current anti-overlap correction
 
 Today the strongest Phase 12 libbpf sequencing correction is simple:
-- shared reviewability owns the survey, manifest, deterministic snapshot fixture, deterministic snapshot-digest evidence fixture, snapshot determinism replay, reviewability gate, and shared build alignment for the current libbpf packet, with the build-only contract checker plus workflow-backed replay kept explicit inside that same reviewability bundle
+- shared reviewability owns the survey, manifest, deterministic snapshot fixture, deterministic snapshot-digest evidence fixture, snapshot determinism replay, reviewability gate, the paired build-only checker reruns, and shared build alignment for the current libbpf packet, with the workflow-backed replay kept explicit inside that same reviewability bundle
 - the two helper-sized `ready_next` promotions stay smaller than the deferred bridge and queue-routing bucket
 - the deferred bridge and queue-routing bucket stays smaller than the blocked object-model, loader, and relocation wall
 - wording-only shared-summary repairs stay separate from helper logic and from the other Phase 12 driver lanes
