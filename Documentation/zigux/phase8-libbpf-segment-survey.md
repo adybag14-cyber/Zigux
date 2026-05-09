@@ -16,6 +16,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `tools/lib/bpf/zigux_segments/verify.zig`
   - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
+  - `Documentation/zigux/phase8-logging-slice.md`
   - `Documentation/zigux/phase8-pin-path-slice.md`
   - `Documentation/zigux/phase8-bpf-type-names-slice.md`
   - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
@@ -75,6 +76,7 @@ The current starter implementation stays deliberately bounded:
 - direct and chunked carriage-return- and tab-delimited CPU-mask fragments stay aligned with the current `parse_cpu_mask_str()` whitespace handling without widening into file I/O, caching, or deferred routing behavior
 - malformed ranges still fail fast instead of silently stretching the segment into broader object or verifier-facing work
 - `logging.zig` ports libbpf's bounded print-level parsing, verbosity gating, major or minor version reporting, and the libbpf-specific strerror table without claiming environment reads, stderr output, or full errno-name coverage
+- the logging helper now also carries a dedicated parked slice note at `Documentation/zigux/phase8-logging-slice.md` so its bounded print-level, version, and libbpf-specific error-text surface stays reviewable without widening into environment reads, stderr output, or print callbacks
 - the logging helper keeps invalid `LIBBPF_LOG_LEVEL`-style values explicit for callers instead of printing directly
 - custom libbpf error text is exposed through a compact helper and unknown or unmapped codes fall back to a stable `"Unknown libbpf error N"` formatter
 - `pin_path.zig` ports the pure pathname join and bpffs dot-sanitization helpers behind explicit buffer-based APIs that mirror `pathname_concat()`, `build_map_pin_path()`, and `sanitize_pin_path()`
