@@ -72,10 +72,12 @@ REQUIRED_SNIPPETS = {
         "- `PHASE6_PERF_PACKET=base64-bsearch-checksum-hexdump`",
         "- shared replay note: the shared `make -C zigux phase6` route still stops at `phase6-validate` plus `phase6-test`; dedicated perf replays remain helper-local through `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`",
         "- aggregated route note: `make -C zigux phase6-perf` now exists as a narrow convenience wrapper for `phase6-checksum-perf` plus `phase6-hexdump-perf`; it still excludes base64 even though `.github/workflows/zigux-bootstrap.yml` reruns `phase6-base64-perf` directly in CI",
+        "- owner-map note: `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` now separates packet-wide route truthfulness from helper-local threshold or replay-row edits inside this survey",
         "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig` and `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, not a separate wall-clock perf harness",
         "- bsearch exact evidence: the current 15-element equality replay in `zigux/tests/phase6_bsearch.zig` still requires `counted_compare_calls <= 4` across five representative typed lookups and `counted_raw_compare_calls <= 4` across five representative raw lookups, while `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` keeps the same expected `std.math.log2_int_ceil(len) + 1` insertion-point budget explicit for typed and raw lower-bound replays across ascending, descending, and packed-record ranges without widening into standalone nanosecond thresholds",
         "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replay rather than a separate fixture module or standalone `phase6_bsearch_perf` route",
         "- the bundled `phase6` and aggregate `phase6-perf` make routes still replay only the shared helper tests plus the checksum and hexdump dedicated perf gates, while `.github/workflows/zigux-bootstrap.yml` separately reruns the base64 perf gate as its own direct CI step",
+        "- helper-local threshold, replay-count, or fixture-label edits inside this survey still belong to the owning helper lane even though they appear in a shared note; reopen the shared sequencing lane only when the packet-wide route or owner split changes",
     ],
     "Documentation/zigux/README.md": [
         "- `Documentation/zigux/phase6-base64-slice.md`",
@@ -93,7 +95,7 @@ REQUIRED_SNIPPETS = {
     ],
     "scripts/zigux/README.md": [
         "- `check-phase6-shared-surface.py`",
-        "- the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
+        "- the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
         "- `make -C zigux phase6-validate` keeps the shared Phase 6 surface checker wired through the Zigux convenience target.",
         "- `zig build test --build-file zigux/tests/phase6_build.zig` is the bundled helper replay for the current `base64`, `bsearch`, `checksum`, and `hexdump` packet.",
     ],
@@ -123,6 +125,10 @@ REQUIRED_SNIPPETS = {
         "\"Documentation/zigux/phase6-perf-gate-survey.md\",",
         "\"Documentation/zigux/phase6-leaf-helper-lane-sequencing.md\",",
         "\"scripts/zigux/check-phase6-shared-surface.py\",",
+        "\"relative_slowdown_helpers\": [",
+        "\"comparison_budget_helpers\": [",
+        "\"timing_sanity_only_helpers\": []",
+        "\"lower_bound_budget_formula\": \"std.math.log2_int_ceil(len) + 1\"",
         "\"python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test\",",
         "\"python3 scripts/zigux/check-phase6-base64-c-parity.py\",",
         "\"make -C zigux phase6-validate\",",
@@ -367,6 +373,22 @@ def scaffold_repo(root: Path) -> None:
                     "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md",
                     "scripts/zigux/check-phase6-shared-surface.py",
                 ],
+                "perf_posture": {
+                    "relative_slowdown_helpers": [
+                        "base64",
+                        "checksum",
+                        "hexdump",
+                    ],
+                    "comparison_budget_helpers": [
+                        "bsearch",
+                    ],
+                    "timing_sanity_only_helpers": [],
+                },
+                "perf_thresholds": {
+                    "bsearch": {
+                        "lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
+                    },
+                },
                 "review_surface": [
                     "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
                 ],
@@ -494,6 +516,18 @@ def run_self_test() -> None:
         )
         assert_failure(
             root,
+            "Documentation/zigux/phase6-perf-gate-survey.md",
+            "- owner-map note: `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` now separates packet-wide route truthfulness from helper-local threshold or replay-row edits inside this survey",
+            "- owner-map note: the shared survey can absorb helper-local threshold edits directly",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-perf-gate-survey.md",
+            "- helper-local threshold, replay-count, or fixture-label edits inside this survey still belong to the owning helper lane even though they appear in a shared note; reopen the shared sequencing lane only when the packet-wide route or owner split changes",
+            "- helper-local threshold and fixture-label edits may freely land through the shared sequencing lane",
+        )
+        assert_failure(
+            root,
             "Documentation/zigux/phase6-bsearch-slice.md",
             "focused typed and raw lower-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
             "focused typed and raw lower-bound C ABI parity through `zigux/tests/phase6_bsearch_lower_bound.zig`",
@@ -503,6 +537,18 @@ def run_self_test() -> None:
             "Documentation/zigux/phase6-bsearch-slice.md",
             "runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses",
             "runtime-selected raw C ABI comparator pointer parity without the descending duplicate-hit contract",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_helper_parity_manifest.json",
+            '"comparison_budget_helpers": [',
+            '"comparison_budget_group": [',
+        )
+        assert_failure(
+            root,
+            "zigux/tests/phase6_helper_parity_manifest.json",
+            '"lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1"',
+            '"lower_bound_budget_formula": "budget + 1"',
         )
         assert_failure(
             root,
