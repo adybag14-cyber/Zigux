@@ -73,6 +73,7 @@ REQUIRED_MARKERS = {
         "no standalone clockevent helper",
         "ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch",
         "phase 8 perf-buffer poll helper keeps the final return-path choice explicit",
+        "phase 8 perf-buffer poll helper rejects successful ready waits that process fewer buffers than the observed wait result",
     ],
     "zigux/tests/phase8_perf_buffer_poll_only_build.zig": [
         "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
@@ -185,6 +186,7 @@ def run_self_test() -> None:
         ("tests_readme_route", "zigux/tests/README.md", "make -C zigux phase8-perf-buffer-poll-test", "make -C zigux phase8-poll-test", "zigux/tests/README.md: make -C zigux phase8-perf-buffer-poll-test"),
         ("poll_test_checker_surface", "zigux/tests/phase8_perf_buffer_poll.zig", "phase 8 perf-buffer poll gate checker keeps the dedicated review packet explicit", "phase 8 perf-buffer poll gate checker keeps the review packet explicit", "zigux/tests/phase8_perf_buffer_poll.zig: phase 8 perf-buffer poll gate checker keeps the dedicated review packet explicit"),
         ("poll_test_guard", "zigux/tests/phase8_perf_buffer_poll.zig", "ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch", "ready-buffer processing attempts cannot exceed counted ready buffers", "zigux/tests/phase8_perf_buffer_poll.zig: ready-buffer processing attempts cannot exceed counted ready buffers before any broader observed-event budget mismatch"),
+        ("poll_test_underprocessed_guard", "zigux/tests/phase8_perf_buffer_poll.zig", "phase 8 perf-buffer poll helper rejects successful ready waits that process fewer buffers than the observed wait result", "phase 8 perf-buffer poll helper rejects successful ready waits that process fewer buffers", "zigux/tests/phase8_perf_buffer_poll.zig: phase 8 perf-buffer poll helper rejects successful ready waits that process fewer buffers than the observed wait result"),
         ("scripts_readme_phase8_section_route_once", "scripts/zigux/README.md", "make -C zigux phase8-perf-buffer-poll-test", "make -C zigux phase8-perf-buffer-poll-test\nmake -C zigux phase8-perf-buffer-poll-test", "scripts/zigux/README.md: exact_once_section_marker:make -C zigux phase8-perf-buffer-poll-test"),
     ]
     with tempfile.TemporaryDirectory(prefix="zigux_phase8_perf_buffer_poll_") as tmp_dir_str:
@@ -200,7 +202,10 @@ def run_self_test() -> None:
             expect_missing_marker(case, tmp_root, expected)
             write_fixture_root(tmp_root)
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=15")
+    print(
+        "PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT="
+        f"{len(missing_file_cases) + len(marker_cases)}"
+    )
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the current Phase 8 perf-buffer poll review packet.")
