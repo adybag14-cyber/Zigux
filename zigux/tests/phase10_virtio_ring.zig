@@ -264,6 +264,42 @@ test "phase10 virtio ring delayed callback pacing reports both thresholded and i
     try std.testing.expect(delayed.should_poll);
 }
 
+test "phase10 virtio ring callback-disable summary keeps pending used work reviewable before manual drain" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(6, 8, .split, true, false);
+
+    inline for (0..3) |_| {
+        try ring.publishDescriptorChain(6);
+    }
+    _ = try ring.prepareKick(6);
+    try ring.recordUsedChains(6, 2);
+
+    var disable_summary = try ring.disableCallbackSummary(6);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", disable_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 6), disable_summary.queue_index);
+    try std.testing.expect(!disable_summary.callback_enabled);
+    try std.testing.expect(!disable_summary.broken);
+    try std.testing.expectEqual(@as(u16, 2), disable_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), disable_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), disable_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), disable_summary.pending_used_chain_count);
+    try std.testing.expect(disable_summary.should_poll);
+
+    _ = try ring.pollUsedBuffers(6);
+    disable_summary = try ring.disableCallbackSummary(6);
+    try std.testing.expectEqual(@as(u16, 2), disable_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), disable_summary.pending_used_chain_count);
+    try std.testing.expect(!disable_summary.should_poll);
+
+    _ = try ring.markBroken(6);
+    disable_summary = try ring.disableCallbackSummary(6);
+    try std.testing.expect(disable_summary.broken);
+    try std.testing.expect(!disable_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 1), disable_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), disable_summary.pending_used_chain_count);
+    try std.testing.expect(!disable_summary.should_poll);
+}
+
 test "phase10 virtio ring callback re-enable reports pending used work and settles after poll" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(6, 8, .split, true, false);
