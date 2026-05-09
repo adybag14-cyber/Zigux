@@ -97,6 +97,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_wc_wrapper_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
+    try std.testing.expect(descriptor.provides_ioport_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
     try std.testing.expect(descriptor.provides_of_iomap_planning);
     try std.testing.expect(descriptor.provides_pretty_name_helper);
@@ -106,6 +107,8 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     try std.testing.expect(!descriptor.touches_live_arch_memtype);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_ioremap_np()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_ioport_map()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "release-record retention on success") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "This slice does not claim live `devres_alloc_node()` ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "live DMA-backed helpers") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "live scatter-gather ownership") != null);
