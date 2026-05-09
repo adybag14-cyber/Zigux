@@ -112,6 +112,22 @@
       "tail_word_set_skip_anchor": "test \"tail-word next set scans skip earlier in-range matches before clamping\"",
       "underscore_alias_anchor": "test \"low-level underscore aliases mirror the primary find helpers\"",
       "tail_word_skip_anchor": "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
+      "parity_fixture_keys": [
+        "inclusive_boundary_next",
+        "inclusive_boundary_zero",
+        "inclusive_boundary_and",
+        "past_nbits_next",
+        "past_nbits_zero",
+        "past_nbits_and",
+        "tail_clamped_first",
+        "tail_clamped_next",
+        "tail_zero_clamped_first",
+        "tail_zero_clamped_next",
+        "tail_and_clamped_first",
+        "tail_and_clamped_next",
+        "tail_clamped_last",
+        "tail_clamped_empty_last"
+      ],
       "tail_clamp_fixture_keys": [
         "tail_clamped_first",
         "tail_clamped_next",
@@ -122,7 +138,7 @@
         "tail_clamped_last",
         "tail_clamped_empty_last"
       ],
-      "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, and underscore-alias behavior review-visible on current master"
+      "review_packet_summary": "shared Phase 1 fixture keys now own the inclusive-boundary, past-nbits, and tail-clamped find_bit replay, while helper-local anchors keep same-word start-mask, zero-window, zero-sized short-circuit, tail-word set or zero or shared skip, and underscore-alias behavior review-visible on current master"
     },
     "tools/lib/rbtree.zig": {
       "helper_test_anchors": [
