@@ -4,7 +4,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 ## Status
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- surveyed commit: `ff50346a25dfdc6cda8e79a04987c67f2f5470ec`
+- surveyed commit: `c11221dc7a68d7511ae1c69d64b3f08528287ed8`
 - scope: segment manifest plus six landed bounded slices across four helper-first starters, one shared file-path bridge helper packet, one perf-buffer poll adjunct, and one compile-together verifier for the landed helper bundle, with the heavier file-path-and-handle resource boundary still parked behind the current bridge packet
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
@@ -93,7 +93,7 @@ The current starter implementation stays deliberately bounded:
 The current tests check:
 - mixed single-CPU and `start-end` ranges expand into the expected dense mask
 - repeated delimiters and newline-terminated inputs still parse cleanly
-- direct and chunked carriage-return- and tab-delimited CPU-mask fragments stay aligned with the current `parse_cpu_mask_str()` whitespace handling
+- direct and chunked carriage-return- and tab-delimited CPU-mask fragments stay aligned with the current `parse_cpu_mask_str()` whitespace handling without widening into file I/O, caching, or deferred routing behavior
 - chunked reader input can split ranges and delimiters across scratch-buffer boundaries
 - the bounded set-bit counter matches the parsed mask contents
 - empty and malformed ranges report explicit errors
