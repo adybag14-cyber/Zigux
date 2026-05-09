@@ -31,7 +31,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_ring_buffer_manifest.json`
 - survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`
-- lane key: `P14-L05`
+- lane key: `P14-L08`
 - surveyed commit: `946d5c73fdb763ba860a20879b05da54e1896e8c`
 - ready-next gap: `phase14-ring-buffer-read-page-copy-followup`
 - blocked gap: `phase14-ring-buffer-zig-port-blocker`
@@ -72,7 +72,7 @@ The four anchor packets above are also carried together by the Phase 14 shared s
 
 That shared packet matters because it proves the workqueue, ring-buffer, skbuff, and RCU anchor notes still agree on their exact surveyed commits, lane keys, ready-next versus blocked posture, stay-in-C decisions, and the same validator, smoke, and full-replay routes instead of drifting independently or disappearing from the shared evidence path.
 
-For shared Phase 14 sequencing and anti-overlap follow-through, treat this cross-anchor note as a summary surface only: the live workqueue, ring-buffer, skbuff, and RCU packets now route through `P14-L02`, `P14-L05`, `P14-L11`, and `P14-L13`, so future shared-lane runs should align against those anchor-local packets instead of stale packet wording or run memory alone.
+For shared Phase 14 sequencing and anti-overlap follow-through, treat this cross-anchor note as a summary surface only: the live workqueue, ring-buffer, skbuff, and RCU packets now route through `P14-L02`, `P14-L08`, `P14-L11`, and `P14-L13`, so future shared-lane runs should align against those anchor-local packets instead of stale packet wording or run memory alone.
 
 ## What this lane does not claim
 
