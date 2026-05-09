@@ -65,6 +65,10 @@ MAKEFILE_REQUIRED_LINES = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
 )
 
+POLICY_BYTE_GUARD_PASS_LINES = (
+    "PHASE3_POLICY_BYTE_GUARDS=pass",
+)
+
 LAYOUT_ASSERT_SURVEY_SNIPPET_VARIANTS = (
     "`zigux/helpers/layout_assert.zig` keeps compile-time size, alignment, field-type, and offset checks for the canonical ABI root while also covering the shipped `MmioRange` and `RbtreeRootView` layouts that now sit inside the same bounded packet.",
     "`zigux/helpers/layout_assert.zig` keeps compile-time size, alignment, field-type, offset, and interop-policy byte-value checks for the canonical ABI root while also covering the shipped `MmioRange` and `RbtreeRootView` layouts that now sit inside the same bounded packet.",
@@ -350,6 +354,23 @@ def validate(root: Path) -> list[str]:
             issues.append(f"policy_byte_guard_stdout:{line}")
         for line in checker.stderr.splitlines():
             issues.append(f"policy_byte_guard_stderr:{line}")
+    else:
+        for line in POLICY_BYTE_GUARD_PASS_LINES:
+            require_exact_line_count(
+                issues,
+                checker.stdout,
+                "policy_byte_guard_stdout",
+                line,
+            )
+        stdout_lines = checker.stdout.splitlines()
+        expected_stdout = list(POLICY_BYTE_GUARD_PASS_LINES)
+        if stdout_lines != expected_stdout:
+            issues.append(
+                "policy_byte_guard_stdout_shape:"
+                + "|".join(stdout_lines or ("<empty>",))
+            )
+        for line in checker.stderr.splitlines():
+            issues.append(f"policy_byte_guard_stderr:{line}")
 
     require_any_exact_normalized_snippet(
         issues,
@@ -596,8 +617,22 @@ def run_self_test() -> int:
         issues = validate(root)
         assert "policy_byte_guard_exit:1" in issues
 
+        build_valid_workspace(root)
+        write_file(root / POLICY_BYTE_GUARD_REL, "#!/usr/bin/env python3\n")
+        issues = validate(root)
+        assert "missing_policy_byte_guard_stdout:PHASE3_POLICY_BYTE_GUARDS=pass" in issues
+        assert "policy_byte_guard_stdout_shape:<empty>" in issues
+
+        build_valid_workspace(root)
+        write_file(
+            root / POLICY_BYTE_GUARD_REL,
+            "#!/usr/bin/env python3\nprint(\"PHASE3_POLICY_BYTE_GUARDS=pass\")\nprint(\"extra\")\n",
+        )
+        issues = validate(root)
+        assert "policy_byte_guard_stdout_shape:PHASE3_POLICY_BYTE_GUARDS=pass|extra" in issues
+
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=20")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
