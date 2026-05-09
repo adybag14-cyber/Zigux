@@ -113,6 +113,8 @@ test "phase13 devres boundary evidence keeps dma and scatterlist blockers aligne
     try expectContains(survey_note, "helper-first ioremap, translated-resource, and WC memtype bookkeeping");
     try expectContains(survey_note, "dmam_alloc_*");
     try expectContains(survey_note, "dma_map_sgtable()");
+    try expectContains(survey_note, "dma_sync_*");
+    try expectContains(survey_note, "plain `scatterlist` token");
     try expectContains(survey_note, "struct scatterlist");
     try expectContains(survey_note, "sg_table lifecycle");
 }
