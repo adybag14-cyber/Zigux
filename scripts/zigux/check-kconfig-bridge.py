@@ -48,6 +48,7 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge emits escaped quoted payloads before trailing suffix bytes",
     "confdata bridge leaves malformed quoted values as raw scalar values",
     "confdata bridge emits no entries for empty CONFIG symbol names",
+    "confdata bridge keeps only the last assignment for duplicate symbols",
     "confdata bridge keeps only the last state across unset and set transitions",
 ]
 
