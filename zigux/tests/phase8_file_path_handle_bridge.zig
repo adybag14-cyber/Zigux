@@ -35,10 +35,14 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "bounded reuse-pinned-map attempt planning");
     try expectContains(note, "helper-only reused-map compatibility packet");
     try expectContains(note, "planning-only token-preparation gate");
+    try expectContains(note, "planning-only token bridge path modes");
+    try expectContains(note, "planning-only token bridge attempt outcomes");
     try expectContains(note, "broader bridge follow-through queued");
     try expectContains(note, "planning-only reopen-attempt disposition");
     try expectContains(note, "resolveReusePinnedMapAttempt()");
     try expectContains(note, "planTokenPreparation()");
+    try expectContains(note, "planTokenBridgePath()");
+    try expectContains(note, "resolveTokenBridgeAttempt()");
     try expectContains(note, "no direct procfs reads");
     try expectContains(note, "no `fopen()` or `fgets()` parity");
     try expectContains(note, "no `bpf_map_get_info_by_fd()` fallback control flow");
@@ -61,10 +65,14 @@ test "phase 8 userspace-kernel bridge boundary survey keeps queued bridge work e
     try expectContains(survey, "Documentation/zigux/phase8-file-path-handle-bridge-slice.md");
     try expectContains(survey, "mapReuseObservationFromFdinfo()");
     try expectContains(survey, "planTokenPreparation()");
+    try expectContains(survey, "planTokenBridgePath()");
     try expectContains(survey, "resolveReusePinnedMapAttempt()");
+    try expectContains(survey, "resolveTokenBridgeAttempt()");
     try expectContains(survey, "planning-only gate");
     try expectContains(survey, "non-empty pinned path plus compatible fdinfo-derived map info");
     try expectContains(survey, "non-empty token path plus a ready reused-map bridge plan");
+    try expectContains(survey, "optional-or-mandatory token bridge path mode");
+    try expectContains(survey, "planning-only token bridge attempt outcomes");
     try expectContains(survey, "token materialization or capability handoff");
     try expectContains(survey, "map reopen or bpffs compatibility closure");
     try expectContains(survey, "fd close or ownership semantics");
@@ -361,4 +369,88 @@ test "phase 8 file-path handle bridge helper keeps planning-only token preparati
         ready.bridge_plan.disposition,
     );
     try std.testing.expect(ready.should_attempt_token_open);
+}
+
+test "phase 8 file-path handle bridge helper keeps planning-only token bridge path modes explicit" {
+    const prevented = file_path_handle_bridge.planTokenBridgePath("");
+    try std.testing.expectEqual(file_path_handle_bridge.TokenBridgeMode.prevented, prevented.mode);
+    try std.testing.expectEqual(@as(?[]const u8, null), prevented.bpffs_path);
+    try std.testing.expect(!prevented.should_attempt_open);
+
+    const optional = file_path_handle_bridge.planTokenBridgePath(null);
+    try std.testing.expectEqual(file_path_handle_bridge.TokenBridgeMode.optional, optional.mode);
+    try std.testing.expectEqualStrings(file_path_handle_bridge.default_bpffs_path, optional.bpffs_path.?);
+    try std.testing.expect(optional.should_attempt_open);
+
+    const mandatory = file_path_handle_bridge.planTokenBridgePath("/delegate/bpf");
+    try std.testing.expectEqual(file_path_handle_bridge.TokenBridgeMode.mandatory, mandatory.mode);
+    try std.testing.expectEqualStrings("/delegate/bpf", mandatory.bpffs_path.?);
+    try std.testing.expect(mandatory.should_attempt_open);
+}
+
+test "phase 8 file-path handle bridge helper keeps planning-only token bridge attempt outcomes explicit" {
+    const prevented = file_path_handle_bridge.resolveTokenBridgeAttempt("", -1, -2);
+    try std.testing.expectEqual(file_path_handle_bridge.TokenBridgeAttemptDisposition.prevented, prevented.disposition);
+    try std.testing.expect(!prevented.should_install_token);
+
+    const open_failed = file_path_handle_bridge.resolveTokenBridgeAttempt(null, -2, null);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenBridgeAttemptDisposition.optional_open_failed_skip,
+        open_failed.disposition,
+    );
+    try std.testing.expectEqual(@as(?i32, -2), open_failed.open_error);
+    try std.testing.expect(!open_failed.should_install_token);
+
+    const ready_to_create = file_path_handle_bridge.resolveTokenBridgeAttempt(null, 7, null);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenBridgeAttemptDisposition.open_ready_for_token_create,
+        ready_to_create.disposition,
+    );
+    try std.testing.expect(!ready_to_create.should_install_token);
+
+    const missing_delegation = file_path_handle_bridge.resolveTokenBridgeAttempt(
+        null,
+        7,
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+    );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenBridgeAttemptDisposition.optional_missing_delegation_skip,
+        missing_delegation.disposition,
+    );
+    try std.testing.expectEqual(
+        @as(?i32, -@as(i32, @intFromEnum(std.os.linux.E.NOENT))),
+        missing_delegation.create_error,
+    );
+    try std.testing.expect(!missing_delegation.should_install_token);
+
+    const create_failed = file_path_handle_bridge.resolveTokenBridgeAttempt(null, 7, -22);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenBridgeAttemptDisposition.optional_create_failed_skip,
+        create_failed.disposition,
+    );
+    try std.testing.expectEqual(@as(?i32, -22), create_failed.create_error);
+    try std.testing.expect(!create_failed.should_install_token);
+
+    const mandatory_open_failed = file_path_handle_bridge.resolveTokenBridgeAttempt("/delegate/bpf", -13, null);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenBridgeAttemptDisposition.mandatory_open_failed,
+        mandatory_open_failed.disposition,
+    );
+    try std.testing.expectEqual(@as(?i32, -13), mandatory_open_failed.open_error);
+    try std.testing.expect(!mandatory_open_failed.should_install_token);
+
+    const mandatory_create_failed = file_path_handle_bridge.resolveTokenBridgeAttempt("/delegate/bpf", 9, -95);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenBridgeAttemptDisposition.mandatory_create_failed,
+        mandatory_create_failed.disposition,
+    );
+    try std.testing.expectEqual(@as(?i32, -95), mandatory_create_failed.create_error);
+    try std.testing.expect(!mandatory_create_failed.should_install_token);
+
+    const ready_for_install = file_path_handle_bridge.resolveTokenBridgeAttempt("/delegate/bpf", 9, 11);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenBridgeAttemptDisposition.ready_for_install,
+        ready_for_install.disposition,
+    );
+    try std.testing.expect(ready_for_install.should_install_token);
 }
