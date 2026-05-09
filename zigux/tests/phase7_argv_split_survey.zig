@@ -128,6 +128,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(slice_note, "first-NUL C-string bounds on both counting and splitting");
     try expectContains(slice_note, "strict non-goal behavior where quote characters stay inside the returned tokens");
     try expectContains(slice_note, "stronger ownership and pointer discipline through the explicit `argvSplitWithArgc()` count mirror, `cArgv()` export, and `argvFree()` / `deinit()` teardown path");
+    try expectContains(slice_note, "helper-local owned-storage handoff reviewability through the internal `argvSplitOwnedStorage()` path, including blank owned-storage fallback to the canonical empty storage and exported argv sentinels");
     try expectContains(slice_note, "copied-buffer ownership so later source mutation does not affect split results");
     try expectContains(slice_note, "copied whitespace separator runs are zeroed across the owned storage copy so each exported token stays in-place NUL-terminated");
     try expectContains(slice_note, "separate non-blank callers keep owned storage, argv slices, and exported C-argv views distinct across results");
@@ -160,13 +161,15 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(build_file, "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));");
 
     try expectContains(helper_impl, "const empty_argv_null_terminated: []const ?[*:0]const u8 = &.{null};");
-    try expectContains(helper_impl, "        self.* = .{\n            .storage = empty_storage_view,\n            .argv = &.{},\n            .argv_null_terminated = empty_argv_null_terminated,\n        };");
+    try expectContains(helper_impl, "        self.* = .{\n            .storage = empty_storage_view,\n            .argv = &.{},\n            .argv_null_terminated = empty_argv_null_terminated,\n        };\n");
     try expectContains(helper_impl, "pub fn countArgc");
     try expectContains(helper_impl, "pub fn argvSplit");
     try expectContains(helper_impl, "pub fn argvSplitWithArgc");
     try expectContains(helper_impl, "pub fn argvFree");
     try expectContains(helper_impl, "pub fn cArgv");
     try expectContains(helper_impl, "test \"argvSplit preserves C-string termination for the final token and argv vector\"");
+    try expectContains(helper_impl, "test \"argvSplitOwnedStorage reuses the caller-owned storage copy\"");
+    try expectContains(helper_impl, "test \"argvSplitOwnedStorage frees blank caller-owned storage and reuses exported sentinels\"");
     try expectContains(helper_impl, "test \"argvSplit sizes argc and tokens from the owned copy prefix when copied storage contains an early NUL\"");
     try expectContains(helper_impl, "test \"argvSplit zeroes copied whitespace separators across the tokenized buffer\"");
     try expectContains(helper_impl, "test \"argvSplit treats whitespace before the first NUL as blank input\"");
