@@ -19,6 +19,7 @@ from phase3_check_lib import legacy_wrapper_gate_for_slug, render_wrapper_stub, 
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_FILE_REL = "zigux/tests/build.zig"
+ABI_DUMP_GATE = "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig"
 ABI_REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
     "include/zigux/dev_t.h",
@@ -230,6 +231,8 @@ def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[s
         "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
         "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
     ]
+    if slug == "abi":
+        required_markers.append(ABI_DUMP_GATE)
     if manifest:
         required_markers.insert(0, f"PHASE3_STATUS={manifest.get('status')}")
         required_markers.insert(1, f"PHASE3_SLICE={manifest.get('slice')}")
@@ -457,6 +460,47 @@ def run_self_test() -> int:
         manifest = validate_manifest(root, manifest_path, "abi", manifest_issues)
         assert manifest is not None
         assert manifest_issues == []
+        case_count += 1
+
+        doc_path = root / "Documentation" / "zigux" / "phase3-abi-slice.md"
+        doc_path.parent.mkdir(parents=True, exist_ok=True)
+        doc_path.write_text(
+            "\n".join(
+                [
+                    "PHASE3_STATUS=ready",
+                    "PHASE3_SLICE=abi-substrate-skeleton",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+                    ABI_DUMP_GATE,
+                    shared_runner_gate_for_slug("abi"),
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        doc_issues: list[str] = []
+        validate_doc_markers(root, doc_path, "abi", manifest_payload, doc_issues)
+        assert doc_issues == []
+        case_count += 1
+
+        doc_path.write_text(
+            "\n".join(
+                [
+                    "PHASE3_STATUS=ready",
+                    "PHASE3_SLICE=abi-substrate-skeleton",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+                    shared_runner_gate_for_slug("abi"),
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        missing_dump_gate_issues: list[str] = []
+        validate_doc_markers(root, doc_path, "abi", manifest_payload, missing_dump_gate_issues)
+        assert missing_dump_gate_issues == [f"abi:missing_doc_marker={ABI_DUMP_GATE}"]
         case_count += 1
 
         manifest_payload["files"] = list(ABI_REQUIRED_MANIFEST_FILES[:-1])
