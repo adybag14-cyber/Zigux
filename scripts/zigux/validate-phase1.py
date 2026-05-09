@@ -171,10 +171,12 @@ SOURCE_MARKERS = {
             'test "bitmap range helpers honor exact first-word boundaries"',
             'test "bitmap range helpers clamp the final partial word"',
             'test "bitmap predicates ignore out-of-range tail bits"',
+            'test "bitmap scnprintf collapses contiguous ranges across word boundaries"',
             'test "bitmap scnprintf reports full length while truncating the buffer"',
             'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
             'test "bitmap copy aliases preserve tail clearing and extension semantics"',
             'test "bitmap copy alias preserves raw source words without tail clearing"',
+            'test "bitmap copy and extend handles zero and aligned counts"',
             'test "bitmap zero-bit helpers stay explicit no-ops"',
             'test "bitmap Linux-style aliases mirror the primary helper surface"',
         ],
@@ -182,9 +184,12 @@ SOURCE_MARKERS = {
     "string_test_anchor": (
         "tools/lib/string.zig",
         [
-            'test "memparse applies suffixes before signed clamping"',
+            'test "memchr_inv mirrors memchrInv byte-search semantics"',
             'test "memchrInv follows the earliest dirty byte as long buffers change"',
+            'test "memchrInv zero-value scans keep the earliest dirty byte across every prefix alignment"',
             'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
+            'test "memparse clamps explicit positive signed overflow"',
+            'test "memparse applies suffixes before signed clamping"',
             'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
         ],
     ),
@@ -215,7 +220,9 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
         "helper_test_anchors": [
             'test "bitmap predicates ignore out-of-range tail bits"',
             'test "bitmap range helpers clamp the final partial word"',
+            'test "bitmap scnprintf collapses contiguous ranges across word boundaries"',
             'test "bitmap zero-bit binary helpers stay explicit identity operations"',
+            'test "bitmap copy and extend handles zero and aligned counts"',
             'test "bitmap Linux-style aliases mirror the primary helper surface"',
         ],
         "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
@@ -230,9 +237,11 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
             "zero_length_scnprintf_len",
         ],
         "partial_xor_review_fields": ["partial_xor_nbits", "partial_xor_masked_values"],
+        "cross_word_scnprintf_anchor": 'test "bitmap scnprintf collapses contiguous ranges across word boundaries"',
         "scnprintf_truncation_anchor": 'test "bitmap scnprintf reports full length while truncating the buffer"',
         "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
         "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
+        "copy_extend_zero_aligned_anchor": 'test "bitmap copy and extend handles zero and aligned counts"',
         "zero_bit_noop_anchor": 'test "bitmap zero-bit helpers stay explicit no-ops"',
         "zero_bit_binary_identity_anchor": 'test "bitmap zero-bit binary helpers stay explicit identity operations"',
         "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror the primary helper surface"',
@@ -312,13 +321,16 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
             'test "sysfsStreq treats trailing newline and NUL as equivalent"',
             'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
             'test "memdup and memchrInv preserve byte content"',
+            'test "memchr_inv mirrors memchrInv byte-search semantics"',
             'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
             'test "memchrInv follows the earliest dirty byte as long buffers change"',
             'test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries"',
+            'test "memchrInv zero-value scans keep the earliest dirty byte across every prefix alignment"',
             'test "memchrInv short zero-value scans stay byte-accurate"',
             'test "memparse handles decimal hexadecimal octal and suffixes"',
             'test "memparse keeps original rest when sign is not followed by digits"',
             'test "memparse saturates signed overflow instead of trapping"',
+            'test "memparse clamps explicit positive signed overflow"',
             'test "memparse keeps signed values and their trailing rest aligned"',
             'test "memparse consumes suffix after saturation"',
             'test "memparse applies suffixes before signed clamping"',
@@ -327,6 +339,7 @@ EXPECTED_MANIFEST_HELPER_FIELDS = {
         "memparse_review_anchors": [
             'test "memparse keeps original rest when sign is not followed by digits"',
             'test "memparse saturates signed overflow instead of trapping"',
+            'test "memparse clamps explicit positive signed overflow"',
             'test "memparse keeps signed values and their trailing rest aligned"',
             'test "memparse consumes suffix after saturation"',
             'test "memparse applies suffixes before signed clamping"',
@@ -636,6 +649,14 @@ def run_self_test() -> None:
         bitmap_path.write_text(bitmap_text, encoding="utf-8")
 
         bitmap_path.write_text(
+            bitmap_text.replace('test "bitmap scnprintf collapses contiguous ranges across word boundaries"\n', "", 1),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(tmp_root)
+        assert 'bitmap_test_anchor:test "bitmap scnprintf collapses contiguous ranges across word boundaries":expected=1:actual=0' in missing
+        bitmap_path.write_text(bitmap_text, encoding="utf-8")
+
+        bitmap_path.write_text(
             bitmap_text.replace('test "bitmap Linux-style aliases mirror the primary helper surface"\n', "", 1),
             encoding="utf-8",
         )
@@ -657,6 +678,12 @@ def run_self_test() -> None:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = collect_missing_markers(tmp_root)
         assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:final_partial_word_anchor" in missing
+
+        manifest = json.loads(json.dumps(pristine_manifest))
+        manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("cross_word_scnprintf_anchor")
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "phase1_manifest_review_anchor:value=tools/lib/bitmap.zig:cross_word_scnprintf_anchor" in missing
 
         manifest = json.loads(json.dumps(pristine_manifest))
         manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("linux_alias_anchor")
@@ -722,13 +749,23 @@ def run_self_test() -> None:
         missing = collect_missing_markers(tmp_root)
         assert 'phase1_manifest_review_anchor:value=tools/lib/string.zig:helper_test_anchors:test "memparse applies suffixes before signed clamping"' in missing
 
+        string_path = tmp_root / "tools" / "lib" / "string.zig"
+        string_text = string_path.read_text(encoding="utf-8")
+        string_path.write_text(
+            string_text.replace('test "memparse clamps explicit positive signed overflow"\n', "", 1),
+            encoding="utf-8",
+        )
+        missing = collect_missing_markers(tmp_root)
+        assert 'string_test_anchor:test "memparse clamps explicit positive signed overflow":expected=1:actual=0' in missing
+        string_path.write_text(string_text, encoding="utf-8")
+
         fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
         fixture["string"]["strtobool_y"] = False
         fixture_path.write_text(json.dumps(fixture, separators=(",", ":")), encoding="utf-8")
         missing = collect_missing_markers(tmp_root)
         assert "phase1_fixture_string:strtobool_y:expected=True:actual=False" in missing
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=18")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=20")
 
 
 def main() -> int:
