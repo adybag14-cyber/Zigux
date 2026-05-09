@@ -74,7 +74,10 @@
         "truncated_scnprintf",
         "terminator_only_scnprintf_len",
         "terminator_only_nul",
-        "zero_length_scnprintf_len"
+        "zero_length_scnprintf_len",
+        "alloc_words",
+        "zalloc_words",
+        "zalloc_values"
       ],
       "partial_xor_review_fields": [
         "partial_xor_nbits",
