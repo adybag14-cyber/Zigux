@@ -77,7 +77,11 @@ SELF_TEST_TARGETS = (
         "PHASE3_CATALOG_SELF_TEST=pass",
         ("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=",),
     ),
-    SelfTestTarget("scripts/zigux/phase3_check_lib.py", "PHASE3_CHECK_LIB_SELF_TEST=pass"),
+    SelfTestTarget(
+        "scripts/zigux/phase3_check_lib.py",
+        "PHASE3_CHECK_LIB_SELF_TEST=pass",
+        ("PHASE3_CHECK_LIB_SELF_TEST_CASE_COUNT=",),
+    ),
     SelfTestTarget(
         "scripts/zigux/run-phase3-checks.py",
         "PHASE3_RUNNER_SELF_TEST=pass",
@@ -234,6 +238,12 @@ def run_self_test() -> int:
             "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
             "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
             extra_markers=("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT=",),
+        )
+        case_count += 1
+        _require_target(
+            "scripts/zigux/phase3_check_lib.py",
+            "PHASE3_CHECK_LIB_SELF_TEST=pass",
+            extra_markers=("PHASE3_CHECK_LIB_SELF_TEST_CASE_COUNT=",),
         )
         case_count += 1
         _require_target(
@@ -617,6 +627,46 @@ def run_self_test() -> int:
         )
         assert run_targets(duplicate_low_level_aux_root) == [
             "duplicate_aux_marker:scripts/zigux/validate-phase3-low-level-wrapper-survey.py:2:PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        missing_check_lib_aux_root = tmp_root / "missing-check-lib-aux"
+        _populate_root(missing_check_lib_aux_root)
+        write_script(
+            missing_check_lib_aux_root / "scripts/zigux/phase3_check_lib.py",
+            "PHASE3_CHECK_LIB_SELF_TEST=pass",
+        )
+        assert run_targets(missing_check_lib_aux_root) == [
+            "missing_aux_marker:scripts/zigux/phase3_check_lib.py:PHASE3_CHECK_LIB_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        duplicate_check_lib_aux_root = tmp_root / "duplicate-check-lib-aux"
+        _populate_root(duplicate_check_lib_aux_root)
+        duplicate_check_lib_aux_path = duplicate_check_lib_aux_root / "scripts/zigux/phase3_check_lib.py"
+        duplicate_check_lib_aux_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "import sys",
+                    "",
+                    'if "--self-test" in sys.argv:',
+                    '    print("PHASE3_CHECK_LIB_SELF_TEST=pass")',
+                    '    print("PHASE3_CHECK_LIB_SELF_TEST_CASE_COUNT=1")',
+                    '    print("PHASE3_CHECK_LIB_SELF_TEST_CASE_COUNT=2")',
+                    "    raise SystemExit(0)",
+                    "",
+                    'raise SystemExit("expected --self-test")',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert run_targets(duplicate_check_lib_aux_root) == [
+            "duplicate_aux_marker:scripts/zigux/phase3_check_lib.py:2:PHASE3_CHECK_LIB_SELF_TEST_CASE_COUNT="
         ]
         case_count += 1
 
