@@ -368,3 +368,41 @@ test "phase 6 bsearch lower-bound c abi helpers match bounded insertion points a
         }
     }
 }
+
+test "phase 6 bsearch lower-bound c abi record member_size replay stays inside a binary-search budget" {
+    var record_storage: [32]RawRecord = undefined;
+
+    for (0..record_storage.len + 1) |len| {
+        for (0..len) |index| {
+            const key = @as(u32, @intCast((index + 1) * 2));
+            record_storage[index] = .{
+                .key = key,
+                .tag = @as(u16, @intCast(100 + index)),
+                .flags = @as(u16, @intCast(index & 3)),
+                .value = key * 10,
+            };
+        }
+
+        const records = record_storage[0..len];
+        const budget = binarySearchBudget(len);
+        const raw_records: [*]const u8 = @ptrCast(records.ptr);
+        const max_probe: u32 = if (len == 0) 1 else @as(u32, @intCast((len * 2) + 2));
+
+        var probe: u32 = 0;
+        while (probe <= max_probe) : (probe += 1) {
+            raw_c_compare_calls = 0;
+            const expected = linearRawLowerBoundIndexU32(
+                &probe,
+                raw_records,
+                records.len,
+                @sizeOf(RawRecord),
+                compareRawRecordKey,
+            );
+            try std.testing.expectEqual(
+                expected,
+                bsearch.bsearchLowerBoundIndex(&probe, raw_records, records.len, @sizeOf(RawRecord), compareRawRecordKeyCountedC),
+            );
+            try std.testing.expect(raw_c_compare_calls <= budget);
+        }
+    }
+}
