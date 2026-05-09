@@ -88,7 +88,7 @@ BUILD_MARKERS = (
 )
 
 SCORECARD_NOTE_MARKERS = (
-    "`PHASE15_LANE_KEY=P15-L10`",
+    "`PHASE15_LANE_KEY=P15-L12`",
     "required review-process review-packet fields tracked in the manifest: `20`",
     "required review-process ownership-evidence fields tracked in the manifest: `15`",
     "active freeze-in-C anchor count: `4`",
@@ -245,7 +245,7 @@ def validate(root: Path) -> list[str]:
         failures.append(f"scorecard_manifest:invalid_json:{exc}")
         return failures
 
-    if scorecard_manifest.get("lane_key") != "P15-L10":
+    if scorecard_manifest.get("lane_key") != "P15-L12":
         failures.append(f"scorecard_manifest:lane_key:{scorecard_manifest.get('lane_key')}")
     if scorecard_manifest.get("phase") != "Phase 15":
         failures.append(f"scorecard_manifest:phase:{scorecard_manifest.get('phase')}")
@@ -388,7 +388,7 @@ def seed_fixture_tree(root: Path) -> None:
         root / SCORECARD_MANIFEST_PATH,
         json.dumps(
             {
-                "lane_key": "P15-L10",
+                "lane_key": "P15-L12",
                 "phase": "Phase 15",
                 "review_process": {
                     "required_record_field_count": 20,
@@ -467,7 +467,7 @@ def run_self_test() -> int:
         note_path.write_text(baseline_note, encoding="utf-8")
         case_count += 1
 
-        note_path.write_text(
+        note_path.writeText(
             baseline_note.replace("make -C zigux phase15-test", "make -C zigux phase15-check", 1),
             encoding="utf-8",
         )
