@@ -186,4 +186,4 @@ This shared smoke slice does not claim:
 
 ## Next Bounded Step
 
-Leave this shared smoke lane parked unless one of the four anchor-local manifests, the cross-anchor traceability note, the shared replay wiring, or the paired Phase 14 docs surfaces drift. If they do, refresh this packet instead of widening into new bridge or deep-core implementation work.
+Leave this shared smoke lane parked unless one of the four anchor-local manifests, the cross-anchor traceability note, the shared replay wiring, or the shared Phase 14 note companions in `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` drift. If they do, refresh this packet first so the docs-root, scripts-root, tests-root, and shared smoke surfaces stay aligned instead of widening into new bridge or deep-core implementation work.
