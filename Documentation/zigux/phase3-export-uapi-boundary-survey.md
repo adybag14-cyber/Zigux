@@ -19,14 +19,17 @@ This note records the current export-shim and starter UAPI boundary that still s
 - `PHASE3_ABI_HEADER_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
 - `PHASE3_EXPORT_UAPI_LAYOUT_PATH=zigux/tests/phase3_export_uapi_layout.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA=b76e6ae686ea7e8baa600f4f29b5925b3bb64e00`
+- `PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py`
+- `PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA=6d28c3bac329e1b570bc8eb68af746dff3c29ddc`
 
 ## Live Boundary
 
-The blob markers above are the authoritative packet-local evidence for the currently shipped export shim, starter UAPI helper, Linux-facing aggregation header, canonical ABI header, and focused layout replay in this current-head public GitHub fallback readback.
+The blob markers above are the authoritative packet-local evidence for the currently shipped export shim, starter UAPI helper, Linux-facing aggregation header, canonical ABI header, focused layout replay, and dedicated export/UAPI survey validator in this current-head public GitHub fallback readback.
 
 - `zigux/kernel/export_shim.zig` keeps the starter export boundary narrow by relaying the shared `Header`, `HeaderCompatibility`, and `HeaderAcceptance` types plus the boundary-header helpers from `zigux/uapi/version.zig`, by exposing an explicit `compatibilityStatus()` relay for status-based callers, and by normalizing explicit success or errno-style export status values.
 - `zigux/uapi/version.zig` keeps the starter UAPI version contract reviewable through canonical versus future-compatible boundary-header helpers plus a compact `acceptHeader()` path that returns compatibility classification beside the canonical header without widening into a broader UAPI packet.
 - `zigux/tests/phase3_export_uapi_layout.zig` keeps the focused layout replay explicit by pinning the named `export_shim.Header` relay beside boundary-header size, field offsets, compatibility predicates, compatibility classification, accepted-header canonicalization, and compatibility-status relays across the export shim and starter UAPI helper.
+- `scripts/zigux/validate-phase3-export-uapi-survey.py` keeps the packet fail-closed by checking that the survey note, the starter boundary code, the Linux-facing header, the focused layout replay, the shared review surfaces, and the workflow hooks still describe the same bounded export/UAPI packet.
 - `include/linux/zigux.h` remains the Linux-facing aggregation header for already-landed Phase 3 boundary helpers, including the explicit `zigux_status_ok()` and `zigux_status_err()` relay surface.
 - `include/zigux/abi.h` remains the canonical ABI layout source of truth for `struct zigux_boundary_header`, `struct zigux_export_status`, and the shared version and status flags those starter helpers depend on.
 
@@ -34,11 +37,11 @@ The blob markers above are the authoritative packet-local evidence for the curre
 
 The Phase 3 roadmap wants one blessed export surface with explicit ownership and human review. The current packet stays honest only if that review split stays narrow and explicit.
 
-- the export/UAPI packet owns only the starter boundary wording and the focused `zigux/tests/phase3_export_uapi_layout.zig` replay for this surface; it does not own the broader Linux-header aggregation rule.
+- the export/UAPI packet owns only the starter boundary wording, the focused `zigux/tests/phase3_export_uapi_layout.zig` replay, and the directly coupled `scripts/zigux/validate-phase3-export-uapi-survey.py` gate for this surface; it does not own the broader Linux-header aggregation rule.
 - the shared ABI slice in `Documentation/zigux/phase3-abi-slice.md` still owns the broader `include/linux/zigux.h` aggregation rule, so this packet-local survey proves only the starter export/UAPI subset it directly replays rather than claiming the whole Linux-facing header.
 - helper-local slices still own semantic growth once a new helper family stops being just starter export/UAPI boundary plumbing.
 - on current `master`, the required shared review-surface refresh should keep this packet-local survey explicit beside `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `Documentation/zigux/README.md`, and `scripts/zigux/README.md` so the starter export/UAPI boundary does not collapse back into an implied header-only claim.
-- any new top-level export/UAPI entry point should land with a resurvey of this note, a matching `phase3_export_uapi_layout` replay update, and one shared review-surface refresh instead of being implied by broader Phase 3 header growth alone.
+- any new top-level export/UAPI entry point should land with a resurvey of this note, a matching `phase3_export_uapi_layout` replay update, a validator refresh when its bounded evidence list changes, and one shared review-surface refresh instead of being implied by broader Phase 3 header growth alone.
 
 ## Current Gap
 
@@ -48,7 +51,7 @@ The Phase 3 roadmap calls for the first permanent C/Zigux boundary through expli
 - the export shim still operates as a relay plus status-normalization layer; it does not yet claim broader header governance, generated bindings growth, or new Linux-facing entry points beyond the already-landed starter helpers.
 - the next safe packet-local step is one new top-level boundary family under `zigux/uapi/` that lands with a matching focused replay, manifest inclusion, and shared review-surface refresh, rather than more relay-only churn inside `version.zig` or `export_shim.zig` alone.
 - `include/linux/zigux.h` now aggregates many approved Phase 3 helper families, so any new top-level export/UAPI entry point has to land with a fresh shared-ABI readback and an explicit packet-local resurvey instead of being implied by this packet alone or by broader header growth.
-- the shared review surface for this packet is intentionally narrow, so future growth should refresh the dedicated survey, the focused layout replay, and one shared review surface together rather than relying on header growth alone to imply review coverage.
+- the shared review surface for this packet is intentionally narrow, so future growth should refresh the dedicated survey, the focused layout replay, the packet-local validator evidence when that bounded gate changes, and one shared review surface together rather than relying on header growth alone to imply review coverage.
 
 ## Scope
 
