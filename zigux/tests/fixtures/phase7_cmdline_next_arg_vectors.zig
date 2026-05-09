@@ -92,6 +92,20 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_rest = "ro",
     },
     .{
+        .name = "leading whitespace returns Linux empty sentinel token",
+        .input = " \tfoo=1",
+        .expected_param = "",
+        .expected_value = null,
+        .expected_rest = "foo=1",
+    },
+    .{
+        .name = "whitespace-only tail trims to empty rest",
+        .input = "quiet \t\n",
+        .expected_param = "quiet",
+        .expected_value = null,
+        .expected_rest = "",
+    },
+    .{
         .name = "leading equals sign stays in the parameter token",
         .input = "=bad next",
         .expected_param = "=bad",
