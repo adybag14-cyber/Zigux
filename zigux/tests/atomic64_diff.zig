@@ -2,6 +2,7 @@ const std = @import("std");
 const runtime_atomic64_diff = @import("runtime_atomic64_diff.zig");
 const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
+const phase4_perf_baseline_manifest_source = @embedFile("phase4_perf_baseline_manifest.json");
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase9_build_source = @embedFile("phase9_build.zig");
 
@@ -298,6 +299,38 @@ test "atomic64 diff wrapper keeps the phase4 replay routes measurable" {
     );
 }
 
+test "atomic64 diff wrapper keeps its local-only perf-baseline governance explicit" {
+    try expectOrderedMarkersInSection(
+        phase4_perf_baseline_manifest_source,
+        "\"surface\": \"zigux/tests/atomic64_diff.zig\"",
+        "\"surface\": \"zigux/tests/bitmap_diff.zig\"",
+        &.{
+            "\"gate_owner\": \"ABI and Runtime Team\"",
+            "\"gate_rollback_owner\": \"ABI and Runtime Team\"",
+            "\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"",
+        },
+    );
+    try expectOrderedMarkersInSection(
+        phase4_perf_baseline_manifest_source,
+        "\"atomic64\": {",
+        "\"bitmap\": {",
+        &.{
+            "\"benchmark_command\": \"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\"",
+            "\"acceptable_limit_status\": \"approved_local_only\"",
+            "\"acceptable_limit_metric\": \"median_elapsed_ns\"",
+            "\"acceptable_limit_iterations\": 4",
+            "\"acceptable_limit_sample_count\": 7",
+            "\"acceptable_limit_max_elapsed_ns\": 8192",
+            "\"iterations\": 1",
+            "\"checksum\": 3626254113632800175",
+            "\"final_counter\": 130322557735600377",
+            "\"iterations\": 4",
+            "\"checksum\": 9210681150676220922",
+            "\"final_counter\": 130322557735600376",
+        },
+    );
+}
+
 test "atomic64 diff wrapper keeps the adjacent test_fsmount gap packet explicit" {
     try expectAdjacentGapPacketMarkerCount(
         "zigux/tests/phase4_test_fsmount_manifest.json",
@@ -481,6 +514,7 @@ test "atomic64 diff wrapper keeps the local perf-baseline manifest aligned with 
     try expectMarker(perf_manifest_source, "\"lane_key\": \"P4-L20\"");
     try expectMarker(perf_manifest_source, "\"surface\": \"zigux/tests/atomic64_diff.zig\"");
     try expectMarker(perf_manifest_source, "\"gate_owner\": \"ABI and Runtime Team\"");
+    try expectMarker(perf_manifest_source, "\"gate_rollback_owner\": \"ABI and Runtime Team\"");
     try expectMarker(
         perf_manifest_source,
         "\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"",
