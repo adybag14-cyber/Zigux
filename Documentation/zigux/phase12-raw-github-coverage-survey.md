@@ -10,7 +10,7 @@ It is a fallback-read overview, not a closure claim, not a validator-first route
 
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=raw-github-coverage-survey`
-- scope: shared fallback-read coverage for the shipped `nvme_pci`, `virtio_net`, `virtio_scsi`, and libbpf Phase 12 packet plus the compact release-coordination matrix, PMO closure companion, and shared replay surfaces that travel with the active release-order packet
+- scope: shared fallback-read coverage for the shipped `nvme_pci`, `virtio_net`, `virtio_scsi`, and libbpf Phase 12 packet plus the compact release-coordination matrix, PMO closure companion, the two anti-overlap companions, the freeze-boundary guard, and shared replay surfaces that travel with the active release-order packet
 - commit-pinned fallback artifacts: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - shared-tree-only anchors: `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - deterministic libbpf artifact companions: `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, and `zigux/tests/phase12_libbpf_snapshot_determinism.zig`
@@ -44,6 +44,9 @@ Those two notes remain truthful shared-tree-only anchors on `master`. They are r
 - PMO closure companion: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-closure-checklist.md`
 - adjacent release-readiness note: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-readiness-survey.md`
 - compact release coordination matrix: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-coordination-matrix.md`
+- driver-only anti-overlap companion: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
+- shared libbpf anti-overlap companion: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
+- freeze-boundary guard: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/freeze-map.md`
 
 ### Raw file views
 - shared fallback overview: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-raw-github-coverage-survey.md`
@@ -55,6 +58,9 @@ Those two notes remain truthful shared-tree-only anchors on `master`. They are r
 - PMO closure companion: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-closure-checklist.md`
 - adjacent release-readiness note: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-readiness-survey.md`
 - compact release coordination matrix: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-coordination-matrix.md`
+- driver-only anti-overlap companion: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
+- shared libbpf anti-overlap companion: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
+- freeze-boundary guard: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/freeze-map.md`
 
 ## Shared replay reminder
 
