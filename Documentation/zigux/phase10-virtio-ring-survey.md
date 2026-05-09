@@ -32,8 +32,8 @@ The live repo already has a bounded `drivers/virtio/virtio.zig` core starter plu
 
 - `drivers/virtio/virtio_ring.c` is present on `master` and still spans split rings, packed rings, descriptor state, DMA mapping helpers, callback toggling, notification bookkeeping, queue reset, resize, and break or unbreak handling.
 - the live repo already ships `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, and `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`.
-- the current Zigux VirtIO ring surface includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback disable and re-enable bookkeeping, delayed-callback pacing, packed-ring event-index summaries, broken-queue discipline, clear-broken recovery, queue-local reset bookkeeping, reset-readiness preflight, and notify-prepare bookkeeping.
-- the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay keeps reset-readiness blockers, delayed-callback pacing, clear-broken blocker exposure, and packed-ring event-index polling thresholds live beside the direct ring-helper replay.
+- the current Zigux VirtIO ring surface includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback disable and re-enable bookkeeping, delayed-callback pacing, packed-ring event-index summaries, notification-data summaries for split and packed queues, broken-queue discipline, clear-broken recovery, queue-local reset bookkeeping, reset-readiness preflight, and notify-prepare bookkeeping.
+- the wrapper-facing `drivers/virtio/virtio_ring_verify.zig` replay keeps reset-readiness blockers, delayed-callback pacing, clear-broken blocker exposure, packed-ring event-index polling thresholds, and notification-data wrap transitions live beside the direct ring-helper replay.
 - the honest roadmap gap is no longer missing queue-local virtqueue evidence. The remaining blocked bridge is transport-backed queue discovery, IRQ acknowledgement, queue reset execution, and probe/remove lifecycle behavior needed to turn the queue-local helper into a true lab driver.
 - that blocked bridge is owned by the adjacent `P10-L10` MMIO packet. This ring survey may name that dependency, but it does not absorb MMIO helper growth or MMIO next-step selection.
 
@@ -50,6 +50,7 @@ The survey manifest now records:
 - the landed `phase10-callback-enable-helper`
 - the landed `phase10-callback-delay-helper`
 - the landed `phase10-notify-prepare-helper`
+- the landed `phase10-notification-data-summary-helper`
 - the landed `phase10-broken-queue-poll-guard`
 - the landed `phase10-queue-reset-helper`
 - the landed `phase10-queue-reset-readiness-helper`
@@ -57,7 +58,7 @@ The survey manifest now records:
 - the landed `phase10-virtio-ring-slice-note`
 - the still-blocked `phase10-ring-lab-driver-bridge`
 
-This keeps the lane concrete without overstating progress. The queue-local wrapper foothold is real and reviewable today, and the remaining roadmap gap is the transport-backed lab-driver bridge rather than another missing ring-local helper. The wrapper-facing verifier follow-through for clear-broken blocker exposure and packed-ring event-index review is already part of the landed packet, so this note should not keep presenting those verifier checks as future work.
+This keeps the lane concrete without overstating progress. The queue-local wrapper foothold is real and reviewable today, including notification-data summary coverage for split and packed next-available encoding, and the remaining roadmap gap is the transport-backed lab-driver bridge rather than another missing ring-local helper. The wrapper-facing verifier follow-through for clear-broken blocker exposure, packed-ring event-index review, and notification-data wrap transitions is already part of the landed packet, so this note should not keep presenting those verifier checks as future work.
 
 ## Freeze boundary
 
