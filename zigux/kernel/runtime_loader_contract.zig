@@ -868,3 +868,23 @@ test "shared runtime loader contract keeps initialized-stage kretprobe requests 
     try std.testing.expectEqual(RequestState.released_without_substrate, request.state);
     try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .released_without_substrate, initialized_plan));
 }
+
+test "shared runtime loader contract keeps command, environment, registration-summary, depmod-facing, and study-only core-boundary control surfaces outside the request contract" {
+    try std.testing.expect(!@hasField(LoadPlan, "modinfo"));
+    try std.testing.expect(!@hasField(LoadPlan, "module_alias"));
+    try std.testing.expect(!@hasField(LoadPlan, "module_aliases"));
+    try std.testing.expect(!@hasField(LoadPlan, "modules_alias_path"));
+    try std.testing.expect(!@hasField(LoadPlan, "depmod_script"));
+    try std.testing.expect(!@hasField(LoadPlan, "depmod_manifest"));
+    try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));
+    try std.testing.expect(!@hasField(PreparedRequest, "modinfo"));
+    try std.testing.expect(!@hasField(PreparedRequest, "module_alias"));
+    try std.testing.expect(!@hasField(PreparedRequest, "module_aliases"));
+    try std.testing.expect(!@hasField(PreparedRequest, "modules_alias_path"));
+    try std.testing.expect(!@hasField(PreparedRequest, "module_install_root"));
+    try std.testing.expect(!@hasField(PreparedRequest, "modules_order_path"));
+    try std.testing.expect(!@hasField(PreparedRequest, "modules_builtin_path"));
+    try std.testing.expect(!@hasField(PreparedRequest, "depmod_script"));
+    try std.testing.expect(!@hasField(PreparedRequest, "depmod_manifest"));
+    try std.testing.expect(!@hasField(PreparedRequest, "depmod_aliases"));
+}
