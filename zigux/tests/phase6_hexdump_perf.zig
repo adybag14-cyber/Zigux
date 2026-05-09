@@ -311,6 +311,12 @@ test "phase 6 hexdump perf matrix preflight stays aligned with the documented pa
     try validatePerfMatrix();
 }
 
+test "phase 6 hexdump perf preflight exact-fit and truncated buffers stay aligned with the documented packet" {
+    for (fixtures.perf_cases) |case| {
+        try validateBoundaryBuffers(case);
+    }
+}
+
 test "medianNs selects the middle sample after sorting" {
     var samples = [_]u64{ 91, 12, 47 };
     try std.testing.expectEqual(@as(u64, 47), medianNs(samples[0..]));
