@@ -394,6 +394,7 @@ def validate_slices(
 
 
 def run_self_test() -> int:
+    case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_selftest_") as tmp_dir_str:
         root = Path(tmp_dir_str)
         scripts_dir = root / "scripts" / "zigux"
@@ -410,11 +411,13 @@ def run_self_test() -> int:
         assert issues == []
         assert _is_generated_wrapper_script(alpha_wrapper)
         assert _is_generated_wrapper_script(abi_wrapper)
+        case_count += 1
 
         abi_wrapper.write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
         abi_issues: list[str] = []
         validate_wrapper_template(root, abi_wrapper, "abi", abi_issues)
         assert abi_issues == ["abi:wrapper_template_mismatch:scripts/zigux/check-phase3-abi.py"]
+        case_count += 1
 
         for rel in ABI_REQUIRED_MANIFEST_FILES:
             target = root / rel
@@ -439,6 +442,7 @@ def run_self_test() -> int:
         manifest = validate_manifest(root, manifest_path, "abi", manifest_issues)
         assert manifest is not None
         assert manifest_issues == []
+        case_count += 1
 
         manifest_payload["files"] = list(ABI_REQUIRED_MANIFEST_FILES[:-1])
         manifest_payload["file_count"] = len(manifest_payload["files"])
@@ -452,6 +456,7 @@ def run_self_test() -> int:
         assert missing_required_issues == [
             f"abi:manifest_missing_required_file={ABI_REQUIRED_MANIFEST_FILES[-1]}"
         ]
+        case_count += 1
 
         manifest_payload["files"] = list(ABI_REQUIRED_MANIFEST_FILES)
         manifest_payload["file_count"] = len(manifest_payload["files"])
@@ -467,6 +472,7 @@ def run_self_test() -> int:
         assert missing_manifest_file_issues == [
             f"abi:manifest_missing_file={ABI_REQUIRED_MANIFEST_FILES[13]}"
         ]
+        case_count += 1
 
         wrapper_test_path = root / LOW_LEVEL_WRAPPER_TEST_REL
         wrapper_test_path.parent.mkdir(parents=True, exist_ok=True)
@@ -478,6 +484,7 @@ def run_self_test() -> int:
         low_level_issues: list[str] = []
         validate_low_level_wrapper_markers(root, "abi", low_level_issues)
         assert low_level_issues == []
+        case_count += 1
 
         wrapper_test_path.write_text(
             "\n".join(
@@ -494,6 +501,7 @@ def run_self_test() -> int:
         assert missing_fetch_nand_issues == [
             "abi:missing_low_level_wrapper_marker=atomic.fetchNand(u32, &value, 10, .seq_cst)"
         ]
+        case_count += 1
 
         wrapper_test_path.write_text(
             "\n".join(
@@ -510,6 +518,7 @@ def run_self_test() -> int:
         assert missing_monotonic_fetch_nand_issues == [
             "abi:missing_low_level_wrapper_marker=atomic.fetchNand(u32, &monotonic_nand_value, 0x0000_0f0f, .monotonic)"
         ]
+        case_count += 1
 
         wrapper_test_path.write_text(
             "\n".join(LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[:-1]) + "\n",
@@ -521,8 +530,10 @@ def run_self_test() -> int:
         assert missing_low_level_issues == [
             f"abi:missing_low_level_wrapper_marker={LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[-1]}"
         ]
+        case_count += 1
 
     print("PHASE3_VALIDATE_SELF_TEST=pass")
+    print(f"PHASE3_VALIDATE_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
