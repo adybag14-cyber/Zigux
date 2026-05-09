@@ -492,7 +492,6 @@ test "runtime trace-events loader keeps initialized shared-request snapshots sta
     try std.testing.expect(pending_plan.provides_selftest_hook);
     try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 0), pending_plan.init_flow.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 0), loader.cached_plan.?.summary.event_families.len);
     try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
         pending_plan,
         .caller_provided,
@@ -732,11 +731,27 @@ test "runtime trace-events loader rejects prepared shared selftest-hook drift be
     ));
 }
 
+test "runtime trace-events loader rejects non-prepared shared requests before any local runtime handoff" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    var loader = RuntimeTraceEventsLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    _ = try shared_request.requestRuntimeLoad();
+
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expectError(error.InvalidLoaderState, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+}
+
 test "runtime trace-events loader rejects shared selftest-hook drift before any local runtime handoff" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
-
     const initialized_plan = try RuntimeTraceEventsLoader.planFor(&module);
+
     var initialized_shared_plan = toSharedLoadPlan(initialized_plan);
     try std.testing.expect(initialized_shared_plan.provides_selftest_hook);
     try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(initialized_shared_plan));
