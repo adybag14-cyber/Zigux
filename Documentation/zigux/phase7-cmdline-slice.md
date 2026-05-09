@@ -6,14 +6,16 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=cmdline-runtime-leaf`
+- `PHASE7_LANE_KEY=P7-Y06`
 - scope: first low-risk parsing helpers only
-- lane state: helper, fixture, dedicated survey, shared build-wiring checker, and parked make-wrapper slice landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, fixture, dedicated survey, shared validator, build-wiring checker, or make-wrapper packet
+- lane state: helper, fixture, dedicated survey, dedicated manifest, shared build-wiring checker, and parked make-wrapper slice landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, fixture, dedicated survey, dedicated manifest, shared validator, build-wiring checker, or make-wrapper packet
 - product boundary:
   - `lib/cmdline.zig`
   - `samples/zigux/README.md`
   - `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`
   - `zigux/tests/phase7_cmdline.zig`
   - `zigux/tests/phase7_cmdline_survey.zig`
+  - `zigux/tests/phase7_cmdline_manifest.json`
   - `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
   - `scripts/zigux/validate-phase7.py`
   - `scripts/zigux/check-phase7-make-wrapper.py`
@@ -33,7 +35,7 @@ This current slice keeps the work bounded to runtime-safe parsing helpers that:
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 
-Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under this slice, `lib/cmdline.zig`, `samples/zigux/README.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_build.zig`, and `zigux/Makefile` instead of counting it as a fifth Phase 5 sample.
+Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under this slice, `lib/cmdline.zig`, `samples/zigux/README.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_build.zig`, and `zigux/Makefile` instead of counting it as a fifth Phase 5 sample.
 
 ## Gates
 
@@ -46,17 +48,20 @@ Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference samp
 3. keep the serialized `next_arg()` edge-fixture layer explicit
 - `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
 
-4. run the dedicated cmdline survey gate
+4. keep the machine-readable survey record explicit
+- `zigux/tests/phase7_cmdline_manifest.json`
+
+5. run the dedicated cmdline survey gate
 - `zig test zigux/tests/phase7_cmdline_survey.zig`
 
-5. keep the shared validator-first packet explicit
+6. keep the shared validator-first packet explicit
 - `python3 scripts/zigux/validate-phase7.py`
 - `python3 scripts/zigux/check-phase7-make-wrapper.py`
 - `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
 - `python3 scripts/zigux/check-phase7-build-wiring.py`
 - `make -C zigux phase7-validate`
 
-6. run the shared Phase 7 helper gate
+7. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 - `make -C zigux phase7`
 
@@ -82,7 +87,9 @@ The current tests check:
 - caller-owned buffer discipline for `next_arg()`: `nextArg()` writes NUL sentinels into the supplied mutable buffer and returns borrowed `param`, `value`, and `rest` slices into that same storage
 - empty-input handling keeps `param` and `rest` borrowed from the caller slice instead of inventing owned storage
 - leading-whitespace handling keeps the Linux-style empty sentinel token while trimming the following `rest`
-- the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `check-phase7-build-wiring.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice
+- the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the committed `zigux/tests/phase7_cmdline_manifest.json` survey record, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `check-phase7-build-wiring.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, machine-readable manifest, and Linux-style validator-first packet aligned around the same parked cmdline slice
+
+The dedicated survey now imports the committed manifest under `zigux/tests/phase7_cmdline_manifest.json`, so the parked cmdline packet keeps its roadmap anchor, review surfaces, and ownership-focused `nextArg()` proofs explicit in one machine-readable record beside the sibling Phase 7 helper packets.
 
 ## Non-goals
 
