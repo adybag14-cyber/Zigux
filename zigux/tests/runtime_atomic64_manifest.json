@@ -19,7 +19,7 @@
     "landed_pilot_state": "starter_landed_without_loadable_runtime_substrate",
     "missing_capability": "shared runtime substrate that can turn the bounded init, selftest, and exit handoff plan into a real loadable module path",
     "blocked_deliverable": "loadable Phase 9 runtime atomic64 pilot module parity",
-    "next_gate": "keep the sample, survey, and module slice explicit until the shared runtime loader substrate can consume the handoff plan"
+    "next_gate": "keep the sample, survey, and module slice explicit, with the survey packet naming the directly coupled module-slice boundary, until the shared runtime loader substrate can consume the handoff plan"
   },
   "gaps": [
     {
