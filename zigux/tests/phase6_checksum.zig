@@ -129,6 +129,34 @@ test "kunit-inspired carry discipline stays stable on the helper surface" {
     }
 }
 
+test "fixture-backed KUnit random-prefix replays stay explicit on the helper-facing checksum surface" {
+    const expected = [_]struct {
+        name: []const u8,
+        expected_partial: u32,
+        expected_compute: u16,
+    }{
+        .{ .name = "all-ones prefix random odd", .expected_partial = 0xdad2, .expected_compute = 0x252d },
+        .{ .name = "all-ones prefix carry-heavy odd", .expected_partial = 0x0f37, .expected_compute = 0xf0c8 },
+        .{ .name = "triple all-ones prefix random even", .expected_partial = 0xab69, .expected_compute = 0x5496 },
+        .{ .name = "no-carry seeded random odd", .expected_partial = 0xdbcd, .expected_compute = 0x2432 },
+        .{ .name = "no-carry seeded pair", .expected_partial = 0x732d, .expected_compute = 0x8cd2 },
+        .{ .name = "no-carry seeded even random", .expected_partial = 0x60a4, .expected_compute = 0x9f5b },
+    };
+
+    try std.testing.expectEqual(expected.len, fixtures.kunit_random_prefix_cases.len);
+    try std.testing.expectEqualStrings(expected[0].name, fixtures.kunit_random_prefix_cases[0].name);
+    try std.testing.expectEqualStrings(expected[expected.len - 1].name, fixtures.kunit_random_prefix_cases[fixtures.kunit_random_prefix_cases.len - 1].name);
+
+    for (expected, fixtures.kunit_random_prefix_cases) |want, case| {
+        try std.testing.expectEqualStrings(want.name, case.name);
+        const partial = checksum.partial(case.bytes, case.seed);
+        try std.testing.expectEqual(want.expected_partial, partial);
+        try std.testing.expectEqual(want.expected_compute, checksum.fold(partial));
+        try std.testing.expectEqual(want.expected_partial, referencePartial(case.bytes, case.seed));
+        try std.testing.expectEqual(want.expected_compute, referenceFoldedChecksum(case.bytes, case.seed));
+    }
+}
+
 test "pseudo header accumulation matches the fixture-backed reference checksum" {
     for (fixtures.pseudo_header_cases) |case| {
         const payload_partial = checksum.partial(case.payload, 0);
