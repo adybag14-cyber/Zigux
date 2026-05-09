@@ -97,11 +97,11 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "lab-driver threshold",
     "queue-local ring foothold",
     "phase10-ring-lab-driver-bridge",
-    "owned by the adjacent `P10-L18` MMIO packet",
+    "owned by the adjacent `P10-L10` MMIO packet",
     "`drivers/virtio/virtio_ring_verify.zig`",
     "make -C zigux phase10-test",
     "`Documentation/zigux/freeze-map.md` is the governing boundary note",
-    "freeze-boundary owner: `P10-L18`",
+    "freeze-boundary owner: `P10-L10`",
     "`kernel/workqueue.c` or `kernel/trace/ring_buffer.c`",
     "`kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`",
     "roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
@@ -251,11 +251,11 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
     "Documentation/zigux/phase10-virtio-ring-survey.md": """- lab-driver threshold
 - queue-local ring foothold
 - phase10-ring-lab-driver-bridge
-- owned by the adjacent `P10-L18` MMIO packet
+- owned by the adjacent `P10-L10` MMIO packet
 - `drivers/virtio/virtio_ring_verify.zig`
 - `make -C zigux phase10-test`
 - `Documentation/zigux/freeze-map.md` is the governing boundary note
-- freeze-boundary owner: `P10-L18`
+- freeze-boundary owner: `P10-L10`
 - `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`
 - `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`
 - roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
@@ -290,7 +290,7 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
             "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
             "architecture_council_reopen_required": True,
             "architecture_council_reopen_attached": False,
-            "freeze_boundary_owner_lane": "P10-L18",
+            "freeze_boundary_owner_lane": "P10-L10",
             "study_only_anchors": EXPECTED_STUDY_ONLY_ANCHORS,
             "freeze_in_c_anchors": EXPECTED_FREEZE_IN_C_ANCHORS,
             "survey_summary": {
@@ -420,8 +420,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:architecture_council_reopen_required=true")
     if manifest.get("architecture_council_reopen_attached") is not False:
         missing_markers.append("manifest:architecture_council_reopen_attached=false")
-    if manifest.get("freeze_boundary_owner_lane") != "P10-L18":
-        missing_markers.append("manifest:freeze_boundary_owner_lane=P10-L18")
+    if manifest.get("freeze_boundary_owner_lane") != "P10-L10":
+        missing_markers.append("manifest:freeze_boundary_owner_lane=P10-L10")
     if manifest.get("study_only_anchors") != EXPECTED_STUDY_ONLY_ANCHORS:
         missing_markers.append("manifest:study_only_anchors")
     if manifest.get("freeze_in_c_anchors") != EXPECTED_FREEZE_IN_C_ANCHORS:
@@ -499,11 +499,11 @@ def run_self_test() -> int:
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
-            original_manifest.replace('"freeze_boundary_owner_lane": "P10-L18"', '"freeze_boundary_owner_lane": "P10-drift"', 1),
+            original_manifest.replace('"freeze_boundary_owner_lane": "P10-L10"', '"freeze_boundary_owner_lane": "P10-drift"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "manifest:freeze_boundary_owner_lane=P10-L18" not in missing_markers:
+        if "manifest:freeze_boundary_owner_lane=P10-L10" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_freeze_boundary_owner_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
@@ -672,11 +672,11 @@ def run_self_test() -> int:
         survey_path.write_text(original_survey, encoding="utf-8")
 
         survey_path.write_text(
-            original_survey.replace("freeze-boundary owner: `P10-L18`", "freeze-boundary owner: `P10-drift`", 1),
+            original_survey.replace("freeze-boundary owner: `P10-L10`", "freeze-boundary owner: `P10-drift`", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "survey_note:freeze-boundary owner: `P10-L18`" not in missing_markers:
+        if "survey_note:freeze-boundary owner: `P10-L10`" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_survey_freeze_owner_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
