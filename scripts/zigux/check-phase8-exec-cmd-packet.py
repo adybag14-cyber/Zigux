@@ -275,10 +275,13 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 
 
 def run_self_test() -> None:
+    case_count = 0
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase8_exec_cmd_packet_") as tmp_dir:
         tmp_root = Path(tmp_dir)
         write_fixture_root(tmp_root)
         assert_valid("baseline", tmp_root)
+        case_count += 1
 
         (tmp_root / "zigux/tests/phase8_exec_cmd_only_build.zig").unlink()
         expect_missing_file(
@@ -286,6 +289,7 @@ def run_self_test() -> None:
             tmp_root,
             "zigux/tests/phase8_exec_cmd_only_build.zig",
         )
+        case_count += 1
         write_fixture_root(tmp_root)
 
         mutate_file(
@@ -300,6 +304,23 @@ def run_self_test() -> None:
             tmp_root,
             "Documentation/zigux/README.md: make -C zigux phase8-exec-cmd-test",
         )
+        case_count += 1
+        write_fixture_root(tmp_root)
+
+        mutate_file(
+            tmp_root,
+            "zigux/tests/README.md",
+            "  * `zigux/tests/phase8_exec_cmd_only_build.zig`\n",
+            "  * `zigux/tests/phase8_exec_cmd_only_build.zig`\n"
+            "  * `zigux/tests/phase8_exec_cmd_only_build.zig`\n",
+            "tests_root_exec_cmd_duplicate",
+        )
+        expect_marker_error(
+            "tests_root_exec_cmd_duplicate",
+            tmp_root,
+            "zigux/tests/README.md: exact_once_section_marker:  * `zigux/tests/phase8_exec_cmd_only_build.zig`",
+        )
+        case_count += 1
         write_fixture_root(tmp_root)
 
         mutate_file(
@@ -314,6 +335,7 @@ def run_self_test() -> None:
             tmp_root,
             ".github/workflows/zigux-bootstrap.yml: exact_once_section_marker:      - name: Run focused Phase 8 exec-cmd tests",
         )
+        case_count += 1
         write_fixture_root(tmp_root)
 
         mutate_file(
@@ -328,6 +350,7 @@ def run_self_test() -> None:
             tmp_root,
             ".github/workflows/zigux-bootstrap.yml: exact_once_section_marker:      - name: Run focused Phase 8 exec-cmd tests",
         )
+        case_count += 1
         write_fixture_root(tmp_root)
 
         mutate_file(
@@ -342,9 +365,10 @@ def run_self_test() -> None:
             tmp_root,
             "tools/lib/subcmd/exec-cmd.zig: pub fn planDeferredExeclCallWithPwd",
         )
+        case_count += 1
 
     print("PHASE8_EXEC_CMD_PACKET_SELF_TEST=pass")
-    print("PHASE8_EXEC_CMD_PACKET_SELF_TEST_CASE_COUNT=6")
+    print(f"PHASE8_EXEC_CMD_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> int:
