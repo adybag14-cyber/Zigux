@@ -14,7 +14,7 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
   - `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
-- evidence note: direct readback on `2026-05-08` inspected the current `lib/bsearch.c`, `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_build.zig` packet so this slice stays limited to the shipped helper-local review surface instead of stale blob bookkeeping
+- evidence note: direct readback on `2026-05-09` inspected the current `lib/bsearch.c`, `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_build.zig` packet so this slice stays limited to the shipped helper-local review surface instead of stale blob bookkeeping
 - roadmap anchor note: the live `lib/bsearch.c` anchor is still a thin `__inline_bsearch(...)` wrapper, so the shipped Zigux packet keeps raw `bsearch` and `bsearchMutable` replay as the roadmap-facing surface while the typed helper entrypoints, lower-bound companions, and focused C ABI lower-bound replay keep the same comparator contract easier to inspect in one bounded packet instead of implying a separate direct C harness or timing-style perf gate
 
 ## Why this slice exists
@@ -79,12 +79,15 @@ The current tests check:
 - runtime-selected typed C ABI comparator pointer parity across ascending and descending sorted slices
 - runtime-selected raw native comparator pointer parity
 - focused typed and raw lower-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
+- focused lower-bound C ABI empty-input short-circuit and singleton insertion-edge parity for typed, raw, descending, and packed-record paths through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
+- focused lower-bound C ABI alias-comparator pointer parity for typed, raw, descending, and packed-record insertion-point paths through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
+- focused lower-bound C ABI insertion-point work stays inside the same bounded binary-search comparison budget across ascending, descending, and packed-record ranges through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
 - runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses
 - representative lookup work stays inside a bounded binary-search comparison budget for both typed and raw lookup paths
 - raw record lookup parity that exercises `member_size` across packed record entries and mutable write-through directly in the focused Phase 6 packet
 - raw `bsearch` and `bsearchMutable` replay stays explicit as the roadmap-facing wrapper surface while the typed helpers and lower-bound companions prove the same comparison semantics without needing a separate C harness packet
 
-The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable, and the same focused replay now carries the bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route. The paired `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` file keeps the lower-bound C ABI proof equally small and reviewable without widening the packet into a separate harness family.
+The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable, and the same focused replay now carries the bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route. The paired `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` file keeps the lower-bound C ABI proof equally small and reviewable by carrying the typed and raw insertion-point replays, alias-comparator variants, empty and singleton bound checks, and bounded comparison-budget evidence without widening the packet into a separate harness family.
 
 ## Non-goals
 
