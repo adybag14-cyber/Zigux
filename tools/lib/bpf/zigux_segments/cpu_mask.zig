@@ -10,6 +10,10 @@ pub const CpuMask = struct {
     pub fn countSet(self: CpuMask) usize {
         return countPossibleCpus(self.values);
     }
+
+    pub fn highestSet(self: CpuMask) ?usize {
+        return highestPossibleCpuIndex(self.values);
+    }
 };
 
 pub const ParseCpuMaskError = error{
@@ -150,6 +154,17 @@ pub fn countPossibleCpus(mask: []const bool) usize {
     return count;
 }
 
+pub fn highestPossibleCpuIndex(mask: []const bool) ?usize {
+    var cursor = mask.len;
+    while (cursor > 0) {
+        cursor -= 1;
+        if (mask[cursor]) {
+            return cursor;
+        }
+    }
+    return null;
+}
+
 pub fn possibleCpuCountFromString(allocator: std.mem.Allocator, input: []const u8) !usize {
     const parsed = try parseCpuMaskString(allocator, input);
     defer parsed.deinit(allocator);
@@ -164,6 +179,25 @@ pub fn possibleCpuCountFromReader(
     const parsed = try parseCpuMaskFromReader(allocator, scratch, reader);
     defer parsed.deinit(allocator);
     return parsed.countSet();
+}
+
+pub fn highestPossibleCpuIndexFromString(
+    allocator: std.mem.Allocator,
+    input: []const u8,
+) !?usize {
+    const parsed = try parseCpuMaskString(allocator, input);
+    defer parsed.deinit(allocator);
+    return parsed.highestSet();
+}
+
+pub fn highestPossibleCpuIndexFromReader(
+    allocator: std.mem.Allocator,
+    scratch: []u8,
+    reader: ChunkReader,
+) anyerror!?usize {
+    const parsed = try parseCpuMaskFromReader(allocator, scratch, reader);
+    defer parsed.deinit(allocator);
+    return parsed.highestSet();
 }
 
 test "parseCpuMaskString expands single CPUs and ranges into a dense bool mask" {
@@ -181,6 +215,7 @@ test "parseCpuMaskString expands single CPUs and ranges into a dense bool mask" 
     try std.testing.expect(parsed.values[7]);
     try std.testing.expect(parsed.values[8]);
     try std.testing.expectEqual(@as(usize, 6), parsed.countSet());
+    try std.testing.expectEqual(@as(?usize, 8), parsed.highestSet());
 }
 
 test "parseCpuMaskString tolerates repeated delimiters and newline-terminated masks" {
@@ -211,6 +246,7 @@ test "parseCpuMaskString keeps libbpf whitespace parity for direct input" {
     try std.testing.expect(!parsed.values[5]);
     try std.testing.expect(parsed.values[6]);
     try std.testing.expect(parsed.values[7]);
+    try std.testing.expectEqual(@as(?usize, 7), parsed.highestSet());
 }
 
 test "parseCpuMaskString rejects empty and malformed ranges" {
@@ -335,6 +371,56 @@ test "possibleCpuCountFromReader keeps chunked counting coupled to the existing 
     try std.testing.expectEqual(
         @as(usize, 5),
         try possibleCpuCountFromReader(std.testing.allocator, &scratch, .{
+            .context = &state,
+            .readFn = ReaderState.read,
+        }),
+    );
+}
+
+test "highestPossibleCpuIndex keeps sparse and empty masks explicit" {
+    try std.testing.expectEqual(
+        @as(?usize, 5),
+        highestPossibleCpuIndex(&.{ false, true, false, true, false, true }),
+    );
+    try std.testing.expectEqual(@as(?usize, null), highestPossibleCpuIndex(&.{}));
+}
+
+test "highestPossibleCpuIndexFromString keeps highest active cpu lookup helper-only" {
+    try std.testing.expectEqual(
+        @as(?usize, 8),
+        try highestPossibleCpuIndexFromString(std.testing.allocator, "0-2,4,7-8"),
+    );
+    try std.testing.expectEqual(
+        @as(?usize, 7),
+        try highestPossibleCpuIndexFromString(std.testing.allocator, "\r0-1,\t4\n6-7"),
+    );
+}
+
+test "highestPossibleCpuIndexFromReader keeps chunked highest cpu lookup coupled to the parser" {
+    const ReaderState = struct {
+        chunks: []const []const u8,
+        index: usize = 0,
+
+        fn read(context: ?*anyopaque, buffer: []u8) !?usize {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            if (self.index >= self.chunks.len) {
+                return null;
+            }
+
+            const chunk = self.chunks[self.index];
+            self.index += 1;
+            std.mem.copyForwards(u8, buffer[0..chunk.len], chunk);
+            return chunk.len;
+        }
+    };
+
+    var state = ReaderState{
+        .chunks = &.{ "0-1,", "4\n", "6-7\n" },
+    };
+    var scratch: [8]u8 = undefined;
+    try std.testing.expectEqual(
+        @as(?usize, 7),
+        try highestPossibleCpuIndexFromReader(std.testing.allocator, &scratch, .{
             .context = &state,
             .readFn = ReaderState.read,
         }),
