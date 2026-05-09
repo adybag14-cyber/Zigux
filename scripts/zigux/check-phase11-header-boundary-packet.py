@@ -175,6 +175,9 @@ REQUIRED_BUILD_MARKERS = [
     'layout_assert_module.addImport("abi_bindings", abi_bindings_module);',
     "phase11_uapi_header_parity_survey.zig",
     "phase11-uapi-header-parity-survey-tests",
+    "phase11-hvc-console-tests",
+    "phase11-hvc-console-verify-tests",
+    "phase11-hvc-cleanup-tests",
     "phase11-hvc-console-survey-tests",
     "test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);",
     "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
@@ -185,6 +188,7 @@ REQUIRED_CONTRACT_MARKERS = [
     "PHASE11_SHARED_REPLAY_STATUS=starter_packet_reviewable",
     "zigux/tests/phase11_build.zig",
     "zigux/tests/phase11_uapi_header_parity_survey.zig",
+    "zigux/tests/phase11_hvc_cleanup.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`",
     "there is no broader multi-checker Phase 11 validator stack on `master`",
@@ -405,6 +409,12 @@ def run_self_test() -> int:
             "contract missing markers",
         )
         run_case(
+            "Documentation/zigux/phase11-shared-replay-contract.md",
+            "zigux/tests/phase11_hvc_cleanup.zig",
+            "zigux/tests/phase11_hvc_cleanup_absent.zig",
+            "contract missing markers",
+        )
+        run_case(
             "scripts/zigux/README.md",
             "- `check-phase11-header-boundary-packet.py`",
             "- `check-phase11-header-packet.py`",
@@ -450,6 +460,18 @@ def run_self_test() -> int:
             "zigux/tests/phase11_build.zig",
             'layout_assert_module.addImport("abi_bindings", abi_bindings_module);',
             'layout_assert_module.addImport("abi_bindings", layout_assert_module);',
+            "build missing markers",
+        )
+        run_case(
+            "zigux/tests/phase11_build.zig",
+            "phase11-hvc-console-verify-tests",
+            "phase11-hvc-console-verify-pending",
+            "build missing markers",
+        )
+        run_case(
+            "zigux/tests/phase11_build.zig",
+            "phase11-hvc-cleanup-tests",
+            "phase11-hvc-cleanup-pending",
             "build missing markers",
         )
         run_case(
