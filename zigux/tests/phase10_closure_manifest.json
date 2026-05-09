@@ -188,6 +188,15 @@
     "zigux/tests/phase10_virtio_driver_id.zig": [
       "phase10 driver-id review path replay"
     ],
+    "drivers/virtio/virtio_verify.zig": [
+      "phase10 core verify replay"
+    ],
+    "drivers/virtio/virtio_ring_verify.zig": [
+      "phase10 ring verify replay"
+    ],
+    "drivers/virtio/virtio_input_verify.zig": [
+      "phase10 input verify replay"
+    ],
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
       "phase10 input queue-callback-preflight replay"
     ],
@@ -199,6 +208,9 @@
     ],
     "zigux/tests/phase10_virtio_input_status_drain.zig": [
       "phase10 input status-drain replay"
+    ],
+    "drivers/virtio/virtio_mmio_verify.zig": [
+      "phase10 mmio verify replay"
     ]
   },
   "blocked_transport_gaps": {
