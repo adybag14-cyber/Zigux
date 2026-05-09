@@ -428,6 +428,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
 
     try expectContains(cpu_mask_note, "PHASE8_STATUS=parked");
     try expectContains(cpu_mask_note, "tools/lib/bpf/zigux_segments/cpu_mask.zig");
+    try expectContains(cpu_mask_note, "make -C zigux phase8-cpu-mask-test");
     try expectContains(cpu_mask_note, "zigux/tests/phase8_cpu_mask_only_build.zig");
     try expectContains(cpu_mask_note, "zig build test --build-file zigux/tests/phase8_cpu_mask_only_build.zig --summary all");
     try expectContains(cpu_mask_note, "zigux/tests/phase8_build.zig");
