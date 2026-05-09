@@ -29,7 +29,8 @@ REQUIRED_SNIPPETS = {
         "- surveyed head: `911470d`",
         "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
         "- focused lower- and upper-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
-        "- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated bounds-focused C ABI companion that keeps the typed and raw lower- and upper-bound comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today",
+        "- focused direct C ABI equality-budget replay: `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
+        "- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated bounds-focused C ABI companion and the dedicated direct C ABI equality-budget replay that keep the typed and raw lower-bound, upper-bound, and equality comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today",
         "- `make -C zigux phase6-hexdump-test`",
         "- `make -C zigux phase6-validate`",
         "- `make -C zigux phase6`",
@@ -44,6 +45,7 @@ REQUIRED_SNIPPETS = {
         "- `lib/bsearch.zig`",
         "- `zigux/tests/phase6_bsearch.zig`",
         "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
+        "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
         "- `Documentation/zigux/phase6-bsearch-slice.md`",
     ],
     "Documentation/zigux/phase6-base64-slice.md": [
@@ -65,6 +67,7 @@ REQUIRED_SNIPPETS = {
         "- `bsearch`",
         "- `bsearchMutable`",
         "- focused typed and raw lower- and upper-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
+        "- focused direct C ABI equality-budget parity across typed and raw ascending and descending sorted inputs plus packed-record `member_size` ranges through `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
         "- runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses",
         "The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable, and the same focused replay now carries the bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route.",
     ],
@@ -90,9 +93,9 @@ REQUIRED_SNIPPETS = {
         "- shared replay note: the shared `make -C zigux phase6` route still stops at `phase6-validate` plus `phase6-test`; dedicated perf replays remain helper-local through `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`",
         "- aggregated route note: `make -C zigux phase6-perf` now exists as a narrow convenience wrapper for `phase6-checksum-perf` plus `phase6-hexdump-perf`; it still excludes base64 even though `.github/workflows/zigux-bootstrap.yml` reruns `phase6-base64-perf` directly in CI",
         "- owner-map note: `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` now separates packet-wide route truthfulness from helper-local threshold or replay-row edits inside this survey",
-        "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig` and `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, not a separate wall-clock perf harness",
-        "- bsearch exact evidence: the current 15-element equality replay in `zigux/tests/phase6_bsearch.zig` still requires `counted_compare_calls <= 4` across five representative typed lookups and `counted_raw_compare_calls <= 4` across five representative raw lookups, while `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` keeps the same expected `std.math.log2_int_ceil(len) + 1` insertion-point budget explicit for typed and raw lower-bound replays across ascending, descending, and packed-record ranges without widening into standalone nanosecond thresholds",
-        "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replay rather than a separate fixture module or standalone `phase6_bsearch_perf` route",
+        "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replays inside `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_bsearch_c_abi_budget.zig`, not a separate wall-clock perf harness",
+        "- bsearch exact evidence: the current 15-element equality replay in `zigux/tests/phase6_bsearch.zig` still requires `counted_compare_calls <= 4` across five representative typed lookups and `counted_raw_compare_calls <= 4` across five representative raw lookups, while `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` keeps the same expected `std.math.log2_int_ceil(len) + 1` insertion-point budget explicit for typed and raw lower-bound replays across ascending, descending, and packed-record ranges, and `zigux/tests/phase6_bsearch_c_abi_budget.zig` keeps that same equality budget explicit for typed and raw runtime-selected C ABI comparator replays across ascending, descending, and packed-record ranges without widening into standalone nanosecond thresholds",
+        "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replays rather than a separate fixture module or standalone `phase6_bsearch_perf` route",
         "- the bundled `phase6` and aggregate `phase6-perf` make routes still replay only the shared helper tests plus the checksum and hexdump dedicated perf gates, while `.github/workflows/zigux-bootstrap.yml` separately reruns the base64 perf gate as its own direct CI step",
         "- helper-local threshold, replay-count, or fixture-label edits inside this survey still belong to the owning helper lane even though they appear in a shared note; reopen the shared sequencing lane only when the packet-wide route or owner split changes",
     ],
@@ -138,6 +141,7 @@ REQUIRED_SNIPPETS = {
         "\"id\": \"checksum\"",
         "\"id\": \"hexdump\"",
         "\"zigux/tests/phase6_bsearch_lower_bound_c_abi.zig\"",
+        "\"zigux/tests/phase6_bsearch_c_abi_budget.zig\"",
         "\"Documentation/zigux/phase6-helper-parity-catalog.md\",",
         "\"Documentation/zigux/phase6-perf-gate-survey.md\",",
         "\"Documentation/zigux/phase6-leaf-helper-lane-sequencing.md\",",
@@ -146,6 +150,7 @@ REQUIRED_SNIPPETS = {
         "\"comparison_budget_helpers\": [",
         "\"timing_sanity_only_helpers\": []",
         "\"lower_bound_budget_formula\": \"std.math.log2_int_ceil(len) + 1\"",
+        "\"equality_budget_formula\": \"std.math.log2_int_ceil(len) + 1\"",
         "\"python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test\",",
         "\"python3 scripts/zigux/check-phase6-base64-c-parity.py\",",
         "\"make -C zigux phase6-validate\",",
@@ -163,10 +168,13 @@ REQUIRED_SNIPPETS = {
     "zigux/tests/phase6_build.zig": [
         'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
         '.root_source_file = b.path("phase6_bsearch_lower_bound_c_abi.zig"),',
+        '.root_source_file = b.path("phase6_bsearch_c_abi_budget.zig"),',
         '.name = "phase6-base64-tests"',
         '.name = "phase6-bsearch-tests"',
         '.name = "phase6-bsearch-lower-bound-c-abi-tests"',
+        '.name = "phase6-bsearch-c-abi-budget-tests"',
         'test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);',
+        'test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);',
         'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");',
         'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
         'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
@@ -182,6 +190,9 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch lower-bound c abi helpers short-circuit empty input and keep singleton insertion edges bounded"',
         'test "phase 6 bsearch lower-bound c abi helpers match bounded insertion points across ascending and descending ranges"',
         'test "phase 6 bsearch lower-bound c abi record member_size replay stays inside a binary-search budget"',
+    ],
+    "zigux/tests/phase6_bsearch_c_abi_budget.zig": [
+        'test "phase 6 bsearch direct c abi equality helpers stay inside a binary-search budget"',
     ],
     "zigux/Makefile": [
         "PHONY += phase6-validate phase6-test phase6-hexdump-test phase6-perf phase6-base64-perf phase6-checksum-perf phase6-hexdump-perf phase6",
@@ -203,7 +214,6 @@ REQUIRED_SNIPPETS = {
     ],
 }
 
-
 EXACT_OCCURRENCE_MARKERS = {
     "zigux/tests/phase6_bsearch.zig": [
         ("try std.testing.expect(counted_compare_calls <= 4);", 10),
@@ -217,7 +227,6 @@ EXACT_OCCURRENCE_MARKERS = {
     ],
 }
 
-
 REMOVED_PATHS = [
     "scripts/zigux/validate-phase6.py",
     "zigux/tests/phase6_hexdump_c_parity.zig",
@@ -225,13 +234,11 @@ REMOVED_PATHS = [
     "scripts/zigux/check-phase6-hexdump-c-parity.py",
 ]
 
-
 def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise ValidationError(f"missing required file: {path}") from exc
-
 
 def read_json(path: Path) -> object:
     try:
@@ -239,94 +246,65 @@ def read_json(path: Path) -> object:
     except json.JSONDecodeError as exc:
         raise ValidationError(f"invalid JSON in {path}: {exc}") from exc
 
-
 def validate_surveyed_head_alignment(repo_root: Path) -> None:
     manifest_rel = MANIFEST_PATH.as_posix()
     catalog_rel = CATALOG_PATH.as_posix()
     manifest_data = read_json(repo_root / manifest_rel)
     if not isinstance(manifest_data, dict):
         raise ValidationError(f"expected object in {manifest_rel}")
-
     surveyed_commit = manifest_data.get("surveyed_commit")
     if not isinstance(surveyed_commit, str) or not surveyed_commit:
         raise ValidationError(f"missing surveyed_commit in {manifest_rel}")
-
     catalog_content = read_text(repo_root / catalog_rel)
     expected_marker = f"{CATALOG_SURVEYED_HEAD_PREFIX}{surveyed_commit}`"
     occurrences = catalog_content.count(expected_marker)
     if occurrences != 1:
-        raise ValidationError(
-            f"expected exactly one surveyed-head marker in {catalog_rel}, found {occurrences}: {expected_marker}"
-        )
-
+        raise ValidationError(f"expected exactly one surveyed-head marker in {catalog_rel}, found {occurrences}: {expected_marker}")
 
 def extract_sorted_literal_list(script_text: str, rel_path: str, variable_name: str) -> list[object]:
     try:
         tree = ast.parse(script_text, filename=rel_path)
     except SyntaxError as exc:
         raise ValidationError(f"invalid Python in {rel_path}: {exc}") from exc
-
     for node in tree.body:
         if not isinstance(node, ast.Assign):
             continue
         for target in node.targets:
             if isinstance(target, ast.Name) and target.id == variable_name:
                 value = node.value
-                if (
-                    isinstance(value, ast.Call)
-                    and isinstance(value.func, ast.Name)
-                    and value.func.id == "sorted"
-                    and len(value.args) == 1
-                ):
+                if isinstance(value, ast.Call) and isinstance(value.func, ast.Name) and value.func.id == "sorted" and len(value.args) == 1:
                     try:
                         literal = ast.literal_eval(value.args[0])
                     except (ValueError, SyntaxError) as exc:
-                        raise ValidationError(
-                            f"{rel_path} keeps non-literal {variable_name}; expected a literal list"
-                        ) from exc
+                        raise ValidationError(f"{rel_path} keeps non-literal {variable_name}; expected a literal list") from exc
                     if not isinstance(literal, list):
-                        raise ValidationError(
-                            f"{rel_path} keeps non-list {variable_name}; expected a literal list"
-                        )
+                        raise ValidationError(f"{rel_path} keeps non-list {variable_name}; expected a literal list")
                     return literal
-                raise ValidationError(
-                    f"{rel_path} keeps unsupported {variable_name} shape; expected sorted([...])"
-                )
-
+                raise ValidationError(f"{rel_path} keeps unsupported {variable_name} shape; expected sorted([...])")
     raise ValidationError(f"missing {variable_name} in {rel_path}")
-
 
 def validate_parity_alignment(repo_root: Path, helper: str, script_path: Path, case_key: str, marker: str) -> None:
     manifest_rel = MANIFEST_PATH.as_posix()
     manifest_data = read_json(repo_root / manifest_rel)
     if not isinstance(manifest_data, dict):
         raise ValidationError(f"expected object in {manifest_rel}")
-
     determinism = manifest_data.get("determinism_evidence")
     if not isinstance(determinism, dict):
         raise ValidationError(f"missing determinism_evidence in {manifest_rel}")
-
     helper_data = determinism.get(helper)
     if not isinstance(helper_data, dict):
         raise ValidationError(f"missing determinism_evidence.{helper} in {manifest_rel}")
-
     case_count = helper_data.get(case_key)
     if not isinstance(case_count, int) or case_count <= 0:
         raise ValidationError(f"missing positive {helper} {case_key} in {manifest_rel}")
-
     script_rel = script_path.as_posix()
     script_text = read_text(repo_root / script_rel)
     if marker not in script_text:
         raise ValidationError(f"missing expected Phase 6 marker in {script_rel}: {marker}")
-
     expected_sorted_lines = extract_sorted_literal_list(script_text, script_rel, "EXPECTED_SORTED_LINES")
     expected_case_count = len(expected_sorted_lines)
     if case_count != expected_case_count:
-        raise ValidationError(
-            f"Phase 6 {helper} direct C parity case count drifted between {manifest_rel} ({case_count}) and "
-            f"{script_rel} ({expected_case_count})"
-        )
-
+        raise ValidationError(f"Phase 6 {helper} direct C parity case count drifted between {manifest_rel} ({case_count}) and {script_rel} ({expected_case_count})")
 
 def run_checks(repo_root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
@@ -334,41 +312,22 @@ def run_checks(repo_root: Path) -> None:
         for snippet in snippets:
             if snippet not in content:
                 raise ValidationError(f"missing expected Phase 6 marker in {rel_path}: {snippet}")
-
     validate_surveyed_head_alignment(repo_root)
-    validate_parity_alignment(
-        repo_root,
-        "base64",
-        BASE64_C_PARITY_SCRIPT_PATH,
-        "c_parity_cases",
-        'PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}',
-    )
-    validate_parity_alignment(
-        repo_root,
-        "checksum",
-        CHECKSUM_C_PARITY_SCRIPT_PATH,
-        "c_parity_cases",
-        'PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}',
-    )
-
+    validate_parity_alignment(repo_root, "base64", BASE64_C_PARITY_SCRIPT_PATH, "c_parity_cases", 'PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}')
+    validate_parity_alignment(repo_root, "checksum", CHECKSUM_C_PARITY_SCRIPT_PATH, "c_parity_cases", 'PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}')
     for rel_path, markers in EXACT_OCCURRENCE_MARKERS.items():
         content = read_text(repo_root / rel_path)
         for marker, expected in markers:
             occurrences = content.count(marker)
             if occurrences != expected:
-                raise ValidationError(
-                    f"expected {expected} occurrences of Phase 6 marker in {rel_path}, found {occurrences}: {marker}"
-                )
-
+                raise ValidationError(f"expected {expected} occurrences of Phase 6 marker in {rel_path}, found {occurrences}: {marker}")
     for rel_path in REMOVED_PATHS:
         if (repo_root / rel_path).exists():
             raise ValidationError(f"removed Phase 6 shared-surface file unexpectedly present: {rel_path}")
 
-
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def scaffold_repo(root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
@@ -378,140 +337,36 @@ def scaffold_repo(root: Path) -> None:
                 "tranche": "leaf-helper-parity",
                 "surveyed_commit": "911470d",
                 "helpers": [
-                    {
-                        "id": "base64",
-                        "helper": "lib/base64.zig",
-                        "tests": [
-                            "zigux/tests/phase6_base64.zig",
-                            "zigux/tests/phase6_base64_c_parity.zig",
-                            "zigux/tests/phase6_base64_perf.zig",
-                        ],
-                        "fixtures": [
-                            "zigux/tests/fixtures/phase6_base64_vectors.zig",
-                            "zigux/tests/fixtures/phase6_base64_c_harness.c",
-                        ],
-                        "slice_note": "Documentation/zigux/phase6-base64-slice.md",
-                        "external_parity": "scripts/zigux/check-phase6-base64-c-parity.py",
-                    },
-                    {
-                        "id": "bsearch",
-                        "helper": "lib/bsearch.zig",
-                        "tests": [
-                            "zigux/tests/phase6_bsearch.zig",
-                            "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
-                        ],
-                        "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
-                    },
-                    {
-                        "id": "checksum",
-                        "helper": "lib/checksum.zig",
-                        "tests": [
-                            "zigux/tests/phase6_checksum.zig",
-                            "zigux/tests/phase6_checksum_perf.zig",
-                            "zigux/tests/phase6_checksum_c_parity.zig",
-                        ],
-                        "fixtures": [
-                            "zigux/tests/fixtures/phase6_checksum_vectors.zig",
-                            "zigux/tests/fixtures/phase6_checksum_c_harness.c",
-                        ],
-                        "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
-                        "external_parity": "scripts/zigux/check-phase6-checksum-c-parity.py",
-                    },
-                    {
-                        "id": "hexdump",
-                        "helper": "lib/hexdump.zig",
-                        "tests": [
-                            "zigux/tests/phase6_hexdump.zig",
-                            "zigux/tests/phase6_hexdump_perf.zig",
-                        ],
-                        "fixtures": ["zigux/tests/fixtures/phase6_hexdump_vectors.zig"],
-                        "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
-                    },
+                    {"id": "base64", "helper": "lib/base64.zig", "tests": ["zigux/tests/phase6_base64.zig", "zigux/tests/phase6_base64_c_parity.zig", "zigux/tests/phase6_base64_perf.zig"], "fixtures": ["zigux/tests/fixtures/phase6_base64_vectors.zig", "zigux/tests/fixtures/phase6_base64_c_harness.c"], "slice_note": "Documentation/zigux/phase6-base64-slice.md", "external_parity": "scripts/zigux/check-phase6-base64-c-parity.py"},
+                    {"id": "bsearch", "helper": "lib/bsearch.zig", "tests": ["zigux/tests/phase6_bsearch.zig", "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "zigux/tests/phase6_bsearch_c_abi_budget.zig"], "slice_note": "Documentation/zigux/phase6-bsearch-slice.md"},
+                    {"id": "checksum", "helper": "lib/checksum.zig", "tests": ["zigux/tests/phase6_checksum.zig", "zigux/tests/phase6_checksum_perf.zig", "zigux/tests/phase6_checksum_c_parity.zig"], "fixtures": ["zigux/tests/fixtures/phase6_checksum_vectors.zig", "zigux/tests/fixtures/phase6_checksum_c_harness.c"], "slice_note": "Documentation/zigux/phase6-checksum-slice.md", "external_parity": "scripts/zigux/check-phase6-checksum-c-parity.py"},
+                    {"id": "hexdump", "helper": "lib/hexdump.zig", "tests": ["zigux/tests/phase6_hexdump.zig", "zigux/tests/phase6_hexdump_perf.zig"], "fixtures": ["zigux/tests/fixtures/phase6_hexdump_vectors.zig"], "slice_note": "Documentation/zigux/phase6-hexdump-slice.md"},
                 ],
-                "shared_gates": [
-                    "Documentation/zigux/phase6-helper-parity-catalog.md",
-                    "Documentation/zigux/phase6-perf-gate-survey.md",
-                    "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md",
-                    "scripts/zigux/check-phase6-shared-surface.py",
-                    "zigux/Makefile",
-                ],
-                "perf_posture": {
-                    "relative_slowdown_helpers": ["base64", "checksum", "hexdump"],
-                    "comparison_budget_helpers": ["bsearch"],
-                    "timing_sanity_only_helpers": [],
-                },
-                "perf_thresholds": {
-                    "bsearch": {
-                        "lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
-                    },
-                },
-                "exact_checks": [
-                    "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
-                    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
-                    "make -C zigux phase6-validate",
-                    "make -C zigux phase6",
-                    "make -C zigux phase6-hexdump-test",
-                    "make -C zigux phase6-perf",
-                    "make -C zigux phase6-base64-perf",
-                    "make -C zigux phase6-checksum-perf",
-                    "make -C zigux phase6-hexdump-perf",
-                    "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
-                    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
-                ],
+                "shared_gates": ["Documentation/zigux/phase6-helper-parity-catalog.md", "Documentation/zigux/phase6-perf-gate-survey.md", "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md", "scripts/zigux/check-phase6-shared-surface.py", "zigux/Makefile"],
+                "perf_posture": {"relative_slowdown_helpers": ["base64", "checksum", "hexdump"], "comparison_budget_helpers": ["bsearch"], "timing_sanity_only_helpers": []},
+                "perf_thresholds": {"bsearch": {"lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1", "equality_budget_formula": "std.math.log2_int_ceil(len) + 1"}},
+                "exact_checks": ["python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test", "python3 scripts/zigux/check-phase6-base64-c-parity.py", "make -C zigux phase6-validate", "make -C zigux phase6", "make -C zigux phase6-hexdump-test", "make -C zigux phase6-perf", "make -C zigux phase6-base64-perf", "make -C zigux phase6-checksum-perf", "make -C zigux phase6-hexdump-perf", "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test", "python3 scripts/zigux/check-phase6-checksum-c-parity.py"],
                 "checksum_parity_replay": "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
-                "determinism_evidence": {
-                    "base64": {"c_parity_cases": 24},
-                    "checksum": {"c_parity_cases": 41},
-                    "generated_fixture_artifacts_committed": False,
-                },
+                "determinism_evidence": {"base64": {"c_parity_cases": 24}, "checksum": {"c_parity_cases": 41}, "generated_fixture_artifacts_committed": False},
             }
             write(root / rel_path, json.dumps(manifest, indent=2) + "\n")
             continue
-
         if rel_path == BASE64_C_PARITY_SCRIPT_PATH.as_posix():
-            lines = [
-                "EXPECTED_SORTED_LINES = sorted(",
-                "    [",
-                *[f'        "case-{index:02d}",' for index in range(1, 25)],
-                "    ]",
-                ")",
-                'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
-                "",
-            ]
+            lines = ["EXPECTED_SORTED_LINES = sorted(", "    [", *[f'        \"case-{index:02d}\",' for index in range(1, 25)], "    ]", ")", 'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")', ""]
             write(root / rel_path, "\n".join(lines))
             continue
-
         if rel_path == CHECKSUM_C_PARITY_SCRIPT_PATH.as_posix():
-            lines = [
-                "EXPECTED_SORTED_LINES = sorted(",
-                "    [",
-                *[f'        "case-{index:02d}",' for index in range(1, 42)],
-                "    ]",
-                ")",
-                'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")',
-                "",
-            ]
+            lines = ["EXPECTED_SORTED_LINES = sorted(", "    [", *[f'        \"case-{index:02d}\",' for index in range(1, 42)], "    ]", ")", 'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")', ""]
             write(root / rel_path, "\n".join(lines))
             continue
-
         lines = list(dict.fromkeys(snippets))
         for marker, expected in EXACT_OCCURRENCE_MARKERS.get(rel_path, []):
             lines.extend([marker] * expected)
         write(root / rel_path, "\n".join(lines) + "\n")
-
     checksum_script = root / CHECKSUM_C_PARITY_SCRIPT_PATH
     if not checksum_script.exists():
-        lines = [
-            "EXPECTED_SORTED_LINES = sorted(",
-            "    [",
-            *[f'        "case-{index:02d}",' for index in range(1, 42)],
-            "    ]",
-            ")",
-            'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")',
-            "",
-        ]
+        lines = ["EXPECTED_SORTED_LINES = sorted(", "    [", *[f'        \"case-{index:02d}\",' for index in range(1, 42)], "    ]", ")", 'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")', ""]
         write(checksum_script, "\n".join(lines))
-
 
 def assert_failure(root: Path, rel_path: str, old: str, new: str) -> None:
     path = root / rel_path
@@ -526,13 +381,11 @@ def assert_failure(root: Path, rel_path: str, old: str, new: str) -> None:
         raise AssertionError(f"expected failure for {rel_path}")
     path.write_text(original, encoding="utf-8")
 
-
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         scaffold_repo(root)
         run_checks(root)
-
         removed_path = root / REMOVED_PATHS[0]
         write(removed_path, "stale\n")
         try:
@@ -543,55 +396,25 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected removed-path failure")
         removed_path.unlink()
-
-        assert_failure(
-            root,
-            "Documentation/zigux/phase6-helper-parity-catalog.md",
-            "- surveyed head: `911470d`",
-            "- surveyed head: `deadbeef`",
-        )
-        assert_failure(
-            root,
-            "zigux/tests/phase6_helper_parity_manifest.json",
-            '"surveyed_commit": "911470d",',
-            '"surveyed_commit": "",',
-        )
-        assert_failure(
-            root,
-            "scripts/zigux/check-phase6-base64-c-parity.py",
-            'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
-            'print(f"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}")',
-        )
-        assert_failure(
-            root,
-            "scripts/zigux/check-phase6-checksum-c-parity.py",
-            'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")',
-            'print(f"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}")',
-        )
-        assert_failure(
-            root,
-            "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
-            "try std.testing.expect(raw_c_compare_calls <= budget);",
-            "try std.testing.expect(raw_c_compare_calls <= budget + 1);",
-        )
-
+        assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- surveyed head: `911470d`", "- surveyed head: `deadbeef`")
+        assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"surveyed_commit": "911470d",', '"surveyed_commit": "",')
+        assert_failure(root, "scripts/zigux/check-phase6-base64-c-parity.py", 'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")', 'print(f"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}")')
+        assert_failure(root, "scripts/zigux/check-phase6-checksum-c-parity.py", 'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")', 'print(f"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}")')
+        assert_failure(root, "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig", "try std.testing.expect(raw_c_compare_calls <= budget);", "try std.testing.expect(raw_c_compare_calls <= budget + 1);")
+        assert_failure(root, "zigux/tests/phase6_build.zig", '.name = "phase6-bsearch-c-abi-budget-tests"', '.name = "phase6-bsearch-c-abi-tests"')
     print("self-test passed")
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", default=".", help="Path to the Zigux repository root")
     parser.add_argument("--self-test", action="store_true", help="Run built-in checks")
     args = parser.parse_args()
-
     if args.self_test:
         run_self_test()
         return 0
-
     run_checks(Path(args.repo_root).resolve())
     print("Phase 6 shared surface looks aligned.")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
