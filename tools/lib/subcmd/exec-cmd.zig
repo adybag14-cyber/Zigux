@@ -1155,7 +1155,7 @@ test "setupPath drops a cleared argv0 path instead of reusing a stale PATH contr
 test "setupPath preserves the C helper's logical PWD alias when PATH entries are relative" {
     const linux = std.os.linux;
     var root_buf: [std.posix.PATH_MAX]u8 = undefined;
-    const root = try std.fmt.bufPrintZ(&root_buf, "/tmp/zigux-p8-l02-{d}", .{linux.getpid()});
+    const root = try std.fmt.bufPrintZ(&root_buf, "/tmp/zigux-p8-l04-setup-path-pwd-{d}", .{linux.getpid()});
     try std.testing.expectEqual(.SUCCESS, linux.errno(linux.mkdirat(linux.AT.FDCWD, root, 0o755)));
     defer _ = linux.rmdir(root);
 
@@ -1271,7 +1271,7 @@ test "sameLocationFromStatx mirrors the C helper by ignoring mount-id drift" {
 test "sameLocation and choosePwdCwdFromFilesystem honor logical PWD aliases" {
     const linux = std.os.linux;
     var root_buf: [std.posix.PATH_MAX]u8 = undefined;
-    const root = try std.fmt.bufPrintZ(&root_buf, "/tmp/zigux-p8-l06-{d}", .{linux.getpid()});
+    const root = try std.fmt.bufPrintZ(&root_buf, "/tmp/zigux-p8-l04-same-location-{d}", .{linux.getpid()});
     try std.testing.expectEqual(.SUCCESS, linux.errno(linux.mkdirat(linux.AT.FDCWD, root, 0o755)));
     defer _ = linux.rmdir(root);
 
