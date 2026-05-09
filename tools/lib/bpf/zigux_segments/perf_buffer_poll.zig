@@ -582,6 +582,20 @@ pub fn resolvePollExecutionResult(execution: PollExecutionSummary) PollError!Pol
     };
 }
 
+pub fn summarizePollExecutionResult(
+    timeout_ms: i32,
+    observation: WaitObservation,
+    buffers: []const BufferObservation,
+    process_observations: []const ProcessRecordObservation,
+) PollError!PollExecutionResult {
+    return resolvePollExecutionResult(try summarizePollExecution(
+        timeout_ms,
+        observation,
+        buffers,
+        process_observations,
+    ));
+}
+
 pub fn resolvePollExecutionResultFromWaitResult(
     timeout_ms: i32,
     wait_result: i32,
@@ -602,9 +616,9 @@ pub fn summarizePollExecutionResultFromWaitResult(
     buffers: []const BufferObservation,
     process_observations: []const ProcessRecordObservation,
 ) PollError!PollExecutionResult {
-    return resolvePollExecutionResultFromWaitResult(
+    return summarizePollExecutionResult(
         timeout_ms,
-        wait_result,
+        classifyObservedWaitResult(wait_result),
         buffers,
         process_observations,
     );
@@ -1021,6 +1035,26 @@ test "resolvePollExecutionResult keeps perf_buffer__poll return-path choices exp
     const failed_result = try resolvePollExecutionResult(failed_execution);
     try std.testing.expectEqual(PollReturnDisposition.processing_error, failed_result.disposition);
     try std.testing.expectEqual(@as(i32, -11), failed_result.return_value);
+}
+
+test "summarizePollExecutionResult keeps observation-based return-path choices explicit" {
+    const successful_result = try summarizePollExecutionResult(12, .{ .ready_events = 2 }, &.{
+        .{ .ready = true },
+        .{ .ready = true },
+        .{ .error_code = -32 },
+    }, &.{
+        .{ .records_processed = 4 },
+        .{ .records_processed = 2 },
+    });
+    try std.testing.expectEqual(PollReturnDisposition.ready_count, successful_result.disposition);
+    try std.testing.expectEqual(@as(i32, 2), successful_result.return_value);
+
+    const interrupted_result = try summarizePollExecutionResult(-1, .interrupted, &.{}, &.{});
+    try std.testing.expectEqual(PollReturnDisposition.interrupted_error, interrupted_result.disposition);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INTR)),
+        interrupted_result.return_value,
+    );
 }
 
 test "summarizePollExecutionResultFromWaitResult keeps ready-count versus first-processing-failure return rules explicit" {
