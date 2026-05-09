@@ -148,6 +148,37 @@ pub const OwnershipMatrixSummary = struct {
     rows: [4]OwnershipMatrixRow,
 };
 
+pub const LifecycleMatrixPath = enum {
+    claimed_ready_path,
+    conflicting_handler_path,
+    failed_registration_path,
+    not_system_power_controller_path,
+};
+
+pub const LifecycleMatrixRow = struct {
+    anchor: []const u8,
+    path: LifecycleMatrixPath,
+    system_power_controller: bool,
+    pm_base_available: bool,
+    drvdata_ready: bool,
+    poweroff_handler_present_before_probe: bool,
+    registration_succeeded: bool,
+    register_device_requested: bool,
+    probe_error_returned: bool,
+    poweroff_handler_claimed: bool,
+    poweroff_handler_owned_by_driver: bool,
+    poweroff_path_ready: bool,
+    halt_partition_requested: bool,
+    restart_armed: bool,
+    clear_poweroff_handler_requested: bool,
+    poweroff_handler_left_in_place: bool,
+};
+
+pub const LifecycleMatrixSummary = struct {
+    anchor: []const u8,
+    rows: [4]LifecycleMatrixRow,
+};
+
 pub const RuntimeSnapshot = struct {
     anchor: []const u8,
     running: bool,
@@ -363,6 +394,18 @@ pub const Bcm2835WatchdogLab = struct {
         };
     }
 
+    pub fn lifecycleMatrixSummary(self: *const Self) LifecycleMatrixSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .rows = .{
+                self.lifecycleMatrixRow(.claimed_ready_path, true, true, false, true),
+                self.lifecycleMatrixRow(.conflicting_handler_path, true, true, true, true),
+                self.lifecycleMatrixRow(.failed_registration_path, true, false, false, false),
+                self.lifecycleMatrixRow(.not_system_power_controller_path, false, false, false, true),
+            },
+        };
+    }
+
     fn ownershipMatrixRow(
         self: *const Self,
         path: OwnershipMatrixPath,
@@ -394,6 +437,51 @@ pub const Bcm2835WatchdogLab = struct {
             .registration_succeeded = registration.registration_succeeded,
             .probe_error_returned = registration.probe_error_returned,
             .poweroff_handler_present_after_probe = registration.poweroff_handler_present_after_probe,
+            .poweroff_handler_claimed = registration.poweroff_handler_claimed,
+            .poweroff_handler_owned_by_driver = registration.poweroff_handler_owned_by_driver,
+            .poweroff_path_ready = poweroff.poweroff_path_ready,
+            .halt_partition_requested = poweroff.halt_partition_requested,
+            .restart_armed = poweroff.restart_armed,
+            .clear_poweroff_handler_requested = remove.clear_poweroff_handler_requested,
+            .poweroff_handler_left_in_place = remove.poweroff_handler_left_in_place,
+        };
+    }
+
+    fn lifecycleMatrixRow(
+        self: *const Self,
+        path: LifecycleMatrixPath,
+        system_power_controller: bool,
+        pm_base_available: bool,
+        poweroff_handler_present: bool,
+        registration_succeeded: bool,
+    ) LifecycleMatrixRow {
+        const platform = self.platformHandoffSummary(system_power_controller, pm_base_available);
+        const registration = self.registrationOutcomeSummary(
+            system_power_controller,
+            poweroff_handler_present,
+            registration_succeeded,
+        );
+        const poweroff = self.poweroffSummary(
+            registration.system_power_controller,
+            registration.poweroff_handler_present_after_probe,
+            registration.poweroff_handler_owned_by_driver,
+        );
+        const remove = self.removeSummary(
+            registration.system_power_controller,
+            registration.poweroff_handler_present_after_probe,
+            registration.poweroff_handler_owned_by_driver,
+        );
+
+        return .{
+            .anchor = descriptor().anchor,
+            .path = path,
+            .system_power_controller = platform.system_power_controller,
+            .pm_base_available = platform.pm_base_available,
+            .drvdata_ready = platform.drvdata_ready,
+            .poweroff_handler_present_before_probe = poweroff_handler_present,
+            .registration_succeeded = registration.registration_succeeded,
+            .register_device_requested = platform.register_device_requested,
+            .probe_error_returned = registration.probe_error_returned,
             .poweroff_handler_claimed = registration.poweroff_handler_claimed,
             .poweroff_handler_owned_by_driver = registration.poweroff_handler_owned_by_driver,
             .poweroff_path_ready = poweroff.poweroff_path_ready,
@@ -575,6 +663,81 @@ test "ownership matrix keeps registration poweroff and teardown outcomes aligned
     try std.testing.expect(!not_controller.probe_error_returned);
     try std.testing.expect(!not_controller.poweroff_handler_present_before_probe);
     try std.testing.expect(!not_controller.poweroff_handler_present_after_probe);
+    try std.testing.expect(!not_controller.poweroff_handler_claimed);
+    try std.testing.expect(!not_controller.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!not_controller.poweroff_path_ready);
+    try std.testing.expect(!not_controller.halt_partition_requested);
+    try std.testing.expect(!not_controller.restart_armed);
+    try std.testing.expect(!not_controller.clear_poweroff_handler_requested);
+    try std.testing.expect(!not_controller.poweroff_handler_left_in_place);
+}
+
+test "lifecycle matrix keeps platform handoff poweroff and remove decisions aligned" {
+    const lab = try Bcm2835WatchdogLab.init(8);
+    const matrix = lab.lifecycleMatrixSummary();
+
+    try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", matrix.anchor);
+
+    const claimed = matrix.rows[0];
+    try std.testing.expectEqual(LifecycleMatrixPath.claimed_ready_path, claimed.path);
+    try std.testing.expect(claimed.system_power_controller);
+    try std.testing.expect(claimed.pm_base_available);
+    try std.testing.expect(claimed.drvdata_ready);
+    try std.testing.expect(!claimed.poweroff_handler_present_before_probe);
+    try std.testing.expect(claimed.registration_succeeded);
+    try std.testing.expect(claimed.register_device_requested);
+    try std.testing.expect(!claimed.probe_error_returned);
+    try std.testing.expect(claimed.poweroff_handler_claimed);
+    try std.testing.expect(claimed.poweroff_handler_owned_by_driver);
+    try std.testing.expect(claimed.poweroff_path_ready);
+    try std.testing.expect(claimed.halt_partition_requested);
+    try std.testing.expect(claimed.restart_armed);
+    try std.testing.expect(claimed.clear_poweroff_handler_requested);
+    try std.testing.expect(!claimed.poweroff_handler_left_in_place);
+
+    const conflict = matrix.rows[1];
+    try std.testing.expectEqual(LifecycleMatrixPath.conflicting_handler_path, conflict.path);
+    try std.testing.expect(conflict.system_power_controller);
+    try std.testing.expect(conflict.pm_base_available);
+    try std.testing.expect(conflict.drvdata_ready);
+    try std.testing.expect(conflict.poweroff_handler_present_before_probe);
+    try std.testing.expect(conflict.registration_succeeded);
+    try std.testing.expect(conflict.register_device_requested);
+    try std.testing.expect(!conflict.probe_error_returned);
+    try std.testing.expect(!conflict.poweroff_handler_claimed);
+    try std.testing.expect(!conflict.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!conflict.poweroff_path_ready);
+    try std.testing.expect(!conflict.halt_partition_requested);
+    try std.testing.expect(!conflict.restart_armed);
+    try std.testing.expect(!conflict.clear_poweroff_handler_requested);
+    try std.testing.expect(conflict.poweroff_handler_left_in_place);
+
+    const failed = matrix.rows[2];
+    try std.testing.expectEqual(LifecycleMatrixPath.failed_registration_path, failed.path);
+    try std.testing.expect(failed.system_power_controller);
+    try std.testing.expect(!failed.pm_base_available);
+    try std.testing.expect(!failed.drvdata_ready);
+    try std.testing.expect(!failed.poweroff_handler_present_before_probe);
+    try std.testing.expect(!failed.registration_succeeded);
+    try std.testing.expect(failed.register_device_requested);
+    try std.testing.expect(failed.probe_error_returned);
+    try std.testing.expect(!failed.poweroff_handler_claimed);
+    try std.testing.expect(!failed.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!failed.poweroff_path_ready);
+    try std.testing.expect(!failed.halt_partition_requested);
+    try std.testing.expect(!failed.restart_armed);
+    try std.testing.expect(!failed.clear_poweroff_handler_requested);
+    try std.testing.expect(!failed.poweroff_handler_left_in_place);
+
+    const not_controller = matrix.rows[3];
+    try std.testing.expectEqual(LifecycleMatrixPath.not_system_power_controller_path, not_controller.path);
+    try std.testing.expect(!not_controller.system_power_controller);
+    try std.testing.expect(!not_controller.pm_base_available);
+    try std.testing.expect(!not_controller.drvdata_ready);
+    try std.testing.expect(!not_controller.poweroff_handler_present_before_probe);
+    try std.testing.expect(not_controller.registration_succeeded);
+    try std.testing.expect(not_controller.register_device_requested);
+    try std.testing.expect(!not_controller.probe_error_returned);
     try std.testing.expect(!not_controller.poweroff_handler_claimed);
     try std.testing.expect(!not_controller.poweroff_handler_owned_by_driver);
     try std.testing.expect(!not_controller.poweroff_path_ready);
