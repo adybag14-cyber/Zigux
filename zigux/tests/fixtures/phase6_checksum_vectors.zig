@@ -66,6 +66,14 @@ pub const Sub16Case = struct {
     expected: u16,
 };
 
+pub const KunitRandomPrefixCase = struct {
+    name: []const u8,
+    bytes: []const u8,
+    seed: u32,
+    expected_partial: u32,
+    expected_compute: u16,
+};
+
 pub const PerfCase = struct {
     label: []const u8,
     bytes: []const u8,
@@ -108,6 +116,33 @@ fn perfPayloadFingerprint(bytes: []const u8) u64 {
         acc *%= 0x0000_0100_0000_01b3;
     }
     return acc;
+}
+
+fn foldCarry(sum: u32) u32 {
+    var acc = sum;
+    while ((acc >> 16) != 0) {
+        acc = (acc & 0xffff) + (acc >> 16);
+    }
+    return acc;
+}
+
+fn referencePartial(bytes: []const u8, seed: u32) u32 {
+    var acc: u32 = seed;
+    var index: usize = 0;
+    while (index + 1 < bytes.len) : (index += 2) {
+        const pair: *const [2]u8 = @ptrCast(bytes[index .. index + 2]);
+        acc +%= std.mem.readInt(u16, pair, .big);
+        acc = foldCarry(acc);
+    }
+    if (index < bytes.len) {
+        acc +%= @as(u16, bytes[index]) << 8;
+        acc = foldCarry(acc);
+    }
+    return acc;
+}
+
+fn referenceFoldedChecksum(bytes: []const u8, seed: u32) u16 {
+    return ~@as(u16, @truncate(referencePartial(bytes, seed)));
 }
 
 const payload_64 = makePatternedPayload(64, 0x31);
@@ -226,6 +261,51 @@ pub const carry_discipline_cases = [_]CarryDisciplineCase{
     },
 };
 
+pub const kunit_random_prefix_cases = [_]KunitRandomPrefixCase{
+    .{
+        .name = "all-ones prefix random odd",
+        .bytes = &.{ 0xff, 0x70, 0x68, 0x61, 0x73 },
+        .seed = 0x0000_0000,
+        .expected_partial = 0xdad2,
+        .expected_compute = 0x252d,
+    },
+    .{
+        .name = "all-ones prefix carry-heavy odd",
+        .bytes = &.{ 0xff, 0xff, 0x65, 0x36, 0xaa },
+        .seed = 0x0000_0000,
+        .expected_partial = 0x0f37,
+        .expected_compute = 0xf0c8,
+    },
+    .{
+        .name = "triple all-ones prefix random even",
+        .bytes = &.{ 0xff, 0xff, 0xff, 0x12, 0x34, 0x56, 0x78 },
+        .seed = 0x0000_0000,
+        .expected_partial = 0xab69,
+        .expected_compute = 0x5496,
+    },
+    .{
+        .name = "no-carry seeded random odd",
+        .bytes = &.{ 0x04, 0x70, 0x68, 0x61, 0x73 },
+        .seed = 0xffff_fbfb,
+        .expected_partial = 0xdbcc,
+        .expected_compute = 0x2433,
+    },
+    .{
+        .name = "no-carry seeded pair",
+        .bytes = &.{ 0x04, 0x04, 0x04, 0x31, 0x73 },
+        .seed = 0xffff_f7f7,
+        .expected_partial = 0x732d,
+        .expected_compute = 0x8cd2,
+    },
+    .{
+        .name = "no-carry seeded even random",
+        .bytes = &.{ 0x04, 0x04, 0x12, 0x34, 0x56, 0x78 },
+        .seed = 0xffff_f3f3,
+        .expected_partial = 0x60a4,
+        .expected_compute = 0x9f5b,
+    },
+};
+
 pub const negate_cases = [_]NegateCase{
     .{
         .name = "zero stays zero",
@@ -290,6 +370,17 @@ pub const perf_cases = [_]PerfCase{
         .fingerprint = 0x457f_efb1_ea64_3164,
     },
 };
+
+test "phase 6 checksum fixture packet keeps the KUnit random-prefix cases explicit" {
+    try std.testing.expectEqual(@as(usize, 6), kunit_random_prefix_cases.len);
+    try std.testing.expectEqualStrings("all-ones prefix random odd", kunit_random_prefix_cases[0].name);
+    try std.testing.expectEqualStrings("no-carry seeded even random", kunit_random_prefix_cases[kunit_random_prefix_cases.len - 1].name);
+
+    for (kunit_random_prefix_cases) |case| {
+        try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
+        try std.testing.expectEqual(case.expected_compute, referenceFoldedChecksum(case.bytes, case.seed));
+    }
+}
 
 test "phase 6 checksum perf fixture packet stays bounded to the documented matrix" {
     const expected = [_]struct {
