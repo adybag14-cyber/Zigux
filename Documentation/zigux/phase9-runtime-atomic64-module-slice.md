@@ -41,7 +41,7 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 - ownership split: `samples/zigux/runtime_atomic64_loader.zig` stays inside the atomic64 pilot packet even when it replays the shared `zigux/kernel/runtime_loader.zig` facade and `zigux/kernel/runtime_loader_contract.zig`; the facade and contract remain shared-loader-lane evidence rather than atomic64-owned substrate closure
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` now keeps that split explicit as the shared owner map, so this atomic64 starter stays in the pilot-family lane while the reusable loader facade, allocator/init-flow replay, and build-only surface checker remain shared-lane evidence
 - the shared `zigux/kernel/runtime_loader.zig` facade stays a review-only Phase 9 handoff packet under the freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary, so the starter keeps the shared request path explicit without implying scheduler-facing substrate closure or a freeze-map status change
-- dedicated Phase 9 tests, the runtime atomic64 survey note and survey gate, the focused `zig build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig` replay, the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade plus allocator/init-flow contract packet, and the matching `make -C zigux phase9-runtime-atomic64-test` plus `make -C zigux phase9` routes
+- dedicated Phase 9 tests, the runtime atomic64 survey note and survey gate, the focused `zig build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig` replay, the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade plus allocator/init-flow contract packet, and the matching `make -C zigux phase9-runtime-loader-shared-tests`, `make -C zigux phase9-runtime-atomic64-test`, and `make -C zigux phase9` routes
 
 ## Roadmap gap vs current pilot
 
@@ -66,13 +66,16 @@ This slice does not yet claim:
 2. run the focused shared runtime-loader shard
 - `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
 
-3. run the dedicated Phase 9 build
+3. run the focused shared runtime-loader convenience target
+- `make -C zigux phase9-runtime-loader-shared-tests`
+
+4. run the dedicated Phase 9 build
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-4. run the focused convenience target
+5. run the focused convenience target
 - `make -C zigux phase9-runtime-atomic64-test`
 
-5. run the bundled convenience target
+6. run the bundled convenience target
 - `make -C zigux phase9`
 
 ## Next bounded step
