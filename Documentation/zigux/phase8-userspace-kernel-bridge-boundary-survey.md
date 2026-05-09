@@ -10,7 +10,6 @@ This document records the bounded Phase 8 userspace-adjacent tooling boundary ar
 - product boundary:
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
-  - `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
   - `zigux/tests/phase8_file_path_handle_bridge.zig`
   - `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
   - `zigux/tests/phase8_help_kallsyms_only_build.zig`
@@ -46,7 +45,7 @@ The currently landed bridge-side helper remains intentionally small:
 - `zigux/tests/phase8_help_kallsyms_only_build.zig` keeps the already-parked stable-output help-and-kallsyms shard visible beside the bridge-side helper family so the shared Phase 8 survey still points back to that command-and-symbol review surface without recasting it as active-by-default libbpf work
 - `zigux/tests/phase8_libbpf_segments.zig` plus `zigux/tests/phase8_libbpf_segments_only_build.zig` keep the shared libbpf segment-survey shard visible beside the bridge-side helper family so the parked bridge note still points at the wider helper-bundle replay surface already carried by `Documentation/zigux/phase8-libbpf-segment-survey.md`
 - the adjacent `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` packet keeps bounded `perf_buffer__poll(timeout_ms)` wait-result classification, poll waits, ready-buffer bookkeeping, explicit `perf_buffer__buffer_fd(buf_idx)` and `perf_buffer__buffer(buf_idx)` slot lookup plus errno-shaped return shaping, and ordered record-processing summaries reviewable without claiming live epoll wiring, per-CPU setup, mmap-backed ring ownership, or standalone timer or clockevent helper behavior
-- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py` keeps the adjacent perf-buffer poll note, focused replay route, tests-root reminder, and shared lane wording fail-closed around that bounded poll packet instead of leaving the dedicated review surface implicit beside the broader validator-first Phase 8 route
+- the shared `make -C zigux phase8-validate` route plus the focused `make -C zigux phase8-perf-buffer-poll-test` shard keep the adjacent perf-buffer poll note, focused replay route, tests-root reminder, and shared lane wording explicit around that bounded poll packet instead of leaving the dedicated review surface implicit beside the broader validator-first Phase 8 route
 - the helper family stays smaller than direct procfs reads, pinned-object reopen flow, token creation, descriptor lifecycle behavior, and the still-deferred `perf_buffer__new()` online-CPU routing packet
 
 ## Boundary findings
@@ -72,26 +71,23 @@ The current packet is productively landed, but the remaining bridge-facing work 
 3. run the shared Phase 8 validator
 - `python3 scripts/zigux/validate-phase8.py`
 
-4. run the dedicated Phase 8 perf-buffer poll gate
-- `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
-
-5. run the focused shared help and symbol wrapper
+4. run the focused shared help and symbol wrapper
 - `make -C zigux phase8-help-kallsyms-test`
 - `zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all`
 
-6. run the focused shared libbpf segment-survey wrapper
+5. run the focused shared libbpf segment-survey wrapper
 - `make -C zigux phase8-libbpf-segments-test`
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
 
-7. run the focused file-path bridge wrapper
+6. run the focused file-path bridge wrapper
 - `make -C zigux phase8-file-path-handle-bridge-test`
 - `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`
 
-8. run the focused perf-buffer poll wrapper
+7. run the focused perf-buffer poll wrapper
 - `make -C zigux phase8-perf-buffer-poll-test`
 - `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
 
-9. run the shared Phase 8 replay
+8. run the shared Phase 8 replay
 - `make -C zigux phase8-test`
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 - `make -C zigux phase8`
@@ -114,4 +110,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-Keep this survey parked beside the landed file-path-plus-fdinfo helper packet, the explicit fdinfo-to-observation handoff, the planning-only reopen gate, the planning-only token-preparation gate, the dedicated `scripts/zigux/check-phase8-perf-buffer-poll-gate.py` review surface, the shared stable-output help-and-kallsyms shard, the shared libbpf segment-survey shard, and the adjacent bounded poll helper until one adjacent bridge step is ready to move as a single bounded review surface. Keep the shared `make -C zigux phase8-validate` route, the dedicated poll gate, and the focused `make -C zigux phase8-libbpf-segments-test` shard explicit in that parked boundary so validator-first review stays ahead of the bridge-side replay, keep the Phase 8 roadmap ownership pinned to `tools/lib/bpf/libbpf.c` plus `tools/lib/bpf/zigux_segments/`, and keep the deferred `perf-buffer-online-cpu-routing` packet explicitly parked beside the current helper family so the file-path bridge note does not accidentally over-claim libbpf parity or absorb the separate command-boundary packet. The next honest reopen remains the smallest helper-first packet that can connect the current file-path and fdinfo note, the planning-only reopen gate, and the planning-only token-preparation gate to actual reopen handling without widening into direct procfs reads, bpffs opens, loader-facing libbpf work, live interrupt-routing behavior, or the parked `exec-cmd` and `help` tooling slices.
+Keep this survey parked beside the landed file-path-plus-fdinfo helper packet, the explicit fdinfo-to-observation handoff, the planning-only reopen gate, the planning-only token-preparation gate, the shared stable-output help-and-kallsyms shard, the shared libbpf segment-survey shard, and the adjacent bounded poll helper until one adjacent bridge step is ready to move as a single bounded review surface. Keep the shared `make -C zigux phase8-validate` route and the focused `make -C zigux phase8-perf-buffer-poll-test` shard explicit in that parked boundary so validator-first review stays ahead of the bridge-side replay, keep the Phase 8 roadmap ownership pinned to `tools/lib/bpf/libbpf.c` plus `tools/lib/bpf/zigux_segments/`, and keep the deferred `perf-buffer-online-cpu-routing` packet explicitly parked beside the current helper family so the file-path bridge note does not accidentally over-claim libbpf parity or absorb the separate command-boundary packet. The next honest reopen remains the smallest helper-first packet that can connect the current file-path and fdinfo note, the planning-only reopen gate, and the planning-only token-preparation gate to actual reopen handling without widening into direct procfs reads, bpffs opens, loader-facing libbpf work, live interrupt-routing behavior, or the parked `exec-cmd` and `help` tooling slices.
