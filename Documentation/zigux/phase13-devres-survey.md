@@ -29,15 +29,15 @@ The live Zigux tree is no longer survey-only here. It already carries a helper-f
 
 ## Survey findings
 
-- `lib/devres.zig` already models the starter `__devm_ioremap()` lifetime split between retained release records and free-on-failure cleanup, keeps `devm_iounmap()` pointer matching exact, and now exposes direct `devm_ioremap_uc()`, `devm_ioremap_wc()`, and `devm_ioremap_np()`-style wrappers as pure uncached, write-combined, and non-posted lifetime-planning steps.
+- `lib/devres.zig` already models the starter `__devm_ioremap()` lifetime split between retained release records and free-on-failure cleanup, keeps `devm_iounmap()` and `devm_ioport_unmap()` pointer matching exact, and now exposes direct `devm_ioremap_uc()`, `devm_ioremap_wc()`, and `devm_ioremap_np()`-style wrappers as pure uncached, write-combined, and non-posted lifetime-planning steps.
 - the current helper lab also carries a pure `__devm_ioremap_resource()` planner that checks memory-backed resources, computes inclusive size, preserves requested mapping types, records busy-region and remap-failure shaping without claiming live side effects, and keeps the `devm_ioremap_resource_wc()` route explicit when callers need a write-combined managed-resource wrapper.
 - the landed `devm_of_iomap()` planner stays bounded to translated-resource selection by index, optional size reporting, and handoff into the existing managed-resource planner instead of pretending to walk a live device tree.
 - the adjacent `devm_arch_io_reserve_memtype_wc()` planner already records detach-time cleanup intent for WC reservations while keeping live arch memtype mutation out of scope.
 - the matching `devm_arch_phys_wc_add()` token planner now records retained removal tokens on success and frees release records on negative token returns while keeping `arch_phys_wc_del()` reviewable and out of live side-effect territory.
 - the dedicated `zigux/tests/phase13_devres_dma_coherent.zig` replay now keeps the broader survey packet honest by proving that the manifest summary still records the shipped devres test, reviewability gate, and survey note while the packet itself still blocks live DMA-backed helpers and live scatterlist ownership.
 - the dedicated `zigux/tests/phase13_devres_boundary_evidence.zig` gate now cross-checks exact boundary evidence across the manifest, slice note, and survey note so the blocked `dmam_alloc_*`, `dma_map_sgtable()`, `struct scatterlist`, and `sg_table lifecycle` families remain explicit and aligned.
-- the shared Phase 13 build and make target already replay the devres packet, so the remaining lane-local gap is not new helper behavior first. It is keeping the helper-only DMA/scatterlist boundary and the already-landed uncached, WC, and non-posted wrapper surface explicit and machine-checkable wherever the survey packet records current Phase 13 evidence.
-- exact boundary evidence on current `master`: `lib/devres.zig` still exposes no `dmam_alloc_*`, `dma_map_*`, `dma_unmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `sg_table`, or `sg_*` ownership surface; the shipped planner set still stops at helper-first ioremap, translated-resource, and WC memtype bookkeeping.
+- the shared Phase 13 build and make target already replay the devres packet, so the remaining lane-local gap is not new helper behavior first. It is keeping the helper-only DMA/scatterlist boundary, the exact `devm_iounmap()` and `devm_ioport_unmap()` release matching, and the already-landed uncached, WC, and non-posted wrapper surface explicit and machine-checkable wherever the survey packet records current Phase 13 evidence.
+- exact boundary evidence on current `master`: `lib/devres.zig` still exposes no `dmam_alloc_*`, `dma_map_*`, `dma_unmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `sg_table`, or `sg_*` ownership surface; the shipped planner set still stops at helper-first ioremap, ioport release matching, translated-resource, and WC memtype bookkeeping.
 
 ## Recorded gaps
 
@@ -62,7 +62,7 @@ The current lane state is:
 - blocked `phase13-devres-live-device-tree-walk`
 - blocked `phase13-devres-live-arch-memtype-state`
 
-This keeps the lane explicit without overstating progress: Zigux has a real helper-first devres foothold for managed resource planning, detach-time bookkeeping, one explicit uncached wrapper, one explicit direct WC wrapper, one explicit direct non-posted wrapper, one explicit WC resource wrapper, one dedicated coherent-DMA boundary replay, and one dedicated boundary-evidence gate, but it still does not claim live MMIO side effects, live DMA-backed helpers, live scatter-gather ownership, live device-tree walking, or live arch memtype state transitions.
+This keeps the lane explicit without overstating progress: Zigux has a real helper-first devres foothold for managed resource planning, detach-time bookkeeping, exact `devm_iounmap()` and `devm_ioport_unmap()` release matching, one explicit uncached wrapper, one explicit direct WC wrapper, one explicit direct non-posted wrapper, one explicit WC resource wrapper, one dedicated coherent-DMA boundary replay, and one dedicated boundary-evidence gate, but it still does not claim live MMIO side effects, live DMA-backed helpers, live scatter-gather ownership, live device-tree walking, or live arch memtype state transitions.
 
 ## Non-goals
 
