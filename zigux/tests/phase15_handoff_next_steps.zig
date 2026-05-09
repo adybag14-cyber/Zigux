@@ -21,6 +21,8 @@ const RepoEvidence = struct {
     governance_lane_sequencing_replay_present: bool,
     lane_key_matches_phase15_lane_map: bool,
     paired_parity_scorecard_blocker_posture_matches: bool,
+    paired_parity_scorecard_lane_key_explicit: bool,
+    paired_readiness_lane_key_explicit: bool,
     deep_core_status_change_ready: bool,
 };
 
@@ -37,8 +39,11 @@ const Manifest = struct {
     phase: []const u8,
     surveyed_commit: []const u8,
     cross_packet_truthfulness_mode: []const u8,
+    paired_lane_identity_alignment: []const u8,
     paired_parity_scorecard_exact_head_matches: bool,
     paired_parity_scorecard_provenance_marker: []const u8,
+    paired_parity_scorecard_lane_key: []const u8,
+    paired_readiness_lane_key: []const u8,
     paired_parity_scorecard_exact_head_fallback_reason: []const u8,
     roadmap_phase_title: []const u8,
     roadmap_requirements: []const []const u8,
@@ -69,8 +74,11 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-09", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback_same_marker_alignment", manifest.cross_packet_truthfulness_mode);
+    try std.testing.expectEqualStrings("scorecard_and_readiness_lane_keys_explicit", manifest.paired_lane_identity_alignment);
     try std.testing.expect(!manifest.paired_parity_scorecard_exact_head_matches);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-09", manifest.paired_parity_scorecard_provenance_marker);
+    try std.testing.expectEqualStrings("P15-L12", manifest.paired_parity_scorecard_lane_key);
+    try std.testing.expectEqualStrings("P15-L01", manifest.paired_readiness_lane_key);
     try std.testing.expect(std.mem.indexOf(u8, manifest.paired_parity_scorecard_exact_head_fallback_reason, manifest.paired_parity_scorecard_provenance_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.paired_parity_scorecard_exact_head_fallback_reason, manifest.surveyed_commit) != null);
     try std.testing.expectEqualStrings("This handoff packet was refreshed against current-master-readback-2026-05-09 and the paired parity scorecard now records the same dated master readback marker current-master-readback-2026-05-09, so the parked governance packet keeps same-marker dated-readback truthfulness explicit without implying exact-head parity.", manifest.paired_parity_scorecard_exact_head_fallback_reason);
@@ -96,6 +104,8 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(manifest.repo_evidence.governance_lane_sequencing_replay_present);
     try std.testing.expect(manifest.repo_evidence.lane_key_matches_phase15_lane_map);
     try std.testing.expect(manifest.repo_evidence.paired_parity_scorecard_blocker_posture_matches);
+    try std.testing.expect(manifest.repo_evidence.paired_parity_scorecard_lane_key_explicit);
+    try std.testing.expect(manifest.repo_evidence.paired_readiness_lane_key_explicit);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
     try std.testing.expectEqual(@as(usize, 1), manifest.open_handoff_gaps.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.reopen_triggers.len);
@@ -106,6 +116,8 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "narrower_followup_answers_blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "ownership_or_validation_changed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], manifest.paired_parity_scorecard_lane_key) != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], manifest.paired_readiness_lane_key) != null);
     try std.testing.expectEqualStrings("phase15-deep-core-status-change-blocker", manifest.open_handoff_gaps[0].id);
 }
 
@@ -188,9 +200,10 @@ test "phase 15 handoff note keeps the repaired validator-first surface and remai
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_LANE_KEY=P15-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "reviewed handoff provenance refreshed against dated `master` readback marker `current-master-readback-2026-05-09` on 2026-05-09 so this dedicated handoff packet now records current master reread timing without implying exact-head parity across later maintenance commits") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "paired parity scorecard provenance marker is now `current-master-readback-2026-05-09`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "paired current scorecard owner lane is `P15-L12` and paired current readiness owner lane is `P15-L01`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "the paired current `Documentation/zigux/phase15-parity-scorecard.md` packet now records the same dated `master` readback marker `current-master-readback-2026-05-09`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "keeps same-marker dated-readback alignment explicit instead of overstating exact-head parity") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "machine-check `dated_master_readback_same_marker_alignment` as the active cross-packet truthfulness mode while exact-head provenance remains intentionally deferred for this parked governance bundle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "machine-check `dated_master_readback_same_marker_alignment` as the active cross-packet truthfulness mode and `scorecard_and_readiness_lane_keys_explicit` as the active paired-lane ownership mode") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Current Handoff Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "review checklist") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "the scripts root") != null);
@@ -205,11 +218,13 @@ test "phase 15 handoff note keeps the repaired validator-first surface and remai
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "lane identity is refreshed to `P15-L08`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "remaining blocked work is only the deep-core status-change evidence") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "matched dated-readback timing explicit beside that scorecard packet without implying exact-head parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "keeps both neighboring lane identities plus matched dated-readback timing explicit beside that scorecard packet without implying exact-head parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "parked next-bound queue now mirrors the named scorecard reopen-trigger catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "narrower_followup_answers_blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "ownership_or_validation_changed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "current parity-scorecard lane `P15-L12`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "current readiness lane `P15-L01`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_indefinite_c_blocker_evidence.zig") != null);
