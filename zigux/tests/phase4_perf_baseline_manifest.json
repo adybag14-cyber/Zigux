@@ -136,6 +136,13 @@
       "kind": "perf_threshold",
       "zigux_destination": "zigux/tests/bitmap_diff.zig",
       "why_now": "The local-only bitmap acceptable limit is now approved as a median `runThresholdReplay(4)` budget of `131072` nanoseconds across seven monotonic samples, because the attached Zig toolchain replay measured a median of `79135` nanoseconds with a worst sample of `121289`, the deterministic checksum-backed replay packet stayed stable, and the survey keeps that bound explicit without claiming shared CI perf coverage."
+    },
+    {
+      "id": "phase4-perf-baseline-shared-promotion-decision",
+      "status": "ready_next",
+      "kind": "perf_policy",
+      "zigux_destination": "Documentation/zigux/phase4-validation-matrix.md",
+      "why_now": "The dedicated survey packet now ships the approved local benchmark commands and approved local-only acceptable limits for both landed rollback gates, so the remaining bounded Phase 4 perf gap is a policy decision: keep those limits local-only or intentionally promote a broader shared CI perf-coverage claim in a later lane without widening the current validator-first packet by accident."
     }
   ]
 }
