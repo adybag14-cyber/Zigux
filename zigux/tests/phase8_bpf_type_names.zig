@@ -15,6 +15,23 @@ test "phase 8 bpf type-name segment exposes libbpf string helpers" {
     try std.testing.expectEqual(@as(?[]const u8, null), bpf_type_names.libbpfBpfLinkTypeStr(-1));
 }
 
+test "phase 8 bpf type-name segment keeps deprecated names and out-of-range bounds explicit" {
+    try std.testing.expectEqualStrings("reuseport_sockarray", bpf_type_names.libbpfBpfMapTypeStr(20).?);
+    try std.testing.expectEqualStrings("insn_array", bpf_type_names.libbpfBpfMapTypeStr(34).?);
+    try std.testing.expectEqualStrings("tracing", bpf_type_names.libbpfBpfProgTypeStr(26).?);
+
+    try std.testing.expectEqual(
+        @as(?[]const u8, null),
+        bpf_type_names.libbpfBpfMapTypeStr(@intCast(bpf_type_names.map_type_names.len)),
+    );
+    try std.testing.expectEqual(@as(?[]const u8, null), bpf_type_names.libbpfBpfMapTypeStr(-1));
+    try std.testing.expectEqual(
+        @as(?[]const u8, null),
+        bpf_type_names.libbpfBpfProgTypeStr(@intCast(bpf_type_names.prog_type_names.len)),
+    );
+    try std.testing.expectEqual(@as(?[]const u8, null), bpf_type_names.libbpfBpfProgTypeStr(-1));
+}
+
 test "phase 8 bpf type-name segment keeps the dense libbpf tables aligned with the helper surface" {
     try std.testing.expectEqual(@as(usize, 59), bpf_type_names.attach_type_names.len);
     try std.testing.expectEqual(@as(usize, 15), bpf_type_names.link_type_names.len);
