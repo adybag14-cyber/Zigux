@@ -38,9 +38,9 @@ Own:
 
 Do not use this lane to rewrite the parity scorecard, freeze-map governance packet, or Architecture Council review-process fields unless the readiness packet can no longer summarize them truthfully.
 
-### 2. Freeze-map governance lane: freeze-anchor posture only
+### 2. Freeze-map governance lane: `P15-L04` freeze-anchor posture only
 
-Use the freeze-map governance lane when the work is about the freeze set, the explicit no-approval posture, or linked blocker evidence for the frozen anchors.
+Use the freeze-map governance lane `P15-L04` when the work is about the freeze set, the explicit no-approval posture, or linked blocker evidence for the frozen anchors.
 
 Own:
 
