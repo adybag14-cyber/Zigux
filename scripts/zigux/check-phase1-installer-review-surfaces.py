@@ -208,6 +208,14 @@ def build_self_test_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
+    self_test_case_count = 0
+
+    def expect_case(issues: list[str], *expected_issues: str) -> None:
+        nonlocal self_test_case_count
+        for expected_issue in expected_issues:
+            assert expected_issue in issues
+        self_test_case_count += 1
+
     with tempfile.TemporaryDirectory(prefix="phase1_installer_review_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
@@ -215,7 +223,7 @@ def run_self_test() -> int:
 
         write_text(root / "Documentation/zigux/README.md", "")
         issues = validate_root(root)
-        assert "docs_root_phase1_installer_packet:expected=1:actual=0" in issues
+        expect_case(issues, "docs_root_phase1_installer_packet:expected=1:actual=0")
 
         build_self_test_root(root)
         write_text(
@@ -226,12 +234,12 @@ def run_self_test() -> int:
             + "\n",
         )
         issues = validate_root(root)
-        assert "docs_root_phase1_installer_packet:expected=1:actual=2" in issues
+        expect_case(issues, "docs_root_phase1_installer_packet:expected=1:actual=2")
 
         build_self_test_root(root)
         write_text(root / "scripts/zigux/README.md", "")
         issues = validate_root(root)
-        assert "scripts_readme_phase1_installer_packet:expected=1:actual=0" in issues
+        expect_case(issues, "scripts_readme_phase1_installer_packet:expected=1:actual=0")
 
         build_self_test_root(root)
         write_text(
@@ -242,12 +250,12 @@ def run_self_test() -> int:
             + "\n",
         )
         issues = validate_root(root)
-        assert "scripts_readme_phase1_installer_packet:expected=1:actual=2" in issues
+        expect_case(issues, "scripts_readme_phase1_installer_packet:expected=1:actual=2")
 
         build_self_test_root(root)
         write_text(root / "zigux/tests/README.md", "")
         issues = validate_root(root)
-        assert "tests_readme_phase1_installer_packet:expected=1:actual=0" in issues
+        expect_case(issues, "tests_readme_phase1_installer_packet:expected=1:actual=0")
 
         build_self_test_root(root)
         write_text(
@@ -258,42 +266,30 @@ def run_self_test() -> int:
             + "\n",
         )
         issues = validate_root(root)
-        assert "tests_readme_phase1_installer_packet:expected=1:actual=2" in issues
+        expect_case(issues, "tests_readme_phase1_installer_packet:expected=1:actual=2")
 
         build_self_test_root(root)
         write_text(root / "Documentation/zigux/review-checklist.md", "")
         issues = validate_root(root)
-        assert (
+        expect_case(
+            issues,
             "review_checklist_phase1_installer_packet:"
             + REVIEW_CHECKLIST_MARKERS[0]
-            + ":expected>=1:actual=0"
-            in issues
+            + ":expected>=1:actual=0",
         )
 
         build_self_test_root(root)
         write_text(root / "Documentation/zigux/phase1-closure.md", "")
         issues = validate_root(root)
-        assert "phase1_closure_installer_checker_anchor:expected=1:actual=0" in issues
-        assert "phase1_closure_installer_packet:- `scripts/zigux/install-zig.py`:expected>=1:actual=0" in issues
-        assert (
-            "phase1_closure_installer_packet:- `python3 scripts/zigux/install-zig.py --self-test`:expected>=1:actual=0"
-            in issues
-        )
-        assert (
-            "phase1_closure_installer_packet:- explicit opt-in to Node 24 action execution on GitHub-hosted runners:expected>=1:actual=0"
-            in issues
-        )
-        assert (
-            "phase1_closure_installer_packet:- no known dependency on the deprecated Node 20 runtime:expected>=1:actual=0"
-            in issues
-        )
-        assert (
-            "phase1_closure_installer_packet:- Zig installation through an in-repo official-download step instead of a Node 20-bound action:expected>=1:actual=0"
-            in issues
-        )
-        assert (
-            "phase1_closure_installer_packet:- `PHASE1_LANE_SEQUENCING_RULE=shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string reopen only for their current helper-local anchors or already-committed shared fixture keys`:expected>=1:actual=0"
-            in issues
+        expect_case(
+            issues,
+            "phase1_closure_installer_checker_anchor:expected=1:actual=0",
+            "phase1_closure_installer_packet:- `scripts/zigux/install-zig.py`:expected>=1:actual=0",
+            "phase1_closure_installer_packet:- `python3 scripts/zigux/install-zig.py --self-test`:expected>=1:actual=0",
+            "phase1_closure_installer_packet:- explicit opt-in to Node 24 action execution on GitHub-hosted runners:expected>=1:actual=0",
+            "phase1_closure_installer_packet:- no known dependency on the deprecated Node 20 runtime:expected>=1:actual=0",
+            "phase1_closure_installer_packet:- Zig installation through an in-repo official-download step instead of a Node 20-bound action:expected>=1:actual=0",
+            "phase1_closure_installer_packet:- `PHASE1_LANE_SEQUENCING_RULE=shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string reopen only for their current helper-local anchors or already-committed shared fixture keys`:expected>=1:actual=0",
         )
 
         build_self_test_root(root)
@@ -302,7 +298,7 @@ def run_self_test() -> int:
             "\n".join(CLOSURE_MARKERS) + "\n",
         )
         issues = validate_root(root)
-        assert "phase1_closure_installer_checker_anchor:expected=1:actual=0" in issues
+        expect_case(issues, "phase1_closure_installer_checker_anchor:expected=1:actual=0")
 
         build_self_test_root(root)
         write_text(
@@ -313,13 +309,16 @@ def run_self_test() -> int:
             + "\n",
         )
         issues = validate_root(root)
-        assert "phase1_closure_installer_checker_anchor:expected=1:actual=2" in issues
+        expect_case(issues, "phase1_closure_installer_checker_anchor:expected=1:actual=2")
 
         build_self_test_root(root)
         write_text(root / ".github/workflows/zigux-bootstrap.yml", "")
         issues = validate_root(root)
-        assert "workflow_phase1_installer_selftest:expected=1:actual=0" in issues
-        assert "workflow_phase1_installer_check:expected=1:actual=0" in issues
+        expect_case(
+            issues,
+            "workflow_phase1_installer_selftest:expected=1:actual=0",
+            "workflow_phase1_installer_check:expected=1:actual=0",
+        )
 
         build_self_test_root(root)
         write_text(
@@ -330,14 +329,17 @@ def run_self_test() -> int:
             + "\n",
         )
         issues = validate_root(root)
-        assert "workflow_phase1_installer_selftest:expected=1:actual=2" in issues
+        expect_case(issues, "workflow_phase1_installer_selftest:expected=1:actual=2")
 
         build_self_test_root(root)
         write_text(root / "zigux/Makefile", "")
         issues = validate_root(root)
-        assert "makefile_phase1_validate_target:expected=1:actual=0" in issues
-        assert "makefile_phase1_installer_selftest:expected=1:actual=0" in issues
-        assert "makefile_phase1_installer_check:expected=1:actual=0" in issues
+        expect_case(
+            issues,
+            "makefile_phase1_validate_target:expected=1:actual=0",
+            "makefile_phase1_installer_selftest:expected=1:actual=0",
+            "makefile_phase1_installer_check:expected=1:actual=0",
+        )
 
         build_self_test_root(root)
         write_text(
@@ -348,30 +350,30 @@ def run_self_test() -> int:
             + "\n",
         )
         issues = validate_root(root)
-        assert "makefile_phase1_installer_selftest:expected=1:actual=2" in issues
+        expect_case(issues, "makefile_phase1_installer_selftest:expected=1:actual=2")
 
         build_self_test_root(root)
         (root / "Documentation/zigux/review-checklist.md").unlink()
         issues = validate_root(root)
-        assert "missing_file:Documentation/zigux/review-checklist.md" in issues
+        expect_case(issues, "missing_file:Documentation/zigux/review-checklist.md")
 
         build_self_test_root(root)
         (root / "zigux/tests/README.md").unlink()
         issues = validate_root(root)
-        assert "missing_file:zigux/tests/README.md" in issues
+        expect_case(issues, "missing_file:zigux/tests/README.md")
 
         build_self_test_root(root)
         (root / "scripts/zigux/install-zig.py").unlink()
         issues = validate_root(root)
-        assert "missing_file:scripts/zigux/install-zig.py" in issues
+        expect_case(issues, "missing_file:scripts/zigux/install-zig.py")
 
         build_self_test_root(root)
         (root / "scripts/zigux/check-phase1-installer-review-surfaces.py").unlink()
         issues = validate_root(root)
-        assert "missing_file:scripts/zigux/check-phase1-installer-review-surfaces.py" in issues
+        expect_case(issues, "missing_file:scripts/zigux/check-phase1-installer-review-surfaces.py")
 
     print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass")
-    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=19")
+    print(f"PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT={self_test_case_count}")
     return 0
 
 
