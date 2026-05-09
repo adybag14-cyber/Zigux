@@ -691,7 +691,7 @@ def collect_phase7_validate_block_markers(root: Path) -> list[str]:
         missing.append(f"zigux/Makefile: missing {PHASE7_VALIDATE_TARGET} target block")
         return missing
     for marker in REQUIRED_PHASE7_VALIDATE_BLOCK_LINES:
-        actual_count = block.count(marker)
+        actual_count = sum(1 for line in block.splitlines() if line.strip() == marker)
         if actual_count != 1:
             missing.append(
                 f"zigux/Makefile {PHASE7_VALIDATE_TARGET} block: {marker}:expected=1:actual={actual_count}"
