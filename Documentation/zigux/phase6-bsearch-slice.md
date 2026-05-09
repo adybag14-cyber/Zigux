@@ -12,9 +12,12 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
   - `lib/bsearch.zig`
   - `zigux/tests/phase6_bsearch.zig`
   - `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
+  - `zigux/tests/phase6_helper_parity_manifest.json`
+  - `Documentation/zigux/phase6-helper-parity-catalog.md`
+  - `Documentation/zigux/phase6-perf-gate-survey.md`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
-- evidence note: direct readback on `2026-05-09` inspected the current `lib/bsearch.c`, `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, and `zigux/tests/phase6_build.zig` packet so this slice stays limited to the shipped helper-local review surface instead of stale blob bookkeeping
+- evidence note: direct readback on `2026-05-09` inspected the current `lib/bsearch.c`, `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_helper_parity_manifest.json`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_build.zig` packet so this slice stays limited to the shipped helper-local review surface instead of stale blob bookkeeping
 - roadmap anchor note: the live `lib/bsearch.c` anchor is still a thin `__inline_bsearch(...)` wrapper, so the shipped Zigux packet keeps raw `bsearch` and `bsearchMutable` replay as the roadmap-facing surface while the typed helper entrypoints plus lower- and upper-bound companions keep the same comparator contract easier to inspect in one bounded packet instead of implying a separate direct C harness or timing-style perf gate
 
 ## Why this slice exists
@@ -92,6 +95,8 @@ The current tests check:
 
 The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable, and the same focused replay now carries the bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route. The paired `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` file keeps the bounds-focused C ABI proof equally small and reviewable by carrying the typed and raw lower- and upper-bound insertion-point replays, alias-comparator variants, empty and singleton bound checks, and bounded comparison-budget evidence without widening the packet into a separate harness family.
 
+The helper-owned bsearch rows inside `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json` stay part of this same bounded packet too, so helper-row-only drift can be repaired here without reopening the shared Phase 6 sequencing lane.
+
 ## Non-goals
 
 This slice does not yet claim:
@@ -103,4 +108,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Keep the next Phase 6 follow-up inside the existing bsearch helper-local packet. Reopen this slice only if fresh repo inspection finds a concrete new `bsearch.c` parity, lower- or upper-bound companion, comparator-alias, comparison-budget, or packet-alignment drift inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, or the shared bundled gates that already cover this parked helper.
+Keep the next Phase 6 follow-up inside the existing bsearch helper-local packet. Reopen this slice only if fresh repo inspection finds a concrete new `bsearch.c` parity, lower- or upper-bound companion, comparator-alias, comparison-budget, or helper-row drift inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, the bsearch-owned rows in `zigux/tests/phase6_helper_parity_manifest.json`, `Documentation/zigux/phase6-helper-parity-catalog.md`, or `Documentation/zigux/phase6-perf-gate-survey.md`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, or the shared bundled gates that already cover this parked helper.
