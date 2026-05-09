@@ -22,6 +22,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_build.zig",
     "zigux/tests/phase13_landlock_ruleset.zig",
     "zigux/tests/phase13_landlock_ruleset_manifest.json",
+    "scripts/zigux/validate-phase13-release.py",
     "zigux/Makefile",
 ]
 
@@ -72,7 +73,13 @@ TEST_MARKERS = [
     'try std.testing.expect(std.mem.indexOf(u8, ownership_note, "ownership note, manifest, survey, slice, checker, and test gate all move together") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, ownership_note, "phase13_landlock_ruleset_manifest.json") != null);',
     'try std.testing.expect(descriptor.provides_rule_tree_replacement_planning);',
-    'ruleset.RulesetHelperLab.planRuleTreeReplacement(',
+    "ruleset.RulesetHelperLab.planRuleTreeReplacement(",
+]
+
+RELEASE_VALIDATOR_MARKERS = [
+    '"zigux/tests/phase13_landlock_ruleset.zig",',
+    '"zigux/tests/phase13_landlock_ruleset_manifest.json",',
+    '"scripts/zigux/check-phase13-landlock-ruleset-packet.py",',
 ]
 
 MAKE_MARKERS = [
@@ -154,6 +161,7 @@ def validate(root: Path) -> list[str]:
         ("security/landlock/ruleset.zig", HELPER_MARKERS, "landlock-ruleset-helper"),
         ("zigux/tests/phase13_build.zig", BUILD_MARKERS, "phase13-build"),
         ("zigux/tests/phase13_landlock_ruleset.zig", TEST_MARKERS, "phase13-landlock-ruleset-test"),
+        ("scripts/zigux/validate-phase13-release.py", RELEASE_VALIDATOR_MARKERS, "phase13-release-validator"),
         ("zigux/Makefile", MAKE_MARKERS, "makefile"),
     ]
     for rel, markers, prefix in checks:
@@ -174,6 +182,7 @@ def seed_fixture_tree(root: Path) -> None:
         "security/landlock/ruleset.zig": "\n".join(HELPER_MARKERS) + "\n",
         "zigux/tests/phase13_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/tests/phase13_landlock_ruleset.zig": "\n".join(TEST_MARKERS) + "\n",
+        "scripts/zigux/validate-phase13-release.py": "\n".join(RELEASE_VALIDATOR_MARKERS) + "\n",
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         "zigux/tests/phase13_landlock_ruleset_manifest.json": json.dumps(
             {
@@ -270,6 +279,21 @@ def run_self_test() -> int:
             validate(root),
             ["makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py"],
             "make_guard_failed",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
+        write_text(
+            root / "scripts/zigux/validate-phase13-release.py",
+            '"zigux/tests/phase13_landlock_ruleset.zig",\n',
+        )
+        assert_only(
+            validate(root),
+            [
+                'phase13-release-validator:"zigux/tests/phase13_landlock_ruleset_manifest.json",',
+                'phase13-release-validator:"scripts/zigux/check-phase13-landlock-ruleset-packet.py",',
+            ],
+            "release_validator_guard_failed",
         )
         seed_fixture_tree(root)
         case_count += 1
