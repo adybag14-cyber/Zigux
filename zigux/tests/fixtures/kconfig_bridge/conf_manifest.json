@@ -51,7 +51,8 @@
     "alldefconfig_expected.json"
   ],
   "allconfig_override_packet": [
-    "allmodconfig_expected.json"
+    "allmodconfig_expected.json",
+    "randconfig_expected.json"
   ],
   "helper_local_anchors": [
     "conf bridge emits syncconfig auto files",
