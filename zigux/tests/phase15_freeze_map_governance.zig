@@ -147,7 +147,7 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment");
     try expectContains(governance_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(governance_note, "current-master-readback-2026-05-09");
-    try expectContains(governance_note, "2832");
+    try expectContains(governance_note, "previously recorded verified head `4fc891b380cdd2991dff7676ade7f844df1b55fd` no longer matched current `master`");
     try expectContains(governance_note, "exact branch-head parity is not recorded");
     try expectContains(governance_note, "blocked_no_bounded_scheduler_seam");
     try expectContains(governance_note, "blocked_no_bounded_allocator_seam");
