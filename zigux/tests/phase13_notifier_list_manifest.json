@@ -5,7 +5,8 @@
   "anchors": [
     "include/linux/list.h",
     "include/linux/notifier.h",
-    "include/zigux/abi.h"
+    "include/zigux/abi.h",
+    "drivers/tty/hvc/hvc_console.h"
   ],
   "roadmap_scope": "Phase 13 shared helper reviewability evidence only; this notifier/list packet stays roadmap-adjacent and must not widen the named libfs, devres, or Landlock delivery anchors.",
   "survey_summary": {
