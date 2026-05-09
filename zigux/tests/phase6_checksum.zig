@@ -231,6 +231,29 @@ test "ipv6 pseudo header accumulation stays aligned across representative lanes"
     }
 }
 
+test "ipv4 pseudo header accumulation keeps high length bits additive" {
+    const payload = "phase6";
+    const payload_partial = checksum.partial(payload, 0);
+    const saddr: u32 = 0xc0a8_0001;
+    const daddr: u32 = 0xc0a8_00c7;
+    const len: u32 = 0x0001_2345;
+    const proto: u8 = 58;
+
+    var pseudo_header: [14]u8 = undefined;
+    appendBigEndianU32(pseudo_header[0..4], saddr);
+    appendBigEndianU32(pseudo_header[4..8], daddr);
+    appendBigEndianU16(pseudo_header[8..10], @intCast(len >> 16));
+    appendBigEndianU16(pseudo_header[10..12], @intCast(len & 0xffff));
+    pseudo_header[12] = 0;
+    pseudo_header[13] = proto;
+
+    const helper_partial = checksum.tcpUdpNofold(payload_partial, saddr, daddr, len, proto);
+    const expected_partial = referencePartial(&pseudo_header, payload_partial);
+
+    try std.testing.expectEqual(expected_partial, helper_partial);
+    try std.testing.expectEqual(checksum.fold(expected_partial), checksum.tcpUdpMagic(payload_partial, saddr, daddr, len, proto));
+}
+
 test "fixture-backed negate cases keep the public checksum helper reviewable" {
     try std.testing.expectEqual(@as(usize, 4), fixtures.negate_cases.len);
     try std.testing.expectEqualStrings("zero stays zero", fixtures.negate_cases[0].name);
