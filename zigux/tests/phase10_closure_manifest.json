@@ -4,7 +4,7 @@
   "tranche": "virtio-lab-bundle",
   "doc_count": 12,
   "manifest_count": 4,
-  "driver_count": 4,
+  "driver_count": 5,
   "test_count": 14,
   "has_virtio_mmio_zig": true,
   "freeze_map": "Documentation/zigux/freeze-map.md",
@@ -58,6 +58,7 @@
         "zigux/tests/phase10_build.zig",
         "zigux/tests/phase10_virtio_core_reset_queue.zig",
         "zigux/tests/phase10_virtio_driver_id.zig",
+        "drivers/virtio/virtio_driver_id.zig",
         "drivers/virtio/virtio_verify.zig",
         "drivers/virtio/virtio_ring_verify.zig",
         "drivers/virtio/virtio_input_verify.zig",
@@ -269,6 +270,7 @@
   ],
   "drivers": [
     "drivers/virtio/virtio.zig",
+    "drivers/virtio/virtio_driver_id.zig",
     "drivers/virtio/virtio_ring.zig",
     "drivers/virtio/virtio_input.zig",
     "drivers/virtio/virtio_mmio.zig"
