@@ -59,6 +59,7 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+    "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
 )
 
 
@@ -433,6 +434,7 @@ def build_self_test_root(root: Path) -> None:
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
                 "phase2-tools:",
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+                "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
                 "",
             )
         ),
@@ -557,6 +559,23 @@ def run_self_test() -> int:
         cases += 1
 
         build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[5], "phase2: phase2-validate phase2-kconfig phase2-cross"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_MAKEFILE_HOOKS", REQUIRED_MAKEFILE_LINES[5]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[5]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{REQUIRED_MAKEFILE_LINES[5]}:count=2") in issues
+        cases += 1
+
+        build_self_test_root(root)
         path = root / PHASE2_TOOL_MANIFEST
         path.write_text(json.dumps({"genksyms_bridge_packet": "zigux/tests/fixtures/other.json"}, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
@@ -647,7 +666,7 @@ def run_self_test() -> int:
         ) in issues
         cases += 1
 
-    assert cases == 18
+    assert cases == 20
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT={cases}")
     return 0
