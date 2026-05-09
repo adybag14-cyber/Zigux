@@ -188,7 +188,7 @@ EXPECTED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase10-input-packet.py",
     "python3 scripts/zigux/check-phase10-mmio-packet.py",
     FREEZE_BOUNDARY_CHECK,
-    "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "zig build test --build-file zigux/tests/phase10_build.zig",
     "make -C zigux phase10-test",
     "make -C zigux phase10",
 ]
