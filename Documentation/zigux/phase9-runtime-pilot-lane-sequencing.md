@@ -103,8 +103,9 @@ Keep these boundaries explicit so Phase 9 pilot work does not drift sideways:
 - `samples/zigux/trace_events_sample.zig` and `samples/zigux/kretprobe_example.zig` remain the bounded non-runtime Phase 5 anchors for those families
 - `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references
 - `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references
-- `tools/lib/subcmd/exec-cmd.zig` still owns deferred command-path and environment-control cues
-- `tools/lib/subcmd/help.zig` still owns `LINES` and `COLUMNS` formatting cues
+- `tools/lib/subcmd/exec-cmd.zig` remains the Phase 8 owner of deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` tooling cues
+- `tools/lib/subcmd/help.zig` remains the Phase 8 owner of `LINES` and `COLUMNS` terminal-formatting cues
+- the shared Phase 9 loader packet remains a metadata-only handoff and should not be read as shipped runtime command or environment activation control
 
 ## Shared summary follow-through
 
