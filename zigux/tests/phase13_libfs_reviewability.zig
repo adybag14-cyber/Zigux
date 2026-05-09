@@ -103,16 +103,19 @@ test "phase13 libfs reviewability gate records the landed helper surfaces and re
         if (std.mem.eql(u8, gap.kind, "filesystem_helper_surface")) helper_surface_count += 1;
 
         if (std.mem.eql(u8, gap.id, "phase13-libfs-starter")) {
+            try std.testing.expect(contains(gap.why_now, "helper packet"));
             try std.testing.expect(contains(gap.why_now, "simple_statfs()"));
             try std.testing.expect(contains(gap.why_now, "simple_lookup()"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-tests")) {
             try std.testing.expectEqualStrings("zigux/tests/phase13_libfs.zig", gap.zigux_destination);
+            try std.testing.expect(contains(gap.why_now, "Dedicated libfs helper tests"));
             try std.testing.expect(contains(gap.why_now, "cursor-reposition planner"));
             try std.testing.expect(contains(gap.why_now, "simple_open()"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-reviewability-gate")) {
             try std.testing.expectEqualStrings("zigux/tests/phase13_libfs_reviewability.zig", gap.zigux_destination);
+            try std.testing.expect(contains(gap.why_now, "current helper packet"));
             try std.testing.expect(contains(gap.why_now, "focused addressability shard"));
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-offset-seek-helper")) {
@@ -181,6 +184,9 @@ test "phase13 libfs reviewability gate records the landed helper surfaces and re
     );
     defer std.testing.allocator.free(survey_note);
 
+    try std.testing.expect(contains(survey_note, "PHASE13_SLICE=libfs-helper-reviewability-packet"));
+    try std.testing.expect(contains(survey_note, "landed `fs/libfs.zig` helper packet"));
+    try std.testing.expect(contains(survey_note, "current helper packet stays intentionally bounded"));
     try std.testing.expect(contains(survey_note, "landed `phase13-make-target`"));
     try std.testing.expect(contains(survey_note, "landed `phase13-libfs-starter`"));
     try std.testing.expect(contains(survey_note, "landed `phase13-libfs-tests`"));
@@ -196,6 +202,8 @@ test "phase13 libfs reviewability gate records the landed helper surfaces and re
     try std.testing.expect(contains(survey_note, "Documentation/zigux/phase13-roadmap-traceability.md"));
     try std.testing.expect(contains(survey_note, "dedicated helper-local evidence rather than a ninth shared replay step"));
     try std.testing.expect(contains(survey_note, "shared eight-test `phase13_build.zig` route"));
+    try std.testing.expect(!contains(survey_note, "small `fs/libfs.zig` starter"));
+    try std.testing.expect(!contains(survey_note, "current starter stays intentionally narrow"));
     try std.testing.expect(!contains(survey_note, "landed `phase13-libfs-helper-starter`"));
     try std.testing.expect(!contains(survey_note, "landed `phase13-libfs-test-gate`"));
     try std.testing.expect(!contains(survey_note, "blocked `phase13-libfs-inode-and-pseudofs-lifecycle`"));
