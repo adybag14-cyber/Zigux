@@ -16,11 +16,19 @@ DEFAULT_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "phase3
 DEFAULT_EXPECTED = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
 PHASE3_ABI_CONSTANT_PARITY_SELF_TEST_CASE_COUNT = 8
 
-BASELINE_CONSTANTS = (
+REQUIRED_CONSTANTS = (
     ("ZIGUX_FACILITY_KERNEL", "FACILITY_KERNEL", "facility_kernel", 1),
+    ("ZIGUX_FACILITY_HELPERS", "FACILITY_HELPERS", "facility_helpers", 2),
+    ("ZIGUX_FACILITY_DRIVERS", "FACILITY_DRIVERS", "facility_drivers", 3),
     ("ZIGUX_STATUS_FLAG_ERROR", "STATUS_FLAG_ERROR", "status_flag_error", 1),
     ("ZIGUX_PANIC_ABORT", "PANIC_ABORT", "panic_abort", 0),
+    ("ZIGUX_PANIC_BUG", "PANIC_BUG", "panic_bug", 1),
+    ("ZIGUX_PANIC_WARN", "PANIC_WARN", "panic_warn", 2),
     ("ZIGUX_ALLOC_CALLER_PROVIDED", "ALLOC_CALLER_PROVIDED", "allocator_caller_provided", 0),
+    ("ZIGUX_ALLOC_KERNEL_HEAP", "ALLOC_KERNEL_HEAP", "allocator_kernel_heap", 1),
+    ("ZIGUX_ALLOC_ARENA", "ALLOC_ARENA", "allocator_arena", 2),
+    ("ZIGUX_UNSAFE_NONE", "UNSAFE_NONE", "unsafe_scope_none", 0),
+    ("ZIGUX_UNSAFE_VOLATILE_MMIO", "UNSAFE_VOLATILE_MMIO", "unsafe_scope_volatile_mmio", 1),
     ("ZIGUX_UNSAFE_RAW_POINTER_BRIDGE", "UNSAFE_RAW_POINTER_BRIDGE", "unsafe_scope_raw_pointer_bridge", 2),
 )
 REQUIRED_BINDING_MARKERS = (
@@ -99,7 +107,7 @@ def validate_constant_parity(
         issues.append(f"{expected_path}:missing_constants_object")
         expected_constants = {}
 
-    for header_name, binding_name, json_key, expected_value in BASELINE_CONSTANTS:
+    for header_name, binding_name, json_key, expected_value in REQUIRED_CONSTANTS:
         header_value = header_constants.get(header_name)
         if header_value is None:
             issues.append(f"{header_path}:missing_header_constant:{header_name}")
@@ -145,13 +153,13 @@ def run_self_test() -> int:
 
         def reset_all() -> None:
             header.write_text(
-                "\n".join(f"#define {header_name} {value}U" for header_name, _, _, value in BASELINE_CONSTANTS) + "\n",
+                "\n".join(f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_CONSTANTS) + "\n",
                 encoding="utf-8",
                 newline="\n",
             )
             bindings.write_text(
                 "\n".join(
-                    [*(f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in BASELINE_CONSTANTS)]
+                    [*(f"pub const {binding_name}: u32 = {value};" for _, binding_name, _, value in REQUIRED_CONSTANTS)]
                     + [f"pub const {binding_name}: u32 = 1;" for binding_name in REQUIRED_BINDING_MARKERS]
                 )
                 + "\n",
@@ -159,17 +167,17 @@ def run_self_test() -> int:
                 newline="\n",
             )
             dump.write_text(
-                "\n".join(f"// \"{json_key}\":" for _, _, json_key, _ in BASELINE_CONSTANTS) + "\n",
+                "\n".join(f"// \"{json_key}\":" for _, _, json_key, _ in REQUIRED_CONSTANTS) + "\n",
                 encoding="utf-8",
                 newline="\n",
             )
             harness.write_text(
-                "\n".join(f"/* \"{json_key}\": */" for _, _, json_key, _ in BASELINE_CONSTANTS) + "\n",
+                "\n".join(f"/* \"{json_key}\": */" for _, _, json_key, _ in REQUIRED_CONSTANTS) + "\n",
                 encoding="utf-8",
                 newline="\n",
             )
             expected.write_text(
-                json.dumps({"constants": {json_key: value for _, _, json_key, value in BASELINE_CONSTANTS}}),
+                json.dumps({"constants": {json_key: value for _, _, json_key, value in REQUIRED_CONSTANTS}}),
                 encoding="utf-8",
                 newline="\n",
             )
@@ -199,14 +207,14 @@ def run_self_test() -> int:
         reset_all()
         header.write_text(
             "\n".join(
-                [f"#define {BASELINE_CONSTANTS[0][0]} 7U"]
-                + [f"#define {header_name} {value}U" for header_name, _, _, value in BASELINE_CONSTANTS[1:]]
+                [f"#define {REQUIRED_CONSTANTS[0][0]} 7U"]
+                + [f"#define {header_name} {value}U" for header_name, _, _, value in REQUIRED_CONSTANTS[1:]]
             ) + "\n",
             encoding="utf-8",
             newline="\n",
         )
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
-        assert f"{header}:wrong_header_value:{BASELINE_CONSTANTS[0][0]}:7" in issues
+        assert f"{header}:wrong_header_value:{REQUIRED_CONSTANTS[0][0]}:7" in issues
         case_count += 1
 
         reset_all()
@@ -220,11 +228,11 @@ def run_self_test() -> int:
         header.write_text(
             "\n".join(
                 [
-                    f"#define {BASELINE_CONSTANTS[0][0]} {BASELINE_CONSTANTS[0][3]}U",
-                    f"#define {BASELINE_CONSTANTS[0][0]} {BASELINE_CONSTANTS[0][3]}U",
+                    f"#define {REQUIRED_CONSTANTS[0][0]} {REQUIRED_CONSTANTS[0][3]}U",
+                    f"#define {REQUIRED_CONSTANTS[0][0]} {REQUIRED_CONSTANTS[0][3]}U",
                     *[
                         f"#define {header_name} {value}U"
-                        for header_name, _, _, value in BASELINE_CONSTANTS[1:]
+                        for header_name, _, _, value in REQUIRED_CONSTANTS[1:]
                     ],
                 ]
             ) + "\n",
@@ -232,18 +240,18 @@ def run_self_test() -> int:
             newline="\n",
         )
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
-        assert f"{header}:duplicate_header_constant:{BASELINE_CONSTANTS[0][0]}:1,2" in issues
+        assert f"{header}:duplicate_header_constant:{REQUIRED_CONSTANTS[0][0]}:1,2" in issues
         case_count += 1
 
         reset_all()
         bindings.write_text(
             "\n".join(
                 [
-                    f"pub const {BASELINE_CONSTANTS[0][1]}: u32 = {BASELINE_CONSTANTS[0][3]};",
-                    f"pub const {BASELINE_CONSTANTS[0][1]}: u32 = {BASELINE_CONSTANTS[0][3]};",
+                    f"pub const {REQUIRED_CONSTANTS[0][1]}: u32 = {REQUIRED_CONSTANTS[0][3]};",
+                    f"pub const {REQUIRED_CONSTANTS[0][1]}: u32 = {REQUIRED_CONSTANTS[0][3]};",
                     *[
                         f"pub const {binding_name}: u32 = {value};"
-                        for _, binding_name, _, value in BASELINE_CONSTANTS[1:]
+                        for _, binding_name, _, value in REQUIRED_CONSTANTS[1:]
                     ],
                     *[f"pub const {binding_name}: u32 = 1;" for binding_name in REQUIRED_BINDING_MARKERS],
                 ]
@@ -252,7 +260,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         issues = validate_constant_parity(header, bindings, dump, harness, expected)
-        assert f"{bindings}:duplicate_binding_constant:{BASELINE_CONSTANTS[0][1]}:1,2" in issues
+        assert f"{bindings}:duplicate_binding_constant:{REQUIRED_CONSTANTS[0][1]}:1,2" in issues
         case_count += 1
 
     print("PHASE3_ABI_CONSTANT_PARITY_SELF_TEST=pass")
