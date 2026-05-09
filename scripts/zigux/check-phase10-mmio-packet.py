@@ -226,7 +226,7 @@ MANIFEST_SCALARS = {
     "anchor": "drivers/virtio/virtio_mmio.c",
     "freeze_map": "Documentation/zigux/freeze-map.md",
     "freeze_boundary_status": "aligned",
-    "freeze_status_change_claimED": False,
+    "freeze_status_change_claimed": False,
     "risky_transport_posture": "blocked_on_risky_transport",
     "architecture_council_reopen_required": True,
     "architecture_council_reopen_attached": False,
