@@ -685,7 +685,8 @@ pub const VirtioNetProbeLab = struct {
         if (selected_payload_bytes < request.min_buf_len_bytes) {
             selected_payload_bytes = request.min_buf_len_bytes;
             source = .minimum_buffer_floor;
-        } else if (selected_payload_bytes > payload_limit_bytes) {
+        }
+        if (selected_payload_bytes > payload_limit_bytes) {
             selected_payload_bytes = payload_limit_bytes;
             source = .page_size_cap;
         }
