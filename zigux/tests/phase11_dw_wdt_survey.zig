@@ -55,7 +55,7 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P11-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
     try std.testing.expectEqualStrings("75f8336c4305beed127d7abfae37d3999b7cc57c", manifest.surveyed_commit);
@@ -243,8 +243,8 @@ test "phase11 dw_wdt survey note, slice note, validation matrix, and teardown no
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-verify-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/watchdog/dw_wdt_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "stop, remove, and shutdown ownership split") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L05`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L12`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L12`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L05`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L10`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L11`") == null);
 
@@ -256,8 +256,8 @@ test "phase11 dw_wdt survey note, slice note, validation matrix, and teardown no
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11-dw-wdt-verify-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "drivers/watchdog/dw_wdt_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11-dw-wdt-teardown-note.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L05`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L12`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L12`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L05`") == null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L10`") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "fixed-versus-custom TOP sourcing") != null);
