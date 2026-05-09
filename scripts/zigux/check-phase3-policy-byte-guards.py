@@ -89,6 +89,7 @@ REQUIRED_UNSAFE_SNIPPETS = (
     "pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
+    "pub fn requireRawPointerBridgeByte(unsafe_scope: u8) UnsafeScopeError!void {",
     "if (reserved != 0) return null;",
     "try std.testing.expect(recognizesByte(0));",
     "try std.testing.expect(!recognizesByte(9));",
@@ -99,6 +100,8 @@ REQUIRED_UNSAFE_SNIPPETS = (
     "try std.testing.expect(permitsNoUnsafeInteropPolicy(none_policy));",
     "try std.testing.expect(permitsVolatileMmioInteropPolicy(mmio_policy));",
     "try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(reserved_policy));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeByte(0));",
+    "try requireRawPointerBridgeByte(2);",
 )
 
 REQUIRED_LOW_LEVEL_WRAPPER_SNIPPETS = (
@@ -337,6 +340,26 @@ def run_self_test() -> int:
         assert "missing_unsafe_snippet:pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {" in issues
 
         build_valid_workspace(root)
+        broken_unsafe_require_byte = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8").replace(
+            "pub fn requireRawPointerBridgeByte(unsafe_scope: u8) UnsafeScopeError!void {\n",
+            "",
+            1,
+        )
+        write(root / UNSAFE_NARROW_REL, broken_unsafe_require_byte)
+        issues = validate(root)
+        assert "missing_unsafe_snippet:pub fn requireRawPointerBridgeByte(unsafe_scope: u8) UnsafeScopeError!void {" in issues
+
+        build_valid_workspace(root)
+        broken_unsafe_require_byte_replay = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8").replace(
+            "try requireRawPointerBridgeByte(2);\n",
+            "",
+            1,
+        )
+        write(root / UNSAFE_NARROW_REL, broken_unsafe_require_byte_replay)
+        issues = validate(root)
+        assert "missing_unsafe_snippet:try requireRawPointerBridgeByte(2);" in issues
+
+        build_valid_workspace(root)
         broken_unsafe_recognizes_byte = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8").replace(
             "pub fn recognizesByte(unsafe_scope: u8) bool {\n",
             "",
@@ -386,7 +409,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST=pass")
-    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=16")
+    print("PHASE3_POLICY_BYTE_GUARDS_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
