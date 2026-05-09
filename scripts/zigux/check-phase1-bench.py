@@ -43,6 +43,10 @@ REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM",
 }
+BITMAP_REQUIRED_EXACT_CHECKSUMS = {
+    "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
+    "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM",
+}
 RBTREE_REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_RBTREE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM",
@@ -151,6 +155,10 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
         if missing:
             return ("expectations_missing_checksums", missing)
         return ("expectations_unexpected_checksums", unexpected)
+
+    for key in sorted(BITMAP_REQUIRED_EXACT_CHECKSUMS):
+        if key in checksum_keys and key not in exact_checksums:
+            return ("expectations_checksums_bitmap_exact_required", key)
 
     for key in sorted(RBTREE_REQUIRED_EXACT_CHECKSUMS):
         if key in checksum_keys and key not in exact_checksums:
@@ -319,6 +327,42 @@ def run_self_test() -> None:
     assert kind == "duplicate"
     assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]
 
+    downgraded_bitmap_weight_exact = {
+        "status": "pass",
+        "iterations": dict(EXPECTED_ITERATIONS),
+        "checksums": list(EXPECTED_CHECKSUMS),
+        "exact_checksums": {
+            "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
+            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
+            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+            "PHASE1_BENCH_STRING_CHECKSUM": 5,
+            "PHASE1_BENCH_RBTREE_CHECKSUM": 6,
+            "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM": 7,
+            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 8,
+        },
+    }
+    kind, payload = validate_expectations(downgraded_bitmap_weight_exact)
+    assert kind == "expectations_checksums_bitmap_exact_required"
+    assert payload == "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM"
+
+    downgraded_bitmap_window_exact = {
+        "status": "pass",
+        "iterations": dict(EXPECTED_ITERATIONS),
+        "checksums": list(EXPECTED_CHECKSUMS),
+        "exact_checksums": {
+            "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
+            "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
+            "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+            "PHASE1_BENCH_STRING_CHECKSUM": 5,
+            "PHASE1_BENCH_RBTREE_CHECKSUM": 6,
+            "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM": 7,
+            "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 8,
+        },
+    }
+    kind, payload = validate_expectations(downgraded_bitmap_window_exact)
+    assert kind == "expectations_checksums_bitmap_exact_required"
+    assert payload == "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM"
+
     downgraded_rbtree_exact = {
         "status": "pass",
         "iterations": dict(EXPECTED_ITERATIONS),
@@ -443,7 +487,7 @@ def run_self_test() -> None:
     assert payload == reordered_checksums["checksums"]
 
     print("PHASE1_BENCH_CHECK_SELF_TEST=pass")
-    print("PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=11")
+    print("PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=13")
 
 
 def main() -> int:
