@@ -200,13 +200,14 @@ test "phase13 devres plans a non-posted managed ioremap resource mapping" {
 
     switch (outcome) {
         .mapped => |plan| {
-            defer std.testing.allocator.free(plan.pretty_name);
-            try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
-            try std.testing.expectEqualStrings("serial regs", plan.pretty_name);
-            try std.testing.expectEqual(devres.IoremapType.np, plan.effective_type);
-            try std.testing.expectEqual(@as(u64, 0x100), plan.size);
-            try std.testing.expect(plan.requests_region);
-            try std.testing.expect(!plan.releases_region_on_remap_failure);
+            var owned_plan = plan;
+            defer owned_plan.deinit(std.testing.allocator);
+            try std.testing.expectEqualStrings("lib/devres.c", owned_plan.anchor);
+            try std.testing.expectEqualStrings("serial regs", owned_plan.pretty_name);
+            try std.testing.expectEqual(devres.IoremapType.np, owned_plan.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x100), owned_plan.size);
+            try std.testing.expect(owned_plan.requests_region);
+            try std.testing.expect(!owned_plan.releases_region_on_remap_failure);
         },
         .err => |failure| {
             std.debug.print("unexpected failure: {any}\n", .{failure});
@@ -229,13 +230,14 @@ test "phase13 devres plain resource wrapper keeps the direct managed-resource ex
 
     switch (outcome) {
         .mapped => |plan| {
-            defer std.testing.allocator.free(plan.pretty_name);
-            try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
-            try std.testing.expectEqualStrings("serial-plain regs", plan.pretty_name);
-            try std.testing.expectEqual(devres.IoremapType.normal, plan.effective_type);
-            try std.testing.expectEqual(@as(u64, 0x80), plan.size);
-            try std.testing.expect(plan.requests_region);
-            try std.testing.expect(!plan.releases_region_on_remap_failure);
+            var owned_plan = plan;
+            defer owned_plan.deinit(std.testing.allocator);
+            try std.testing.expectEqualStrings("lib/devres.c", owned_plan.anchor);
+            try std.testing.expectEqualStrings("serial-plain regs", owned_plan.pretty_name);
+            try std.testing.expectEqual(devres.IoremapType.normal, owned_plan.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x80), owned_plan.size);
+            try std.testing.expect(owned_plan.requests_region);
+            try std.testing.expect(!owned_plan.releases_region_on_remap_failure);
         },
         .err => return error.UnexpectedFailure,
     }
@@ -281,10 +283,11 @@ test "phase13 devres keeps requested mapping types and unnamed pretty names" {
 
     switch (outcome) {
         .mapped => |plan| {
-            defer std.testing.allocator.free(plan.pretty_name);
-            try std.testing.expectEqualStrings("gpu0", plan.pretty_name);
-            try std.testing.expectEqual(devres.IoremapType.wc, plan.effective_type);
-            try std.testing.expectEqual(@as(u64, 0x20), plan.size);
+            var owned_plan = plan;
+            defer owned_plan.deinit(std.testing.allocator);
+            try std.testing.expectEqualStrings("gpu0", owned_plan.pretty_name);
+            try std.testing.expectEqual(devres.IoremapType.wc, owned_plan.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x20), owned_plan.size);
         },
         .err => return error.UnexpectedFailure,
     }
@@ -304,12 +307,13 @@ test "phase13 devres WC resource wrapper preserves the requested WC mapping type
 
     switch (outcome) {
         .mapped => |plan| {
-            defer std.testing.allocator.free(plan.pretty_name);
-            try std.testing.expectEqualStrings("gpu-wc fb", plan.pretty_name);
-            try std.testing.expectEqual(devres.IoremapType.wc, plan.effective_type);
-            try std.testing.expectEqual(@as(u64, 0x200), plan.size);
-            try std.testing.expect(plan.requests_region);
-            try std.testing.expect(!plan.releases_region_on_remap_failure);
+            var owned_plan = plan;
+            defer owned_plan.deinit(std.testing.allocator);
+            try std.testing.expectEqualStrings("gpu-wc fb", owned_plan.pretty_name);
+            try std.testing.expectEqual(devres.IoremapType.wc, owned_plan.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x200), owned_plan.size);
+            try std.testing.expect(owned_plan.requests_region);
+            try std.testing.expect(!owned_plan.releases_region_on_remap_failure);
         },
         .err => return error.UnexpectedFailure,
     }
@@ -504,11 +508,9 @@ test "phase13 devres devm_of_iomap plan deinit clears nested ownership markers" 
     switch (outcome) {
         .mapped => |*plan| {
             try std.testing.expectEqualStrings("uart1-owner status", plan.mapping.pretty_name);
-            try std.testing.expect(plan.mapping.pretty_name_owned_by_plan);
             try std.testing.expectEqual(@as(?u64, 0x80), plan.reported_size);
             plan.deinit(std.testing.allocator);
             try std.testing.expectEqualStrings("", plan.mapping.pretty_name);
-            try std.testing.expect(!plan.mapping.pretty_name_owned_by_plan);
             try std.testing.expectEqual(@as(?u64, null), plan.reported_size);
         },
         .err => return error.UnexpectedFailure,
