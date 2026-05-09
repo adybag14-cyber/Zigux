@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import tempfile
 from pathlib import Path
@@ -15,6 +16,7 @@ class ValidationError(RuntimeError):
 
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
+BASE64_C_PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 CATALOG_SURVEYED_HEAD_PREFIX = "- surveyed head: `"
 
 
@@ -49,7 +51,7 @@ REQUIRED_SNIPPETS = {
         "- `zigux/tests/phase6_base64_c_parity.zig`",
         "- `zigux/tests/fixtures/phase6_base64_c_harness.c`",
         "- `scripts/zigux/check-phase6-base64-c-parity.py`",
-        "- a direct 15-case C-vs-Zig spot check covering representative std, URL-safe, and IMAP encode parity, decode parity, and malformed-tail rejection through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
+        "- a direct 24-case C-vs-Zig spot check covering representative std, URL-safe, and IMAP encode parity, decoded-byte parity, returned encoded-size parity through `chars`, returned decoded-size parity through `bytes`, and malformed-tail rejection through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
     ],
     "Documentation/zigux/phase6-bsearch-slice.md": [
         "- `PHASE6_STATUS=parked`",
@@ -95,6 +97,10 @@ REQUIRED_SNIPPETS = {
         "- `make -C zigux phase6-validate` keeps the shared Phase 6 surface checker wired through the Zigux convenience target.",
         "- `zig build test --build-file zigux/tests/phase6_build.zig` is the bundled helper replay for the current `base64`, `bsearch`, `checksum`, and `hexdump` packet.",
     ],
+    "scripts/zigux/check-phase6-base64-c-parity.py": [
+        "EXPECTED_SORTED_LINES = sorted(",
+        "print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")",
+    ],
     "zigux/tests/README.md": [
         "  * `zigux/tests/phase6_base64_perf.zig`",
         "  * `zigux/tests/phase6_checksum_perf.zig`",
@@ -126,6 +132,7 @@ REQUIRED_SNIPPETS = {
         "\"make -C zigux phase6-base64-perf\",",
         "\"make -C zigux phase6-checksum-perf\",",
         "\"make -C zigux phase6-hexdump-perf\",",
+        "\"c_parity_cases\": 24",
         "\"generated_fixture_artifacts_committed\": false",
     ],
     "zigux/tests/phase6_build.zig": [
@@ -220,6 +227,76 @@ def validate_surveyed_head_alignment(repo_root: Path) -> None:
         )
 
 
+def extract_sorted_literal_list(script_text: str, rel_path: str, variable_name: str) -> list[object]:
+    try:
+        tree = ast.parse(script_text, filename=rel_path)
+    except SyntaxError as exc:
+        raise ValidationError(f"invalid Python in {rel_path}: {exc}") from exc
+
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name) and target.id == variable_name:
+                value = node.value
+                if (
+                    isinstance(value, ast.Call)
+                    and isinstance(value.func, ast.Name)
+                    and value.func.id == "sorted"
+                    and len(value.args) == 1
+                ):
+                    try:
+                        literal = ast.literal_eval(value.args[0])
+                    except (ValueError, SyntaxError) as exc:
+                        raise ValidationError(
+                            f"{rel_path} keeps non-literal {variable_name}; expected a literal list"
+                        ) from exc
+                    if not isinstance(literal, list):
+                        raise ValidationError(
+                            f"{rel_path} keeps non-list {variable_name}; expected a literal list"
+                        )
+                    return literal
+                raise ValidationError(
+                    f"{rel_path} keeps unsupported {variable_name} shape; expected sorted([...])"
+                )
+
+    raise ValidationError(f"missing {variable_name} in {rel_path}")
+
+
+def validate_base64_c_parity_alignment(repo_root: Path) -> None:
+    manifest_rel = MANIFEST_PATH.as_posix()
+    manifest_data = read_json(repo_root / manifest_rel)
+    if not isinstance(manifest_data, dict):
+        raise ValidationError(f"expected object in {manifest_rel}")
+
+    determinism = manifest_data.get("determinism_evidence")
+    if not isinstance(determinism, dict):
+        raise ValidationError(f"missing determinism_evidence in {manifest_rel}")
+
+    base64_data = determinism.get("base64")
+    if not isinstance(base64_data, dict):
+        raise ValidationError(f"missing determinism_evidence.base64 in {manifest_rel}")
+
+    c_parity_cases = base64_data.get("c_parity_cases")
+    if not isinstance(c_parity_cases, int) or c_parity_cases <= 0:
+        raise ValidationError(f"missing positive base64 c_parity_cases in {manifest_rel}")
+
+    script_rel = BASE64_C_PARITY_SCRIPT_PATH.as_posix()
+    script_text = read_text(repo_root / script_rel)
+    if 'PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}' not in script_text:
+        raise ValidationError(
+            f"missing expected Phase 6 marker in {script_rel}: PHASE6_BASE64_C_PARITY_CASES"
+        )
+
+    expected_sorted_lines = extract_sorted_literal_list(script_text, script_rel, "EXPECTED_SORTED_LINES")
+    expected_case_count = len(expected_sorted_lines)
+    if c_parity_cases != expected_case_count:
+        raise ValidationError(
+            "Phase 6 base64 direct C parity case count drifted between "
+            f"{manifest_rel} ({c_parity_cases}) and {script_rel} ({expected_case_count})"
+        )
+
+
 def run_checks(repo_root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
         content = read_text(repo_root / rel_path)
@@ -230,6 +307,7 @@ def run_checks(repo_root: Path) -> None:
                 )
 
     validate_surveyed_head_alignment(repo_root)
+    validate_base64_c_parity_alignment(repo_root)
 
     for rel_path, markers in EXACT_OCCURRENCE_MARKERS.items():
         content = read_text(repo_root / rel_path)
@@ -271,6 +349,8 @@ def scaffold_repo(root: Path) -> None:
                     "Documentation/zigux/phase6-perf-gate-survey.md",
                     "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md",
                     "scripts/zigux/check-phase6-shared-surface.py",
+                    "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
+                    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
                     "make -C zigux phase6-validate",
                     "make -C zigux phase6",
                     "make -C zigux phase6-hexdump-test",
@@ -280,9 +360,31 @@ def scaffold_repo(root: Path) -> None:
                     "make -C zigux phase6-hexdump-perf",
                     "self-test-sentinel",
                 ],
+                "determinism_evidence": {
+                    "base64": {
+                        "c_parity_cases": 24,
+                    },
+                    "generated_fixture_artifacts_committed": False,
+                },
                 "generated_fixture_artifacts_committed": False,
             }
             write(root / rel_path, json.dumps(manifest, indent=2) + "\n")
+            continue
+        if rel_path == BASE64_C_PARITY_SCRIPT_PATH.as_posix():
+            write(
+                root / rel_path,
+                "\n".join(
+                    [
+                        "EXPECTED_SORTED_LINES = sorted(",
+                        "    [",
+                        *[f'        \"case-{index:02d}\",' for index in range(1, 25)],
+                        "    ]",
+                        ")",
+                        'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
+                        "",
+                    ]
+                ),
+            )
             continue
         lines = list(dict.fromkeys(snippets))
         for marker, expected in EXACT_OCCURRENCE_MARKERS.get(rel_path, []):
@@ -330,20 +432,32 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "zigux/tests/phase6_helper_parity_manifest.json",
-            "\"surveyed_commit\": \"911470d\",",
-            "\"surveyed_commit\": \"\",",
+            '"surveyed_commit": "911470d",',
+            '"surveyed_commit": "",',
         )
         assert_failure(
             root,
             "Documentation/zigux/phase6-base64-slice.md",
-            "- `scripts/zigux/check-phase6-base64-c-parity.py`",
-            "- `scripts/zigux/check-phase6-base64-c-parity-missing.py`",
+            "- a direct 24-case C-vs-Zig spot check covering representative std, URL-safe, and IMAP encode parity, decoded-byte parity, returned encoded-size parity through `chars`, returned decoded-size parity through `bytes`, and malformed-tail rejection through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
+            "- a direct 15-case C-vs-Zig spot check through an older helper-local parity packet",
         )
         assert_failure(
             root,
             "zigux/tests/phase6_helper_parity_manifest.json",
-            "\"zigux/tests/phase6_base64_c_parity.zig\"",
-            "\"zigux/tests/phase6_base64_c_parity_missing.zig\"",
+            '"c_parity_cases": 24',
+            '"c_parity_cases": 15',
+        )
+        assert_failure(
+            root,
+            "scripts/zigux/check-phase6-base64-c-parity.py",
+            'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
+            'print(f"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}")',
+        )
+        assert_failure(
+            root,
+            "scripts/zigux/check-phase6-base64-c-parity.py",
+            '        "case-24",\n',
+            "",
         )
         assert_failure(
             root,
