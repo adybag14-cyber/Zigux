@@ -140,6 +140,8 @@ MARKERS = {
         'test "virtio mmio wrapper-facing queue handoff review stays selected-queue local" {',
         "try std.testing.expect(!summary.ready_for_probe_handoff);",
         "try std.testing.expectEqual(@as(u32, 1), disposition.config_generation);",
+        "device.bumpConfigGeneration();",
+        "try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());",
         "try std.testing.expect(summary.queue_ready_for_handoff);",
     ],
     "zigux/tests/phase10_virtio_mmio.zig": [
@@ -429,6 +431,18 @@ def run_self_test() -> int:
                 'virtio_mmio.zig:test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {',
             ),
             (
+                "drivers/virtio/virtio_mmio_verify.zig",
+                "device.bumpConfigGeneration();",
+                "device.stageInterruptStatus(0);",
+                "virtio_mmio_verify.zig:device.bumpConfigGeneration();",
+            ),
+            (
+                "drivers/virtio/virtio_mmio_verify.zig",
+                "try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());",
+                "try std.testing.expect(disposition.has_changes);",
+                "virtio_mmio_verify.zig:try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());",
+            ),
+            (
                 "zigux/Makefile",
                 "scripts/zigux/check-phase10-mmio-packet.py --self-test",
                 "scripts/zigux/check-phase10-mmio-drift.py --self-test",
@@ -439,12 +453,6 @@ def run_self_test() -> int:
                 "scripts/zigux/check-phase10-mmio-freeze-boundary.py --self-test",
                 "scripts/zigux/check-phase10-mmio-freeze-boundary-drift.py --self-test",
                 "Makefile:scripts/zigux/check-phase10-mmio-freeze-boundary.py --self-test",
-            ),
-            (
-                "zigux/Makefile",
-                "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
-                "scripts/zigux/check-phase10-mmio-freeze-boundary-drift.py",
-                "Makefile:scripts/zigux/check-phase10-mmio-freeze-boundary.py",
             ),
             (
                 "zigux/tests/phase10_build.zig",
