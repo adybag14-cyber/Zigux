@@ -8,7 +8,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_SLICE=cmdline-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-Y06`
 - scope: first low-risk parsing helpers only
-- lane state: helper, fixture, dedicated survey, dedicated manifest, shared build-wiring checker, and parked make-wrapper slice landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, fixture, dedicated survey, dedicated manifest, shared validator, build-wiring checker, or make-wrapper packet
+- lane state: helper, fixture, dedicated survey, dedicated manifest, shared build-wiring checker, and parked make-wrapper slice landed; keep this helper slice parked unless a fresh parity gap appears inside the existing helper, fixture, dedicated survey, dedicated manifest, shared build-wiring checker, or make-wrapper packet
 - product boundary:
   - `lib/cmdline.zig`
   - `samples/zigux/README.md`
@@ -100,4 +100,4 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Keep the helper slice parked unless fresh repo inspection shows one real same-lane reviewability gap inside the existing shared packet. The earlier validator-local reopen condition is already closed on current `master`: `scripts/zigux/validate-phase7.py` now exact-counts `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` in `zigux/tests/README.md` beside the docs-root and scripts-root Phase 7 packet summaries.
+Keep the helper slice parked unless fresh repo inspection shows one real same-lane reviewability gap inside the existing shared packet. The current shared follow-up is still open on `master`: `zigux/tests/phase7_cmdline_manifest.json` is already part of the parked cmdline packet, and `Documentation/zigux/review-checklist.md` already treats it as shipped review surface, but the broader shared validator-first owner maps do not yet consistently fail closed on that manifest path. The next safe step is to align `scripts/zigux/validate-phase7.py`, `scripts/zigux/README.md`, and `zigux/tests/README.md` around the committed cmdline manifest without widening into helper behavior, fixture expansion, or unrelated Phase 7 lanes.
