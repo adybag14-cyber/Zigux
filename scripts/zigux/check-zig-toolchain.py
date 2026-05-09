@@ -54,38 +54,47 @@ def load_min_version(policy_path: Path = TOOLCHAIN_POLICY, fallback: str = FALLB
 
 
 def run_self_test() -> int:
-    assert parse_zig_version("0.16.0") == ZigVersion(0, 16, 0, 1, 0)
-    assert parse_zig_version("0.17.0-dev.87+9b177a7d2") == ZigVersion(0, 17, 0, 0, 87)
-    assert parse_zig_version("0.17.0-dev.90") > parse_zig_version("0.17.0-dev.87+9b177a7d2")
-    assert parse_zig_version("0.17.0") > parse_zig_version("0.17.0-dev.999+abcdef")
-    assert parse_zig_version("0.17.1-dev.1") > parse_zig_version("0.17.0")
-    assert parse_zig_version("0.16.0") > parse_zig_version("0.15.2")
+    case_count = 0
+
+    def expect_equal(actual, expected) -> None:
+        nonlocal case_count
+        assert actual == expected
+        case_count += 1
+
+    def expect_true(condition: bool) -> None:
+        nonlocal case_count
+        assert condition
+        case_count += 1
+
+    def expect_raises(fn, expected_substring: str | None = None) -> None:
+        nonlocal case_count
+        try:
+            fn()
+        except ValueError as exc:
+            if expected_substring is not None:
+                assert expected_substring in str(exc)
+            case_count += 1
+            return
+        raise AssertionError("expected ValueError to fail")
+
+    expect_equal(parse_zig_version("0.16.0"), ZigVersion(0, 16, 0, 1, 0))
+    expect_equal(parse_zig_version("0.17.0-dev.87+9b177a7d2"), ZigVersion(0, 17, 0, 0, 87))
+    expect_true(parse_zig_version("0.17.0-dev.90") > parse_zig_version("0.17.0-dev.87+9b177a7d2"))
+    expect_true(parse_zig_version("0.17.0") > parse_zig_version("0.17.0-dev.999+abcdef"))
+    expect_true(parse_zig_version("0.17.1-dev.1") > parse_zig_version("0.17.0"))
+    expect_true(parse_zig_version("0.16.0") > parse_zig_version("0.15.2"))
     with tempfile.TemporaryDirectory(prefix="zigux_toolchain_policy_") as tmp_dir:
         policy_path = Path(tmp_dir) / "zig-toolchain-policy.json"
-        assert load_min_version(policy_path, "0.15.0") == "0.15.0"
+        expect_equal(load_min_version(policy_path, "0.15.0"), "0.15.0")
         policy_path.write_text('{"minimum_version":"0.17.0-dev.87+9b177a7d2"}\n', encoding="utf-8")
-        assert load_min_version(policy_path, "0.15.0") == "0.17.0-dev.87+9b177a7d2"
+        expect_equal(load_min_version(policy_path, "0.15.0"), "0.17.0-dev.87+9b177a7d2")
         policy_path.write_text('{"minimum_version":7}\n', encoding="utf-8")
-        try:
-            load_min_version(policy_path, "0.15.0")
-        except ValueError as exc:
-            assert "invalid minimum_version" in str(exc)
-        else:
-            raise AssertionError("expected invalid minimum_version to fail")
+        expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid minimum_version")
         policy_path.write_text("{not-json}\n", encoding="utf-8")
-        try:
-            load_min_version(policy_path, "0.15.0")
-        except ValueError as exc:
-            assert "invalid toolchain policy JSON" in str(exc)
-        else:
-            raise AssertionError("expected invalid JSON policy to fail")
-    try:
-        parse_zig_version("master")
-    except ValueError:
-        pass
-    else:
-        raise AssertionError("expected invalid version string to fail")
+        expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid toolchain policy JSON")
+    expect_raises(lambda: parse_zig_version("master"))
     print("ZIG_TOOLCHAIN_SELF_TEST=pass")
+    print(f"ZIG_TOOLCHAIN_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
