@@ -104,6 +104,9 @@ test "phase13 notifier/list survey records the landed hvc interop anchor" {
     try expectContains(release_validator_text, "zigux/tests/phase13_notifier_list_manifest.json");
     try expectContains(release_validator_text, "zigux/tests/phase13_notifier_list_reviewability.zig");
     try expectContains(release_validator_text, "scripts/zigux/check-phase13-notifier-packet.py");
+    try expectContains(release_validator_text, "zigux/helpers/list_view.zig");
+    try expectContains(release_validator_text, "zigux/helpers/hlist_view.zig");
+    try expectContains(release_validator_text, "include/zigux/abi.h");
     try expectContains(release_validator_text, "include/zigux/notifier_abi.h");
     try expectContains(release_validator_text, "zigux/helpers/notifier_chain_view.zig");
     try expectContains(release_validator_text, "adjacent release-surface evidence rather than extra shared replay steps");
