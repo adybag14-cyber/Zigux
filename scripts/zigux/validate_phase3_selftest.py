@@ -22,7 +22,11 @@ class SelfTestTarget:
 
 
 SELF_TEST_TARGETS = (
-    SelfTestTarget("scripts/zigux/validate-phase3.py", "PHASE3_VALIDATE_SELF_TEST=pass"),
+    SelfTestTarget(
+        "scripts/zigux/validate-phase3.py",
+        "PHASE3_VALIDATE_SELF_TEST=pass",
+        ("PHASE3_VALIDATE_SELF_TEST_CASE_COUNT=",),
+    ),
     SelfTestTarget(
         "scripts/zigux/check-phase3-selftest-surface.py",
         "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
@@ -206,6 +210,12 @@ def run_self_test() -> int:
         tmp_root = Path(tmp_dir)
 
         _require_target(
+            "scripts/zigux/validate-phase3.py",
+            "PHASE3_VALIDATE_SELF_TEST=pass",
+            extra_markers=("PHASE3_VALIDATE_SELF_TEST_CASE_COUNT=",),
+        )
+        case_count += 1
+        _require_target(
             "scripts/zigux/check-phase3-selftest-surface.py",
             "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
             extra_markers=("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=",),
@@ -275,6 +285,46 @@ def run_self_test() -> int:
         success_root = tmp_root / "success"
         _populate_root(success_root)
         assert run_targets(success_root) == []
+        case_count += 1
+
+        missing_validate_aux_root = tmp_root / "missing-validate-aux"
+        _populate_root(missing_validate_aux_root)
+        write_script(
+            missing_validate_aux_root / "scripts/zigux/validate-phase3.py",
+            "PHASE3_VALIDATE_SELF_TEST=pass",
+        )
+        assert run_targets(missing_validate_aux_root) == [
+            "missing_aux_marker:scripts/zigux/validate-phase3.py:PHASE3_VALIDATE_SELF_TEST_CASE_COUNT="
+        ]
+        case_count += 1
+
+        duplicate_validate_aux_root = tmp_root / "duplicate-validate-aux"
+        _populate_root(duplicate_validate_aux_root)
+        duplicate_validate_aux_path = duplicate_validate_aux_root / "scripts/zigux/validate-phase3.py"
+        duplicate_validate_aux_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "from __future__ import annotations",
+                    "",
+                    "import sys",
+                    "",
+                    'if "--self-test" in sys.argv:',
+                    '    print("PHASE3_VALIDATE_SELF_TEST=pass")',
+                    '    print("PHASE3_VALIDATE_SELF_TEST_CASE_COUNT=9")',
+                    '    print("PHASE3_VALIDATE_SELF_TEST_CASE_COUNT=10")',
+                    "    raise SystemExit(0)",
+                    "",
+                    'raise SystemExit("expected --self-test")',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert run_targets(duplicate_validate_aux_root) == [
+            "duplicate_aux_marker:scripts/zigux/validate-phase3.py:2:PHASE3_VALIDATE_SELF_TEST_CASE_COUNT="
+        ]
         case_count += 1
 
         missing_selftest_surface_aux_root = tmp_root / "missing-selftest-surface-aux"
