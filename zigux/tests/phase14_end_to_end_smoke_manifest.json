@@ -4,6 +4,21 @@
   "packet_name": "phase14_shared_smoke_packet",
   "focus": "study_only_shared_smoke_packet",
   "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",
+  "productization": {
+    "named_owner": "Core-Adjacent Pod",
+    "status_bucket": "study_only",
+    "validation_gate": "make -C zigux phase14-validate && make -C zigux phase14-smoke && make -C zigux phase14-test && make -C zigux phase14",
+    "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",
+    "review_blocker_status": "blocked_on_stay_in_c_evidence",
+    "transfer_rationale": "transfer ZAR runtime research into explicit reviewability evidence instead of widening Phase 14 into a deep-core port",
+    "roadmap_risk_bundle": [
+      "hidden runtime behavior",
+      "memory-ordering mistakes",
+      "overpromising full parity",
+      "deep-core scope creep"
+    ],
+    "fallback_path": "Keep kernel/workqueue.c, net/core/skbuff.c, kernel/trace/ring_buffer.c, and kernel/rcu/tree.c as the source of truth and keep the shared smoke packet limited to survey-backed reviewability evidence."
+  },
   "commands": [
     "make -C zigux phase14-validate",
     "make -C zigux phase14-smoke",
