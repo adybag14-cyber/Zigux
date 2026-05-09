@@ -5,7 +5,7 @@ This note turns the current Phase 3 substrate on `master` into one bounded owner
 ## Status
 
 - `PHASE3_BOUNDARY_MAP_STATUS=active`
-- `PHASE3_BOUNDARY_MAP_SCOPE=shared-abi-slice-plus-header-next-step-plus-export-uapi-plus-policy-unsafe-plus-low-level-wrapper`
+- `PHASE3_BOUNDARY_MAP_SCOPE=shared-abi-slice-plus-header-next-step-plus-export-uapi-plus-policy-unsafe-plus-low-level-wrapper-plus-validator-support`
 - `PHASE3_LEDGER_ANCHOR=BOOTSTRAP_COMMIT_LEDGER.md entry 26 feat(zigux): start bounded Phase 3 abi substrate skeleton`
 - `PHASE3_SHARED_ABI_OWNER=Documentation/zigux/phase3-abi-slice.md`
 - `PHASE3_HEADER_NEXT_STEP_OWNER=Documentation/zigux/phase3-abi-h-boundary-next-step.md`
@@ -111,8 +111,18 @@ The shared review surfaces below keep Phase 3 reviewable, but they do not transf
 - `zigux/tests/README.md`
 - `scripts/zigux/README.md`
 - `scripts/zigux/validate-phase3.py`
+- `scripts/zigux/validate_phase3_selftest.py`
+- `scripts/zigux/check-phase3-selftest-surface.py`
+- `scripts/zigux/check-phase3-readme-tooling-inventory.py`
+- `scripts/zigux/check-phase3-abi-dump-gate.py`
+- `scripts/zigux/check-phase3-catalog-selftest.py`
+- `scripts/zigux/phase3_catalog.py`
+- `scripts/zigux/phase3_check_lib.py`
+- `scripts/zigux/generate-phase3-check-wrappers.py`
 - `scripts/zigux/run-phase3-checks.py`
 - `zigux/Makefile`
+
+That shared-surface bucket includes the focused validator-support packet nested under the ABI slice too: the self-test runner, review-surface checker, README tooling inventory guard, dump-gate proof, catalog self-check, shared checker-library self-check, wrapper-drift guard, and runner self-check all keep the shipped Phase 3 support route honest, but they still do not become packet-local owners on their own.
 
 If one of those shared surfaces drifts, fix the shared wording only after checking which packet-local owner actually moved first.
 
@@ -131,6 +141,7 @@ When a later run finds a new Phase 3 mismatch, route it through the smallest own
 - if boundary-header relay helpers or starter UAPI wording moves, reopen the export/UAPI survey and the focused layout replay
 - if panic, allocator, or unsafe policy bytes move, reopen the policy-and-unsafe survey and the policy-byte guard
 - if atomic, barrier, or MMIO helper behavior moves, reopen the low-level-wrapper survey and the focused wrapper replay
+- if the validator-support packet drifts but no packet-local owner moved first, reopen the shared ABI slice plus the smallest shared support surface such as `validate_phase3_selftest.py` or the specific checker-local script that went stale
 - if the aggregate packet, manifest-backed replay, or shared route wording drifts, reopen the shared ABI slice or the shared validator-first review surface
 
 This keeps Phase 3 follow-up bounded to the surface that actually changed instead of reopening the whole substrate every time one nearby packet moves.
