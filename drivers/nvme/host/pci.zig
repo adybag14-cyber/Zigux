@@ -34,6 +34,7 @@ pub const ModuleDescriptor = struct {
     provides_prp_metadata_helper: bool,
     provides_recovery_replay_helper: bool,
     provides_recovery_reservation_helper: bool,
+    provides_recovery_backlog_retirement_helper: bool,
     touches_live_dma: bool,
     touches_pci_probe: bool,
     touches_irq_recovery: bool,
@@ -48,6 +49,7 @@ pub const OwnershipSummary = struct {
     prp_shape_owner: OwnershipBoundary,
     prp_metadata_owner: OwnershipBoundary,
     recovery_replay_owner: OwnershipBoundary,
+    recovery_backlog_retirement_owner: OwnershipBoundary,
     live_dma_owner: OwnershipBoundary,
     recovery_transport_owner: OwnershipBoundary,
 };
@@ -226,6 +228,7 @@ pub const NvmePciQueueLab = struct {
             .provides_prp_metadata_helper = true,
             .provides_recovery_replay_helper = true,
             .provides_recovery_reservation_helper = true,
+            .provides_recovery_backlog_retirement_helper = true,
             .touches_live_dma = false,
             .touches_pci_probe = false,
             .touches_irq_recovery = false,
@@ -242,6 +245,7 @@ pub const NvmePciQueueLab = struct {
             .prp_shape_owner = .starter_packet,
             .prp_metadata_owner = .starter_packet,
             .recovery_replay_owner = .starter_packet,
+            .recovery_backlog_retirement_owner = .starter_packet,
             .live_dma_owner = .dma_transport_substrate,
             .recovery_transport_owner = .dma_transport_substrate,
         };
@@ -694,17 +698,17 @@ pub const NvmePciQueueLab = struct {
 
     fn checkedMulU32(lhs: u16, rhs: u16) !u32 {
         const value = @as(u64, lhs) * rhs;
-        return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
+        return std.math.cast(u32, value) orelse return error.QueueBytesOverflow;
     }
 
     fn checkedMulU16ByU32(lhs: u16, rhs: u32) !u32 {
         const value = @as(u64, lhs) * rhs;
-        return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
+        return std.math.cast(u32, value) orelse return error.QueueBytesOverflow;
     }
 
     fn checkedAddU32(lhs: u32, rhs: u32) !u32 {
         const value = @as(u64, lhs) + rhs;
-        return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
+        return std.math.cast(u32, value) orelse return error.QueueBytesOverflow;
     }
 
     fn checkedAddUsize(lhs: usize, rhs: usize) !usize {
@@ -713,13 +717,13 @@ pub const NvmePciQueueLab = struct {
 
     fn checkedMulWideU32(lhs: u32, rhs: u32) !u32 {
         const value = @as(u64, lhs) * rhs;
-        return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
+        return std.math.cast(u32, value) orelse return error.QueueBytesOverflow;
     }
 
     fn checkedDivCeilU16(bytes: u32, page_size: u32) !u16 {
         const rounded = @as(u64, bytes) + page_size - 1;
         const pages = rounded / page_size;
-        return std.math.cast(u16, pages) orelse error.QueueBytesOverflow;
+        return std.math.cast(u16, pages) orelse return error.QueueBytesOverflow;
     }
 
     fn checkedAlignForwardU32(value: u32, alignment: u32) !u32 {
