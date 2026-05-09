@@ -20,6 +20,10 @@ fn compareU32C(key: *const u32, item: *const u32) callconv(.c) i32 {
     return compareU32(key, item);
 }
 
+fn compareU32AliasC(key: *const u32, item: *const u32) callconv(.c) i32 {
+    return compareU32(key, item);
+}
+
 fn compareDescendingU32(key: *const u32, item: *const u32) i32 {
     return switch (std.math.order(item.*, key.*)) {
         .lt => -1,
@@ -29,6 +33,10 @@ fn compareDescendingU32(key: *const u32, item: *const u32) i32 {
 }
 
 fn compareDescendingU32C(key: *const u32, item: *const u32) callconv(.c) i32 {
+    return compareDescendingU32(key, item);
+}
+
+fn compareDescendingU32AliasC(key: *const u32, item: *const u32) callconv(.c) i32 {
     return compareDescendingU32(key, item);
 }
 
@@ -42,6 +50,10 @@ fn compareOpaqueU32C(key: *const anyopaque, item: *const anyopaque) callconv(.c)
     return compareOpaqueU32(key, item);
 }
 
+fn compareOpaqueU32AliasC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    return compareOpaqueU32(key, item);
+}
+
 fn compareDescendingOpaqueU32(key: *const anyopaque, item: *const anyopaque) i32 {
     const typed_key: *const u32 = @ptrCast(@alignCast(key));
     const typed_item: *const u32 = @ptrCast(@alignCast(item));
@@ -52,6 +64,10 @@ fn compareDescendingOpaqueU32C(key: *const anyopaque, item: *const anyopaque) ca
     return compareDescendingOpaqueU32(key, item);
 }
 
+fn compareDescendingOpaqueU32AliasC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    return compareDescendingOpaqueU32(key, item);
+}
+
 fn compareRawRecordKey(key: *const anyopaque, item: *const anyopaque) i32 {
     const typed_key: *const u32 = @ptrCast(@alignCast(key));
     const typed_item: *const RawRecord = @ptrCast(@alignCast(item));
@@ -59,6 +75,10 @@ fn compareRawRecordKey(key: *const anyopaque, item: *const anyopaque) i32 {
 }
 
 fn compareRawRecordKeyC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    return compareRawRecordKey(key, item);
+}
+
+fn compareRawRecordKeyAliasC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
     return compareRawRecordKey(key, item);
 }
 
@@ -129,8 +149,8 @@ fn linearRawLowerBoundIndexU32(
 test "phase 6 bsearch lower-bound helpers accept runtime-selected c abi comparator pointers" {
     const ascending = [_]u32{ 1, 4, 4, 4, 9, 16 };
     const descending = [_]u32{ 16, 9, 4, 4, 4, 1 };
-    const ascending_comparators = [_]bsearch.CComparator(u32, u32){ compareU32C, compareU32C };
-    const descending_comparators = [_]bsearch.CComparator(u32, u32){ compareDescendingU32C, compareDescendingU32C };
+    const ascending_comparators = [_]bsearch.CComparator(u32, u32){ compareU32C, compareU32AliasC };
+    const descending_comparators = [_]bsearch.CComparator(u32, u32){ compareDescendingU32C, compareDescendingU32AliasC };
 
     for (ascending_comparators) |compare| {
         try std.testing.expectEqual(@as(usize, 0), bsearch.lowerBoundIndex(u32, u32, &@as(u32, 0), ascending[0..], compare));
@@ -157,9 +177,9 @@ test "phase 6 bsearch raw lower-bound helpers accept runtime-selected c abi comp
         .{ .key = 11, .tag = 13, .flags = 2, .value = 110 },
         .{ .key = 16, .tag = 14, .flags = 0, .value = 160 },
     };
-    const ascending_comparators = [_]bsearch.CRawComparator{ compareOpaqueU32C, compareOpaqueU32C };
-    const descending_comparators = [_]bsearch.CRawComparator{ compareDescendingOpaqueU32C, compareDescendingOpaqueU32C };
-    const record_comparators = [_]bsearch.CRawComparator{ compareRawRecordKeyC, compareRawRecordKeyC };
+    const ascending_comparators = [_]bsearch.CRawComparator{ compareOpaqueU32C, compareOpaqueU32AliasC };
+    const descending_comparators = [_]bsearch.CRawComparator{ compareDescendingOpaqueU32C, compareDescendingOpaqueU32AliasC };
+    const record_comparators = [_]bsearch.CRawComparator{ compareRawRecordKeyC, compareRawRecordKeyAliasC };
 
     for (ascending_comparators) |compare| {
         try std.testing.expectEqual(
