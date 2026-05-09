@@ -55,11 +55,20 @@ pub fn main(init: std.process.Init) !void {
             "tcpudp-nofold\t{s}\t0x{x:0>8}\n",
             .{ case.name, checksum.tcpUdpNofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto) },
         );
+        try writer.print(
+            "tcpudp-magic\t{s}\t0x{x:0>4}\n",
+            .{ case.name, checksum.tcpUdpMagic(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto) },
+        );
     }
 
+    const ipv6_partial = checksum.partial(&ipv6_payload, 0);
     try writer.print(
         "tcpudp-v6-nofold\tudp pseudo header v6\t0x{x:0>8}\n",
-        .{checksum.tcpUdpV6Nofold(checksum.partial(&ipv6_payload, 0), &ipv6_saddr, &ipv6_daddr, ipv6_payload.len, 17)},
+        .{checksum.tcpUdpV6Nofold(ipv6_partial, &ipv6_saddr, &ipv6_daddr, ipv6_payload.len, 17)},
+    );
+    try writer.print(
+        "tcpudp-v6-magic\tudp pseudo header v6\t0x{x:0>4}\n",
+        .{checksum.tcpUdpV6Magic(ipv6_partial, &ipv6_saddr, &ipv6_daddr, ipv6_payload.len, 17)},
     );
 
     for (fixtures.negate_cases) |case| {
