@@ -38,4 +38,4 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs
 
 ## Next Bounded Step
 
-Land one focused promotion that teaches the shared Phase 4 gate-evidence packet to carry this same survey note, manifest, and replay command once the adjacent packet has been reread and accepted as the truthful current boundary.
+Keep this parked packet adjacent to the shared gate-evidence note, the dedicated exact-readback checker, the compact tests-root Phase 4 reminder, and the dedicated local survey wrapper until a future bounded lane intentionally opens either the Zig starter or a broader validation-surface promotion. If the next same-lane slot still stays below starter work, prefer the next one-file same-packet truthfulness repair that keeps this note, `zigux/tests/phase4_test_fsmount_manifest.json`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, and `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` aligned.
