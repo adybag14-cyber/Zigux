@@ -142,6 +142,27 @@ test "phase 7 argvFree on one live split result does not disturb another caller"
     try std.testing.expectEqual(@as(?[*:0]const u8, null), second.cArgv()[second.argv.len]);
 }
 
+test "phase 7 argvSplit deinit on one live split result does not disturb another caller" {
+    var first = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda rw");
+    var second = try argv_split.argvSplit(std.testing.allocator, "panic=-1 init=/init");
+    defer second.deinit(std.testing.allocator);
+
+    first.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), first.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), first.storage[first.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), first.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), first.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), first.cArgv()[0]);
+
+    try std.testing.expect(second.storage.len != 0);
+    try std.testing.expectEqualStrings("panic=-1", second.argv[0]);
+    try std.testing.expectEqualStrings("init=/init", second.argv[1]);
+    try std.testing.expectEqualStrings("panic=-1", std.mem.span(second.cArgv()[0].?));
+    try std.testing.expectEqualStrings("init=/init", std.mem.span(second.cArgv()[1].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), second.cArgv()[second.argv.len]);
+}
+
 test "phase 7 blank argvSplit input reuses the empty exported argv view" {
     var buffer: [4]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
