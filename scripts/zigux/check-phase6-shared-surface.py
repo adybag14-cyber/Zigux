@@ -54,6 +54,7 @@ REQUIRED_SNIPPETS = {
         "- `bsearch`",
         "- `bsearchMutable`",
         "- focused typed and raw lower-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
+        "- runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses",
         "The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable, and the same focused replay now carries the bounded comparison-budget evidence instead of a dedicated `phase6_bsearch_perf` route.",
     ],
     "Documentation/zigux/phase6-perf-gate-survey.md": [
@@ -240,6 +241,36 @@ def write(path: Path, content: str) -> None:
 
 def scaffold_repo(root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
+        if rel_path == MANIFEST_PATH.as_posix():
+            manifest = {
+                "phase": "Phase 6",
+                "tranche": "leaf-helper-parity",
+                "surveyed_commit": "911470d",
+                "helpers": [
+                    {"id": "base64"},
+                    {"id": "bsearch"},
+                    {"id": "checksum"},
+                    {"id": "hexdump"},
+                ],
+                "review_surface": [
+                    "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+                    "Documentation/zigux/phase6-helper-parity-catalog.md",
+                    "Documentation/zigux/phase6-perf-gate-survey.md",
+                    "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md",
+                    "scripts/zigux/check-phase6-shared-surface.py",
+                    "make -C zigux phase6-validate",
+                    "make -C zigux phase6",
+                    "make -C zigux phase6-hexdump-test",
+                    "make -C zigux phase6-perf",
+                    "make -C zigux phase6-base64-perf",
+                    "make -C zigux phase6-checksum-perf",
+                    "make -C zigux phase6-hexdump-perf",
+                    "self-test-sentinel",
+                ],
+                "generated_fixture_artifacts_committed": False,
+            }
+            write(root / rel_path, json.dumps(manifest, indent=2) + "\n")
+            continue
         lines = list(dict.fromkeys(snippets))
         for marker, expected in EXACT_OCCURRENCE_MARKERS.get(rel_path, []):
             lines.extend([marker] * expected)
@@ -306,6 +337,12 @@ def run_self_test() -> None:
             "Documentation/zigux/phase6-bsearch-slice.md",
             "focused typed and raw lower-bound C ABI parity across ascending and descending sorted inputs plus packed-record `member_size` boundaries through `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
             "focused typed and raw lower-bound C ABI parity through `zigux/tests/phase6_bsearch_lower_bound.zig`",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-bsearch-slice.md",
+            "runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses",
+            "runtime-selected raw C ABI comparator pointer parity without the descending duplicate-hit contract",
         )
         assert_failure(
             root,
