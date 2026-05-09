@@ -294,6 +294,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(next_arg_fixture, ".name = \"leading whitespace returns Linux empty sentinel token\",");
     try expectContains(next_arg_fixture, ".name = \"whitespace-only tail trims to empty rest\",");
     try expectContains(next_arg_fixture, ".name = \"leading equals sign stays in the parameter token\",");
+    try expectContains(next_arg_fixture, ".name = \"empty input keeps borrowed empty sentinel slices\",");
     try expectContains(next_arg_fixture, ".expected_param = \"\",");
     try expectContains(next_arg_fixture, ".expected_param = \"key\",");
     try expectContains(next_arg_fixture, ".expected_value = \"fast=boot\",");
@@ -307,5 +308,6 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectCount(next_arg_fixture, ".name = \"leading whitespace returns Linux empty sentinel token\",", 1);
     try expectCount(next_arg_fixture, ".name = \"whitespace-only tail trims to empty rest\",", 1);
     try expectCount(next_arg_fixture, ".name = \"leading equals sign stays in the parameter token\",", 1);
+    try expectCount(next_arg_fixture, ".name = \"empty input keeps borrowed empty sentinel slices\",", 1);
     try expectCount(next_arg_fixture, ".expected_param = \"=bad\",", 1);
 }
