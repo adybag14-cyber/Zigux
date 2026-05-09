@@ -157,6 +157,12 @@ REQUIRED_CONTRACT_MARKERS = [
     "there is no broader multi-checker Phase 11 validator stack on `master`",
 ]
 
+REQUIRED_SCRIPTS_README_MARKERS = [
+    "- `check-phase11-header-boundary-packet.py`",
+    "`scripts/zigux/check-phase11-header-boundary-packet.py`",
+    "focused shared header-boundary note and manifest-backed survey replay",
+]
+
 REQUIRED_HVC_HEADER_MARKERS = [
     "#define MAX_NR_HVC_CONSOLES\t16",
     "#define HVC_ALLOC_TTY_ADAPTERS\t8",
@@ -231,6 +237,7 @@ def check_repo(root: Path) -> None:
     survey = read_text(root, "zigux/tests/phase11_uapi_header_parity_survey.zig")
     build = read_text(root, "zigux/tests/phase11_build.zig")
     contract = read_text(root, "Documentation/zigux/phase11-shared-replay-contract.md")
+    scripts_readme = read_text(root, "scripts/zigux/README.md")
     hvc_header = read_text(root, "drivers/tty/hvc/hvc_console.h")
 
     require_markers(note, REQUIRED_NOTE_MARKERS + [manifest["surveyed_commit"]], "note")
@@ -238,6 +245,7 @@ def check_repo(root: Path) -> None:
     require_markers(survey, REQUIRED_SURVEY_MARKERS, "survey")
     require_markers(build, REQUIRED_BUILD_MARKERS, "build")
     require_markers(contract, REQUIRED_CONTRACT_MARKERS, "contract")
+    require_markers(scripts_readme, REQUIRED_SCRIPTS_README_MARKERS, "scripts_readme")
     require_markers(hvc_header, REQUIRED_HVC_HEADER_MARKERS, "hvc_header")
 
 
@@ -287,6 +295,11 @@ def build_fixture_repo(root: Path) -> None:
     )
     write_text(
         root,
+        "scripts/zigux/README.md",
+        "\n".join(REQUIRED_SCRIPTS_README_MARKERS) + "\n",
+    )
+    write_text(
+        root,
         "drivers/tty/hvc/hvc_console.h",
         "\n".join(REQUIRED_HVC_HEADER_MARKERS) + "\n",
     )
@@ -324,14 +337,14 @@ def run_self_test() -> int:
         run_case(
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
             "phase11-uapi-header-parity-surface",
-            "phase11-uapi-header-packet-absent",
-            "note missing markers",
+            "phase11-uapi-header-parity-surface\ndrivers/tty/hvc/hvc_console.zig",
+            "note contains stale markers",
         )
         run_case(
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
             "phase11-uapi-header-parity-surface",
-            "phase11-uapi-header-parity-surface\ndrivers/tty/hvc/hvc_console.zig",
-            "note contains stale markers",
+            "phase11-uapi-header-packet-absent",
+            "note missing markers",
         )
         run_case(
             "Documentation/zigux/phase11-uapi-header-parity-survey.md",
@@ -350,6 +363,18 @@ def run_self_test() -> int:
             "zigux/tests/phase11_uapi_header_parity_survey.zig",
             "zigux/tests/phase11_header_packet_absent.zig",
             "contract missing markers",
+        )
+        run_case(
+            "scripts/zigux/README.md",
+            "- `check-phase11-header-boundary-packet.py`",
+            "- `check-phase11-header-packet.py`",
+            "scripts_readme missing markers",
+        )
+        run_case(
+            "scripts/zigux/README.md",
+            "focused shared header-boundary note and manifest-backed survey replay",
+            "focused shared header packet replay",
+            "scripts_readme missing markers",
         )
         run_case(
             "drivers/tty/hvc/hvc_console.h",
