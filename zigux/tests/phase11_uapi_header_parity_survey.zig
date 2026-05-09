@@ -7,6 +7,7 @@ const SurveySummary = struct {
     shared_phase11_header_survey_present: bool,
     watchdog_info_layout_assert_present: bool,
     winsize_layout_assert_present: bool,
+    hvc_hv_ops_layout_assert_present: bool,
     hvc_header_constants_checked: bool,
     hvc_export_surface_checked: bool,
 };
@@ -42,6 +43,30 @@ const WinSize = extern struct {
     ws_ypixel: u16,
 };
 
+const HvcStruct = opaque {};
+
+const HvOpsGetChars = ?*const fn (vtermno: u32, buf: [*c]u8, count: usize) callconv(.c) isize;
+const HvOpsPutChars = ?*const fn (vtermno: u32, buf: [*c]const u8, count: usize) callconv(.c) isize;
+const HvOpsFlush = ?*const fn (vtermno: u32, wait: bool) callconv(.c) i32;
+const HvOpsNotifierAdd = ?*const fn (hp: ?*HvcStruct, irq: i32) callconv(.c) i32;
+const HvOpsNotifierDel = ?*const fn (hp: ?*HvcStruct, irq: i32) callconv(.c) void;
+const HvOpsNotifierHangup = ?*const fn (hp: ?*HvcStruct, irq: i32) callconv(.c) void;
+const HvOpsTiocmget = ?*const fn (hp: ?*HvcStruct) callconv(.c) i32;
+const HvOpsTiocmset = ?*const fn (hp: ?*HvcStruct, set: u32, clear: u32) callconv(.c) i32;
+const HvOpsDtrRts = ?*const fn (hp: ?*HvcStruct, active: bool) callconv(.c) void;
+
+const HvOps = extern struct {
+    get_chars: HvOpsGetChars,
+    put_chars: HvOpsPutChars,
+    flush: HvOpsFlush,
+    notifier_add: HvOpsNotifierAdd,
+    notifier_del: HvOpsNotifierDel,
+    notifier_hangup: HvOpsNotifierHangup,
+    tiocmget: HvOpsTiocmget,
+    tiocmset: HvOpsTiocmset,
+    dtr_rts: HvOpsDtrRts,
+};
+
 fn readFileAlloc(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
     var io_instance: std.Io.Threaded = .init(allocator, .{});
     defer io_instance.deinit();
@@ -74,12 +99,14 @@ test "phase11 shared header parity survey manifest records the maintained packet
     try std.testing.expect(manifest.survey_summary.shared_phase11_header_survey_present);
     try std.testing.expect(manifest.survey_summary.watchdog_info_layout_assert_present);
     try std.testing.expect(manifest.survey_summary.winsize_layout_assert_present);
+    try std.testing.expect(manifest.survey_summary.hvc_hv_ops_layout_assert_present);
     try std.testing.expect(manifest.survey_summary.hvc_header_constants_checked);
     try std.testing.expect(manifest.survey_summary.hvc_export_surface_checked);
 
     var saw_build_gate = false;
     var saw_watchdog_layout = false;
     var saw_winsize_layout = false;
+    var saw_hv_ops_layout = false;
     var saw_header_constants = false;
     var saw_export_surface = false;
 
@@ -100,6 +127,12 @@ test "phase11 shared header parity survey manifest records the maintained packet
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-winsize-layout-assert")) {
             saw_winsize_layout = true;
         }
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-hv-ops-layout-assert")) {
+            saw_hv_ops_layout = true;
+            try expectContains(gap.why_now, "size 72");
+            try expectContains(gap.why_now, "callback table");
+            try expectContains(gap.why_now, "offsets 0 through 64");
+        }
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-header-constant-assert")) {
             saw_header_constants = true;
             try expectContains(gap.why_now, "MAX_NR_HVC_CONSOLES");
@@ -114,6 +147,7 @@ test "phase11 shared header parity survey manifest records the maintained packet
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_watchdog_layout);
     try std.testing.expect(saw_winsize_layout);
+    try std.testing.expect(saw_hv_ops_layout);
     try std.testing.expect(saw_header_constants);
     try std.testing.expect(saw_export_surface);
 }
@@ -146,6 +180,31 @@ test "phase11 shared header parity survey keeps a bounded winsize layout proof" 
     }
 }
 
+test "phase11 shared header parity survey keeps a bounded hv_ops layout proof" {
+    comptime {
+        layout_assert.assertSize(HvOps, 72);
+        layout_assert.assertAlign(HvOps, 8);
+        layout_assert.assertFieldType(HvOps, "get_chars", HvOpsGetChars);
+        layout_assert.assertFieldType(HvOps, "put_chars", HvOpsPutChars);
+        layout_assert.assertFieldType(HvOps, "flush", HvOpsFlush);
+        layout_assert.assertFieldType(HvOps, "notifier_add", HvOpsNotifierAdd);
+        layout_assert.assertFieldType(HvOps, "notifier_del", HvOpsNotifierDel);
+        layout_assert.assertFieldType(HvOps, "notifier_hangup", HvOpsNotifierHangup);
+        layout_assert.assertFieldType(HvOps, "tiocmget", HvOpsTiocmget);
+        layout_assert.assertFieldType(HvOps, "tiocmset", HvOpsTiocmset);
+        layout_assert.assertFieldType(HvOps, "dtr_rts", HvOpsDtrRts);
+        layout_assert.assertOffset(HvOps, "get_chars", 0);
+        layout_assert.assertOffset(HvOps, "put_chars", 8);
+        layout_assert.assertOffset(HvOps, "flush", 16);
+        layout_assert.assertOffset(HvOps, "notifier_add", 24);
+        layout_assert.assertOffset(HvOps, "notifier_del", 32);
+        layout_assert.assertOffset(HvOps, "notifier_hangup", 40);
+        layout_assert.assertOffset(HvOps, "tiocmget", 48);
+        layout_assert.assertOffset(HvOps, "tiocmset", 56);
+        layout_assert.assertOffset(HvOps, "dtr_rts", 64);
+    }
+}
+
 test "phase11 shared header parity survey keeps the note pinned to the manifest provenance" {
     const manifest_json = try readFileAlloc(std.testing.allocator, "zigux/tests/phase11_uapi_header_parity_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
@@ -160,9 +219,12 @@ test "phase11 shared header parity survey keeps the note pinned to the manifest 
     try expectContains(note, "lane: `P11-L18`");
     try expectContains(note, "phase11-dw-wdt-watchdog-info-layout-assert");
     try expectContains(note, "phase11-hvc-console-winsize-layout-assert");
+    try expectContains(note, "phase11-hvc-console-hv-ops-layout-assert");
     try expectContains(note, "phase11-hvc-console-header-constant-assert");
     try expectContains(note, "phase11-hvc-console-export-signature-assert");
     try expectContains(note, "phase11-uapi-header-parity-surface");
+    try expectContains(note, "struct hv_ops");
+    try expectContains(note, "callback-table");
     try expectContains(note, "MAX_NR_HVC_CONSOLES");
     try expectContains(note, "HVC_ALLOC_TTY_ADAPTERS");
     try expectContains(note, "notifier_hangup_irq");
