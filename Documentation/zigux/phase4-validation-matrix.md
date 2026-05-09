@@ -179,6 +179,7 @@ This matrix, `scripts/zigux/validate-phase4.py`, and the shared `zigux/tests/pha
 ## Review Rules
 - Phase 4 remains a rollback-readiness lane first, not a performance-claim lane
 - the dedicated perf-baseline survey may keep the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked, but it must stay outside the shared `phase4-test` entrypoint until any shared CI perf promotion is intentionally approved
+- any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners before the shared packet stops calling the approved acceptable limits local-only
 - any future hard timing threshold must name the benchmark command, acceptable limit, owner, and rollback owner in this record before the lane claims perf coverage
 - if the shared runtime backing regresses, repair `zigux/tests/runtime_atomic64_diff.zig` or remove `zigux/tests/atomic64_diff.zig` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` from the shared Phase 4 entrypoint until the runtime-backed replay is honest again
 - if the bitmap reviewability survey regresses, repair `zigux/tests/phase4_bitmap_diff_manifest.json` and `zigux/tests/phase4_bitmap_diff_survey.zig` or remove that survey from the shared Phase 4 entrypoint until the bitmap rollback packet is honest again
