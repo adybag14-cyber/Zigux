@@ -269,6 +269,8 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         "`samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
         "shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too",
         "`available()` and `usesWrappedStorageWindow()`",
+        "`runWrappedPreviewReplay()`",
+        "wrapped-preview boundary",
     };
 
     for (required_mentions) |needle| {
@@ -587,6 +589,11 @@ test "phase 5 bytestream fifo survey note records the queue-shape boundary contr
         "`{ 31, 1 }` once refill makes the bounded window wrap",
         "the queue-shape replay also held",
         "`usesWrappedStorageWindow()` stayed `false` until the refill-after-skip rollover flipped it `true`",
+        "`runWrappedPreviewReplay()` keeps that same wrapped-window boundary reviewable without mutation too",
+        "draining `\"hell\"`, refilling `{200,201,202,203}`",
+        "keeping `previewInto()` at `['o',0,1,2,3,4,5,6]`",
+        "`available_after_preview` at `0`",
+        "preserving the wrapped `{28,4}` split cue",
     };
 
     for (required_markers) |needle| {
@@ -635,6 +642,10 @@ test "phase 5 bytestream fifo survey note records the latest verification snapsh
         "`{ 31, 0 }` after skip-at-capacity",
         "`{ 31, 1 }` after the refill rollover",
         "`usesWrappedStorageWindow()` stayed `false` until the refill-after-skip rollover flipped it `true`",
+        "the wrapped-preview replay also held",
+        "`runWrappedPreviewReplay()` drained `\"hell\"`",
+        "kept `previewInto()` at `['o', 0, 1, 2, 3, 4, 5, 6]`",
+        "preserved the wrapped `{ 28, 4 }` split without mutating queue state",
     };
 
     for (required_markers) |needle| {
