@@ -142,6 +142,7 @@ REQUIRED_FILE_MARKERS = {
     "zigux/tests/README.md": [
         "keep the current Phase 14 smoke packet reviewable through",
         "scripts/zigux/validate-phase14.py",
+        "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
         "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
         "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
         "make -C zigux phase14-validate",
@@ -501,6 +502,20 @@ def run_self_test() -> int:
             print("self-test expected docs-root checker no-output fallback", file=sys.stderr)
             return 1
         write_text(root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py", f"#!/usr/bin/env python3\n\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\nraise SystemExit(0)\n")
+        tests_readme_path = root / "zigux/tests/README.md"
+        write_text(
+            tests_readme_path,
+            read_text(tests_readme_path).replace(
+                "scripts/zigux/check-phase14-docs-root-smoke-summary.py\n",
+                "",
+                1,
+            ),
+        )
+        errors = check(root)
+        if "missing marker in zigux/tests/README.md: scripts/zigux/check-phase14-docs-root-smoke-summary.py" not in errors:
+            print("self-test expected missing tests-root docs-root-checker marker failure", file=sys.stderr)
+            return 1
+        write_text(tests_readme_path, "\n".join(REQUIRED_FILE_MARKERS["zigux/tests/README.md"]) + "\n")
         write_text(
             root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
             f"#!/usr/bin/env python3\n\"\"\"{CHECKER_MARKER}\"\"\"\nprint(\"synthetic phase14 rollback-threshold failure\")\nraise SystemExit(1)\n",
