@@ -246,6 +246,14 @@ EXPECTED_BENCH_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM": 1672000,
     "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 148000,
 }
+REQUIRED_FIND_BIT_BENCH_ITERATIONS = {
+    "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS": 20000,
+}
+REQUIRED_FIND_BIT_BENCH_EXACT_CHECKSUMS = {
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 15621472,
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 23340000,
+}
 
 REQUIRED_FILES = [
     "Documentation/zigux/README.md",
@@ -462,10 +470,18 @@ def collect_bench_markers(expectations: object) -> list[str]:
     missing: list[str] = []
     if expectations.get("status") != "pass":
         missing.append("bench:status=pass")
-    if expectations.get("iterations") != EXPECTED_BENCH_ITERATIONS:
+
+    iterations = expectations.get("iterations")
+    if iterations != EXPECTED_BENCH_ITERATIONS:
         missing.append("bench:iterations")
+    if isinstance(iterations, dict):
+        for key, expected in REQUIRED_FIND_BIT_BENCH_ITERATIONS.items():
+            if iterations.get(key) != expected:
+                missing.append(f"bench:find_bit_iterations:{key}={expected}")
+
     if expectations.get("checksums") != EXPECTED_BENCH_CHECKSUMS:
         missing.append("bench:checksums")
+
     exact_checksums = expectations.get("exact_checksums")
     if not isinstance(exact_checksums, dict):
         missing.append("bench:exact_checksums")
@@ -473,6 +489,9 @@ def collect_bench_markers(expectations: object) -> list[str]:
     for key, expected in EXPECTED_BENCH_EXACT_CHECKSUMS.items():
         if exact_checksums.get(key) != expected:
             missing.append(f"bench:exact_checksums:{key}={expected}")
+    for key, expected in REQUIRED_FIND_BIT_BENCH_EXACT_CHECKSUMS.items():
+        if exact_checksums.get(key) != expected:
+            missing.append(f"bench:find_bit_exact_checksums:{key}={expected}")
     return missing
 
 
@@ -680,9 +699,25 @@ def run_self_test() -> None:
 
         path = root / "zigux/tests/fixtures/phase1_bench_expectations.json"
         bench = json.loads(path.read_text(encoding="utf-8"))
+        del bench["iterations"]["PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS"]
+        path.write_text(json.dumps(bench, indent=2) + "\n", encoding="utf-8")
+        assert "bench:find_bit_iterations:PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000" in collect_missing_markers(root)
+        cases += 1
+        make_fixture_root(root)
+
+        path = root / "zigux/tests/fixtures/phase1_bench_expectations.json"
+        bench = json.loads(path.read_text(encoding="utf-8"))
         del bench["exact_checksums"]["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]
         path.write_text(json.dumps(bench, indent=2) + "\n", encoding="utf-8")
         assert "bench:exact_checksums:PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=148000" in collect_missing_markers(root)
+        cases += 1
+        make_fixture_root(root)
+
+        path = root / "zigux/tests/fixtures/phase1_bench_expectations.json"
+        bench = json.loads(path.read_text(encoding="utf-8"))
+        del bench["exact_checksums"]["PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM"]
+        path.write_text(json.dumps(bench, indent=2) + "\n", encoding="utf-8")
+        assert "bench:find_bit_exact_checksums:PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM=23340000" in collect_missing_markers(root)
         cases += 1
         make_fixture_root(root)
 
@@ -795,7 +830,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + 5 + 3 + len(EXPECTED_BENCH_EXACT_CHECKSUMS)}"
+        f"{len(CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS) + len(LEDGER_MARKERS) + len(MAKEFILE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + 5 + 3 + len(EXPECTED_BENCH_EXACT_CHECKSUMS) + len(REQUIRED_FIND_BIT_BENCH_ITERATIONS) + len(REQUIRED_FIND_BIT_BENCH_EXACT_CHECKSUMS)}"
     )
     return 0
 
