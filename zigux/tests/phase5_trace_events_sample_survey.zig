@@ -356,6 +356,8 @@ test "phase 5 trace-events survey packet stays repo-local and keeps shared revie
         "registration-first callback replay plus registration-balance cues",
         "`unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection",
         "post-exit replay rejection",
+        "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample",
+        "selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` remains the approved formatting idiom cue",
         "if the change updates a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
     };
 
