@@ -38,4 +38,4 @@ This note records a bounded Phase 4 survey packet for the roadmap's `samples/vfs
 
 ## Next Bounded Step
 
-Land one focused promotion that teaches the shared Phase 4 validator and gate-evidence packet about this same survey note, manifest, and replay command once the adjacent packet has been reread and accepted as the truthful current boundary.
+Land one focused promotion that teaches the shared Phase 4 gate-evidence packet to carry this same survey note, manifest, and replay command once the adjacent packet has been reread and accepted as the truthful current boundary.
