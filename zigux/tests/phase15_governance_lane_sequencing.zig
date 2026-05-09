@@ -34,7 +34,7 @@ test "phase 15 governance sequencing note keeps the owner split explicit" {
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "keep shared summaries compact while packet-local replay inventories stay in the sequencing note") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "keep every Phase 15 governance run parked unless a named reopen trigger fires") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "dated_master_readback_packet_alignment") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "dated_master_readback_same_marker_alignment") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "same dated `current-master-readback-2026-05-09` marker") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "future provenance refreshes stay handoff-lane `P15-L08` work") != null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "handoff provenance wording isolated inside the owning handoff packet") != null);
