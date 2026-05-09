@@ -66,4 +66,5 @@ test "runtime bitmap top-bit contract keeps selftest and exit summaries stable" 
     try std.testing.expectEqual(before_selftest.weight, after_exit.weight);
     try std.testing.expectEqual(before_selftest.nbits, after_exit.nbits);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.setRange(top_bit, 1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.clearRange(top_bit, 1));
 }
