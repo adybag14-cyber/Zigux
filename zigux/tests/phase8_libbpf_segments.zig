@@ -48,12 +48,8 @@ const ExpectedCompanionFile = struct {
 
 const ExpectedSegmentationNote = struct {
     destination: []const u8,
-    landed_scope_count: usize,
-    queued_scope_count: usize,
-    first_landed_scope: []const u8,
-    last_landed_scope: []const u8,
-    first_queued_scope: []const u8,
-    last_queued_scope: []const u8,
+    landed_scope: []const []const u8,
+    queued_scope: []const []const u8,
     why_now_fragment: []const u8,
 };
 
@@ -62,8 +58,8 @@ const ExpectedSegment = struct {
     slug: []const u8,
     status: []const u8,
     kind: []const u8,
+    anchor_ranges: []const []const u8,
     zigux_destination: []const u8,
-    anchor_range_count: usize,
 };
 
 const expected_companion_c_files = [_]ExpectedCompanionFile{
@@ -77,15 +73,30 @@ const expected_companion_c_files = [_]ExpectedCompanionFile{
     .{ .path = "tools/lib/bpf/ringbuf.c", .lines = 684 },
 };
 
+const expected_file_path_landed_scope = [_][]const u8{
+    "buildProcFdinfoPath() bounded /proc/<pid>/fdinfo/<fd> pathname shaping",
+    "parseFdinfoLine() field splitting and trimming",
+    "applyFdinfoMapInfoLine() numeric field decoding for map_type/key_size/value_size/max_entries/map_flags/map_extra",
+    "parseFdinfoMapInfo() line-by-line fdinfo map metadata parsing",
+    "summarizeFdinfoMapInfo() bounded completion reporting for the parsed map info packet",
+    "mapReuseObservationFromFdinfo() helper-only conversion from parsed fdinfo metadata into a reusable comparison observation",
+    "resolveReusedMapName() object-name retention for truncated reused-map names",
+    "normalizeObservedReuseMapFlags() devmap readonly-prog normalization for reuse comparison",
+    "summarizeMapReuseCompatibility() mismatch reporting for helper-only reused-map compatibility checks",
+    "isMapReuseCompatible() helper-only reused-map compatibility comparison",
+    "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects",
+};
+
+const expected_file_path_queued_scope = [_][]const u8{
+    "direct procfs reads and descriptor ownership flow",
+    "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
+};
+
 const expected_segmentation_notes = [_]ExpectedSegmentationNote{
     .{
         .destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-        .landed_scope_count = 11,
-        .queued_scope_count = 2,
-        .first_landed_scope = "buildProcFdinfoPath() bounded /proc/<pid>/fdinfo/<fd> pathname shaping",
-        .last_landed_scope = "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects",
-        .first_queued_scope = "direct procfs reads and descriptor ownership flow",
-        .last_queued_scope = "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
+        .landed_scope = expected_file_path_landed_scope[0..],
+        .queued_scope = expected_file_path_queued_scope[0..],
         .why_now_fragment = "future surveys can keep promoting bounded bridge behavior",
     },
 };
@@ -96,96 +107,124 @@ const expected_segments = [_]ExpectedSegment{
         .slug = "logging-version-and-errno",
         .status = "starter_landed",
         .kind = "helper_first",
+        .anchor_ranges = &.{
+            "tools/lib/bpf/libbpf.c:233-364",
+            "tools/lib/bpf/libbpf_utils.c:31-84",
+        },
         .zigux_destination = "tools/lib/bpf/zigux_segments/logging.zig",
-        .anchor_range_count = 2,
     },
     .{
         .id = "P8-L15-S02",
         .slug = "pin-path-helpers",
         .status = "starter_landed",
         .kind = "helper_first",
+        .anchor_ranges = &.{
+            "tools/lib/bpf/libbpf.c:2538-2565",
+            "tools/lib/bpf/libbpf.c:9054-9352",
+        },
         .zigux_destination = "tools/lib/bpf/zigux_segments/pin_path.zig",
-        .anchor_range_count = 2,
     },
     .{
         .id = "P8-L15-S03",
         .slug = "cpu-mask-parsing",
         .status = "starter_landed",
         .kind = "helper_first",
+        .anchor_ranges = &.{
+            "tools/lib/bpf/libbpf.c:14379-14480",
+        },
         .zigux_destination = "tools/lib/bpf/zigux_segments/cpu_mask.zig",
-        .anchor_range_count = 1,
     },
     .{
         .id = "P8-L15-S04",
         .slug = "type-name-helpers",
         .status = "starter_landed",
         .kind = "helper_first",
+        .anchor_ranges = &.{
+            "tools/lib/bpf/libbpf.c: exported attach, link, map, and program type string tables",
+        },
         .zigux_destination = "tools/lib/bpf/zigux_segments/type_names.zig",
-        .anchor_range_count = 1,
     },
     .{
         .id = "P8-L15-S05",
         .slug = "fdinfo-map-info-helpers",
         .status = "starter_landed",
         .kind = "helper_first",
+        .anchor_ranges = &.{
+            "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() pathname and fdinfo text parsing",
+        },
         .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-        .anchor_range_count = 1,
     },
     .{
         .id = "P8-L15-S06",
         .slug = "map-reuse-compatibility",
         .status = "starter_landed",
         .kind = "helper_first",
+        .anchor_ranges = &.{
+            "tools/lib/bpf/libbpf.c: bpf_map__reuse_fd() name selection and bpf_object__reuse_map() compatibility checks",
+        },
         .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-        .anchor_range_count = 1,
     },
     .{
         .id = "P8-L15-S07",
         .slug = "file-path-and-handle-bridge",
         .status = "deferred_high_risk",
         .kind = "resource_boundary",
+        .anchor_ranges = &.{
+            "tools/lib/bpf/libbpf.c: bpf_object_prepare_token() and bpf_object__reuse_map() handle-bridging paths",
+        },
         .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-        .anchor_range_count = 1,
     },
     .{
         .id = "P8-L15-S08",
         .slug = "perf-buffer-online-cpu-routing",
         .status = "deferred_high_risk",
         .kind = "interrupt_routing",
+        .anchor_ranges = &.{
+            "tools/lib/bpf/libbpf.c: perf_buffer__new() online-CPU routing and perf_event setup",
+        },
         .zigux_destination = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
-        .anchor_range_count = 1,
     },
     .{
         .id = "P8-L15-S09",
         .slug = "skeleton-population",
         .status = "blocked_on_object_model",
         .kind = "object_adjacent",
+        .anchor_ranges = &.{
+            "tools/lib/bpf/libbpf.c:14482-14771",
+        },
         .zigux_destination = "tools/lib/bpf/zigux_segments/skeleton.zig",
-        .anchor_range_count = 1,
     },
     .{
         .id = "P8-L15-S10",
         .slug = "object-and-elf-loader",
         .status = "deferred_high_risk",
         .kind = "core_loader",
+        .anchor_ranges = &.{
+            "tools/lib/bpf/libbpf.c:1514-2065",
+            "tools/lib/bpf/libbpf.c:3705-4514",
+        },
         .zigux_destination = "tools/lib/bpf/zigux_segments/object_loader.zig",
-        .anchor_range_count = 2,
     },
     .{
         .id = "P8-L15-S11",
         .slug = "btf-relocation-and-program-load",
         .status = "deferred_high_risk",
         .kind = "verifier_facing",
+        .anchor_ranges = &.{
+            "tools/lib/bpf/libbpf.c:3325-3609",
+            "tools/lib/bpf/libbpf.c:4572-9049",
+        },
         .zigux_destination = "tools/lib/bpf/zigux_segments/relocation.zig",
-        .anchor_range_count = 2,
     },
     .{
         .id = "P8-L15-S12",
         .slug = "perf-buffer-poll-bookkeeping",
         .status = "starter_landed",
         .kind = "helper_adjacent",
+        .anchor_ranges = &.{
+            "tools/lib/bpf/libbpf.c: perf_buffer__poll() wait-result classification and ordered process_records bookkeeping",
+        },
         .zigux_destination = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
-        .anchor_range_count = 1,
     },
 };
 
@@ -217,6 +256,13 @@ fn requireSection(haystack: []const u8, start_marker: []const u8, end_marker: []
     return haystack[content_start..end];
 }
 
+fn expectStringSliceCatalog(expected: []const []const u8, actual: []const []const u8) !void {
+    try std.testing.expectEqual(expected.len, actual.len);
+    for (expected, actual) |expected_item, actual_item| {
+        try std.testing.expectEqualStrings(expected_item, actual_item);
+    }
+}
+
 fn expectCompanionCatalog(companion_c_files: []const CompanionFile) !void {
     try std.testing.expectEqual(expected_companion_c_files.len, companion_c_files.len);
 
@@ -231,12 +277,8 @@ fn expectSegmentationNotes(segmentation_notes: []const SegmentationNote) !void {
 
     for (expected_segmentation_notes, segmentation_notes) |expected_note, actual_note| {
         try std.testing.expectEqualStrings(expected_note.destination, actual_note.destination);
-        try std.testing.expectEqual(expected_note.landed_scope_count, actual_note.landed_scope.len);
-        try std.testing.expectEqual(expected_note.queued_scope_count, actual_note.queued_scope.len);
-        try std.testing.expectEqualStrings(expected_note.first_landed_scope, actual_note.landed_scope[0]);
-        try std.testing.expectEqualStrings(expected_note.last_landed_scope, actual_note.landed_scope[actual_note.landed_scope.len - 1]);
-        try std.testing.expectEqualStrings(expected_note.first_queued_scope, actual_note.queued_scope[0]);
-        try std.testing.expectEqualStrings(expected_note.last_queued_scope, actual_note.queued_scope[actual_note.queued_scope.len - 1]);
+        try expectStringSliceCatalog(expected_note.landed_scope, actual_note.landed_scope);
+        try expectStringSliceCatalog(expected_note.queued_scope, actual_note.queued_scope);
         try expectContains(actual_note.why_now, expected_note.why_now_fragment);
     }
 }
@@ -250,7 +292,7 @@ fn expectSegmentCatalog(segments: []const Segment) !void {
         try std.testing.expectEqualStrings(expected_segment.status, actual_segment.status);
         try std.testing.expectEqualStrings(expected_segment.kind, actual_segment.kind);
         try std.testing.expectEqualStrings(expected_segment.zigux_destination, actual_segment.zigux_destination);
-        try std.testing.expectEqual(expected_segment.anchor_range_count, actual_segment.anchor_ranges.len);
+        try expectStringSliceCatalog(expected_segment.anchor_ranges, actual_segment.anchor_ranges);
         try std.testing.expect(actual_segment.why_now.len > 0);
     }
 }
