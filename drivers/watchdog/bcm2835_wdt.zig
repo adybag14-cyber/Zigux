@@ -506,6 +506,21 @@ pub const Bcm2835WatchdogLab = struct {
         return ticksToSeconds(self.registers.wdog & pm_wdog_time_set);
     }
 
+    pub fn ping(self: *Self) !RuntimeSnapshot {
+        if (!self.isRunning()) return error.WatchdogNotRunning;
+        self.registers.wdog = pm_password | (secondsToTicks(self.timeout_sec) & pm_wdog_time_set);
+        return self.runtimeSnapshot();
+    }
+
+    pub fn setTimeout(self: *Self, timeout_sec: u32) !RuntimeSnapshot {
+        try validateTimeout(timeout_sec);
+        self.timeout_sec = timeout_sec;
+        if (self.isRunning()) {
+            self.registers.wdog = pm_password | (secondsToTicks(timeout_sec) & pm_wdog_time_set);
+        }
+        return self.runtimeSnapshot();
+    }
+
     pub fn start(self: *Self) RuntimeSnapshot {
         self.registers.wdog = pm_password | (secondsToTicks(self.timeout_sec) & pm_wdog_time_set);
         self.registers.rstc = pm_password | (self.registers.rstc & pm_rstc_wrcfg_clr) | pm_rstc_wrcfg_full_reset;
@@ -745,4 +760,43 @@ test "lifecycle matrix keeps platform handoff poweroff and remove decisions alig
     try std.testing.expect(!not_controller.restart_armed);
     try std.testing.expect(!not_controller.clear_poweroff_handler_requested);
     try std.testing.expect(!not_controller.poweroff_handler_left_in_place);
+}
+
+test "ping refreshes the watchdog countdown only while running" {
+    var lab = try Bcm2835WatchdogLab.init(8);
+    try std.testing.expectError(error.WatchdogNotRunning, lab.ping());
+
+    _ = lab.loadRegisters(.{
+        .rstc = pm_rstc_wrcfg_full_reset,
+        .wdog = secondsToTicks(3),
+    });
+
+    const runtime = try lab.ping();
+    try std.testing.expect(runtime.running);
+    try std.testing.expectEqual(pm_password | secondsToTicks(8), runtime.registers.wdog);
+    try std.testing.expectEqual(@as(u32, 8), runtime.time_left_sec);
+    try std.testing.expectEqual(@as(u32, 8), lab.getTimeleft());
+}
+
+test "set timeout updates the configured heartbeat and rewrites active countdown state" {
+    var lab = try Bcm2835WatchdogLab.init(8);
+    try std.testing.expectError(error.TimeoutTooSmall, lab.setTimeout(0));
+    try std.testing.expectError(error.TimeoutTooLarge, lab.setTimeout(16));
+
+    const dormant = try lab.setTimeout(6);
+    try std.testing.expect(!dormant.running);
+    try std.testing.expectEqual(@as(u32, 6), dormant.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 0), dormant.registers.wdog);
+
+    _ = lab.loadRegisters(.{
+        .rstc = pm_rstc_wrcfg_full_reset,
+        .wdog = secondsToTicks(4),
+    });
+
+    const active = try lab.setTimeout(12);
+    try std.testing.expect(active.running);
+    try std.testing.expectEqual(@as(u32, 12), active.timeout_sec);
+    try std.testing.expectEqual(pm_password | secondsToTicks(12), active.registers.wdog);
+    try std.testing.expectEqual(@as(u32, 12), active.time_left_sec);
+    try std.testing.expectEqual(@as(u32, 12), lab.getTimeleft());
 }
