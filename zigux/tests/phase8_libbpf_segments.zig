@@ -368,6 +368,14 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
     );
     defer std.testing.allocator.free(cpu_mask_note);
 
+    const logging_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase8-logging-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(logging_note);
+
     const type_names_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase8-bpf-type-names-slice.md",
@@ -432,6 +440,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/verify.zig");
+    try expectContains(phase8_note, "Documentation/zigux/phase8-logging-slice.md");
     try expectContains(phase8_note, "Documentation/zigux/phase8-file-path-handle-bridge-slice.md");
     try expectContains(phase8_note, "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md");
     try expectContains(phase8_note, "zigux/tests/phase8_cpu_mask_only_build.zig");
@@ -467,6 +476,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
     try expectContains(phase8_note, "bounded fdinfo helper packet");
     try expectContains(phase8_note, "resource-boundary packet still stays deferred");
     try expectContains(phase8_note, "standalone timer or clockevent helper behavior");
+    try expectContains(phase8_note, "the logging helper now also carries a dedicated parked slice note at `Documentation/zigux/phase8-logging-slice.md`");
 
     try expectContains(cpu_mask_note, "PHASE8_STATUS=parked");
     try expectContains(cpu_mask_note, "tools/lib/bpf/zigux_segments/cpu_mask.zig");
@@ -475,6 +485,14 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
     try expectContains(cpu_mask_note, "zig build test --build-file zigux/tests/phase8_cpu_mask_only_build.zig --summary all");
     try expectContains(cpu_mask_note, "zigux/tests/phase8_build.zig");
     try expectContains(cpu_mask_note, "perf-buffer or feature-probe integration");
+
+    try expectContains(logging_note, "PHASE8_STATUS=parked");
+    try expectContains(logging_note, "tools/lib/bpf/zigux_segments/logging.zig");
+    try expectContains(logging_note, "zigux/tests/phase8_logging.zig");
+    try expectContains(logging_note, "zig test tools/lib/bpf/zigux_segments/logging.zig");
+    try expectContains(logging_note, "make -C zigux phase8-test");
+    try expectContains(logging_note, "libbpf-specific custom error text only");
+    try expectContains(logging_note, "direct environment reads, stderr output, or print callbacks");
 
     try expectContains(type_names_note, "PHASE8_STATUS=parked");
     try expectContains(type_names_note, "tools/lib/bpf/zigux_segments/type_names.zig");
