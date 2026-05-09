@@ -305,7 +305,7 @@ REQUIRED_FILE_MARKERS = {
         "python3 scripts/zigux/check-build-only-phase12-surface.py",
         "Run focused Phase 12 smoke shard",
         "make -C zigux phase12-smoke",
-        "Run Phase 12 complex driver tests",
+        "Run Phase 12 complex driver and libbpf tests",
         "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
     ],
 }
