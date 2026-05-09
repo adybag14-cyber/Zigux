@@ -33,7 +33,6 @@ const TraceabilityExpectation = struct {
 
 const expected_compile_artifacts = [_]CompileArtifact{
     .{ .label = "phase14-workqueue-bridge-tests", .root_source = "phase14_workqueue_bridge.zig", .coverage = "full_bundle_only" },
-    .{ .label = "phase14-workqueue-reviewability-tests", .root_source = "phase14_workqueue_reviewability.zig", .coverage = "full_bundle_only" },
     .{ .label = "phase14-skbuff-bridge-tests", .root_source = "phase14_skbuff_bridge.zig", .coverage = "full_bundle_only" },
     .{ .label = "phase14-ring-buffer-survey-tests", .root_source = "phase14_ring_buffer_survey.zig", .coverage = "full_bundle_only" },
     .{ .label = "phase14-rcu-tree-survey-tests", .root_source = "phase14_rcu_tree_survey.zig", .coverage = "full_bundle_only" },
@@ -129,10 +128,10 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expectEqualStrings("phase14_shared_smoke_packet", manifest.packet_name);
     try std.testing.expectEqualStrings("study_only_shared_smoke_packet", manifest.focus);
     try std.testing.expectEqual(@as(usize, 6), manifest.commands.len);
-    try std.testing.expectEqual(@as(usize, 29), manifest.surfaces.len);
+    try std.testing.expectEqual(@as(usize, 28), manifest.surfaces.len);
     try std.testing.expectEqual(@as(usize, 6), countSurfacesWithPrefix(manifest.surfaces, "Documentation/zigux/"));
     try std.testing.expectEqual(@as(usize, 5), countSurfacesWithPrefix(manifest.surfaces, "scripts/zigux/"));
-    try std.testing.expectEqual(@as(usize, 13), countSurfacesWithPrefix(manifest.surfaces, "zigux/tests/"));
+    try std.testing.expectEqual(@as(usize, 12), countSurfacesWithPrefix(manifest.surfaces, "zigux/tests/"));
     try std.testing.expectEqual(@as(usize, 3), countBridgeRootSurfaces(manifest.surfaces));
     try std.testing.expectEqual(@as(usize, 1), countExactSurfacePath(manifest.surfaces, "zigux/Makefile"));
     try std.testing.expectEqual(@as(usize, 1), countSurfacesWithPrefix(manifest.surfaces, ".github/workflows/"));
@@ -154,7 +153,6 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_build.zig"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/Makefile"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_workqueue_bridge.zig"));
-    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_workqueue_reviewability.zig"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_workqueue_bridge_manifest.json"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_skbuff_bridge_manifest.json"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_ring_buffer_manifest.json"));
@@ -206,21 +204,21 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     defer std.testing.allocator.free(smoke_note_text);
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_VALIDATE_SELF_TEST=python3 scripts/zigux/validate-phase14.py --self-test"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all"));
-    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_SHARED_SURFACE_COUNT=29"));
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_SHARED_SURFACE_COUNT=28"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_DOC_SURFACE_COUNT=6"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_SCRIPT_SURFACE_COUNT=5"));
-    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_TEST_SURFACE_COUNT=13"));
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_TEST_SURFACE_COUNT=12"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_BRIDGE_ROOT_SURFACE_COUNT=3"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_WORKFLOW_SURFACE_COUNT=1"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_MAKEFILE_SURFACE_COUNT=1"));
-    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_COMPILE_ARTIFACT_COUNT=6"));
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_COMPILE_ARTIFACT_COUNT=5"));
     try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FOCUSED_SHARD_COUNT=1"));
-    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=5"));
+    try std.testing.expect(containsMarker(smoke_note_text, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4"));
     try std.testing.expect(containsMarker(smoke_note_text, "kernel/rcu/tree_bridge.zig"));
     try std.testing.expect(containsMarker(smoke_note_text, "This wrapper first runs `python3 scripts/zigux/validate-phase14.py --self-test` and then the shared packet validator."));
     try std.testing.expect(containsMarker(smoke_note_text, "`Documentation/zigux/phase14-ring-buffer-survey.md` and `zigux/tests/phase14_ring_buffer_manifest.json` agree on lane `P14-L08`"));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, smoke_note_text, "coverage `focused_and_full_bundle`"));
-    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, smoke_note_text, "coverage `full_bundle_only`"));
+    try std.testing.expectEqual(@as(usize, 4), std.mem.count(u8, smoke_note_text, "coverage `full_bundle_only`"));
 
     const build_text = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -229,12 +227,11 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(build_text);
-    try std.testing.expectEqual(@as(usize, 6), std.mem.count(u8, build_text, "b.addTest(.{"));
-    try std.testing.expectEqual(@as(usize, 6), std.mem.count(u8, build_text, "b.addRunArtifact("));
+    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_text, "b.addTest(.{"));
+    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_text, "b.addRunArtifact("));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, build_text, "const smoke_step = b.step(\"phase14-smoke\", \"Run the focused Phase 14 end-to-end smoke survey\")"));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, build_text, "const test_step = b.step(\"test\", \"Run Phase 14 bounded internal bridge tests\")"));
     try std.testing.expect(containsMarker(build_text, "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);"));
-    try std.testing.expect(containsMarker(build_text, "test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);"));
     try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_workqueue_bridge_tests.step);"));
     try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);"));
     try std.testing.expect(!containsMarker(build_text, "smoke_step.dependOn(&run_phase14_skbuff_bridge_tests.step);"));
