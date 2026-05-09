@@ -101,7 +101,7 @@ Keep explicit
 - `runAnchorReplay()` plus kernel-thread skip behavior, the one-word private entry timestamp cue, return value `42`, duration `75 ns`, and the missed-instance summary contract
 - `runLifecycleGuardReplay()` plus the pre-init and post-init guard boundaries, including the pre-init anchor and exit rejections plus double-init rejection
 - the fixed `maxactiveBudget()` cue at `20`
-- `ownershipSummary()` plus the `cold`, `initialized`, `armed`, `replay_complete`, and `exited` lifecycle snapshots with active-instance and entry-timestamp state
+- `ownershipSummary()` plus sample-owned `runOwnershipReplay()` for the `cold`, `initialized`, `armed`, `replay_complete`, and `exited` lifecycle snapshots with active-instance and entry-timestamp state
 - `runRecoveryReplay()` plus outstanding-instance rejection, the recovered duration `60 ns`, and the sample-owned teardown recovery packet
 - timestamp-order rejection and recovery plus post-exit handler rejection
 
