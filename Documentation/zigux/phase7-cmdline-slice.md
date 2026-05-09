@@ -93,4 +93,4 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Keep the helper slice parked unless fresh repo inspection shows one real same-lane reviewability gap inside the existing shared packet. The next honest reopen point is validator-local only: if `scripts/zigux/validate-phase7.py` still lets `zigux/tests/README.md` drop `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` while `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and this slice keep that committed edge-vector fixture explicit, reopen only long enough to land that one-file fail-closed guard.
+Keep the helper slice parked unless fresh repo inspection shows one real same-lane reviewability gap inside the existing shared packet. The earlier validator-local reopen condition is already closed on current `master`: `scripts/zigux/validate-phase7.py` now exact-counts `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` in `zigux/tests/README.md` beside the docs-root and scripts-root Phase 7 packet summaries.
