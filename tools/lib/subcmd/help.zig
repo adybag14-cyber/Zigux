@@ -333,10 +333,10 @@ fn shouldPopulatePath(path: []const u8, exec_path: ?[]const u8) bool {
     return true;
 }
 
-pub fn loadCommandListsFromSource(
+fn loadCommandListsCore(
     prefix: ?[]const u8,
     exec_path: ?[]const u8,
-    path_entries: []const []const u8,
+    path_entries: anytype,
     main_cmds: *CmdNames,
     other_cmds: *CmdNames,
     source_context: anytype,
@@ -363,6 +363,26 @@ pub fn loadCommandListsFromSource(
     other_cmds.excludeCmds(main_cmds.*);
 }
 
+pub fn loadCommandListsFromSource(
+    prefix: ?[]const u8,
+    exec_path: ?[]const u8,
+    path_entries: []const []const u8,
+    main_cmds: *CmdNames,
+    other_cmds: *CmdNames,
+    source_context: anytype,
+    comptime populate_dir: fn (@TypeOf(source_context), *CmdNames, []const u8, []const u8) anyerror!void,
+) !void {
+    try loadCommandListsCore(
+        prefix,
+        exec_path,
+        path_entries,
+        main_cmds,
+        other_cmds,
+        source_context,
+        populate_dir,
+    );
+}
+
 pub fn loadCommandListsFromEnvPath(
     allocator: std.mem.Allocator,
     prefix: ?[]const u8,
@@ -380,25 +400,15 @@ pub fn loadCommandListsFromEnvPath(
         split_entries = try splitPathEntries(allocator, raw_path);
     }
 
-    const actual_prefix = prefix orelse "perf-";
-
-    if (exec_path) |path| {
-        try populate_dir(source_context, main_cmds, path, actual_prefix);
-        main_cmds.sort();
-        main_cmds.uniq();
-    }
-
-    for (split_entries.entries.items) |path| {
-        if (!shouldPopulatePath(path, exec_path)) {
-            continue;
-        }
-
-        try populate_dir(source_context, other_cmds, path, actual_prefix);
-    }
-
-    other_cmds.sort();
-    other_cmds.uniq();
-    other_cmds.excludeCmds(main_cmds.*);
+    try loadCommandListsCore(
+        prefix,
+        exec_path,
+        split_entries.entries.items,
+        main_cmds,
+        other_cmds,
+        source_context,
+        populate_dir,
+    );
 }
 
 pub fn resolveTerminalDimensions(
@@ -954,6 +964,66 @@ test "loadCommandListsFromEnvPath ignores empty PATH segments instead of treatin
     try std.testing.expectEqual(@as(usize, 0), main_cmds.count());
     try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
+}
+
+test "loadCommandListsFromEnvPath honors custom prefixes through the shared loader path" {
+    const FixtureDir = struct {
+        path: []const u8,
+        entries: []const DirectoryEntry,
+    };
+
+    const FixtureSource = struct {
+        dirs: []const FixtureDir,
+
+        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
+            for (self.dirs) |dir| {
+                if (std.mem.eql(u8, dir.path, path)) {
+                    try addExecutableEntries(cmds, dir.entries, prefix);
+                    return;
+                }
+            }
+        }
+    };
+
+    const exec_entries = [_]DirectoryEntry{
+        .{ .name = "trace-stat", .is_executable = true },
+        .{ .name = "trace-report.exe", .is_executable = true },
+        .{ .name = "perf-stat", .is_executable = true },
+    };
+    const other_entries = [_]DirectoryEntry{
+        .{ .name = "trace-report.exe", .is_executable = true },
+        .{ .name = "trace-top", .is_executable = true },
+        .{ .name = "trace-diff", .is_executable = false },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "/opt/trace/bin", .entries = &exec_entries },
+            .{ .path = "/usr/bin", .entries = &other_entries },
+        },
+    };
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        "trace-",
+        "/opt/trace/bin",
+        "/opt/trace/bin:/usr/bin",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
+    try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqualStrings("top", other_cmds.names.items[0].name);
 }
 
 test "parseDimension accepts atoi-style prefixes and rejects invalid values" {
