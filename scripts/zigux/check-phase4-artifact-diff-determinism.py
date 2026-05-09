@@ -114,6 +114,19 @@ EXPECTED_CONTRACT_SELF_TEST_CASES = [
     "contract_summary_case_order_drift",
 ]
 
+EXPECTED_SELF_TEST_CASES = [
+    "review_note_marker_missing",
+    "review_note_marker_duplicate",
+    "helper_case_order_drift",
+    "helper_case_count_drift",
+    "helper_duplicate_case_drift",
+    "contract_self_test_case_drift",
+    "contract_self_test_duplicate_case_drift",
+    "contract_catalog_missing_cli_invalid_mode",
+    "contract_repeat_case_duplicate_drift",
+    "contract_catalog_duplicate_case_drift",
+]
+
 
 def _extract_value(lines: list[str], prefix: str) -> str:
     for line in lines:
@@ -337,6 +350,14 @@ def build_fixture_tree(root: Path) -> None:
     )
 
 
+def assert_self_test_catalog_shape() -> None:
+    if len(set(EXPECTED_SELF_TEST_CASES)) != len(EXPECTED_SELF_TEST_CASES):
+        raise AssertionError(
+            "artifact-diff determinism self-test cases must stay unique: "
+            f"{EXPECTED_SELF_TEST_CASES}"
+        )
+
+
 def expect_assertion(label: str, callback) -> None:
     try:
         callback()
@@ -346,6 +367,9 @@ def expect_assertion(label: str, callback) -> None:
 
 
 def run_self_test() -> None:
+    assert_self_test_catalog_shape()
+    covered_cases: list[str] = []
+
     with tempfile.TemporaryDirectory(prefix="phase4_artifact_diff_determinism_") as tmp_dir:
         root = Path(tmp_dir)
         build_fixture_tree(root)
@@ -355,12 +379,14 @@ def run_self_test() -> None:
             "review_note_marker_missing",
             lambda: assert_review_note_markers("\n".join(EXPECTED_REVIEW_NOTE_MARKERS[:-1])),
         )
+        covered_cases.append("review_note_marker_missing")
         expect_assertion(
             "review_note_marker_duplicate",
             lambda: assert_review_note_markers(
                 "\n".join([*EXPECTED_REVIEW_NOTE_MARKERS, EXPECTED_REVIEW_NOTE_MARKERS[0]])
             ),
         )
+        covered_cases.append("review_note_marker_duplicate")
         expect_assertion(
             "helper_case_order_drift",
             lambda: assert_helper_self_test_lines(
@@ -372,6 +398,7 @@ def run_self_test() -> None:
                 ]
             ),
         )
+        covered_cases.append("helper_case_order_drift")
         expect_assertion(
             "helper_case_count_drift",
             lambda: assert_helper_self_test_lines(
@@ -382,6 +409,19 @@ def run_self_test() -> None:
                 ]
             ),
         )
+        covered_cases.append("helper_case_count_drift")
+        expect_assertion(
+            "helper_duplicate_case_drift",
+            lambda: assert_helper_self_test_lines(
+                [
+                    "ARTIFACT_DIFF_SELF_TEST=pass",
+                    "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23",
+                    "ARTIFACT_DIFF_SELF_TEST_CASES="
+                    + ",".join(["text_pass", "text_pass", *EXPECTED_HELPER_SELF_TEST_CASES[2:]]),
+                ]
+            ),
+        )
+        covered_cases.append("helper_duplicate_case_drift")
         expect_assertion(
             "contract_self_test_case_drift",
             lambda: assert_contract_self_test_lines(
@@ -399,6 +439,25 @@ def run_self_test() -> None:
                 ]
             ),
         )
+        covered_cases.append("contract_self_test_case_drift")
+        expect_assertion(
+            "contract_self_test_duplicate_case_drift",
+            lambda: assert_contract_self_test_lines(
+                [
+                    "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass",
+                    "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=18",
+                    "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES="
+                    + ",".join(
+                        [
+                            "catalog_shape",
+                            "catalog_shape",
+                            *EXPECTED_CONTRACT_SELF_TEST_CASES[2:],
+                        ]
+                    ),
+                ]
+            ),
+        )
+        covered_cases.append("contract_self_test_duplicate_case_drift")
         expect_assertion(
             "contract_catalog_missing_cli_invalid_mode",
             lambda: assert_contract_lines(
@@ -425,6 +484,7 @@ def run_self_test() -> None:
                 ]
             ),
         )
+        covered_cases.append("contract_catalog_missing_cli_invalid_mode")
         expect_assertion(
             "contract_repeat_case_duplicate_drift",
             lambda: assert_contract_lines(
@@ -452,6 +512,41 @@ def run_self_test() -> None:
                     "ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(EXPECTED_CONTRACT_CASES),
                 ]
             ),
+        )
+        covered_cases.append("contract_repeat_case_duplicate_drift")
+        expect_assertion(
+            "contract_catalog_duplicate_case_drift",
+            lambda: assert_contract_lines(
+                [
+                    "ARTIFACT_DIFF_CONTRACT=pass",
+                    "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23",
+                    "ARTIFACT_DIFF_CONTRACT_BASE_CASES="
+                    + ",".join(
+                        [
+                            "helper_self_test",
+                            "helper_self_test",
+                            *[
+                                case
+                                for case in EXPECTED_CONTRACT_CASES
+                                if case not in EXPECTED_REPEAT_CONTRACT_CASES
+                            ][2:],
+                        ]
+                    ),
+                    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5",
+                    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES="
+                    + ",".join(EXPECTED_REPEAT_CONTRACT_CASES),
+                    "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=28",
+                    "ARTIFACT_DIFF_CONTRACT_CASES="
+                    + ",".join(["helper_self_test", "helper_self_test", *EXPECTED_CONTRACT_CASES[2:]]),
+                ]
+            ),
+        )
+        covered_cases.append("contract_catalog_duplicate_case_drift")
+
+    if covered_cases != EXPECTED_SELF_TEST_CASES:
+        raise AssertionError(
+            "artifact-diff determinism self-test catalog drifted: "
+            f"expected {EXPECTED_SELF_TEST_CASES}, got {covered_cases}"
         )
 
     print("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass")
