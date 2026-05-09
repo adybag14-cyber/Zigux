@@ -358,6 +358,14 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
     );
     defer std.testing.allocator.free(workflow_note);
 
+    const makefile_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(makefile_note);
+
     const cpu_mask_only_build = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase8_cpu_mask_only_build.zig",
@@ -393,6 +401,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
         product_boundary,
         "  - `zigux/tests/phase8_libbpf_segments_only_build.zig`\n",
     );
+    try expectContains(phase8_note, "make -C zigux phase8-cpu-mask-test");
     try expectContains(phase8_note, "zig build test --build-file zigux/tests/phase8_cpu_mask_only_build.zig --summary all");
     try expectContains(phase8_note, "make -C zigux phase8-libbpf-segments-test");
     try expectContains(phase8_note, "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all");
@@ -467,6 +476,10 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet and
     try expectContains(workflow_note, "make -C zigux phase8-perf-buffer-poll-test");
     try expectContains(workflow_note, "Run Phase 8 tooling tests");
     try expectContains(workflow_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
+
+    try expectContains(makefile_note, "phase8-cpu-mask-test:");
+    try expectContains(makefile_note, "$(ZIG) build test --build-file zigux/tests/phase8_cpu_mask_only_build.zig --summary all");
+    try expectContains(makefile_note, "phase8: phase8-validate phase8-test phase8-cpu-mask-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test");
 
     try expectContains(cpu_mask_only_build, "../../tools/lib/bpf/zigux_segments/cpu_mask.zig");
     try expectContains(cpu_mask_only_build, "phase8_cpu_mask.zig");
