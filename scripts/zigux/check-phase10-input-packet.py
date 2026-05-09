@@ -429,6 +429,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:architecture_council_reopen_attached=false")
 
     summary = manifest.get("survey_summary", {})
+    if summary.get("virtio_input_c_lines") != 421:
+        missing_markers.append("manifest:virtio_input_c_lines=421")
     if summary.get("preexisting_phase10_test_files") != 6:
         missing_markers.append("manifest:preexisting_phase10_test_files=6")
     for key in [
@@ -495,6 +497,15 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:lane_key=P10-L13" not in missing_markers:
             raise SystemExit("phase10-input-self-test:expected_lane_key_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace('"virtio_input_c_lines": 421', '"virtio_input_c_lines": 420', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:virtio_input_c_lines=421" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_input_c_lines_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
@@ -810,7 +821,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=28")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
