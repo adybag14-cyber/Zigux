@@ -204,8 +204,17 @@ PHASE15_VALIDATE_COMMANDS = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
 )
 
+PHASE4_VALIDATE_ROUTE_SNIPPET = (
+    "- `make -C zigux phase4-validate` reruns the validator-first Phase 4 route, "
+    "including `scripts/zigux/check-artifact-diff-contract.py`, "
+    "`scripts/zigux/check-phase4-artifact-diff-determinism.py`, and "
+    "`scripts/zigux/check-phase4-gate-evidence.py`, before the shared "
+    "`zigux/tests/phase4_build.zig` replay."
+)
+
 REQUIRED_README_SNIPPETS = (
     "- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `check-phase3-abi-dump-gate.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-byte-guards.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
+    PHASE4_VALIDATE_ROUTE_SNIPPET,
     "- there is no separate shared `validate-phase6.py` or broader external portability checker packet beyond `check-phase6-shared-surface.py` on `master`; the shipped dedicated perf replays are `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`, while `make -C zigux phase6-perf` remains the narrow aggregate route for the checksum and hexdump perf packet rather than a bundle-wide Phase 6 perf closure",
     "- the current shared Phase 7 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, `samples/zigux/README.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/check-phase7-build-wiring.py`, `zigux/tests/phase7_build.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
     "- `make -C zigux phase7-validate` keeps the shared Phase 7 validator plus the dedicated make-wrapper, make-wrapper selftest-alignment, argv_split packet, rbtree parity, and build-wiring checkers wired through the Linux-style validation entrypoint, and `make -C zigux phase7` remains the full Linux-style replay route for that same parked helper packet.",
@@ -718,6 +727,12 @@ def run_self_test() -> int:
         _write(root / MAKEFILE_REL, _baseline_makefile())
         case_count += 1
 
+        readme = _baseline_readme().replace(PHASE4_VALIDATE_ROUTE_SNIPPET, "", 1)
+        _write(root / README_REL, readme)
+        assert validate(root) == [f"missing_readme_snippet:{PHASE4_VALIDATE_ROUTE_SNIPPET}"]
+        _write(root / README_REL, _baseline_readme())
+        case_count += 1
+
         (root / "scripts" / "zigux" / "check-phase4-artifact-diff-determinism.py").unlink()
         assert validate(root) == ["missing_repo_file:scripts/zigux/check-phase4-artifact-diff-determinism.py"]
         _write(root / "scripts" / "zigux" / "check-phase4-artifact-diff-determinism.py", "# stub\n")
@@ -749,13 +764,13 @@ def run_self_test() -> int:
             1,
         )
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[1]}"]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[2]}"]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
         readme = _baseline_readme().replace("`zigux/tests/phase8_help_kallsyms_only_build.zig`, ", "", 1)
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[4]}"]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[5]}"]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
@@ -765,13 +780,13 @@ def run_self_test() -> int:
             1,
         )
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[5]}"]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[6]}"]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
-        readme = _baseline_readme().replace(REQUIRED_README_SNIPPETS[7], "", 1)
+        readme = _baseline_readme().replace(REQUIRED_README_SNIPPETS[8], "", 1)
         _write(root / README_REL, readme)
-        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[7]}"]
+        assert validate(root) == [f"missing_readme_snippet:{REQUIRED_README_SNIPPETS[8]}"]
         _write(root / README_REL, _baseline_readme())
         case_count += 1
 
