@@ -42,7 +42,7 @@ test "phase4 test_fsmount gap manifest keeps the parked survey explicit" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("validation-perf", manifest.lane_key);
+    try std.testing.expectEqualStrings("P4-L24", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("samples/vfs/test-fsmount.c", manifest.anchor_path);
     try std.testing.expect(isLowerHexSha(manifest.anchor_blob_sha));
@@ -113,7 +113,7 @@ test "phase4 test_fsmount gap survey note stays honest about the parked boundary
 
     const required_markers = [_][]const u8{
         "PHASE4_TEST_FSMOUNT_STATUS=parked_gap_survey",
-        "PHASE4_LANE_KEY=validation-perf",
+        "PHASE4_LANE_KEY=P4-L24",
         "PHASE4_ANCHOR_PATH=samples/vfs/test-fsmount.c",
         "PHASE4_SAMPLE_PATH=samples/zigux/test_fsmount.zig",
         "PHASE4_SAMPLE_PRESENT=false",
