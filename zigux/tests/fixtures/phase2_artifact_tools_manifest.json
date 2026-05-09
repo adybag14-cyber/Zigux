@@ -1,6 +1,7 @@
 {
   "phase": "Phase 2",
   "status": "closed",
+  "tool_count": 2,
   "tools": [
     "scripts/zigux/genksyms_crc.zig",
     "scripts/zigux/mk_elfconfig.zig"
