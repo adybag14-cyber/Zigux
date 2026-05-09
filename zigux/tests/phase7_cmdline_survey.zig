@@ -8,19 +8,84 @@ fn expectCount(haystack: []const u8, needle: []const u8, expected: usize) !void 
     try std.testing.expectEqual(expected, std.mem.count(u8, haystack, needle));
 }
 
+fn expectSliceContains(haystack: []const []const u8, needle: []const u8) !void {
+    for (haystack) |item| {
+        if (std.mem.eql(u8, item, needle)) return;
+    }
+    try std.testing.expect(false);
+}
+
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
 
+fn isLowerHexCommitId(text: []const u8) bool {
+    if (text.len != 40) return false;
+    for (text) |ch| {
+        if (!std.ascii.isHex(ch) or std.ascii.isUpper(ch)) return false;
+    }
+    return true;
+}
+
+const Manifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    surveyed_commit: []const u8,
+    anchor: []const u8,
+    roadmap_destinations: []const []const u8,
+    review_surfaces: []const []const u8,
+    covered_helpers: []const []const u8,
+    ownership_focus: []const []const u8,
+};
+
 test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" {
     const allocator = std.testing.allocator;
 
+    const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_cmdline_manifest.json");
+    defer allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+    try std.testing.expectEqualStrings("P7-Y06", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 7", manifest.phase);
+    try std.testing.expect(isLowerHexCommitId(manifest.surveyed_commit));
+    try std.testing.expectEqualStrings("lib/cmdline.c", manifest.anchor);
+    try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("lib/cmdline.zig", manifest.roadmap_destinations[0]);
+    try std.testing.expectEqual(@as(usize, 13), manifest.review_surfaces.len);
+    try expectSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-cmdline-slice.md");
+    try expectSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
+    try expectSliceContains(manifest.review_surfaces, "samples/zigux/README.md");
+    try expectSliceContains(manifest.review_surfaces, "scripts/zigux/validate-phase7.py");
+    try expectSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-build-wiring.py");
+    try expectSliceContains(manifest.review_surfaces, "zigux/tests/phase7_build.zig");
+    try expectSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline.zig");
+    try expectSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline_manifest.json");
+    try expectSliceContains(manifest.review_surfaces, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
+    try expectSliceContains(manifest.review_surfaces, "zigux/Makefile");
+    try std.testing.expectEqual(@as(usize, 5), manifest.covered_helpers.len);
+    try expectSliceContains(manifest.covered_helpers, "getOption");
+    try expectSliceContains(manifest.covered_helpers, "getOptions");
+    try expectSliceContains(manifest.covered_helpers, "memparse");
+    try expectSliceContains(manifest.covered_helpers, "parseOptionStr");
+    try expectSliceContains(manifest.covered_helpers, "nextArg");
+    try std.testing.expectEqual(@as(usize, 4), manifest.ownership_focus.len);
+    try expectSliceContains(manifest.ownership_focus, "nextArg caller-owned buffer slices");
+    try expectSliceContains(manifest.ownership_focus, "nextArg empty-input borrowed-slice reuse");
+    try expectSliceContains(manifest.ownership_focus, "nextArg leading-whitespace sentinel token");
+    try expectSliceContains(manifest.ownership_focus, "validator-first shared Phase 7 replay route");
+
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-cmdline-slice.md");
     defer allocator.free(slice_note);
+    try expectContains(slice_note, "PHASE7_LANE_KEY=P7-Y06");
     try expectContains(slice_note, "lib/cmdline.c");
     try expectContains(slice_note, "lib/cmdline.zig");
     try expectContains(slice_note, "zigux/tests/phase7_cmdline.zig");
     try expectContains(slice_note, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectContains(slice_note, "zigux/tests/phase7_cmdline_manifest.json");
     try expectContains(slice_note, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
     try expectContains(slice_note, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
     try expectContains(slice_note, "runtime-safe parsing helpers that:");
@@ -30,8 +95,10 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "exact bare-option matching for comma-delimited flags, including leading and doubled-comma empty-option acceptance plus trailing-comma rejection");
     try expectContains(slice_note, "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination");
     try expectContains(slice_note, "caller-owned buffer discipline for `next_arg()`: `nextArg()` writes NUL sentinels into the supplied mutable buffer and returns borrowed `param`, `value`, and `rest` slices into that same storage");
-    try expectContains(slice_note, "the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `check-phase7-build-wiring.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice");
-    try expectCount(slice_note, "exact bare-option matching for comma-delimited flags, including leading and doubled-comma empty-option acceptance plus trailing-comma rejection", 1);
+    try expectContains(slice_note, "the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the committed `zigux/tests/phase7_cmdline_manifest.json` survey record, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, `Documentation/zigux/phase7-make-wrapper-selftest-alignment.md`, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `check-phase7-make-wrapper-selftest-alignment.py`, `check-phase7-build-wiring.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, machine-readable manifest, and Linux-style validator-first packet aligned around the same parked cmdline slice");
+    try expectContains(slice_note, "The dedicated survey now imports the committed manifest under `zigux/tests/phase7_cmdline_manifest.json`, so the parked cmdline packet keeps its roadmap anchor, review surfaces, and ownership-focused `nextArg()` proofs explicit in one machine-readable record beside the sibling Phase 7 helper packets.");
+    try expectCount(slice_note, "PHASE7_LANE_KEY=P7-Y06", 1);
+    try expectCount(slice_note, "zigux/tests/phase7_cmdline_manifest.json", 4);
     try expectCount(slice_note, "caller-owned buffer discipline for `next_arg()`: `nextArg()` writes NUL sentinels into the supplied mutable buffer and returns borrowed `param`, `value`, and `rest` slices into that same storage", 1);
 
     const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
