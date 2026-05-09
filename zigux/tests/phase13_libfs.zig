@@ -19,6 +19,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_transaction_release_planning);
     try std.testing.expect(descriptor.provides_addressability_planning);
     try std.testing.expect(descriptor.provides_simple_open_planning);
+    try std.testing.expect(descriptor.provides_simple_dir_operations_wrapper);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -367,4 +368,15 @@ test "phase13 libfs simple open planning mirrors inode private-data handoff" {
     try std.testing.expect(!without_private.stores_inode_private_data_in_file_private_data);
     try std.testing.expect(without_private.leaves_existing_private_data_unchanged_when_null);
     try std.testing.expectEqual(@as(i32, 0), without_private.return_code);
+}
+
+test "phase13 libfs simple dir operations planning keeps the exported wrapper bindings explicit" {
+    const plan = libfs.LibFsHelperLab.simpleDirOperationsPlan();
+    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
+    try std.testing.expectEqualStrings("dcache_dir_open", plan.open_handler);
+    try std.testing.expectEqualStrings("dcache_dir_close", plan.release_handler);
+    try std.testing.expectEqualStrings("dcache_dir_lseek", plan.seek_handler);
+    try std.testing.expectEqualStrings("generic_read_dir", plan.read_handler);
+    try std.testing.expectEqualStrings("dcache_readdir", plan.iterate_shared_handler);
+    try std.testing.expectEqualStrings("noop_fsync", plan.fsync_handler);
 }
