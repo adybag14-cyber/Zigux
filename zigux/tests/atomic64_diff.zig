@@ -470,3 +470,78 @@ test "atomic64 diff wrapper records the threshold replay lifecycle markers" {
         "try std.testing.expectEqual(@as(usize, 1), repeated.final_exit_runs);",
     );
 }
+
+test "atomic64 diff wrapper keeps the local perf-baseline manifest aligned with threshold replay evidence" {
+    const perf_manifest_source = try readRepoFile(
+        std.testing.allocator,
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+    );
+    defer std.testing.allocator.free(perf_manifest_source);
+
+    try expectMarker(perf_manifest_source, "\"lane_key\": \"P4-L20\"");
+    try expectMarker(perf_manifest_source, "\"surface\": \"zigux/tests/atomic64_diff.zig\"");
+    try expectMarker(perf_manifest_source, "\"gate_owner\": \"ABI and Runtime Team\"");
+    try expectMarker(
+        perf_manifest_source,
+        "\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"",
+    );
+
+    const atomic64_section_start = std.mem.indexOf(
+        u8,
+        perf_manifest_source,
+        "\"atomic64\": {",
+    ) orelse return error.MissingAtomic64PerfBaselineSection;
+    const atomic64_section_end = std.mem.indexOfPos(
+        u8,
+        perf_manifest_source,
+        atomic64_section_start,
+        "\"bitmap\": {",
+    ) orelse return error.MissingBitmapPerfBaselineSection;
+    const atomic64_section = perf_manifest_source[atomic64_section_start..atomic64_section_end];
+
+    try expectMarker(
+        atomic64_section,
+        "\"benchmark_command\": \"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\"",
+    );
+    try expectMarker(atomic64_section, "\"acceptable_limit_status\": \"approved_local_only\"");
+    try expectMarker(atomic64_section, "\"acceptable_limit_metric\": \"median_elapsed_ns\"");
+    try expectMarker(atomic64_section, "\"acceptable_limit_iterations\": 4");
+    try expectMarker(atomic64_section, "\"acceptable_limit_sample_count\": 7");
+    try expectMarker(atomic64_section, "\"acceptable_limit_max_elapsed_ns\": 8192");
+    try expectMarker(atomic64_section, "\"checksum\": 3626254113632800175");
+    try expectMarker(atomic64_section, "\"final_counter\": 130322557735600377");
+    try expectMarker(atomic64_section, "\"checksum\": 9210681150676220922");
+    try expectMarker(atomic64_section, "\"final_counter\": 130322557735600376");
+    try expectMarker(perf_manifest_source, "\"id\": \"phase4-perf-baseline-atomic64-command\"");
+    try expectMarker(perf_manifest_source, "\"id\": \"phase4-perf-baseline-atomic64-acceptable-limit\"");
+    try expectMarker(perf_manifest_source, "\"id\": \"phase4-perf-baseline-shared-promotion-decision\"");
+}
+
+test "atomic64 diff wrapper keeps the local perf-baseline survey aligned with threshold replay evidence" {
+    const perf_survey_source = try readRepoFile(
+        std.testing.allocator,
+        "zigux/tests/phase4_perf_baseline_survey.zig",
+    );
+    defer std.testing.allocator.free(perf_survey_source);
+
+    try expectMarker(
+        perf_survey_source,
+        "test \"phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit\" {",
+    );
+    try expectMarker(perf_survey_source, "phase4-perf-baseline-atomic64-command-evidence");
+    try expectMarker(perf_survey_source, "phase4-perf-baseline-atomic64-command");
+    try expectMarker(perf_survey_source, "phase4-perf-baseline-atomic64-acceptable-limit");
+    try expectMarker(
+        perf_survey_source,
+        "\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\"",
+    );
+    try expectMarker(perf_survey_source, "\"approved_local_only\"");
+    try expectMarker(perf_survey_source, "\"median_elapsed_ns\"");
+    try expectMarker(perf_survey_source, "@as(u64, 8192)");
+    try expectMarker(perf_survey_source, "@as(u64, 3626254113632800175)");
+    try expectMarker(perf_survey_source, "@as(i64, 130322557735600377)");
+    try expectMarker(perf_survey_source, "@as(u64, 9210681150676220922)");
+    try expectMarker(perf_survey_source, "@as(i64, 130322557735600376)");
+    try expectMarker(perf_survey_source, "seven monotonic samples");
+    try expectMarker(perf_survey_source, "shared CI perf approval");
+}
