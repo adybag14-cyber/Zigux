@@ -7,27 +7,22 @@ This note turns the current Phase 1 helper evidence into one bounded anti-overla
 - `PHASE1_STATUS=parked`
 - `PHASE1_SLICE=helper-lane-sequencing`
 - lane: `P1-Y10`
-- scope: use the current bitmap, find_bit, rbtree, and string helper packet to say which Phase 1 helper lane owns which already-landed evidence and which next bounded step still belongs to that lane
+- scope: keep the current Phase 1 helper ownership map aligned with the live direct-anchor follow-up packet on `master`
 - product boundary:
   - `Documentation/zigux/phase1-helper-lane-sequencing.md`
 
 ## Why this note exists
 
-The live repo already has several distinct Phase 1 helper follow-up packets inside the closed host-tools tranche:
+The current Phase 1 manifest and closure packet already keep one hard split explicit:
 
-- bitmap shared-fixture work around `tools/lib/bitmap.zig`
-- bitmap in-tree replay alignment around `zigux/tests/phase1_helpers.zig`
-- find_bit closure truthfulness notes around `tools/lib/find_bit.zig`
-- rbtree manifest and closure-validator alignment around `tools/lib/rbtree.zig`
-- string review-surface alignment and direct helper semantics work around `tools/lib/string.zig`
+- shared-replay parked helpers stay limited to `tools/lib/argv_split.zig`, `tools/lib/cmdline.zig`, `tools/lib/ctype.zig`, `tools/lib/hweight.zig`, `tools/lib/list_sort.zig`, `tools/lib/slab.zig`, `tools/lib/str_error_r.zig`, `tools/lib/vsprintf.zig`, and `tools/lib/zalloc.zig`
+- direct helper-local follow-up anchors stay limited to `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig`
 
-Those packets now share the same closure note, helper manifest, shared Phase 1 replay route, and Linux-style `make -C zigux phase1*` commands. That shared packet is useful, but it also makes it easier for nearby scheduled runs to borrow each other's helper scope or reopen the wrong surface.
+That split is still correct on current `master`, but the older helper-lane names that used to describe the direct-anchor packet are no longer the live ownership map. Nearby scheduled runs should follow the current owners below instead of reviving superseded helper lanes.
 
-This note keeps the closed Phase 1 helper tranche honest by separating shared replay routes from per-lane ownership.
+## Shared packet versus direct-anchor packet
 
-## Shared packet versus lane ownership
-
-Shared Phase 1 replay surface:
+Shared Phase 1 replay surfaces stay here:
 
 - `Documentation/zigux/phase1-closure.md`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
@@ -39,77 +34,69 @@ Shared Phase 1 replay surface:
 - `make -C zigux phase1-bench`
 - `make -C zigux phase1`
 
-These shared routes prove that the current bounded host-tools packet still replays together. They do not change which lane owns a helper semantics fix, a fixture-only parity packet, a helper-local review note, or a manifest and validator alignment step.
+Those shared routes prove the bounded host-tools packet still replays together. They do not erase per-helper ownership for manifest, validator, closure, or helper-local review-anchor follow-up.
 
-## Lane map
+## Current direct-anchor owner map
 
-`P1-X01` bitmap shared-fixture lane owns the shared parity packet for `tools/lib/bitmap.zig`:
+`P1-L04` owns bitmap manifest-anchor truthfulness for `tools/lib/bitmap.zig`:
 
-- `zigux/tests/fixtures/phase1_helpers.json`
-- `zigux/tests/fixtures/phase1_helpers_c_harness.c`
-- the committed `bitmap_scnprintf()` truncation, terminator-only, and zero-length fixture keys
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+- bitmap-only review anchors such as the empty-bitmap buffer-preservation, size-alias rounding, and Linux-style alias markers
 
-This lane may cite `zigux/tests/phase1_helpers.zig` as downstream replay evidence, but it does not own in-tree replay-only alignment when the committed fixture packet is already correct.
+`P1-Y02` owns bitmap closure parking and next-safe-step evidence:
 
-`P1-L06` bitmap replay-alignment lane owns the in-tree Zig replay follow-through for that same helper family:
+- bitmap-only closure notes derived from `tools/lib/bitmap.zig`
+- direct-anchor follow-up classification checks for the bitmap packet
 
-- `zigux/tests/phase1_helpers.zig`
-- the direct bitmap parity assertions that consume the committed shared fixture packet
+This lane should stay note-only unless bitmap-local drift reappears.
 
-This lane may reuse the existing bitmap fixture packet, but it should not reopen bitmap fixture growth, helper-local bitmap semantics, or unrelated Phase 1 helper packets unless the shared replay truly cannot stay honest without a tightly coupled follow-up.
+`P1-L11` owns `find_bit` validator and perf-gate truthfulness:
 
-`P1-Y04` find_bit closure-truthfulness lane owns the helper-local versus shared-packet boundary for `tools/lib/find_bit.zig`:
+- `scripts/zigux/validate-phase1.py`
+- any shipped `find_bit` replay markers that the Phase 1 validator or perf-oriented packet must recognize without reopening helper-local closure wording
+
+`P1-X04` owns `find_bit` helper-local closure, manifest, and ownership follow-through:
 
 - `Documentation/zigux/phase1-closure.md`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
-- the explicit audit-only treatment of `inclusive_boundary_*` and `past_nbits_*` fixture fields until `zigux/tests/phase1_helpers.zig` consumes them directly
-- the direct helper-local ownership note for zero-window behavior
+- the directly coupled `find_bit` section of `scripts/zigux/validate-phase1-closure.py` when closure ownership and helper-local review markers move together
 
-This lane may cite the shared parity replay, but it does not own new helper logic, unrelated fixture growth, or other helper-family closure wording.
+This is the current owner for the tail-clamp review packet and the helper-local inclusive-boundary and tail-word skip ownership wording.
 
-`P1-X08` rbtree manifest and validator-alignment lane owns the bounded review-schema truthfulness for `tools/lib/rbtree.zig`:
+`P1-X07` owns the live rbtree review-packet validator follow-through:
 
-- `zigux/tests/fixtures/phase1_helper_manifest.json`
+- `scripts/zigux/validate-phase1.py`
 - `scripts/zigux/validate-phase1-closure.py`
-- the current rbtree review-anchor schema that keeps helper-test anchors, the shared replay anchor, and the parity fixture keys aligned with what the closure validator actually checks
+- the directly coupled rbtree review packet when validator recognition must stay aligned with the already-landed manifest and closure wording
 
-This lane may talk about duplicate-search and cached-root helper-local anchors when the manifest or closure packet needs them, but it does not own rbtree helper logic, shared replay expansion, or other helper-family manifest drift.
+This is the current owner for duplicate-search and cached-root validator truthfulness on `master`.
 
-`P1-L16` string review-surface alignment lane owns the helper-local string manifest and closure wording for `tools/lib/string.zig`:
+`P1-X05` owns the current string direct-anchor recognition sync:
 
-- `zigux/tests/fixtures/phase1_helper_manifest.json`
-- `Documentation/zigux/phase1-closure.md`
-- the string prefix and suffix review anchors
-- the string memparse review summaries
+- the string section of `zigux/tests/fixtures/phase1_helper_manifest.json`
+- the directly coupled string section of `scripts/zigux/validate-phase1-closure.py`
+- already-landed helper-local `memchrInv` zero-value review anchors and other string direct-anchor inventory that still needs validator recognition
 
-This lane may cite the direct helper tests and the shared string replay, but it does not own closure-validator schema follow-through or same-file C-string semantics repairs once a concrete helper behavior bug is isolated.
+`P1-Y10` owns only this sequencing note:
 
-`P1-Y09` string closure-validator governance lane owns validator recognition and schema follow-through for the current `tools/lib/string.zig` review packet:
+- `Documentation/zigux/phase1-helper-lane-sequencing.md`
+- bounded helper-lane anti-overlap corrections when the current owner map drifts from live `master`
 
-- `scripts/zigux/validate-phase1-closure.py`
-- the string section of `zigux/tests/fixtures/phase1_helper_manifest.json` only when a validator-recognized review-anchor or parity-key packet changes
-- the current string validator schema for prefix/suffix review metadata, memparse review summaries, and the shared `replaceChar()` C-string parity keys
+## Superseded overlap guard
 
-This lane may cite the closure note and manifest-side wording, but it does not own helper-local string semantics repairs or broader closure-wording-only refreshes when the validator schema itself is unchanged.
-
-`P1-L17` string helper-semantics lane owns direct bounded behavior fixes in `tools/lib/string.zig`:
-
-- `tools/lib/string.zig`
-- the directly coupled helper-local string tests that prove C-string boundary behavior such as embedded-NUL stop rules
-
-This lane may refresh an already-coupled direct test when a semantics fix lands, but it should not widen into the broader string manifest, validator schema, or closure packet unless that metadata truly drifts after the helper fix.
+The saved `P1-Y12` rbtree backlog handoff is no longer the live owner for current rbtree validator work. Current `master` already uses `P1-X07` as the active rbtree direct-anchor validator packet. Treat `P1-Y12` as historical backlog context only unless a future run is doing memory-side backlog cleanup rather than fresh rbtree validator follow-through.
 
 ## Anti-overlap rules
 
-- If a Phase 1 run changes `zigux/tests/fixtures/phase1_helpers.json` or `zigux/tests/fixtures/phase1_helpers_c_harness.c` for bitmap parity keys, that work belongs to `P1-X01`.
-- If a Phase 1 run changes only the bitmap section of `zigux/tests/phase1_helpers.zig` so the live Zig replay matches already-committed fixture behavior, that work belongs to `P1-L06`.
-- If a Phase 1 run changes `Documentation/zigux/phase1-closure.md` or `zigux/tests/fixtures/phase1_helper_manifest.json` to keep `find_bit` helper-local ownership versus audit-only shared fields honest, that work belongs to `P1-Y04`.
-- If a Phase 1 run changes the rbtree section of `zigux/tests/fixtures/phase1_helper_manifest.json` or the matching closure-validator schema in `scripts/zigux/validate-phase1-closure.py`, that work belongs to `P1-X08`.
-- If a Phase 1 run changes string review-anchor naming or string review-summary wording in `zigux/tests/fixtures/phase1_helper_manifest.json` or `Documentation/zigux/phase1-closure.md`, that work belongs to `P1-L16`.
-- If a Phase 1 run changes the string section of `scripts/zigux/validate-phase1-closure.py` to recognize already-landed string review anchors or parity keys from `zigux/tests/fixtures/phase1_helper_manifest.json`, that work belongs to `P1-Y09`.
-- If a Phase 1 run changes `tools/lib/string.zig` to repair a bounded C-string behavior gap and updates only the directly coupled helper-local proof, that work belongs to `P1-L17`.
-- Shared Phase 1 build or make replay drift should reopen only the smallest directly coupled helper packet unless the break truly spans multiple helper families at once.
+- Do not batch the nine shared-replay parked helpers with the four direct-anchor helpers in one follow-up lane.
+- If a run changes only bitmap manifest anchors, it belongs to `P1-L04`.
+- If a run only records bitmap closure evidence or a park-or-reopen decision, it belongs to `P1-Y02`.
+- If a run changes only `find_bit` validator or perf-gate recognition in `scripts/zigux/validate-phase1.py`, it belongs to `P1-L11`.
+- If a run changes `find_bit` closure wording, helper-local ownership wording, or the directly coupled `validate-phase1-closure.py` marker packet, it belongs to `P1-X04`.
+- If a run changes rbtree validator recognition for already-landed duplicate-search or cached-root anchors, it belongs to `P1-X07`, not `P1-Y12`.
+- If a run changes string direct-anchor inventory or string closure-validator recognition for already-landed helper-local anchors, it belongs to `P1-X05`.
+- If a run only refreshes helper-lane ownership boundaries, it belongs to `P1-Y10` and should not reopen helper logic, shared replay fixtures, or unrelated Phase 1 validators.
 
 ## Next bounded step
 
-Keep this sequencing note parked unless future repo drift blurs the ownership boundary between the Phase 1 bitmap, find_bit, rbtree, and string helper packets again. Any deeper helper, fixture, replay, manifest, validator, or closure work should return to the owning helper lane instead of expanding this note.
+Keep this sequencing note parked unless future repo drift blurs the ownership boundary between the current bitmap, find_bit, rbtree, and string helper packets again. Any deeper helper, fixture, replay, manifest, validator, or closure work should return to the owning helper lane instead of expanding this note.
