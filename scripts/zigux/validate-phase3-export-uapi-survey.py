@@ -28,7 +28,7 @@ EXPORT_UAPI_LAYOUT_BUILD_REL = "zigux/tests/phase3_export_uapi_layout_build.zig"
 LINUX_HEADER_GOVERNANCE_REL = "Documentation/zigux/phase3-linux-zigux-header-governance.md"
 VALIDATOR_REL = "scripts/zigux/validate-phase3-export-uapi-survey.py"
 
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 7
 
 REQUIRED_FILES = (
     SURVEY_REL,
@@ -53,6 +53,8 @@ REQUIRED_FILES = (
 MANIFEST_REQUIRED_FILES = (
     SURVEY_REL,
     ABI_SLICE_REL,
+    DOCS_ROOT_REL,
+    SCRIPTS_README_REL,
     EXPORT_SHIM_REL,
     UAPI_VERSION_REL,
     LINUX_HEADER_REL,
@@ -64,6 +66,7 @@ MANIFEST_REQUIRED_FILES = (
     EXPORT_UAPI_LAYOUT_BUILD_REL,
     LINUX_HEADER_GOVERNANCE_REL,
     VALIDATOR_REL,
+    WORKFLOW_REL,
 )
 
 SURVEY_PROVENANCE_MARKERS = (
@@ -637,6 +640,33 @@ def run_self_test() -> int:
         _write(root / ABI_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
         issues = validate(root)
         assert f"manifest_missing_required_file:{EXPORT_UAPI_TEST_REL}" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        manifest = json.loads((root / ABI_MANIFEST_REL).read_text(encoding="utf-8"))
+        manifest["files"].remove(DOCS_ROOT_REL)
+        manifest["file_count"] = len(manifest["files"])
+        _write(root / ABI_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        issues = validate(root)
+        assert f"manifest_missing_required_file:{DOCS_ROOT_REL}" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        manifest = json.loads((root / ABI_MANIFEST_REL).read_text(encoding="utf-8"))
+        manifest["files"].remove(SCRIPTS_README_REL)
+        manifest["file_count"] = len(manifest["files"])
+        _write(root / ABI_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        issues = validate(root)
+        assert f"manifest_missing_required_file:{SCRIPTS_README_REL}" in issues, issues
+        build_valid_workspace(root)
+        case_count += 1
+
+        manifest = json.loads((root / ABI_MANIFEST_REL).read_text(encoding="utf-8"))
+        manifest["files"].remove(WORKFLOW_REL)
+        manifest["file_count"] = len(manifest["files"])
+        _write(root / ABI_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        issues = validate(root)
+        assert f"manifest_missing_required_file:{WORKFLOW_REL}" in issues, issues
         build_valid_workspace(root)
         case_count += 1
 
