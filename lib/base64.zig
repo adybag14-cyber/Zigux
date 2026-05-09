@@ -440,6 +440,24 @@ test "maxDecodedBytes returns the tight decoded upper bound from encoded length"
     }
 }
 
+test "empty encode and decode stay zero-length no-ops across variants" {
+    inline for (.{ Variant.std, Variant.urlsafe, Variant.imap }) |variant| {
+        inline for (.{ true, false }) |padding| {
+            var encoded = [_]u8{0xaa} ** 4;
+            const encoded_written = try encode(encoded[0..], "", padding, variant);
+            try std.testing.expectEqual(@as(usize, 0), encoded_written);
+            try std.testing.expectEqualSlices(u8, &([_]u8{0xaa} ** 4), encoded[0..]);
+            try std.testing.expectEqual(@as(usize, 0), chars(0, padding));
+
+            var decoded = [_]u8{0xbb} ** 4;
+            try std.testing.expectEqual(@as(usize, 0), try bytes("", padding, variant));
+            const decoded_written = try decode(decoded[0..], "", padding, variant);
+            try std.testing.expectEqual(@as(usize, 0), decoded_written);
+            try std.testing.expectEqualSlices(u8, &([_]u8{0xbb} ** 4), decoded[0..]);
+        }
+    }
+}
+
 test "bytes rejects malformed input and non-canonical tails" {
     try std.testing.expectError(DecodeError.InvalidInput, bytes("Zg", true, .std));
     try std.testing.expectError(DecodeError.InvalidInput, bytes("Zg=!", true, .std));
