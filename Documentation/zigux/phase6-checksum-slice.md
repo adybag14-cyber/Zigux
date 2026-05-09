@@ -37,7 +37,8 @@ Phase 6 is where Zigux can start proving low-risk in-kernel helper ports without
 
 2. run the dedicated checksum C parity replay when portability-sensitive behavior moves
 - `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test`
-- `ZIG=zig python3 scripts/zigux/check-phase6-checksum-c-parity.py`
+- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
+- set `ZIG=...` or `CC=...` only when intentionally overriding the default tool selection that the script resolves from the current environment
 
 3. run the dedicated checksum perf gate when the math-sensitive lane reopens
 - `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
