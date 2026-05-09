@@ -51,6 +51,7 @@ The sample intentionally stays small:
 
 - it keeps the Linux anchor path explicit in `TraceEventsReferenceSample.descriptor()`
 - it models only the bounded array payload, selected string, `iter=%d` message, `0xdeadbeef` bitmask word, conditional-family coverage, one balanced register-then-unregister callback idiom, and the post-exit ownership boundary in memory
+- it keeps `formattedMessage()` explicit as the approved public formatting surface for the selected-string plus `iter=%d` replay instead of implying direct reads of private message storage
 - it now exposes `runPayloadBoundaryReplay()` so the count-4 payload prefix, zero sentinel, `iter=4` message, and `One ring to rule them all` branch stay reviewable through a public helper instead of private field inspection
 - it now makes the replay summary itself carry explicit `vararg_payload_path_checked`, `relative_location_path_checked`, and `function_callback_path_checked` flags so reviewers do not have to infer those paths from private sample state
 - it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit as part of the same bounded trace-events idiom
@@ -88,6 +89,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 
 - does `TraceEventsReferenceSample.descriptor()` still name `samples/trace_events/trace-events-sample.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_trace_events_sample_manifest.json` and `zigux/tests/phase5_trace_events_sample_survey.zig` still describe the exact vararg-payload, message, relative-location, callback-path, and teardown contract run through `zigux/tests/phase5_build.zig`?
+- does the contributor packet still keep `formattedMessage()` explicit as the approved public formatting surface for the selected-string plus `iter=%d` replay instead of implying direct reads of private message storage?
 - does the contributor packet still name `runPayloadBoundaryReplay()` as the approved public count-4 payload-boundary helper instead of implying private field inspection for the `1,2,3,4` prefix, zero sentinel, initialized-stage boundary, `iter=%d` replay, and selected-string branch?
 - does the contributor packet still name `runConditionalBoundaryReplay()` as the approved public conditional-family helper instead of implying private sample-state reads for the count-0 `Mother Goose` branch, the `iter=%d` replay, the `0xdeadbeef` bitmask cue, and the six main-thread family counts?
 - does the contributor packet still name `runCallbackBoundaryReplay()` as the approved public callback-boundary helper instead of leaving the balanced register-then-unregister replay, callback-path proof, and restored registration balance implicit?
