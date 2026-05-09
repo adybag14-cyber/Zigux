@@ -142,16 +142,7 @@ pub fn hexDumpToBuffer(
                 writer.appendGroupHex(buf[index * groupsize ..][0..groupsize], reverse_multibyte);
             }
         },
-        else => {
-            for (buf[0..len]) |byte| {
-                writer.appendByte(hexAscHi(byte));
-                writer.appendByte(hexAscLo(byte));
-                writer.appendByte(' ');
-            }
-            if (len != 0) {
-                writer.removeLastByte();
-            }
-        },
+        else => appendPlainHexBytes(&writer, buf[0..len]),
     }
 
     if (ascii) {
@@ -177,13 +168,17 @@ fn hexDumpToFullBuffer(
 ) usize {
     var pos: usize = 0;
 
-    var group_start: usize = 0;
-    while (group_start < buf.len) : (group_start += groupsize) {
-        if (group_start != 0) {
-            linebuf[pos] = ' ';
-            pos += 1;
+    if (groupsize == 1) {
+        writePlainHexBytes(linebuf, &pos, buf);
+    } else {
+        var group_start: usize = 0;
+        while (group_start < buf.len) : (group_start += groupsize) {
+            if (group_start != 0) {
+                linebuf[pos] = ' ';
+                pos += 1;
+            }
+            writeGroupHex(linebuf, &pos, buf[group_start .. group_start + groupsize], reverse_multibyte);
         }
-        writeGroupHex(linebuf, &pos, buf[group_start .. group_start + groupsize], reverse_multibyte);
     }
 
     if (ascii) {
@@ -199,6 +194,31 @@ fn hexDumpToFullBuffer(
 
     linebuf[pos] = 0;
     return pos;
+}
+
+fn appendPlainHexBytes(writer: *TruncatingWriter, bytes: []const u8) void {
+    if (bytes.len == 0) {
+        return;
+    }
+
+    writer.appendHexByte(bytes[0]);
+    for (bytes[1..]) |byte| {
+        writer.appendByte(' ');
+        writer.appendHexByte(byte);
+    }
+}
+
+fn writePlainHexBytes(linebuf: []u8, pos: *usize, bytes: []const u8) void {
+    if (bytes.len == 0) {
+        return;
+    }
+
+    writeHexByte(linebuf, pos, bytes[0]);
+    for (bytes[1..]) |byte| {
+        linebuf[pos.*] = ' ';
+        pos.* += 1;
+        writeHexByte(linebuf, pos, byte);
+    }
 }
 
 fn writeGroupHex(linebuf: []u8, pos: *usize, bytes: []const u8, reverse_multibyte: bool) void {
@@ -270,28 +290,24 @@ const TruncatingWriter = struct {
         self.required += 1;
     }
 
+    fn appendHexByte(self: *TruncatingWriter, byte: u8) void {
+        self.appendByte(hexAscHi(byte));
+        self.appendByte(hexAscLo(byte));
+    }
+
     fn appendGroupHex(self: *TruncatingWriter, bytes: []const u8, reverse_multibyte: bool) void {
         if (reverse_multibyte) {
             var index = bytes.len;
             while (index > 0) {
                 index -= 1;
-                self.appendByte(hexAscHi(bytes[index]));
-                self.appendByte(hexAscLo(bytes[index]));
+                self.appendHexByte(bytes[index]);
             }
             return;
         }
 
         for (bytes) |byte| {
-            self.appendByte(hexAscHi(byte));
-            self.appendByte(hexAscLo(byte));
+            self.appendHexByte(byte);
         }
-    }
-
-    fn removeLastByte(self: *TruncatingWriter) void {
-        if (self.required == 0) {
-            return;
-        }
-        self.required -= 1;
     }
 
     fn finish(self: *TruncatingWriter) void {
@@ -415,6 +431,32 @@ test "hexdump grouped plain output stays exact at full and truncated buffer capa
     }
 }
 
+test "hexdump group-1 plain fast-path stays exact at full and truncated buffer capacity" {
+    const input = [_]u8{
+        0xbe, 0x32, 0xdb, 0x7b,
+        0x0a, 0x18, 0x93, 0xb2,
+        0x70, 0xba, 0xc4, 0x24,
+        0x7d, 0x83, 0x34, 0x9b,
+    };
+    const expected = "be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b";
+    const required = hexDumpLineLength(input.len, 16, 1, false);
+
+    try std.testing.expectEqual(@as(usize, expected.len), required);
+    try std.testing.expectEqual(@as(usize, 47), required);
+
+    var exact: [48]u8 = undefined;
+    const exact_written = hexDumpToBuffer(&input, 16, 1, exact[0..], false);
+    try std.testing.expectEqual(required, exact_written);
+    try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(exact[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), exact[required]);
+
+    var truncated: [47]u8 = [_]u8{0xaa} ** 47;
+    const truncated_written = hexDumpToBuffer(&input, 16, 1, truncated[0..], false);
+    try std.testing.expectEqual(required, truncated_written);
+    try std.testing.expectEqualSlices(u8, expected[0 .. required - 1], std.mem.sliceTo(truncated[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), truncated[required - 1]);
+}
+
 test "hexdump grouped-2 ascii output stays exact at full buffer capacity" {
     const input = [_]u8{
         0xbe, 0x32, 0xdb, 0x7b,
@@ -498,6 +540,36 @@ test "hexdump grouped ascii path reports the same required length for exact and 
     try std.testing.expectEqual(required, truncated_written);
     try std.testing.expectEqualSlices(u8, expected[0 .. expected.len - 1], std.mem.sliceTo(truncated[0..], 0));
     try std.testing.expectEqual(@as(u8, 0), truncated[truncated.len - 1]);
+}
+
+test "hexdump group-1 ascii fast-path stays exact at full and truncated 32-byte capacity" {
+    const input = [_]u8{
+        0xbe, 0x32, 0xdb, 0x7b,
+        0x0a, 0x18, 0x93, 0xb2,
+        0x70, 0xba, 0xc4, 0x24,
+        0x7d, 0x83, 0x34, 0x9b,
+        0xa6, 0x9c, 0x31, 0xad,
+        0x9c, 0x0f, 0xac, 0xe9,
+        0x4c, 0xd1, 0x19, 0x99,
+        0x43, 0xb1, 0xaf, 0x0c,
+    };
+    const expected = "be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b a6 9c 31 ad 9c 0f ac e9 4c d1 19 99 43 b1 af 0c  .2.{....p..$}.4...1.....L...C...";
+    const required = hexDumpLineLength(input.len, 32, 1, true);
+
+    try std.testing.expectEqual(@as(usize, expected.len), required);
+    try std.testing.expectEqual(@as(usize, 129), required);
+
+    var exact: [130]u8 = undefined;
+    const exact_written = hexDumpToBuffer(&input, 32, 1, exact[0..], true);
+    try std.testing.expectEqual(required, exact_written);
+    try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(exact[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), exact[required]);
+
+    var truncated: [129]u8 = [_]u8{0xaa} ** 129;
+    const truncated_written = hexDumpToBuffer(&input, 32, 1, truncated[0..], true);
+    try std.testing.expectEqual(required, truncated_written);
+    try std.testing.expectEqualSlices(u8, expected[0 .. required - 1], std.mem.sliceTo(truncated[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), truncated[required - 1]);
 }
 
 test "hexdump one-byte caller buffers still report full length and stay NUL terminated" {
