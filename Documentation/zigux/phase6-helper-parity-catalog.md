@@ -67,7 +67,7 @@ Use `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` before reopening
 - committed fixture surfaces: `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`
 - dedicated external parity checker: `scripts/zigux/check-phase6-checksum-c-parity.py`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
-- current review posture: helper parity plus the shipped direct 39-case C-vs-Zig replay through the dedicated parity replay, C harness, and checker script, alongside the dedicated slowdown gate exposed through `make -C zigux phase6-checksum-perf`
+- current review posture: helper parity plus the shipped direct 41-case C-vs-Zig replay through the dedicated parity replay, C harness, and checker script, alongside the dedicated slowdown gate exposed through `make -C zigux phase6-checksum-perf`
 
 ### hexdump
 
