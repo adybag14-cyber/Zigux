@@ -12,6 +12,12 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 FILES = [
     "scripts/zigux/check-phase10-mmio-packet.py",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "zigux/Makefile",
     "zigux/tests/phase10_build.zig",
     "drivers/virtio/virtio_mmio.zig",
@@ -26,6 +32,65 @@ FILES = [
 ]
 
 MARKERS = {
+    "Documentation/zigux/README.md": [
+        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+        "Documentation/zigux/phase10-closure-evidence.md",
+        "drivers/virtio/virtio_mmio_verify.zig",
+        "zigux/tests/phase10_virtio_mmio.zig",
+        "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+        "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+        "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+        "zigux/tests/phase10_virtio_input_status_drain.zig",
+        "make -C zigux phase10-test",
+    ],
+    "Documentation/zigux/phase10-closure-evidence.md": [
+        "Documentation/zigux/review-checklist.md",
+        "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+        "drivers/virtio/virtio_mmio_verify.zig",
+        "zigux/tests/phase10_virtio_mmio.zig",
+        "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+        "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+        "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+        "zigux/tests/phase10_virtio_input_status_drain.zig",
+        "input registration lifecycle parity",
+    ],
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
+        "`P10-L10` MMIO lane owns MMIO helper footing, the risky-transport freeze boundary, and MMIO-local transport posture evidence:",
+        "Documentation/zigux/phase10-virtio-mmio-survey.md",
+        "zigux/tests/phase10_virtio_mmio_manifest.json",
+        "scripts/zigux/check-phase10-mmio-packet.py",
+        "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
+        "drivers/virtio/virtio_mmio_verify.zig",
+        "selected-queue readiness",
+    ],
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
+        "Documentation/zigux/phase10-closure-evidence.md",
+        "scripts/zigux/check-phase10-mmio-packet.py",
+        "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
+        "drivers/virtio/virtio_mmio_verify.zig",
+        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+        "zigux/tests/phase10_virtio_mmio_manifest.json",
+        "zigux/tests/phase10_virtio_mmio_survey.zig",
+        "make -C zigux phase10-test",
+    ],
+    "scripts/zigux/README.md": [
+        "check-phase10-mmio-packet.py",
+        "check-phase10-mmio-freeze-boundary.py",
+        "phase10_virtio_mmio.zig",
+        "phase10_virtio_mmio_survey.zig",
+        "drivers/virtio/virtio_mmio_verify.zig",
+        "phase10_virtio_input_queue_callback_preflight.zig",
+        "phase10_virtio_input_registration_preflight.zig",
+        "phase10_virtio_input_teardown_observation.zig",
+        "phase10_virtio_input_status_drain.zig",
+        "the virtio mmio packet plus the focused mmio-verify replay",
+        "make -C zigux phase10",
+    ],
+    "zigux/tests/README.md": [
+        "phase10_virtio_mmio.zig",
+        "phase10_virtio_mmio_survey.zig",
+        "phase10_virtio_mmio_manifest.json",
+    ],
     "zigux/tests/phase10_build.zig": [
         "phase10_virtio_mmio_module",
         "../../drivers/virtio/virtio_mmio_verify.zig",
@@ -330,6 +395,42 @@ def run_self_test() -> int:
                 "zigux/tests/phase10_virtio_input_status_only_drain.zig",
                 "phase10-virtio-mmio-survey.md:zigux/tests/phase10_virtio_input_status_drain.zig",
             ),
+            (
+                "Documentation/zigux/README.md",
+                "drivers/virtio/virtio_mmio_verify.zig",
+                "drivers/virtio/virtio_mmio_verify_drift.zig",
+                "README.md:drivers/virtio/virtio_mmio_verify.zig",
+            ),
+            (
+                "Documentation/zigux/phase10-closure-evidence.md",
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion-drift.md",
+                "phase10-closure-evidence.md:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            ),
+            (
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+                "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
+                "scripts/zigux/check-phase10-mmio-freeze-boundary-drift.py",
+                "phase10-phase11-phase13-tests-root-review-companion.md:scripts/zigux/check-phase10-mmio-freeze-boundary.py",
+            ),
+            (
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+                "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
+                "scripts/zigux/check-phase10-mmio-freeze-boundary-drift.py",
+                "phase10-virtio-driver-lane-sequencing.md:scripts/zigux/check-phase10-mmio-freeze-boundary.py",
+            ),
+            (
+                "scripts/zigux/README.md",
+                "the virtio mmio packet plus the focused mmio-verify replay",
+                "the virtio mmio packet plus a drifted verifier cue",
+                "README.md:the virtio mmio packet plus the focused mmio-verify replay",
+            ),
+            (
+                "zigux/tests/README.md",
+                "phase10_virtio_mmio_manifest.json",
+                "phase10_virtio_mmio_manifest_drift.json",
+                "README.md:phase10_virtio_mmio_manifest.json",
+            ),
         ]
 
         for rel_path, old, new, expected in drift_cases:
@@ -353,7 +454,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
