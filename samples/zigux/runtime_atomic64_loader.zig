@@ -753,3 +753,67 @@ test "runtime atomic64 loader rejects shared-load-plan snapshot drift" {
     drifted_selftest.init_flow.selftest_runs += 1;
     try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(plan, drifted_selftest));
 }
+
+test "runtime atomic64 loader rejects prepared shared approved-family anchor and symbol drift before any local runtime handoff" {
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(0x1111_1111_2222_2222);
+    _ = try module.runSelftest();
+
+    var loader = RuntimeAtomic64Loader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    const prepared_shared_plan = shared_request.plan;
+
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_shared_plan,
+    ));
+
+    shared_request.plan.anchor = "lib/atomic64_test_drift.c";
+    try std.testing.expectError(
+        error.InvalidPilotFamilyContract,
+        loader.requestSharedRuntimeLoad(&shared_request),
+    );
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    shared_request.plan = prepared_shared_plan;
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_shared_plan,
+    ));
+
+    shared_request.plan.entry_symbol = "zigux_runtime_atomic64_init_drift";
+    try std.testing.expectError(
+        error.InvalidPilotFamilyContract,
+        loader.requestSharedRuntimeLoad(&shared_request),
+    );
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    shared_request.plan = prepared_shared_plan;
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_shared_plan,
+    ));
+
+    shared_request.plan.exit_symbol = "zigux_runtime_atomic64_exit_drift";
+    try std.testing.expectError(
+        error.InvalidPilotFamilyContract,
+        loader.requestSharedRuntimeLoad(&shared_request),
+    );
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    shared_request.plan = prepared_shared_plan;
+    _ = try RuntimeAtomic64Loader.planFor(&module);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_shared_plan,
+    ));
+}
