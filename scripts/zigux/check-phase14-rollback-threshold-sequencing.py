@@ -10,6 +10,7 @@ and freeze-in-C split on master.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 import sys
 import tempfile
@@ -104,6 +105,25 @@ def load_json_file(path: Path) -> dict:
     return json.loads(read_text(path))
 
 
+def blocked_gap_id(manifest: dict) -> str | None:
+    for gap in manifest.get("gaps", []):
+        status = str(gap.get("status", ""))
+        if status.startswith("blocked"):
+            gap_id = gap.get("id")
+            if isinstance(gap_id, str):
+                return gap_id
+    return None
+
+
+def ready_next_gap_id(manifest: dict) -> str | None:
+    for gap in manifest.get("gaps", []):
+        if gap.get("status") == "ready_next":
+            gap_id = gap.get("id")
+            if isinstance(gap_id, str):
+                return gap_id
+    return None
+
+
 def require_exact_marker_count(errors: list[str], rel_path: str, text: str, marker: str) -> None:
     actual_count = text.count(marker)
     if actual_count != 1:
@@ -133,11 +153,16 @@ def traceability_dynamic_markers(root: Path) -> tuple[list[str], list[str]]:
             continue
         lane_key = manifest.get("lane_key")
         surveyed_commit = manifest.get("surveyed_commit")
+        blocked_gap = blocked_gap_id(manifest)
+        ready_next_gap = ready_next_gap_id(manifest)
         if not isinstance(lane_key, str):
             errors.append(f"missing lane_key in {manifest_rel_path}")
             continue
         if not isinstance(surveyed_commit, str):
             errors.append(f"missing surveyed_commit in {manifest_rel_path}")
+            continue
+        if blocked_gap is None:
+            errors.append(f"missing blocked gap in {manifest_rel_path}")
             continue
         lane_order.append(lane_key)
         markers.extend(
@@ -145,6 +170,12 @@ def traceability_dynamic_markers(root: Path) -> tuple[list[str], list[str]]:
                 f"- manifest: `{manifest_rel_path}`",
                 f"- lane key: `{lane_key}`",
                 f"- surveyed commit: `{surveyed_commit}`",
+                (
+                    f"- ready-next gap: `{ready_next_gap}`"
+                    if ready_next_gap is not None
+                    else "- ready-next gap: none currently recorded"
+                ),
+                f"- blocked gap: `{blocked_gap}`",
             ]
         )
     if len(lane_order) == 4:
@@ -192,11 +223,16 @@ def check(root: Path) -> list[str]:
         traceability_text = read_text(traceability_path)
         dynamic_markers, dynamic_errors = traceability_dynamic_markers(root)
         errors.extend(dynamic_errors)
-        for marker in dynamic_markers:
-            if marker not in traceability_text:
-                errors.append(f"missing marker in {TRACEABILITY_PATH}: {marker}")
-                continue
-            require_exact_marker_count(errors, TRACEABILITY_PATH, traceability_text, marker)
+        for marker, expected_count in Counter(dynamic_markers).items():
+            actual_count = traceability_text.count(marker)
+            if actual_count != expected_count:
+                if actual_count == 0:
+                    errors.append(f"missing marker in {TRACEABILITY_PATH}: {marker}")
+                    continue
+                errors.append(
+                    f"marker count drift in {TRACEABILITY_PATH}: {marker} "
+                    f"(expected {expected_count}, found {actual_count})"
+                )
 
     return errors
 
@@ -216,13 +252,50 @@ def required_text(root: Path, rel_path: str) -> str:
             indent=2,
         ) + "\n"
     if rel_path == WORKQUEUE_MANIFEST_PATH:
-        return json.dumps({"lane_key": "P14-L02", "surveyed_commit": "9b98d3b9c812840bf279508030be0b8de093736c"}, indent=2) + "\n"
+        return json.dumps(
+            {
+                "lane_key": "P14-L02",
+                "surveyed_commit": "9b98d3b9c812840bf279508030be0b8de093736c",
+                "gaps": [
+                    {"id": "phase14-workqueue-live-execution-blocker", "status": "blocked_on_stay_in_c_evidence"}
+                ],
+            },
+            indent=2,
+        ) + "\n"
     if rel_path == RING_BUFFER_MANIFEST_PATH:
-        return json.dumps({"lane_key": "P14-L08", "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c"}, indent=2) + "\n"
+        return json.dumps(
+            {
+                "lane_key": "P14-L08",
+                "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
+                "gaps": [
+                    {"id": "phase14-ring-buffer-read-page-copy-followup", "status": "ready_next"},
+                    {"id": "phase14-ring-buffer-zig-port-blocker", "status": "blocked_on_stay_in_c_evidence"},
+                ],
+            },
+            indent=2,
+        ) + "\n"
     if rel_path == SKBUFF_MANIFEST_PATH:
-        return json.dumps({"lane_key": "P14-L11", "surveyed_commit": "4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7"}, indent=2) + "\n"
+        return json.dumps(
+            {
+                "lane_key": "P14-L11",
+                "surveyed_commit": "4f6dab5f88d8141ecd358d93fe9284bcc98dc1d7",
+                "gaps": [
+                    {"id": "phase14-skbuff-live-ownership-blocker", "status": "blocked_on_stay_in_c_evidence"}
+                ],
+            },
+            indent=2,
+        ) + "\n"
     if rel_path == RCU_MANIFEST_PATH:
-        return json.dumps({"lane_key": "P14-L13", "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312"}, indent=2) + "\n"
+        return json.dumps(
+            {
+                "lane_key": "P14-L13",
+                "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312",
+                "gaps": [
+                    {"id": "phase14-rcu-tree-bridge-blocker", "status": "blocked_on_stay_in_c_evidence"}
+                ],
+            },
+            indent=2,
+        ) + "\n"
     if rel_path == TRACEABILITY_PATH:
         dynamic_markers, dynamic_errors = traceability_dynamic_markers(root)
         if dynamic_errors:
@@ -239,9 +312,21 @@ def run_self_test() -> int:
         root = Path(tmpdir)
         current_checker_path = Path(__file__)
         original_checker_source = current_checker_path.read_text(encoding="utf-8")
-        for rel_path in [MANIFEST_PATH, WORKQUEUE_MANIFEST_PATH, RING_BUFFER_MANIFEST_PATH, SKBUFF_MANIFEST_PATH, RCU_MANIFEST_PATH]:
+        for rel_path in [
+            MANIFEST_PATH,
+            WORKQUEUE_MANIFEST_PATH,
+            RING_BUFFER_MANIFEST_PATH,
+            SKBUFF_MANIFEST_PATH,
+            RCU_MANIFEST_PATH,
+        ]:
             write_text(root / rel_path, required_text(root, rel_path))
-        for rel_path in [SMOKE_SURVEY_PATH, RELEASE_BOUNDARY_PATH, REVIEW_CHECKLIST_PATH, SCRIPTS_README_PATH, TRACEABILITY_PATH]:
+        for rel_path in [
+            SMOKE_SURVEY_PATH,
+            RELEASE_BOUNDARY_PATH,
+            REVIEW_CHECKLIST_PATH,
+            SCRIPTS_README_PATH,
+            TRACEABILITY_PATH,
+        ]:
             write_text(root / rel_path, required_text(root, rel_path))
 
         errors = check(root)
@@ -254,7 +339,7 @@ def run_self_test() -> int:
         broken_traceability_path = root / TRACEABILITY_PATH
         broken_traceability_path.write_text(
             broken_traceability_path.read_text(encoding="utf-8").replace(
-                "the live workqueue, ring-buffer, skbuff, and RCU packets now route through `P14-L02`, `P14-L08`, `P14-L11`, and `P14-L13`\n",
+                "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`\n",
                 "",
                 1,
             ),
@@ -262,264 +347,47 @@ def run_self_test() -> int:
         )
         errors = check(root)
         if not any(
-            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: the live workqueue, ring-buffer, skbuff, and RCU packets now route through `P14-L02`, `P14-L08`, `P14-L11`, and `P14-L13`"
+            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - ready-next gap: `phase14-ring-buffer-read-page-copy-followup`"
             in error
             for error in errors
         ):
-            print("self-test expected missing traceability owner-map summary failure", file=sys.stderr)
+            print("self-test expected missing ring-buffer ready-next failure", file=sys.stderr)
             return 1
         write_text(broken_traceability_path, required_text(root, TRACEABILITY_PATH))
-
-        broken_traceability_path.write_text(
-            broken_traceability_path.read_text(encoding="utf-8").replace(
-                "- lane key: `P14-L02`\n",
-                "- lane key: `P14-L02`\n- lane key: `P14-L02`\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any(
-            "marker count drift in Documentation/zigux/phase14-core-boundary-traceability.md: - lane key: `P14-L02` (expected 1, found 2)"
-            in error
-            for error in errors
-        ):
-            print("self-test expected duplicate workqueue lane-key failure", file=sys.stderr)
-            return 1
-        write_text(broken_traceability_path, required_text(root, TRACEABILITY_PATH))
-
-        broken_skbuff_manifest_path = root / SKBUFF_MANIFEST_PATH
-        broken_skbuff_manifest = json.loads(read_text(broken_skbuff_manifest_path))
-        broken_skbuff_manifest.pop("lane_key", None)
-        write_text(
-            broken_skbuff_manifest_path,
-            json.dumps(broken_skbuff_manifest, indent=2) + "\n",
-        )
-        errors = check(root)
-        if not any(
-            "missing lane_key in zigux/tests/phase14_skbuff_bridge_manifest.json"
-            in error
-            for error in errors
-        ):
-            print("self-test expected missing skbuff lane-key failure", file=sys.stderr)
-            return 1
-        write_text(broken_skbuff_manifest_path, required_text(root, SKBUFF_MANIFEST_PATH))
 
         broken_workqueue_manifest_path = root / WORKQUEUE_MANIFEST_PATH
         broken_workqueue_manifest = json.loads(read_text(broken_workqueue_manifest_path))
-        broken_workqueue_manifest.pop("surveyed_commit", None)
+        broken_workqueue_manifest["gaps"] = []
         write_text(
             broken_workqueue_manifest_path,
             json.dumps(broken_workqueue_manifest, indent=2) + "\n",
         )
         errors = check(root)
         if not any(
-            "missing surveyed_commit in zigux/tests/phase14_workqueue_bridge_manifest.json"
-            in error
+            "missing blocked gap in zigux/tests/phase14_workqueue_bridge_manifest.json" in error
             for error in errors
         ):
-            print("self-test expected missing workqueue surveyed-commit failure", file=sys.stderr)
+            print("self-test expected missing workqueue blocked-gap failure", file=sys.stderr)
             return 1
         write_text(broken_workqueue_manifest_path, required_text(root, WORKQUEUE_MANIFEST_PATH))
 
-        write_text(broken_workqueue_manifest_path, "{\n")
-        errors = check(root)
-        if not any(
-            "invalid json in zigux/tests/phase14_workqueue_bridge_manifest.json:"
-            in error
-            for error in errors
-        ):
-            print("self-test expected invalid workqueue manifest json failure", file=sys.stderr)
-            return 1
-        write_text(broken_workqueue_manifest_path, required_text(root, WORKQUEUE_MANIFEST_PATH))
-
-        broken_release_path = root / RELEASE_BOUNDARY_PATH
-        broken_release_path.write_text("`PHASE14_STUDY_ONLY_ANCHOR_COUNT=1`\n", encoding="utf-8")
-        errors = check(root)
-        if not any("PHASE14_FREEZE_IN_C_GOVERNED_COUNT=2" in error for error in errors):
-            print("self-test expected release-boundary drift failure", file=sys.stderr)
-            return 1
-        write_text(broken_release_path, required_text(root, RELEASE_BOUNDARY_PATH))
-
-        broken_manifest_path = root / MANIFEST_PATH
-        write_text(broken_manifest_path, "{\n")
-        errors = check(root)
-        if not any(
-            "invalid json in zigux/tests/phase14_end_to_end_smoke_manifest.json:"
-            in error
-            for error in errors
-        ):
-            print("self-test expected invalid shared smoke manifest json failure", file=sys.stderr)
-            return 1
-        write_text(broken_manifest_path, required_text(root, MANIFEST_PATH))
-
-        broken_manifest_path.write_text(
-            broken_manifest_path.read_text(encoding="utf-8").replace(
-                '  "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",\n',
-                "",
+        broken_traceability_path.write_text(
+            broken_traceability_path.read_text(encoding="utf-8").replace(
+                "- ready-next gap: none currently recorded\n",
+                "- ready-next gap: none currently recorded\n- ready-next gap: none currently recorded\n",
                 1,
             ),
             encoding="utf-8",
         )
         errors = check(root)
         if not any(
-            'missing marker in zigux/tests/phase14_end_to_end_smoke_manifest.json: "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence"'
+            "marker count drift in Documentation/zigux/phase14-core-boundary-traceability.md: - ready-next gap: none currently recorded (expected 3, found 4)"
             in error
             for error in errors
         ):
-            print("self-test expected missing rollback-owner failure", file=sys.stderr)
+            print("self-test expected duplicate none-recorded ready-next failure", file=sys.stderr)
             return 1
-        write_text(broken_manifest_path, required_text(root, MANIFEST_PATH))
-
-        broken_smoke_note_path = root / SMOKE_SURVEY_PATH
-        broken_smoke_note_path.write_text(
-            broken_smoke_note_path.read_text(encoding="utf-8").replace(
-                "- `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any(
-            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`"
-            in error
-            for error in errors
-        ):
-            print("self-test expected missing direct smoke fallback example failure", file=sys.stderr)
-            return 1
-        write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
-
-        broken_smoke_note_path.write_text(
-            broken_smoke_note_path.read_text(encoding="utf-8").replace(
-                "- `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`\n",
-                "- `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`\n"
-                "- `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any(
-            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all` (expected 1, found 2)"
-            in error
-            for error in errors
-        ):
-            print("self-test expected duplicate direct smoke fallback example failure", file=sys.stderr)
-            return 1
-        write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
-
-        broken_smoke_note_path.write_text(
-            broken_smoke_note_path.read_text(encoding="utf-8").replace(
-                "- `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any(
-            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`"
-            in error
-            for error in errors
-        ):
-            print("self-test expected missing direct full-test fallback example failure", file=sys.stderr)
-            return 1
-        write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
-
-        broken_smoke_note_path.write_text(
-            broken_smoke_note_path.read_text(encoding="utf-8").replace(
-                "- `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`\n",
-                "- `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`\n"
-                "- `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any(
-            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all` (expected 1, found 2)"
-            in error
-            for error in errors
-        ):
-            print("self-test expected duplicate direct full-test fallback example failure", file=sys.stderr)
-            return 1
-        write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
-
-        broken_smoke_note_path.write_text(
-            broken_smoke_note_path.read_text(encoding="utf-8").replace(
-                "This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any(
-            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope."
-            in error
-            for error in errors
-        ):
-            print("self-test expected missing note-local fallback scope failure", file=sys.stderr)
-            return 1
-        write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
-
-        broken_smoke_note_path.write_text(
-            broken_smoke_note_path.read_text(encoding="utf-8").replace(
-                "This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.\n",
-                "This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.\n"
-                "This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any(
-            "marker count drift in Documentation/zigux/phase14-end-to-end-smoke-survey.md: This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope. (expected 1, found 2)"
-            in error
-            for error in errors
-        ):
-            print("self-test expected duplicate note-local fallback scope failure", file=sys.stderr)
-            return 1
-        write_text(broken_smoke_note_path, required_text(root, SMOKE_SURVEY_PATH))
-
-        broken_scripts_readme_path = root / SCRIPTS_README_PATH
-        broken_scripts_readme_path.write_text(
-            broken_scripts_readme_path.read_text(encoding="utf-8").replace(
-                "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any(
-            "missing marker in scripts/zigux/README.md: exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim."
-            in error
-            for error in errors
-        ):
-            print("self-test expected scripts README rollback-summary failure", file=sys.stderr)
-            return 1
-        write_text(broken_scripts_readme_path, required_text(root, SCRIPTS_README_PATH))
-
-        broken_scripts_readme_path.write_text(
-            broken_scripts_readme_path.read_text(encoding="utf-8").replace(
-                "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.\n",
-                "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.\n"
-                "exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim.\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not any(
-            "marker count drift in scripts/zigux/README.md: exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, freeze-map boundary note, and ZAR-to-product transfer rationale without implying an active deep-core port claim. (expected 1, found 2)"
-            in error
-            for error in errors
-        ):
-            print("self-test expected duplicate scripts README rollback-summary failure", file=sys.stderr)
-            return 1
-        write_text(broken_scripts_readme_path, required_text(root, SCRIPTS_README_PATH))
+        write_text(broken_traceability_path, required_text(root, TRACEABILITY_PATH))
 
         current_checker_path.write_text(
             original_checker_source.replace(MARKER, "PHASE14_CHECK_PACKET=broken_marker"),
