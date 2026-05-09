@@ -27,7 +27,7 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
 ## Driver lane map
 - `virtio_net` lane:
   Owns `Documentation/zigux/phase12-virtio-net-survey.md`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_survey.zig`, and `drivers/net/virtio_net.zig`.
-  The bounded live scope is the probe snapshot starter plus the directly coupled syntax-lab, queue-recovery, receive-refill, control-queue-restore, transmit-recycle, and mergeable-buffer-length follow-ups.
+  The bounded live scope is the probe snapshot starter plus the directly coupled syntax-lab, queue-recovery, receive-refill, control-queue-restore, transmit-recycle, mergeable-buffer-length, and repeated-recovery-cycle follow-ups, plus the landed segmented-rollout boundary that keeps the lane below live DMA-backed runtime data-path work.
   It must stay below live DMA-backed runtime data-path work and must remain a shared-tree-only anchor unless a real commit-pinned fallback artifact lands.
 - `nvme_pci` lane:
   Owns `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `drivers/nvme/host/pci.zig`, and `drivers/nvme/host/pci_verify.zig`.
@@ -71,7 +71,7 @@ The saved docs-root release-readiness checker follow-through is now also closed 
 
 The older docs-root smoke-summary gap is also closed on `master`: `Documentation/zigux/README.md` now explicitly names `drivers/nvme/host/pci_verify.zig`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all` beside the shared Phase 12 packet, so this lane no longer needs to steer future runs back through that same broad docs-root reminder.
 
-The older saved tests-root undercount is now also closed on `master`: `zigux/tests/README.md` now keeps `Documentation/zigux/phase12-release-readiness-survey.md` explicit beside the shared smoke-first packet, the PMO closure companion, the compact release-coordination matrix, the two anti-overlap companions, the shared fallback-overview note, and the freeze-boundary reminder.
+The older saved tests-root undercount is now also closed on `master`: `zigux/tests/README.md` now keeps `Documentation/zigux/phase12-release-readiness-survey.md` explicit beside the shared smoke-first packet, the PMO closure companion, the two anti-overlap companions, the shared fallback-overview note, and the freeze-boundary reminder.
 That earlier fix closed the tests-root release-readiness reminder too, so this lane no longer needs to steer future runs back through that same follow-through.
 
 The later docs-root fallback-catalog undercount is now also closed on `master`: `Documentation/zigux/README.md` now explicitly names `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` beside the shared Phase 12 packet, so this lane no longer needs to steer future runs back through that PMO-owned docs-root reminder either.
