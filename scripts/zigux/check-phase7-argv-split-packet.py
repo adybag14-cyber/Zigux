@@ -25,6 +25,8 @@ REQUIRED_MARKERS = {
         "null-terminated pointer-vector access through `cArgv()`",
         "exported C-argv vector sizing to `argc + 1` so the trailing null sentinel stays aligned with `argvSplitWithArgc()` and `cArgv()`",
         "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`",
+        "tearing down one non-blank result does not disturb another caller's owned storage or exported C-argv view",
+        "blank-input teardown on one caller keeps the shared empty storage and exported argv sentinels stable for another caller",
         "allocator-failure cleanup when intermediate setup work is interrupted",
         "overflow rejection before sizing the exported null-terminated argv vector",
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
@@ -53,9 +55,11 @@ REQUIRED_MARKERS = {
         "phase 7 argvSplit keeps the exported C argv vector sized to argc plus one sentinel",
         "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned",
         "phase 7 non-blank argvSplit calls keep owned storage and C-argv views distinct across callers",
+        "phase 7 argvFree on one live split result does not disturb another caller",
         "phase 7 blank argvSplit input reuses the empty exported argv view",
         "phase 7 blank argvSplit input reuses the empty storage sentinel without allocator space",
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
+        "phase 7 blank argvSplit teardown on one caller keeps shared empty sentinels stable for another caller",
         "phase 7 argvSplit deinit clears exported storage and argv views",
         "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
         "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
@@ -275,6 +279,38 @@ def run_self_test() -> None:
         slice_path.write_text(original_slice, encoding="utf-8")
 
         slice_path.write_text(
+            original_slice.replace(
+                "tearing down one non-blank result does not disturb another caller's owned storage or exported C-argv view",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_slice_distinct_caller_teardown_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: tearing down one non-blank result does not disturb another caller's owned storage or exported C-argv view",
+        )
+        case_count += 1
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
+            original_slice.replace(
+                "blank-input teardown on one caller keeps the shared empty storage and exported argv sentinels stable for another caller",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_slice_shared_blank_teardown_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: blank-input teardown on one caller keeps the shared empty storage and exported argv sentinels stable for another caller",
+        )
+        case_count += 1
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
             original_slice.replace("allocator-failure cleanup when intermediate setup work is interrupted", "", 1),
             encoding="utf-8",
         )
@@ -445,6 +481,22 @@ def run_self_test() -> None:
 
         tests_path.write_text(
             original_tests.replace(
+                "phase 7 argvFree on one live split result does not disturb another caller",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_non_blank_teardown_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvFree on one live split result does not disturb another caller",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
                 "phase 7 argvSplit deinit clears exported storage and argv views",
                 "",
                 1,
@@ -471,6 +523,22 @@ def run_self_test() -> None:
             "argv_split_allocation_failure_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
+        )
+        case_count += 1
+        tests_path.write_text(original_tests, encoding="utf-8")
+
+        tests_path.write_text(
+            original_tests.replace(
+                "phase 7 blank argvSplit teardown on one caller keeps shared empty sentinels stable for another caller",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_shared_blank_teardown_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 blank argvSplit teardown on one caller keeps shared empty sentinels stable for another caller",
         )
         case_count += 1
         tests_path.write_text(original_tests, encoding="utf-8")
