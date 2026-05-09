@@ -37,7 +37,7 @@ REQUIRED_SURVEY_NOTE_MARKERS = [
 REQUIRED_SLICE_NOTE_MARKERS = [
     "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
     "tiny registration-outcome summary",
-    "tiny platform-registration and PM-base handoff summary",
+    "tiny platform-handoff and PM-base readiness summary",
 ]
 
 REQUIRED_TEARDOWN_NOTE_MARKERS = [
@@ -83,7 +83,7 @@ REQUIRED_MANIFEST_MARKERS = [
     '"id": "phase11-bcm2835-wdt-survey-gate"',
     '"id": "phase11-bcm2835-wdt-teardown-note"',
     '"id": "phase11-bcm2835-wdt-validation-matrix"',
-    '"id": "phase11-bcm2835-wdt-platform-registration"',
+    '"id": "phase11-bcm2835-wdt-platform-handoff"',
 ]
 
 REQUIRED_BUILD_MARKERS = [
@@ -173,7 +173,7 @@ This archival watchdog note now keeps `P11-L08` packet identity explicit beside 
         """# Phase 11 BCM2835 Watchdog Slice
 
 - adds a tiny registration-outcome summary for register-device success versus failure, probe-error return intent, and poweroff-handler claim follow-through or blocking when registration does not complete
-- adds a tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability
+- adds a tiny platform-handoff and PM-base readiness summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability
 
 `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` now records the first bounded hardware-validation matrix for watchdog metadata, timeout conversion, register-image transition coverage, probe-time bookkeeping, registration ownership, registration-outcome failure handling, platform handoff prerequisites, poweroff-path sequencing, and remove-time teardown scope without widening into live PM base or poweroff plumbing.
 """,
@@ -246,7 +246,7 @@ The lane keeps the dedicated bcm2835 packet checker aligned with the archival re
     {"id": "phase11-bcm2835-wdt-survey-gate"},
     {"id": "phase11-bcm2835-wdt-teardown-note"},
     {"id": "phase11-bcm2835-wdt-validation-matrix"},
-    {"id": "phase11-bcm2835-wdt-platform-registration"}
+    {"id": "phase11-bcm2835-wdt-platform-handoff"}
   ]
 }
 """,
