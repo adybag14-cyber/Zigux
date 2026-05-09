@@ -9,6 +9,24 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+ARTIFACT_DIFF_NOTE = ROOT / "Documentation" / "zigux" / "artifact-diff.md"
+
+EXPECTED_REVIEW_NOTE_MARKERS = [
+    "- owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`",
+    "- rollback owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`",
+    "- fallback rule: if `scripts/zigux/artifact_diff.py` regresses, keep the committed expected artifact plus the current authoritative C or documented replay command as the source of truth until the helper contract is repaired",
+    "- deterministic replay entrypoint: `python3 scripts/zigux/check-artifact-diff-contract.py` is the reviewable contract rerun for the shared host-side helper and should stay aligned with the outward line rules below",
+    "- review rule: any change to the helper's emitted `ARTIFACT_DIFF=*`, `MODE=*`, `EXPECTED=*`, `ACTUAL=*`, `SHA256=*`, `EXPECTED_EXISTS=*`, `ACTUAL_EXISTS=*`, `EXPECTED_JSON_ERROR=*`, or `ACTUAL_JSON_ERROR=*` lines must update this note in the same change so the published host-side artifact packet stays reviewable",
+    "- boundary: keep this note scoped to the shared host-side diff helper; Phase 4 gate ownership for `zigux/tests/*.zig` still belongs in `Documentation/zigux/phase4-validation-matrix.md`",
+    "- deterministic helper contract: `ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS|EXPECTED_JSON_ERROR|ACTUAL_JSON_ERROR]`",
+    "- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_TEXT` must prove both the stable text pass shape and the direct text mismatch fail shape",
+    "- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_JSON` must prove canonical JSON equivalence while `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID` proves malformed JSON fails without inventing digest or exists markers",
+    "- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_SHA256` must prove both the shared digest pass line and the exact expected-vs-actual digest drift lines",
+    "- deterministic helper contract: `ARTIFACT_DIFF_SELF_TEST_MISSING` must prove missing-path failures emit only the EXISTS markers",
+    "- deterministic helper catalog: `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT` and `ARTIFACT_DIFF_SELF_TEST_CASES` must stay aligned with the helper's published `--self-test` packet",
+    "- deterministic checker catalog: `ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT`, `ARTIFACT_DIFF_CONTRACT_BASE_CASES`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASES`, `ARTIFACT_DIFF_CONTRACT_CASE_COUNT`, and `ARTIFACT_DIFF_CONTRACT_CASES` must stay aligned with the published contract replay packet",
+    "- deterministic checker self-test catalog: `ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT` and `ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES` must stay aligned with the isolated stale-catalog and review-note drift coverage",
+]
 
 EXPECTED_HELPER_SELF_TEST_CASES = [
     "text_pass",
@@ -122,6 +140,30 @@ def _parse_case_list(lines: list[str], count_prefix: str, list_prefix: str) -> l
     return cases
 
 
+def assert_review_note_markers(note_text: str) -> None:
+    missing_markers: list[str] = []
+    duplicate_markers: list[str] = []
+    for marker in EXPECTED_REVIEW_NOTE_MARKERS:
+        count = note_text.count(marker)
+        if count == 0:
+            missing_markers.append(marker)
+        elif count != 1:
+            duplicate_markers.append(f"{marker}:{count}")
+    if missing_markers or duplicate_markers:
+        problems: list[str] = []
+        if missing_markers:
+            problems.append(
+                "artifact-diff review note missing required markers: "
+                f"{missing_markers}"
+            )
+        if duplicate_markers:
+            problems.append(
+                "artifact-diff review note duplicated required markers: "
+                f"{duplicate_markers}"
+            )
+        raise AssertionError("; ".join(problems))
+
+
 def assert_helper_self_test_lines(lines: list[str]) -> None:
     if _extract_value(lines, "ARTIFACT_DIFF_SELF_TEST=") != "pass":
         raise AssertionError(f"unexpected helper self-test status: {lines}")
@@ -213,6 +255,8 @@ def _run_script(script: Path, *args: str) -> list[str]:
 def run_live_check(root: Path) -> None:
     helper_script = root / "scripts/zigux/artifact_diff.py"
     contract_script = root / "scripts/zigux/check-artifact-diff-contract.py"
+    note_text = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
+    assert_review_note_markers(note_text)
     assert_helper_self_test_lines(_run_script(helper_script, "--self-test"))
     assert_contract_self_test_lines(_run_script(contract_script, "--self-test"))
     assert_contract_lines(_run_script(contract_script))
@@ -278,6 +322,19 @@ def build_fixture_tree(root: Path) -> None:
         )
         + "\n",
     )
+    _write(
+        root / "Documentation/zigux/artifact-diff.md",
+        "\n".join(
+            [
+                "# Artifact Diff Policy",
+                "",
+                "## Phase 4 Tooling Review Note",
+                "",
+                *EXPECTED_REVIEW_NOTE_MARKERS,
+                "",
+            ]
+        ),
+    )
 
 
 def expect_assertion(label: str, callback) -> None:
@@ -294,6 +351,16 @@ def run_self_test() -> None:
         build_fixture_tree(root)
         run_live_check(root)
 
+        expect_assertion(
+            "review_note_marker_missing",
+            lambda: assert_review_note_markers("\n".join(EXPECTED_REVIEW_NOTE_MARKERS[:-1])),
+        )
+        expect_assertion(
+            "review_note_marker_duplicate",
+            lambda: assert_review_note_markers(
+                "\n".join([*EXPECTED_REVIEW_NOTE_MARKERS, EXPECTED_REVIEW_NOTE_MARKERS[0]])
+            ),
+        )
         expect_assertion(
             "helper_case_order_drift",
             lambda: assert_helper_self_test_lines(
