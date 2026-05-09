@@ -942,6 +942,12 @@ test "runtime loader facade keeps prepared trace-events requests pinned when sha
     try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
 
     request.plan = stable_plan;
+    request.plan.module_name = "runtime_trace_events_drift";
+    try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, request.state);
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .prepared, request.plan));
+
+    request.plan = stable_plan;
     request.plan.anchor = "samples/trace_events/trace-events-sample-drift.c";
     try std.testing.expectError(error.InvalidPilotFamilyContract, request.requestRuntimeLoad());
     try std.testing.expectEqual(RequestState.prepared, request.state);
