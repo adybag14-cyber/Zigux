@@ -46,7 +46,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs.zig",
-      "why_now": "Dedicated libfs helper tests keep the current helper surface honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-emit handoff bookkeeping, the landed cursor-reposition planner, the landed transaction acquire, publish, and release planners, and the new simple_open() private-data handoff planner."
+      "why_now": "Dedicated libfs helper tests keep the current helper surface honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-emit handoff bookkeeping, the landed cursor-reposition planner, the landed transaction acquire, publish, and release planners, the new simple_open() private-data handoff planner, and the exported simple_dir_operations wrapper plan."
     },
     {
       "id": "phase13-libfs-slice-note",
@@ -60,7 +60,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs_reviewability.zig",
-      "why_now": "A dedicated reviewability gate ties the current helper packet, the focused addressability shard, the helper tests, the slice note, and the survey note together so future runs can confirm the lane state before widening helper coverage."
+      "why_now": "A dedicated reviewability gate ties the current helper packet, the focused addressability shard, the helper tests, the slice note, the simple dir operations wrapper, and the survey note together so future runs can confirm the lane state before widening helper coverage."
     },
     {
       "id": "phase13-libfs-survey-note",
@@ -102,7 +102,7 @@
       "status": "starter_landed",
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The libfs helper lab now models the pure simple_transaction_release() lifetime path, including page-backed private-data cleanup, release bookkeeping, and the zero return path before any live readback, file lifecycle, or cursor-backed state is claimed."
+      "why_now": "The libfs helper lab now models the pure simple_transaction_release() lifetime path, including page-backed private-data cleanup, release bookkeeping, and the zero return path before any live file lifecycle, readback, or cursor-backed state is claimed."
     },
     {
       "id": "phase13-libfs-dcache-dir-open-helper",
@@ -138,6 +138,13 @@
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now models the pure simple_open() handoff by recording when inode->i_private is copied into file->private_data, when a null inode-private slot leaves prior file-private state untouched, and the unconditional zero return path before any live file lifecycle or inode mutation is claimed."
+    },
+    {
+      "id": "phase13-libfs-simple-dir-operations-wrapper",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models the exported simple_dir_operations wrapper by fixing the shared dcache_dir_open(), dcache_dir_close(), dcache_dir_lseek(), generic_read_dir(), dcache_readdir(), and noop_fsync() handler bundle in pure planning form before any live file-operations registration or VFS object ownership is claimed."
     },
     {
       "id": "phase13-libfs-dcache-cursor-helpers",
