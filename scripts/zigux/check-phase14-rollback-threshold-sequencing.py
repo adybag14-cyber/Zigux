@@ -322,6 +322,17 @@ def run_self_test() -> int:
             return 1
         write_text(broken_workqueue_manifest_path, required_text(root, WORKQUEUE_MANIFEST_PATH))
 
+        write_text(broken_workqueue_manifest_path, "{\n")
+        errors = check(root)
+        if not any(
+            "invalid json in zigux/tests/phase14_workqueue_bridge_manifest.json:"
+            in error
+            for error in errors
+        ):
+            print("self-test expected invalid workqueue manifest json failure", file=sys.stderr)
+            return 1
+        write_text(broken_workqueue_manifest_path, required_text(root, WORKQUEUE_MANIFEST_PATH))
+
         broken_release_path = root / RELEASE_BOUNDARY_PATH
         broken_release_path.write_text("`PHASE14_STUDY_ONLY_ANCHOR_COUNT=1`\n", encoding="utf-8")
         errors = check(root)
@@ -331,6 +342,17 @@ def run_self_test() -> int:
         write_text(broken_release_path, required_text(root, RELEASE_BOUNDARY_PATH))
 
         broken_manifest_path = root / MANIFEST_PATH
+        write_text(broken_manifest_path, "{\n")
+        errors = check(root)
+        if not any(
+            "invalid json in zigux/tests/phase14_end_to_end_smoke_manifest.json:"
+            in error
+            for error in errors
+        ):
+            print("self-test expected invalid shared smoke manifest json failure", file=sys.stderr)
+            return 1
+        write_text(broken_manifest_path, required_text(root, MANIFEST_PATH))
+
         broken_manifest_path.write_text(
             broken_manifest_path.read_text(encoding="utf-8").replace(
                 '  "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",\n',
