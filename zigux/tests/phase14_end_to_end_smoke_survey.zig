@@ -60,7 +60,7 @@ const expected_traceability_markers = [_]TraceabilityExpectation{
     .{
         .section_heading = "### Skbuff",
         .survey_note_path = "Documentation/zigux/phase14-skbuff-bridge-survey.md",
-        .lane_key_marker = "- lane key: `P14-L11`",
+        .lane_key_marker = "- lane key: `P14-L10`",
         .ready_next_gap_marker = "- ready-next gap: none currently recorded",
         .retained_boundary_marker = "live skb lifetime",
         .blocked_gap_marker = "`phase14-skbuff-live-ownership-blocker`",
