@@ -263,6 +263,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-survey-manifest")) {
             saw_manifest_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("survey_manifest", gap.kind);
             try std.testing.expectEqualStrings("zigux/tests/phase4_perf_baseline_manifest.json", gap.zigux_destination);
             try std.testing.expect(gap.benchmark_command == null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "manifest-backed survey packet") != null);
@@ -272,6 +273,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-survey-gate")) {
             saw_gate_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
             try std.testing.expectEqualStrings("zigux/tests/phase4_perf_baseline_survey.zig", gap.zigux_destination);
             try std.testing.expect(gap.benchmark_command == null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "correctness-only posture") != null);
@@ -281,6 +283,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-atomic64-command-evidence")) {
             saw_atomic64_command_evidence_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("survey_evidence", gap.kind);
             try std.testing.expectEqualStrings("zigux/tests/phase4_perf_baseline_manifest.json", gap.zigux_destination);
             try std.testing.expect(gap.benchmark_command == null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact-pins") != null);
@@ -296,6 +299,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-atomic64-command")) {
             saw_atomic64_command_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("perf_command", gap.kind);
             try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings(
                 "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
@@ -308,6 +312,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-atomic64-acceptable-limit")) {
             saw_atomic64_acceptable_limit_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("perf_threshold", gap.kind);
             try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", gap.zigux_destination);
             try std.testing.expect(gap.benchmark_command == null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "8192") != null);
@@ -318,6 +323,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-bitmap-command-evidence")) {
             saw_bitmap_command_evidence_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("survey_evidence", gap.kind);
             try std.testing.expectEqualStrings("zigux/tests/phase4_perf_baseline_manifest.json", gap.zigux_destination);
             try std.testing.expect(gap.benchmark_command == null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact-pins") != null);
@@ -335,6 +341,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-bitmap-command")) {
             saw_bitmap_command_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("perf_command", gap.kind);
             try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings(
                 "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
@@ -347,6 +354,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-bitmap-acceptable-limit")) {
             saw_bitmap_acceptable_limit_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("perf_threshold", gap.kind);
             try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", gap.zigux_destination);
             try std.testing.expect(gap.benchmark_command == null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "131072") != null);
@@ -358,6 +366,7 @@ test "phase4 perf baseline survey manifest keeps the current benchmark-command p
         if (std.mem.eql(u8, gap.id, "phase4-perf-baseline-shared-promotion-decision")) {
             saw_shared_promotion_decision_gap = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("perf_policy", gap.kind);
             try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", gap.zigux_destination);
             try std.testing.expect(gap.benchmark_command == null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "approved local benchmark commands") != null);
