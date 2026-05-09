@@ -58,6 +58,14 @@ REQUIRED_SNIPPETS = {
         "- `make -C zigux phase6-hexdump-perf`",
         "- `make -C zigux phase6-perf`",
     ],
+    "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md": [
+        "# Phase 6 Leaf-Helper Lane Sequencing",
+        "### `P6-L09` bsearch packet",
+        "- `lib/bsearch.zig`",
+        "- `zigux/tests/phase6_bsearch.zig`",
+        "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
+        "- `Documentation/zigux/phase6-bsearch-slice.md`",
+    ],
     "zigux/tests/phase6_helper_parity_manifest.json": [
         "\"phase\": \"Phase 6\",",
         "\"tranche\": \"leaf-helper-parity\",",
@@ -440,6 +448,18 @@ def run_self_test() -> None:
             "Documentation/zigux/phase6-helper-parity-catalog.md",
             "- `make -C zigux phase6-hexdump-test`",
             "- `make -C zigux phase6-hexdump-review`",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md",
+            "### `P6-L09` bsearch packet",
+            "### `P6-L10` bsearch packet",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-leaf-helper-lane-sequencing.md",
+            "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
+            "- `zigux/tests/phase6_bsearch_lower_bound.zig`",
         )
         assert_failure(
             root,
