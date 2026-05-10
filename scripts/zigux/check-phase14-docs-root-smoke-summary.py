@@ -353,6 +353,27 @@ def run_self_test() -> int:
             return 1
         write_text(root / MAKEFILE_PATH, good_makefile)
 
+        (root / DOCS_ROOT_PATH).unlink()
+        errors = check(root)
+        if not any(f"missing file: {DOCS_ROOT_PATH}" in error for error in errors):
+            print("self-test expected missing docs-root file failure", file=sys.stderr)
+            return 1
+        write_text(root / DOCS_ROOT_PATH, good_docs_root)
+
+        (root / SMOKE_SURVEY_PATH).unlink()
+        errors = check(root)
+        if not any(f"missing file: {SMOKE_SURVEY_PATH}" in error for error in errors):
+            print("self-test expected missing smoke-survey file failure", file=sys.stderr)
+            return 1
+        write_text(root / SMOKE_SURVEY_PATH, good_smoke)
+
+        (root / MAKEFILE_PATH).unlink()
+        errors = check(root)
+        if not any(f"missing file: {MAKEFILE_PATH}" in error for error in errors):
+            print("self-test expected missing makefile file failure", file=sys.stderr)
+            return 1
+        write_text(root / MAKEFILE_PATH, good_makefile)
+
         write_text(root / MANIFEST_PATH, json.dumps({"surfaces": []}, indent=2) + "\n")
         errors = check(root)
         if not any("phase14 docs-root smoke-summary checker surface count drift in zigux/tests/phase14_end_to_end_smoke_manifest.json (expected 1, found 0)" in error for error in errors):
