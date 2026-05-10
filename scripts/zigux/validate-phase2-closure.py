@@ -426,6 +426,30 @@ def run_self_test() -> int:
                 print(error)
             return 1
 
+        missing_notes_file_root = root / "missing_notes_file"
+        build_self_test_fixture(missing_notes_file_root)
+        (missing_notes_file_root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md").unlink()
+        cases += 1
+        missing_notes_file_errors = validate(missing_notes_file_root)
+        expected_notes_file_error = "required_file:Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
+        if expected_notes_file_error not in missing_notes_file_errors:
+            print("phase2_closure_selftest:missing_notes_file_not_detected")
+            for error in missing_notes_file_errors:
+                print(error)
+            return 1
+
+        missing_phase2_validator_root = root / "missing_phase2_validator"
+        build_self_test_fixture(missing_phase2_validator_root)
+        (missing_phase2_validator_root / "scripts/zigux/validate-phase2.py").unlink()
+        cases += 1
+        missing_phase2_validator_errors = validate(missing_phase2_validator_root)
+        expected_phase2_validator_error = "required_file:scripts/zigux/validate-phase2.py"
+        if expected_phase2_validator_error not in missing_phase2_validator_errors:
+            print("phase2_closure_selftest:missing_phase2_validator_not_detected")
+            for error in missing_phase2_validator_errors:
+                print(error)
+            return 1
+
         missing_note_root = root / "missing_note"
         build_self_test_fixture(missing_note_root)
         notes_path = missing_note_root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
