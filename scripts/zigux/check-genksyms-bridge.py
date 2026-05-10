@@ -430,10 +430,12 @@ def build_self_test_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
+    cases = 0
     with tempfile.TemporaryDirectory(prefix='zigux_genksyms_bridge_selftest_') as tmp_dir_str:
         root = Path(tmp_dir_str)
         build_self_test_root(root)
         assert collect_manifest_issues(root) == []
+        cases += 1
 
         build_self_test_root(root)
         cases_path = root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'cases.json'
@@ -442,6 +444,7 @@ def run_self_test() -> int:
         write_text(cases_path, json.dumps(payload, indent=2) + '\n')
         issues = collect_manifest_issues(root)
         assert ('UNSUPPORTED_GENKSYMS_BRIDGE_CASE_MODES', 'minimal:yaml') in issues
+        cases += 1
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding='utf-8'))
@@ -450,6 +453,7 @@ def run_self_test() -> int:
         issues = collect_manifest_issues(root)
         assert ('DUPLICATE_GENKSYMS_BRIDGE_CASE_NAMES', 'minimal') in issues
         assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'cases:' in value for block, value in issues)
+        cases += 1
 
         build_self_test_root(root)
         missing_path = root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'invalid_short_opt_expected.json'
@@ -457,6 +461,7 @@ def run_self_test() -> int:
         issues = collect_manifest_issues(root)
         assert ('MISSING_GENKSYMS_BRIDGE_EXPECTED_PATHS', 'invalid_short_opt:invalid_short_opt_expected.json') in issues
         assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'process_packet:' in value for block, value in issues)
+        cases += 1
 
         build_self_test_root(root)
         manifest_path = root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'manifest.json'
@@ -467,21 +472,27 @@ def run_self_test() -> int:
         issues = collect_manifest_issues(root)
         assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'helper_local_anchors:' in value for block, value in issues)
         assert any(block == 'GENKSYMS_BRIDGE_MANIFEST_DRIFT' and 'expected_output_governance:' in value for block, value in issues)
+        cases += 1
 
+        build_self_test_root(root)
         # Keep the count aligned to grouped stderr-normalization contract coverage.
         assert normalize_cli_stderr("genksyms: option '--reference' requires an argument\n") == "option '--reference' requires an argument\n"
         assert normalize_cli_stderr("genksyms: option '--help' doesn't allow an argument\n") == "option '--help' doesn't allow an argument\n"
         assert normalize_cli_stderr("genksyms: option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n") == "option '--du' is ambiguous\n"
         assert normalize_cli_stderr("option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n") == "option '--du' is ambiguous\n"
+        cases += 1
 
         # Keep the count aligned to grouped success-marker contract coverage.
         assert success_lines(refresh=False)[:2] == [
             'GENKSYMS_BRIDGE_DIFF=pass',
             'GENKSYMS_BRIDGE_DETERMINISM=pass',
         ]
+        cases += 1
         assert success_lines(refresh=True)[0] == 'GENKSYMS_BRIDGE_REFRESH=pass'
         assert 'GENKSYMS_BRIDGE_DETERMINISM=pass' not in success_lines(refresh=True)
+        cases += 1
 
+    assert cases == SELF_TEST_CASE_COUNT
     print('GENKSYMS_BRIDGE_SELF_TEST=pass')
     print(f'GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}')
     return 0
