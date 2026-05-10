@@ -260,7 +260,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "zig fmt --check",
         "zig test samples/zigux/kretprobe_example.zig",
         "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-        "passed `5/5` sample self-checks",
+        "passed `6/6` sample self-checks",
         "passed `6/6` paired boundary tests",
         "symbol_name = kernel_clone",
         "private_data_size_bytes = 8",
