@@ -228,8 +228,22 @@ test "phase 5 bytestream fifo sample keeps queue-shape boundaries explicit" {
 test "phase 5 bytestream fifo sample makes preview truncation and lifetime boundaries explicit" {
     var module = sample.BytestreamFifoSample{};
 
+    const cold_lifecycle = module.lifecycleSummary();
+    try std.testing.expectEqual(sample.SampleStage.cold, cold_lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 0), cold_lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), cold_lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), cold_lifecycle.queue_len);
+    try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, cold_lifecycle.storage_backing);
+
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runPreviewBoundaryReplay());
     try module.init();
+
+    const initialized_lifecycle = module.lifecycleSummary();
+    try std.testing.expectEqual(sample.SampleStage.initialized, initialized_lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), initialized_lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), initialized_lifecycle.queue_len);
+    try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, initialized_lifecycle.storage_backing);
 
     const preview_replay = try module.runPreviewBoundaryReplay();
     try std.testing.expectEqual(sample.SampleStage.initialized, preview_replay.stage_before_replay);
@@ -269,6 +283,12 @@ test "phase 5 bytestream fifo sample makes preview truncation and lifetime bound
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    const exited_lifecycle = module.lifecycleSummary();
+    try std.testing.expectEqual(sample.SampleStage.exited, exited_lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 1), exited_lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), exited_lifecycle.queue_len);
+    try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, exited_lifecycle.storage_backing);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.available());
     try std.testing.expect(!module.usesWrappedStorageWindow());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runPreviewBoundaryReplay());
