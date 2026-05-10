@@ -9,7 +9,8 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - `PHASE12_RELEASE_CLOSED=no`
 - scope: keep the active four-anchor Phase 12 packet reviewable without implying a broader validator-first or deep-core delivery claim
 - readiness companion: `Documentation/zigux/phase12-release-readiness-survey.md`
-- sequencing companion: `Documentation/zigux/phase12-release-closure-checklist.md`
+- sequencing companion: `Documentation/zigux/phase12-release-sequencing.md`
+- closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`
 - build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`
 
@@ -34,6 +35,10 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 4. `make -C zigux phase12`
 
 If `zig` is unavailable on `PATH`, reuse the same smoke-first order through the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing a `phase12-validate` or other unshipped PMO replay surface.
+
+Keep the degraded-workflow checker pair explicit beside that same order too:
+- `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
+- `python3 scripts/zigux/check-build-only-phase12-surface.py`
 
 ## Boundaries
 - This matrix tracks only the shipped build-only contract and the active survey-backed packet on `master`.
