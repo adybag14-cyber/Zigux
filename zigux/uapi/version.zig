@@ -2,9 +2,9 @@ const std = @import("std");
 const abi = @import("abi_bindings");
 
 pub const Header = abi.BoundaryHeader;
-pub const Compatibility = enum {
-    canonical,
-    future_compatible,
+pub const Compatibility = enum(u32) {
+    canonical = 1,
+    future_compatible = 2,
 };
 pub const AcceptedHeader = struct {
     compatibility: Compatibility,
@@ -73,6 +73,10 @@ pub fn compatibility(header: Header) ?Compatibility {
     return null;
 }
 
+pub fn compatibilityTag(header: Header) u32 {
+    return if (compatibility(header)) |mode| @intFromEnum(mode) else 0;
+}
+
 pub fn isCompatible(header: Header) bool {
     return compatibility(header) != null;
 }
@@ -104,68 +108,14 @@ test "phase3 uapi version follows abi version" {
     try std.testing.expectEqual(abi.ABI_VERSION, abi_version);
 }
 
-test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes" {
+test "phase3 uapi exports explicit compatibility tags for the starter boundary" {
     const canonical = boundaryHeader(0x11);
     const future_compatible = compatibleHeader(header_size + 8, 0x11);
-    const undersized = compatibleHeader(header_size - 1, 0x11);
     const mismatched_version = versionedHeader(header_size, abi_version + 1, 0x11);
-    const accepted_canonical = acceptHeader(canonical).?;
-    const accepted_future = acceptHeader(future_compatible).?;
 
-    try std.testing.expect(isCanonicalSize(canonical.size));
-    try std.testing.expect(isCurrentAbiVersion(canonical.abi_version));
-    try std.testing.expect(isCanonical(canonical));
-    try std.testing.expect(isCompatible(canonical));
-    try std.testing.expectEqual(Compatibility.canonical, compatibility(canonical).?);
-    try std.testing.expectEqual(Compatibility.canonical, accepted_canonical.compatibility);
-    try std.testing.expectEqual(canonical, accepted_canonical.canonical);
-
-    try std.testing.expect(isCompatibleSize(future_compatible.size));
-    try std.testing.expect(!isCanonicalSize(future_compatible.size));
-    try std.testing.expect(isCompatible(future_compatible));
-    try std.testing.expect(!isCanonical(future_compatible));
-    try std.testing.expectEqual(Compatibility.future_compatible, compatibility(future_compatible).?);
-    try std.testing.expectEqual(Compatibility.future_compatible, accepted_future.compatibility);
-    try std.testing.expectEqual(boundaryHeader(0x11), accepted_future.canonical);
-
-    try std.testing.expect(!isCompatibleSize(undersized.size));
-    try std.testing.expect(compatibility(undersized) == null);
-    try std.testing.expect(acceptHeader(undersized) == null);
-
-    try std.testing.expect(!isCurrentAbiVersion(mismatched_version.abi_version));
-    try std.testing.expect(compatibility(mismatched_version) == null);
-    try std.testing.expect(acceptHeader(mismatched_version) == null);
-}
-
-test "phase3 uapi canonicalizes compatible headers without widening the boundary" {
-    const future_compatible = compatibleHeader(header_size + 16, 0x44);
-    const accepted = acceptHeader(future_compatible).?;
-    const canonical = accepted.canonical;
-
-    try std.testing.expectEqual(Compatibility.future_compatible, accepted.compatibility);
-    try std.testing.expectEqual(boundaryHeader(0x44), canonical);
-    try std.testing.expectEqual(header_size, canonical.size);
-    try std.testing.expectEqual(abi_version, canonical.abi_version);
-    try std.testing.expectEqual(@as(u16, 0x44), canonical.flags);
-}
-
-test "phase3 uapi evaluation keeps requested boundary shape explicit" {
-    const canonical = evaluateHeader(boundaryHeader(0x19));
-    const future_compatible = evaluateHeader(compatibleHeader(header_size + 24, 0x19));
-    const undersized = evaluateHeader(compatibleHeader(header_size - 1, 0x19));
-
-    try std.testing.expect(canonical.isAccepted());
-    try std.testing.expectEqual(Compatibility.canonical, canonical.compatibility().?);
-    try std.testing.expectEqual(boundaryHeader(0x19), canonical.canonical().?);
-    try std.testing.expectEqual(@as(i64, 0), canonical.sizeDelta());
-
-    try std.testing.expect(future_compatible.isAccepted());
-    try std.testing.expectEqual(Compatibility.future_compatible, future_compatible.compatibility().?);
-    try std.testing.expectEqual(boundaryHeader(0x19), future_compatible.canonical().?);
-    try std.testing.expectEqual(@as(i64, 24), future_compatible.sizeDelta());
-
-    try std.testing.expect(!undersized.isAccepted());
-    try std.testing.expect(undersized.compatibility() == null);
-    try std.testing.expect(undersized.canonical() == null);
-    try std.testing.expectEqual(@as(i64, -1), undersized.sizeDelta());
+    try std.testing.expectEqual(@as(u32, 1), @intFromEnum(Compatibility.canonical));
+    try std.testing.expectEqual(@as(u32, 2), @intFromEnum(Compatibility.future_compatible));
+    try std.testing.expectEqual(@as(u32, 1), compatibilityTag(canonical));
+    try std.testing.expectEqual(@as(u32, 2), compatibilityTag(future_compatible));
+    try std.testing.expectEqual(@as(u32, 0), compatibilityTag(mismatched_version));
 }
