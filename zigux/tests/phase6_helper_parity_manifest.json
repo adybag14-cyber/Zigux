@@ -281,6 +281,8 @@
     "python3 scripts/zigux/check-phase6-shared-surface.py",
     "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test",
     "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
+    "python3 scripts/zigux/check-phase6-base64-fixture-evidence.py --self-test",
+    "python3 scripts/zigux/check-phase6-base64-fixture-evidence.py",
     "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
     "python3 scripts/zigux/check-phase6-base64-c-parity.py",
     "make -C zigux phase6-validate",
