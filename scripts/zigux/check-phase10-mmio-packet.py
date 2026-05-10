@@ -446,8 +446,7 @@ def run_self_test() -> int:
             nonlocal case_count
             path = root / rel_path
             original = path.read_text(encoding="utf-8")
-            path.writeText = original.replace(old, new, 1)
-            path.write_text(path.writeText, encoding="utf-8")
+            path.write_text(original.replace(old, new, 1), encoding="utf-8")
             _, markers = validate(root)
             if expected not in markers:
                 raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
