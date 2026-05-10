@@ -351,6 +351,16 @@ def run_self_test() -> int:
         expect_failure(base, "missing_file:zigux/tests/phase12_libbpf_manifest.json")
 
         write_fixture_tree(base)
+        missing_path = base / Path("zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json")
+        missing_path.unlink()
+        expect_failure(base, "missing_file:zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json")
+
+        write_fixture_tree(base)
+        missing_path = base / Path("zigux/tests/phase12_libbpf_snapshot_determinism.zig")
+        missing_path.unlink()
+        expect_failure(base, "missing_file:zigux/tests/phase12_libbpf_snapshot_determinism.zig")
+
+        write_fixture_tree(base)
         phase12_build = phase12_build_path.read_text(encoding="utf-8")
         phase12_build_path.write_text(
             phase12_build.replace('smoke_step.dependOn(&run_phase12_virtio_scsi_syntax_lab_tests.step);\n', "", 1),
@@ -367,7 +377,7 @@ def run_self_test() -> int:
         expect_failure(base, 'phase12_build:.name = "phase12-libbpf-reviewability-tests"')
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=10")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=12")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
