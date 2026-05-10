@@ -408,6 +408,9 @@ jobs:
       - name: Self-test Phase 11 hvc survey packet checker
         run: python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test
 
+      - name: Check Phase 11 hvc survey packet
+        run: python3 scripts/zigux/check-phase11-hvc-survey-packet.py
+
       - name: Self-test Phase 11 shared replay contract checker
         run: python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test
 
