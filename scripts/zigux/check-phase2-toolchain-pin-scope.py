@@ -88,6 +88,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset",
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "make -C zigux phase2-validate",
@@ -240,6 +241,7 @@ EXACT_SURFACE_COUNTS = {
         "scripts/zigux/check-kconfig-bridge.py": 1,
         "scripts/zigux/check-phase2-tool-manifest-packets.py": 1,
         "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
+        "the repo-local `.zig-toolchain` fallback reused by the Linux-style `phase2-toolchain`, `phase2-validate`, `phase2-tools`, `phase2-kconfig`, `phase2-cross`, and `phase2` routes when `ZIG` is unset": 1,
         "python3 scripts/zigux/install-zig.py --self-test": 1,
         "python3 scripts/zigux/check-zig-toolchain.py --self-test": 1,
         "make -C zigux phase2-validate": 1,
@@ -595,7 +597,7 @@ def run_self_test() -> int:
         label="phase2_closure_validator",
         markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
     ) == []
-    closure_validator_anchor = 'line_prefix="cd $(ZIGUX_ROOT) && $(PYTHON) ",'
+    closure_validator_anchor = 'line_prefix="cd $(ZIGUX_ROOT) && $(PYTHON) ",' 
     missing_phase2_closure_validator = validate_required_markers(
         valid_phase2_closure_validator.replace(closure_validator_anchor, "", 1),
         label="phase2_closure_validator",
