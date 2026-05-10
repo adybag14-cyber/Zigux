@@ -76,6 +76,8 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
         manifest.threshold_posture,
     );
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "gate-evidence surfaces again") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "exact-readback resync") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "phase4_runtime_atomic64_diff manifest and survey blob pins") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "approved local benchmark commands") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "approved local-only acceptable limits") != null);
     try std.testing.expect(
@@ -93,6 +95,9 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/phase4-validation-matrix.md") != null,
     );
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Documentation/zigux/phase4-gate-evidence.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared CI perf promotion") != null);
 }
 
