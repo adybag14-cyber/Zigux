@@ -96,6 +96,15 @@ PHASE12_DOCS_REMOVED_VALIDATOR_MARKER = (
     "on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make "
     "surfaces until new validator files actually land."
 )
+PHASE12_REVIEW_CHECKLIST_MARKER = (
+    "without implying removed `validate-phase12.py`, `check-phase12-*.py`, raw-coverage, or focused-libbpf-only "
+    "replay surfaces that are not on `master`?"
+)
+PHASE12_FREEZE_MAP_MARKER = (
+    "queueing, throughput, rollback, and recovery wording there must stay bounded to driver-local review evidence, "
+    "lab-only reversible-delivery scaffolding, and shared anti-overlap notes without implying active delivery "
+    "against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`"
+)
 
 REQUIRED_SCRIPTS_README_MARKERS = [
     "Phase 12 flow",
@@ -123,6 +132,26 @@ REQUIRED_DOCS_README_MARKERS = [
 REQUIRED_DOCS_README_EXACT_COUNTS = {
     PHASE12_DOCS_ARTIFACT_MARKER: 1,
     PHASE12_DOCS_REMOVED_VALIDATOR_MARKER: 1,
+}
+
+REQUIRED_REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches the shared Phase 12 complex-driver packet, do `Documentation/zigux/README.md`",
+    "`scripts/zigux/check-build-only-phase12-surface.py`",
+    PHASE12_REVIEW_CHECKLIST_MARKER,
+]
+
+REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS = {
+    PHASE12_REVIEW_CHECKLIST_MARKER: 1,
+}
+
+REQUIRED_FREEZE_MAP_MARKERS = [
+    "the shared Phase 12 PMO release packet also stays release-planning-only beside",
+    "`scripts/zigux/check-build-only-phase12-surface.py`",
+    PHASE12_FREEZE_MAP_MARKER,
+]
+
+REQUIRED_FREEZE_MAP_EXACT_COUNTS = {
+    PHASE12_FREEZE_MAP_MARKER: 1,
 }
 
 REQUIRED_TESTS_README_MARKERS = [
@@ -248,6 +277,8 @@ def validate(root: Path) -> list[str]:
 
     scripts_readme = read_text(root, SCRIPTS_README_PATH)
     docs_readme = read_text(root, DOCS_README_PATH)
+    review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
+    freeze_map = read_text(root, FREEZE_MAP_PATH)
     tests_readme = read_text(root, TESTS_README_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
@@ -257,6 +288,10 @@ def validate(root: Path) -> list[str]:
     ensure_exact_counts(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPTS_README_EXACT_COUNTS)
     ensure_contains(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_MARKERS)
     ensure_exact_counts(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_EXACT_COUNTS)
+    ensure_contains(failures, "review_checklist", review_checklist, REQUIRED_REVIEW_CHECKLIST_MARKERS)
+    ensure_exact_counts(failures, "review_checklist", review_checklist, REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS)
+    ensure_contains(failures, "freeze_map", freeze_map, REQUIRED_FREEZE_MAP_MARKERS)
+    ensure_exact_counts(failures, "freeze_map", freeze_map, REQUIRED_FREEZE_MAP_EXACT_COUNTS)
     ensure_contains(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_MARKERS)
     ensure_exact_counts(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_EXACT_COUNTS)
     ensure_contains(failures, "workflow", workflow, REQUIRED_WORKFLOW_MARKERS)
@@ -274,6 +309,10 @@ def placeholder_for(rel_path: str) -> str:
         return minimal_phase12_build()
     if rel_path == DOCS_README_PATH:
         return minimal_marker_doc("Documentation/zigux", REQUIRED_DOCS_README_MARKERS)
+    if rel_path == REVIEW_CHECKLIST_PATH:
+        return minimal_marker_doc("Documentation/zigux/review-checklist", REQUIRED_REVIEW_CHECKLIST_MARKERS)
+    if rel_path == FREEZE_MAP_PATH:
+        return minimal_marker_doc("Documentation/zigux/freeze-map", REQUIRED_FREEZE_MAP_MARKERS)
     if rel_path == TESTS_README_PATH:
         return minimal_marker_doc("zigux/tests", REQUIRED_TESTS_README_MARKERS)
     if rel_path.endswith(".zig"):
@@ -330,12 +369,14 @@ def write_fixture_tree(root: Path) -> None:
 
     write_text(root / SCRIPTS_README_PATH, minimal_marker_doc("scripts/zigux", REQUIRED_SCRIPTS_README_MARKERS))
     write_text(root / DOCS_README_PATH, minimal_marker_doc("Documentation/zigux", REQUIRED_DOCS_README_MARKERS))
+    write_text(root / REVIEW_CHECKLIST_PATH, minimal_marker_doc("Documentation/zigux/review-checklist", REQUIRED_REVIEW_CHECKLIST_MARKERS))
+    write_text(root / FREEZE_MAP_PATH, minimal_marker_doc("Documentation/zigux/freeze-map", REQUIRED_FREEZE_MAP_MARKERS))
     write_text(root / TESTS_README_PATH, minimal_marker_doc("zigux/tests", REQUIRED_TESTS_README_MARKERS))
     write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
     write_text(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
 
     for rel_path in REQUIRED_PHASE12_PATHS:
-        if rel_path in {SCRIPTS_README_PATH, DOCS_README_PATH, TESTS_README_PATH, WORKFLOW_PATH, MAKEFILE_PATH}:
+        if rel_path in {SCRIPTS_README_PATH, DOCS_README_PATH, REVIEW_CHECKLIST_PATH, FREEZE_MAP_PATH, TESTS_README_PATH, WORKFLOW_PATH, MAKEFILE_PATH}:
             continue
         write_text(root / rel_path, placeholder_for(rel_path))
 
@@ -356,6 +397,8 @@ def run_self_test() -> int:
 
         scripts_readme_path = base / SCRIPTS_README_PATH
         docs_readme_path = base / DOCS_README_PATH
+        review_checklist_path = base / REVIEW_CHECKLIST_PATH
+        freeze_map_path = base / FREEZE_MAP_PATH
         tests_readme_path = base / TESTS_README_PATH
         workflow_path = base / WORKFLOW_PATH
         makefile_path = base / MAKEFILE_PATH
@@ -369,6 +412,16 @@ def run_self_test() -> int:
         docs_readme = docs_readme_path.read_text(encoding="utf-8")
         docs_readme_path.write_text(docs_readme.replace(PHASE12_DOCS_REMOVED_VALIDATOR_MARKER, "", 1), encoding="utf-8")
         expect_failure(base, f"docs_readme:{PHASE12_DOCS_REMOVED_VALIDATOR_MARKER}")
+
+        write_fixture_tree(base)
+        review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(review_checklist.replace(PHASE12_REVIEW_CHECKLIST_MARKER, "", 1), encoding="utf-8")
+        expect_failure(base, f"review_checklist:{PHASE12_REVIEW_CHECKLIST_MARKER}")
+
+        write_fixture_tree(base)
+        freeze_map = freeze_map_path.read_text(encoding="utf-8")
+        freeze_map_path.write_text(freeze_map.replace(PHASE12_FREEZE_MAP_MARKER, "", 1), encoding="utf-8")
+        expect_failure(base, f"freeze_map:{PHASE12_FREEZE_MAP_MARKER}")
 
         write_fixture_tree(base)
         tests_readme = tests_readme_path.read_text(encoding="utf-8")
@@ -433,7 +486,7 @@ def run_self_test() -> int:
         expect_failure(base, 'phase12_build:.name = "phase12-libbpf-reviewability-tests"')
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=14")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=16")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -471,7 +524,7 @@ def main() -> int:
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS)}"
+        f"{len(REQUIRED_PHASE12_PATHS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_PHASE12_BUILD_MARKERS)}"
     )
     return 0
 
