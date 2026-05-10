@@ -176,7 +176,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "shared-b-dispatch")) {
             saw_dispatch = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "runInputValidationReplay()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "7 and -5") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "9 and 10") != null);
         }
         if (std.mem.eql(u8, check.id, "parse-failure")) {
             saw_parse_failure = true;
