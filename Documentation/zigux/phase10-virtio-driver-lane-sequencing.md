@@ -22,7 +22,7 @@ Keep the current owner map explicit:
 - ring packet review owns `scripts/zigux/check-phase10-ring-packet.py`, `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `drivers/virtio/virtio_ring_verify.zig`
 - input packet review owns `scripts/zigux/check-phase10-input-packet.py`, `drivers/virtio/virtio_input.zig`, the focused input preflight and status-drain replays, `zigux/tests/phase10_virtio_input_manifest.json`, and `drivers/virtio/virtio_input_verify.zig`
 - MMIO packet review owns `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `drivers/virtio/virtio_mmio_verify.zig`
-- shared closure truthfulness owns `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_build.zig`, `zigux/Makefile`, `zig build test --build-file zigux/tests/phase10_build.zig`, `make -C zigux phase10-test`, and `make -C zigux phase10`
+- shared closure truthfulness owns `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/validate-phase10.py`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_build.zig`, `zigux/Makefile`, `make -C zigux phase10-validate`, `zig build test --build-file zigux/tests/phase10_build.zig`, `make -C zigux phase10-test`, and `make -C zigux phase10`
 
 ## Shared Packet Surfaces
 
@@ -35,6 +35,8 @@ When a real Phase 10 change lands, keep these shared surfaces aligned:
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+- `scripts/zigux/check-phase10-harness-coverage.py`
+- `scripts/zigux/validate-phase10.py`
 - `scripts/zigux/check-phase10-core-packet.py`
 - `scripts/zigux/check-phase10-ring-packet.py`
 - `scripts/zigux/check-phase10-input-packet.py`
@@ -43,6 +45,7 @@ When a real Phase 10 change lands, keep these shared surfaces aligned:
 - `zigux/tests/phase10_closure_manifest.json`
 - `zigux/tests/phase10_build.zig`
 - `zigux/Makefile`
+- `make -C zigux phase10-validate`
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
@@ -51,7 +54,7 @@ When a real Phase 10 change lands, keep these shared surfaces aligned:
 
 Use this note to keep the bounded work order honest:
 1. Prefer one virtio lane at a time instead of batching core, ring, input, and MMIO reminders into one mixed change.
-2. Keep the current validator posture explicit: there is no shared `validate-phase10.py`, no shared `check-phase10-harness-coverage.py`, and no `phase10-validate` target on `master`.
+2. Keep the current validator posture explicit: shared `validate-phase10.py`, `check-phase10-harness-coverage.py`, and the Linux-style `phase10-validate` target are shipped truthfulness guards on `master`, so reminder-surface edits should stay aligned with those routes instead of claiming they are absent.
 3. Keep risky transport blocked: do not imply queue setup or reset parity, IRQ parity, DMA paths, input registration lifecycle parity, or probe or remove lifecycle closure beyond the blocked gaps already recorded in `zigux/tests/phase10_closure_manifest.json`.
 4. Treat the separate Phase 5 `reference_samples` boundary and the separate Phase 9 `runtime_starters` boundary as adjacent evidence only, not counted Phase 10 closure progress.
 5. Keep the separate Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit instead of letting those anchors drift into the Phase 10 virtio packet.
