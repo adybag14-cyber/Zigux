@@ -10,6 +10,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/phase8-libbpf-segment-survey.md",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
@@ -25,6 +26,12 @@ REQUIRED_FILES = [
 ]
 
 REQUIRED_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": [
+        "Run focused Phase 8 libbpf shard tests",
+        "make -C zigux phase8-perf-buffer-poll-test",
+        "Run Phase 8 tooling tests",
+        "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
+    ],
     "Documentation/zigux/phase8-libbpf-segment-survey.md": [
         "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
         "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
@@ -154,6 +161,8 @@ def build_scripts_readme_fixture() -> str:
     return "# scripts/zigux\n\nPhase 8 flow\n" + phase8_markers + "\n\nPhase 9 flow\n"
 
 def fixture_text(rel: str) -> str:
+    if rel == ".github/workflows/zigux-bootstrap.yml":
+        return "\n".join(REQUIRED_MARKERS[rel]) + "\n"
     if rel == "scripts/zigux/check-phase8-perf-buffer-poll-gate.py":
         return "# fixture\n"
     if rel == "scripts/zigux/README.md":
@@ -185,6 +194,7 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 
 def run_self_test() -> None:
     missing_file_cases = [
+        ("missing_workflow", ".github/workflows/zigux-bootstrap.yml"),
         ("missing_checker", "scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
         ("missing_survey", "Documentation/zigux/phase8-libbpf-segment-survey.md"),
         ("missing_poll_note", "Documentation/zigux/phase8-perf-buffer-poll-slice.md"),
@@ -196,6 +206,8 @@ def run_self_test() -> None:
         ("missing_poll_test", "zigux/tests/phase8_perf_buffer_poll.zig"),
     ]
     marker_cases = [
+        ("workflow_phase8_libbpf_shard_label", ".github/workflows/zigux-bootstrap.yml", "Run focused Phase 8 libbpf shard tests", "Run focused Phase 8 libbpf packet tests", ".github/workflows/zigux-bootstrap.yml: Run focused Phase 8 libbpf shard tests"),
+        ("workflow_perf_buffer_poll_route", ".github/workflows/zigux-bootstrap.yml", "make -C zigux phase8-perf-buffer-poll-test", "make -C zigux phase8-poll-test", ".github/workflows/zigux-bootstrap.yml: make -C zigux phase8-perf-buffer-poll-test"),
         ("survey_checker_route", "Documentation/zigux/phase8-libbpf-segment-survey.md", "scripts/zigux/check-phase8-perf-buffer-poll-gate.py", "scripts/zigux/check-phase8-perf-buffer-poll-surface.py", "Documentation/zigux/phase8-libbpf-segment-survey.md: scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
         ("survey_shared_build_route", "Documentation/zigux/phase8-libbpf-segment-survey.md", "zig build test --build-file zigux/tests/phase8_build.zig --summary all", "zig build test --build-file zigux/tests/phase8_shared_build.zig --summary all", "Documentation/zigux/phase8-libbpf-segment-survey.md: zig build test --build-file zigux/tests/phase8_build.zig --summary all"),
         ("poll_note_checker_route", "Documentation/zigux/phase8-perf-buffer-poll-slice.md", "python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py", "python3 scripts/zigux/check-phase8-perf-buffer-poll-surface.py", "Documentation/zigux/phase8-perf-buffer-poll-slice.md: python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py"),
