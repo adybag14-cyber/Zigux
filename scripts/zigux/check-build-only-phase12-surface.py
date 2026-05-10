@@ -290,6 +290,7 @@ REQUIRED_FILE_MARKERS = {
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
         "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+        "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
         "`Documentation/zigux/freeze-map.md`",
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
         "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
@@ -381,6 +382,7 @@ EXACT_COUNT_FILE_MARKERS = {
     SCRIPTS_README_PATH: {
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`": 1,
         "`Documentation/zigux/phase12-raw-github-coverage-survey.md`": 1,
+        "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`": 1,
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`": 1,
         "`zig build test --build-file zigux/tests/phase12_build.zig --summary all`": 1,
         "`make -C zigux phase12-smoke`": 1,
