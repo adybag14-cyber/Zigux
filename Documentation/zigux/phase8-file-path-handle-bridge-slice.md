@@ -33,8 +33,9 @@ The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/
 5. run the shared Phase 8 replay
 - `make -C zigux phase8-test`
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-6. run the convenience target
+6. run the shared convenience target only as the current repo-wide wrapper
 - `make -C zigux phase8`
+- this wrapper currently covers `phase8-validate`, `phase8-test`, and `phase8-cpu-mask-test`; it does not replace the dedicated `phase8-file-path-handle-bridge-test` shard on current `master`
 
 ## Current parity surface
 
