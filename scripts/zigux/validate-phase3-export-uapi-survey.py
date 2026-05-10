@@ -14,6 +14,7 @@ SURVEY_REL = "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
 DOCS_ROOT_REL = "Documentation/zigux/README.md"
 SCRIPTS_README_REL = "scripts/zigux/README.md"
+MAKEFILE_REL = "zigux/Makefile"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 EXPORT_SHIM_REL = "zigux/kernel/export_shim.zig"
 UAPI_VERSION_REL = "zigux/uapi/version.zig"
@@ -34,6 +35,7 @@ REQUIRED_FILES = (
     ABI_SLICE_REL,
     DOCS_ROOT_REL,
     SCRIPTS_README_REL,
+    MAKEFILE_REL,
     EXPORT_SHIM_REL,
     UAPI_VERSION_REL,
     UAPI_DEV_T_REL,
@@ -117,6 +119,11 @@ HEADER_GOVERNANCE_SUBSTRINGS = (
     f"`PHASE3_ZIGUX_H_SHARED_SLICE_NOTE={ABI_SLICE_REL}`",
     f"`PHASE3_ZIGUX_H_MANIFEST_PATH={ABI_MANIFEST_REL}`",
     "export/UAPI starter work may reference this header, but the dedicated export/UAPI survey still owns the narrower starter-boundary claims it proves directly",
+)
+
+MAKEFILE_MARKERS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
 )
 
 REQUIRED_MARKERS = {
@@ -310,6 +317,10 @@ def validate(root: Path) -> list[str]:
     for marker in SCRIPTS_README_MARKERS:
         require_exact_line_count(issues, scripts_readme, "scripts_readme_marker", marker)
 
+    makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8")
+    for marker in MAKEFILE_MARKERS:
+        require_exact_line_count(issues, makefile, "makefile_marker", marker)
+
     workflow_lines = [line.strip() for line in (root / WORKFLOW_REL).read_text(encoding="utf-8").splitlines()]
     for marker in WORKFLOW_MARKERS:
         count = workflow_lines.count(marker)
@@ -335,6 +346,7 @@ def build_valid_workspace(root: Path) -> None:
         BUILD_FILE_REL: "// build placeholder\n",
         DOCS_ROOT_REL: "\n".join(f"- {marker}" for marker in DOCS_ROOT_MARKERS) + "\n",
         SCRIPTS_README_REL: "\n".join(f"- {marker}" for marker in SCRIPTS_README_MARKERS) + "\n",
+        MAKEFILE_REL: "\n".join(MAKEFILE_MARKERS) + "\n",
         WORKFLOW_REL: "\n".join(WORKFLOW_MARKERS) + "\n",
     }
     for rel, text in minimal_files.items():
@@ -412,9 +424,15 @@ def run_self_test() -> int:
             'missing_marker:zigux/tests/phase3_export_uapi.zig:test "phase3 uapi dev_t starter keeps encode and range parity explicit" {'
             in issues
         ), issues
+        build_valid_workspace(root)
+
+        makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[1] + "\n", "", 1)
+        _write(root / MAKEFILE_REL, makefile)
+        issues = validate(root)
+        assert f"missing_makefile_marker:{MAKEFILE_MARKERS[1]}" in issues, issues
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=4")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
