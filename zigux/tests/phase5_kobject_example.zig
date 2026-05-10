@@ -79,6 +79,9 @@ test "phase 5 kobject sample keeps the already-registered boundary explicit thro
     try std.testing.expectEqual(sample.SampleStage.registered, replay.stage_before_boundary_checks);
     try std.testing.expectEqual(sample.SampleStage.registered, replay.stage_after_boundary_checks);
     try std.testing.expectEqual(@as(usize, 3), replay.active_attr_count);
+    try std.testing.expectEqual(@as(usize, 1), replay.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.exit_runs);
     try std.testing.expect(replay.rejected_duplicate_registration);
     try std.testing.expect(replay.rejected_registered_anchor_replay);
     try std.testing.expectEqual(@as(usize, 3), replay.post_rejection_store_len);
