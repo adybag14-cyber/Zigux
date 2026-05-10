@@ -11,7 +11,9 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-argv-split-slice.md",
     "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+    "Documentation/zigux/review-checklist.md",
     "samples/zigux/README.md",
+    "scripts/zigux/validate-phase7.py",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "zigux/Makefile",
     "zigux/tests/phase7_build.zig",
@@ -49,6 +51,22 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase7-validate` and `make -C zigux phase7` remain the Linux-style review routes for this shared control surface",
         "this note does not reopen `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, or `lib/rbtree.zig`",
     ],
+    "Documentation/zigux/review-checklist.md": [
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        "lib/argv_split.zig",
+        "zigux/tests/phase7_argv_split.zig",
+        "zigux/tests/phase7_argv_split_survey.zig",
+        "zigux/tests/phase7_argv_split_manifest.json",
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+        "scripts/zigux/validate-phase7.py",
+        "scripts/zigux/check-phase7-make-wrapper.py",
+        "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+        "scripts/zigux/check-phase7-build-wiring.py",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
+        "zigux/Makefile",
+        "zigux/tests/phase7_build.zig",
+    ],
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under",
         "lib/argv_split.zig",
@@ -57,6 +75,17 @@ REQUIRED_MARKERS = {
         "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "zigux/tests/phase7_build.zig",
+    ],
+    "scripts/zigux/validate-phase7.py": [
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        "samples/zigux/README.md",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
+        "zigux/tests/phase7_argv_split.zig",
+        "zigux/tests/phase7_argv_split_survey.zig",
+        "zigux/tests/phase7_argv_split_manifest.json",
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+        "lib/argv_split.zig",
     ],
     "scripts/zigux/check-phase7-argv-split-packet.py": [
         "--self-test",
@@ -174,7 +203,12 @@ def write_fixture_root(tmp_root: Path) -> None:
             REQUIRED_MARKERS["Documentation/zigux/phase7-make-wrapper-selftest-alignment.md"]
         )
         + "\n",
+        "Documentation/zigux/review-checklist.md": "\n".join(
+            REQUIRED_MARKERS["Documentation/zigux/review-checklist.md"]
+        )
+        + "\n",
         "samples/zigux/README.md": "\n".join(REQUIRED_MARKERS["samples/zigux/README.md"]) + "\n",
+        "scripts/zigux/validate-phase7.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/validate-phase7.py"]) + "\n",
         "scripts/zigux/check-phase7-argv-split-packet.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-argv-split-packet.py"]) + "\n",
         "zigux/Makefile": "\n".join(REQUIRED_MARKERS["zigux/Makefile"]) + "\n",
         "zigux/tests/phase7_build.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_build.zig"]) + "\n",
@@ -252,6 +286,16 @@ def run_self_test() -> None:
         case_count += 1
         write_fixture_root(tmp_root)
 
+        validator_path = tmp_root / "scripts" / "zigux" / "validate-phase7.py"
+        validator_path.unlink()
+        expect_missing_file(
+            "missing_phase7_validator",
+            tmp_root,
+            "scripts/zigux/validate-phase7.py",
+        )
+        case_count += 1
+        write_fixture_root(tmp_root)
+
         survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
         survey_path.unlink()
         expect_missing_file(
@@ -278,6 +322,16 @@ def run_self_test() -> None:
             "missing_phase7_make_wrapper_alignment_note",
             tmp_root,
             "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md",
+        )
+        case_count += 1
+        write_fixture_root(tmp_root)
+
+        checklist_path = tmp_root / "Documentation" / "zigux" / "review-checklist.md"
+        checklist_path.unlink()
+        expect_missing_file(
+            "missing_phase7_review_checklist_surface",
+            tmp_root,
+            "Documentation/zigux/review-checklist.md",
         )
         case_count += 1
         write_fixture_root(tmp_root)
@@ -455,6 +509,58 @@ def run_self_test() -> None:
         )
         case_count += 1
         note_path.write_text(original_note, encoding="utf-8")
+
+        checklist_path = tmp_root / "Documentation" / "zigux" / "review-checklist.md"
+        original_checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            original_checklist.replace("scripts/zigux/check-phase7-argv-split-packet.py", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_review_checklist_checker_marker",
+            tmp_root,
+            "Documentation/zigux/review-checklist.md: scripts/zigux/check-phase7-argv-split-packet.py",
+        )
+        case_count += 1
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+
+        checklist_path.write_text(
+            original_checklist.replace("zigux/tests/phase7_argv_split_manifest.json", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_review_checklist_manifest_marker",
+            tmp_root,
+            "Documentation/zigux/review-checklist.md: zigux/tests/phase7_argv_split_manifest.json",
+        )
+        case_count += 1
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+
+        validator_path = tmp_root / "scripts" / "zigux" / "validate-phase7.py"
+        original_validator = validator_path.read_text(encoding="utf-8")
+        validator_path.write_text(
+            original_validator.replace("samples/zigux/README.md", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_validator_samples_marker",
+            tmp_root,
+            "scripts/zigux/validate-phase7.py: samples/zigux/README.md",
+        )
+        case_count += 1
+        validator_path.write_text(original_validator, encoding="utf-8")
+
+        validator_path.write_text(
+            original_validator.replace("zigux/tests/phase7_argv_split_manifest.json", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_validator_manifest_marker",
+            tmp_root,
+            "scripts/zigux/validate-phase7.py: zigux/tests/phase7_argv_split_manifest.json",
+        )
+        case_count += 1
+        validator_path.write_text(original_validator, encoding="utf-8")
 
         samples_path = tmp_root / "samples" / "zigux" / "README.md"
         original_samples = samples_path.read_text(encoding="utf-8")
