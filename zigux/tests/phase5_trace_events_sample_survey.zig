@@ -310,6 +310,7 @@ test "phase 5 trace-events survey packet stays repo-local and keeps shared revie
         "`zig test --test-no-exec zigux/tests/phase5_trace_events_sample_survey.zig`",
         "compile-only recheck of the manifest-backed survey gate",
         "the exact `checked_focus` order plus the `unregisterFunctionCallback()` underflow, `OutstandingRegistration`, and post-exit replay-rejection cues explicit",
+        "`runCallbackBoundaryReplay()` helper keeps the register-then-unregister callback replay self-contained, rejects outstanding registration, records the callback-path replay explicitly, and restores the registration balance to zero before the sample completes",
         "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample",
         "selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig`",
         "closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet",
