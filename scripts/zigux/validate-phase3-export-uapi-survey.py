@@ -82,6 +82,7 @@ SURVEY_EXACT_MARKERS = (
     "`PHASE3_C_HEADER_GROWTH_RULE=shared-abi-resurvey-for-linux-header-growth-packet-local-resurvey-for-starter-entry-point-growth`",
     "`PHASE3_REVIEW_ROOT_RULE=export-uapi-growth-requires-survey-plus-layout-replay-plus-shared-review-surface-refresh`",
     "`PHASE3_LAYOUT_REPLAY_OWNERSHIP=export-uapi-packet-owns-focused-starter-boundary-layout-replay`",
+    "`PHASE3_BEHAVIOR_REPLAY_OWNERSHIP=export-uapi-packet-owns-direct-starter-boundary-behavior-replay`",
     f"`PHASE3_EXPORT_SHIM_PATH={EXPORT_SHIM_REL}`",
     f"`PHASE3_UAPI_VERSION_PATH={UAPI_VERSION_REL}`",
     f"`PHASE3_UAPI_DEV_T_PATH={UAPI_DEV_T_REL}`",
@@ -399,10 +400,16 @@ def run_self_test() -> int:
         assert f"manifest_missing_required_file:{UAPI_DEV_T_REL}" in issues, issues
         build_valid_workspace(root)
 
-        survey = (root / SURVEY_REL).read_text(encoding="utf-8").replace(SURVEY_EXACT_MARKERS[6] + "\n", "")
+        survey = (root / SURVEY_REL).read_text(encoding="utf-8").replace(SURVEY_EXACT_MARKERS[4] + "\n", "")
         _write(root / SURVEY_REL, survey)
         issues = validate(root)
-        assert f"missing_survey_marker:{SURVEY_EXACT_MARKERS[6]}" in issues, issues
+        assert f"missing_survey_marker:{SURVEY_EXACT_MARKERS[4]}" in issues, issues
+        build_valid_workspace(root)
+
+        survey = (root / SURVEY_REL).read_text(encoding="utf-8").replace(SURVEY_EXACT_MARKERS[7] + "\n", "")
+        _write(root / SURVEY_REL, survey)
+        issues = validate(root)
+        assert f"missing_survey_marker:{SURVEY_EXACT_MARKERS[7]}" in issues, issues
         build_valid_workspace(root)
 
         bad_blob = "deadbeef"
@@ -446,7 +453,7 @@ def run_self_test() -> int:
         assert f"missing_makefile_marker:{MAKEFILE_MARKERS[1]}" in issues, issues
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
