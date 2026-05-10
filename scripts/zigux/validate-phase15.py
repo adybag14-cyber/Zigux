@@ -271,6 +271,7 @@ def validate(root: Path) -> list[str]:
             "specialist_lane_owned_anchor_count": 2,
             "reserved_decision_record_template_count": 4,
             "blocked_status_change_anchor_count": 4,
+            "shared_governance_replay_route_count": 4,
             "review_packet_field_count": 20,
             "ownership_evidence_field_count": 15,
         }
@@ -399,6 +400,7 @@ def seed_fixture_tree(root: Path) -> None:
                     "specialist_lane_owned_anchor_count": 2,
                     "reserved_decision_record_template_count": 4,
                     "blocked_status_change_anchor_count": 4,
+                    "shared_governance_replay_route_count": 4,
                     "review_packet_field_count": 20,
                     "ownership_evidence_field_count": 15,
                 },
@@ -530,6 +532,17 @@ def run_self_test() -> int:
             validate(root),
             ["scorecard_manifest:metrics:review_packet_field_count"],
             "mismatched_scorecard_metric",
+        )
+        seed_fixture_tree(root)
+        case_count += 1
+
+        scorecard_manifest = json.loads(read_text(root, SCORECARD_MANIFEST_PATH))
+        del scorecard_manifest["metrics"]["shared_governance_replay_route_count"]
+        write_text(scorecard_manifest_path, json.dumps(scorecard_manifest, indent=2) + "\n")
+        assert_only(
+            validate(root),
+            ["scorecard_manifest:metrics:shared_governance_replay_route_count"],
+            "missing_scorecard_shared_governance_metric",
         )
         seed_fixture_tree(root)
         case_count += 1
