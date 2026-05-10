@@ -89,6 +89,13 @@
       "why_now": "The Phase 12 lane should verify that the landed zigux_segments foundations still compile, that the dedicated zigux_segments verify surface stays wired into the same build packet, and that the manifest matches which segment files are landed versus still deferred, instead of relying only on older Phase 8 coverage."
     },
     {
+      "id": "phase12-libbpf-snapshot-determinism-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_libbpf_snapshot_determinism.zig",
+      "why_now": "The shared Phase 12 reviewability packet now exact-checks the ordered five-helper snapshot digest through a dedicated replay, so the manifest should keep that deterministic proof explicit instead of leaving it folded into the broader reviewability gate."
+    },
+    {
       "id": "phase12-libbpf-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
