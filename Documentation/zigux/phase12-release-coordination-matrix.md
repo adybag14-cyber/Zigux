@@ -11,13 +11,15 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - readiness companion: `Documentation/zigux/phase12-release-readiness-survey.md`
 - sequencing companion: `Documentation/zigux/phase12-release-sequencing.md`
 - closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`
+- coverage companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`
 
 ## Owner Split
-- PMO / Release Management: keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this matrix, and `Documentation/zigux/phase12-release-closure-checklist.md` aligned around the same active-not-closed release posture
+- PMO / Release Management: keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this matrix, `Documentation/zigux/phase12-release-closure-checklist.md`, and `Documentation/zigux/phase12-raw-github-coverage-survey.md` aligned around the same active-not-closed release posture
 - Complex-driver packet: keep `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` aligned with the shared smoke-first replay packet
 - Shared libbpf heavy-consumer packet: keep `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, `zigux/tests/phase12_libbpf_snapshot_determinism.zig`, `tools/lib/bpf/zigux_segments/verify.zig`, and `tools/lib/bpf/zigux_segments/manifest.json` aligned with the same shared packet without implying a focused libbpf-only replay route on current `master`
+- Shared fallback and anti-overlap packet: keep `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, and `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` aligned with the same active smoke-first packet, the same two-versus-two fallback split, and the same release-planning-only boundary
 
 ## Fallback Split
 - commit-pinned public fallback artifacts:
@@ -46,6 +48,6 @@ Keep the degraded-workflow checker pair explicit beside that same order too:
 - Queueing, throughput, rollback, and recovery wording must stay bounded to the driver-local packet and the lab-only reversible-delivery evidence already recorded in the shared Phase 12 docs; this PMO companion must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
 
 ## Review Use
-- reread this matrix beside `Documentation/zigux/phase12-release-readiness-survey.md` and `Documentation/zigux/phase12-release-closure-checklist.md` whenever the shared Phase 12 packet changes
+- reread this matrix beside `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, and `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` whenever the shared Phase 12 packet changes
 - rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening PMO wording
 - treat this file as a compact owner-and-fallback summary, not as a substitute for the driver-local survey notes or the shared build packet
