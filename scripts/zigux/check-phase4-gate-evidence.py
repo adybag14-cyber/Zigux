@@ -172,6 +172,35 @@ SHARED_PHASE4_REVIEW_SURFACE_MARKERS = {
         "make -C zigux phase4-test-fsmount-survey",
     ],
 }
+KPROBE_GAP_EXPECTED_FIELDS = {
+    "lane_key": "P4-L23",
+    "phase": "Phase 4",
+    "anchor_path": "samples/kprobes/kprobe_example.c",
+    "sample_path": "samples/zigux/kprobe_example.zig",
+    "sample_present": False,
+    "current_replay": "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
+    "local_lab_replay": "make -C zigux phase4-kprobe-example-survey",
+    "survey_note": "Documentation/zigux/phase4-kprobe-example-gap-survey.md",
+    "survey_owner": "Validation and Perf Team",
+    "rollback_owner": "Validation and Perf Team",
+    "shared_gate_evidence_packet_present": True,
+    "validation_entrypoint": "zig test zigux/tests/phase4_kprobe_example_survey.zig",
+}
+TEST_FSMOUNT_GAP_EXPECTED_FIELDS = {
+    "lane_key": "P4-L24",
+    "phase": "Phase 4",
+    "anchor_path": "samples/vfs/test-fsmount.c",
+    "sample_path": "samples/zigux/test_fsmount.zig",
+    "sample_present": False,
+    "current_replay": "make M=samples/vfs",
+    "local_lab_replay": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    "makefile_wrapper": "make -C zigux phase4-test-fsmount-survey",
+    "survey_note": "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+    "survey_owner": "Validation and Perf Team",
+    "rollback_owner": "Validation and Perf Team",
+    "shared_gate_evidence_packet_present": False,
+    "validation_entrypoint": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+}
 
 
 def git_blob_sha1(payload: bytes) -> str:
@@ -328,6 +357,49 @@ def validate_perf_baseline_packet(root: Path) -> list[str]:
     return missing
 
 
+def validate_kprobe_gap_packet(root: Path) -> list[str]:
+    manifest = json.loads(read_text(root, KPROBE_MANIFEST_PATH))
+    note_text = read_text(root, KPROBE_NOTE_PATH)
+    missing: list[str] = []
+
+    for field, expected in KPROBE_GAP_EXPECTED_FIELDS.items():
+        actual = manifest.get(field)
+        if actual != expected:
+            missing.append(f"kprobe_gap_manifest:{field}:{actual}:{expected}")
+
+    for marker in [
+        "PHASE4_KPROBE_STATUS=parked_gap_survey",
+        "PHASE4_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey",
+        "`samples/zigux/kprobe_example.zig` is still absent",
+    ]:
+        if marker not in note_text:
+            missing.append(f"kprobe_gap_note:{marker}")
+
+    return missing
+
+
+def validate_test_fsmount_gap_packet(root: Path) -> list[str]:
+    manifest = json.loads(read_text(root, TEST_FSMOUNT_MANIFEST_PATH))
+    note_text = read_text(root, TEST_FSMOUNT_NOTE_PATH)
+    missing: list[str] = []
+
+    for field, expected in TEST_FSMOUNT_GAP_EXPECTED_FIELDS.items():
+        actual = manifest.get(field)
+        if actual != expected:
+            missing.append(f"test_fsmount_gap_manifest:{field}:{actual}:{expected}")
+
+    for marker in [
+        "PHASE4_TEST_FSMOUNT_STATUS=parked_gap_survey",
+        "PHASE4_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+        "PHASE4_MAKEFILE_WRAPPER=make -C zigux phase4-test-fsmount-survey",
+        "`samples/zigux/test_fsmount.zig` is still absent",
+    ]:
+        if marker not in note_text:
+            missing.append(f"test_fsmount_gap_note:{marker}")
+
+    return missing
+
+
 def validate_gap_packets(root: Path) -> list[str]:
     missing: list[str] = []
     for path in [
@@ -340,6 +412,10 @@ def validate_gap_packets(root: Path) -> list[str]:
     ]:
         if not (root / path).exists():
             missing.append(f"file:{path}")
+    if missing:
+        return missing
+    missing.extend(validate_kprobe_gap_packet(root))
+    missing.extend(validate_test_fsmount_gap_packet(root))
     return missing
 
 
@@ -448,9 +524,18 @@ def build_fixture_tree(root: Path) -> None:
             "shared CI coverage\n"
         ),
         "zigux/tests/phase9_build.zig": "phase9 build fixture\n",
-        str(KPROBE_NOTE_PATH): "kprobe note fixture\n",
+        str(KPROBE_NOTE_PATH): (
+            "PHASE4_KPROBE_STATUS=parked_gap_survey\n"
+            "PHASE4_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey\n"
+            "`samples/zigux/kprobe_example.zig` is still absent\n"
+        ),
         str(KPROBE_SURVEY_PATH): "kprobe survey fixture\n",
-        str(TEST_FSMOUNT_NOTE_PATH): "test_fsmount note fixture\n",
+        str(TEST_FSMOUNT_NOTE_PATH): (
+            "PHASE4_TEST_FSMOUNT_STATUS=parked_gap_survey\n"
+            "PHASE4_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig\n"
+            "PHASE4_MAKEFILE_WRAPPER=make -C zigux phase4-test-fsmount-survey\n"
+            "`samples/zigux/test_fsmount.zig` is still absent\n"
+        ),
         str(TEST_FSMOUNT_SURVEY_PATH): "test_fsmount survey fixture\n",
         str(PERF_BASELINE_SURVEY_PATH): (
             "phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit\n"
@@ -463,8 +548,32 @@ def build_fixture_tree(root: Path) -> None:
     }
     for rel, content in fixture_files.items():
         _write(root / rel, content)
-    _write(root / KPROBE_MANIFEST_PATH, json.dumps({"shared_gate_evidence_packet_present": True}) + "\n")
-    _write(root / TEST_FSMOUNT_MANIFEST_PATH, json.dumps({"shared_gate_evidence_packet_present": False}) + "\n")
+    _write(
+        root / KPROBE_MANIFEST_PATH,
+        json.dumps(
+            {
+                **KPROBE_GAP_EXPECTED_FIELDS,
+                "anchor_blob_sha": "0" * 40,
+                "reversible_delivery_evidence": "fixture",
+                "review_prompts": [],
+                "non_goals": [],
+            }
+        )
+        + "\n",
+    )
+    _write(
+        root / TEST_FSMOUNT_MANIFEST_PATH,
+        json.dumps(
+            {
+                **TEST_FSMOUNT_GAP_EXPECTED_FIELDS,
+                "anchor_blob_sha": "0" * 40,
+                "reversible_delivery_evidence": "fixture",
+                "review_prompts": [],
+                "non_goals": [],
+            }
+        )
+        + "\n",
+    )
     perf_baseline_manifest = {
         **PERF_BASELINE_EXPECTED_FIELDS,
         "surveyed_gates": PERF_BASELINE_SURVEYED_GATES,
@@ -591,6 +700,31 @@ def run_self_test() -> int:
         assert validate_root(bad5) == [
             f"note_status:PHASE4_SCRIPT_README_BLOB_SHA={git_blob_sha1(read_bytes(bad5, 'scripts/zigux/README.md'))}",
             "shared_review_surface:scripts/zigux/README.md:approved local-only benchmark commands and acceptable limits"
+        ]
+
+        bad6 = Path(tmp_dir) / "bad6"
+        build_fixture_tree(bad6)
+        kprobe_manifest_path = bad6 / KPROBE_MANIFEST_PATH
+        kprobe_manifest = json.loads(kprobe_manifest_path.read_text(encoding="utf-8"))
+        kprobe_manifest["rollback_owner"] = "Tooling and Validation Team"
+        kprobe_manifest_path.write_text(json.dumps(kprobe_manifest) + "\n", encoding="utf-8")
+        assert validate_root(bad6) == [
+            "kprobe_gap_manifest:rollback_owner:Tooling and Validation Team:Validation and Perf Team"
+        ]
+
+        bad7 = Path(tmp_dir) / "bad7"
+        build_fixture_tree(bad7)
+        test_fsmount_note_path = bad7 / TEST_FSMOUNT_NOTE_PATH
+        test_fsmount_note_path.write_text(
+            test_fsmount_note_path.read_text(encoding="utf-8").replace(
+                "`samples/zigux/test_fsmount.zig` is still absent\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert validate_root(bad7) == [
+            "test_fsmount_gap_note:`samples/zigux/test_fsmount.zig` is still absent"
         ]
 
     print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
