@@ -2,7 +2,7 @@
 This note records one exact readback snapshot for the current Phase 4 rollback-ownership and lab-matrix gate definitions.
 
 ## Status
-- `PHASE4_EVIDENCE_DATE=2026-05-09`
+- `PHASE4_EVIDENCE_DATE=2026-05-10`
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
@@ -14,7 +14,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_MAKEFILE_BLOB_SHA=dda9095df97d29e0de8ac0e4e23dd24557115886`
 - `PHASE4_WORKFLOW_BLOB_SHA=9c2212f912bcb78dd458bb8c2a87fe73af90b1f3`
 - `PHASE4_DOC_README_BLOB_SHA=182529031ae7c184dd80b196ab56a83461f1f4c0`
-- `PHASE4_SCRIPT_README_BLOB_SHA=78f6690f3d40460454ff57a6c01766fa17e0f911`
+- `PHASE4_SCRIPT_README_BLOB_SHA=6ae27cede26900a6490aecd0145a44968468eb29`
 - `PHASE4_TESTS_README_BLOB_SHA=a8d2d2ad94ae04dd5a55adb79e98d8e586d5cd96`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=8c4747593e7b7cd64b39e90cf92eae7e96ff1bf5`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3`
