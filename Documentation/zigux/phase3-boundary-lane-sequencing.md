@@ -15,6 +15,7 @@ This note turns the current Phase 3 substrate on `master` into one bounded owner
 - `PHASE3_SHARED_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_SHARED_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_HEADER_CONSTANT_SURVEY=python3 scripts/zigux/survey-phase3-abi-constant-parity.py`
+- `PHASE3_HEADER_FAMILY_SURVEY=python3 scripts/zigux/validate-phase3-abi-header-family-survey.py`
 
 ## Why This Note Exists
 
@@ -56,7 +57,8 @@ Use the header-next-step note when the change is about:
 - top-level `include/zigux/abi.h` family growth
 - curated `zigux/bindings/abi.zig` family drift tied to that same header
 - the dedicated baseline constant-parity survey in `scripts/zigux/survey-phase3-abi-constant-parity.py`
-- the next safe header-family survey to add before more top-level surface lands
+- the dedicated header-family survey in `scripts/zigux/validate-phase3-abi-header-family-survey.py` together with `Documentation/zigux/phase3-abi-header-family-survey.md`
+- the next safe header-family survey foothold to add before more top-level surface lands
 
 Do not treat this note as the owner of export/UAPI relay wording, policy bytes, or low-level-wrapper helper replay.
 
@@ -122,7 +124,7 @@ The shared review surfaces below keep Phase 3 reviewable, but they do not transf
 - `scripts/zigux/run-phase3-checks.py`
 - `zigux/Makefile`
 
-That shared-surface bucket includes the focused validator-support packet nested under the ABI slice too: the self-test runner, review-surface checker, README tooling inventory guard, dump-gate proof, catalog self-check, shared checker-library self-check, wrapper-drift guard, and runner self-check all keep the shipped Phase 3 support route honest, while the same runner roster also keeps the paired `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-byte-guards.py`, `validate-phase3-low-level-wrapper-survey.py`, and `validate-phase3-export-uapi-survey.py` child marker contracts explicit when those packet-local validators stay in the replay set, but none of those scripts become packet-local owners on their own.
+That shared-surface bucket includes the focused validator-support packet nested under the ABI slice too: the self-test runner, review-surface checker, README tooling inventory guard, dump-gate proof, catalog self-check, shared checker-library self-check, wrapper-drift guard, and runner self-check all keep the shipped Phase 3 support route honest, while the same runner roster also keeps the paired `validate-phase3-abi-bindings-syntax.py`, `survey-phase3-abi-constant-parity.py`, `validate-phase3-abi-header-family-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-byte-guards.py`, `validate-phase3-low-level-wrapper-survey.py`, and `validate-phase3-export-uapi-survey.py` child marker contracts explicit when those packet-local validators stay in the replay set, but none of those scripts become packet-local owners on their own.
 
 Within that shared validator-support packet, `scripts/zigux/validate_phase3_selftest.py` is still the contract surface for which child support scripts must remain in the shipped replay set and which exact `--self-test` pass-plus-case-count markers they expose. If that runner roster drifts, treat the runner as the first shared surface that moved rather than widening immediately into a broader README or checklist refresh.
 
@@ -130,6 +132,7 @@ If one of those shared surfaces drifts, fix the shared wording only after checki
 
 When one of those shared surfaces names the validator-support packet, keep the paired packet-local owner notes explicit too:
 
+- mention `Documentation/zigux/phase3-abi-header-family-survey.md` beside `scripts/zigux/validate-phase3-abi-header-family-survey.py`
 - mention `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` beside `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - mention `Documentation/zigux/phase3-export-uapi-boundary-survey.md` plus `Documentation/zigux/phase3-linux-zigux-header-governance.md` beside `scripts/zigux/validate-phase3-export-uapi-survey.py`
 - mention `Documentation/zigux/phase3-boundary-lane-sequencing.md` itself whenever a shared reminder is routing future follow-up work across the validator-support packet, so the owner map stays explicit instead of collapsing back into one generic Phase 3 summary
@@ -140,7 +143,7 @@ That keeps the validator-first review route from flattening the low-level-wrappe
 
 When a later run finds a new Phase 3 mismatch, route it through the smallest owner above:
 
-- if `include/zigux/abi.h` or `zigux/bindings/abi.zig` grows at the top level, reopen the header-next-step note or the constant-parity survey
+- if `include/zigux/abi.h` or `zigux/bindings/abi.zig` grows at the top level, reopen the header-next-step note, the constant-parity survey, or the dedicated header-family survey
 - if boundary-header relay helpers or starter UAPI wording moves, reopen the export/UAPI survey and the focused layout replay
 - if panic, allocator, or unsafe policy bytes move, reopen the policy-and-unsafe survey and the policy-byte guard
 - if atomic, barrier, or MMIO helper behavior moves, reopen the low-level-wrapper survey and the focused wrapper replay
