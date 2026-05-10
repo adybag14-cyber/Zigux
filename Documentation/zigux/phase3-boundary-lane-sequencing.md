@@ -129,6 +129,8 @@ That shared-surface bucket includes the focused validator-support packet nested 
 
 Within that shared validator-support packet, `scripts/zigux/validate_phase3_selftest.py` is still the contract surface for which child support scripts must remain in the shipped replay set and which exact `--self-test` pass-plus-case-count markers they expose. If that runner roster drifts, treat the runner as the first shared surface that moved rather than widening immediately into a broader README or checklist refresh.
 
+When the drift is narrower than the runner roster and only the scripts-root validator-support sentence itself drops or misorders one named support script, reopen `scripts/zigux/check-phase3-readme-tooling-inventory.py` first. In particular, keep `scripts/zigux/check-phase3-selftest-surface.py` explicit inside that scripts-root support-packet sentence rather than letting it survive only through the helper inventory list or broader Phase 3 prose.
+
 If one of those shared surfaces drifts, fix the shared wording only after checking which packet-local owner actually moved first.
 
 When one of those shared surfaces names the validator-support packet, keep the paired packet-local owner notes explicit too:
@@ -149,6 +151,7 @@ When a later run finds a new Phase 3 mismatch, route it through the smallest own
 - if panic, allocator, or unsafe policy bytes move, reopen the policy-and-unsafe survey and the policy-byte guard
 - if atomic, barrier, or MMIO helper behavior moves, reopen the low-level-wrapper survey and the focused wrapper replay
 - if the validator-support packet drifts because a child self-test script joins, leaves, or changes its shared `--self-test` marker contract while no packet-local owner moved first, reopen `scripts/zigux/validate_phase3_selftest.py` before widening into broader shared-surface wording
+- if the validator-support packet drifts because the scripts-root support-packet sentence alone dropped or misordered one named support checker while the runner roster stayed unchanged, reopen `scripts/zigux/check-phase3-readme-tooling-inventory.py` before widening into `validate_phase3_selftest.py` or a broader README refresh
 - if the validator-support packet drifts but no packet-local owner moved first, reopen the shared ABI slice plus the smallest shared support surface such as `validate_phase3_selftest.py` or the specific checker-local script that went stale
 - if the aggregate packet, manifest-backed replay, or shared route wording drifts, reopen the shared ABI slice or the shared validator-first review surface
 
