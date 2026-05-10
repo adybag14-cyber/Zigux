@@ -96,33 +96,33 @@ test "phase 5 trace-events sample keeps the public conditional helper explicit" 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runConditionalBoundaryReplay(0));
     try module.init();
 
-    const zero_boundary = try module.runConditionalBoundaryReplay(0);
-    try std.testing.expectEqual(sample.SampleStage.initialized, zero_boundary.stage_before_iteration);
-    try std.testing.expectEqual(sample.SampleStage.initialized, zero_boundary.stage_after_iteration);
-    try std.testing.expectEqual(@as(i32, 0), zero_boundary.main_count);
-    try std.testing.expectEqualStrings("iter=0", zero_boundary.formatted_message);
-    try std.testing.expectEqualStrings("Mother Goose", zero_boundary.selected_string);
-    try std.testing.expectEqual(@as(usize, 0), zero_boundary.selected_index);
-    try std.testing.expectEqual(@as(usize, 0xdeadbeef), zero_boundary.bitmask_word);
-    try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, zero_boundary.main_thread_event_calls);
-    try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, zero_boundary.total_event_calls_after_replay);
-    try std.testing.expect(zero_boundary.conditional_paths_checked);
-    try std.testing.expect(zero_boundary.vararg_payload_path_checked);
-    try std.testing.expect(zero_boundary.relative_location_path_checked);
+    const expected_strings = [_][]const u8{
+        "Mother Goose",
+        "Snoopy",
+        "Gandalf",
+        "Frodo",
+        "One ring to rule them all",
+        "Mother Goose",
+    };
 
-    const wrap_boundary = try module.runConditionalBoundaryReplay(5);
-    try std.testing.expectEqual(sample.SampleStage.initialized, wrap_boundary.stage_before_iteration);
-    try std.testing.expectEqual(sample.SampleStage.initialized, wrap_boundary.stage_after_iteration);
-    try std.testing.expectEqual(@as(i32, 5), wrap_boundary.main_count);
-    try std.testing.expectEqualStrings("iter=5", wrap_boundary.formatted_message);
-    try std.testing.expectEqualStrings("Mother Goose", wrap_boundary.selected_string);
-    try std.testing.expectEqual(@as(usize, 0), wrap_boundary.selected_index);
-    try std.testing.expectEqual(@as(usize, 0xdeadbeef), wrap_boundary.bitmask_word);
-    try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, wrap_boundary.main_thread_event_calls);
-    try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count * 2, wrap_boundary.total_event_calls_after_replay);
-    try std.testing.expect(wrap_boundary.conditional_paths_checked);
-    try std.testing.expect(wrap_boundary.vararg_payload_path_checked);
-    try std.testing.expect(wrap_boundary.relative_location_path_checked);
+    for (expected_strings, 0..) |expected_string, count| {
+        const boundary = try module.runConditionalBoundaryReplay(@intCast(count));
+        var expected_message_buffer: [16]u8 = undefined;
+        const expected_message = try std.fmt.bufPrint(&expected_message_buffer, "iter={d}", .{count});
+
+        try std.testing.expectEqual(sample.SampleStage.initialized, boundary.stage_before_iteration);
+        try std.testing.expectEqual(sample.SampleStage.initialized, boundary.stage_after_iteration);
+        try std.testing.expectEqual(@as(i32, @intCast(count)), boundary.main_count);
+        try std.testing.expectEqualStrings(expected_message, boundary.formatted_message);
+        try std.testing.expectEqualStrings(expected_string, boundary.selected_string);
+        try std.testing.expectEqual(@as(usize, count % 5), boundary.selected_index);
+        try std.testing.expectEqual(@as(usize, 0xdeadbeef), boundary.bitmask_word);
+        try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count, boundary.main_thread_event_calls);
+        try std.testing.expectEqual(sample.TraceEventsReferenceSample.event_family_count * (count + 1), boundary.total_event_calls_after_replay);
+        try std.testing.expect(boundary.conditional_paths_checked);
+        try std.testing.expect(boundary.vararg_payload_path_checked);
+        try std.testing.expect(boundary.relative_location_path_checked);
+    }
 }
 
 test "phase 5 trace-events sample keeps ownership replay explicit" {
