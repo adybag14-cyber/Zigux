@@ -127,6 +127,11 @@ test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
     try expectContains(gate_evidence_source, "zigux/tests/phase4_bitmap_live_helper_replay.zig");
     try expectContains(
         gate_evidence_source,
+        "zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig",
+    );
+    try expectContains(gate_evidence_source, "make -C zigux phase4-bitmap-diff-survey");
+    try expectContains(
+        gate_evidence_source,
         "zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig",
     );
     try expectContains(gate_evidence_source, "make -C zigux phase4-bitmap-live-helper-replay");
