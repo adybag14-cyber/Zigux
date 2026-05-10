@@ -7,11 +7,15 @@ active Phase 3 ABI and interop packet.
 
 - `include/linux/zigux.h`
 - `include/zigux/abi.h`
+- `zigux/bindings/abi.zig`
 - `zigux/kernel/export_shim.zig`
 - `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
 - `zigux/tests/phase3_export_uapi.zig`
 - `zigux/tests/phase3_export_uapi_layout.zig`
+- `zigux/tests/phase3_abi_dump.zig`
+- `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
+- `zigux/tests/fixtures/phase3_abi/expected.json`
 - `scripts/zigux/validate-phase3-export-uapi-survey.py`
 - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`
 - `scripts/zigux/survey-phase3-abi-constant-parity.py`
@@ -25,9 +29,9 @@ active Phase 3 ABI and interop packet.
   and the Zigux-owned UAPI family bounded to `include/zigux/abi.h`
 - keep same-lane follow-through here inside note, syntax-guard, or layout-survey
   work unless a real exported field family changes
-- treat `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, and
-  `zigux/uapi/dev_t.zig` as the current implementation-facing companions for
-  that header-family boundary
+- treat `zigux/bindings/abi.zig`, `zigux/kernel/export_shim.zig`,
+  `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` as the current
+  implementation-facing companions for that header-family boundary
 
 ## Non-goals
 
@@ -41,6 +45,9 @@ Broad Phase 3 summaries that name the export and UAPI boundary or the ABI
 constant-parity packet should keep this survey explicit beside
 `Documentation/zigux/phase3-export-uapi-boundary-survey.md`,
 `Documentation/zigux/phase3-linux-zigux-header-governance.md`,
+`zigux/bindings/abi.zig`, `zigux/tests/phase3_abi_dump.zig`,
+`zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`,
+`zigux/tests/fixtures/phase3_abi/expected.json`,
 `scripts/zigux/validate-phase3-export-uapi-survey.py`,
 `scripts/zigux/validate-phase3-abi-bindings-syntax.py`, and
 `scripts/zigux/survey-phase3-abi-constant-parity.py`.
