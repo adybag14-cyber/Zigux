@@ -156,6 +156,13 @@ test "phase 5 trace-events sample keeps ownership replay explicit" {
     try std.testing.expect(ownership_replay.saw_vararg_payload);
     try std.testing.expect(ownership_replay.saw_rel_loc_payload);
     try std.testing.expect(ownership_replay.saw_function_callback_path);
+    try std.testing.expectEqual(@as(usize, 6), ownership_replay.checked_focus.len);
+    try std.testing.expectEqual(sample.SampleFocus.payload_shape, ownership_replay.checked_focus[0]);
+    try std.testing.expectEqual(sample.SampleFocus.string_selection, ownership_replay.checked_focus[1]);
+    try std.testing.expectEqual(sample.SampleFocus.formatted_message, ownership_replay.checked_focus[2]);
+    try std.testing.expectEqual(sample.SampleFocus.conditional_event_families, ownership_replay.checked_focus[3]);
+    try std.testing.expectEqual(sample.SampleFocus.function_callback_registration, ownership_replay.checked_focus[4]);
+    try std.testing.expectEqual(sample.SampleFocus.ownership_and_lifetime, ownership_replay.checked_focus[5]);
 
     summary = module.ownershipSummary();
     try std.testing.expectEqual(sample.SampleStage.exited, summary.stage);
