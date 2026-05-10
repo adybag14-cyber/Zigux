@@ -1,0 +1,45 @@
+# Phase 12 Release Coordination Matrix
+
+This matrix is the compact PMO coordination companion for the active Phase 12 packet.
+
+It is a release-planning artifact, not a closure claim and not a new replay route.
+
+## Status
+- `PHASE12_STATUS=active`
+- `PHASE12_RELEASE_CLOSED=no`
+- scope: keep the active four-anchor Phase 12 packet reviewable without implying a broader validator-first or deep-core delivery claim
+- sequencing companion: `Documentation/zigux/phase12-release-closure-checklist.md`
+- build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
+- shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`
+
+## Owner Split
+- PMO / Release Management: keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, this matrix, and `Documentation/zigux/phase12-release-closure-checklist.md` aligned around the same active-not-closed release posture
+- Complex-driver packet: keep `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` aligned with the shared smoke-first replay packet
+- Shared libbpf heavy-consumer packet: keep `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`, `zigux/tests/phase12_libbpf_snapshot_determinism.zig`, and `tools/lib/bpf/zigux_segments/manifest.json` aligned with the same shared packet without implying a focused libbpf-only replay route on current `master`
+
+## Fallback Split
+- commit-pinned public fallback artifacts:
+  - `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
+  - `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
+- shared-tree-only anchors:
+  - `Documentation/zigux/phase12-virtio-net-survey.md`
+  - `Documentation/zigux/phase12-libbpf-segment-survey.md`
+- rule: keep this two-versus-two split explicit in PMO release wording and do not promote the shared-tree anchors into commit-pinned fallback artifacts unless new dedicated files actually land
+
+## Smoke Set
+1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+2. `make -C zigux phase12-smoke`
+3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+4. `make -C zigux phase12`
+
+If `zig` is unavailable on `PATH`, reuse the same smoke-first order through the shipped Make routes with `ZIG=<attached-zig-path>` instead of inventing a `phase12-validate` or other unshipped PMO replay surface.
+
+## Boundaries
+- This matrix tracks only the shipped build-only contract and the active survey-backed packet on `master`.
+- There is still no shared `scripts/zigux/validate-phase12.py`, `check-phase12-*.py`, focused-libbpf-only replay, cross-build replay, or `make -C zigux phase12-validate` route on current `master`, so release-planning notes should keep naming only the shipped smoke-first packet and the build-only checker.
+- Queueing, throughput, rollback, and recovery wording must stay bounded to the driver-local packet and the lab-only reversible-delivery evidence already recorded in the shared Phase 12 docs; this PMO companion must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
+
+## Review Use
+- reread this matrix beside `Documentation/zigux/phase12-release-closure-checklist.md` whenever the shared Phase 12 packet changes
+- rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening PMO wording
+- treat this file as a compact owner-and-fallback summary, not as a substitute for the driver-local survey notes or the shared build packet
