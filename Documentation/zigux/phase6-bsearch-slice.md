@@ -13,6 +13,7 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
   - `zigux/tests/phase6_bsearch.zig`
   - `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
   - `zigux/tests/phase6_bsearch_c_abi_budget.zig`
+  - `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
   - `zigux/tests/phase6_helper_parity_manifest.json`
   - `Documentation/zigux/phase6-helper-parity-catalog.md`
   - `Documentation/zigux/phase6-perf-gate-survey.md`
@@ -55,6 +56,10 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 7. keep the shared Phase 6 surface checker aligned with this slice
 - `make -C zigux phase6-validate`
+
+8. keep the exact bsearch corpus evidence checker aligned with this slice
+- `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py --self-test`
+- `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 
 ## Current parity surface
 
