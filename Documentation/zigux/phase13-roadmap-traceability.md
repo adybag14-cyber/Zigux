@@ -136,6 +136,7 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `include/zigux/abi.h`
   * `include/zigux/notifier_abi.h`
   * `zigux/helpers/notifier_chain_view.zig`
+  * `drivers/tty/hvc/hvc_console.h`
   * `zigux/Makefile`
 
 The direct `zigux/tests/phase13_libfs_addressability.zig` and `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shards stay in that adjacent release-evidence set for the same reason already recorded in their helper-lane sections and the release-notes packet: they are shipped focused direct evidence on current `master`, but they do not expand the shared replay beyond the eight build-backed tests.
@@ -146,7 +147,7 @@ The docs-root summary plus the scripts-root and tests-root reminder surfaces sta
 
 The shipped validator-first route also stays in that adjacent evidence set: `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, and `zigux/Makefile` keep the four-anchor traceability packet, the dedicated `devres` and `landlock/ruleset` checker proofs, and the adjacent notifier evidence fail-closed on current `master` without promoting those validation surfaces into a ninth shared replay step.
 
-The shipped `scripts/zigux/check-phase13-notifier-packet.py` route stays in that same adjacent evidence set: it fail-closes the notifier survey, manifest, reviewability replay, shipped `list_view` plus `hlist_view` helper footholds, the exported list and hlist ABI carrier structs in `include/zigux/abi.h`, the notifier ABI header, and the notifier-chain helper footholds without promoting that adjacent packet into a ninth shared replay step.
+The shipped `scripts/zigux/check-phase13-notifier-packet.py` route stays in that same adjacent evidence set: it fail-closes the notifier survey, manifest, reviewability replay, shipped `list_view` plus `hlist_view` helper footholds, the exported list and hlist ABI carrier structs in `include/zigux/abi.h`, the notifier ABI header, the notifier-chain helper footholds, and the concrete `drivers/tty/hvc/hvc_console.h` interop anchor without promoting that adjacent packet into a ninth shared replay step.
 
 The helper-owned Landlock boundary notes stay in that adjacent release packet because they document the shipped ownership and governance blockers that still prevent a closure claim without inflating the eight-test shared replay count.
 
