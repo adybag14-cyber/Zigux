@@ -13,6 +13,11 @@ pub const StorageBacking = enum {
     embedded_fixed_buffer,
 };
 
+pub const DrainMode = enum {
+    bulk_slice,
+    single_byte_get,
+};
+
 pub const SampleFocus = enum {
     bounded_fifo_order,
     wraparound_requeue,
@@ -103,6 +108,8 @@ pub const ReplaySummary = struct {
     fill_end: u8,
     final_len: usize,
     final_sequence: [fifo_capacity]u8,
+    final_drain_mode: DrainMode,
+    post_drain_peek: ?u8,
     checked_focus: []const SampleFocus,
     storage_backing: StorageBacking,
 };
@@ -349,6 +356,14 @@ pub const BytestreamFifoSample = struct {
         return copied;
     }
 
+    fn drainBytewiseInto(self: *Self, dest: []u8) usize {
+        var copied: usize = 0;
+        while (copied < dest.len) : (copied += 1) {
+            dest[copied] = self.popByte() orelse break;
+        }
+        return copied;
+    }
+
     pub fn peekByte(self: *const Self) ?u8 {
         if (self.len == 0) return null;
         return self.storage[self.head];
@@ -536,8 +551,10 @@ pub const BytestreamFifoSample = struct {
         const snapshot_len = self.snapshotInto(snapshot_sequence[0..]);
 
         var final_sequence: [capacity]u8 = undefined;
-        const final_len = self.drain(final_sequence[0..]);
+        const final_len = self.drainBytewiseInto(final_sequence[0..]);
         if (final_len != capacity) return error.UnexpectedFinalLength;
+        const post_drain_peek = self.peekByte();
+        if (post_drain_peek != null) return error.UnexpectedResidualElements;
         if (self.count() != 0) return error.UnexpectedResidualElements;
 
         return .{
@@ -562,6 +579,8 @@ pub const BytestreamFifoSample = struct {
             .fill_end = fill_end,
             .final_len = final_len,
             .final_sequence = final_sequence,
+            .final_drain_mode = .single_byte_get,
+            .post_drain_peek = post_drain_peek,
             .checked_focus = &sample_review_focus,
             .storage_backing = .embedded_fixed_buffer,
         };
@@ -749,6 +768,8 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.snapshot_sequence[0..]);
     try std.testing.expectEqual(@as(usize, fifo_capacity), replay.final_len);
     try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, replay.storage_backing);
+    try std.testing.expectEqual(DrainMode.single_byte_get, replay.final_drain_mode);
+    try std.testing.expectEqual(@as(?u8, null), replay.post_drain_peek);
     try std.testing.expectEqual(@as(usize, sample_review_focus.len), replay.checked_focus.len);
     for (sample_review_focus, replay.checked_focus) |expected, actual| {
         try std.testing.expectEqual(expected, actual);
