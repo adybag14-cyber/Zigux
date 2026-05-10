@@ -99,10 +99,3 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "acceptable limit") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared CI perf promotion") != null);
 }
-
-// runtime replay blob 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
-// runtime replay blob repeat 8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3
-// phase4 build blob 86f88d03cd82e2e11ea6ed4a02175b77b472fdb4
-// validator blob 13ab170f05e887c5c3906e10dc84672a17ac8aed
-// phase4 matrix blob 89da8bf3722b8f0265279181929e9982ad0c59ef
-// phase9 build blob 83ad3cd3a2442722056bd0340b158333d3a60b21
