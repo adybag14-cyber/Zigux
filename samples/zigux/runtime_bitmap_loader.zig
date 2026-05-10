@@ -129,6 +129,9 @@ pub const RuntimeBitmapLoader = struct {
         shared_request: *runtime_loader.PreparedRequest,
     ) !runtime_loader.LoadPlan {
         if (shared_request.state != .prepared) return error.InvalidLoaderState;
+        if (!runtime_loader.keepsLoadPlanExplicit(shared_request.plan, shared_request.prepared_plan)) {
+            return error.PreparedPlanDrift;
+        }
         _ = try runtime_loader.prepareRequest(shared_request.plan);
 
         const plan = try self.requestRuntimeLoad();
@@ -635,6 +638,73 @@ test "runtime bitmap loader rejects prepared shared runtime-substrate drift befo
         shared_request,
         .prepared,
         shared_request.plan,
+    ));
+}
+
+test "runtime bitmap loader rejects prepared shared allocator drift before any local runtime handoff" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var loader = RuntimeBitmapLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    const prepared_shared_plan = shared_request.plan;
+
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_shared_plan,
+    ));
+
+    shared_request.plan.allocator_handoff = .caller_provided;
+    try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        shared_request.prepared_plan,
+        prepared_shared_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        shared_request.plan,
+        prepared_shared_plan,
+    ));
+}
+
+test "runtime bitmap loader rejects prepared shared init-flow drift before any local runtime handoff" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var loader = RuntimeBitmapLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    const prepared_shared_plan = shared_request.plan;
+
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_shared_plan,
+    ));
+
+    shared_request.plan.init_flow = .{
+        .handoff_stage = .initialized,
+        .init_runs = 1,
+        .selftest_runs = 0,
+        .exit_runs = 0,
+    };
+    try std.testing.expectError(error.PreparedPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        shared_request.prepared_plan,
+        prepared_shared_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        shared_request.plan,
+        prepared_shared_plan,
     ));
 }
 
