@@ -1,0 +1,61 @@
+# Phase 4 Gate Evidence
+This note records one exact readback snapshot for the current Phase 4 rollback-ownership and lab-matrix gate definitions.
+
+## Status
+- `PHASE4_EVIDENCE_DATE=2026-05-10`
+- `PHASE4_EVIDENCE_MODE=github_connector_readback`
+- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
+- `PHASE4_EXACT_READBACK_REF=master`
+- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=89da8bf3722b8f0265279181929e9982ad0c59ef`
+- `PHASE4_VALIDATOR_BLOB_SHA=13ab170f05e887c5c3906e10dc84672a17ac8aed`
+- `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=95a10787fd78e2f7058c63096e449cf1c9ebe252`
+- `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=5272b8c9573fdabb733b66ce655842d9fdfa0cc5`
+- `PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`
+- `PHASE4_MAKEFILE_BLOB_SHA=3b3f73b5b2dac6bccd8d7544c4b1a315e01ed65d`
+- `PHASE4_WORKFLOW_BLOB_SHA=140cb966eeaa6318103bfdbe330c0eeb89d56a7c`
+- `PHASE4_DOC_README_BLOB_SHA=8b83b435b44a2295188a6bd9bf54e5a5c0140565`
+- `PHASE4_SCRIPT_README_BLOB_SHA=0deea3fb108adedfed598b0f0a507eb1579874d2`
+- `PHASE4_TESTS_README_BLOB_SHA=0cc1ff429f7da257271a4a381ba59e329c91ac71`
+- `PHASE4_ATOMIC64_DIFF_BLOB_SHA=013e38fce0f95e73f1d36eb527138b77f8067df8`
+- `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=8965f1c3cbeaa4411cc5a82b8d1ea15aaf5a03a3`
+- `PHASE4_BITMAP_DIFF_BLOB_SHA=fb32ec6a52c1f7c76912015404950a6561501719`
+- `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=24418ad890696a59b95276fe8dec7eaeecf25172`
+- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=cbc9033d5222913bbd07ad929a73e8358d448cba`
+- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=6aa32738734468d1f5a4f931422bdf209b382c2a`
+- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=a4157c27344a433772085402a695e80e6100e2da`
+- `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
+- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=21`
+- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift,missing_exact_readback_heading,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift,phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift,gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift,shared_validator_reruns_gate_evidence_self_test_drift,shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift,bitmap_diff_survey_replay_marker_drift,kprobe_gap_packet_presence_drift,perf_baseline_packet_presence_drift,perf_baseline_note_split_marker_drift,perf_baseline_owner_drift,perf_baseline_shared_promotion_status_drift,test_fsmount_gap_packet_presence_drift,missing_note_file`
+- `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`
+- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`
+- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`
+- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16`
+- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=21`
+- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`
+- `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`
+- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`
+- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`
+
+## Exact Readback Evidence
+- `Documentation/zigux/artifact-diff.md` and `scripts/zigux/README.md` now point at the same currently shipped Phase 4 rollback-readiness packet surfaces that the validator and shared build still own on `master`, while the broader docs-root and tests-root summaries should keep the dedicated artifact-diff determinism checker wording explicit when those same-lane notes move again.
+- `scripts/zigux/check-phase4-gate-evidence.py` remains the dedicated exact-readback checker for this narrower rollback-ownership packet.
+- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair, and `phase4-runtime-atomic64-diff-survey-tests` plus `phase4-bitmap-live-helper-replay-tests` stay wired through the shared Phase 4 build entrypoint.
+- The current bounded atomic64 rollback gate now has an exact check inventory in this note: two arithmetic checks (`v0 arithmetic path mirrors add/sub/add_return/sub_return/inc_return/dec_return sequencing` and `negative-one arithmetic path keeps decrement-style updates visible`), three exchange checks (`v0 to v1 keeps the original counter visible as the exchange return value`, `v1 to v2 keeps wide negative and positive 64-bit values distinct`, and `high-bit starter from atomic64_test.c still round-trips through exchange`), two `cmpxchg` checks (success and mismatch), two `add_unless` checks (blocked and changed), three bitwise checks (`and`, `or`, and `xor`), the selftest-family ordering replay, empty-batch rejection for `runThresholdReplay(0)`, and deterministic threshold replays for `runThresholdReplay(1)` and `runThresholdReplay(4)` with final counters `130322557735600377` and `130322557735600376` plus checksums `3626254113632800175` and `9210681150676220922`.
+- That published twenty-one-case self-test catalog now also exercises the runtime atomic64 packet's `validate-phase4.py`, `phase4-validation-matrix.md`, and `Documentation/zigux/review-checklist.md` manifest and survey blob drift paths inside the existing manifest-backed drift coverage, and it now checks the shipped perf-baseline packet's manifest-presence drift path, the local-only perf-baseline note split-marker drift path, the shipped perf-baseline owner drift path, the shared-promotion status drift path, and the adjacent `test_fsmount` gap packet's manifest-presence drift path too, so those validator, matrix, reviewer-checklist, perf-baseline packet, local-only split marker, perf-baseline ownership, shared-promotion posture, and parked `test_fsmount` packet expectations are no longer an unstated self-test gap.
+- The current exact-readback set now truthfully pins the shared rollback-ownership and lab-matrix packet again, and the adjacent manifest-backed runtime atomic64 survey pair now agrees with the current validator, review-checklist, and matrix blob pins instead of trailing the shared packet.
+- The current helper-backed bitmap rollback lab replay route remains `zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`, and the helper-backed row still records `Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`.
+- The current bounded bitmap rollback gate now also has an exact check inventory in this note: thirteen bounded range and prefix cases, two `find_nth_bit` replays, eleven copy-tail cases, explicit zero-length range/prefix and zero-length copy no-op coverage, the aligned 97-bit copy replay that keeps the second copied word intact before the cleared tail resumes, bounded out-of-bounds rejection coverage, empty-batch rejection for `runThresholdReplay(0)`, deterministic threshold replays for `runThresholdReplay(1)` and `runThresholdReplay(4)` with checksums `5216946504564592253` and `7942141539243507472`, final markers `final_first_zero=109`, `final_weight=1005`, and `final_nth_seven=123`, and a current source-inventory tally of `13 DiffCase`, `11 CopyCase`, and `13 mixThresholdChecksum()` checkpoints.
+- The helper-backed bitmap rollback row still keeps `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold.
+- `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig` also remain shipped on `master` as the dedicated local-only perf-baseline posture packet, and `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` stays the bounded replay route outside the shared validator-backed exact-readback target set while the approved local-only command-and-limit evidence for both rollback gates remains intentionally separate from shared CI perf approval.
+- `zigux/Makefile` still exposes `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-perf-baseline-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, `make -C zigux phase4-test-fsmount-survey`, `make -C zigux phase4-kprobe-example-survey`, and `make -C zigux phase4`, so the Linux-style local replay surface matches the current shared Phase 4 packet plus the adjacent local-only perf-baseline, kprobe, and test_fsmount survey wrappers instead of hiding those routes in the build file alone.
+- The broader shared build and Makefile surface also still carries `make -C zigux phase4-bitmap-diff-survey` plus `zig build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig`, so the bitmap survey packet remains reviewable beside the helper-backed replay without widening the lane into perf-threshold approval.
+- The parked kprobe gap packet at `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` now stays explicit in this shared gate-evidence note as adjacent parked evidence only, its Linux replay remains `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`, and the shared gate-evidence note now keeps that adjacent parked packet explicit without claiming a shipped Zig starter while `samples/zigux/kprobe_example.zig` remains absent on current `master`.
+- The dedicated parked `test_fsmount` gap packet at `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig` now also stays under the dedicated exact-readback checker, its Linux replay remains `make M=samples/vfs`, and the shared validator route now picks that same parked packet up through `scripts/zigux/check-phase4-gate-evidence.py` while `samples/zigux/test_fsmount.zig` remains absent on current `master`.
+- The shipped local perf-baseline survey packet is intentionally separate from that shared exact-readback set: it exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.
+
+## Current Conclusion
+- shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.
+- that shared-CI-only unapproved posture now lives beside a different local-only truth: the dedicated perf-baseline survey packet already approves the local benchmark commands and local acceptable limits for both rollback gates while still keeping shared CI perf coverage out of scope.
+- the dedicated local perf-baseline survey packet is still the truthful way to keep that split posture measurable: it exact-pins the approved local-only command-and-limit evidence for both rollback gates while keeping shared CI perf coverage out of scope.
+- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `Documentation/zigux/phase4-validation-matrix.md` now all mirror that local-only split and the current decision-owner packet: the Validation and Perf Team stays named as the decision owner for any broader shared-CI perf promotion, while the ABI and Runtime Team plus Shared Subsystems Pod stay named as coordination owners for that policy call.
+- The current exact-readback note now matches the live validator, workflow, Makefile, dedicated `Documentation/zigux/artifact-diff.md` note, docs-root reminder, tests-root reminder, and adjacent runtime atomic64 manifest-backed survey pair on `master`, so the broader checker-backed packet is aligned again on current `master`.
