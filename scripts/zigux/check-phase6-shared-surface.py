@@ -367,7 +367,7 @@ def scaffold_repo(root: Path) -> None:
                 "perf_thresholds": {"bsearch": {"lower_bound_budget_formula": "std.math.log2_int_ceil(len) + 1", "equality_budget_formula": "std.math.log2_int_ceil(len) + 1"}},
                 "exact_checks": ["python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test", "python3 scripts/zigux/check-phase6-base64-c-parity.py", "make -C zigux phase6-validate", "make -C zigux phase6", "make -C zigux phase6-bsearch-test", "make -C zigux phase6-hexdump-test", "make -C zigux phase6-perf", "make -C zigux phase6-base64-perf", "make -C zigux phase6-checksum-perf", "make -C zigux phase6-hexdump-perf", "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test", "python3 scripts/zigux/check-phase6-checksum-c-parity.py"],
                 "checksum_parity_replay": "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
-                "determinism_evidence": {"base64": {"c_parity_cases": 24}, "checksum": {"c_parity_cases": 41}, "generated_fixture_artifacts_committed": false},
+                "determinism_evidence": {"base64": {"c_parity_cases": 24}, "checksum": {"c_parity_cases": 41}, "generated_fixture_artifacts_committed": False},
             }
             write(root / rel_path, json.dumps(manifest, indent=2) + "\n")
             continue
