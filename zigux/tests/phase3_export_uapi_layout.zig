@@ -2,6 +2,8 @@ const std = @import("std");
 const abi = @import("abi_bindings");
 const export_shim = @import("export_shim");
 const uapi_version = @import("uapi_version");
+const dev_t_bindings = @import("dev_t_bindings");
+const uapi_dev_t = @import("uapi_dev_t");
 
 test "phase3 export shim and uapi keep canonical boundary layout" {
     const header: export_shim.Header = export_shim.header(0x55);
@@ -143,4 +145,18 @@ test "phase3 export shim evaluation mirrors the uapi boundary classification" {
     try std.testing.expect(uapi_mismatch.canonical() == null);
     try std.testing.expectEqual(uapi_mismatch.sizeDelta(), export_mismatch.sizeDelta());
     try std.testing.expect(!export_shim.isOk(export_mismatch.status));
+}
+
+test "phase3 uapi dev_t starter keeps curated boundary parity explicit" {
+    try std.testing.expectEqual(dev_t_bindings.minor_bits, uapi_dev_t.minor_bits);
+    try std.testing.expectEqual(dev_t_bindings.minor_mask, uapi_dev_t.minor_mask);
+    try std.testing.expectEqual(dev_t_bindings.max_major, uapi_dev_t.major_max);
+    try std.testing.expect(uapi_dev_t.majorValid(uapi_dev_t.major_max));
+    try std.testing.expect(uapi_dev_t.minorValid(uapi_dev_t.minor_mask));
+    try std.testing.expect(uapi_dev_t.rangeFits(uapi_dev_t.minor_mask - 3, 4));
+    try std.testing.expectEqual(
+        try dev_t_bindings.lastInRange(uapi_dev_t.major_max, uapi_dev_t.minor_mask - 3, 4),
+        try uapi_dev_t.lastInRange(uapi_dev_t.major_max, uapi_dev_t.minor_mask - 3, 4),
+    );
+    try std.testing.expectError(error.RangeExhausted, uapi_dev_t.lastInRange(1, uapi_dev_t.minor_mask - 1, 3));
 }
