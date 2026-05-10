@@ -276,6 +276,7 @@
     "python3 scripts/zigux/check-phase6-base64-c-parity.py",
     "make -C zigux phase6-validate",
     "make -C zigux phase6",
+    "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-bsearch-test",
     "make -C zigux phase6-hexdump-test",
     "make -C zigux phase6-perf",
