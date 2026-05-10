@@ -131,6 +131,7 @@ This slice does not yet claim:
 
 ## Next Bounded Step
 
+Before treating this slice as fully parked, finish the shared `scripts/zigux/validate-phase7.py` follow-through so the restored `Documentation/zigux/review-checklist.md` markers in this slice and `Documentation/zigux/phase7-rbtree-slice.md` are exact-counted by the validator too.
 Leave this lane parked unless fresh repo inspection finds one more concrete Phase 7 helper need or a renewed Phase 5-versus-Phase 7 boundary drift.
 If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.
 If the string-helper family reopens after that, keep the follow-through inside the now-landed whitespace, size-rendering, quoting, escape, string-array, and no-sample boundary packet before widening into `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()`.
