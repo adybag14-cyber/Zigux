@@ -45,6 +45,12 @@
     "defconfig",
     "savedefconfig"
   ],
+  "silent_request_packet": [
+    "helpnewconfig_expected.json"
+  ],
+  "syncconfig_env_packet": [
+    "syncconfig_expected.json"
+  ],
   "allconfig_sentinel_packet": [
     "allnoconfig_expected.json",
     "allyesconfig_expected.json",
