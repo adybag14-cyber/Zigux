@@ -150,6 +150,7 @@ Each scorecard packet keeps linked surveys and blocker follow-ups, benchmark-not
 
 ## Gates
 
+- `scripts/zigux/validate-phase15.py`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `make -C zigux phase15-validate`
