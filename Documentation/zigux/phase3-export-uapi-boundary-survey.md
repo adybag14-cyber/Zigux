@@ -17,19 +17,25 @@ This note records the current export-shim and starter UAPI boundary that still s
 - `PHASE3_LINUX_HEADER_BLOB_SHA=c8cfd9590d2d0039ad087bb020a236fdc0a2b4ff`
 - `PHASE3_ABI_HEADER_PATH=include/zigux/abi.h`
 - `PHASE3_ABI_HEADER_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
+- `PHASE3_EXPORT_UAPI_BEHAVIOR_PATH=zigux/tests/phase3_export_uapi.zig`
+- `PHASE3_EXPORT_UAPI_BEHAVIOR_BLOB_SHA=2a61138f07b5940318f3149e028a2b37ab321009`
+- `PHASE3_EXPORT_UAPI_BUILD_PATH=zigux/tests/phase3_export_uapi_build.zig`
+- `PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA=9d0437cc76cd59b1bcadd6ca49585625c8befe3e`
 - `PHASE3_EXPORT_UAPI_LAYOUT_PATH=zigux/tests/phase3_export_uapi_layout.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_BLOB_SHA=58a2bc8de170d45ff4274a1f3994e2c4dbf44965`
+- `PHASE3_EXPORT_UAPI_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig`
+- `PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA=e138bb90c5bb4a9e52e201b2132df1fe48c4c2ee`
 - `PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py`
 - `PHASE3_EXPORT_UAPI_VALIDATOR_BLOB_SHA=bae1837523526c0cea1aaf371af2dde5302770c3`
 
 ## Live Boundary
 
-The blob markers above are the authoritative packet-local evidence for the currently shipped export shim, starter UAPI helper, Linux-facing aggregation header, canonical ABI header, focused layout replay, and dedicated packet-local validator in this current-head public GitHub fallback readback. The dedicated Linux `zigux.h` governance note remains a coupled review surface for this packet, but it is not itself part of the blob-pinned boundary-artifact list above.
+The blob markers above are the authoritative packet-local evidence for the currently shipped export shim, starter UAPI helper, Linux-facing aggregation header, canonical ABI header, direct export/UAPI behavior replay, direct behavior build wrapper, focused layout replay, focused layout build wrapper, and dedicated packet-local validator in this current-head public GitHub fallback readback. The dedicated Linux `zigux.h` governance note remains a coupled review surface for this packet, but it is not itself part of the blob-pinned boundary-artifact list above.
 
 - `zigux/kernel/export_shim.zig` keeps the starter export boundary narrow by relaying the shared `Header`, `HeaderCompatibility`, `HeaderAcceptance`, `HeaderEvaluation`, and `CompatibilityDecision` types plus the boundary-header helpers from `zigux/uapi/version.zig`, by exposing explicit `evaluateHeader()` and `compatibilityStatus()` relays for status-based callers, and by normalizing explicit success or errno-style export status values without widening into a larger runtime-facing shim family.
 - `zigux/uapi/version.zig` keeps the starter UAPI version contract reviewable through canonical versus future-compatible boundary-header helpers plus compact `acceptHeader()`, `canonicalizeHeader()`, and `evaluateHeader()` paths that keep requested-header size deltas and acceptance evidence explicit beside the canonical header without widening into a broader UAPI packet.
-- `zigux/tests/phase3_export_uapi.zig` plus `zigux/tests/phase3_export_uapi_build.zig` keep the direct starter-boundary behavior replay explicit by exercising canonical-header parity, future-compatible acceptance, accepted-header canonicalization, and explicit compatibility-status relays beside the shared ABI packet rather than leaving those starter semantics implied only by prose or the wider dump route.
-- `zigux/tests/phase3_export_uapi_layout.zig` keeps the focused layout replay explicit by pinning the named `export_shim.Header` relay beside boundary-header size, field offsets, compatibility predicates, compatibility classification, accepted-header canonicalization, and compatibility-status relays across the export shim and starter UAPI helper.
+- `zigux/tests/phase3_export_uapi.zig` plus `zigux/tests/phase3_export_uapi_build.zig` are part of the blob-pinned packet-local evidence and keep the direct starter-boundary behavior replay explicit by exercising canonical-header parity, future-compatible acceptance, accepted-header canonicalization, and explicit compatibility-status relays beside the shared ABI packet rather than leaving those starter semantics implied only by prose or the wider dump route.
+- `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig` are part of the blob-pinned packet-local evidence and keep the focused layout replay explicit by pinning the named `export_shim.Header` relay beside boundary-header size, field offsets, compatibility predicates, compatibility classification, accepted-header canonicalization, and compatibility-status relays across the export shim and starter UAPI helper.
 - `scripts/zigux/validate-phase3-export-uapi-survey.py` keeps the packet fail-closed by checking that the survey note, the starter boundary code, the Linux-facing header, the focused layout replay, the shared review surfaces, and the workflow hooks still describe the same bounded export/UAPI packet.
 - `include/linux/zigux.h` remains the Linux-facing aggregation header for already-landed Phase 3 boundary helpers, including the explicit `zigux_status_ok()` and `zigux_status_err()` relay surface.
 - `include/zigux/abi.h` remains the canonical ABI layout source of truth for `struct zigux_boundary_header`, `struct zigux_export_status`, and the shared version and status flags those starter helpers depend on.
