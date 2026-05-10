@@ -19,7 +19,7 @@
       "dump_types_file"
     ]
   },
-  "case_count": 24,
+  "case_count": 25,
   "cases": [
     "minimal",
     "debug_reference_types",
@@ -36,6 +36,7 @@
     "version_then_invalid_option",
     "abbreviated_help",
     "unexpected_help_argument",
+    "version_then_unexpected_help_argument",
     "version",
     "abbreviated_version",
     "invalid_option",
@@ -62,6 +63,7 @@
     "version_then_help_expected.json",
     "version_then_invalid_option_expected.json",
     "unexpected_help_argument_expected.json",
+    "version_then_unexpected_help_argument_expected.json",
     "version_expected.json",
     "abbreviated_version_expected.json",
     "invalid_option_expected.json",
@@ -76,6 +78,7 @@
     "ambiguous_long_option_expected.json",
     "version_then_invalid_option_expected.json",
     "unexpected_help_argument_expected.json",
+    "version_then_unexpected_help_argument_expected.json",
     "invalid_option_expected.json",
     "missing_reference_argument_expected.json",
     "missing_dump_types_argument_expected.json",
@@ -101,6 +104,7 @@
       "ambiguous_long_option",
       "version_then_invalid_option",
       "unexpected_help_argument",
+      "version_then_unexpected_help_argument",
       "invalid_option",
       "missing_reference_argument",
       "missing_dump_types_argument",
@@ -114,7 +118,8 @@
       "abbreviated_version",
       "version_then_short_help",
       "version_then_long_help",
-      "version_then_invalid_option"
+      "version_then_invalid_option",
+      "version_then_unexpected_help_argument"
     ]
   },
   "action_abbrev_cases": [
