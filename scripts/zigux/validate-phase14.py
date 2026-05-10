@@ -701,6 +701,35 @@ def run_self_test() -> int:
 
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken["surfaces"] = "not-a-list"
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 manifest surfaces payload is not a list" not in errors:
+            print("self-test expected non-list manifest surfaces failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken["surfaces"] = [17]
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 manifest surface entry is not an object" not in errors:
+            print("self-test expected non-object manifest surface failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
+        broken["surfaces"] = [
+            {"required_marker": REQUIRED_SURFACES["Documentation/zigux/README.md"]}
+        ]
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(broken, indent=2) + "\n")
+        errors = check(root)
+        if "phase14 manifest surface entry is missing a string path" not in errors:
+            print("self-test expected missing manifest surface path failure", file=sys.stderr)
+            return 1
+
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        broken = load_json_file(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json")
         broken["surfaces"].append(
             {
                 "path": "Documentation/zigux/README.md",
