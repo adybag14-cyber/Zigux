@@ -130,6 +130,8 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             saw_callback_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "checked_focus") != null and
+            std.mem.indexOf(u8, prompt, "registration depth rising to 1") != null and
+            std.mem.indexOf(u8, prompt, "returning to 0") != null and
             std.mem.indexOf(u8, prompt, "OutstandingRegistration") != null and
             std.mem.indexOf(u8, prompt, "post-exit replay rejection") != null)
         {
@@ -210,6 +212,9 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "callback-registration-balance")) {
             saw_callback_balance_check = true;
             try expectContains(check.expected, "callback path");
+            try expectContains(check.expected, "rising to 1");
+            try expectContains(check.expected, "returning to 0");
+            try expectContains(check.expected, "OutstandingRegistration");
             try expectContains(check.expected, "zero");
         }
         if (std.mem.eql(u8, check.id, "post-exit-rejection")) {
