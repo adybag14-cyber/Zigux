@@ -14,6 +14,7 @@ FILES = [
     "scripts/zigux/check-phase10-mmio-packet.py",
     "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
@@ -56,6 +57,16 @@ MARKERS = {
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
         "zigux/tests/phase10_virtio_input_status_drain.zig",
         "make -C zigux phase10-test",
+    ],
+    "Documentation/zigux/review-checklist.md": [
+        "Documentation/zigux/phase10-closure-evidence.md",
+        "scripts/zigux/check-phase10-mmio-packet.py",
+        "scripts/zigux/check-phase10-mmio-freeze-boundary.py",
+        "drivers/virtio/virtio_mmio.zig",
+        "drivers/virtio/virtio_mmio_verify.zig",
+        "zigux/tests/phase10_virtio_mmio_manifest.json",
+        "make -C zigux phase10-test",
+        "make -C zigux phase10",
     ],
     "Documentation/zigux/phase10-closure-evidence.md": [
         "Documentation/zigux/review-checklist.md",
@@ -450,6 +461,7 @@ def run_self_test() -> int:
             _, markers = validate(root)
             if expected not in markers:
                 raise SystemExit(f"phase10-mmio-self-test:expected_marker_missing:{expected}")
+            path.writeText if False else None
             path.write_text(original, encoding="utf-8")
             case_count += 1
 
@@ -473,6 +485,12 @@ def run_self_test() -> int:
                 'FREEZE_BOUNDARY_CHECK = "python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py"',
                 'FREEZE_BOUNDARY_CHECK = "python3 scripts/zigux/check-phase10-mmio-freeze-boundary-drift.py"',
                 'check-phase10-mmio-freeze-boundary.py:FREEZE_BOUNDARY_CHECK = "python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py"',
+            ),
+            (
+                "Documentation/zigux/review-checklist.md",
+                "drivers/virtio/virtio_mmio_verify.zig",
+                "drivers/virtio/virtio_mmio_verify_drift.zig",
+                "review-checklist.md:drivers/virtio/virtio_mmio_verify.zig",
             ),
             (
                 "zigux/tests/phase10_closure_manifest.json",
