@@ -278,6 +278,7 @@
     "make -C zigux phase6",
     "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-bsearch-test",
+    "zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-test",
     "make -C zigux phase6-perf",
     "make -C zigux phase6-base64-perf",
