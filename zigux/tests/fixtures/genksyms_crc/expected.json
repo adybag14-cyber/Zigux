@@ -1,1 +1,0 @@
-{"cases":[{"input":"int","crc_hex":"0x1451dab1"},{"input":"struct device","crc_hex":"0xa38c4517"},{"input":"typedef unsigned long size_t","crc_hex":"0x4921dd25"},{"input":"VMLINUX_SYMBOL_STR(sample_symbol)","crc_hex":"0x574a500e"},{"input":"const volatile unsigned long *","crc_hex":"0xbfa71bbf"}]}

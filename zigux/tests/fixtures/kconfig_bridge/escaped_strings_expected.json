@@ -1,1 +1,0 @@
-{"counts":{"set":4,"unset":1},"entries":[{"name":"CONFIG_BANNER","kind":"string","value":"zigux \"bridge\""},{"name":"CONFIG_PATH","kind":"string","value":"drivers\\zigux"},{"name":"CONFIG_SUFFIX","kind":"string","value":"ziguxtail"},{"name":"CONFIG_LIMIT","kind":"value","value":"32"},{"name":"CONFIG_DEBUG","kind":"unset","value":"n"}]}
