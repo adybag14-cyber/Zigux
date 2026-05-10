@@ -17,6 +17,8 @@ REQUIRED_FILES = {
     "cleanup_replay": "zigux/tests/phase11_hvc_cleanup.zig",
 }
 
+CURRENT_LANE_KEY = "P11-L18"
+
 SURVEY_GATE_MARKERS = [
     "phase11-hvc-console-survey-gate",
     "cleanup handoff",
@@ -86,8 +88,10 @@ def check_manifest(root: Path) -> None:
     except json.JSONDecodeError as exc:
         raise CheckError(f"invalid json in {manifest_path}: {exc}") from exc
 
-    if payload.get("lane_key") != "P11-L16":
-        raise CheckError("phase11_hvc_console_manifest.json lost lane_key P11-L16")
+    if payload.get("lane_key") != CURRENT_LANE_KEY:
+        raise CheckError(
+            f"phase11_hvc_console_manifest.json lost lane_key {CURRENT_LANE_KEY}"
+        )
     if payload.get("phase") != "Phase 11":
         raise CheckError("phase11_hvc_console_manifest.json lost Phase 11 marker")
 
@@ -133,7 +137,7 @@ def build_self_test_fixture(root: Path) -> None:
         root / REQUIRED_FILES["manifest"],
         json.dumps(
             {
-                "lane_key": "P11-L16",
+                "lane_key": CURRENT_LANE_KEY,
                 "phase": "Phase 11",
                 "gaps": [{"id": gap_id} for gap_id in sorted(REQUIRED_GAP_IDS)],
             },
