@@ -46,29 +46,23 @@ test "phase 5 kretprobe sample keeps sample-owned retarget replay explicit" {
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
 }
 
-test "phase 5 kretprobe sample keeps handler boundaries explicit" {
+test "phase 5 kretprobe sample keeps sample-owned handler boundary replay explicit" {
     var module = sample.KretprobeExampleSample{};
+    const replay = try module.runHandlerBoundaryReplay();
 
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 100));
-    try std.testing.expectError(error.InvalidSymbolName, module.retargetSymbol(""));
-
-    try module.init();
-    try std.testing.expectEqual(@as(usize, @sizeOf(i64)), module.privateDataSizeBytes());
-    try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), module.maxactiveBudget());
-    try std.testing.expect(!(try module.entryHandler(false, 11)));
-    try std.testing.expectEqual(@as(usize, 1), module.skipped_kernel_threads);
-    try std.testing.expect(try module.entryHandler(true, 100));
-    try std.testing.expectEqual(sample.SampleStage.armed, module.stage());
-    try std.testing.expectError(error.OutstandingProbeInstance, module.entryHandler(true, 120));
-
-    const result = try module.retHandler(37, 145);
-    try std.testing.expectEqual(@as(usize, 37), result.retval);
-    try std.testing.expectEqual(@as(i64, 45), result.duration_ns);
-    try std.testing.expectEqual(@as(usize, 37), module.last_retval);
-    try std.testing.expectEqual(@as(i64, 45), module.last_duration_ns);
-
-    try module.recordMissedInstance();
-    try std.testing.expectEqual(@as(usize, 1), module.nmissed);
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", replay.anchor);
+    try std.testing.expectEqualStrings(sample.KretprobeExampleSample.default_symbol_name, replay.symbol_name);
+    try std.testing.expectEqual(sample.SampleStage.cold, replay.stage_before_replay);
+    try std.testing.expectEqual(sample.SampleStage.replay_complete, replay.stage_after_replay);
+    try std.testing.expect(replay.skipped_kernel_thread_path_checked);
+    try std.testing.expect(replay.outstanding_instance_rejected);
+    try std.testing.expectEqual(@as(usize, 37), replay.return_value);
+    try std.testing.expectEqual(@as(i64, 45), replay.duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
+    try std.testing.expectEqual(module.maxactiveBudget(), replay.maxactive);
+    try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), replay.maxactive);
+    try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
 }
 
 test "phase 5 kretprobe sample ownership replay keeps lifecycle snapshots explicit" {
