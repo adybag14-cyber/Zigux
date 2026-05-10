@@ -6,7 +6,7 @@ This catalog records the current shared review surface for the bounded Phase 6 l
 
 - `PHASE6_STATUS=parked`
 - `PHASE6_PACKET=base64-bsearch-checksum-hexdump`
-- surveyed head: `911470d`
+- surveyed head: `3ea8f93`
 - roadmap anchors:
   - `lib/base64.c`
   - `lib/bsearch.c`
