@@ -126,6 +126,12 @@ EXPECTED_COMPILE_SHARDS = [
     {"label": label, "root_source": root_source, "coverage": coverage}
     for label, root_source, coverage in COMPILE_MATRIX_ROWS
 ]
+ANCHOR_PACKET_LABELS = {
+    "kernel/workqueue.c": "workqueue",
+    "net/core/skbuff.c": "skbuff",
+    "kernel/trace/ring_buffer.c": "ring buffer",
+    "kernel/rcu/tree.c": "RCU tree",
+}
 
 
 def text(path: str) -> str:
@@ -158,6 +164,21 @@ def summarize_gap_ids(manifest: dict[str, object]) -> tuple[str, str]:
     return ready_next_gap, blocked_gap
 
 
+def format_anchor_packet_survey_line(packet: dict[str, object]) -> str:
+    anchor = packet.get("anchor")
+    manifest_path = packet.get("manifest_path")
+    packet_lane_key = packet.get("lane_key")
+    packet_commit = packet.get("surveyed_commit")
+    ready_next_gap = packet.get("ready_next_gap")
+    blocked_gap = packet.get("blocked_gap")
+    label = ANCHOR_PACKET_LABELS.get(anchor, anchor)
+    ready_next_text = ready_next_gap if ready_next_gap else "none currently recorded"
+    return (
+        f"- {label}: `{manifest_path}`, lane `{packet_lane_key}`, surveyed commit `{packet_commit}`, "
+        f"ready-next `{ready_next_text}`, blocked `{blocked_gap}`"
+    )
+
+
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
 if missing_files:
     print("PHASE14_VALIDATION=fail")
@@ -167,12 +188,13 @@ if missing_files:
     print("MISSING_PHASE14_FILES_END")
     sys.exit(1)
 
+survey_text = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
 missing: list[str] = []
 for name, source, markers in [
     ("scripts_readme", text("scripts/zigux/README.md"), SCRIPT_README_MARKERS),
     ("make", text("zigux/Makefile"), MAKE_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
-    ("survey", text("Documentation/zigux/phase14-end-to-end-smoke-survey.md"), RELEASE_MARKERS),
+    ("survey", survey_text, RELEASE_MARKERS),
     ("checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
     ("build", text("zigux/tests/phase14_build.zig"), BUILD_MARKERS),
 ]:
@@ -223,6 +245,7 @@ else:
             missing.append(f"manifest:shared_smoke_surface:{required_surface}")
 
 anchor_packets = manifest.get("anchor_packets")
+expected_survey_anchor_lines: list[tuple[str, str]] = []
 if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
     missing.append("manifest:anchor_packets")
 else:
@@ -271,6 +294,14 @@ else:
             missing.append(f"{manifest_path}:ready_next_gap")
         if blocked_gap != expected_blocked_gap:
             missing.append(f"{manifest_path}:blocked_gap")
+
+        expected_survey_anchor_lines.append(
+            (packet_lane_key, format_anchor_packet_survey_line(packet))
+        )
+
+for packet_lane_key, survey_line in expected_survey_anchor_lines:
+    if survey_line not in survey_text:
+        missing.append(f"survey:anchor_packet:{packet_lane_key}")
 
 smoke_commands = manifest.get("smoke_commands")
 expected_smoke_commands = [
