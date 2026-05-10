@@ -2,6 +2,8 @@ const std = @import("std");
 const abi = @import("abi_bindings");
 const export_shim = @import("export_shim");
 const uapi_version = @import("uapi_version");
+const dev_t_bindings = @import("dev_t_bindings");
+const uapi_dev_t = @import("uapi_dev_t");
 
 test "phase3 export shim and uapi share the bounded boundary-header contract" {
     const canonical = export_shim.canonicalHeader(0x44);
@@ -79,4 +81,19 @@ test "phase3 export shim keeps compatibility-status relays explicit" {
     try std.testing.expectEqual(@as(i32, -71), mismatch_status.code);
     try std.testing.expectEqual(@intFromEnum(abi.Facility.kernel), mismatch_status.facility);
     try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), mismatch_status.flags);
+}
+
+test "phase3 uapi dev_t starter keeps encode and range parity explicit" {
+    const encoded = try uapi_dev_t.encode(73, 0x34567);
+    try std.testing.expectEqual(dev_t_bindings.minor_bits, uapi_dev_t.minor_bits);
+    try std.testing.expectEqual(dev_t_bindings.minor_mask, uapi_dev_t.minor_mask);
+    try std.testing.expectEqual(dev_t_bindings.max_major, uapi_dev_t.major_max);
+    try std.testing.expectEqual(try dev_t_bindings.encode(73, 0x34567), encoded);
+    try std.testing.expectEqual(@as(u32, 73), uapi_dev_t.major(encoded));
+    try std.testing.expectEqual(@as(u32, 0x34567), uapi_dev_t.minor(encoded));
+    try std.testing.expect(uapi_dev_t.rangeFits(8, 4));
+    try std.testing.expectEqual(try dev_t_bindings.lastInRange(12, 8, 4), try uapi_dev_t.lastInRange(12, 8, 4));
+    try std.testing.expectError(error.MajorOutOfRange, uapi_dev_t.encode(uapi_dev_t.major_max + 1, 0));
+    try std.testing.expectError(error.MinorOutOfRange, uapi_dev_t.encode(0, uapi_dev_t.minor_mask + 1));
+    try std.testing.expectError(error.RangeExhausted, uapi_dev_t.lastInRange(5, uapi_dev_t.minor_mask - 1, 3));
 }
