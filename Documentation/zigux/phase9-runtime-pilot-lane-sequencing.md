@@ -60,6 +60,10 @@ Current `master` now exposes one concrete shared-governance result for this sequ
 
 - direct current-`master` file readback confirms the shared loader-facing family instead of the older missing-family blocker wording
 - direct current-`master` readback also shows `Documentation/zigux/README.md` still omits this sequencing note from its broad Phase 9 summary even though this note now owns the exact shared-loader inventory, convenience-target names, and blocker posture
+- the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook when the work is about checker-local reviewability drift before the broader `make -C zigux phase9` replay
+- `Documentation/zigux/review-checklist.md` now keeps the shared-loader split visible without the stale non-existent bitmap build path by naming the shipped `phase9-runtime-bitmap-top-bit-tests` step beside `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and it remains the reviewer-facing surface that also restates the older command and environment ownership boundaries, while the shared `python3 scripts/zigux/check-phase9-build-only-surface.py --self-test` hook stays part of the same loader-owned validation packet
+- `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references
+- `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references
 - this sequencing note should therefore stay the owner of the exact shared-loader inventory, convenience-target names, and blocker posture for the surrounding shared reminder packet
 - future same-lane follow-through should narrow only a shared reminder surface that drifts away from that confirmed packet, one file at a time
 
