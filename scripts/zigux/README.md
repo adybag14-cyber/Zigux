@@ -187,3 +187,6 @@ Phase 15 flow
 - `Documentation/zigux/phase15-readiness-gate-survey.md` remains the dedicated maintenance-mode readiness note for the parked Phase 15 governance packet.
 - `validate-phase15.py` keeps the shared `phase15-validate` route fail-closed on the parked Phase 15 readiness packet and the parity scorecard's machine-reported review-field and aggregate-metric surface before the narrower handoff checkers run.
 - `make -C zigux phase15-validate` now reruns `validate-phase15.py`, `check-phase15-scripts-readme-alignment.py`, and `check-phase15-review-process-handoff.py` together so the shipped validator-first route covers both the broad readiness packet and the dedicated parity-scorecard reporting packet before `make -C zigux phase15-test` replays `zigux/tests/phase15_build.zig`.
+
+Phase 3 header-family reminder
+- `validate-phase3-abi-header-family-survey.py` stays paired with `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-abi-h-boundary-next-step.md`, and `zigux/uapi/dev_t.zig` so the bounded `include/zigux/abi.h` family footholds and their next-step note stay explicit in the scripts-root review packet.
