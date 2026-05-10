@@ -53,6 +53,8 @@ VALIDATION_MATRIX_MARKERS = [
     "sysrq handoff",
     "notifier-facing handoff",
     "`hvc_cleanup()` tty-port release handoff",
+    "PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed",
+    "`summarizeNotifierAddOutcome()`",
 ]
 
 SLICE_NOTE_MARKERS = [
@@ -70,7 +72,7 @@ SYSRQ_HELPER_MARKERS = [
     "keeps_live_sysrq_execution_out_of_scope = true",
 ]
 
-SELF_TEST_CASE_COUNT = 6
+SELF_TEST_CASE_COUNT = 7
 
 
 class CheckError(RuntimeError):
@@ -228,6 +230,16 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         expect_failure(tmpdir, "exported-helper signature proof")
+
+        build_self_test_fixture(tmpdir)
+        matrix_missing = tmpdir / REQUIRED_FILES["validation_matrix"]
+        matrix_missing.write_text(
+            matrix_missing.read_text(encoding="utf-8").replace(
+                "PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed\n", ""
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(tmpdir, "PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed")
 
         build_self_test_fixture(tmpdir)
         manifest_missing = tmpdir / REQUIRED_FILES["manifest"]
