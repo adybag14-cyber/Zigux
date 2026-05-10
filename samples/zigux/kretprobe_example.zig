@@ -522,6 +522,12 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 20), replay.maxactive);
     try std.testing.expectEqual(@as(usize, 20), sample_instance.maxactiveBudget());
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqual(SampleFocus.symbol_selection, replay.checked_focus[0]);
+    try std.testing.expectEqual(SampleFocus.entry_timestamp, replay.checked_focus[1]);
+    try std.testing.expectEqual(SampleFocus.private_data_shape, replay.checked_focus[2]);
+    try std.testing.expectEqual(SampleFocus.return_duration, replay.checked_focus[3]);
+    try std.testing.expectEqual(SampleFocus.missed_summary, replay.checked_focus[4]);
+    try std.testing.expectEqual(SampleFocus.ownership_and_lifetime, replay.checked_focus[5]);
 }
 
 test "kretprobe sample retarget replay keeps symbol selection explicit" {
