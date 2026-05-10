@@ -13,6 +13,7 @@
   "rollback_owner": "Validation and Perf Team",
   "shared_gate_evidence_packet_present": false,
   "validation_entrypoint": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+  "reversible_delivery_evidence": "the dedicated local survey wrapper `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, the matching Linux-style wrapper `make -C zigux phase4-test-fsmount-survey`, and the adjacent shared gate-evidence packet keep the parked test_fsmount gap reviewable and reversible without claiming a shipped Zig starter",
   "review_prompts": [
     "the survey keeps the Linux anchor path and blob sha explicit while the Zig starter stays absent",
     "the packet keeps the live VFS replay command plus the dedicated local and Linux-style survey wrappers explicit without implying a shipped Zig sample",
