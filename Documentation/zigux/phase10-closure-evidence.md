@@ -39,6 +39,7 @@ The shared Phase 10 closure packet currently stays inside:
 - `Documentation/zigux/README.md`
 - `scripts/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/freeze-map.md`
 - `zigux/tests/README.md`
 - `drivers/virtio/virtio.zig`
 - `drivers/virtio/virtio_driver_id.zig`
@@ -116,6 +117,8 @@ The shared Phase 10 closure packet now keeps two adjacent parity-scoreboard buck
 
 The shared closure packet is still intentionally parked against risky transport work.
 
+It also inherits the current freeze-map boundary: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain separate Phase 14 study-only anchors rather than Phase 10 delivery claims.
+
 This note does not claim:
 
 - queue setup or reset parity
@@ -132,6 +135,6 @@ Reviewers should treat any future claim that the active Phase 10 tranche already
 
 Keep the shared Phase 10 tranche parked unless the closure packet itself moves again or another one-file shared-summary undercount becomes visible.
 
-Fresh shared-surface readback now shows `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/tests/phase10_closure_manifest.json`, and the `zigux/Makefile` `phase10-test` route already keep the landed direct `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_mmio.zig`, and the focused `zigux/tests/phase10_virtio_input_probe_preflight.zig` replay explicit beside the focused verify, queue-callback-preflight, registration-preflight, teardown-observation, status-drain, and MMIO freeze-boundary reminders.
+Fresh shared-surface readback now shows `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/README.md`, `zigux/tests/phase10_closure_manifest.json`, and the `zigux/Makefile` `phase10-test` route already keep the landed direct `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_mmio.zig`, the focused `zigux/tests/phase10_virtio_input_probe_preflight.zig` replay, the MMIO freeze-boundary reminders, and the separate Phase 14 study-only `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c` anchors explicit.
 
 No additional same-lane closure-note or shared-summary drift is visible on current `master`, so this lane should stay parked until one of those shared reminder surfaces or the shared Phase 10 packet moves again.
