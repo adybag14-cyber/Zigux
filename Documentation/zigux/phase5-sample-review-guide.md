@@ -111,7 +111,7 @@ Keep these no-extra-sample reminders explicit too:
 * there is no standalone `samples/zigux/*string*` Phase 5 reference sample; keep string-helper reviewability under the Phase 7 `string_helpers` packet
 * there is no standalone `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under the Phase 7 `cmdline` packet
 * there is no standalone `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under the Phase 7 `argv_split` packet
-* there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample; keep `rbtree` reviewability under the Phase 7 packet
+* there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample; keep `rbtree` reviewability under `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, and `zigux/tests/phase7_build.zig`
 * there is no standalone `samples/zigux/*bitmap*` Phase 5 reference sample; keep direct bitmap helper reviewability under the closed Phase 1 plus Phase 4 packet while the runtime bitmap family stays in Phase 9
 * there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample; the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` remains the approved formatting idiom cue
 
