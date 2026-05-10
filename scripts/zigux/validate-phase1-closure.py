@@ -150,7 +150,7 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_BITMAP_COPY_EXTEND_ZERO_ALIGNED_REVIEW=helper-local bitmap copy-and-extend zero-count and aligned-count proof stays explicit through the direct bitmap test anchor so zero-count copies clear the destination extension and aligned word counts preserve copied words without accidental tail masking",
     "PHASE1_BITMAP_ZERO_SIZED_DESTINATION_VIEW_REVIEW=helper-local zero-sized destination-view proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so copyClearTail, bitmap_copy_clear_tail, copyAndExtend, and bitmap_copy_and_extend leave zero-sized destination views untouched instead of clearing caller sentinel storage",
     "PHASE1_BITMAP_ZERO_BIT_BINARY_IDENTITY_REVIEW=helper-local bitmap zero-bit binary identity proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so andBits, andNotBits, equal, intersects, and subset keep empty-window identity semantics without treating zero-bit windows as live data",
-    "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while match-iterator coverage plus cached-root insert-miss, leftmost-sync, singleton-erase, replacement, detach, and reseed behavior keep direct review anchors without implying a broader shared iterator or cached-root fixture packet than current master ships",
+    "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal, detached-node, and duplicate-search replay stay explicit so duplicate-search parity keys remain shared-replay-owned while match-iterator coverage plus cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior keep direct review anchors without implying a broader shared iterator or cached-root fixture packet than current master ships",
     "PHASE1_STRING_MEMPARSE_REVIEW=helper-local memparse safety anchors stay explicit through the direct string tests and the Phase 1 helper manifest so sign-prefixed invalid input preserves rest, explicit positive and signed overflow clamps remain review-visible, signed inputs keep trailing-rest splits aligned with unsigned parsing, and suffixes are still consumed after saturation",
 ]
 
@@ -408,6 +408,14 @@ def run_self_test() -> None:
         manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_word_set_skip_anchor"] = "bad"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         assert "manifest:tools/lib/find_bit.zig:tail_word_set_skip_anchor" in collect_missing_markers(root)
+        case_count += 1
+        make_fixture_root(root)
+
+        manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/rbtree.zig"]["review_packet_summary"] = "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root insert-miss, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        assert "manifest:tools/lib/rbtree.zig:review_packet_summary" in collect_missing_markers(root)
         case_count += 1
         make_fixture_root(root)
 
