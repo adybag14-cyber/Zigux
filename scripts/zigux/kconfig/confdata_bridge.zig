@@ -174,6 +174,8 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         const raw_value = line[eq_index + 1 ..];
 
         const closing_quote_index = findClosingQuote(raw_value);
+        const malformed_quoted_duplicate = raw_value.len > 0 and raw_value[0] == '"' and closing_quote_index == null and findEntryIndex(entries.items, name) != null;
+        if (malformed_quoted_duplicate) continue;
         const kind: EntryKind = if (isTristateValue(raw_value))
             .tristate
         else if (closing_quote_index != null)
@@ -703,4 +705,25 @@ test "confdata bridge keeps only the last state across unset and set transitions
         "{\"counts\":{\"set\":2,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_ALPHA\",\"kind\":\"string\",\"value\":\"enabled\"},{\"name\":\"CONFIG_BETA\",\"kind\":\"value\",\"value\":\"7\"}]}\n",
         capture.list.items,
     );
+}
+
+test "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\\CONFIG_ALPHA=\"stable\"
+        \\\CONFIG_ALPHA=\"unterminated
+        \\\CONFIG_BETA=y
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("stable", summary.entries[0].value);
+    try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[1].name);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("y", summary.entries[1].value);
 }
