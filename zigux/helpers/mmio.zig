@@ -21,11 +21,11 @@ pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {
 }
 
 pub fn requireInteropPolicyBytes(unsafe_scope: u8, reserved: u8) PolicyError!void {
-    if (!allowsInteropPolicyBytes(unsafe_scope, reserved)) return error.UnsafeScopeDenied;
+    return narrow.requireVolatileMmioPolicyBytes(unsafe_scope, reserved);
 }
 
 pub fn requireInteropPolicy(policy: abi.InteropPolicy) PolicyError!void {
-    return requireInteropPolicyBytes(policy.unsafe_scope, policy.reserved);
+    return narrow.requireVolatileMmioInteropPolicy(policy);
 }
 
 pub fn rangeInteropPolicyBytes(
@@ -377,6 +377,14 @@ test "phase3 mmio interop policy gates stay explicit" {
     try std.testing.expect(!allowsInteropPolicy(raw_pointer_policy));
     try std.testing.expect(!allowsInteropPolicy(reserved_policy));
     try std.testing.expect(!allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 1));
+
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.requireVolatileMmioInteropPolicy(no_unsafe_policy));
+    try narrow.requireVolatileMmioInteropPolicy(mmio_policy);
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.requireVolatileMmioInteropPolicy(raw_pointer_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.requireVolatileMmioInteropPolicy(reserved_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.requireVolatileMmioByte(0));
+    try narrow.requireVolatileMmioByte(1);
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.requireVolatileMmioByte(2));
 
     const scoped_desc = try rangeInteropPolicy(base, 16, 4, mmio_policy);
     try std.testing.expectEqual(base, scoped_desc.base_addr);
