@@ -70,7 +70,7 @@ The exact checks now exercised through `zigux/tests/phase5_build.zig` and the di
 - the replay records the `0xdeadbeef` bitmask word and marks the relative-location payload path as checked in the replay summary
 - the replay marks the vararg payload path as checked so the `fmt` plus `va_list` `trace_foo_bar` idiom stays explicit in the public replay summary
 - the replay records six main-thread event calls and two function-callback event calls for a total of eight bounded tracepoint-family calls
-- the public `runCallbackBoundaryReplay()` helper requires registration first, records the callback-path replay explicitly, and restores the registration balance to zero before the sample completes
+- the public `runCallbackBoundaryReplay()` helper keeps the register-then-unregister callback replay self-contained, rejects outstanding registration, records the callback-path replay explicitly, and restores the registration balance to zero before the sample completes
 - `runOwnershipReplay()` keeps the `cold` -> `initialized` -> `replay_complete` -> `exited` lifecycle public with one init, replay, and exit run, the final `Gandalf` plus `iter=7` snapshot, restored registration balance, and the post-exit rejection boundary explicit
 
 ## Latest verification snapshot
