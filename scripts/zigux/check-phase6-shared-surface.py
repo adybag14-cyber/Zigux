@@ -30,6 +30,7 @@ REQUIRED_SNIPPETS = {
         "- dedicated perf replay: `zigux/tests/phase6_base64_perf.zig`",
         "- focused lower- and upper-bound C ABI replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- focused direct C ABI equality-budget replay: `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
+        "- direct local rerun route: `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`",
         "- current review posture: functional parity plus bounded comparison-budget evidence inside the focused replay, alongside the dedicated bounds-focused C ABI companion and the dedicated direct C ABI equality-budget replay that keep the typed and raw lower-bound, upper-bound, and equality comparator contract reviewable without widening into a separate timing-style perf target in the shipped packet today",
         "- `make -C zigux phase6-bsearch-test`",
         "- `make -C zigux phase6-hexdump-test`",
@@ -416,6 +417,7 @@ def run_self_test() -> None:
             raise AssertionError("expected removed-path failure")
         removed_path.unlink()
         assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- surveyed head: `911470d`", "- surveyed head: `deadbeef`")
+        assert_failure(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "- direct local rerun route: `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`", "- direct local rerun route: `zig build phase6-bsearch-missing --build-file zigux/tests/phase6_build.zig`")
         assert_failure(root, "zigux/tests/phase6_helper_parity_manifest.json", '"surveyed_commit": "911470d",', '"surveyed_commit": "",')
         assert_failure(root, "scripts/zigux/check-phase6-base64-c-parity.py", 'print(f\"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_BASE64_C_PARITY_COUNT={len(c_lines)}\")')
         assert_failure(root, "scripts/zigux/check-phase6-checksum-c-parity.py", 'print(f\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")', 'print(f\"PHASE6_CHECKSUM_C_PARITY_COUNT={len(c_lines)}\")')
