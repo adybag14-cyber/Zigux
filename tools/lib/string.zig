@@ -323,7 +323,10 @@ pub fn memparse(text: []const u8) MemparseResult {
         }
     }
 
-    var result = if (signed_input) clampSignedMagnitude(magnitude, prefix.negative) else magnitude;
+    var result = if (signed_input or magnitude != std.math.maxInt(u64))
+        clampSignedMagnitude(magnitude, prefix.negative)
+    else
+        magnitude;
     if (idx < text.len) {
         if (!signed_input) {
             result = applySuffix(result, text[idx]);
