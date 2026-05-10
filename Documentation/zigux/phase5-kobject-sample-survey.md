@@ -6,7 +6,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 - `PHASE5_STATUS=parked`
 - `PHASE5_LANE_KEY=P5-L20`
-- `PHASE5_SURVEYED_COMMIT=08e28ad9343a229e4974e54d5fcf09a2b7465f5e`
+- `PHASE5_SURVEYED_COMMIT=28a3bde2b3d68612f18d9bdd786be50c71c3173e`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
 - scope: roadmap-vs-repo sample delivery, approved ownership-and-lifetime guidance, and exact bounded checks for the first `samples/zigux/` kobject-style replay
 - product boundary:
@@ -40,6 +40,7 @@ Fresh repo inspection shows the bounded roadmap anchor is already landed as `sam
 - the honest Phase 5 move is to make the directory name, attribute dispatch, and lifetime boundaries reviewable in memory while keeping sysfs creation, kernel object registration, and module wiring out of scope.
 - the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` all help keep this kobject note aligned with the same four-sample Phase 5 packet described from the docs root, guide, checklist, sample root, scripts root, and tests root.
 - the narrower same-lane guidance risk on current `master` is no longer missing broad docs-root coverage; it is reviewers having to reconstruct which kobject-owned lifecycle replays are the authoritative packet when a shared guidance edit touches the sample, manifest, review checklist, or survey note together.
+- the remaining packet-local review-note risk is stale provenance: when a same-packet survey-note follow-up lands after the pinned snapshot, `PHASE5_SURVEYED_COMMIT` should advance with that note refresh instead of implying the older survey cut is still the newest bounded verification point.
 
 ## Approved idiom for the landed kobject-style sample
 
@@ -110,6 +111,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 - do the manifest prompts and exact checks still keep initialized-only `exit()` reporting `abandoned_before_registration` and registered `exit()` reporting `tore_down_registered_attributes`?
 - do the manifest prompts and exact checks still keep the unnamed attribute group shape plus the post-`exit()` show or store rejection boundary explicit instead of implying sysfs registration?
 - if the sample behavior changes, is the manifest updated alongside the registration and lifecycle contract instead of leaving reviewers to infer the new boundary from code alone?
+- if the same packet lands a survey-note follow-up after the last pinned snapshot, does `PHASE5_SURVEYED_COMMIT` advance with that note refresh instead of leaving the older verification marker parked?
 - do the docs and tests still say clearly that sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope for this Phase 5 sample?
 
 ## Recorded gap vs roadmap
@@ -125,9 +127,10 @@ This slice keeps the landed `kobject` sample reviewable by recording the exact l
 
 ## Latest verification snapshot
 
-Fresh focused current-`master` review-surface readback on 2026-05-08 kept the shipped kobject packet repo-local and explicit after this guidance refresh.
+Fresh focused current-`master` review-surface readback on 2026-05-10 kept the shipped kobject packet repo-local and explicit after the latest packet-local workflow clarifications and contributor-surface reminder refreshes.
 
 - connector-backed current-`master` inspection confirmed that `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and the shared `zigux/tests/phase5_build.zig` route still describe the same bounded non-runtime packet
+- the latest packet-local survey-note history now reaches `28a3bde2b3d68612f18d9bdd786be50c71c3173e`, so this survey marker now follows the newest observed same-packet review-note refresh instead of staying pinned to the older pre-follow-up snapshot
 - the landed survey note still keeps sample-owned `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()` explicit across the same initialized-only, registered, parse-failure, lifecycle, and teardown boundaries the manifest-backed packet already names
 - the broader Phase 5 contributor packet still keeps this sample distinct from the no-sample `string`, `cmdline`, `argv_split`, and `rbtree` Phase 7 helper surfaces, from the direct no-sample Phase 5 `bitmap` boundary, and from later runtime-backed work instead of implying a fifth helper sample, a fifth direct bitmap sample, or a sysfs-backed Phase 5 runtime surface
 - the note still keeps sysfs creation, `kernel_kobj` integration, uevents, and module registration marked out of scope, so the current review surface remains an in-memory ownership-and-lifetime sample rather than a runtime substrate claim
@@ -135,7 +138,7 @@ Fresh focused current-`master` review-surface readback on 2026-05-08 kept the sh
 ## Review gates for this survey
 
 1. confirm the Phase 5 anchor is still the Linux kobject example
-   - `rg -n "samples/kobject/kobject-example.c|PHASE5_LANE_KEY=P5-L20|PHASE5_SURVEYED_COMMIT=08e28ad9343a229e4974e54d5fcf09a2b7465f5e|Phase 5" Documentation/zigux samples`
+   - `rg -n "samples/kobject/kobject-example.c|PHASE5_LANE_KEY=P5-L20|PHASE5_SURVEYED_COMMIT=28a3bde2b3d68612f18d9bdd786be50c71c3173e|Phase 5" Documentation/zigux samples`
 2. confirm the current `samples/zigux/` surface stays distinct from this reference-sample lane
    - `find samples/zigux -maxdepth 1 -type f | sort`
 3. run the exact bounded Phase 5 sample checks
@@ -154,4 +157,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection shows the shared Phase 5 guide, the per-sample kobject survey note, or the manifest-backed replay prompts drifting apart. If that happens, keep the follow-through limited to the smallest truthfulness repair across those existing contributor surfaces instead of widening into new sample semantics or runtime substrate claims.
+Leave this lane parked unless fresh repo inspection shows the per-sample survey note drifting again on the packet-local provenance marker or the exact kobject replay names. If that happens, keep the follow-through limited to the smallest truthfulness repair inside this note first instead of widening into new sample semantics or runtime substrate claims.
