@@ -120,16 +120,19 @@ Do not widen it into:
 - Phase 12 release-order work that merely references the same manifest tree
 
 ### 4. Shared packet wording lane: docs or validator sequencing only
-Use this lane only when the shared Phase 8 packet description drifts across docs-root, tests-root, validator wording, or Makefile naming.
+Use this lane only when the shared Phase 8 packet description drifts across docs-root, tests-root, validator wording, focused gate wording, or Makefile naming.
 
 Allowed surfaces:
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `scripts/zigux/validate-phase8.py`
+- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
 - `zigux/tests/README.md`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
+
+Use this wording lane for gate-only alignment too: if the parked perf-buffer poll review packet drifts only in `scripts/zigux/check-phase8-perf-buffer-poll-gate.py` or its shared reminder surfaces while `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` itself stays unchanged, keep that follow-up here instead of widening back into helper-local work.
 
 When this wording lane reopens, treat `scripts/zigux/README.md` and `zigux/tests/README.md` as first-pass truth surfaces alongside `Documentation/zigux/README.md`, not as later summaries. On current `master` the scripts-root Phase 8 flow keeps the compact shared packet inventory visible through `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_cpu_mask_only_build.zig`, `zigux/tests/phase8_logging.zig`, `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_bpf_type_names.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, and `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, and it already names `make -C zigux phase8-cpu-mask-test` alongside the parked file-path bridge, libbpf-segment, and perf-buffer-poll replays. The docs-root reminder also keeps `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, the parked command plus shared symbol replay surfaces explicit through `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_help_kallsyms_only_build.zig`, `make -C zigux phase8-help-test`, and `make -C zigux phase8-help-kallsyms-test`, and the focused `make -C zigux phase8-cpu-mask-test`, `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, and `make -C zigux phase8-perf-buffer-poll-test` shard routes beside the parked libbpf packet. The tests-root reminder already keeps `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `zigux/tests/phase8_bpf_type_names.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, and the focused `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8-libbpf-segments-test`, and `make -C zigux phase8-perf-buffer-poll-test` routes explicit, but it does not yet name the focused `zigux/tests/phase8_cpu_mask_only_build.zig` plus `make -C zigux phase8-cpu-mask-test` replay directly. If the wording lane reopens there again, keep that follow-up as a one-file tests-root reminder sync instead of widening helper-local work.
 
