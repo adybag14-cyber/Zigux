@@ -9,12 +9,24 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const dev_t_bindings_module = b.createModule(.{
+        .root_source_file = b.path("../bindings/dev_t.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const uapi_version_module = b.createModule(.{
         .root_source_file = b.path("../uapi/version.zig"),
         .target = target,
         .optimize = optimize,
     });
     uapi_version_module.addImport("abi_bindings", abi_bindings_module);
+
+    const uapi_dev_t_module = b.createModule(.{
+        .root_source_file = b.path("../uapi/dev_t.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    uapi_dev_t_module.addImport("dev_t_bindings", dev_t_bindings_module);
 
     const export_shim_module = b.createModule(.{
         .root_source_file = b.path("../kernel/export_shim.zig"),
@@ -30,13 +42,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     root_module.addImport("abi_bindings", abi_bindings_module);
+    root_module.addImport("dev_t_bindings", dev_t_bindings_module);
     root_module.addImport("export_shim", export_shim_module);
     root_module.addImport("uapi_version", uapi_version_module);
+    root_module.addImport("uapi_dev_t", uapi_dev_t_module);
 
-    const tests = b.addTest(.{
-        .name = "phase3-export-uapi-tests",
-        .root_module = root_module,
-    });
+    const tests = b.addTest(.{ .name = "phase3-export-uapi-tests", .root_module = root_module });
     const run_tests = b.addRunArtifact(tests);
     const test_step = b.step("test", "Run Phase 3 export/UAPI behavior tests");
     test_step.dependOn(&run_tests.step);
