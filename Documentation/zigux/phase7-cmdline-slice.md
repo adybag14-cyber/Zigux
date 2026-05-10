@@ -101,4 +101,6 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Keep the helper slice parked unless fresh repo inspection shows one real same-lane reviewability gap inside the existing shared packet. Current `master` already carries `zigux/tests/phase7_cmdline_manifest.json` across `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `Documentation/zigux/README.md`, while `scripts/zigux/validate-phase7.py` already requires that manifest file to exist. The next safe step is therefore to leave this slice parked until a new small same-lane parity, note, checker, validator, or manifest drift appears, instead of steering future runs back into finished shared README churn.
+Keep the helper slice parked for behavior, fixtures, and shared README wording: current `master` already carries `zigux/tests/phase7_cmdline_manifest.json` across `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `Documentation/zigux/README.md`, and `scripts/zigux/validate-phase7.py` already requires that manifest file to exist.
+
+The next honest same-lane follow-up is narrower: tighten `scripts/zigux/validate-phase7.py` so the shared Phase 7 validator fail-closes if those shared reminder surfaces drop the cmdline manifest marker, instead of steering future runs back into already-finished Phase 7 helper logic or shared README churn.
