@@ -485,3 +485,46 @@ test "phase4 perf baseline survey keeps the shared matrix and reviewer packet on
         try std.testing.expect(std.mem.indexOf(u8, scripts_readme, marker) != null);
     }
 }
+
+test "phase4 perf baseline survey keeps the local wrapper and gate-evidence split explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
+    const gate_evidence = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase4-gate-evidence.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(gate_evidence);
+
+    const required_makefile_markers = [_][]const u8{
+        "phase4-perf-baseline-survey:",
+        "$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+    };
+
+    for (required_makefile_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, makefile, marker) != null);
+    }
+
+    const required_gate_evidence_markers = [_][]const u8{
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+        "zigux/tests/phase4_perf_baseline_survey.zig",
+        "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+        "make -C zigux phase4-perf-baseline-survey",
+        "approved local-only command-and-limit evidence for both rollback gates remains intentionally separate from shared CI perf approval",
+        "stays the bounded replay route outside the shared validator-backed exact-readback target set",
+    };
+
+    for (required_gate_evidence_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, gate_evidence, marker) != null);
+    }
+}
