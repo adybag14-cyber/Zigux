@@ -17,34 +17,40 @@
     "tools/lib/vsprintf.zig",
     "tools/lib/zalloc.zig"
   ],
+  "lane_sequencing": {
+    "shared_replay_parked_helpers": [
+      "tools/lib/argv_split.zig",
+      "tools/lib/cmdline.zig",
+      "tools/lib/ctype.zig",
+      "tools/lib/hweight.zig",
+      "tools/lib/list_sort.zig",
+      "tools/lib/slab.zig",
+      "tools/lib/str_error_r.zig",
+      "tools/lib/vsprintf.zig",
+      "tools/lib/zalloc.zig"
+    ],
+    "direct_anchor_followup_helpers": [
+      "tools/lib/bitmap.zig",
+      "tools/lib/find_bit.zig",
+      "tools/lib/rbtree.zig",
+      "tools/lib/string.zig"
+    ],
+    "rule_summary": "Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local follow-up anchors on current master.",
+    "anti_overlap_rule": "Do not reopen Phase 1 by batching helpers across those two sets in one lane; shared-replay parked helpers reopen only for packet drift, while direct-anchor helpers reopen only for their existing helper-local anchors or already-committed shared fixture keys."
+  },
   "review_anchors": {
     "tools/lib/bitmap.zig": {
       "helper_test_anchors": [
-        "test \"bitmap scnprintf leaves the caller buffer untouched for an empty bitmap\"",
-        "test \"bitmap allocator helpers size zero and free their buffers\"",
-        "test \"bitmap size aliases round bit counts to full words in bytes\"",
-        "test \"bitmap set clear weight and empty full helpers\"",
-        "test \"bitmap range helpers honor exact first-word boundaries\"",
-        "test \"bitmap range helpers clamp the final partial word\"",
-        "test \"bitmap fill clamps tail bits in partial words\"",
-        "test \"bitmap and andnot equal intersects subset\"",
-        "test \"bitmap and andnot clamp tail bits in partial words\"",
         "test \"bitmap predicates ignore out-of-range tail bits\"",
-        "test \"bitmap xor keeps caller-selected bit window\"",
-        "test \"bitmap scnprintf collapses contiguous ranges\"",
+        "test \"bitmap range helpers clamp the final partial word\"",
         "test \"bitmap scnprintf collapses contiguous ranges across word boundaries\"",
-        "test \"bitmap scnprintf reports full length while truncating the buffer\"",
-        "test \"bitmap scnprintf handles terminator-only and zero-length caller views\"",
-        "test \"bitmap copy aliases preserve tail clearing and extension semantics\"",
-        "test \"bitmap copy alias preserves raw source words without tail clearing\"",
+        "test \"bitmap zero-bit binary helpers stay explicit identity operations\"",
         "test \"bitmap copy and extend handles zero and aligned counts\"",
-        "test \"bitmap zero-bit helpers stay explicit no-ops\"",
         "test \"bitmap Linux-style aliases mirror the primary helper surface\""
       ],
       "first_word_boundary_anchor": "test \"bitmap range helpers honor exact first-word boundaries\"",
       "final_partial_word_anchor": "test \"bitmap range helpers clamp the final partial word\"",
       "predicate_tail_mask_anchor": "test \"bitmap predicates ignore out-of-range tail bits\"",
-      "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
       "parity_fixture_keys": [
         "scnprintf",
         "truncated_scnprintf_len",
@@ -63,17 +69,10 @@
       "copy_raw_alias_anchor": "test \"bitmap copy alias preserves raw source words without tail clearing\"",
       "copy_extend_zero_aligned_anchor": "test \"bitmap copy and extend handles zero and aligned counts\"",
       "zero_bit_noop_anchor": "test \"bitmap zero-bit helpers stay explicit no-ops\"",
+      "zero_bit_binary_identity_anchor": "test \"bitmap zero-bit binary helpers stay explicit identity operations\"",
       "linux_alias_anchor": "test \"bitmap Linux-style aliases mirror the primary helper surface\""
     },
     "tools/lib/find_bit.zig": {
-      "same_word_start_masks": "test \"single-word next scans honor start masks\"",
-      "inclusive_boundary_start": "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
-      "zero_bit_window": "test \"zero-bit windows return without reading bitmap words\"",
-      "past_nbits_short_circuit": "test \"next scans past nbits return without reading bitmap words\"",
-      "underscore_alias_anchor": "test \"low-level underscore aliases mirror the primary find helpers\"",
-      "tail_word_next_set_anchor": "test \"tail-word next set scans skip earlier in-range matches before clamping\"",
-      "tail_word_next_zero_and_anchor": "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
-      "tail_word_start_mask_review_summary": "helper-local tail-word next-scan anchors stay explicit because the shared Phase 1 replay locks tail-clamped results but does not isolate same-tail-word starts that must skip earlier in-range matches before clamping",
       "tail_clamp_fixture_keys": [
         "tail_clamped_first",
         "tail_clamped_next",
@@ -93,14 +92,16 @@
         "test \"rbtree postorder and empty node helpers behave\"",
         "test \"rbtree findAdd keeps the first duplicate and inserts new keys\"",
         "test \"rbtree nextMatch walks the duplicate range in order\"",
+        "test \"rbtree matchIterator walks the duplicate range in order\"",
         "test \"rbtree addCached returns the inserted node only when it becomes leftmost\"",
+        "test \"rbtree findAddCached keeps cached leftmost stable while inserting misses\"",
         "test \"rbtree cached root keeps the leftmost pointer in sync\"",
+        "test \"rbtree cached-root Linux-style aliases mirror the primary helpers\"",
         "test \"rbtree replaceNodeCached keeps non-leftmost leftmost unchanged\"",
         "test \"rbtree eraseCached returns null for a singleton cached tree\"",
         "test \"rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned\"",
         "test \"rbtree eraseInitCached clears singleton cached roots before reseed\""
       ],
-      "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
       "parity_fixture_keys": [
         "empty_root",
         "insert_order",
@@ -115,7 +116,23 @@
         "find_first_serial",
         "next_match_serials",
         "next_match_terminal_null"
-      ]
+      ],
+      "duplicate_search_anchors": [
+        "test \"rbtree findAdd keeps the first duplicate and inserts new keys\"",
+        "test \"rbtree nextMatch walks the duplicate range in order\"",
+        "test \"rbtree matchIterator walks the duplicate range in order\""
+      ],
+      "cached_root_followup_anchors": [
+        "test \"rbtree addCached returns the inserted node only when it becomes leftmost\"",
+        "test \"rbtree findAddCached keeps cached leftmost stable while inserting misses\"",
+        "test \"rbtree cached root keeps the leftmost pointer in sync\"",
+        "test \"rbtree cached-root Linux-style aliases mirror the primary helpers\"",
+        "test \"rbtree replaceNodeCached keeps non-leftmost leftmost unchanged\"",
+        "test \"rbtree eraseCached returns null for a singleton cached tree\"",
+        "test \"rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned\"",
+        "test \"rbtree eraseInitCached clears singleton cached roots before reseed\""
+      ],
+      "review_packet_summary": "shared find, first-match, and next-match duplicate-search parity stays explicit through the Phase 1 fixture and replay, while match-iterator coverage plus cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors until master ships dedicated shared iterator or cached-root fixture keys"
     },
     "tools/lib/string.zig": {
       "helper_test_anchors": [
@@ -127,11 +144,19 @@
         "test \"strHasPrefix honors C-string boundaries\"",
         "test \"strstarts mirrors the header-level prefix helper\"",
         "test \"strEndsWith honors C-string boundaries\"",
+        "test \"sysfsStreq treats trailing newline and NUL as equivalent\"",
+        "test \"sysfs_streq mirrors sysfsStreq newline and NUL equivalence\"",
         "test \"memdup and memchrInv preserve byte content\"",
+        "test \"memchr_inv mirrors memchrInv byte-search semantics\"",
         "test \"memchrInv keeps long-buffer first-dirty-byte results stable\"",
+        "test \"memchrInv follows the earliest dirty byte as long buffers change\"",
+        "test \"memchrInv dirty-word shortcut handles zero-value scans at word boundaries\"",
+        "test \"memchrInv zero-value scans keep the earliest dirty byte across every prefix alignment\"",
+        "test \"memchrInv short zero-value scans stay byte-accurate\"",
         "test \"memparse handles decimal hexadecimal octal and suffixes\"",
         "test \"memparse keeps original rest when sign is not followed by digits\"",
         "test \"memparse saturates signed overflow instead of trapping\"",
+        "test \"memparse clamps explicit positive signed overflow\"",
         "test \"memparse keeps signed values and their trailing rest aligned\"",
         "test \"memparse consumes suffix after saturation\"",
         "test \"memparse applies suffixes before signed clamping\"",
@@ -140,6 +165,7 @@
       "memparse_review_anchors": [
         "test \"memparse keeps original rest when sign is not followed by digits\"",
         "test \"memparse saturates signed overflow instead of trapping\"",
+        "test \"memparse clamps explicit positive signed overflow\"",
         "test \"memparse keeps signed values and their trailing rest aligned\"",
         "test \"memparse consumes suffix after saturation\"",
         "test \"memparse applies suffixes before signed clamping\""
@@ -150,7 +176,7 @@
         "test \"strEndsWith honors C-string boundaries\""
       ],
       "prefix_suffix_review_summary": "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields",
-      "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep trailing-rest splits aligned with unsigned parsing, signed overflow saturates, and suffixes are still consumed after saturation",
+      "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, explicit positive and signed overflow clamps remain review-visible, signed inputs keep trailing-rest splits aligned with unsigned parsing, and suffixes are still consumed after saturation",
       "phase1_helper_replay_anchor": "test \"phase 1 string replaceChar stops at embedded NUL\"",
       "shared_replace_char_cstr_review_summary": "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without widening helper-local memparse ownership",
       "parity_fixture_keys": [
