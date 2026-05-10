@@ -83,6 +83,7 @@ Use `Documentation/zigux/phase6-leaf-helper-lane-sequencing.md` before reopening
 
 ## Shared Replay Reminders
 
+- `make -C zigux phase6-bsearch-test`
 - `make -C zigux phase6-hexdump-test`
 - `make -C zigux phase6-validate`
 - `make -C zigux phase6`
