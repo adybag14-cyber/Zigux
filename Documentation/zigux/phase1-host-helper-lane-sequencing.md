@@ -49,6 +49,8 @@ The Phase 1 closure validator already carries the bitmap final-partial-word and 
 
 The smallest live same-lane drift is smaller and different: `scripts/zigux/README.md` already treats this owner-map note as part of the shipped Phase 1 review surface, but `Documentation/zigux/README.md` still does not name it. That means the docs-root Phase 1 summary can drift behind the current owner-map split even before the shared closure-validator packet is tightened around this note.
 
+Fresh validator-local rereads also show that the parked `scripts/zigux/validate-phase1.py` bitmap-manifest-anchor handoff is still the right helper-family follow-up after that docs-root sync, but its saved publication helper is preimage-pinned to an older live validator body. Future runs should refresh that one-file helper against current `master` before trying to land it.
+
 ## Anti-Overlap Rules
 
 When this lane reopens, stay inside one bounded step only.
@@ -60,7 +62,7 @@ When this lane reopens, stay inside one bounded step only.
 
 ## Next Bounded Step
 
-The next honest same-lane follow-up is to add this lane-sequencing note to `Documentation/zigux/README.md`, then tighten the shared Phase 1 closure-validator packet around the same owner-map note so the docs-root and fail-closed review surfaces cannot drift apart.
+The next honest same-lane follow-up is to add this lane-sequencing note to `Documentation/zigux/README.md`, then refresh the parked one-file `scripts/zigux/validate-phase1.py` bitmap-manifest-anchor helper against the current live validator preimage before tightening the shared Phase 1 closure-validator packet around the same owner-map note so the docs-root and fail-closed review surfaces cannot drift apart.
 
 Until that docs-root and validator sync lands, keep Phase 1 follow-up work parked on review-surface truthfulness, closure accuracy, fixture drift, or other already-shipped parity-gate surfaces rather than reopening helper behavior.
 
