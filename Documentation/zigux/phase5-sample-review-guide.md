@@ -23,11 +23,13 @@ Keep the paired review packet aligned with the same shared surfaces already name
 
 Use `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `make -C zigux phase5-test`, and `make -C zigux phase5` as the shared replay route for the four-sample packet.
 
+`.github/workflows/zigux-bootstrap.yml` currently reruns only the direct `zig build test --build-file zigux/tests/phase5_build.zig --summary all` command, while `make -C zigux phase5-test` and `make -C zigux phase5` remain local Linux-style wrappers over that same shared build entrypoint.
+
 ## Review Cues
 
 ### `bytestream_fifo`
 
-Keep the sample-backed review packet explicit around the queue-order drain contract, the non-destructive `snapshotInto()` cue, the short-drain `"hel"` plus queued `"lo"` helper boundary, the `StorageBacking.embedded_fixed_buffer` fixed-buffer ring cue, the bounded preview and rollover cues around `previewInto()`, `available()`, and `usesWrappedStorageWindow()`, the `visibleSpanSummary()` split cue, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path.
+Keep the sample-backed review packet explicit around the queue-order drain contract, the non-destructive `snapshotInto()` cue, the short-drain `\"hel\"` plus queued `\"lo\"` helper boundary, the `StorageBacking.embedded_fixed_buffer` fixed-buffer ring cue, the bounded preview and rollover cues around `previewInto()`, `available()`, and `usesWrappedStorageWindow()`, the `visibleSpanSummary()` split cue, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path.
 
 ### `kobject_example`
 
