@@ -18,13 +18,14 @@ This document records the bounded shared closure packet for the active Phase 10 
 Current `master` already ships a real Phase 10 packet:
 
 - the bounded virtio core, ring, input, and MMIO Zig slices
-- the shared `scripts/zigux/validate-phase10-closure.py` closure validator, which machine-checks the manifest-backed closure packet, survey provenance, and MMIO freeze-boundary markers
+- the shared `zigux/tests/phase10_closure_manifest.json` closure packet, which records the manifest-backed shared reminder surface and survey provenance
 - the four dedicated packet checkers plus the shared freeze-boundary checker
 - the shared `zigux/tests/phase10_build.zig` build route
 - the Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` entrypoints
 
 What it does not ship is equally important:
 
+- there is no shared `scripts/zigux/validate-phase10-closure.py`
 - there is no dedicated `scripts/zigux/validate-phase10.py`
 - there is no broader `scripts/zigux/check-phase10-harness-coverage.py`
 - there is no dedicated `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`; current `zigux-alpha/` on `master` only carries the bootstrap `README.md`, `ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`, and `BOOTSTRAP_COMMIT_LEDGER.md`
@@ -81,7 +82,6 @@ The shared Phase 10 closure packet currently stays inside:
 - `zigux/tests/phase10_virtio_input_survey.zig`
 - `zigux/tests/phase10_virtio_mmio.zig`
 - `zigux/tests/phase10_virtio_mmio_survey.zig`
-- `scripts/zigux/validate-phase10-closure.py`
 - `scripts/zigux/check-phase10-core-packet.py`
 - `scripts/zigux/check-phase10-ring-packet.py`
 - `scripts/zigux/check-phase10-input-packet.py`
@@ -93,20 +93,17 @@ The shared Phase 10 closure packet currently stays inside:
 
 The honest shared closure gates on current `master` are:
 
-1. shared closure validator
-- `python3 scripts/zigux/validate-phase10-closure.py`
-
-2. dedicated packet guards
+1. dedicated packet guards
 - `python3 scripts/zigux/check-phase10-core-packet.py`
 - `python3 scripts/zigux/check-phase10-ring-packet.py`
 - `python3 scripts/zigux/check-phase10-input-packet.py`
 - `python3 scripts/zigux/check-phase10-mmio-packet.py`
 - `python3 scripts/zigux/check-phase10-mmio-freeze-boundary.py`
 
-3. shared Phase 10 build replay
+2. shared Phase 10 build replay
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
 
-4. Linux-style shared replay route
+3. Linux-style shared replay route
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
@@ -133,7 +130,7 @@ This note does not claim:
 
 ## Review Rule
 
-Reviewers should treat any future claim that the active Phase 10 tranche already ships a dedicated `validate-phase10.py`, a broader harness-coverage checker, a separate `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, or a `phase10-validate` make surface as closure drift unless those surfaces are added to `master` and then linked from this note, the docs root, and the shared manifest packet.
+Reviewers should treat any future claim that the active Phase 10 tranche already ships a shared `validate-phase10-closure.py`, a dedicated `validate-phase10.py`, a broader harness-coverage checker, a separate `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, or a `phase10-validate` make surface as closure drift unless those surfaces are added to `master` and then linked from this note, the docs root, and the shared manifest packet.
 
 ## Next bounded step
 
