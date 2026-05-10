@@ -25,7 +25,7 @@ Use `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, `m
 
 `.github/workflows/zigux-bootstrap.yml` currently reruns only the direct `zig build test --build-file zigux/tests/phase5_build.zig --summary all` command, while `make -C zigux phase5-test` and `make -C zigux phase5` remain local Linux-style wrappers over that same shared build entrypoint.
 
-The two focused direct replays that currently sit beside that shared packet are `zig test samples/zigux/kretprobe_example.zig` for the sample-owned kretprobe cue set and `zig test --test-no-exec zigux/tests/phase5_trace_events_sample_survey.zig` for the trace-events survey gate. Keep those sample-local commands aligned with the per-sample survey notes and the shared `phase5_build.zig` route instead of implying a separate `phase5-validate` lane.
+The three focused direct replays that currently sit beside that shared packet are `zig test samples/zigux/bytestream_fifo.zig` for the bytestream FIFO sample-owned queue-order and ownership cues, `zig test samples/zigux/kretprobe_example.zig` for the sample-owned kretprobe cue set, and `zig test --test-no-exec zigux/tests/phase5_trace_events_sample_survey.zig` for the trace-events survey gate. Keep those sample-local commands aligned with the per-sample survey notes and the shared `phase5_build.zig` route instead of implying a separate `phase5-validate` lane.
 
 ## Review Cues
 
